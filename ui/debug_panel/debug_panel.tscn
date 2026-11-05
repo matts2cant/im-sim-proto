@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/debug_panel.gd" id="1_ieq6c"]
+
+[node name="DebugPanel" type="CanvasLayer" unique_id=2134689652]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("1_ieq6c")
+
+[node name="TabContainer" type="TabContainer" parent="." unique_id=773806880]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = -32.0

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cmfsg33727hee"
+path="res://.godot/imported/Gore And Larvae Loop.wav-da1e5a530fc4f58a22827a80e52d52da.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/Horror/Gore And Larvae Loop.wav"
+dest_files=["res://.godot/imported/Gore And Larvae Loop.wav-da1e5a530fc4f58a22827a80e52d52da.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

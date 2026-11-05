@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://7mnjxhjkw2f4"
+path="res://.godot/imported/Hover Over.wav-89805113a9f30e6ead093b7c1598eda3.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/UI & Menus/Hover Over.wav"
+dest_files=["res://.godot/imported/Hover Over.wav-89805113a9f30e6ead093b7c1598eda3.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

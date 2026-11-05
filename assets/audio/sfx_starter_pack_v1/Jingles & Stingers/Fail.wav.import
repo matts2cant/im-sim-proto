@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://q2py0h486tqj"
+path="res://.godot/imported/Fail.wav-bd7778b44e42843bc905976b06c07caa.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/Jingles & Stingers/Fail.wav"
+dest_files=["res://.godot/imported/Fail.wav-bd7778b44e42843bc905976b06c07caa.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

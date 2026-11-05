@@ -1,0 +1,37 @@
+# Decision records
+
+One ADR per design decision. Add a new ADR for any new design decision (next number, same format: Title, Status, Date, Context, Decision, Alternatives considered, Consequences).
+
+| ADR | Title | Status |
+|---|---|---|
+| [0001](0001-engine-godot.md) | Engine: Godot 4 | Accepted |
+| [0002](0002-language-gdscript.md) | Language: typed GDScript | Accepted |
+| [0003](0003-systemic-framework.md) | Systemic framework: own Act/React stimulus framework | Accepted |
+| [0004](0004-perspective-first-person.md) | Perspective: first person | Accepted |
+| [0005](0005-level-gallery-and-mission.md) | Level structure: test gallery plus mission area | Accepted |
+| [0006](0006-pillars.md) | Pillars for v0 | Accepted |
+| [0007](0007-combat-weapons.md) | Combat: one lethal, one non-lethal weapon | Accepted |
+| [0008](0008-progression-none.md) | Progression: none in v0 | Accepted |
+| [0009](0009-debug-tooling.md) | Debug tooling from day one | Accepted |
+| [0010](0010-fiction-graybox.md) | Fiction: abstract graybox | Accepted |
+| [0011](0011-testing-strategy.md) | Testing: three layers with GdUnit4 | Accepted |
+| [0012](0012-guard-awareness.md) | Guard awareness: graded states, communication, alarm | Accepted |
+| [0013](0013-light-analytic.md) | Light visibility computed analytically | Accepted |
+| [0014](0014-movement-scope.md) | Movement scope: jump, mantle, vents | Accepted |
+| [0015](0015-inventory-grid.md) | Inventory: Deus Ex 1 grid | Accepted |
+| [0016](0016-bodies.md) | Bodies: carry, discovery, waking by others | Accepted |
+| [0017](0017-hacking-placeholder.md) | Hacking: multitools and credentials for now | Accepted |
+| [0018](0018-damage-body-parts.md) | Damage: Deus Ex 1 body parts and damage types | Accepted |
+| [0019](0019-version-control.md) | Version control: local git, branch per milestone | Accepted |
+| [0020](0020-skills-augmentations.md) | Skills and augmentations list for v0 | Accepted |
+| [0021](0021-mission-design.md) | Mission area design | Accepted |
+| [0022](0022-guard-feedback.md) | Guard feedback: MGS-style icons and text barks | Accepted |
+| [0023](0023-aiming.md) | Aiming: softened Deus Ex 1 reticle | Accepted |
+| [0024](0024-baton-knockout.md) | Baton knockout rules | Accepted |
+| [0025](0025-saving.md) | Saving: saveable contract from M0, F5/F9 in M6 | Accepted |
+| [0026](0026-audio.md) | Audio: starter pack plus Kenney CC0, placeholders, no auto-downloads | Accepted |
+| [0027](0027-sound-propagation.md) | Sound propagation by navmesh path distance | Accepted |
+| [0028](0028-input-physical-keys.md) | Input: physical-key bindings | Accepted |
+| [0029](0029-docs-english-no-difficulty.md) | Docs in English; no difficulty settings | Accepted |
+| [0030](0030-code-conventions.md) | Code conventions | Accepted |
+| [0031](0031-agent-workflow.md) | Agent workflow: chief engineer and sub-agents | Accepted |

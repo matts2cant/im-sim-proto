@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b4bhi1o8uc03r"
+path="res://.godot/imported/Swoosh Pirate Ship.wav-a0d4e6d7c05a2d28e5b0b873181096d1.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/Motions and Impacts/Swoosh Pirate Ship.wav"
+dest_files=["res://.godot/imported/Swoosh Pirate Ship.wav-a0d4e6d7c05a2d28e5b0b873181096d1.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
