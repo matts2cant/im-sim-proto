@@ -5,6 +5,7 @@
 # Dev tooling
 .venv/
 __pycache__/
+.api-docs/
 
 # Test reports (GdUnit4)
 reports/

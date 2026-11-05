@@ -30,6 +30,8 @@ tools/run_tests.sh                       # all GdUnit4 tests, headless
 tools/run_tests.sh res://tests/core      # a subset
 tools/lint.sh                            # gdformat --check + gdlint (addons excluded)
 tools/lint.sh --fix                      # format in place
+tools/gen_api_docs.sh                    # Godot 4.7.2 API reference into .api-docs/ (for agents)
+tools/screenshot.sh res://levels/hub/hub.tscn  # render a scene's last frame to reports/screenshots/
 ```
 
 See [design/tech/testing.md](design/tech/testing.md).
