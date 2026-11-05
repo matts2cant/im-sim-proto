@@ -25,4 +25,4 @@ Format per milestone: **What went well**, **What went wrong**, **Changes made**,
 - CLAUDE.md: retrospective after every milestone; filter noisy command output in the main session. (Fixes 4.)
 
 **Open questions for the user**
-- `tools/screenshot.sh` opens a game window for about a second. OK for agents to do that while you work?
+- `tools/screenshot.sh` opens a game window for about a second. OK for agents to do that while you work? → **Yes** (user, 2026-11-06).
