@@ -1,6 +1,6 @@
 # Controls
 
-Milestone: M0 (input map); actions added as features land.
+Milestone: M0 (input map); movement and look in M1; other actions added as features land.
 
 ## Purpose
 
@@ -11,9 +11,9 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Input | Action |
 |---|---|
 | W A S D | Move |
-| Ctrl | Crouch |
-| Shift | Sprint |
-| Space | Jump / mantle |
+| Ctrl | Crouch (hold) |
+| Shift | Sprint (hold, forward only) |
+| Space | Jump / mantle (press facing a ledge, or hold in the air) |
 | E | Use / pick up / carry |
 | R | Reload |
 | Q | Drop / throw |
@@ -23,7 +23,8 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | F5 | Quicksave (M6) |
 | F9 | Quickload (M6) |
 | ` (QuoteLeft) | Debug panel |
-| Mouse look | Look |
+| Mouse look | Look (captured mouse) |
+| Esc | Release the mouse; click in the window to capture it again |
 | LMB | Use item / fire |
 | RMB | Alt |
 
@@ -31,6 +32,9 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 
 - Gamepad support and rebinding are parked: [../backlog.md](../backlog.md).
 - Lean has no binding in v0.
+- Crouch is hold-to-crouch; the player stays crouched while there is no headroom to stand ([movement.md](movement.md)).
+- The mouse is captured while the player is active and the debug panel is closed; opening the panel frees it and closing restores the previous mode. Movement input is ignored while the panel is open.
+- Mouse sensitivity (0.0025 rad per pixel) and the ±89° pitch clamp are in `actors/player/player_config.tres`.
 
 ## Interactions
 

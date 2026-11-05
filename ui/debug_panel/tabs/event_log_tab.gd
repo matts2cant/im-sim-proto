@@ -10,6 +10,7 @@ const MAX_VISIBLE_ENTRIES: int = 200
 func _ready() -> void:
 	_filter.text_changed.connect(_on_filter_changed)
 	EventLog.entry_added.connect(_on_entry_added)
+	EventLog.cleared.connect(_rebuild)
 	_rebuild()
 
 

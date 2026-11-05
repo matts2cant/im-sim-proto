@@ -97,3 +97,12 @@ func _event_log_tab() -> Control:
 		if tabs.get_tab_title(i) == "Event Log":
 			return tabs.get_tab_control(i)
 	return null
+
+
+func test_event_log_tab_empties_when_log_is_cleared() -> void:
+	var list: ItemList = _event_log_tab().get_node("Entries")
+	EventLog.record(&"noise", "player")
+
+	EventLog.clear()
+
+	assert_int(list.item_count).is_equal(0)

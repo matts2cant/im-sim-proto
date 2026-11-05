@@ -13,6 +13,7 @@ The player never sees the framework directly. They see consequences: a shot barr
 ## Rules
 
 - **Stimulus**: type (StringName: `noise`, `fire`, `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, ...), intensity, origin, source node, shape (`radius` | `contact` | `ray`), radius. Emitted via `StimulusSystem.emit()`.
+- **Noise intensity** is the audible distance in metres ([ADR 0032](../decisions/0032-noise-loudness-audible-metres.md)).
 - **Propagation**: noise travels by navmesh path distance (NavigationServer3D), attenuated by distance and by closed doors on the path. Other stimuli propagate by shape: radius sphere query, contact, ray hit.
 - **StimulusReceiver** component holds **Receptrons** (Resources): stimulus type, min/max intensity, required tags, blocked tags, effects[]. A matching receptron runs its **Effects** in order.
 - **Effects** (Resources): add/remove tag, apply modifier, change attribute, emit stimulus, play cue (sound/VFX). New effect types are small Resource subclasses.

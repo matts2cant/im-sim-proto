@@ -79,3 +79,11 @@ func test_record_emits_entry_added() -> void:
 	var entry := _log.record(&"noise", "player")
 
 	await assert_signal(_log).is_emitted("entry_added", entry)
+
+
+func test_clear_emits_cleared() -> void:
+	monitor_signals(_log)
+
+	_log.clear()
+
+	await assert_signal(_log).is_emitted("cleared")
