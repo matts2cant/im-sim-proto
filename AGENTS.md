@@ -74,6 +74,22 @@ A task is done only when all of these hold:
 - New shell scripts: `#!/usr/bin/env bash` and tell the reviewer to set `git update-index --chmod=+x` (git does not track the executable bit here).
 - Scenes saved via `ResourceSaver` lack `uid=` headers; that is fine, the editor adds them.
 
+## Godot 4.7 / GdUnit4 gotchas
+
+- `simulate_frames` waits for process frames, not physics frames: `await get_tree().physics_frame` N times for physics-driven tests.
+- `runner.set_time_factor(n)` keeps physics delta at 1/60: safe for speeding up tests.
+- A suite instance lives across its tests: reset member fields in `before_test`, and `EventLog.clear()` when asserting on the log (autoload state leaks between tests).
+- gdlint `max-public-methods` (20) counts `test_` functions: split suites by concern.
+- Collision shape sizes are float32: compare with `is_equal_approx`, not `==`.
+- CSG collision is built a few frames after load: wait before querying it. `get_collider()` returns the CSG root that has `use_collision`.
+- CharacterBody3D often reports no slide collision on flat floors: use a RayCast3D for the floor collider.
+- Main-scene nodes enter the tree before autoloads run `_ready`: never call autoloads from `_enter_tree`.
+- `find_children(..., owned=true)` on a freshly instanced scene still returns nodes of instanced sub-scenes.
+- `.tscn` `Transform3D(...)` lists the basis **row by row** then origin: `Transform3D(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z, ox, oy, oz)` where x/y/z are the basis axes (verified on 4.7.2). Prefer building one CSG root per surface/material.
+- Level geometry must respect [design/levels/metrics.md](design/levels/metrics.md) (player size, clearances, jump and mantle limits).
+- Git Bash: long multi-file heredoc chains can fail to parse; write files with the Write tool or one per command.
+- Reusable test helpers: `tests/actors/player/player_driver.gd` drives the player in integration tests; reuse it instead of writing a new one.
+
 ## Workflow
 
 - One feature branch per milestone (`m0-skeleton`, `m1-player`, ...), merged into `master` with `--no-ff` after tests + lint pass. Small fixes may go directly on master.

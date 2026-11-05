@@ -4,6 +4,31 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M1 — Player controller (2026-11-06)
+
+**What went well**
+- Clean split: thin `Player` node over pure, unit-tested rules (`PlayerMotion`, `MantleRules`, `PlayerNoiseRules`, `FootstepTracker`). 88 tests, lint clean, one noise emit point ready for M2.
+- The agent used screenshots and fixed three visual problems itself (floor contrast, black vent, hidden signs).
+- Deviations were reported with reasons, and the agent caught three errors in the brief.
+
+**What went wrong**
+1. **Cost**: ~32 min, ~330k tokens, 128 tool calls for one agent. Self-reported split: level building 35%, integration-test harness 25%, controller edge cases 20%.
+2. **Brief errors (chief engineer)**: crouched capsule = vent height (no margin); "one gap infeasible" was false (sprint jump 5.4 m); mantle height measured only from the feet let jump-and-hold climb 2.3 m. Unspecified: hold vs toggle crouch, reach reference, mouse release, vent width.
+3. **Hand-placing CSG in `.tscn` text** was slow and error-prone (transform order, lips, missing parents).
+4. **Test harness learning curve**: process vs physics frames, suite state across tests, EventLog leaking between tests, float32 sizes, gdlint public-method cap.
+
+**Changes made**
+- AGENTS.md: "Godot 4.7 / GdUnit4 gotchas" list (13 items) and a pointer to the reusable `player_driver.gd`. (Fixes 4.)
+- design/tech/testing.md: "Deterministic physics tests" section. (Fixes 4.)
+- design/levels/metrics.md: player size, clearances, jump/mantle limits, noise numbers; AGENTS.md requires levels to respect it. (Fixes 2, 3.)
+- CLAUDE.md: brief checklist (verify numbers against metrics, state measurement references, input modes, exits, layout sketch) and split milestones into parallel briefs (systems vs level building). (Fixes 1, 2.)
+
+**User playtest feedback**
+- Pending.
+
+**Open questions for the user**
+- Level building: generate graybox levels from a build script (reviewable, fast for agents, but regenerating overwrites hand edits in the editor), or keep hand-authored `.tscn` built by agents and edited by you in the editor?
+
 ## M0 — Skeleton (2026-11-06)
 
 **What went well**

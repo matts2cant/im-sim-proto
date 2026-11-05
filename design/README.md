@@ -87,6 +87,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Levels
 
+- [levels/metrics.md](levels/metrics.md): player size, clearances, jump/mantle limits, noise numbers for level building.
 - [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms.
 - [levels/mission-warehouse.md](levels/mission-warehouse.md): warehouse mission, four routes.
 

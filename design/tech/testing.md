@@ -36,3 +36,11 @@ The Godot binary comes from `GODOT_BIN`, defaulting to `C:\Program Files\Godot\G
 A pre-commit hook (`tools/hooks`, installed by `tools/install_hooks.sh`) runs format and lint. CI is deferred until a GitHub remote exists.
 
 See [../decisions/0011-testing-strategy.md](../decisions/0011-testing-strategy.md).
+
+## Deterministic physics tests
+
+- Drive physics with a fixed number of physics frames (`await get_tree().physics_frame`), never wall-clock time. `runner.set_time_factor(n)` is safe (delta stays 1/60).
+- Reset suite member fields in `before_test`; call `EventLog.clear()` before asserting on the log.
+- Fixture scenes live next to the tests (`tests/<area>/fixtures/`). Wait a few frames after loading CSG before relying on its collision.
+- Reuse drivers: `tests/actors/player/player_driver.gd` presses actions and steps frames for the player.
+- See the gotcha list in [AGENTS.md](../../AGENTS.md).
