@@ -1,0 +1,91 @@
+[gd_resource type="Resource" script_class="SurfaceTable" format=3]
+
+[ext_resource type="Script" path="res://actors/player/surface_table.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_000.ogg" id="concrete_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_001.ogg" id="concrete_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_002.ogg" id="concrete_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_003.ogg" id="concrete_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_004.ogg" id="concrete_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_carpet_000.ogg" id="carpet_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_carpet_001.ogg" id="carpet_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_carpet_002.ogg" id="carpet_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_carpet_003.ogg" id="carpet_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_carpet_004.ogg" id="carpet_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_wood_000.ogg" id="wood_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_wood_001.ogg" id="wood_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_wood_002.ogg" id="wood_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_wood_003.ogg" id="wood_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_wood_004.ogg" id="wood_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_000.ogg" id="grass_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_001.ogg" id="grass_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_002.ogg" id="grass_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_003.ogg" id="grass_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_004.ogg" id="grass_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_000.ogg" id="metal_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_001.ogg" id="metal_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_002.ogg" id="metal_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_003.ogg" id="metal_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_004.ogg" id="metal_4"]
+
+[sub_resource type="AudioStreamRandomizer" id="Footsteps_concrete"]
+random_pitch = 1.08
+streams_count = 5
+stream_0/stream = ExtResource("concrete_0")
+stream_1/stream = ExtResource("concrete_1")
+stream_2/stream = ExtResource("concrete_2")
+stream_3/stream = ExtResource("concrete_3")
+stream_4/stream = ExtResource("concrete_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Footsteps_carpet"]
+random_pitch = 1.08
+streams_count = 5
+stream_0/stream = ExtResource("carpet_0")
+stream_1/stream = ExtResource("carpet_1")
+stream_2/stream = ExtResource("carpet_2")
+stream_3/stream = ExtResource("carpet_3")
+stream_4/stream = ExtResource("carpet_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Footsteps_wood"]
+random_pitch = 1.08
+streams_count = 5
+stream_0/stream = ExtResource("wood_0")
+stream_1/stream = ExtResource("wood_1")
+stream_2/stream = ExtResource("wood_2")
+stream_3/stream = ExtResource("wood_3")
+stream_4/stream = ExtResource("wood_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Footsteps_metal"]
+random_pitch = 1.08
+streams_count = 5
+stream_0/stream = ExtResource("metal_0")
+stream_1/stream = ExtResource("metal_1")
+stream_2/stream = ExtResource("metal_2")
+stream_3/stream = ExtResource("metal_3")
+stream_4/stream = ExtResource("metal_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Footsteps_grass"]
+random_pitch = 1.08
+streams_count = 5
+stream_0/stream = ExtResource("grass_0")
+stream_1/stream = ExtResource("grass_1")
+stream_2/stream = ExtResource("grass_2")
+stream_3/stream = ExtResource("grass_3")
+stream_4/stream = ExtResource("grass_4")
+
+[resource]
+script = ExtResource("1_script")
+default_surface = &"concrete"
+multipliers = Dictionary[StringName, float]({
+&"carpet": 0.5,
+&"concrete": 1.0,
+&"grass": 0.7,
+&"metal": 1.6,
+&"wood": 1.2
+})
+sounds = Dictionary[StringName, AudioStream]({
+&"carpet": SubResource("Footsteps_carpet"),
+&"concrete": SubResource("Footsteps_concrete"),
+&"grass": SubResource("Footsteps_grass"),
+&"metal": SubResource("Footsteps_metal"),
+&"wood": SubResource("Footsteps_wood")
+})

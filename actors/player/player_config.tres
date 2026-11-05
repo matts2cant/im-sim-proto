@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="PlayerConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/player/player_config.gd" id="1_script"]
+[ext_resource type="Resource" path="res://actors/player/surface_table.tres" id="2_surfaces"]
+
+[resource]
+script = ExtResource("1_script")
+capsule_radius = 0.35
+standing_height = 1.8
+crouched_height = 0.95
+standing_eye_height = 1.65
+crouched_eye_height = 0.9
+eye_transition_time = 0.15
+max_slope_deg = 45.0
+fall_respawn_height = -30.0
+walk_speed = 4.0
+sprint_speed = 6.0
+crouch_speed = 2.0
+sprint_max_angle_deg = 50.0
+ground_acceleration = 40.0
+ground_deceleration = 50.0
+air_control = 0.3
+jump_apex_height = 1.0
+mouse_sensitivity = 0.0025
+max_pitch_deg = 89.0
+mantle_min_height = 0.3
+mantle_max_height = 1.9
+mantle_reach = 0.8
+mantle_base_duration = 0.25
+mantle_duration_per_metre = 0.15
+walk_stride = 2.0
+sprint_stride = 2.6
+crouch_stride = 1.2
+walk_loudness = 6.0
+sprint_loudness = 14.0
+crouch_loudness = 2.0
+landing_min_impact_speed = 3.0
+landing_reference_speed = 5.0
+landing_max_factor = 4.0
+surfaces = ExtResource("2_surfaces")
+audio_reference_loudness = 6.0
+audio_min_db = -18.0
+audio_max_db = 6.0

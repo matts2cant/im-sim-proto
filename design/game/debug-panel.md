@@ -16,7 +16,8 @@ Toggled with the ` key (QuoteLeft). Tabs:
 | Spawn | Objects, guards |
 | Time | Time scale |
 | Stats | Attributes, skills, augmentations, energy, body parts |
-| Event Log | Live stimulus log, filterable |
+| Event Log | Live stimulus log, filterable; empties when the log is cleared |
+| Player | Live speed, movement mode, grounded, crouched, floor surface, last footstep and landing loudness (M1) |
 
 ## Rules
 
@@ -24,6 +25,7 @@ Toggled with the ` key (QuoteLeft). Tabs:
 - Tuning in v0 lives in `.tres` files and this panel; there are no difficulty settings.
 - The Stats tab is where skill and augmentation values are edited ([abilities.md](abilities.md)).
 - The Event Log tab reads the `EventLog` autoload ([stimulus-response.md](stimulus-response.md)).
+- Systems register their own tabs with `DebugPanel.register_tab()`; the Player tab is registered by the player and removed with it ([movement.md](movement.md)).
 
 ## Interactions
 

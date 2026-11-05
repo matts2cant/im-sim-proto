@@ -1,0 +1,384 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.62, 0.62, 0.64, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_concrete"]
+albedo_color = Color(0.36, 0.36, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_carpet"]
+albedo_color = Color(0.6, 0.16, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.62, 0.4, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.55, 0.63, 0.74, 1)
+metallic = 0.25
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass"]
+albedo_color = Color(0.3, 0.58, 0.22, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ledge"]
+albedo_color = Color(0.88, 0.56, 0.24, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ledge_high"]
+albedo_color = Color(0.78, 0.2, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_low"]
+albedo_color = Color(0.58, 0.46, 0.8, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_gap"]
+albedo_color = Color(0.24, 0.62, 0.62, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_tower"]
+albedo_color = Color(0.82, 0.76, 0.3, 1)
+
+[node name="MovementCourse" type="Node3D"]
+
+[node name="Shell" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="CorridorSolid" type="CSGBox3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -1.75)
+size = Vector3(3, 4, 3.5)
+material = SubResource("Mat_wall")
+
+[node name="HallSolid" type="CSGBox3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 4, -30)
+size = Vector3(27, 9, 53)
+material = SubResource("Mat_wall")
+
+[node name="CorridorCavity" type="CSGBox3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2)
+operation = 2
+size = Vector3(2, 3, 4.2)
+material = SubResource("Mat_wall")
+
+[node name="HallCavity" type="CSGBox3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 4, -30)
+operation = 2
+size = Vector3(26, 8, 52)
+material = SubResource("Mat_wall")
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="Surfaces" type="Node3D" parent="."]
+
+[node name="StripConcrete" type="CSGBox3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -0.03, -12)
+use_collision = true
+size = Vector3(3, 0.1, 14)
+material = SubResource("Mat_concrete")
+metadata/surface = &"concrete"
+
+[node name="LabelConcrete" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -6, 0.03, -6.2)
+text = "Concrete"
+font_size = 110
+outline_size = 16
+
+[node name="StripCarpet" type="CSGBox3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -0.03, -12)
+use_collision = true
+size = Vector3(3, 0.1, 14)
+material = SubResource("Mat_carpet")
+metadata/surface = &"carpet"
+
+[node name="LabelCarpet" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -3, 0.03, -6.2)
+text = "Carpet"
+font_size = 110
+outline_size = 16
+
+[node name="StripWood" type="CSGBox3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, -12)
+use_collision = true
+size = Vector3(3, 0.1, 14)
+material = SubResource("Mat_wood")
+metadata/surface = &"wood"
+
+[node name="LabelWood" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.03, -6.2)
+text = "Wood"
+font_size = 110
+outline_size = 16
+
+[node name="StripMetal" type="CSGBox3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -0.03, -12)
+use_collision = true
+size = Vector3(3, 0.1, 14)
+material = SubResource("Mat_metal")
+metadata/surface = &"metal"
+
+[node name="LabelMetal" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 3, 0.03, -6.2)
+text = "Metal"
+font_size = 110
+outline_size = 16
+
+[node name="StripGrass" type="CSGBox3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -0.03, -12)
+use_collision = true
+size = Vector3(3, 0.1, 14)
+material = SubResource("Mat_grass")
+metadata/surface = &"grass"
+
+[node name="LabelGrass" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 6, 0.03, -6.2)
+text = "Grass"
+font_size = 110
+outline_size = 16
+
+[node name="Ledges" type="Node3D" parent="."]
+
+[node name="Ledge050" type="CSGBox3D" parent="Ledges"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.75, 0.25, -25.5)
+use_collision = true
+size = Vector3(2.5, 0.5, 3)
+material = SubResource("Mat_ledge")
+
+[node name="Ledge100" type="CSGBox3D" parent="Ledges"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.75, 0.5, -25.5)
+use_collision = true
+size = Vector3(2.5, 1, 3)
+material = SubResource("Mat_ledge")
+
+[node name="Ledge150" type="CSGBox3D" parent="Ledges"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.75, -25.5)
+use_collision = true
+size = Vector3(2, 1.5, 3)
+material = SubResource("Mat_ledge")
+
+[node name="Ledge190" type="CSGBox3D" parent="Ledges"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.95, -25.5)
+use_collision = true
+size = Vector3(2.5, 1.9, 3)
+material = SubResource("Mat_ledge")
+
+[node name="Ledge230" type="CSGBox3D" parent="Ledges"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.15, -25.5)
+use_collision = true
+size = Vector3(2.5, 2.3, 3)
+material = SubResource("Mat_ledge_high")
+
+[node name="Vent" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="HousingMouth" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.35, -26.9)
+size = Vector3(1.6, 2.7, 5.8)
+material = SubResource("Mat_metal")
+
+[node name="HousingRamp" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.7, 1.35, -29)
+size = Vector3(3.8, 2.7, 1.6)
+material = SubResource("Mat_metal")
+
+[node name="HousingExit" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.8, 0.625, -29)
+size = Vector3(2.4, 1.25, 1.6)
+material = SubResource("Mat_metal")
+
+[node name="DuctMouth" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -26.75)
+operation = 2
+size = Vector3(1.2, 1, 5.7)
+material = SubResource("Mat_metal")
+
+[node name="DuctTurn" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 2, -29)
+operation = 2
+size = Vector3(0.4, 1, 1.2)
+material = SubResource("Mat_metal")
+
+[node name="DuctRamp" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(0.940136, -0.340799, 0, 0.340799, 0.940136, 0, 0, 0, 1, -6.676386, 1.279148, -29)
+operation = 2
+size = Vector3(4.454703, 1, 1.2)
+material = SubResource("Mat_metal")
+
+[node name="DuctExit" type="CSGBox3D" parent="Vent"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.85, 0.55, -29)
+operation = 2
+size = Vector3(2.5, 1, 1.2)
+material = SubResource("Mat_metal")
+
+[node name="LowCeiling" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Block" type="CSGBox3D" parent="LowCeiling"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0.75, -27)
+size = Vector3(3.5, 1.5, 6)
+material = SubResource("Mat_low")
+
+[node name="Space" type="CSGBox3D" parent="LowCeiling"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0.55, -27)
+operation = 2
+size = Vector3(3, 1.3, 6.2)
+material = SubResource("Mat_low")
+
+[node name="GapTrack" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Ramp" type="CSGBox3D" parent="GapTrack"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, -15, 0.816795, -32.832051)
+size = Vector3(4, 0.4, 4)
+material = SubResource("Mat_gap")
+
+[node name="Runway" type="CSGBox3D" parent="GapTrack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -36.482051)
+size = Vector3(4, 2, 4.035898)
+material = SubResource("Mat_gap")
+
+[node name="Platform2" type="CSGBox3D" parent="GapTrack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -42.5)
+size = Vector3(4, 2, 4)
+material = SubResource("Mat_gap")
+
+[node name="Platform3" type="CSGBox3D" parent="GapTrack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -50.5)
+size = Vector3(4, 2, 4)
+material = SubResource("Mat_gap")
+
+[node name="DropTower" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Ramp" type="CSGBox3D" parent="DropTower"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 5.75, 2.316795, -36.430127)
+size = Vector3(3.5, 0.4, 10)
+material = SubResource("Mat_tower")
+
+[node name="Platform" type="CSGBox3D" parent="DropTower"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 2.5, -42.660127)
+size = Vector3(3.5, 5, 3.999746)
+material = SubResource("Mat_tower")
+
+[node name="Ledge050" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.75, 0.85, -23.95)
+text = "0.5 m"
+font_size = 64
+outline_size = 16
+
+[node name="Ledge100" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.75, 1.35, -23.95)
+text = "1.0 m"
+font_size = 64
+outline_size = 16
+
+[node name="Ledge150" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.85, -23.95)
+text = "1.5 m"
+font_size = 64
+outline_size = 16
+
+[node name="Ledge190" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 2.25, -23.95)
+text = "1.9 m"
+font_size = 64
+outline_size = 16
+
+[node name="Ledge230" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 2.75, -23.95)
+text = "2.3 m\nno mantle"
+font_size = 64
+outline_size = 16
+
+[node name="VentMouth" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 3.05, -23.95)
+text = "Vent 1.0 m\n(mantle in, crouched)"
+font_size = 48
+outline_size = 16
+
+[node name="VentExit" type="Label3D" parent="Labels"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -11.05, 1.65, -29)
+text = "Vent"
+font_size = 64
+outline_size = 16
+
+[node name="LowCeiling" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 1.95, -23.95)
+text = "1.2 m ceiling"
+font_size = 56
+outline_size = 16
+
+[node name="Gap2" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -38.45)
+text = "2 m gap\nwalk-jump"
+font_size = 64
+outline_size = 16
+
+[node name="Gap4" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -44.45)
+text = "4 m gap\nsprint-jump"
+font_size = 64
+outline_size = 16
+
+[node name="Drop2" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -52.45)
+text = "2 m drop"
+font_size = 64
+outline_size = 16
+
+[node name="Drop5" type="Label3D" parent="Labels"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 7.3, -44.6)
+text = "5 m drop"
+font_size = 64
+outline_size = 16
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="Corridor" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, -2)
+light_energy = 0.8
+omni_range = 6
+
+[node name="Hall1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 7.2, -10)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7.2, -10)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall3" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 7.2, -22)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall4" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7.2, -22)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall5" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 7.2, -34)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall6" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7.2, -34)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall7" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 7.2, -46)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16
+
+[node name="Hall8" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7.2, -46)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 16

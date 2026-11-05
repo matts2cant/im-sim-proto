@@ -3,6 +3,7 @@ extends Node
 ## that the debug panel displays and scenario tests assert on.
 
 signal entry_added(entry: EventLogEntry)
+signal cleared
 
 var capacity: int = 2000
 
@@ -36,3 +37,4 @@ func find(kind: StringName) -> Array[EventLogEntry]:
 func clear() -> void:
 	_buffer.clear()
 	_head = 0
+	cleared.emit()

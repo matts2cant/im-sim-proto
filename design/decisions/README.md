@@ -35,3 +35,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0029](0029-docs-english-no-difficulty.md) | Docs in English; no difficulty settings | Accepted |
 | [0030](0030-code-conventions.md) | Code conventions | Accepted |
 | [0031](0031-agent-workflow.md) | Agent workflow: chief engineer and sub-agents | Accepted |
+| [0032](0032-noise-loudness-audible-metres.md) | Noise loudness unit: audible distance in metres | Accepted |
+| [0033](0033-floor-surface-metadata.md) | Floor surface via collider metadata | Accepted |
+| [0034](0034-ramps-not-stair-stepping.md) | Ramps instead of automatic stair stepping | Accepted |
+| [0035](0035-mantle-rules.md) | Mantle rules | Accepted |
