@@ -1,0 +1,15 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Dev tooling
+.venv/
+__pycache__/
+
+# Test reports (GdUnit4)
+reports/
+
+# OS junk
+__MACOSX/
+.DS_Store
+Thumbs.db
