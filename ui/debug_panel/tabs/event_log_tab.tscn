@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/tabs/event_log_tab.gd" id="1_h6m2v"]
+
+[node name="EventLogTab" type="VBoxContainer" unique_id=1380218387]
+script = ExtResource("1_h6m2v")
+
+[node name="Filter" type="LineEdit" parent="." unique_id=247202828]
+layout_mode = 2
+placeholder_text = "Filter by kind"
+clear_button_enabled = true
+
+[node name="Entries" type="ItemList" parent="." unique_id=1636419148]
+layout_mode = 2
+size_flags_vertical = 3
