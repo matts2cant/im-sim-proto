@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bv8gwws86vcci"
+path="res://.godot/imported/Holy Missile.wav-1d344215bd848b372b1644cede3fd732.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/Magic/Holy Missile.wav"
+dest_files=["res://.godot/imported/Holy Missile.wav-1d344215bd848b372b1644cede3fd732.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

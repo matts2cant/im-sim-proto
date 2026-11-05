@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://uarm20sa2i62"
+path="res://.godot/imported/Game Over.wav-407474d4e823c3eb14e8968c72ee354c.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx_starter_pack_v1/Jingles & Stingers/Game Over.wav"
+dest_files=["res://.godot/imported/Game Over.wav-407474d4e823c3eb14e8968c72ee354c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
