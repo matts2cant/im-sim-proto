@@ -12,6 +12,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"firing_line": {"feet": Vector3(4.25, 0, -7.4), "look": Vector3(4.25, 1.0, -30)},
 	"lane_40m": {"feet": Vector3(9.25, 0, -7.45), "look": Vector3(9.25, 1.21, -48), "pistol": true},
 	"lane_10m": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "pistol": true},
+	"hurt_lane_10m": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "pistol": true, "hurt": true},
 	"melee_corner": {"feet": Vector3(4.6, 0, -6.6), "look": Vector3(8.6, 1.2, -5.6)},
 	"melee_behind": {"feet": Vector3(8.6, 0, -5.6), "look": Vector3(9.9, 1.2, -5.6)},
 	"blast_lane": {"feet": Vector3(-1.5, 0, -11.0), "look": Vector3(-1.5, 0.3, -20)},
@@ -66,6 +67,10 @@ func _physics_process(delta: float) -> void:
 			_player.inventory.give(PISTOL, 1)
 			_player.inventory.give(AMMO, 30)
 			_player.inventory.select_slot(0)
+		if _shot.get("hurt", false):
+			# A blast on the player through the stimulus path: the HUD silhouette must show it.
+			var origin := _player.global_position + Vector3(0, 1.2, 0)
+			StimulusSystem.emit(Stimulus.make_radius(&"damage.explosive", 100.0, origin, 4.0))
 	if _started and _shot.get("pistol", false):
 		_player.weapons.settle()
 

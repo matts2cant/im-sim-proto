@@ -14,6 +14,14 @@ func test_part_colors_green_yellow_red_black() -> void:
 	assert_float(low.g).is_less(0.3)
 
 
+func test_a_graze_is_not_pure_green() -> void:
+	var graze := HudRules.part_color(0.95)
+
+	assert_object(graze).is_not_equal(HudRules.HEALTHY)
+	assert_float(graze.r).is_greater(0.5)
+	assert_object(HudRules.part_color(0.999)).is_not_equal(HudRules.HEALTHY)
+
+
 func test_ammo_text() -> void:
 	var state := WeaponState.new(PISTOL)
 	assert_str(HudRules.ammo_text(state)).is_equal("10 / 30")

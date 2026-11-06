@@ -12,26 +12,26 @@ func before_test() -> void:
 
 
 func test_starts_at_the_base_floor() -> void:
-	assert_float(_aim.spread).is_equal(1.5)
+	assert_float(_aim.spread).is_equal(0.5)
 
 
 func test_floors_per_stance() -> void:
-	assert_float(_aim.floor_for(AimModel.Stance.STILL)).is_equal_approx(1.5, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.CROUCH_STILL)).is_equal_approx(1.2, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.WALK)).is_equal_approx(4.5, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.SPRINT)).is_equal_approx(7.5, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.AIR)).is_equal_approx(7.5, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.STILL)).is_equal_approx(0.5, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.CROUCH_STILL)).is_equal_approx(0.4, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.WALK)).is_equal_approx(3.5, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.SPRINT)).is_equal_approx(6.5, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.AIR)).is_equal_approx(6.5, 0.0001)
 
 
 func test_arm_penalty_adds_to_the_floor_and_caps_at_max() -> void:
-	assert_float(_aim.floor_for(AimModel.Stance.STILL, 3.0)).is_equal_approx(4.5, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.STILL, 3.0)).is_equal_approx(3.5, 0.0001)
 	assert_float(_aim.floor_for(AimModel.Stance.SPRINT, 6.0)).is_equal(10.0)
 
 
 func test_rising_floor_widens_at_once() -> void:
 	_aim.step(FRAME, _aim.floor_for(AimModel.Stance.SPRINT))
 
-	assert_float(_aim.spread).is_equal_approx(7.5, 0.0001)
+	assert_float(_aim.spread).is_equal_approx(6.5, 0.0001)
 
 
 func test_settles_exponentially_with_the_time_constant() -> void:
@@ -44,6 +44,15 @@ func test_settles_exponentially_with_the_time_constant() -> void:
 	for i in 192:
 		_aim.step(FRAME, 1.5)
 	assert_float(_aim.spread).is_equal_approx(1.5 + 8.0 * exp(-5.0), 0.001)
+
+
+func test_settles_exactly_onto_the_base_floor() -> void:
+	_aim.spread = 9.5
+	var floor_deg := _aim.floor_for(AimModel.Stance.STILL)
+	for i in 600:
+		_aim.step(FRAME, floor_deg)
+
+	assert_float(_aim.spread).is_equal(0.5)
 
 
 func test_faster_settle_time_settles_faster() -> void:
@@ -59,15 +68,15 @@ func test_faster_settle_time_settles_faster() -> void:
 
 func test_look_bloom_per_pixel_and_frame_cap() -> void:
 	_aim.add_look(50.0)
-	assert_float(_aim.spread).is_equal_approx(2.5, 0.0001)
+	assert_float(_aim.spread).is_equal_approx(1.5, 0.0001)
 
 	_aim.add_look(1000.0)
-	assert_float(_aim.spread).is_equal_approx(4.5, 0.0001)
+	assert_float(_aim.spread).is_equal_approx(3.5, 0.0001)
 
 
 func test_shot_bloom_and_max_spread() -> void:
 	_aim.add_shot()
-	assert_float(_aim.spread).is_equal_approx(4.0, 0.0001)
+	assert_float(_aim.spread).is_equal_approx(3.0, 0.0001)
 	for i in 5:
 		_aim.add_shot()
 	assert_float(_aim.spread).is_equal(10.0)
@@ -113,6 +122,7 @@ func test_same_seed_same_shots() -> void:
 func test_reticle_radius_matches_the_cone() -> void:
 	# tan(1.5) / tan(40) x 324 for an 80 degree camera on a 648 px viewport.
 	assert_float(AimModel.reticle_radius(1.5, 80.0, 648.0)).is_equal_approx(10.11, 0.01)
+	assert_float(AimModel.reticle_radius(0.5, 80.0, 648.0)).is_equal_approx(3.37, 0.01)
 	assert_float(AimModel.reticle_radius(7.5, 80.0, 648.0)).is_equal_approx(50.84, 0.01)
 	assert_float(AimModel.reticle_radius(40.0, 80.0, 648.0)).is_equal_approx(324.0, 0.01)
 

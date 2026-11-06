@@ -20,21 +20,21 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 
 | Quantity | Value |
 |---|---|
-| Floor standing still | 1.5 degrees (`base_min_deg`) |
-| Crouched and still | base x0.8 = 1.2 |
-| Walking / crouch-walking (> 0.5 m/s) | base + 3 = 4.5 |
-| Sprinting | base + 6 = 7.5 |
-| Airborne (after 0.1 s off the ground) | base + 6 = 7.5 |
+| Floor standing still | 0.5 degrees (`base_min_deg`; about 0.17 m radius at 20 m, head-sized) |
+| Crouched and still | base x0.8 = 0.4 |
+| Walking / crouch-walking (> 0.5 m/s) | base + 3 = 3.5 |
+| Sprinting | base + 6 = 6.5 |
+| Airborne (after 0.1 s off the ground) | base + 6 = 6.5 |
 | Arm penalty | + `aim_spread_add` (3 per disabled arm) |
 | Settle | exponential toward the floor, time constant `settle_time` 0.8 s (M6 Pistols skill lowers it to 0.2) |
 | Mouse look | +0.02 degrees per pixel moved, at most +2 per physics frame |
 | Per shot | +2.5 |
 | Max | 10 |
 
-- Each physics step: if the floor is above the spread, the spread jumps to it (moving widens at once); otherwise the excess decays as `exp(-dt / settle_time)`. After one time constant 37 % of the excess is left, after 5 less than 1 %.
+- Each physics step: if the floor is above the spread, the spread jumps to it (moving widens at once); otherwise the excess decays as `exp(-dt / settle_time)`. After one time constant 37 % of the excess is left, after 5 less than 1 %. Within 0.005 degrees of the floor the spread snaps onto it, so a settled cone is exactly `base_min_deg`.
 - A shot direction is sampled uniformly on the cone's disk: radius tan(spread) x sqrt(u), angle 2 pi v, from a `RandomNumberGenerator` owned by the holder (`rng_seed`, `seed_rng()`; tests seed it).
 - **Sway**: a slow figure-of-eight drift of the aim point, amplitude 0.15 degrees x `aim_sway_mult` (x2 per disabled arm), 0.35 Hz. The cone (and the reticle) is centred on the swayed aim.
-- **Reticle** (HUD): circle radius in pixels = tan(spread) / tan(fov / 2) x viewport height / 2 (vertical fov 80 degrees: 10 px at rest and 51 px sprinting on a 648 px viewport), plus a centre dot; melee weapons and holstered show only the dot.
+- **Reticle** (HUD): circle radius in pixels = tan(spread) / tan(fov / 2) x viewport height / 2 (vertical fov 80 degrees: 3.4 px at rest and 44 px sprinting on a 648 px viewport; no minimum gap, the ring is always the real cone), plus a centre dot that shrinks (2 px down to 0.8 px) with a tight cone so it does not cover the ring; melee weapons and holstered show only the dot.
 
 ### Weapons (`items/weapons/`)
 

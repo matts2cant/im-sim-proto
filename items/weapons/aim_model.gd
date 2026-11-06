@@ -2,10 +2,15 @@ class_name AimModel
 extends RefCounted
 ## Pure aiming model (ADR 0048): the spread cone in degrees widens at once when the floor rises
 ## (moving, jumping, arm injury), grows with mouse look and shots, and relaxes exponentially back
-## to the floor with time constant `settle_time`. Shots land uniformly inside the current cone
-## (disk sampling) from a seedable RandomNumberGenerator. The HUD reticle draws the same cone.
+## to the floor with time constant `settle_time` (snapping onto it within 0.005 degrees). Shots land
+## uniformly inside the current cone (disk sampling) from a seedable RandomNumberGenerator. The HUD
+## reticle draws the same cone.
 
 enum Stance { STILL, CROUCH_STILL, WALK, SPRINT, AIR }
+
+## Excess spread (degrees) below which the cone snaps to its floor: the exponential decay would
+## otherwise approach it forever and the reticle would never be exactly the settled cone.
+const SNAP_DEG: float = 0.005
 
 var config: AimConfig
 ## Current spread: half-angle of the cone in degrees.
@@ -43,7 +48,7 @@ func floor_for(stance: Stance, spread_add: float = 0.0) -> float:
 ## excess decays by exp(-delta / settle_time).
 func step(delta: float, floor_deg: float) -> void:
 	_time += delta
-	if spread <= floor_deg or config.settle_time <= 0.0:
+	if spread - floor_deg <= SNAP_DEG or config.settle_time <= 0.0:
 		spread = floor_deg
 		return
 	spread = floor_deg + (spread - floor_deg) * exp(-delta / config.settle_time)

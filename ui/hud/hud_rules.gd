@@ -7,13 +7,19 @@ const HURT := Color(0.95, 0.85, 0.2)
 const CRITICAL := Color(0.9, 0.15, 0.1)
 const DISABLED := Color(0.04, 0.04, 0.04)
 
+## Share of the yellow-to-green ramp a slightly hurt part may keep: pure green is for full health
+## only, so a graze (90 % health) already reads yellow-green instead of looking untouched.
+const HURT_GREEN_SHARE: float = 0.6
 
-## Green at full health, yellow at half, red near 0, black when the part is disabled (0).
+
+## Green at full health only, yellow at half, red near 0, black when the part is disabled (0).
 static func part_color(ratio: float) -> Color:
 	if ratio <= 0.0:
 		return DISABLED
+	if ratio >= 1.0:
+		return HEALTHY
 	if ratio >= 0.5:
-		return HURT.lerp(HEALTHY, (minf(ratio, 1.0) - 0.5) * 2.0)
+		return HURT.lerp(HEALTHY, (ratio - 0.5) * 2.0 * HURT_GREEN_SHARE)
 	return CRITICAL.lerp(HURT, ratio * 2.0)
 
 
