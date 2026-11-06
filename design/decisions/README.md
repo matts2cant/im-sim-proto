@@ -60,3 +60,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0054](0054-player-and-physics-props.md) | Player and physics props: no solver contact, scripted push and weight | Accepted |
 | [0055](0055-wake-props-when-support-goes.md) | Wake props when their support goes | Accepted |
 | [0057](0057-forces-item-use-and-heat-as-generic-systems.md) | Forces, item use and heat as generic systems | Accepted |
+| [0056](0056-generic-character-components.md) | Generic character components: movement noise, falls, impacts, knockback, state tags | Accepted |

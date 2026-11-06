@@ -5,7 +5,7 @@ extends RefCounted
 ## A surface name is both the footstep surface (`surface` metadata, ADR 0033) and a material.
 
 const DIR := "res://assets/materials/graybox/"
-## Floor surfaces known to the footstep table (actors/player/surface_table.tres).
+## Floor surfaces known to the footstep table (actors/common/movement/surface_table.tres).
 const SURFACES: PackedStringArray = ["concrete", "carpet", "wood", "metal", "grass"]
 const DEFAULT_SURFACE := "concrete"
 const WALL := "wall"

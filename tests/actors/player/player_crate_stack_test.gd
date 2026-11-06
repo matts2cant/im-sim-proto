@@ -107,7 +107,7 @@ func test_jumping_back_and_forth_on_top_of_column() -> void:
 		await _watch.frames(_tree(), JUMP_PERIOD)
 
 	print(_watch.summary("hop on top") + " z %.3f" % _player.global_position.z)
-	assert_array(EventLog.find(&"player.landed")).has_size(4)
+	assert_array(EventLog.find(&"actor.landed")).has_size(4)
 	assert_float(_watch.player_low).is_greater(top - 0.05)
 	assert_float(_player.global_position.y).is_equal_approx(top, 0.03)
 	assert_float(_watch.max_drift()).is_less(0.05)
@@ -161,7 +161,7 @@ func _assert_jumps_in_place(count: int) -> void:
 		await _watch.frames(_tree(), JUMP_PERIOD)
 
 	print(_watch.summary("jump x5 on %d crate(s)" % count))
-	assert_array(EventLog.find(&"player.landed")).has_size(5)
+	assert_array(EventLog.find(&"actor.landed")).has_size(5)
 	assert_float(_player.global_position.y).is_equal_approx(top, 0.02)
 	# Never sinks into the crate; the apex is the 1.0 m jump above the crate top.
 	assert_float(_watch.player_low).is_greater(top - 0.05)

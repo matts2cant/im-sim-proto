@@ -3,13 +3,17 @@ extends CharacterBody3D
 ## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects,
 ## use things (Interactor), inventory and belt (PlayerInventory), weapons (WeaponHolder) and
 ## body-part damage (BodyParts, Hitboxes).
-## A thin adapter over the pure rules (PlayerMotion, MantleRules, PlayerNoiseRules, CarryRules);
-## tuning comes from `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
+## A thin adapter over the pure rules (PlayerMotion, MantleRules, CarryRules); tuning comes from
+## `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
 ## Physics props do not collide with this body in the solver; PlayerPusher pushes them and presses
-## on what the player stands on with bounded forces instead (ADR 0054).
-## Its StimulusReceiver's `body_damage` receptron feeds every `damage.*` stimulus to BodyParts.
-## Injuries: `move_speed_mult` scales speed, both legs disabled force a crawl; hard landings hurt
-## the legs. Dead: input is off except `use`, which asks for a level reset. Saveable.
+## on what the player stands on with bounded forces instead (ADR 0054); ImpactSensor turns props
+## flying into it into `damage.blunt`.
+## Generic character components do the rest (ADR 0056): MovementNoise (footsteps, landings; reads
+## the stance tags this script sets), FallImpact (`damage.fall` -> the `fall_damage` receptron),
+## Knockback (`force.*`), BodyParts via the `body_damage` receptron.
+## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`
+## (dead: asks for a level reset), `state.legs_disabled` forces a crawl; `move_speed_mult` scales
+## speed. Saveable.
 
 signal mantled(height: float)
 ## The player pressed `use` while dead (the HUD's death overlay says so).
@@ -39,11 +43,6 @@ const PRESS_ACTIONS: Array[StringName] = [
 	&"belt_0",
 ]
 const MOVE_SPEED: StringName = &"move_speed_mult"
-## Horizontal speed above which the aim counts as moving.
-const AIM_MOVING_SPEED: float = 0.5
-## Airborne this long (s) before the aim counts as jumping/falling (a teleport or a step off a
-## kerb does not bloom the cone).
-const AIM_AIR_GRACE: float = 0.1
 
 @export var config: PlayerConfig
 ## When false the player ignores input (cutscenes, tests that drive it directly).
@@ -54,15 +53,11 @@ const AIM_AIR_GRACE: float = 0.1
 var mode: PlayerMotion.Mode = PlayerMotion.Mode.IDLE
 var crouched: bool = false
 var pitch: float = 0.0
-## Surface of the floor last stood on.
-var surface: StringName = &""
 
 var _probe: PlayerProbe
 var _pusher: PlayerPusher
-var _footsteps := FootstepTracker.new()
 var _jump_requested: bool = false
 var _jump_was_held: bool = false
-var _was_grounded: bool = true
 var _air_time: float = 0.0
 var _air_speed_cap: float = 0.0
 ## Height of the ground last stood on; caps how high a ledge can be mantled after a jump.
@@ -73,7 +68,8 @@ var _spawn_transform: Transform3D
 var _debug_tab: Node
 var _actions_held: Dictionary[StringName, bool] = {}
 
-@onready var noise: PlayerNoise = $Noise
+@onready var noise: MovementNoise = $Noise
+@onready var fall_impact: FallImpact = $FallImpact
 @onready var carry: PlayerCarry = $Carry
 @onready var body: BodyParts = $BodyParts
 @onready var hitboxes: Hitboxes = $Hitboxes
@@ -83,7 +79,6 @@ var _actions_held: Dictionary[StringName, bool] = {}
 @onready var interactor: Interactor = $Interactor
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _head: Node3D = $Head
-@onready var _floor_ray: RayCast3D = $FloorRay
 @onready var _camera: Camera3D = $Head/Camera
 
 
@@ -101,9 +96,6 @@ func _ready() -> void:
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
 	_probe = PlayerProbe.new(self, config)
 	_pusher = PlayerPusher.new(self, config)
-	noise.config = config
-	noise.source_name = name
-	surface = config.surfaces.default_surface
 	_spawn_transform = global_transform
 	_ground_y = global_position.y
 	_air_speed_cap = config.walk_speed
@@ -175,16 +167,16 @@ func is_mantling() -> bool:
 
 
 func is_dead() -> bool:
-	return body.is_dead()
+	return ActorState.is_dead(self)
 
 
 ## Movement stance for the aim cone.
 func aim_stance() -> AimModel.Stance:
-	if _air_time > AIM_AIR_GRACE or _mantle != null:
+	if _air_time > config.aim_air_grace or _mantle != null:
 		return AimModel.Stance.AIR
 	if mode == PlayerMotion.Mode.SPRINT:
 		return AimModel.Stance.SPRINT
-	if horizontal_speed() > AIM_MOVING_SPEED:
+	if horizontal_speed() > config.aim_moving_speed:
 		return AimModel.Stance.WALK
 	return AimModel.Stance.CROUCH_STILL if crouched else AimModel.Stance.STILL
 
@@ -193,7 +185,7 @@ func aim_stance() -> AimModel.Stance:
 ## disabled: the crawl speed instead of the mode's.
 func speed_cap(p_mode: PlayerMotion.Mode) -> float:
 	var base := PlayerMotion.max_speed(p_mode, config)
-	if body.legs_disabled():
+	if ActorState.legs_disabled(self):
 		base = body.profile.crawl_speed
 	return base * carry.speed_factor() * attributes.value(MOVE_SPEED)
 
@@ -267,7 +259,8 @@ func load_state(data: Dictionary) -> void:
 	_apply_crouched(data.get("crouched", crouched))
 	_head.position.y = PlayerMotion.eye_height(crouched, config)
 	_ground_y = global_position.y
-	_footsteps.reset()
+	noise.reset()
+	fall_impact.reset()
 	if data.has("inventory"):
 		inventory.load_state(data["inventory"])
 
@@ -286,6 +279,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	var input := _move_input()
 	var sprint_held := _input_allowed() and Input.is_action_pressed(&"sprint")
 	mode = PlayerMotion.select_mode(grounded, crouched, sprint_held, input, config)
+	_update_stance_tags()
 	if grounded:
 		_air_speed_cap = speed_cap(mode)
 	var wish := global_basis * Vector3(input.x, 0.0, input.y)
@@ -298,40 +292,24 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	elif not grounded:
 		velocity += gravity * delta
 
-	var fall_speed := maxf(-velocity.y, 0.0)
-	var before := global_position
 	var attempted := velocity
 	move_and_slide()
-	_after_move(before, fall_speed)
-	_pusher.step(attempted, is_on_floor(), capsule_height(), delta, _own_rids())
-
-
-func _after_move(before: Vector3, fall_speed: float) -> void:
-	var grounded := is_on_floor()
-	if grounded:
+	var on_floor := is_on_floor()
+	if on_floor:
 		_ground_y = global_position.y
-		_update_surface()
-		if not _was_grounded:
-			_footsteps.reset()
-			noise.landed(fall_speed, surface)
-			body.take_fall(fall_speed)
-		else:
-			var travelled := Vector2(global_position.x - before.x, global_position.z - before.z).length()
-			if _footsteps.advance(travelled, PlayerNoiseRules.stride(mode, config)):
-				noise.footstep(mode, surface)
-	_was_grounded = grounded
-	_air_time = 0.0 if grounded else _air_time + get_physics_process_delta_time()
+	_air_time = 0.0 if on_floor else _air_time + delta
+	_pusher.step(attempted, on_floor, capsule_height(), delta, _own_rids())
 
 
-func _update_surface() -> void:
-	_floor_ray.force_raycast_update()
-	if _floor_ray.is_colliding():
-		surface = config.surfaces.surface_of(_floor_ray.get_collider())
+# The stance tags MovementNoise (and anything else) reads: crouched, sprinting.
+func _update_stance_tags() -> void:
+	ActorState.set_tag(self, ActorState.CROUCHING, crouched)
+	ActorState.set_tag(self, ActorState.SPRINTING, mode == PlayerMotion.Mode.SPRINT)
 
 
 # Crouch is held. Standing up waits until there is headroom. Both legs disabled: always crouched.
 func _update_crouch() -> void:
-	if body.legs_disabled():
+	if ActorState.legs_disabled(self):
 		if not crouched:
 			_apply_crouched(true)
 		return
@@ -348,6 +326,7 @@ func _apply_crouched(value: bool) -> void:
 	(_collision.shape as CapsuleShape3D).height = height
 	_collision.position.y = height * 0.5
 	hitboxes.set_height_factor(height / config.standing_height)
+	_update_stance_tags()
 
 
 func _try_start_mantle() -> bool:
@@ -358,6 +337,7 @@ func _try_start_mantle() -> bool:
 	_mantle = plan
 	_mantle_time = 0.0
 	mode = PlayerMotion.Mode.MANTLE
+	_update_stance_tags()
 	velocity = Vector3.ZERO
 	if plan.end_crouched:
 		_apply_crouched(true)
@@ -374,9 +354,8 @@ func _step_mantle(delta: float) -> void:
 	var height := _mantle.height
 	_mantle = null
 	velocity = Vector3.ZERO
-	_was_grounded = true
 	_ground_y = global_position.y
-	_footsteps.reset()
+	noise.reset()
 	EventLog.record(&"player.mantled", name, "", {"height": height})
 	mantled.emit(height)
 
@@ -398,8 +377,8 @@ func _handle_actions() -> void:
 		_actions_held[action] = held
 		if not pressed:
 			continue
-		if not body.can_act():
-			if action == &"use" and body.is_dead():
+		if not ActorState.can_act(self):
+			if action == &"use" and is_dead():
 				request_reset()
 			continue
 		match action:
@@ -449,4 +428,4 @@ func _move_input() -> Vector2:
 
 
 func _input_allowed() -> bool:
-	return input_enabled and not DebugPanel.is_open() and body.can_act()
+	return input_enabled and not DebugPanel.is_open() and ActorState.can_act(self)

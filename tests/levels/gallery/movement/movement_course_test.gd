@@ -90,7 +90,7 @@ func test_each_strip_reports_its_surface() -> void:
 
 		await _hold(&"move_forward", 60)
 
-		var steps := EventLog.find(&"player.footstep")
+		var steps := EventLog.find(&"actor.footstep")
 		assert_int(steps.size()).is_greater(0)
 		assert_str(steps[-1].data["surface"]).is_equal(SURFACES[i])
 
@@ -154,7 +154,7 @@ func test_crawls_through_vent_from_floor_exit_to_ledge_mouth() -> void:
 	await _hold(&"move_forward", 300)
 	assert_float(_local().x).is_greater(-4.3)
 	assert_float(_local().y).is_equal_approx(1.5, 0.05)
-	var steps := EventLog.find(&"player.footstep")
+	var steps := EventLog.find(&"actor.footstep")
 	assert_str(steps[-1].data["surface"]).is_equal("metal")
 
 	_player.rotation.y = PI

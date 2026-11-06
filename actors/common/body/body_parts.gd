@@ -2,10 +2,13 @@ class_name BodyParts
 extends Node
 ## Component: body-part health, injuries, death and knockout of a character (design/game/damage.md).
 ## Damage arrives through the `body_damage` receptron (BodyDamageEffect -> take_damage()) with the
-## hitbox that was hit, if any; a hit without a part is shared out by the profile (explosive, fire)
-## or goes to the torso. `damage.stun` adds stun points instead of hurting (StunRules, ADR 0049).
+## hitbox that was hit, if any; a hit without a part is shared out by the profile's area weights
+## for its type (explosive, fire, fall) or goes to the default part (torso). `damage.stun` adds stun
+## points instead of hurting (StunRules, ADR 0049). Falls arrive as `damage.fall` through the
+## `fall_damage` receptron (FallImpact, ADR 0056).
 ## Injuries are Modifiers on the entity's Attributes (`move_speed_mult`, `aim_spread_add`,
-## `aim_sway_mult`) and tags, so skills and augmentations stack with them. Saveable.
+## `aim_sway_mult`) and tags (`state.*`, ActorState), so skills and augmentations stack with them
+## and other systems check the tags, not this component. Saveable.
 
 signal damaged(part: StringName, type: StringName, amount: float)
 signal stunned(amount: float, total: float)
@@ -15,12 +18,12 @@ signal knocked_out
 ## Any change of health, stun or state (HUD refresh).
 signal changed
 
-const DEAD_TAG: StringName = &"state.dead"
-const UNCONSCIOUS_TAG: StringName = &"state.unconscious"
+const DEAD_TAG: StringName = ActorState.DEAD
+const UNCONSCIOUS_TAG: StringName = ActorState.UNCONSCIOUS
 ## Both legs disabled: forced crawl.
-const LEGS_DISABLED_TAG: StringName = &"state.legs_disabled"
+const LEGS_DISABLED_TAG: StringName = ActorState.LEGS_DISABLED
 ## Both arms disabled: cannot use weapons.
-const ARMS_DISABLED_TAG: StringName = &"state.arms_disabled"
+const ARMS_DISABLED_TAG: StringName = ActorState.ARMS_DISABLED
 const MOVE_SPEED: StringName = &"move_speed_mult"
 const AIM_SPREAD_ADD: StringName = &"aim_spread_add"
 const AIM_SWAY_MULT: StringName = &"aim_sway_mult"
@@ -78,19 +81,6 @@ func is_unconscious() -> bool:
 	return unconscious
 
 
-## Alive and conscious.
-func can_act() -> bool:
-	return not is_dead() and not is_unconscious()
-
-
-func legs_disabled() -> bool:
-	return model.disabled_legs() >= 2
-
-
-func arms_disabled() -> bool:
-	return model.disabled_arms() >= 2
-
-
 ## Applies `amount` of `type`. `part` is the hitbox hit ("" = none: shared out by the profile).
 ## `attacker` decides "from behind" for stun. Returns the total health damage dealt (stun: points).
 func take_damage(
@@ -120,17 +110,6 @@ func take_damage(
 		EventLog.record(&"actor.damaged", _source_name(cause), String(entity.name), data)
 		damaged.emit(hit_part, type, dealt)
 	_after_change(cause)
-	return total
-
-
-## Landing at `impact_speed` (m/s downwards): both legs take the profile's fall damage.
-func take_fall(impact_speed: float) -> float:
-	var per_leg := profile.fall_damage_per_leg(impact_speed)
-	if per_leg <= 0.0:
-		return 0.0
-	var total := 0.0
-	for leg in BodyDamageModel.LEGS:
-		total += take_damage(&"damage.fall", per_leg, leg)
 	return total
 
 

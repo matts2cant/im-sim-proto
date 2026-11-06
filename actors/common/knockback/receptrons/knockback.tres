@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Receptron" format=3]
+
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="1_receptron"]
+[ext_resource type="Script" path="res://core/stimulus/effects/effect.gd" id="2_effect"]
+[ext_resource type="Script" path="res://actors/common/knockback/knockback_effect.gd" id="3_knockback"]
+
+[sub_resource type="Resource" id="Resource_knockback"]
+script = ExtResource("3_knockback")
+
+[resource]
+resource_name = "knockback"
+script = ExtResource("1_receptron")
+stimulus_type = &"force"
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_knockback")])

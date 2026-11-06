@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SurfaceTable" format=3]
 
-[ext_resource type="Script" path="res://actors/player/surface_table.gd" id="1_script"]
+[ext_resource type="Script" path="res://actors/common/movement/surface_table.gd" id="1_script"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_000.ogg" id="concrete_0"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_001.ogg" id="concrete_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_concrete_002.ogg" id="concrete_2"]

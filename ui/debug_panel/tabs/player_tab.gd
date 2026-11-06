@@ -20,7 +20,7 @@ func refresh() -> void:
 		"Mode: %s" % PlayerMotion.mode_name(player.mode),
 		"Grounded: %s" % ("yes" if player.is_on_floor() else "no"),
 		"Crouched: %s" % ("yes" if player.crouched else "no"),
-		"Surface: %s" % player.surface,
+		"Surface: %s" % player.noise.surface,
 		"Last footstep loudness: %.1f m" % player.noise.last_footstep_loudness,
 		"Last landing loudness: %.1f m" % player.noise.last_landing_loudness,
 		"Carrying: %s" % _carried(),

@@ -1,7 +1,8 @@
 class_name BodyProfile
 extends Resource
 ## Tuning for a character's body parts: health per part, damage multipliers per type and part, how
-## area damage (explosions, fire) is shared out, what an injury does, knockout and fall damage.
+## damage without a hitbox is shared out per type, what an injury does, and knockout. Fall damage
+## (how fast a landing hurts) is the `fall_damage` receptron's, not the profile's (ADR 0056).
 ## Values live in the actor's `<actor>_body.tres`; the script only declares them (design/game/damage.md).
 
 @export_group("Health")
@@ -23,11 +24,11 @@ extends Resource
 @export var leg_multipliers: Dictionary[StringName, float] = {}
 
 @export_group("Area damage")
-## Share of a `damage.explosive` hit each part takes (sums to 1).
-@export var explosive_weights: Dictionary[StringName, float] = {}
-## Share of a `damage.fire` hit each part takes (sums to 1).
-@export var fire_weights: Dictionary[StringName, float] = {}
-## Part that takes any other damage that arrives without a hitbox (a blunt CONTACT).
+## How a hit that arrives without a hitbox is shared out, per damage type: type -> {part: share}
+## (shares sum to 1). The most specific entry wins (`damage.fire` covers `damage.fire.napalm`):
+## explosive 40% torso / 12% each other part, fire even, blunt all torso, fall both legs.
+@export var area_weights_by_type: Dictionary[StringName, Dictionary] = {}
+## Part that takes damage of a type without an entry (a ballistic hit with no hitbox).
 @export var default_part: StringName = &"torso"
 
 @export_group("Injuries")
@@ -48,12 +49,6 @@ extends Resource
 ## Stun from behind on an unaware character is multiplied by this.
 @export var sneak_multiplier: float = 10.0
 
-@export_group("Fall")
-## Landing faster than this (m/s, downwards) hurts the legs.
-@export var fall_min_speed: float = 10.0
-## Each leg takes (impact speed - fall_min_speed) x this.
-@export var fall_damage_per_speed: float = 8.0
-
 
 func max_health(part: StringName) -> float:
 	match part:
@@ -73,18 +68,20 @@ func multiplier(part: StringName, type: StringName) -> float:
 	return lookup(type_multipliers, type) * lookup(_part_multipliers(part), type)
 
 
-## Share of an area hit of `type` per part; empty when the type is not shared out (single part).
+## Share of a hit of `type` without a hitbox per part (the entry for the type or its nearest
+## ancestor); empty when there is none (all to `default_part`).
 func area_weights(type: StringName) -> Dictionary[StringName, float]:
-	if TagContainer.matches(type, &"damage.explosive"):
-		return explosive_weights
-	if TagContainer.matches(type, &"damage.fire"):
-		return fire_weights
-	return {}
-
-
-## Damage each leg takes from landing at `impact_speed` (m/s downwards); 0 below the threshold.
-func fall_damage_per_leg(impact_speed: float) -> float:
-	return maxf(impact_speed - fall_min_speed, 0.0) * fall_damage_per_speed
+	var weights: Dictionary[StringName, float] = {}
+	var key := String(type)
+	while not key.is_empty():
+		if area_weights_by_type.has(StringName(key)):
+			var entry: Dictionary = area_weights_by_type[StringName(key)]
+			for part: Variant in entry:
+				weights[StringName(str(part))] = float(entry[part])
+			return weights
+		var dot := key.rfind(".")
+		key = key.substr(0, dot) if dot > 0 else ""
+	return weights
 
 
 ## The entry for `type` or its nearest ancestor (`damage.fire`, then `damage`); 1.0 when none.

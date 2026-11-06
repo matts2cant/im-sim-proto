@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Receptron" format=3]
+
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="1_receptron"]
+[ext_resource type="Script" path="res://core/stimulus/effects/effect.gd" id="2_effect"]
+[ext_resource type="Script" path="res://actors/common/body/body_damage_effect.gd" id="3_body_damage"]
+
+[sub_resource type="Resource" id="Resource_fall_damage"]
+script = ExtResource("3_body_damage")
+threshold = 10.0
+scale = 16.0
+
+[resource]
+resource_name = "fall_damage"
+script = ExtResource("1_receptron")
+stimulus_type = &"damage.fall"
+include_self = true
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_fall_damage")])

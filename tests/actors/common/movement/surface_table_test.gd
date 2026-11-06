@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 
-const SURFACES: SurfaceTable = preload("res://actors/player/surface_table.tres")
+const SURFACES: SurfaceTable = preload("res://actors/common/movement/surface_table.tres")
 
 
 func test_surface_of_reads_collider_metadata() -> void:

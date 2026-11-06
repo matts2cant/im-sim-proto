@@ -113,7 +113,7 @@ func test_fall_from_5_m_damages_both_legs() -> void:
 
 	await _driver.frames(60)
 
-	var landed := EventLog.find(&"player.landed")
+	var landed := EventLog.find(&"actor.landed")
 	assert_array(landed).has_size(1)
 	var impact: float = landed[0].data["impact_speed"]
 	assert_float(impact).is_equal_approx(14.0, 0.4)
@@ -132,7 +132,7 @@ func test_short_fall_does_not_hurt() -> void:
 
 	await _driver.frames(40)
 
-	assert_array(EventLog.find(&"player.landed")).has_size(1)
+	assert_array(EventLog.find(&"actor.landed")).has_size(1)
 	assert_array(EventLog.find(&"actor.damaged")).is_empty()
 
 

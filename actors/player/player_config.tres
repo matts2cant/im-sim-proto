@@ -1,7 +1,6 @@
 [gd_resource type="Resource" script_class="PlayerConfig" format=3]
 
 [ext_resource type="Script" path="res://actors/player/player_config.gd" id="1_script"]
-[ext_resource type="Resource" path="res://actors/player/surface_table.tres" id="2_surfaces"]
 
 [resource]
 script = ExtResource("1_script")
@@ -29,16 +28,8 @@ mantle_max_height = 1.9
 mantle_reach = 0.8
 mantle_base_duration = 0.25
 mantle_duration_per_metre = 0.15
-walk_stride = 2.0
-sprint_stride = 2.6
-crouch_stride = 1.2
-walk_loudness = 6.0
-sprint_loudness = 14.0
-crouch_loudness = 2.0
-landing_min_impact_speed = 3.0
-landing_reference_speed = 5.0
-landing_max_factor = 4.0
-surfaces = ExtResource("2_surfaces")
+aim_moving_speed = 0.5
+aim_air_grace = 0.1
 interact_reach = 2.0
 carry_reach = 2.0
 hold_base_distance = 0.45
@@ -52,9 +43,6 @@ throw_impulse = 40.0
 throw_max_speed = 12.0
 heavy_carry_mass = 10.0
 heavy_carry_speed_factor = 0.8
-audio_reference_loudness = 6.0
-audio_min_db = -18.0
-audio_max_db = 6.0
 body_mass = 80.0
 weight_max_ratio = 4.0
 push_force = 250.0
