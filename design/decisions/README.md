@@ -75,3 +75,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0070](0070-guard-combat-and-loadouts.md) | Guard combat: one weapon path for every actor, loadouts as data; static characters block props | Accepted |
 | [0071](0071-bodies-discovery-waking-carrying.md) | Bodies: discovery, waking and carrying downed characters | Accepted |
 | [0072](0072-shouts-radio-level-alarm.md) | Shouts, radio and the level alarm | Accepted |
+| [0073](0073-realistic-lockpicking.md) | Realistic pin-tumbler lockpicking minigame | Accepted |

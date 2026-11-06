@@ -26,7 +26,8 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | ` (QuoteLeft) | Debug panel |
 | Mouse look | Look (captured mouse) |
 | Esc | Close the inventory screen, log screen or reading overlay (only that, never also the menu); otherwise open the game menu (pauses, frees the mouse): Resume, Save, Load, Quit game ([ADR 0064](../decisions/0064-game-menu.md)). In the menu: Esc closes it (on the quit question: No); Up/Down/Tab move between buttons, Enter/Space press. Also on the death screen |
-| LMB | Use the item in hand: fire / swing a weapon, use one medkit, a biocell's message (a tool: nothing until M8; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
+| LMB | Use the item in hand: fire / swing a weapon, use one medkit, a biocell's message (a tool: used on a lock or panel from M8, the lockpick minigame from M10; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
+| While lockpicking (M10, [lockpicking.md](lockpicking.md)) | Lockpick on the belt + LMB on a lock within reach starts it; the view locks on the lock. W / S: raise / lower tension (holds, no leak). A / D: move the pick between pins. Mouse Y: lift. S while lifting: ease tension (counter-rotation). E or Esc: leave (releases tension, loses progress; Esc leaves picking first and never also opens the game menu). Tier 3 skill: hold LMB ~2 s to auto-rake a Simple lock |
 | RMB | Alt. Inventory screen: item context menu |
 
 ## Rules

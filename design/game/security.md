@@ -18,7 +18,7 @@ Electronic and mechanical obstacles that offer several ways through.
 
 - Keypad: code found in world notes, or multitool.
   - Datapads are read in place and copied to the player's personal log (not picked up). A datapad can carry codes linked to a keypad (by the keypad's code id). Once the player has read it, the keypad's entry screen shows a reminder with the known code ("Note: 0451, from 'Shift roster'"); the player still types it. A code learned any other way (a conversation, a log entry) feeds the same reminder. Data side (built, [ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)): a datapad's `Readable.codes` maps the keypad's code id to the code; the keypad asks the user's `PersonalLog.known_code(code_id)` ("" when unknown) and `code_source(code_id)` (the entry's title) for the reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`.
-- Mechanical lock: lockpick.
+- Mechanical lock: lockpick, a pin-tumbler minigame ([lockpicking.md](lockpicking.md), M10). M8 builds locks as data (pin count and pin types per lock, a `Lock` component) with a pick interaction hook and a placeholder: hold LMB with a lockpick, timer scaled by `lockpick_time_mult`. M10 replaces the placeholder without touching doors.
 - Electronic: multitool.
 - Keycard.
 - Breakable: explosives.
@@ -42,9 +42,9 @@ flowchart TD
 
 ## Rules
 
-- Skills: Electronics (bypass time / multitools used), Lockpicking (pick time / lockpicks used): [abilities.md](abilities.md).
+- Skills: Electronics (bypass time / multitools used), Lockpicking (tolerances; M8 placeholder: pick time; picks break only on failure): [abilities.md](abilities.md).
 - Closed doors attenuate noise along the path; doors are navigation links for guards ([perception-and-ai.md](perception-and-ai.md), [stimulus-response.md](stimulus-response.md)).
-- Multitools and lockpicks are consumable inventory items ([inventory.md](inventory.md)).
+- Multitools are consumable inventory items; from M10 lockpicks break only on failure, success consumes nothing ([inventory.md](inventory.md), [lockpicking.md](lockpicking.md)).
 - Cameras and turrets use the same perception and receiver framework.
 
 ## Interactions

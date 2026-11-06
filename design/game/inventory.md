@@ -31,7 +31,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Pistol ammo | `pistol_ammo` | 1 x 1 | 100 | none ("Nothing happens") | no | |
 | Medkit | `medkit` | 1 x 1 | 15 | heal 30 x the user's `medical_heal_mult` (Medicine), consumes one; refused when unhurt | yes | |
 | Multitool | `multitool` | 1 x 1 | 10 | in hand (used in M8) | yes | |
-| Lockpick | `lockpick` | 1 x 1 | 10 | in hand (used in M8) | yes | |
+| Lockpick | `lockpick` | 1 x 1 | 10 | in hand (M8: hold-to-pick placeholder; M10: [lockpicking minigame](lockpicking.md), breaks only on failure, success consumes nothing; loadout economy to retune) | yes | |
 | Bioelectric cell | `biocell` | 1 x 1 | 20 | `energy` 25 to the user, consumes one; refused ("Energy full") at full energy ([abilities.md](abilities.md)) | yes | |
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door" (doors read `key_id` in M8) | no | `key_id` |
 

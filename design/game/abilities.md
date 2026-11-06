@@ -27,7 +27,7 @@ Four tiers: 0 Untrained, 1 Trained, 2 Advanced, 3 Master. The player starts Untr
 | | `melee_cycle_mult` (swing interval 0.6 s) | ×1.0 / 0.9 / 0.8 / 0.7 |
 | Medicine | `medical_heal_mult` (medkit 30) | 30 / 45 / 60 / 90 |
 | Electronics | `bypass_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (attribute only; the multitool consumer is M8) |
-| Lockpicking | `lockpick_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (attribute only; the lockpick consumer is M8) |
+| Lockpicking | `lockpick_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (M8: scales the hold-to-pick placeholder timer. M10 replaces it with tolerance attributes: wider tension window and lift tolerance, lower drop threshold, slower pin drops, clearer feedback; tier 2 hints the binding pin, tier 3 auto-rakes Simple locks: [lockpicking.md](lockpicking.md), [ADR 0073](../decisions/0073-realistic-lockpicking.md)) |
 
 Knockout check (dummy threshold 60, frontal): Untrained stun 20 → 3 hits; Trained 25 → 3; Advanced 30 → 2; Master 40 → 2. From behind on an unaware target ×10: always one hit. Combat Strength multiplies on top (×1.5).
 

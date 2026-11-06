@@ -49,6 +49,7 @@ flowchart LR
     M6 --> M7["M7 Light and AI"]
     M7 --> M8["M8 Security"]
     M8 --> M9["M9 Mission"]
+    M9 --> M10["M10 Lockpicking minigame"]
 ```
 
 | # | Milestone | Gallery room |
@@ -63,6 +64,7 @@ flowchart LR
 | M7 | Light level, guard perception and AI, alerts, bodies | Perception lab, AI arena |
 | M8 | Security: cameras, alarms, turret, doors/locks/keypads, terminals | Security wing |
 | M9 | Mission area and scenario tests | Mission |
+| M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
 
 Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](tech/playtest-checklist.md).
 
@@ -80,6 +82,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 - [game/weapons-and-aiming.md](game/weapons-and-aiming.md): pistol, baton, reticle.
 - [game/objects-and-fire.md](game/objects-and-fire.md): physics objects and fire.
 - [game/security.md](game/security.md): cameras, alarms, turret, doors and locks, terminals.
+- [game/lockpicking.md](game/lockpicking.md): pin-tumbler lockpicking minigame.
 - [game/inventory.md](game/inventory.md): grid, belt, items.
 - [game/abilities.md](game/abilities.md): skills and augmentations.
 - [game/debug-panel.md](game/debug-panel.md): debug tabs.
@@ -100,6 +103,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (31 decisions).
+- [decisions/README.md](decisions/README.md): ADR index (72 decisions, 0001–0073; 0062 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.
