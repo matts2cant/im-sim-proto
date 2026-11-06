@@ -81,6 +81,9 @@ func break_apart(reason: StringName, cause: Stimulus = null) -> void:
 	}
 	EventLog.record(&"object.broken", String(entity.name), "", data)
 	broken.emit()
+	# Props wake what rested on them when they leave the tree; other bodies (the barricade) here.
+	if entity is CollisionObject3D and not entity is PhysicsObject:
+		SupportWake.wake_touching(entity as CollisionObject3D)
 	entity.queue_free()
 
 

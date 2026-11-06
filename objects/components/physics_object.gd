@@ -4,6 +4,7 @@ extends RigidBody3D
 ## body state. Behaviour lives in its component children (Flammable, Breakable, Explosive,
 ## ImpactNoise, Carryable) and its Tags, Attributes and StimulusReceiver, which save themselves.
 ## `scene_file_path` is saved so M6 can respawn objects spawned at runtime.
+## Leaving the tree wakes the props resting on it (SupportWake, ADR 0055).
 
 const GROUP: StringName = &"physics_object"
 
@@ -13,6 +14,12 @@ func _ready() -> void:
 	add_to_group(&"saveable")
 	# Props never scan the player's layer, whatever their scene says (ADR 0054).
 	collision_mask &= ~PhysicsLayers.PLAYER
+
+
+# Freed (broken, exploded, picked up into the inventory) or removed: whatever rested on it falls,
+# even if asleep (ADR 0055).
+func _exit_tree() -> void:
+	SupportWake.wake_touching(self)
 
 
 func save_state() -> Dictionary:

@@ -58,3 +58,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0052](0052-inventory-pauses-the-game.md) | Inventory pauses the game | Accepted |
 | [0053](0053-ghosted-upright-carry-safe-release.md) | Ghosted, upright carry with safe release | Accepted |
 | [0054](0054-player-and-physics-props.md) | Player and physics props: no solver contact, scripted push and weight | Accepted |
+| [0055](0055-wake-props-when-support-goes.md) | Wake props when their support goes | Accepted |
