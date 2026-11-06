@@ -5,6 +5,8 @@ extends CharacterBody3D
 ## body-part damage (BodyParts, Hitboxes).
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, PlayerNoiseRules, CarryRules);
 ## tuning comes from `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
+## Physics props do not collide with this body in the solver; PlayerPusher pushes them and presses
+## on what the player stands on with bounded forces instead (ADR 0053).
 ## Its StimulusReceiver's `body_damage` receptron feeds every `damage.*` stimulus to BodyParts.
 ## Injuries: `move_speed_mult` scales speed, both legs disabled force a crawl; hard landings hurt
 ## the legs. Dead: input is off except `use`, which asks for a level reset. Saveable.
@@ -56,6 +58,7 @@ var pitch: float = 0.0
 var surface: StringName = &""
 
 var _probe: PlayerProbe
+var _pusher: PlayerPusher
 var _footsteps := FootstepTracker.new()
 var _jump_requested: bool = false
 var _jump_was_held: bool = false
@@ -97,6 +100,7 @@ func _ready() -> void:
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
 	_probe = PlayerProbe.new(self, config)
+	_pusher = PlayerPusher.new(self, config)
 	noise.config = config
 	noise.source_name = name
 	surface = config.surfaces.default_surface
@@ -224,6 +228,14 @@ func look_hit(length: float) -> Dictionary:
 	return get_world_3d().direct_space_state.intersect_ray(query)
 
 
+# The player's body and what it carries: PlayerPusher leaves them alone.
+func _own_rids() -> Array[RID]:
+	var rids: Array[RID] = [get_rid()]
+	if carry.is_carrying():
+		rids.append(carry.held.get_rid())
+	return rids
+
+
 ## Takes the current key state as "already held", so a key still down when a pause screen closes
 ## (E closing the reading overlay) does not count as a new press.
 func resync_actions() -> void:
@@ -288,8 +300,10 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 
 	var fall_speed := maxf(-velocity.y, 0.0)
 	var before := global_position
+	var attempted := velocity
 	move_and_slide()
 	_after_move(before, fall_speed)
+	_pusher.step(attempted, is_on_floor(), capsule_height(), delta, _own_rids())
 
 
 func _after_move(before: Vector3, fall_speed: float) -> void:

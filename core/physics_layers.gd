@@ -13,8 +13,10 @@ const TRIGGERS: int = 1 << 5
 
 ## What the player's body collides with.
 const PLAYER_MASK: int = WORLD | ACTORS | OBJECTS
-## What physics props collide with.
-const OBJECT_MASK: int = WORLD | PLAYER | ACTORS | OBJECTS
+## What physics props collide with. Not PLAYER: the player's kinematic body would push them with
+## infinite mass (launched stacks, crates dragged along underfoot); the player still collides with
+## them in its own moves and pushes them with bounded forces (PlayerPusher, ADR 0053).
+const OBJECT_MASK: int = WORLD | ACTORS | OBJECTS
 ## What "looking at" queries (pick up, debug aim) hit.
 const LOOK_MASK: int = WORLD | ACTORS | OBJECTS
 ## What the player's Interactor ray hits (ADR 0051): world, objects, hitboxes (a hitbox stands for

@@ -60,6 +60,8 @@ Start the hub and go through doorway "3 Physics & Fire" (east wall) into the gal
 - [ ] A burning crate burns out after 20 s (cardboard 8 s): flames stop, it turns black for a moment and falls apart into debris that disappears after about 10 s. Debris never blocks walking.
 - [ ] Explosive barrel: "Ignite looked-at" (or push burning crates against it): big bang, flash, fireball; nearby crates are knocked away and the ones within about 2 m catch fire at once; a second barrel 2 m away goes off right after. Very close crates are blown apart.
 - [ ] Wooden barricade: spawn one, ignite it; it burns for 30 s, then disappears and the gap is passable.
+- [ ] Stacking (ADR 0053): carry and stack 3 small crates into a column and a 2 + 1 pyramid. Jump onto a single crate, mantle onto the 2-crate column, jump in place 5 times on each, hop forward and back on the top, walk across the top and off the edge: nothing slides, wobbles, jitters or flies off; landings feel solid.
+- [ ] Pushing: walk and then sprint into a 2-crate column: it slides away together at a slow push (about 2 m/s, the player slows to match), the top crate stays on and nothing is launched; walking into a large crate does not move it. A crate dropped or knocked onto the player passes through it (known, ADR 0053): note whether that bothers you.
 - [ ] Time tab: 0.25 x makes the fire and flying objects slow-motion; Reset returns to normal. Heat overlay labels are readable and disappear when unticked.
 - [ ] Fire light and particles look right (orange flicker, soft flames, no square sprites); several fires do not tank the frame rate.
 
