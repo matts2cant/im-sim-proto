@@ -23,11 +23,15 @@ Format per milestone: **What went well**, **What went wrong**, **Changes made**,
 - design/levels/metrics.md: player size, clearances, jump/mantle limits, noise numbers; AGENTS.md requires levels to respect it. (Fixes 2, 3.)
 - CLAUDE.md: brief checklist (verify numbers against metrics, state measurement references, input modes, exits, layout sketch) and split milestones into parallel briefs (systems vs level building). (Fixes 1, 2.)
 
-**User playtest feedback**
-- Pending.
+**User playtest feedback** (fixed on `m1-feedback`, merged)
+- Gravity felt floaty → player gravity scale 2.0, apex kept at 1.0 m ([ADR 0036](decisions/0036-player-gravity-scale.md)); sprint gap 4 m → 3.3 m.
+- Mantle triggered on low steps → minimum 1.0 m above the last ground ([ADR 0035](decisions/0035-mantle-rules.md)).
+- Metal footsteps sounded like a spoon on glass → `impactPlate_light` at pitch 0.8.
+- Ledge catch and landing noise accepted as is.
+- Lesson: feel numbers (gravity, step heights, sounds) can't be validated by tests; keep them in `.tres` and expect a tuning pass after each playtest.
 
 **Open questions for the user**
-- Level building: generate graybox levels from a build script (reviewable, fast for agents, but regenerating overwrites hand edits in the editor), or keep hand-authored `.tscn` built by agents and edited by you in the editor?
+- Level building approach? → **Kit of parametric graybox parts** with CSG Blockout's grid shader copied into `assets/materials/graybox/` ([ADR 0037](decisions/0037-graybox-kit.md)), built during M2.
 
 ## M0 — Skeleton (2026-11-06)
 
