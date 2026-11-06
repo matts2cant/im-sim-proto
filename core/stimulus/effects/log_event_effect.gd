@@ -2,7 +2,7 @@ class_name LogEventEffect
 extends Effect
 ## Records an EventLog entry of `kind` (source: the stimulus source, target: the entity) with the
 ## stimulus id, type and perceived intensity. Stand-in reactions before a system exists (the
-## player's `player.hurt` until M4 body-part damage).
+## player's `player.hurt` in M3, replaced by body-part damage in M4).
 
 @export var kind: StringName = &""
 

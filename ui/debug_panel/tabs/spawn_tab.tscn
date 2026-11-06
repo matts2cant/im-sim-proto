@@ -29,5 +29,10 @@ layout_mode = 2
 tooltip_text = "CONTACT damage.blunt 10 to the object under the crosshair"
 text = "Damage looked-at 10"
 
+[node name="Reset" type="Button" parent="Actions"]
+layout_mode = 2
+tooltip_text = "Reload the current level from its scene file"
+text = "Reset level"
+
 [node name="Status" type="Label" parent="."]
 layout_mode = 2

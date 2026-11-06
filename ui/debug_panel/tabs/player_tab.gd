@@ -1,5 +1,5 @@
 extends VBoxContainer
-## Debug panel tab: live player movement readouts. Registered by the Player it shows.
+## Debug panel tab: live player movement, body and aim readouts. Registered by the Player it shows.
 
 var player: Player
 
@@ -24,8 +24,20 @@ func refresh() -> void:
 		"Last footstep loudness: %.1f m" % player.noise.last_footstep_loudness,
 		"Last landing loudness: %.1f m" % player.noise.last_landing_loudness,
 		"Carrying: %s" % _carried(),
+		"Body: %s" % player.body.debug_text(),
+		"Move speed x%.2f" % player.attributes.value(&"move_speed_mult"),
+		"Aim: %s  spread %.2f deg  stance %s" % [_weapon(), player.weapons.aim.spread, _stance()],
 	]
 	_readout.text = "\n".join(lines)
+
+
+func _weapon() -> String:
+	var data := player.weapons.weapon()
+	return String(data.id) if data != null else "holstered"
+
+
+func _stance() -> String:
+	return String(AimModel.Stance.find_key(player.aim_stance())).to_lower()
 
 
 func _carried() -> String:

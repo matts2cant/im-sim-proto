@@ -1,7 +1,7 @@
 class_name SpawnTab
 extends VBoxContainer
-## Debug panel tab: spawns catalogue objects in front of the player and pokes the object under the
-## crosshair (ignite with a strong CONTACT `fire`, hit with `damage.blunt`).
+## Debug panel tab: spawns catalogue objects in front of the player, pokes the object under the
+## crosshair (ignite with a strong CONTACT `fire`, hit with `damage.blunt`) and resets the level.
 
 const CATALOG: ObjectCatalog = preload("res://objects/object_catalog.tres")
 ## Horizontal distance in front of the player where objects appear.
@@ -15,6 +15,7 @@ const DAMAGE_AMOUNT: float = 10.0
 @onready var _buttons: GridContainer = $Buttons
 @onready var _ignite: Button = $Actions/Ignite
 @onready var _damage: Button = $Actions/Damage
+@onready var _reset: Button = $Actions/Reset
 @onready var _status: Label = $Status
 
 
@@ -27,6 +28,7 @@ func _ready() -> void:
 		_buttons.add_child(button)
 	_ignite.pressed.connect(ignite_looked_at)
 	_damage.pressed.connect(damage_looked_at)
+	_reset.pressed.connect(reset_level)
 
 
 ## Spawns `scene` 2 m in front of the player, facing the same way; null without a player.
@@ -57,6 +59,12 @@ func ignite_looked_at() -> Node:
 ## Sends a CONTACT `damage.blunt` of 10 to what the player looks at. Returns the node hit.
 func damage_looked_at() -> Node:
 	return _poke(&"damage.blunt", DAMAGE_AMOUNT)
+
+
+## Reloads the current level (LevelReset) and closes the panel.
+func reset_level() -> void:
+	DebugPanel.set_open(false)
+	LevelReset.reload_level(get_tree())
 
 
 func _poke(type: StringName, intensity: float) -> Node:

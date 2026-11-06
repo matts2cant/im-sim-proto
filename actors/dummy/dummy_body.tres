@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BodyProfile" format=3]
+
+[ext_resource type="Script" path="res://actors/common/body/body_profile.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+head_health = 40.0
+torso_health = 80.0
+arm_health = 50.0
+leg_health = 50.0
+type_multipliers = Dictionary[StringName, float]({&"damage.ballistic": 1.0, &"damage.blunt": 1.0, &"damage.stun": 1.0, &"damage.fire": 1.0, &"damage.explosive": 1.0})
+head_multipliers = Dictionary[StringName, float]({&"damage.ballistic": 2.0})
+explosive_weights = Dictionary[StringName, float]({&"head": 0.12, &"torso": 0.4, &"arm_l": 0.12, &"arm_r": 0.12, &"leg_l": 0.12, &"leg_r": 0.12})
+fire_weights = Dictionary[StringName, float]({&"head": 0.16666667, &"torso": 0.16666667, &"arm_l": 0.16666667, &"arm_r": 0.16666667, &"leg_l": 0.16666667, &"leg_r": 0.16666667})
+default_part = &"torso"
+leg_speed_mult = 0.6
+crawl_speed = 1.0
+arm_spread_add = 3.0
+arm_sway_mult = 2.0
+knockout_threshold = 60.0
+behind_arc_deg = 120.0
+sneak_multiplier = 10.0
+fall_min_speed = 10.0
+fall_damage_per_speed = 8.0
