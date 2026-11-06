@@ -31,7 +31,7 @@ Format per milestone: **What went well**, **What went wrong**, **Changes made**,
 - Pending.
 
 **Open questions for the user**
-- M2 cost ~620k sub-agent tokens. Is that acceptable per milestone, or should I trade some verification depth / use Sonnet more for level work to cut it?
+- M2 cost ~620k sub-agent tokens. Is that acceptable per milestone, or should I trade some verification depth / use Sonnet more for level work to cut it? → **Keep quality** (user, 2026-11-06): keep full verification and the stronger model for system and level work; keep cutting waste through probes, gotchas and better briefs.
 
 ## M1 — Player controller (2026-11-06)
 
