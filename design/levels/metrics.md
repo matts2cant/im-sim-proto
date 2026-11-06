@@ -67,6 +67,16 @@ Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (l
 
 Floors declare their surface with node metadata `surface` on the CSG root that has collision ([ADR 0033](../decisions/README.md)); kit parts set it from their `surface` property.
 
+## Light and guards (M7)
+
+| Metric | Value | Level rule |
+|---|---|---|
+| Light level | ambient only ≈ 0.04; dark < 0.1; fully visible ≥ 0.5 ([ADR 0065](../decisions/0065-light-level-model.md)) | Any area with guards needs real lamps (`objects/light_fixture/`): without them the player is seen only within 2 m. Keep zones meant to read "dim" around 0.2–0.35, away from 0.1 and 0.5 |
+| Guard vision | focus ±30° to 20 m; peripheral ±60° to 10 m (×0.4); lit target at 4 m alerts in ~0.8 s ([ADR 0067](../decisions/0067-vision-and-detection.md)) | Cover must block eyes at 1.6 m above the guard's feet; props (layer 4) block sight |
+| Guard hearing | heard when loudness − path distance ≥ 1 (walking on concrete: ~5 m) | — |
+| Shout | loudness 18: allies within ~17 m of navmesh path | — |
+| Radio | 30 m straight line, through walls, guards with `equipment.radio` | A guard meant to be out of contact: > 30 m straight |
+
 ## Navigation
 
 Guards navigate a navmesh baked at level load for a standing human: radius 0.35 m, height 1.8 m, max slope 45°, max climb 0.3 m ([ADR 0041](../decisions/0041-runtime-navmesh-bake.md), [ADR 0058](../decisions/0058-step-climbing.md)). Walk-up steps and stairs (≤ 0.3 m risers) are on the navmesh, as characters walk up them; anything lower than 1.8 m (vents, crawl spaces) is off it, and so is anything reached only by a step above 0.3 m, a jump or a mantle: give guards stairs or ramps where they must follow.

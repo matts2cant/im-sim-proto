@@ -4,6 +4,41 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M7 — Light and AI (2026-11-07)
+
+Two waves of two agents in parallel worktrees. Wave 1: light level + lamps + breaker + Perception lab (ADR 0065–0066) and guard core: body, vision, hearing, graded awareness, patrols, feedback (ADR 0067–0069). Wave 2: guard combat and loadouts (ADR 0070) and bodies, shouts, radio, level alarm, AI arena, lab guard (ADR 0071–0072; that agent ran its own level sub-agent). Started without the M6 playtest at the user's request (they were travelling). 816 → 1023 tests. ~1.6M sub-agent tokens.
+
+**What went well**
+- The shared light contract (group `light_exposure` + `level`) let both wave-1 agents work in parallel; merging the light branch first and messaging the guard agent to merge master, switch to `LightExposure.of()` and write the cross-contract test removed the merge-time integration work. Repeated in wave 2 (loadout scenes, combat vs body discovery).
+- No identity branches in review: hostile/ally/body rules are tag lists in `.tres`; waking is a `revive` stimulus; the alarm is a stimulus reaching a group; carrying bodies reuses Carryable with a `carry_mass`.
+- The player-is-not-special rule paid off: the weapon path was already generic enough that guards fire the same stimuli through `WeaponHolder` with any eye node; guards reuse MovementNoise, StepClimber, FallImpact, Knockback, BodyParts.
+- Agents found and fixed a latent violation: props scanned the actors layer (infinite-mass shoves by guards, ADR 0054). Fixed with `BodyPusher` for every character and a `static_actors` layer for dummies.
+
+**What went wrong**
+1. **My lab brief asked for a 20 m room that did not fit** between the neighbouring rooms; the agent measured and shrank it. I had not checked the hub footprints.
+2. **Removing the actors layer from props made thrown crates pass through dummies** (wave 1). Caught by the agent and fixed in wave 2, but it shipped to master for a few hours.
+3. **Nested agents leave extra worktrees**: the wave-2 agent's own level agent left a second worktree and branch to clean up.
+4. **Test isolation**: fixtures freed with `auto_free` lingered into the next suite and answered navigation queries; the first full run of wave 2 had nav failures until helpers waited for old fixtures.
+5. One sloppy sentence in the combat brief (a half-edited accuracy requirement). The agent interpreted it sensibly, but briefs should be re-read before sending.
+
+**Changes made**
+- CLAUDE.md: merge-first + message-the-other-agent for shared contracts; measure neighbour footprints before sizing a room; `git worktree list` cleanup after merging (nested agents included).
+- AGENTS.md gotchas: props' collision masks and the `static_actors` layer; lingering `auto_free` fixtures, `PlayerDriver.place()` clearing the EventLog, the EventLog ring size; guard test helpers; fixtures with guards need lamps.
+- metrics.md: new "Light and guards" section (light thresholds, vision cones, hearing, shout and radio ranges, lamps required).
+
+**Open items**
+- Guards do not avoid each other (NavigationAgent3D avoidance off); vision cones have no vertical limit.
+- Pistol accuracy against a running target is low (10 m: ~21 s to kill); tune after the playtest.
+- During the alarm guards search where they stand (no alarm panels until M8). Combat state is not saved (re-engages on sight).
+- Jolt warned once "job system exceeded the maximum number of jobs" in a full test run.
+- Carried from M6: barrel alley ignition knife-edge, brazier sound leak at exit, mantling still player-only, aug tags without reference counting.
+
+**Open questions for the user (playtest)**
+- Guard detection speed and accuracy: too forgiving or too harsh? (Lit at 4 m: alerted in ~0.8 s; dead at 4 m in ~2 s, at 10 m in ~4.4 s standing still.)
+- Bodies count as 15 kg so you can carry them without Combat Strength, at 60% speed. OK?
+- Shouts, radio and the alarm make guards search, not instantly know where you are. OK?
+- Plus the M6 questions (Combat Strength toggle, skill/energy numbers).
+
 ## M6 — Abilities and saving (2026-11-07)
 
 Two agents in parallel worktrees (abilities: skills, energy, augmentations, Stats tab, HUD, room 7 station, ADR 0061; saving: F5/F9, JSON quicksave, removed/spawned records, project-wide saveable contract test, ADR 0063), then one agent for the merge, a design amendment and the integration test. 702 → 807 tests. ~870k sub-agent tokens.

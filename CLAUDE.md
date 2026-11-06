@@ -14,6 +14,9 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - A brief that adds a default-on modifier source (passive ability, starting state) checks it against the baselines that gallery signs and tests encode; default player behaviour changes only on purpose.
 - Only name events, classes, methods and input actions (project.godot) in a brief after grepping for them; otherwise describe the behaviour and let the agent find the API. Keep test points away from boundary values (radius edges, thresholds).
 - Parallel briefs list the features another agent owns as "do not build" (and don't mention them in passing as if they will exist), and assign each agent its ADR number(s) up front. When parallel agents share a contract (stimulus names, an API), the merge step adds an integration test across it.
+- Parallel agents sharing a contract: merge whichever finishes first, then message the other to merge master, switch to the real API and write the cross-feature integration test itself (worked well in M7).
+- Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (the hub tests list them); do not guess.
+- After merging, run `git worktree list` and remove every agent worktree and branch, including ones an agent spawned for its own sub-agents.
 - Bug-fix briefs ask the agent to reproduce the user's exact actions (what they did in the level, with real in-game values) before testing hypotheses; my guessed scenarios may already pass.
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.
 - Briefs describe behaviour in terms of properties (components, tags, stimuli), not specific objects, and diff reviews check for identity branches (names, scene paths, concrete classes): AGENTS.md "Systemic design".
