@@ -29,7 +29,7 @@ height = 1.5
 | `Ramp` | `rise` (1), `run` (2), `width` (2), `surface` | Bottom centre of the low edge; solid wedge rising towards -Z, top edge at (0, rise, -run) | Slope ≤ 40°: a steeper rise is lowered to `run × tan 40°` and warned ([ADR 0034](../decisions/0034-ramps-not-stair-stepping.md)) |
 | `Gap` | `gap_width` (2), `length` (4), `width` (4), `platform_height` (2), `pit_depth` (2), `near_platform` (on), `surface`; read-only `difficulty_label` | Ground level, centre of the near platform's near edge; track runs towards -Z | `difficulty_label` "<w> m: walk-jump" (≤ 2 m), "sprint-jump" (3-3.5 m), "impassable" (≥ 4.2 m); 2-3 m and 3.5-4.2 m warn. Pit floor = ground when `pit_depth` equals the platform height, else a slab. Chain gaps with `near_platform` off |
 | `VentSegment` | `kind` (STRAIGHT / CORNER_LEFT / CORNER_RIGHT), `length` (2), `interior_height` (1.1), `drop` (0), `fill_below` (0) | Centre of the interior floor at the entry; runs towards -Z. Always metal | Interior 1.2 m wide, 1.0-1.2 m high (clamped). `drop` slopes a straight segment down (≤ 40°). `fill_below` makes the housing solid down to that depth so nothing can crawl under it |
-| `Room` | `size` (4 x 3 x 4 interior), `wall_thickness` (0.25), `floor_surface`, `wall_material`, `ceiling_material`, `openings` | Centre of the interior floor; walls outside the interior, north = -Z, east = +X | Openings are `RoomOpening` resources: `wall`, `offset` (along x for north/south, along z for east/west), `width` (1.2), `height` (2.2), `sill` (0 = door), `node_name` (name of the generated cut). Openings are clamped to their wall; doors < 0.8 m wide or < 1.9 m high and rooms < 1.9 m high warn |
+| `Room` | `size` (4 x 3 x 4 interior), `wall_thickness` (0.25), `floor_surface`, `wall_material`, `ceiling_material`, `openings` | Centre of the interior floor; walls outside the interior, north = -Z, east = +X. Walls run the full outer height (corners included); floor and ceiling slabs cover only the interior. Connecting rooms: see below | Openings are `RoomOpening` resources: `wall`, `offset` (along x for north/south, along z for east/west), `width` (1.2), `height` (2.2), `sill` (0 = door), `node_name` (name of the generated cut). Openings are clamped to their wall; doors < 0.8 m wide or < 1.9 m high and rooms < 1.9 m high warn |
 | `Sign` | `text`, `size` (SMALL 48 / MEDIUM 64 / LARGE 96 / XLARGE 128 px), inherited `billboard` | Label3D, centred | White text, black outline, 5 mm per pixel. MEDIUM reads from about 6 m |
 
 ### Vent connection points
@@ -43,6 +43,10 @@ height = 1.5
 | CORNER_RIGHT | (0.6, 0, -0.6) | +X (yaw -90°) |
 
 Housings end exactly at the entry and exit planes (a corner has no wall on its exit side), so segments butt together with continuous floors. The movement course vent is Mouth (straight 4.4 m) → Turn (corner left) → Slope (straight 4 m, drop 1.45 m) → Exit (straight 2.4 m); its test checks the snapping.
+
+### Room connections
+
+Two rooms connect through one shared wall ([ADR 0043](../decisions/0043-room-connections-share-a-wall.md)): give both the same `wall_thickness`, start the neighbour's interior at the outer face of this room's wall (so the two walls overlap exactly), and give both an opening with the same width, height and position along the wall. Because walls own the rim and slabs stop at the interior, only wall meets wall, whatever the two ceiling heights. Example: the hub (wall 0.5 m, north wall z -15.5 to -15) and the movement course corridor (interior from z -15.5, south wall z -15.5 to -15), both with a 2 x 3 m door at x = -7.5. Don't butt rooms back to back or let a slab of one room touch another room's visible face: different materials on one plane z-fight. `KitGeometry.coplanar_material_overlaps()` finds such faces (tests below).
 
 ## Materials
 
@@ -91,4 +95,4 @@ graph LR
 
 ## Tests
 
-`tests/levels/kit/`: one suite per part (collision bounds, `surface` metadata and material, clamping and warnings, rebuild on property change), `room_passage_test.gd` (the player walks through a 1.2 x 2.2 m opening; a wall without one blocks), `level_navigation_test.gd` (hub navmesh, path from `PlayerSpawn` into the movement course, ramps connected, vent and crawl-space interiors off the navmesh, re-bake after a geometry change), `graybox_materials_test.gd`.
+`tests/levels/kit/`: one suite per part (collision bounds, `surface` metadata and material, clamping and warnings, rebuild on property change), `room_passage_test.gd` (the player walks through a 1.2 x 2.2 m opening; a wall without one blocks), `level_navigation_test.gd` (hub navmesh, path from `PlayerSpawn` into the movement course, ramps connected, vent and crawl-space interiors off the navmesh, re-bake after a geometry change), `graybox_materials_test.gd`. `room_test.gd` also joins a tall room to a low corridor the documented way, and `tests/levels/hub/hub_faces_test.gd` checks the hub with the movement course: no two CSG roots may render different materials on the same plane (`KitGeometry.coplanar_material_overlaps()`: same plane within 1 mm, same facing, overlap > 1 cm²).

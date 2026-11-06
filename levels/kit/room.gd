@@ -60,13 +60,18 @@ func _build() -> void:
 	var ceiling := ceiling_material if ceiling_material != null else GrayboxMaterials.named(GrayboxMaterials.CEILING)
 	var floor_material := GrayboxMaterials.for_surface(_checked_surface(floor_surface))
 	var outer_x := x + t * 2.0
-	var outer_z := z + t * 2.0
-	_add_box("Floor", Vector3(outer_x, t, outer_z), Vector3(0.0, -t * 0.5, 0.0), floor_material)
-	_add_box("Ceiling", Vector3(outer_x, t, outer_z), Vector3(0.0, y + t * 0.5, 0.0), ceiling)
-	_add_box("WallNorth", Vector3(outer_x, y, t), Vector3(0.0, y * 0.5, -(z + t) * 0.5), wall)
-	_add_box("WallSouth", Vector3(outer_x, y, t), Vector3(0.0, y * 0.5, (z + t) * 0.5), wall)
-	_add_box("WallEast", Vector3(t, y, z), Vector3((x + t) * 0.5, y * 0.5, 0.0), wall)
-	_add_box("WallWest", Vector3(t, y, z), Vector3(-(x + t) * 0.5, y * 0.5, 0.0), wall)
+	var outer_y := y + t * 2.0
+	var mid_y := y * 0.5
+	# Walls own the whole rim (full height including the slab thickness, corners included);
+	# floor and ceiling only cover the interior. Neighbouring rooms overlap their walls, so all
+	# they ever share is wall: a ceiling or floor slab running over the wall top would end
+	# coplanar with the taller neighbour's wall face and z-fight with it.
+	_add_box("Floor", Vector3(x, t, z), Vector3(0.0, -t * 0.5, 0.0), floor_material)
+	_add_box("Ceiling", Vector3(x, t, z), Vector3(0.0, y + t * 0.5, 0.0), ceiling)
+	_add_box("WallNorth", Vector3(outer_x, outer_y, t), Vector3(0.0, mid_y, -(z + t) * 0.5), wall)
+	_add_box("WallSouth", Vector3(outer_x, outer_y, t), Vector3(0.0, mid_y, (z + t) * 0.5), wall)
+	_add_box("WallEast", Vector3(t, outer_y, z), Vector3((x + t) * 0.5, mid_y, 0.0), wall)
+	_add_box("WallWest", Vector3(t, outer_y, z), Vector3(-(x + t) * 0.5, mid_y, 0.0), wall)
 	for i in openings.size():
 		if openings[i] != null:
 			_cut_opening(openings[i], i, Vector3(x, y, z), t, wall)

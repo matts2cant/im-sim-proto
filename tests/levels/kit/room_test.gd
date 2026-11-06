@@ -74,6 +74,31 @@ func test_openings_cut_named_holes_in_their_walls() -> void:
 	assert_array(part._get_configuration_warnings()).is_empty()
 
 
+func test_rooms_sharing_a_wall_do_not_z_fight() -> void:
+	# A tall room and a low corridor joined the documented way: the corridor's south wall
+	# overlaps the room's north wall exactly and their doors line up.
+	var hall := SCENE.instantiate() as Room
+	hall.name = "Hall"
+	hall.size = Vector3(4, 5, 4)
+	hall.wall_thickness = 0.5
+	hall.openings = [RoomOpening.create(RoomOpening.Wall.NORTH, 0.0, 2.0, 3.0)]
+	var corridor := SCENE.instantiate() as Room
+	corridor.name = "Corridor"
+	corridor.size = Vector3(2, 3, 3)
+	corridor.wall_thickness = 0.5
+	corridor.position = Vector3(0, 0, -4)
+	corridor.openings = [RoomOpening.create(RoomOpening.Wall.SOUTH, 0.0, 2.0, 3.0)]
+	var level: Node3D = auto_free(Node3D.new())
+	level.add_child(hall)
+	level.add_child(corridor)
+	add_child(level)
+	await KitGeometry.settle(get_tree())
+
+	var overlaps := KitGeometry.coplanar_material_overlaps(level)
+
+	assert_array(Array(overlaps)).override_failure_message("\n".join(overlaps)).is_empty()
+
+
 func test_editing_an_opening_rebuilds_the_room() -> void:
 	var part := _room()
 	var door := RoomOpening.create(RoomOpening.Wall.SOUTH)
