@@ -21,7 +21,8 @@ The user authorised autonomous work on M3–M5 overnight with retrospectives, st
 3. **Shared scratchpad collision**: two agents wrote scripts with the same name in the shared scratchpad; one overwrote the other.
 4. **Script errors invisible to tests**: errors from freed stimulus sources only showed in windowed runs; GdUnit passes even when Godot prints `SCRIPT ERROR`.
 5. **Screenshot UI cropping**: this machine opens an 840×648 window, cropping the 2D layer in screenshots.
-6. New gotchas: a static method named `reload` collides with `GDScript.reload`; consecutive simulated presses of the same action need a released frame between them; check view-model scale in a screenshot before writing tests.
+6. **Range brief errors (M4 room)**: blast-lane stripes at 2/4/6 m with a 4 m blast radius → the 4 m line deals 0 (boundary value); the brief also asked tests to assert a `weapon.hit` event that doesn't exist (I named an API from memory instead of the code). Follow-up: move the middle stripe to 3 m in the M5 level pass.
+7. New gotchas: a static method named `reload` collides with `GDScript.reload`; consecutive simulated presses of the same action need a released frame between them; check view-model scale in a screenshot before writing tests.
 
 **Changes made**
 - CLAUDE.md brief checklist: every distance says "gap (surface to surface)" or "centre to centre", with the expected timing computed in the brief; parallel briefs list features owned by other agents as "do not build". (Fixes 1, 2.)
