@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://objects/brazier/brazier.tscn" id="2_brazier"]
+
+[node name="BrazierThrow" type="Node3D"]
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(20, 1, 20)
+
+[node name="Brazier" parent="." instance=ExtResource("2_brazier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.4)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]

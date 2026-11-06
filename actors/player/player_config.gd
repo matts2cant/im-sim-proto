@@ -61,6 +61,24 @@ extends Resource
 @export var landing_max_factor: float
 @export var surfaces: SurfaceTable
 
+@export_group("Carry")
+## Reach of the pick-up look ray from the eyes. The mass limit is the `carry_mass_limit` attribute.
+@export var carry_reach: float
+## Hold point: this far along the view from the eyes, then this much lower.
+@export var hold_distance: float
+@export var hold_drop: float
+## Follow: the held body's velocity is (hold point - body) x this rate (1/s), capped at the max speed.
+@export var hold_follow_rate: float
+@export var hold_max_speed: float
+## The held object is dropped when it ends up further than this from the hold point (stuck).
+@export var hold_break_distance: float
+## Throw: impulse along the view (N s); speed = min(max speed, impulse / mass).
+@export var throw_impulse: float
+@export var throw_max_speed: float
+## Carrying at least this mass (kg) multiplies the move speed by `heavy_carry_speed_factor`.
+@export var heavy_carry_mass: float
+@export var heavy_carry_speed_factor: float
+
 @export_group("Audio")
 ## Loudness that plays at 0 dB; louder or quieter noises scale 10 dB per decade, clamped.
 @export var audio_reference_loudness: float

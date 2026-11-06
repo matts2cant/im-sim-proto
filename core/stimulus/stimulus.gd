@@ -4,7 +4,7 @@ extends RefCounted
 ## the system sets `id` and `depth`. See design/game/stimulus-response.md.
 
 enum Shape { RADIUS, CONTACT, RAY }
-enum Propagation { STRAIGHT, PATH }
+enum Propagation { STRAIGHT, PATH, LINE_OF_SIGHT }
 
 ## `noise`, `fire`, `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, ...
 var type: StringName = &""
@@ -12,6 +12,8 @@ var intensity: float = 0.0
 var origin: Vector3 = Vector3.ZERO
 ## The node that caused it; may be null or freed later.
 var source: Node = null
+## The source's name, remembered on emit: a breaking crate is freed before its noise is processed.
+var source_label: String = ""
 var shape: Shape = Shape.RADIUS
 ## RADIUS: reach in metres.
 var radius: float = 0.0
@@ -20,12 +22,17 @@ var direction: Vector3 = Vector3.FORWARD
 var length: float = 0.0
 ## CONTACT: the node touched.
 var target: Node = null
-## RADIUS only: STRAIGHT measures the straight line, PATH the navmesh path (noise).
+## RADIUS only: STRAIGHT measures the straight line, PATH the navmesh path (noise), LINE_OF_SIGHT the
+## straight line but only to receivers that no world geometry (layer 1) hides from the origin (fire).
 var propagation: Propagation = Propagation.STRAIGHT
 ## Chain depth: 0 for stimuli emitted outside stimulus processing, parent depth + 1 for effect emits.
 var depth: int = 0
 ## Unique per StimulusSystem, assigned on emit; 0 until emitted.
 var id: int = 0
+## Id of the stimulus that caused this one, across chains; 0 = none. StimulusSystem.emit() fills it
+## with the parent's id when it is left at 0; components that re-emit on their own tick (a burning
+## crate's fire pulses) set it to the stimulus that started them, so a whole fire can be traced.
+var cause_id: int = 0
 
 
 static func make_radius(
@@ -99,6 +106,7 @@ func perceived_at(distance: float) -> float:
 	return StimulusPropagation.falloff(intensity, radius, distance)
 
 
-## Name of the source node, or "" when there is none (for EventLog entries).
+## Name of the source node (remembered on emit if it has been freed since), or "" when there is none
+## (for EventLog entries).
 func source_name() -> String:
-	return String(source.name) if is_instance_valid(source) else ""
+	return String(source.name) if is_instance_valid(source) else source_label

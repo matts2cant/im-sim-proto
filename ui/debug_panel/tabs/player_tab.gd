@@ -23,5 +23,12 @@ func refresh() -> void:
 		"Surface: %s" % player.surface,
 		"Last footstep loudness: %.1f m" % player.noise.last_footstep_loudness,
 		"Last landing loudness: %.1f m" % player.noise.last_landing_loudness,
+		"Carrying: %s" % _carried(),
 	]
 	_readout.text = "\n".join(lines)
+
+
+func _carried() -> String:
+	if not player.carry.is_carrying():
+		return "nothing (limit %.0f kg)" % player.carry.mass_limit()
+	return "%s (%.1f kg)" % [player.carry.held.name, player.carry.held_mass()]

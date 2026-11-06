@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FlammableConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/components/flammable_config.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Community Requests/Stoke Coal Oven.wav" id="2_crackle"]
+
+[resource]
+script = ExtResource("1_script")
+ignition_threshold = 8.0
+cool_rate = 0.5
+fuel_seconds = 30.0
+permanent = false
+intensity = 2.5
+radius = 1.8
+pulse_interval = 0.5
+noise_loudness = 4.0
+light_range_factor = 3.0
+light_energy = 1.6
+light_flicker = 0.15
+flame_size = 0.45
+crackle = ExtResource("2_crackle")
+crackle_volume_db = -16.0

@@ -1,0 +1,275 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/surface_floor.tscn" id="4_floor"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="5_ledge"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="6_small_crate"]
+[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="7_large_crate"]
+[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="8_metal_crate"]
+[ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="9_cardboard_box"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="10_barrel"]
+[ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="11_bottle"]
+[ext_resource type="PackedScene" path="res://objects/wooden_barricade/wooden_barricade.tscn" id="12_barricade"]
+[ext_resource type="PackedScene" path="res://objects/brazier/brazier.tscn" id="13_brazier"]
+
+[sub_resource type="Resource" id="Opening_corridor_south"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+wall = 2
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_corridor_north"]
+script = ExtResource("2_opening")
+node_name = &"ToHall"
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_south"]
+script = ExtResource("2_opening")
+node_name = &"FromCorridor"
+wall = 2
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_west"]
+script = ExtResource("2_opening")
+node_name = &"ToSideRoom"
+wall = 3
+offset = -5.0
+
+[sub_resource type="Resource" id="Opening_side_east"]
+script = ExtResource("2_opening")
+node_name = &"FromHall"
+wall = 1
+
+[node name="PhysicsFireRoom" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Corridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.75)
+size = Vector3(2, 3, 3.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_south"), SubResource("Opening_corridor_north")])
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+size = Vector3(20, 5, 16)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south"), SubResource("Opening_hall_west")])
+
+[node name="SideRoom" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -17)
+size = Vector3(3, 3, 3)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_side_east")])
+
+[node name="FireSpread" type="Node3D" parent="."]
+
+[node name="Wall" parent="FireSpread" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 0, -14.7)
+height = 2.0
+width = 0.1
+depth = 1.6
+
+[node name="FireCrateBehindWall" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.8, 0.3, -15.5)
+
+[node name="FireCrate1" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.3, -15.5)
+
+[node name="FireCrate2" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.1, 0.3, -15.5)
+
+[node name="FireCrate3" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0.3, -15.5)
+
+[node name="FireCrate4" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.3, 0.3, -15.5)
+
+[node name="FireCrate5" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.3, -15.5)
+
+[node name="FireMetalCrate" parent="FireSpread" instance=ExtResource("8_metal_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 0.4, -15.5)
+
+[node name="FireCrate6" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.3, -15.5)
+
+[node name="FireCrate7" parent="FireSpread" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0.3, -15.5)
+
+[node name="BrazierCorner" type="Node3D" parent="."]
+
+[node name="Brazier" parent="BrazierCorner" instance=ExtResource("13_brazier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.3, 0, -7)
+
+[node name="BrazierCrate1" parent="BrazierCorner" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0.3, -4.7)
+
+[node name="BrazierCrate2" parent="BrazierCorner" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7, 0.3, -4.7)
+
+[node name="BrazierCrate3" parent="BrazierCorner" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9, 0.3, -4.7)
+
+[node name="BrazierBox1" parent="BrazierCorner" instance=ExtResource("9_cardboard_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, -6.2)
+
+[node name="BrazierBox2" parent="BrazierCorner" instance=ExtResource("9_cardboard_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, -7)
+
+[node name="BrazierBox3" parent="BrazierCorner" instance=ExtResource("9_cardboard_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, -7.8)
+
+[node name="BarrelAlley" type="Node3D" parent="."]
+
+[node name="Parapet" parent="BarrelAlley" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -10)
+height = 1.2
+width = 4.0
+depth = 0.4
+
+[node name="Barrel1" parent="BarrelAlley" instance=ExtResource("10_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.45, -16.6)
+
+[node name="Barrel2" parent="BarrelAlley" instance=ExtResource("10_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.6, 0.45, -17.8)
+
+[node name="StackCrate1" parent="BarrelAlley" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.56, 0.3, -15.52)
+
+[node name="StackCrate2" parent="BarrelAlley" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.56, 0.9, -15.52)
+
+[node name="StackCrate3" parent="BarrelAlley" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.56, 1.5, -15.52)
+
+[node name="BarricadeRoom" type="Node3D" parent="."]
+
+[node name="Barricade" parent="BarricadeRoom" instance=ExtResource("12_barricade")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -10.25, 0, -17)
+
+[node name="SideRoomCrate" parent="BarricadeRoom" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.7, 0.3, -17.8)
+
+[node name="Breakable" parent="BarricadeRoom/SideRoomCrate"]
+contents = Array[PackedScene]([ExtResource("11_bottle"), ExtResource("11_bottle")])
+
+[node name="Throwables" type="Node3D" parent="."]
+
+[node name="Table" parent="Throwables" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, -6)
+height = 1.0
+width = 3.0
+depth = 1.0
+surface = "wood"
+
+[node name="MetalFloor" parent="Throwables" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0.02, -10)
+thickness = 0.1
+surface = "metal"
+
+[node name="TableCrate1" parent="Throwables" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.55, 1.3, -6.65)
+
+[node name="TableCrate2" parent="Throwables" instance=ExtResource("6_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.85, 1.3, -6.65)
+
+[node name="TableBox1" parent="Throwables" instance=ExtResource("9_cardboard_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.1, 1.25, -6.65)
+
+[node name="TableBox2" parent="Throwables" instance=ExtResource("9_cardboard_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 1.25, -6.65)
+
+[node name="TableBottle1" parent="Throwables" instance=ExtResource("11_bottle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.4, 1.15, -6.2)
+
+[node name="TableBottle2" parent="Throwables" instance=ExtResource("11_bottle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.8, 1.15, -6.2)
+
+[node name="TableBottle3" parent="Throwables" instance=ExtResource("11_bottle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2, 1.15, -6.2)
+
+[node name="TableBottle4" parent="Throwables" instance=ExtResource("11_bottle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.6, 1.15, -6.2)
+
+[node name="TooHeavy" type="Node3D" parent="."]
+
+[node name="HeavyLargeCrate" parent="TooHeavy" instance=ExtResource("7_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 0.6, -5)
+
+[node name="HeavyMetalCrate" parent="TooHeavy" instance=ExtResource("8_metal_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.3, 0.4, -5)
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="FireSpread" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.85, 2.6, -15.5)
+text = "Fire spread
+metal stops it · walls block it"
+size = 2
+
+[node name="Brazier" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.95, 2.6, -7)
+text = "Brazier
+carry or throw things in"
+
+[node name="BarrelChain" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 2.6, -19.95)
+text = "Barrel chain"
+size = 2
+
+[node name="Barricade" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -9.95, 2.8, -17)
+text = "Burn the barricade"
+size = 2
+
+[node name="Throwables" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 2.6, -7.2)
+text = "Throw things · listen"
+
+[node name="TooHeavy" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3.55, 2.4, -4.05)
+text = "Too heavy
+(Combat Strength, M6)"
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="Corridor" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, -2)
+light_energy = 0.8
+omni_range = 6.0
+
+[node name="Hall1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 4.4, -8)
+light_energy = 0.75
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Hall2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4.4, -8)
+light_energy = 0.75
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Hall3" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 4.4, -16)
+light_energy = 0.75
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Hall4" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4.4, -16)
+light_energy = 0.75
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="SideRoom" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2.6, -17)
+light_energy = 0.6
+shadow_enabled = true
+omni_range = 4.0

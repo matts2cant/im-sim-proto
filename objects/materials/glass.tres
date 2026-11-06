@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="MaterialProfile" format=3]
+
+[ext_resource type="Script" path="res://objects/materials/material_profile.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_light_000.ogg" id="2_impactGlass_light_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_light_001.ogg" id="3_impactGlass_light_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_light_002.ogg" id="4_impactGlass_light_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_light_003.ogg" id="5_impactGlass_light_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_light_004.ogg" id="6_impactGlass_light_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_medium_000.ogg" id="7_impactGlass_medium_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_medium_001.ogg" id="8_impactGlass_medium_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_medium_002.ogg" id="9_impactGlass_medium_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_medium_003.ogg" id="10_impactGlass_medium_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_medium_004.ogg" id="11_impactGlass_medium_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_000.ogg" id="12_impactGlass_heavy_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_001.ogg" id="13_impactGlass_heavy_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_002.ogg" id="14_impactGlass_heavy_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_003.ogg" id="15_impactGlass_heavy_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_004.ogg" id="16_impactGlass_heavy_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_000.ogg" id="17_break_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_001.ogg" id="18_break_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_002.ogg" id="19_break_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_003.ogg" id="20_break_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGlass_heavy_004.ogg" id="21_break_4"]
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_0"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("2_impactGlass_light_0")
+stream_1/stream = ExtResource("3_impactGlass_light_1")
+stream_2/stream = ExtResource("4_impactGlass_light_2")
+stream_3/stream = ExtResource("5_impactGlass_light_3")
+stream_4/stream = ExtResource("6_impactGlass_light_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_1"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("7_impactGlass_medium_0")
+stream_1/stream = ExtResource("8_impactGlass_medium_1")
+stream_2/stream = ExtResource("9_impactGlass_medium_2")
+stream_3/stream = ExtResource("10_impactGlass_medium_3")
+stream_4/stream = ExtResource("11_impactGlass_medium_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_2"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("12_impactGlass_heavy_0")
+stream_1/stream = ExtResource("13_impactGlass_heavy_1")
+stream_2/stream = ExtResource("14_impactGlass_heavy_2")
+stream_3/stream = ExtResource("15_impactGlass_heavy_3")
+stream_4/stream = ExtResource("16_impactGlass_heavy_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Break"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("17_break_0")
+stream_1/stream = ExtResource("18_break_1")
+stream_2/stream = ExtResource("19_break_2")
+stream_3/stream = ExtResource("20_break_3")
+stream_4/stream = ExtResource("21_break_4")
+
+[resource]
+script = ExtResource("1_script")
+tag = &"material.glass"
+impact_loudness = 1.6
+impact_sounds = Array[AudioStream]([SubResource("Impact_0"), SubResource("Impact_1"), SubResource("Impact_2")])
+damage_multipliers = Dictionary[StringName, float]({&"damage.fire": 0.0})
+break_impact_speed = 4.0
+break_sound = SubResource("Break")
+break_volume_db = 0.0
+debris_color = Color(0.4, 0.65, 0.45, 1)

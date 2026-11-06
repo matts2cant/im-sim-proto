@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
-## Hub geometry (with the movement course behind doorway "1 Movement"): no two kit parts
-## render different materials on the same plane. Guards against the corridor ceiling that
-## ended flush with the hub and hall wall faces and z-fought above both corridor doorways.
+## Hub geometry (with the movement course behind doorway "1 Movement" and the physics and fire
+## room behind "3 Physics & Fire"): no two kit parts render different materials on the same plane.
+## Guards against the corridor ceiling that ended flush with the hub and hall wall faces and
+## z-fought above both corridor doorways.
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HUB_SCENE: PackedScene = preload("res://levels/hub/hub.tscn")

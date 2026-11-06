@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/tabs/time_tab.gd" id="1_tab"]
+
+[node name="TimeTab" type="VBoxContainer"]
+script = ExtResource("1_tab")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Row"]
+layout_mode = 2
+text = "Time scale"
+
+[node name="Scale" type="HSlider" parent="Row"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_vertical = 4
+min_value = 0.1
+max_value = 2.0
+step = 0.05
+value = 1.0
+
+[node name="Value" type="Label" parent="Row"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "x1.00"
+
+[node name="Reset" type="Button" parent="Row"]
+layout_mode = 2
+text = "Reset"

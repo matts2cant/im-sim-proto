@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ImpactSettings" format=3]
+
+[ext_resource type="Script" path="res://objects/components/impact_settings.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+min_speed = 2.5
+loudness_factor = 0.8
+min_loudness = 2.0
+max_loudness = 30.0
+damage_divisor = 40.0
+throttle = 0.15
+medium_loudness = 8.0
+heavy_loudness = 16.0
+audio_reference_loudness = 10.0
+audio_min_db = -18.0
+audio_max_db = 4.0

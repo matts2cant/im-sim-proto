@@ -1,12 +1,16 @@
 class_name Player
 extends CharacterBody3D
-## First-person player: walk, sprint, crouch, jump, mantle, mouse look. A thin adapter over the
-## pure rules (PlayerMotion, MantleRules, PlayerNoiseRules); tuning comes from `config`.
-## Origin is at the feet. Saveable (group `saveable`).
+## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects.
+## A thin adapter over the pure rules (PlayerMotion, MantleRules, PlayerNoiseRules, CarryRules);
+## tuning comes from `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
+## Its StimulusReceiver logs `player.hurt` for damage stimuli until M4. Saveable (group `saveable`).
 
 signal mantled(height: float)
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
+const GROUP: StringName = &"player"
+## Actions handled on their press edge in _physics_process, for the carry component.
+const CARRY_ACTIONS: Array[StringName] = [&"use", &"drop_throw", &"fire"]
 
 @export var config: PlayerConfig
 ## When false the player ignores input (cutscenes, tests that drive it directly).
@@ -30,15 +34,21 @@ var _mantle: MantleRules.Plan = null
 var _mantle_time: float = 0.0
 var _spawn_transform: Transform3D
 var _debug_tab: Node
+var _actions_held: Dictionary[StringName, bool] = {}
 
 @onready var noise: PlayerNoise = $Noise
+@onready var carry: PlayerCarry = $Carry
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _head: Node3D = $Head
 @onready var _floor_ray: RayCast3D = $FloorRay
+@onready var _camera: Camera3D = $Head/Camera
 
 
 func _ready() -> void:
 	add_to_group(&"saveable")
+	add_to_group(GROUP)
+	carry.player = self
+	carry.config = config
 	_collision.shape = _collision.shape.duplicate()
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
@@ -97,6 +107,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		_step_movement(delta, jump_held)
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
+	_handle_carry_input()
+	carry.physics_step()
 
 
 ## Turns the view by a mouse delta in screen pixels.
@@ -123,6 +135,24 @@ func eye_height() -> float:
 	return _head.position.y
 
 
+## The camera's global transform: eye position and view direction (-Z).
+func eye_transform() -> Transform3D:
+	return _camera.global_transform
+
+
+## First thing the view ray hits within `length` metres (world, actors, objects), ignoring the
+## player and what it carries; empty when nothing. Same keys as intersect_ray().
+func look_hit(length: float) -> Dictionary:
+	var eye := eye_transform()
+	var exclude: Array[RID] = [get_rid()]
+	if carry.is_carrying():
+		exclude.append(carry.held.get_rid())
+	var query := PhysicsRayQueryParameters3D.create(
+		eye.origin, eye.origin - eye.basis.z * length, PhysicsLayers.LOOK_MASK, exclude
+	)
+	return get_world_3d().direct_space_state.intersect_ray(query)
+
+
 func save_state() -> Dictionary:
 	return {
 		"position": global_position,
@@ -135,6 +165,7 @@ func save_state() -> Dictionary:
 
 func load_state(data: Dictionary) -> void:
 	_mantle = null
+	carry.drop(&"load")
 	global_position = data.get("position", global_position)
 	rotation.y = data.get("yaw", rotation.y)
 	pitch = data.get("pitch", pitch)
@@ -149,8 +180,9 @@ func load_state(data: Dictionary) -> void:
 func _step_movement(delta: float, jump_held: bool) -> void:
 	var grounded := is_on_floor()
 	_update_crouch()
+	# No mantling while carrying (the hands are busy).
 	var wants_mantle := (_jump_requested and grounded) or (jump_held and not grounded)
-	if wants_mantle and _try_start_mantle():
+	if wants_mantle and not carry.is_carrying() and _try_start_mantle():
 		_jump_requested = false
 		return
 	var jumping := _jump_requested and grounded
@@ -160,7 +192,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	var sprint_held := _input_allowed() and Input.is_action_pressed(&"sprint")
 	mode = PlayerMotion.select_mode(grounded, crouched, sprint_held, input, config)
 	if grounded:
-		_air_speed_cap = PlayerMotion.max_speed(mode, config)
+		_air_speed_cap = PlayerMotion.max_speed(mode, config) * carry.speed_factor()
 	var wish := global_basis * Vector3(input.x, 0.0, input.y)
 	var horizontal := PlayerMotion.horizontal_velocity(velocity, wish, _air_speed_cap, grounded, delta, config)
 	velocity.x = horizontal.x
@@ -251,8 +283,26 @@ func _register_debug_tab() -> void:
 	DebugPanel.register_tab("Player", _debug_tab as Control)
 
 
+# use: pick up / put down; drop_throw: drop; fire: throw (only while carrying for now).
+func _handle_carry_input() -> void:
+	for action in CARRY_ACTIONS:
+		var held := _input_allowed() and Input.is_action_pressed(action)
+		var pressed: bool = held and not _actions_held.get(action, false)
+		_actions_held[action] = held
+		if not pressed:
+			continue
+		match action:
+			&"use":
+				carry.use()
+			&"drop_throw":
+				carry.drop()
+			&"fire":
+				carry.throw()
+
+
 func _respawn() -> void:
 	_mantle = null
+	carry.drop(&"respawn")
 	global_transform = _spawn_transform
 	velocity = Vector3.ZERO
 	_ground_y = global_position.y

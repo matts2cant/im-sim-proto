@@ -14,7 +14,7 @@ Indirect: a burning crate, a slowed player with a damaged leg, a skill tier that
 
 ### Tags (`core/attributes/`)
 
-- Hierarchical StringNames (`material.metal`, `state.burning`, `actor.guard`).
+- Hierarchical StringNames (`material.metal`, `state.burning`, `actor.guard`). In use since M3: `material.wood|metal|glass|cardboard`, `object.crate|box|barrel|explosive|bottle|barricade|brazier`, `state.burning`, `state.charred`, `actor.player` ([objects-and-fire.md](objects-and-fire.md)).
 - `TagContainer` (RefCounted): `add(tag)`, `remove(tag)` (exactly that tag, not its descendants), `has(query)`: true if `query` or any descendant is held (`has(&"material")` while `material.metal` is held; `material` does not match `materials`). Also `has_exact`, `has_all`, `has_any`, `tags()`. Signal `changed(tag, added)`, only on real changes. `to_dict()` / `from_dict()`.
 - `TagContainer.matches(tag, query)` is the one hierarchy rule; receptron stimulus types use it too.
 - `Tags` component (Node): `initial_tags` exported for the inspector, added in `_ready`; `container` holds the live tags. Saveable (`save_state` / `load_state`, group `saveable`).
@@ -25,6 +25,7 @@ Indirect: a burning crate, a slowed player with a damaged leg, a skill tier that
 - `AttributeSet` (RefCounted): named base values (`set_base`, `base`), `add_modifier` (one instance is applied at most once), `remove_modifier`, `remove_by_source(source)`, `value(name)`. Signal `changed(name, old, new)`, emitted only when the value actually changes. `to_dict()` / `from_dict()` (bases and modifiers in order).
 - Attributes without a base value start from 0.
 - `Attributes` component (Node): `base_values: Dictionary[StringName, float]` exported, applied in `_ready`; `attribute_set` holds the live set. Saveable.
+- Attributes in use since M3: `health` on objects (Breakable lowers its base value), `carry_mass_limit` on the player (base 20 kg; Combat Strength adds a modifier in M6).
 
 ### Evaluation
 
