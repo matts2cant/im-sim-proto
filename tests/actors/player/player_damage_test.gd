@@ -1,10 +1,11 @@
 extends GdUnitTestSuite
-## Integration: the player's body parts (hitboxes, leg injuries, explosions, falls, death, medkit).
+## Integration: the player's body parts (hitboxes, leg injuries, explosions, falls, death). The
+## medkit (an inventory item since M5) is tested in tests/items/inventory/player_inventory_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
+const Items := preload("res://tests/items/item_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
-const MEDKIT := "res://objects/medkit/medkit.tscn"
 const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
 
 var _driver: PlayerDriver
@@ -140,6 +141,7 @@ func test_death_disables_input_and_shows_the_overlay() -> void:
 	await _driver.place(Vector3.ZERO)
 	var hud := _player.get_node("Hud") as Hud
 	assert_bool(hud.death_overlay.visible).is_false()
+	Items.arm(_player)
 	await _driver.hold(&"belt_1", 2)
 
 	_player.body.take_damage(&"damage.ballistic", 30.0, &"head")
@@ -159,44 +161,6 @@ func test_death_disables_input_and_shows_the_overlay() -> void:
 	_player.reset_requested.connect(func() -> void: resets[0] += 1)
 	await _driver.hold(&"use", 2)
 	assert_int(resets[0]).is_equal(1)
-
-
-func test_medkit_heals_and_frees_itself() -> void:
-	await _load()
-	var medkit := Objects.spawn(_driver.runner.scene(), MEDKIT, Vector3(0, 0.06, -1.2))
-	await _driver.frames(10)
-	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, medkit.global_position))
-	await _driver.frames(5)
-	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
-	_player.body.take_damage(&"damage.blunt", 4.0, &"head")
-	EventLog.clear()
-
-	await _driver.hold(&"use", 2)
-	await _driver.frames(1)
-
-	assert_bool(is_instance_valid(medkit)).is_false()
-	assert_bool(_player.carry.is_carrying()).is_false()
-	var healed := EventLog.find(&"actor.healed")
-	assert_array(healed).has_size(1)
-	assert_float(healed[0].data["amount"]).is_equal_approx(30.0, 0.001)
-	assert_float(_player.body.health(&"head")).is_equal_approx(60.0, 0.001)
-	assert_float(_player.body.health(&"torso")).is_equal_approx(86.0, 0.001)
-
-
-func test_medkit_is_kept_at_full_health() -> void:
-	await _load()
-	var medkit := Objects.spawn(_driver.runner.scene(), MEDKIT, Vector3(0, 0.06, -1.2))
-	await _driver.frames(10)
-	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, medkit.global_position))
-	await _driver.frames(5)
-	EventLog.clear()
-
-	await _driver.hold(&"use", 2)
-	await _driver.frames(1)
-
-	assert_bool(is_instance_valid(medkit)).is_true()
-	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
-	assert_array(EventLog.find(&"player.picked_up")).is_empty()
 
 
 func _load() -> void:

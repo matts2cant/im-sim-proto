@@ -1,9 +1,11 @@
 extends RefCounted
-## Test helper (not a suite): aims the player of a PlayerDriver at a point, equips weapons through the
-## belt keys and fires through the `fire` action, for the M4 weapon, dummy and HUD tests.
+## Test helper (not a suite): gives the player of a PlayerDriver the pistol (belt 1), the baton
+## (belt 2) and 30 rounds, aims it at a point, equips weapons through the belt keys and fires through
+## the `fire` action, for the M4 weapon, dummy and HUD tests.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
+const Items := preload("res://tests/items/item_test_helpers.gd")
 const DUMMY_RANGE := "res://tests/actors/dummy/fixtures/dummy_range.tscn"
 const SEED := 4242
 
@@ -15,6 +17,7 @@ func _init(p_driver: PlayerDriver) -> void:
 	driver = p_driver
 	player = driver.player
 	player.weapons.seed_rng(SEED)
+	Items.arm(player)
 
 
 ## Stands the player at `feet` aiming its eye at `target`, lets it land and clears the log. The

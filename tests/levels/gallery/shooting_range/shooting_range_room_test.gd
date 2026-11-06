@@ -186,10 +186,11 @@ func test_three_medkits_on_the_table_near_the_entrance() -> void:
 		if not child.name.begins_with("Medkit"):
 			continue
 		var kit := child as RigidBody3D
-		assert_object(Usable.of(kit)).is_instanceof(Medkit)
-		# Resting on the table top (0.12 m case), within its footprint.
-		assert_float(kit.position.y - 0.06).is_equal_approx(table.height, 0.001)
-		assert_float(absf(kit.position.x - table.position.x) + 0.16).is_less(table.width * 0.5)
+		# M5 inventory pickups: E takes one, using it from the belt heals.
+		assert_str(String(ItemPickup.of(kit).item.id)).is_equal("medkit")
+		# Resting on the table top (0.09 m case), within its footprint.
+		assert_float(kit.position.y - 0.045).is_equal_approx(table.height, 0.001)
+		assert_float(absf(kit.position.x - table.position.x) + 0.12).is_less(table.width * 0.5)
 		assert_bool(kit.position.z < table.position.z and kit.position.z > table.position.z - table.depth).is_true()
 		count += 1
 	assert_int(count).is_equal(3)

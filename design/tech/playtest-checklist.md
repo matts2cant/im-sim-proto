@@ -78,7 +78,7 @@ Gallery room 3 (Physics and fire):
 
 Start the hub and go through doorway "4 Shooting Range" (east wall, south of doorway 3) into the gallery room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range)); the debug panel (`) Spawn tab still places extra training dummies (2 m ahead, facing away from you), medkits and barrels. Keep the Event Log tab (filter `actor.` / `weapon.`) and the Player tab at hand. See [../game/damage.md](../game/damage.md) and [../game/weapons-and-aiming.md](../game/weapons-and-aiming.md).
 
-- [ ] 1 draws the pistol (box in the lower right), 2 the baton, the same key again holsters. HUD bottom right shows "Silenced pistol" and "10 / 30"; nothing for the baton's ammo.
+- [ ] (Since M5 give the pistol, baton and ammo with Spawn > Give item first.) 1 draws the pistol (box in the lower right), 2 the baton, the same key again holsters. HUD bottom right shows "Silenced pistol" and "10 / <rounds in the inventory>"; nothing for the baton's ammo.
 - [ ] Reticle: standing still the circle shrinks to a small ring in under a second (0.8 s settle); walking widens it to about 4.5 degrees, sprinting or jumping to 7.5, right away; flicking the mouse and every shot bloom it; it never exceeds 10. The settle speed feels fair, not sluggish.
 - [ ] Shots land inside the circle (shoot a wall at 10 m and compare the impact noise sphere in Overlays > Stimuli); at rest a dummy's head at 5 m is reliable.
 - [ ] Pistol: shot sound reads as suppressed, not as a punch; 0.35 s between shots; empty magazine clicks; R reloads in 1.6 s (sound plays) and the counter shows "reloading". Shot noise 6 m at the muzzle and 4 m at the impact show in Overlays > Stimuli.
@@ -87,7 +87,7 @@ Start the hub and go through doorway "4 Shooting Range" (east wall, south of doo
 - [ ] Baton: swing with a visible chop; from behind an unaware dummy (Spawn puts it facing away) one hit shows "stun 200" and "KO" and it tips over; from the front three hits ("stun 20" each). Hitting a crate damages it a little (blunt 5), never through stun.
 - [ ] Player damage (Spawn tab "Damage looked-at" does not target yourself; use barrels and fire): standing about 2 m from an exploding barrel takes roughly 20 torso and 6 elsewhere; the screen flashes red; the silhouette (bottom left) turns yellow/red per part.
 - [ ] Jump off the movement course's 5 m drop: both legs lose about 32 (silhouette legs yellow). A second fall disables them: you crawl at 1 m/s and cannot stand. One disabled leg: walking is clearly slower (x0.6).
-- [ ] Medkit: E heals 30 spread over the damaged parts and it disappears; at full health it stays (`item.use_refused`).
+- [ ] Medkit (since M5 from the belt): its belt key heals 30 spread over the damaged parts and the count drops by one; at full health nothing is used (`item.use_refused`).
 - [ ] Death (stand next to two barrels): "You died" overlay, nothing but E works; E reloads the level. The Spawn tab's "Reset level" does the same.
 - [ ] Carrying a burning crate slowly hurts every part (`actor.damaged`, damage.fire).
 
@@ -104,9 +104,19 @@ Gallery room 4 (Shooting range):
 
 ## M5 Inventory (Inventory bay)
 
-- [ ] Items of every footprint fit and block correctly on the 6x5 grid.
-- [ ] Belt slots 1-0 reference grid items; consumables stack.
-- [ ] Dropped items become physics objects and make noise.
+Until the gallery room exists: start the hub, open the debug panel (`) and use Spawn > Give item (and the object buttons: "medkit" spawns a medkit pickup). Keep the Event Log tab (filter `item.`) at hand. See [../game/inventory.md](../game/inventory.md).
+
+- [ ] Look at an item on the floor within 2 m: the prompt under the reticle reads "E: pick up Multitool (3)" (the count only above 1); a small crate says "E: carry Small crate", a large crate "Too heavy", a training dummy "E: reset Training dummy"; carrying, "E: put down ...". The prompt is readable and does not flicker when the crosshair sits on an edge.
+- [ ] E picks the item up; the pistol, baton, medkit, multitool, lockpick and biocell appear in the first free belt slot; ammo, keycard and datapad do not.
+- [ ] Fill the grid (Give item: keycard stack x30): E on another item says "No room in inventory" for about 2 s and the item stays. A big ammo pickup with little room leaves the rest on the floor with the smaller count.
+- [ ] 1-0: the pistol draws / holsters, the slot is highlighted on the belt HUD; a multitool shows "Multitool" bottom right and LMB does nothing; a medkit heals when hurt and is refused when not ("You are not hurt"); a biocell says "Nothing happens"; a datapad opens the reading panel and E or Esc closes it without also picking up what you look at.
+- [ ] R reloads from the ammo stacks: "2 / 103" becomes "10 / 95"; the smallest ammo stack is used up first and its cell frees up in the grid.
+- [ ] Q with the pistol drawn drops it about a metre ahead; it clatters (impact noise in Overlays > Stimuli); picking it up again keeps its magazine (tooltip "Magazine: n"). Q while carrying a crate still just lets go of the crate. Dropping against a wall never puts the item through it.
+- [ ] I opens the inventory: the game is paused (a falling object freezes, footsteps stop), the mouse is free, I or Esc closes and the mouse is captured again. It does not open while dead or with the debug panel open.
+- [ ] Items of every footprint fit and block correctly on the 6x5 grid: dragging shows a green footprint where it fits and red where it overlaps or sticks out; releasing on red changes nothing.
+- [ ] Drag an item onto a belt slot to assign it; drag a belt item off the belt to clear the slot; drag an item out of the panel to drop it. Hover an item and press a number to assign it.
+- [ ] Right-click: Use / Equip / Read, Drop, Split stack (halves it into a free cell), Assign to belt slot. The tooltip shows name, description and count; it does not cover the item under the mouse.
+- [ ] The inventory reads as Deus Ex: dark panel, thin grid lines, coloured item blocks with legible short names at 1152x648 and at the 840x648 window this machine opens.
 
 ## M6 Abilities and saving (Inventory bay)
 

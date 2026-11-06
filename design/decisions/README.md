@@ -53,3 +53,6 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0047](0047-hitboxes-layer-5-part-aware-ray.md) | Hitboxes on layer 5 and part-aware RAY delivery | Accepted |
 | [0048](0048-aim-model.md) | Aim model | Accepted |
 | [0049](0049-knockout-rules-awareness.md) | Knockout rules and Awareness interface | Accepted |
+| [0050](0050-inventory-model-and-belt-references.md) | Inventory model and belt references | Accepted |
+| [0051](0051-single-interactor-hud-prompts.md) | Single Interactor and HUD prompts | Accepted |
+| [0052](0052-inventory-pauses-the-game.md) | Inventory pauses the game | Accepted |

@@ -5,7 +5,9 @@ extends Node3D
 ## the aim cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a muzzle
 ## `noise`, an impact `noise` and an impulse on a physics object hit. Melee weapons sweep a sphere
 ## along the view and send `damage.*` CONTACT to what they hit (a hitbox carries its part).
-## The view model is a placeholder box. Until the M5 belt, the player toggles slots with belt_1/2.
+## The view model is a placeholder box. Two ways to arm it: a fixed loadout (`weapons`, equip(index);
+## guards in M7) that the holder saves itself, or equip_state() with a WeaponState owned elsewhere
+## (the player's inventory weapon stacks, saved by PlayerInventory; ADR 0050).
 
 signal changed
 
@@ -14,6 +16,7 @@ const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
 ## Recoil time of a shot; a swing animates over half its cycle.
 const KICK_TIME: float = 0.12
 
+## Fixed loadout (optional): one WeaponState each in `states`, saved by the holder.
 @export var weapons: Array[WeaponData] = []
 @export var aim_config: AimConfig
 ## Seed of the shot RandomNumberGenerator; 0 = random (tests seed it).
@@ -24,12 +27,13 @@ var user: CollisionObject3D
 ## Eye: shots and sweeps start here along -Z.
 var camera: Camera3D
 var states: Array[WeaponState] = []
-## Index into `weapons` of the equipped one, -1 when holstered.
+## Index into `weapons` of the equipped one, -1 when holstered or armed through equip_state().
 var current: int = -1
 var aim: AimModel
 ## Last hit of the equipped weapon, for tests and the debug panel: {collider, position} or {}.
 var last_hit: Dictionary = {}
 
+var _equipped: WeaponState = null
 var _look_pixels: float = 0.0
 var _floor: float = 0.0
 var _kick: float = 0.0
@@ -40,7 +44,8 @@ var _audio: AudioStreamPlayer3D
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	if not weapons.is_empty():
+		add_to_group(&"saveable")
 	aim = AimModel.new(aim_config, rng_seed)
 	for data in weapons:
 		states.append(WeaponState.new(data))
@@ -66,18 +71,18 @@ func seed_rng(value: int) -> void:
 
 
 func weapon() -> WeaponData:
-	return weapons[current] if current >= 0 else null
+	return _equipped.data if _equipped != null else null
 
 
 func state() -> WeaponState:
-	return states[current] if current >= 0 else null
+	return _equipped
 
 
 func is_armed() -> bool:
-	return current >= 0
+	return _equipped != null
 
 
-## belt key: equips slot `index`, or holsters when it is already equipped.
+## Fixed loadout: equips slot `index`, or holsters when it is already equipped.
 func toggle(index: int) -> void:
 	if index == current:
 		holster()
@@ -85,22 +90,31 @@ func toggle(index: int) -> void:
 		equip(index)
 
 
+## Fixed loadout: equips `weapons[index]`.
 func equip(index: int) -> void:
-	if index < 0 or index >= weapons.size() or index == current:
+	if index >= 0 and index < states.size():
+		equip_state(states[index])
+
+
+## Draws the weapon of `weapon_state` (owned by the caller, e.g. an inventory stack's).
+func equip_state(weapon_state: WeaponState) -> void:
+	if weapon_state == null or weapon_state == _equipped:
 		return
-	if current >= 0:
-		states[current].cancel_reload()
-	current = index
-	_build_view(weapons[index])
-	_log(&"weapon.equipped", {"weapon": weapons[index].id})
+	if _equipped != null:
+		_equipped.cancel_reload()
+	_equipped = weapon_state
+	current = states.find(weapon_state)
+	_build_view(weapon_state.data)
+	_log(&"weapon.equipped", {"weapon": weapon_state.data.id})
 	changed.emit()
 
 
 func holster() -> void:
-	if current < 0:
+	if _equipped == null:
 		return
-	var data := weapons[current]
-	states[current].cancel_reload()
+	var data := _equipped.data
+	_equipped.cancel_reload()
+	_equipped = null
 	current = -1
 	_view.visible = false
 	_log(&"weapon.holstered", {"weapon": data.id})
@@ -120,7 +134,10 @@ func physics_step(delta: float, stance: AimModel.Stance) -> void:
 	_floor = aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0))
 	aim.step(delta, _floor)
 	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0))
-	for weapon_state in states:
+	var stepped := states.duplicate()
+	if _equipped != null and not stepped.has(_equipped):
+		stepped.append(_equipped)
+	for weapon_state: WeaponState in stepped:
 		var was_reloading := weapon_state.is_reloading()
 		weapon_state.step(delta)
 		if was_reloading and not weapon_state.is_reloading():
@@ -150,7 +167,7 @@ func trigger() -> int:
 	if body != null and (not body.can_act() or body.arms_disabled()):
 		_log(&"weapon.refused", {"weapon": data.id, "reason": "arms_disabled" if body.can_act() else "incapacitated"})
 		return -1
-	var result := states[current].try_fire()
+	var result := _equipped.try_fire()
 	match result:
 		WeaponState.Result.FIRED:
 			_kick_length = data.cycle_time * 0.5 if data.is_melee() else KICK_TIME
@@ -183,6 +200,7 @@ func aim_transform() -> Transform3D:
 	return Transform3D(AimModel.swayed(eye.basis, _sway), eye.origin)
 
 
+## Fixed loadout only (the holder is saveable when `weapons` is not empty).
 func save_state() -> Dictionary:
 	var ammo: Array[Dictionary] = []
 	for weapon_state in states:
@@ -234,7 +252,7 @@ func _shoot(data: WeaponData) -> void:
 	_play(data.fire_sound, data.fire_volume_db)
 	var logged := {
 		"weapon": data.id,
-		"magazine": states[current].magazine,
+		"magazine": _equipped.magazine,
 		"spread": spread,
 		"hit": hit_name,
 	}

@@ -25,6 +25,7 @@ cycle_time = 0.35
 max_range = 60.0
 magazine_size = 10
 reserve_ammo = 30
+ammo_item = &"pistol_ammo"
 reload_time = 1.6
 fire_noise = 6.0
 impact_noise = 4.0

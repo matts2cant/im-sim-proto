@@ -17,6 +17,9 @@ const PLAYER_MASK: int = WORLD | ACTORS | OBJECTS
 const OBJECT_MASK: int = WORLD | PLAYER | ACTORS | OBJECTS
 ## What "looking at" queries (pick up, debug aim) hit.
 const LOOK_MASK: int = WORLD | ACTORS | OBJECTS
+## What the player's Interactor ray hits (ADR 0051): world, objects, hitboxes (a hitbox stands for
+## its character, e.g. a training dummy).
+const INTERACT_MASK: int = WORLD | OBJECTS | HITBOXES
 ## What weapon rays and melee sweeps hit: never the character bodies, their hitboxes instead (ADR 0047).
 const WEAPON_MASK: int = WORLD | OBJECTS | HITBOXES
 

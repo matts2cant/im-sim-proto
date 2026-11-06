@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"datapad"
+display_name = "Datapad"
+short_name = "DATAPAD"
+description = "A handheld note. Use it to read it."
+footprint = Vector2i(1, 1)
+max_stack = 1
+colour = Color(0.35, 0.68, 0.68, 1)
+world_scene = "res://items/datapad/datapad.tscn"
+auto_belt = false
+default_state = {"title": "Datapad", "text": ""}
+use_action = 3

@@ -1,7 +1,8 @@
 class_name WeaponState
 extends RefCounted
-## Pure weapon cycle: rate of fire, magazine and reserve, reload timing, dry fire. Time advances
-## only through step(), so tests drive it exactly.
+## Pure weapon cycle: rate of fire, magazine, reload timing, dry fire. Spare rounds come from an
+## AmmoPool (a plain count, or the inventory's ammo stacks: InventoryAmmo). Time advances only
+## through step(), so tests drive it exactly.
 
 enum Result { FIRED, DRY, BUSY, RELOADING }
 
@@ -10,17 +11,22 @@ const EPSILON: float = 0.0001
 
 var data: WeaponData
 var magazine: int = 0
-var reserve: int = 0
+var ammo: AmmoPool
+## Spare rounds available to reload from.
+var reserve: int:
+	get:
+		return ammo.available()
 ## Seconds until the next shot or swing is allowed.
 var cooldown: float = 0.0
 ## Seconds left of a running reload; 0 when not reloading.
 var reload_left: float = 0.0
 
 
-func _init(p_data: WeaponData) -> void:
+## Without `p_ammo` the spare rounds are a plain pool of `data.reserve_ammo`.
+func _init(p_data: WeaponData, p_ammo: AmmoPool = null) -> void:
 	data = p_data
 	magazine = data.magazine_size
-	reserve = data.reserve_ammo
+	ammo = p_ammo if p_ammo != null else AmmoPool.new(data.reserve_ammo)
 
 
 func is_reloading() -> bool:
@@ -34,9 +40,7 @@ func step(delta: float) -> void:
 	reload_left -= delta
 	if reload_left <= EPSILON:
 		reload_left = 0.0
-		var taken := mini(data.magazine_size - magazine, reserve)
-		magazine += taken
-		reserve -= taken
+		magazine += ammo.take(data.magazine_size - magazine)
 
 
 ## Pulls the trigger: FIRED uses a round (if the weapon has ammo) and starts the cycle; DRY when
@@ -74,6 +78,7 @@ func to_dict() -> Dictionary:
 
 func from_dict(state: Dictionary) -> void:
 	magazine = int(state.get("magazine", magazine))
-	reserve = int(state.get("reserve", reserve))
+	if state.has("reserve"):
+		ammo.restore(int(state["reserve"]))
 	cooldown = 0.0
 	reload_left = 0.0

@@ -20,6 +20,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"medkits": {"feet": Vector3(3.0, 0, -6.2), "look": Vector3(3.0, 1.0, -4.3)},
 }
 
+const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
+const AMMO: ItemData = preload("res://items/pistol_ammo/pistol_ammo.tres")
+
 ## Review image size (the project's 16:9 default).
 const SHOT_SIZE := Vector2i(1152, 648)
 
@@ -58,7 +61,10 @@ func _physics_process(delta: float) -> void:
 	if not _started and _time > 0.2:
 		_started = true
 		if _shot.get("pistol", false):
-			_player.weapons.equip(0)
+			# M5: the player starts empty; the pistol goes to belt slot 1 (index 0).
+			_player.inventory.give(PISTOL, 1)
+			_player.inventory.give(AMMO, 30)
+			_player.inventory.select_slot(0)
 	if _started and _shot.get("pistol", false):
 		_player.weapons.settle()
 

@@ -13,11 +13,14 @@
 [ext_resource type="Resource" path="res://actors/player/player_body.tres" id="11_player_body"]
 [ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="12_hitboxes"]
 [ext_resource type="Script" path="res://items/weapons/weapon_holder.gd" id="13_weapon_holder"]
-[ext_resource type="Resource" path="res://items/weapons/pistol/pistol.tres" id="14_pistol"]
-[ext_resource type="Resource" path="res://items/weapons/baton/baton.tres" id="15_baton"]
 [ext_resource type="Resource" path="res://items/weapons/aim_untrained.tres" id="16_aim"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="17_hud"]
-[ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="18_weapon_data"]
+[ext_resource type="Script" path="res://items/inventory/player_inventory.gd" id="19_inventory"]
+[ext_resource type="Resource" path="res://items/inventory/inventory_config.tres" id="20_inventory_config"]
+[ext_resource type="Resource" path="res://items/item_catalog.tres" id="21_catalog"]
+[ext_resource type="Script" path="res://actors/player/interactor.gd" id="22_interactor"]
+[ext_resource type="PackedScene" path="res://ui/inventory/inventory_screen.tscn" id="23_inventory_screen"]
+[ext_resource type="PackedScene" path="res://ui/inventory/reading_overlay.tscn" id="24_reading_overlay"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -43,7 +46,6 @@ near = 0.05
 
 [node name="WeaponHolder" type="Node3D" parent="Head/Camera"]
 script = ExtResource("13_weapon_holder")
-weapons = Array[ExtResource("18_weapon_data")]([ExtResource("14_pistol"), ExtResource("15_baton")])
 aim_config = ExtResource("16_aim")
 
 [node name="FloorRay" type="RayCast3D" parent="."]
@@ -79,4 +81,16 @@ profile = ExtResource("11_player_body")
 
 [node name="Hitboxes" parent="." instance=ExtResource("12_hitboxes")]
 
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("19_inventory")
+config = ExtResource("20_inventory_config")
+catalog = ExtResource("21_catalog")
+
+[node name="Interactor" type="Node" parent="."]
+script = ExtResource("22_interactor")
+
 [node name="Hud" parent="." instance=ExtResource("17_hud")]
+
+[node name="InventoryScreen" parent="." instance=ExtResource("23_inventory_screen")]
+
+[node name="ReadingOverlay" parent="." instance=ExtResource("24_reading_overlay")]

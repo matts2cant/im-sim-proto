@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"keycard"
+display_name = "Keycard"
+short_name = "KEYCARD"
+description = "Opens doors that accept its key."
+footprint = Vector2i(1, 1)
+max_stack = 1
+colour = Color(0.85, 0.75, 0.25, 1)
+world_scene = "res://items/keycard/keycard.tscn"
+auto_belt = false
+default_state = {"key_id": ""}
+use_action = 0
+use_message = "Use it on a door"

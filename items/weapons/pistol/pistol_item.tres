@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"pistol"
+display_name = "Silenced pistol"
+short_name = "PISTOL"
+description = "Suppressed 10 mm sidearm. Quiet, accurate at rest. Holds a 10-round magazine; reloads from pistol ammo."
+footprint = Vector2i(2, 1)
+max_stack = 1
+colour = Color(0.36, 0.4, 0.48, 1)
+world_scene = "res://items/weapons/pistol/pistol_pickup.tscn"
+auto_belt = true
+default_state = {"magazine": 10}
+use_action = 1
+weapon = ExtResource("2_weapon")
