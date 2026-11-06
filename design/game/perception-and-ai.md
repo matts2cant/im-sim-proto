@@ -25,7 +25,6 @@ stateDiagram-v2
     Alerted --> Searching : target unseen 4 s
     Searching --> Alerted : target seen, harm, alert_at()
     Searching --> Unaware : search over (wary)
-    Alerted --> Combat : engage (next wave)
 ```
 
 [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md). **Deviation from the first sketch** (Suspicious -> Searching -> Alerted): investigating a suspicion happens inside Suspicious (look, walk to the point, look around); Searching follows a lost target after Alerted. After any return to Unaware the guard is wary for 60 s: vision gain x1.5 and Suspicious from 0.2.
@@ -34,7 +33,7 @@ stateDiagram-v2
 |---|---|---|
 | Unaware | none | Patrol its route (`PatrolRoute`, waits per point); without one hold the post (spawn position and facing), glancing ±45° for 1.5 s every 6 s |
 | Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (5 m/s) |
-| Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Unseen 4 s: Searching |
+| Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Armed and seeing the target: fight it ([Combat](#combat)). Unseen 4 s: Searching |
 | Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most |
 
 ## Vision ([ADR 0067](../decisions/0067-vision-and-detection.md))
@@ -54,6 +53,34 @@ stateDiagram-v2
 | Dark (L 0.05), 6 m / cloaked / behind | 0 | never |
 | Dark, 1.5 m, focus (close override) | 0.63/s | 1.6 s |
 
+## Combat
+
+[ADR 0070](../decisions/0070-guard-combat-and-loadouts.md). No extra awareness state: a guard fights while it is **Alerted and sees** a hostile target that can act (`CombatBehaviour`, `actors/common/combat/`, tuning `actors/guard/guard_combat.tres`; any NavWalker character with an `Aim/WeaponHolder` fights the same way). Out of sight for 0.5 s it stops; the Alerted flow continues (run to the last known position, Searching after 4 s unseen).
+
+- **Loadouts** are data: `actors/guard/guard.tscn` is unarmed (stands off at 1.5 m), `guard_pistol.tscn` and `guard_baton.tscn` only set the holder's weapon. The weapon is drawn on engaging and holstered when the guard is back to Unaware or cannot act.
+- **One owner of the walker**: combat takes the `NavWalker` while engaged (`take_control`) and hands it back (`release_control`); the AwarenessBehaviour pauses meanwhile.
+- **Shots and swings** go through the same `WeaponHolder.trigger()` as the player's: the same `damage.*` stimuli, hitboxes, noise (guards' pistol: 25 m) and EventLog (`weapon.fired`, `weapon.swung`, `weapon.reload_started`, `weapon.reloaded`).
+
+| Pistol guard | |
+|---|---|
+| First shot | 0.5 s of sight after engaging |
+| Rate | a random 0.6-0.9 s between shots; standing (< 0.3 m/s) and facing the target within 15° |
+| Range | keeps 6-12 m: beyond 12 advances to 11 (2.5 m/s), under 6 backs off to 7 (1.8 m/s) still facing the target; cornered, stands |
+| Ammo | magazine 10, reloads when empty (1.6 s), 30 spare; tops up when not fighting |
+| Line of fire | aims at the first of the target's hitboxes (torso, head, arms, legs) whose line from the eye is clear; never fires when the first thing on every line is an ally, a wall or a prop; blocked 1 s: steps 1.5 m aside |
+| Cone (half-angle) | 2.0° + 0.15° per metre beyond 4 m, +2° on a target faster than 3 m/s, x1 -> x0.75 over 2 s on a still target; +3° while walking; arm injuries as the player's |
+
+| Baton guard | |
+|---|---|
+| Approach | runs in (5 m/s) to 1.2 m |
+| Swing | within the baton's reach (1.8 m from the eye) minus 0.3, facing within 15°, after 0.5 s of sight; every 0.6 s (the baton's cycle) |
+| Stun | 20 a hit on the player (no `Awareness`: always aware, never the sneak x10): knocked out on the 3rd |
+
+Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 head hits), time from the first shot to death: standing in the open at 4 m 2.25 s, at 10 m 4.4 s; hit chance per shot: standing 10 m 76 %, crouched and still at 15 m 26 %, running at 6 m 82 % (details in ADR 0070).
+
+- Guards hurt each other only by accident (a shot inside the cone after a clear check); a guard hit by an ally is not alerted (harm counts only from a hostile tag).
+- EventLog: `actor.engaged {actor, target}`, `actor.disengaged {actor, reason}` (lost, calm, incapacitated, unarmed, target_down).
+
 ## Hearing
 
 - `noise` stimuli through the `heard_noise` receptron on the guard's `Ears` receiver at floor level: perceived = loudness - navmesh path distance from the guard's feet; heard at perceived >= 1.0. Walking on concrete (6) is heard at 3.5 m, not at 6.5 m; sprinting (14) at up to 13 m; a guard's own walk (5) / run (12).
@@ -65,12 +92,12 @@ stateDiagram-v2
 - Perception is a receiver on the stimulus framework ([stimulus-response.md](stimulus-response.md)); hearing uses navmesh path distance with door attenuation.
 - Guards are built from the same character components as the player ([ADR 0056](../decisions/0056-generic-character-components.md)): `MovementNoise` (their footsteps and landings are `noise` other guards ignore as allies'; the controller sets `stance.sprint` from 4 m/s; guard loudness walk 5, run 12), `FallImpact` + the `fall_damage` receptron, `Knockback` + the `knockback` receptron, BodyParts + `body_damage`, `StepClimber` (walks up steps and stairs of up to 0.35 m; the navmesh climbs 0.3 m; [ADR 0058](../decisions/0058-step-climbing.md)), `BodyPusher` (pushes props with bounded force, ADR 0054), `ImpactSensor` (props pass through guards and their hits deal `damage.blunt`). Whether a guard can act comes from its `state.*` tags (`ActorState`); unconscious or dead it lies down (`DownedPose`), sees and hears nothing and keeps no awareness state.
 - Vision depends on light level ([light-and-visibility.md](light-and-visibility.md)) and Cloak ([abilities.md](abilities.md)).
-- Components (`actors/common/`): `PerceptionSensor` + `VisionRules` (perception/), `GradedAwareness` + `AwarenessModel` + `AwarenessEffect` + `AwarenessIndicator` + `BarkLines` (awareness/), `AwarenessBehaviour` + `PatrolRoute` (behaviour/), `NavWalker` (movement/), `BodyPusher` (pusher/), `DownedPose` (body/). The guard (`actors/guard/guard.tscn`) is a scene of these plus `.tres` tuning; it has no script of its own.
+- Components (`actors/common/`): `CombatBehaviour` + `CombatModel` + `CombatConfig` (combat/), `PerceptionSensor` + `VisionRules` (perception/), `GradedAwareness` + `AwarenessModel` + `AwarenessEffect` + `AwarenessIndicator` + `BarkLines` (awareness/), `AwarenessBehaviour` + `PatrolRoute` (behaviour/), `NavWalker` (movement/), `BodyPusher` (pusher/), `DownedPose` (body/). The guard (`actors/guard/guard.tscn`) is a scene of these plus `.tres` tuning; it has no script of its own.
 - Navigation via NavigationServer3D (`NavWalker` follows its NavigationAgent3D; walk 1.8, investigate 2.5, run 5.0 m/s, turn 240°/s); doors are navigation links.
 - Barks: a text line above the head for 2 s on each state change with a generated beep (lines in `actors/guard/guard_barks.tres`).
 - Icons, state labels and barks: [debug-panel.md](debug-panel.md) Overlays tab toggles.
 - EventLog: `actor.awareness {actor, from, to, reason, meter, point}` (reasons: sight, noise, harm, alert, nothing_found, lost, search_over, reset), `actor.heard {actor, perceived, point}`, `actor.bark {actor, line, from, to}`.
-- Extension points for the next wave: `Awareness.alert_at(position)` (alarm, radio, shouts; or an `AwarenessEffect` of kind ALERT on a receptron) and the Alerted state (combat).
+- Extension points for the next wave: `Awareness.alert_at(position)` (alarm, radio, shouts; or an `AwarenessEffect` of kind ALERT on a receptron). Combat plugs into Alerted (ADR 0070).
 
 ## Interactions
 
@@ -80,7 +107,8 @@ stateDiagram-v2
 
 ## Open questions
 
-- Radio range, shouts, body discovery, the alarm and combat: next wave.
+- Radio range, shouts, body discovery and the alarm: next wave.
+- Combat tactics beyond keeping range: cover, flanking, strafing while firing, leading a moving target, grenades.
 - Vertical limits of the cones (guards on balconies), if levels get tall.
 - Guard avoidance of each other (NavigationAgent3D avoidance is off).
 

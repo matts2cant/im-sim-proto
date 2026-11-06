@@ -35,6 +35,7 @@ func test_layer_rule_decides_whether_the_sensor_runs() -> void:
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.TRIGGERS)).is_true()
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.ACTORS)).is_true()
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.WORLD)).is_false()
+	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.ACTORS | PhysicsLayers.STATIC_ACTORS)).is_false()
 
 
 func test_approach_speed_is_towards_the_capsule_axis() -> void:
@@ -118,19 +119,23 @@ func test_crate_thrown_at_the_player_damages_the_player() -> void:
 	assert_float(torso).is_equal_approx(100.0 - hits[0].data["intensity"], 0.001)
 
 
-func test_crate_thrown_at_the_dummy_hits_once() -> void:
+func test_crate_thrown_at_the_dummy_bounces_off_and_hits_once() -> void:
 	var driver := PlayerDriver.new(scene_runner(ROOM))
 	await driver.settle()
 	var dummy := Objects.spawn(driver.runner.scene(), DUMMY, Vector3(4, 0, 2)) as TrainingDummy
 	await driver.frames(3)
-	# The dummy is on the actors layer, which props do not scan since guards (M7, ADR 0068): the crate
-	# passes through it and its sensor reports the one hit, as for the player.
-	assert_bool((dummy.get_node("ImpactSensor") as ImpactSensor).active).is_true()
+	# A static character is also on the static-actors layer, which props scan (ADR 0070): the crate
+	# collides with the dummy in the solver, so its ImpactNoise reports the one hit and the dummy's
+	# sensor stays off (no double count).
+	assert_bool(ImpactSensor.props_pass_through(dummy.collision_layer)).is_false()
+	assert_bool((dummy.get_node("ImpactSensor") as ImpactSensor).active).is_false()
 	EventLog.clear()
 
-	_throw_crate(driver.runner.scene(), Vector3(4, 1.2, -0.5), Vector3(0, 0, THROW_SPEED))
+	var crate := _throw_crate(driver.runner.scene(), Vector3(4, 1.2, -0.5), Vector3(0, 0, THROW_SPEED))
 	await driver.frames(40)
 
+	# Bounced back: it never got past the front of the dummy's capsule (radius 0.3 at z 2).
+	assert_float(crate.global_position.z).is_less(2.0 - 0.3)
 	var hits := _blunt_to("TrainingDummy")
 	assert_array(hits).has_size(1)
 	assert_float(hits[0].data["intensity"]).is_equal_approx(EXPECTED_DAMAGE, DAMAGE_TOLERANCE)

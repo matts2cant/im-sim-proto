@@ -129,7 +129,7 @@ func reticle_radius() -> float:
 	var data := player.weapons.weapon()
 	if data == null or data.is_melee():
 		return 0.0
-	var camera := player.weapons.camera
+	var camera := player.weapons.eye as Camera3D
 	var height := get_viewport().get_visible_rect().size.y
 	return AimModel.reticle_radius(player.weapons.aim.spread, camera.fov, height)
 
@@ -164,7 +164,7 @@ func _update_reticle() -> void:
 	var radius := reticle_radius()
 	var offset := Vector2.ZERO
 	if radius > 0.0:
-		var camera := player.weapons.camera
+		var camera := player.weapons.eye as Camera3D
 		var height := get_viewport().get_visible_rect().size.y
 		var sway := player.weapons.sway()
 		offset = Vector2(

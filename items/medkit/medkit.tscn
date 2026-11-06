@@ -33,7 +33,7 @@ material = SubResource("Material_cross")
 
 [node name="Medkit" type="RigidBody3D"]
 collision_layer = 8
-collision_mask = 9
+collision_mask = 73
 mass = 0.6
 continuous_cd = true
 script = ExtResource("1_physics_object")

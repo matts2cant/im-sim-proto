@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenarios/fixtures/combat_yard_player.tscn" id="1_yard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="2_guard"]
+[ext_resource type="Script" path="res://tests/scenarios/fixtures/showcase/combat_showcase.gd" id="3_showcase"]
+
+[node name="CombatShowcase" instance=ExtResource("1_yard")]
+
+[node name="Player" parent="." index="1"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -6.5)
+
+[node name="Guard" parent="." instance=ExtResource("2_guard")]
+
+[node name="Showcase" type="Node" parent="."]
+script = ExtResource("3_showcase")
+player_path = NodePath("../Player")
+guard_path = NodePath("../Guard")
+camera_path = NodePath("../ShowcaseCamera")
+camera_target = Vector3(0, 1.35, -0.8)
+
+[node name="ShowcaseCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 1.65, -2.6)
+fov = 60.0

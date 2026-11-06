@@ -17,9 +17,10 @@ Named in `project.godot` `[layer_names]`, constants in `core/physics_layers.gd` 
 | 1 | world | Kit parts and all static level geometry, static props (wooden barricade, brazier) | (static) |
 | 2 | player | The player's capsule | world, actors, objects |
 | 3 | actors | Guards (M7) | |
-| 4 | objects | Physics props (crates, barrels, bottles) | world, actors, objects (not player since [ADR 0054](0054-player-and-physics-props.md)) |
+| 4 | objects | Physics props (crates, barrels, bottles) | world, objects, static actors (not player since [ADR 0054](0054-player-and-physics-props.md), not actors since [ADR 0068](0068-awareness-states-and-guard-behaviour.md), static actors since [ADR 0070](0070-guard-combat-and-loadouts.md)) |
 | 5 | hitboxes | Body-part hitboxes (M4) | |
 | 6 | triggers | Trigger volumes (M8) | |
+| 7 | static_actors | Characters whose body never moves by script (training dummy, also on 3), added by [ADR 0070](0070-guard-combat-and-loadouts.md) | (static) |
 
 - `KitPart` sets `collision_layer = PhysicsLayers.WORLD` explicitly.
 - LINE_OF_SIGHT stimuli are blocked by layer 1 only, so props never shield fire from each other while walls and barricades do.

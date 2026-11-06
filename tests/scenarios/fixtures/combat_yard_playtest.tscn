@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenarios/fixtures/combat_yard_player.tscn" id="1_yard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="2_pistol_guard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="3_baton_guard"]
+[ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="4_dummy"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="5_crate"]
+
+[node name="CombatYardPlaytest" instance=ExtResource("1_yard")]
+
+[node name="PistolGuard" parent="." instance=ExtResource("2_pistol_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+
+[node name="BatonGuard" parent="." instance=ExtResource("3_baton_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+
+[node name="Dummy" parent="." instance=ExtResource("4_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -14)
+
+[node name="Crate" parent="." instance=ExtResource("5_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.3, -13.5)

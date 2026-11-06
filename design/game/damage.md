@@ -45,6 +45,7 @@ A HUD body silhouette shows each part's health (pure green only at full health, 
 
 - Types arrive as stimuli: `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, `damage.fall` (see Fall damage).
 - `BodyDamageEffect` deals (perceived - `threshold`) x `scale`: the `body_damage` receptron uses 0 and x1 (the intensity is the damage).
+- Guards' shots and baton swings are the same stimuli through the same `WeaponHolder` as the player's ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)): a guard's pistol round is `damage.ballistic` 25 on the hitbox it hits, and the player's BodyParts take it like any other hit (4 torso or 2 head hits kill).
 - Props thrown at a character: `ImpactNoise` sends `damage.blunt` CONTACT (kinetic energy / 40) to what the prop collides with. Props pass through the player (ADR 0054), so the player's `ImpactSensor` reports a prop flying into its capsule with the same formula (a 10 kg crate at 10 m/s: about 12); on bodies props collide with (the dummy) the sensor is off, so a hit counts once (ADR 0056).
 - Dealt = amount x the profile's type multiplier (most specific entry wins, missing = x1; all 1.0 in v0) x the part's multiplier for the type (head `damage.ballistic` x2: headshots). EventLog `actor.damaged {actor, part, type, amount, health, by}` per part, `amount` before clamping (a 50 headshot on a 40 head reads 50).
 - `damage.stun` never lowers health: it adds stun points (knockout, [weapons-and-aiming.md](weapons-and-aiming.md)). Objects take no stun (`damage.stun` x0 in every material).
@@ -85,7 +86,7 @@ flowchart LR
 
 ### Training dummy (`actors/dummy/`)
 
-- Static humanoid graybox figure (`StaticBody3D` on layer 3, actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move, so it has no MovementNoise, FallImpact or Knockback; its ImpactSensor stays off (props collide with layer 3).
+- Static humanoid graybox figure (`StaticBody3D` on layers 3, actors, and 7, static actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move, so it has no MovementNoise, FallImpact or Knockback; props collide with layer 7, so thrown props bounce off it and its ImpactSensor stays off ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)).
 - Every hit shows a floating number (`Label3D`, part and amount; stun points in blue, `KO` in yellow) that rises and fades over 1.2 s.
 - Knocked out or dead it tips over backwards (figure, hitboxes and collision together). `use` (E) on it, or `reset()`, restores health, stun, consciousness and pose (`actor.reset`).
 
@@ -97,4 +98,4 @@ flowchart LR
 
 - Damage to an already disabled limb is lost (DX1 passes it to the torso); revisit if limbs feel like damage sponges.
 - Stun points never decay; M7 decides whether guards recover or only wake when another guard finds them.
-- Guards (M7) reuse the dummy profile and hitboxes; their capsule and hitboxes need a crouch pose then.
+- Guards (M7) use the dummy's numbers (`actors/guard/guard_body.tres`) and the same hitboxes; their capsule and hitboxes need a crouch pose if guards ever crouch.

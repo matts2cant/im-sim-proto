@@ -72,3 +72,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0067](0067-vision-and-detection.md) | Vision and detection: cones, light, a suspicion meter | Accepted |
 | [0068](0068-awareness-states-and-guard-behaviour.md) | Awareness states and guard behaviour | Accepted |
 | [0069](0069-hostile-and-ally-tags.md) | Who perceives whom: hostile and ally tags | Accepted |
+| [0070](0070-guard-combat-and-loadouts.md) | Guard combat: one weapon path for every actor, loadouts as data; static characters block props | Accepted |

@@ -36,6 +36,10 @@
 [ext_resource type="Resource" path="res://actors/guard/guard_barks.tres" id="34_barks"]
 [ext_resource type="Script" path="res://actors/common/light/light_exposure.gd" id="35_light_exposure"]
 [ext_resource type="Resource" path="res://actors/common/light/light_exposure.tres" id="36_light_config"]
+[ext_resource type="Script" path="res://items/weapons/weapon_holder.gd" id="37_holder"]
+[ext_resource type="Resource" path="res://actors/guard/guard_aim.tres" id="38_aim"]
+[ext_resource type="Script" path="res://actors/common/combat/combat_behaviour.gd" id="39_combat"]
+[ext_resource type="Resource" path="res://actors/guard/guard_combat.tres" id="40_combat_config"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -167,6 +171,13 @@ target_desired_distance = 0.4
 radius = 0.35
 height = 1.8
 
+[node name="Aim" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="WeaponHolder" type="Node3D" parent="Aim"]
+script = ExtResource("37_holder")
+aim_config = ExtResource("38_aim")
+
 [node name="Perception" type="Node" parent="."]
 script = ExtResource("27_perception")
 config = ExtResource("28_perception_config")
@@ -177,6 +188,10 @@ config = ExtResource("30_awareness_config")
 
 [node name="Behaviour" type="Node" parent="."]
 script = ExtResource("31_behaviour")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("39_combat")
+config = ExtResource("40_combat_config")
 
 [node name="DownedPose" type="Node" parent="."]
 script = ExtResource("32_downed_pose")

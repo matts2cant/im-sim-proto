@@ -42,6 +42,9 @@ enum Kind { RANGED, MELEE }
 ## `force.impact` RAY intensity: impulse (N s) given at the point hit to whatever reacts to `force`
 ## (every PhysicsObject). 0: no force ray.
 @export var impact_impulse: float = 0.0
+## RANGED: edge (m) of the muzzle flash box shown at the front of the view model for a moment on
+## each shot, with a short-range light; 0: no flash (the silenced pistol).
+@export var muzzle_flash_size: float = 0.0
 
 @export_group("Audio")
 @export var fire_sound: AudioStream
