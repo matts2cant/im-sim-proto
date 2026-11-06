@@ -184,6 +184,22 @@ func test_held_object_follows_the_hold_point_instead_of_dropping() -> void:
 	assert_array(EventLog.find(&"player.dropped")).is_empty()
 
 
+func test_picking_up_the_bottom_crate_drops_the_one_on_top() -> void:
+	# 2-crate column; settled long enough to sleep (ADR 0055): the top crate lands on the floor.
+	await _load()
+	var bottom := _spawn(Objects.SMALL_CRATE, Vector3(0, 0.3, -1.5))
+	var top := _spawn(Objects.SMALL_CRATE, Vector3(0, 0.9, -1.5))
+	await _driver.frames(120)
+	assert_bool(top.sleeping).is_true()
+	await _place_aiming(Vector3.ZERO, bottom.global_position)
+
+	await _driver.hold(&"use", 2)
+	assert_object(_player.carry.held).is_same(bottom)
+	await _driver.frames(90)
+
+	assert_float(top.global_position.y).is_equal_approx(0.3, 0.05)
+
+
 func _load() -> void:
 	_driver = PlayerDriver.new(scene_runner(ROOM))
 	_player = _driver.player
