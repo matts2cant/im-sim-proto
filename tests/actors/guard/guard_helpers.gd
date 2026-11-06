@@ -33,10 +33,27 @@ func setup(p_runner: GdUnitSceneRunner, patrol: bool = false) -> void:
 	NavigationServer3D.map_set_use_async_iterations(map, false)
 	var region := scene.find_child("LevelNavigation", true, false) as LevelNavigation
 	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	isolate_region(map, region)
 	# Baked in _ready while the region was still asynchronous: bake again so the map gets it now.
 	region.bake()
 	await frames(6)
 	EventLog.clear()
+
+
+## Switches off every other navigation region in the tree on `map`: a previous suite's fixture
+## freed late (auto_free) may still be there for a few frames, and its floor would join this one's
+## navmesh and shortcut paths through walls.
+static func isolate_region(map: RID, region: NavigationRegion3D) -> void:
+	for node in region.get_tree().root.find_children("*", "NavigationRegion3D", true, false):
+		var other := node as NavigationRegion3D
+		if other != region and other.get_navigation_map() == map:
+			other.enabled = false
+
+
+## Lets fixtures of earlier suites that are freed late (auto_free, queue_free) leave the tree first.
+static func let_old_scenes_go(tree: SceneTree) -> void:
+	for i in 4:
+		await tree.process_frame
 
 
 func teardown() -> void:

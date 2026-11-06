@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="5_ceiling_lamp"]
 [ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="6_wall_lamp"]
 [ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="7_breaker"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="8_guard"]
 
 [sub_resource type="Resource" id="Opening_hall_south"]
 script = ExtResource("2_opening")
@@ -96,6 +97,9 @@ circuit = &"perception_lab"
 label = "lab lights"
 
 [node name="GuardPost" type="Marker3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.5, 0, -16)
+
+[node name="Guard" parent="." instance=ExtResource("8_guard")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.5, 0, -16)
 
 [node name="AmbientDark" type="ReflectionProbe" parent="."]

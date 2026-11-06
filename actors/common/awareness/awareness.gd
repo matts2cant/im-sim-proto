@@ -33,6 +33,17 @@ func notice_harm(_source: Node, _at: Vector3) -> void:
 	pass
 
 
-## An external alert about a threat at `at` (alarm, radio, a shout).
+## An external alert about a threat at `at`: go Alerted (an `ALERT` AwarenessEffect).
 func alert_at(_at: Vector3) -> void:
+	pass
+
+
+## Search around `at` for a threat reported by something else (`why`: alarm, woken, ...).
+func search_at(_at: Vector3, _why: String) -> void:
+	pass
+
+
+## A call from `source` (may be null or freed) about a threat at `at` (`why`: shout, radio, ADR 0072):
+## heeded only from an ally.
+func notice_call(_at: Vector3, _source: Node, _why: String) -> void:
 	pass

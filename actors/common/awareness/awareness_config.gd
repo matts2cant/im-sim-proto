@@ -39,6 +39,24 @@ extends Resource
 ## Look around at each point for this long.
 @export var search_look_time: float = 3.0
 
+@export_group("Bodies")
+## A downed ally (ADR 0071) is found once this much discovery has built up (the vision gain per
+## second while it is seen, as the suspicion meter).
+@export var body_discovery_threshold: float = 1.0
+## Discovery lost per second while the body is not seen.
+@export var body_discovery_decay: float = 0.5
+## Finding a body keeps the character wary at least this long.
+@export var body_wary_duration: float = 180.0
+## Waking an unconscious ally: stand within this horizontal distance of its body (gap from the
+## character's centre to the body's bounds)...
+@export var wake_distance: float = 1.2
+## ...for this long.
+@export var wake_time: float = 3.0
+## Where it heads to wake it: this far out from the body's bounds, on its own side.
+@export var tend_offset: float = 0.5
+## Gives up standing by a body after this long (it could not get close enough).
+@export var tend_timeout: float = 8.0
+
 @export_group("Wary")
 ## After any return to Unaware the character stays wary this long (faster suspicion).
 @export var wary_duration: float = 60.0

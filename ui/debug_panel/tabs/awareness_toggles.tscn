@@ -14,3 +14,20 @@ text = "Guard icons"
 layout_mode = 2
 tooltip_text = "Show each guard's awareness state, suspicion meter and wary time above it"
 text = "Guard state"
+
+[node name="Alarm" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Raise" type="Button" parent="Alarm"]
+layout_mode = 2
+tooltip_text = "Raise the level alarm (90 s): every guard searches and stays wary"
+text = "Raise alarm"
+
+[node name="Clear" type="Button" parent="Alarm"]
+layout_mode = 2
+tooltip_text = "End the level alarm now"
+text = "Clear alarm"
+
+[node name="State" type="Label" parent="Alarm"]
+layout_mode = 2
+text = "off"

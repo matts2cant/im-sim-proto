@@ -1,23 +1,29 @@
 class_name PlayerCarry
 extends Node
-## Component of the Player: picks up, carries, puts down, drops and throws physics objects that have
-## a Carryable (ADR 0053). The held body is a ghost: collision layer and mask 0 (nothing hits it, it
-## hits nothing), frozen kinematic and placed every tick at the hold point in front of the eyes
+## Component of the Player: picks up, carries, puts down, drops and throws physics bodies that have
+## an offered Carryable (ADR 0053): props, and downed characters (ADR 0071). The held body is a
+## ghost: collision layer and mask 0 (nothing hits it, it hits nothing; its hitboxes too), held
+## still (a RigidBody3D frozen kinematic; any other body, e.g. a character, has its physics
+## processing paused and its velocity zeroed, so its controller neither moves nor drops it) and
+## placed every tick with the middle of its shapes at the hold point in front of the eyes
 ## (CarryRules.hold_point), upright and turned to the nearest 90 degrees of the view; its meshes are
 ## see-through. It still burns, hurts its carrier when burning and receives stimuli (they reach
 ## receivers by distance, not by collision). Every release looks for a free spot first: the shape is
 ## cast from the chest towards the hold point (pushed clear of the capsule) and placed short of the
 ## first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No room")
 ## when that spot overlaps anything.
-## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on).
+## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on);
+## the mass is Carryable.mass_of() (a character's `carry_mass`). A Carryable's carry_speed_factor
+## slows the player on top of the heavy-load factor.
 ## When the limit falls below the held mass (Combat Strength switched off or out of energy), the
 ## object is dropped at once (`player.dropped` how `too_heavy`) with the HUD message "Too heavy".
-## Not saved: loading a save drops what is held where it is.
+## Not saved: loading a save drops what is held where it is (a carried character is saved where it
+## is held and falls to the floor on load).
 
-signal picked_up(body: RigidBody3D)
-signal released(body: RigidBody3D, how: StringName)
+signal picked_up(body: PhysicsBody3D)
+signal released(body: PhysicsBody3D, how: StringName)
 ## A put down / drop / throw found no free spot; the object stays held.
-signal release_refused(body: RigidBody3D, how: StringName)
+signal release_refused(body: PhysicsBody3D, how: StringName)
 ## Short feedback for the HUD ("Too heavy" when a held object outgrows the limit).
 signal message(text: String)
 
@@ -29,12 +35,15 @@ const RELEASE_MASK: int = PhysicsLayers.WORLD | PhysicsLayers.ACTORS | PhysicsLa
 var player: Player
 var config: PlayerConfig
 ## The body being carried, or null.
-var held: RigidBody3D = null
+var held: PhysicsBody3D = null
 
-var _layer: int = 0
-var _mask: int = 0
+## Collision layer and mask of the held body and its hitboxes before pick-up, by instance id.
+var _layers: Dictionary[int, Vector2i] = {}
 var _freeze: bool = false
 var _freeze_mode: RigidBody3D.FreezeMode = RigidBody3D.FREEZE_MODE_STATIC
+var _was_processing: bool = true
+## Middle of the held body's shapes, in its own space (placed at the hold point).
+var _center: Vector3 = Vector3.ZERO
 ## Transparency of each faded mesh before pick-up, by instance id (meshes may be freed meanwhile).
 var _faded: Dictionary[int, float] = {}
 var _half_extent: float = 0.0
@@ -50,7 +59,7 @@ func is_carrying() -> bool:
 
 
 func held_mass() -> float:
-	return held.mass if is_carrying() else 0.0
+	return Carryable.mass_of(held) if is_carrying() else 0.0
 
 
 func mass_limit() -> float:
@@ -59,7 +68,9 @@ func mass_limit() -> float:
 
 
 func speed_factor() -> float:
-	return CarryRules.speed_factor(held_mass(), config)
+	var factor := CarryRules.speed_factor(held_mass(), config)
+	var carryable := Carryable.of(held) if is_carrying() else null
+	return factor * carryable.carry_speed_factor if carryable != null else factor
 
 
 ## False when, at the last tick, the held object had no free spot to be released into.
@@ -81,50 +92,45 @@ func try_pick_up() -> bool:
 	var hit := player.look_hit(config.carry_reach)
 	if hit.is_empty():
 		return false
-	var body := hit["collider"] as RigidBody3D
+	var body := Interactor.entity_of(hit["collider"] as Node) as PhysicsBody3D
 	if body == null or not can_offer(body):
 		return false
 	return try_pick_up_body(body)
 
 
-## True when `body` has an enabled Carryable nobody holds (whatever its mass).
-static func can_offer(body: RigidBody3D) -> bool:
+## True when `body` has an offered Carryable nobody holds (whatever its mass).
+static func can_offer(body: Node) -> bool:
 	var carryable := Carryable.of(body)
-	return carryable != null and carryable.enabled and not carryable.is_carried()
+	return body is PhysicsBody3D and carryable != null and carryable.is_offered() and not carryable.is_carried()
 
 
 ## Picks up `body` if it is within the mass limit; otherwise logs `player.pickup_refused`.
-func try_pick_up_body(body: RigidBody3D) -> bool:
+func try_pick_up_body(body: PhysicsBody3D) -> bool:
 	var limit := mass_limit()
-	if not CarryRules.can_carry(body.mass, limit):
-		var data := {"object": String(body.name), "mass": body.mass, "limit": limit}
+	var mass := Carryable.mass_of(body)
+	if not CarryRules.can_carry(mass, limit):
+		var data := {"object": String(body.name), "mass": mass, "limit": limit}
 		EventLog.record(&"player.pickup_refused", String(player.name), String(body.name), data)
 		return false
 	pick_up(body)
 	return true
 
 
-func pick_up(body: RigidBody3D) -> void:
+func pick_up(body: PhysicsBody3D) -> void:
 	if is_carrying():
 		_let_go(&"put_down", _forced_spot(&"put_down"), Vector3.ZERO)
 	held = body
-	_layer = body.collision_layer
-	_mask = body.collision_mask
-	_freeze = body.freeze
-	_freeze_mode = body.freeze_mode
-	_half_extent = CarryRules.half_extent(shapes_aabb(body))
+	var bounds := shapes_aabb(body)
+	_half_extent = CarryRules.half_extent(bounds)
+	_center = bounds.get_center()
 	var view_yaw := CarryRules.view_yaw(player.eye_transform().basis)
 	_yaw_offset = CarryRules.snapped_yaw_offset(CarryRules.upright_yaw(body.global_basis), view_yaw)
 	_start = body.global_transform.orthonormalized()
 	_elapsed = 0.0
 	_velocity = Vector3.ZERO
 	_room = true
-	body.collision_layer = 0
-	body.collision_mask = 0
-	body.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
-	body.freeze = true
-	body.linear_velocity = Vector3.ZERO
-	body.angular_velocity = Vector3.ZERO
+	_ghost(body)
+	_hold_still(body)
 	_fade(body)
 	var carryable := Carryable.of(body)
 	if carryable != null:
@@ -155,7 +161,7 @@ func throw() -> bool:
 	if not is_carrying():
 		return false
 	var body := held
-	var speed := CarryRules.throw_speed(body.mass, config)
+	var speed := CarryRules.throw_speed(Carryable.mass_of(body), config)
 	var direction := -player.eye_transform().basis.z
 	if not _try_release(&"throw", direction * speed):
 		return false
@@ -173,7 +179,7 @@ func physics_step() -> void:
 		_faded.clear()
 		_room = true
 		return
-	if not CarryRules.can_carry(held.mass, mass_limit()):
+	if not CarryRules.can_carry(held_mass(), mass_limit()):
 		drop(&"too_heavy")
 		message.emit(TOO_HEAVY)
 		return
@@ -193,8 +199,10 @@ func physics_step() -> void:
 func release_spot() -> Dictionary:
 	var shapes := _shapes(held)
 	var basis := _target_transform().basis
-	var start := _chest()
-	var target := CarryRules.release_target(player.eye_transform(), _half_extent, config)
+	# Origins of the body that put the middle of its shapes on the chest and on the target.
+	var offset := basis * _center
+	var start := _chest() - offset
+	var target := CarryRules.release_target(player.eye_transform(), _half_extent, config) - offset
 	var corner := CarryRules.release_corner(start, target)
 	var space := player.get_world_3d().direct_space_state
 	var ignore: Array[RID] = [held.get_rid(), player.get_rid()]
@@ -214,7 +222,7 @@ func release_spot() -> Dictionary:
 
 
 ## Local-space AABB of a body's collision shapes (a 0.5 m cube when it has none).
-static func shapes_aabb(body: RigidBody3D) -> AABB:
+static func shapes_aabb(body: CollisionObject3D) -> AABB:
 	var shapes := _shapes(body)
 	if shapes.is_empty():
 		return AABB(Vector3.ONE * -0.25, Vector3.ONE * 0.5)
@@ -246,7 +254,8 @@ func _forced_spot(how: StringName) -> Transform3D:
 	var spot := release_spot()
 	if not spot.is_empty():
 		return spot["transform"]
-	return Transform3D(_target_transform().basis, _chest())
+	var basis := _target_transform().basis
+	return Transform3D(basis, _chest() - basis * _center)
 
 
 func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
@@ -254,13 +263,9 @@ func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
 	held = null
 	_room = true
 	_unfade()
-	body.freeze = _freeze
-	body.freeze_mode = _freeze_mode
 	body.global_transform = spot
-	body.collision_layer = _layer
-	body.collision_mask = _mask
-	body.linear_velocity = velocity
-	body.angular_velocity = Vector3.ZERO
+	_unghost()
+	_let_move(body, velocity)
 	var carryable := Carryable.of(body)
 	if carryable != null:
 		carryable.set_carrier(null)
@@ -270,11 +275,66 @@ func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
 	released.emit(body, how)
 
 
-# Hold point, upright at the view's yaw plus the snapped offset.
+# Hold point (the middle of the shapes there), upright at the view's yaw plus the snapped offset.
 func _target_transform() -> Transform3D:
 	var eye := player.eye_transform()
 	var basis := CarryRules.held_basis(CarryRules.view_yaw(eye.basis), _yaw_offset)
-	return Transform3D(basis, CarryRules.hold_point(eye, _half_extent, config))
+	return Transform3D(basis, CarryRules.hold_point(eye, _half_extent, config) - basis * _center)
+
+
+# The body and its hitboxes stop colliding (layers remembered).
+func _ghost(body: PhysicsBody3D) -> void:
+	_layers.clear()
+	var objects: Array[CollisionObject3D] = [body]
+	var hitboxes := Hitboxes.of(body)
+	if hitboxes != null:
+		objects.append_array(hitboxes.boxes())
+	for object in objects:
+		_layers[object.get_instance_id()] = Vector2i(object.collision_layer, object.collision_mask)
+		object.collision_layer = 0
+		object.collision_mask = 0
+
+
+func _unghost() -> void:
+	for id in _layers:
+		var object := instance_from_id(id) as CollisionObject3D
+		if object != null:
+			object.collision_layer = _layers[id].x
+			object.collision_mask = _layers[id].y
+	_layers.clear()
+
+
+# A rigid body is frozen kinematic; any other body (a character) has its physics processing (its
+# controller) paused, so neither gravity nor its own movement act on it while placed.
+func _hold_still(body: PhysicsBody3D) -> void:
+	var rigid := body as RigidBody3D
+	if rigid != null:
+		_freeze = rigid.freeze
+		_freeze_mode = rigid.freeze_mode
+		rigid.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+		rigid.freeze = true
+		rigid.linear_velocity = Vector3.ZERO
+		rigid.angular_velocity = Vector3.ZERO
+		return
+	_was_processing = body.is_physics_processing()
+	body.set_physics_process(false)
+	var character := body as CharacterBody3D
+	if character != null:
+		character.velocity = Vector3.ZERO
+
+
+func _let_move(body: PhysicsBody3D, velocity: Vector3) -> void:
+	var rigid := body as RigidBody3D
+	if rigid != null:
+		rigid.freeze = _freeze
+		rigid.freeze_mode = _freeze_mode
+		rigid.linear_velocity = velocity
+		rigid.angular_velocity = Vector3.ZERO
+		return
+	body.set_physics_process(_was_processing)
+	var character := body as CharacterBody3D
+	if character != null:
+		character.velocity = velocity
 
 
 # The target, blended from where the object was picked up over `hold_turn_time`.
@@ -293,7 +353,7 @@ func _chest() -> Vector3:
 	return Vector3(feet.x, player.eye_transform().origin.y - config.release_start_drop, feet.z)
 
 
-func _fade(body: RigidBody3D) -> void:
+func _fade(body: PhysicsBody3D) -> void:
 	_faded.clear()
 	for node in body.find_children("*", "GeometryInstance3D", true, false):
 		if _in_fire_fx(node, body):
@@ -333,7 +393,7 @@ func _travel(shapes: Array[CollisionShape3D], from: Transform3D, motion: Vector3
 	return CarryRules.release_fraction(safe, motion.length(), config.release_margin)
 
 
-static func _shapes(body: RigidBody3D) -> Array[CollisionShape3D]:
+static func _shapes(body: CollisionObject3D) -> Array[CollisionShape3D]:
 	var shapes: Array[CollisionShape3D] = []
 	for child in body.get_children():
 		var shape := child as CollisionShape3D

@@ -7,6 +7,7 @@ script = ExtResource("1_script")
 hostile_tags = Array[StringName]([&"actor.player"])
 ally_tags = Array[StringName]([&"actor.guard"])
 hidden_tags = Array[StringName]([&"state.cloaked"])
+body_tags = Array[StringName]([&"state.unconscious", &"state.dead"])
 eye_height = 1.6
 view_mask = 9
 focus_half_angle = 30.0

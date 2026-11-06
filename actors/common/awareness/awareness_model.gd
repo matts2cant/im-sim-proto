@@ -14,18 +14,22 @@ extends RefCounted
 ##   an external alert (alert(): alarms and radio plug in here).
 ## - Searching: visits search_points random points within search_radius of the last known position
 ##   (the first at run pace, then walking), looking around at each; seeing the target: Alerted;
-##   all visited or search_duration over: Unaware and wary.
-## Combat (next wave) plugs into Alerted.
+##   all visited or search_duration over: Unaware and wary. Also entered by search_at() (an ally's
+##   shout or radio call, the level alarm, being woken: ADR 0072) and discover_body() (ADR 0071):
+##   the first destination is the point itself (run pace), then the random points.
+## - TEND (Searching): stand by a downed ally found unconscious, facing it, until end_tend() (the
+##   BodyDiscovery woke it or gave up) or tend_timeout. Calls do not interrupt it; sight does.
+## Combat (ADR 0070) plugs into Alerted.
 
 signal state_changed(from: State, to: State, reason: String)
 
 enum State { UNAWARE, SUSPICIOUS, SEARCHING, ALERTED }
 ## What the character should be doing.
-enum Phase { ROUTINE, LOOK, MOVE, LOOK_AROUND, CHASE }
+enum Phase { ROUTINE, LOOK, MOVE, LOOK_AROUND, CHASE, TEND }
 enum Pace { WALK, INVESTIGATE, RUN }
 
 const STATE_NAMES: Array[String] = ["unaware", "suspicious", "searching", "alerted"]
-const PHASE_NAMES: Array[String] = ["routine", "look", "move", "look_around", "chase"]
+const PHASE_NAMES: Array[String] = ["routine", "look", "move", "look_around", "chase", "tend"]
 const PACE_NAMES: Array[String] = ["walk", "investigate", "run"]
 
 var config: AwarenessConfig
@@ -49,8 +53,10 @@ var search_index: int = 0
 ## Whether a hostile target was seen on the last step, and where.
 var target_seen: bool = false
 var target_position: Vector3 = Vector3.ZERO
+## Searching: going to (MOVE) or standing by (TEND) a downed ally to wake it.
+var tending: bool = false
 ## Why the last state change happened: sight, noise, harm, alert, nothing_found, lost, search_over,
-## reset.
+## reset, body, and search_at()'s reasons (shout, radio, alarm, woken).
 var reason: String = ""
 var rng := RandomNumberGenerator.new()
 
@@ -129,9 +135,47 @@ func alert(at: Vector3) -> void:
 	_alert(at, "alert")
 
 
+## A search for a threat at `at` that something else reported (`why`: shout, radio, alarm, woken):
+## Searching there, the point itself first at run pace. Alerted characters keep chasing; one
+## tending a downed ally keeps tending. Returns true when it started a search.
+func search_at(at: Vector3, why: String) -> bool:
+	if state == State.ALERTED or tending:
+		return false
+	_search_from(at, at, Pace.RUN, why)
+	return true
+
+
+## A downed ally was found at `at` (ADR 0071): wary for at least `body_wary_duration`, then, unless
+## Alerted (a fight goes on), Searching around it, going first to `approach` (beside the body) at
+## run pace. `tend`: the ally is unconscious; on arrival it stands by it (TEND) instead of looking
+## around. Returns true when it started a search.
+func discover_body(at: Vector3, approach: Vector3, tend: bool) -> bool:
+	make_wary(config.body_wary_duration)
+	if state == State.ALERTED:
+		return false
+	_search_from(at, approach, Pace.RUN, "body")
+	tending = tend
+	return true
+
+
+## Ends a TEND (woken, or given up): looks around there, then searches on. Also cancels a tend that
+## has not arrived yet.
+func end_tend() -> void:
+	tending = false
+	if phase == Phase.TEND:
+		_set_phase(Phase.LOOK_AROUND, Pace.WALK)
+
+
+## Stays wary at least `seconds` more.
+func make_wary(seconds: float) -> void:
+	wary_time = maxf(wary_time, seconds)
+
+
 ## The behaviour reached the destination (or got as close as it can).
 func arrived() -> void:
-	if phase == Phase.MOVE and (state == State.SUSPICIOUS or state == State.SEARCHING):
+	if phase == Phase.MOVE and state == State.SEARCHING and tending:
+		_set_phase(Phase.TEND, Pace.WALK)
+	elif phase == Phase.MOVE and (state == State.SUSPICIOUS or state == State.SEARCHING):
 		_set_phase(Phase.LOOK_AROUND, pace)
 
 
@@ -143,6 +187,7 @@ func reset() -> void:
 	search_time = 0.0
 	search_index = 0
 	target_seen = false
+	tending = false
 	_set_phase(Phase.ROUTINE, Pace.WALK)
 	_change(State.UNAWARE, "reset")
 
@@ -161,6 +206,7 @@ func to_dict() -> Dictionary:
 		"search_time": search_time,
 		"search_index": search_index,
 		"target_position": target_position,
+		"tending": tending,
 		"rng_state": rng.state,
 	}
 
@@ -179,6 +225,7 @@ func from_dict(data: Dictionary) -> void:
 	search_time = float(data.get("search_time", search_time))
 	search_index = int(data.get("search_index", search_index))
 	target_position = data.get("target_position", target_position)
+	tending = bool(data.get("tending", tending))
 	rng.state = int(data.get("rng_state", rng.state))
 
 
@@ -226,6 +273,9 @@ func _step_searching(delta: float) -> void:
 	search_time += delta
 	if search_time >= config.search_duration:
 		_calm("search_over")
+	elif phase == Phase.TEND:
+		if phase_time >= config.tend_timeout:
+			end_tend()
 	elif phase == Phase.LOOK_AROUND and phase_time >= config.search_look_time:
 		_next_search_point()
 
@@ -261,6 +311,7 @@ func _alert(at: Vector3, why: String) -> void:
 	destination = at
 	meter = 1.0
 	unseen_time = 0.0
+	tending = false
 	if state != State.ALERTED:
 		_set_phase(Phase.CHASE, Pace.RUN)
 	_change(State.ALERTED, why)
@@ -269,8 +320,20 @@ func _alert(at: Vector3, why: String) -> void:
 func _search() -> void:
 	search_time = 0.0
 	search_index = 0
+	tending = false
 	_pick_search_point()
 	_change(State.SEARCHING, "lost")
+
+
+# Searching around `at`, going first to `first` (counts as the first search point).
+func _search_from(at: Vector3, first: Vector3, first_pace: Pace, why: String) -> void:
+	point = at
+	destination = first
+	search_time = 0.0
+	search_index = 1
+	tending = false
+	_set_phase(Phase.MOVE, first_pace)
+	_change(State.SEARCHING, why)
 
 
 func _next_search_point() -> void:
@@ -289,7 +352,8 @@ func _pick_search_point() -> void:
 
 
 func _calm(why: String) -> void:
-	wary_time = config.wary_duration
+	tending = false
+	make_wary(config.wary_duration)
 	_set_phase(Phase.ROUTINE, Pace.WALK)
 	_change(State.UNAWARE, why)
 

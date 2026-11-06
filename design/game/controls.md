@@ -14,7 +14,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Ctrl | Crouch (hold) |
 | Shift | Sprint (hold, forward only) |
 | Space | Jump / mantle (press facing a ledge, or hold in the air) |
-| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level (or Esc: game menu, Load) |
+| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit) or a downed (unconscious or dead) character (on its body; counts as 15 kg, slows you to 0.6; [ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md)); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level (or Esc: game menu, Load) |
 | R | Reload the equipped weapon |
 | Q | Drop what is carried; when nothing is carried: drop the item in hand (weapon or tool) in front of you |
 | I | Inventory screen (pauses the game); again or Esc closes |

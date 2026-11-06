@@ -1,0 +1,62 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="1_guard"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="2_nav"]
+[ext_resource type="PackedScene" path="res://levels/kit/level_alarm.tscn" id="3_alarm"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.42, 0.42, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.55, 0.57, 0.62, 1)
+
+[sub_resource type="Environment" id="Environment_fixture"]
+background_mode = 1
+background_color = Color(0.32, 0.36, 0.42, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.6
+
+[node name="CommsYard" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fixture")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 8, 0)
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, -12)
+use_collision = true
+size = Vector3(24, 1, 44)
+material = SubResource("Material_floor")
+metadata/surface = &"concrete"
+
+[node name="Wall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+use_collision = true
+size = Vector3(20, 3, 0.4)
+material = SubResource("Material_wall")
+
+[node name="Caller" parent="." instance=ExtResource("1_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="Near" parent="." instance=ExtResource("1_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="BehindWall" parent="." instance=ExtResource("1_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="Tags" parent="BehindWall"]
+initial_tags = Array[StringName]([&"actor.guard"])
+
+[node name="RadioNear" parent="." instance=ExtResource("1_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -22)
+
+[node name="RadioFar" parent="." instance=ExtResource("1_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -32)
+
+[node name="LevelAlarm" parent="." instance=ExtResource("3_alarm")]
+
+[node name="LevelNavigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("2_nav")

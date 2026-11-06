@@ -18,6 +18,8 @@
 [ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="16_lockpick"]
 [ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="17_biocell"]
 [ext_resource type="PackedScene" path="res://levels/gallery/perception_lab/perception_lab.tscn" id="18_perception_lab"]
+[ext_resource type="PackedScene" path="res://levels/gallery/ai_arena/ai_arena.tscn" id="19_ai_arena"]
+[ext_resource type="PackedScene" path="res://levels/kit/level_alarm.tscn" id="20_level_alarm"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -187,6 +189,9 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -15.5, 0, 7.5)
 [node name="PerceptionLab" parent="." instance=ExtResource("18_perception_lab")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, -15.5)
 
+[node name="AIArena" parent="." instance=ExtResource("19_ai_arena")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 15.5)
+
 [node name="Loadout" type="Node3D" parent="."]
 
 [node name="Table" parent="Loadout" instance=ExtResource("10_ledge")]
@@ -239,6 +244,8 @@ size = 0
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="LevelAlarm" parent="." instance=ExtResource("20_level_alarm")]
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
 script = ExtResource("6_navigation")
