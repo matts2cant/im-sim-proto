@@ -1,0 +1,213 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="4_ledge"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="5_ceiling_lamp"]
+[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="6_large_crate"]
+[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="7_metal_crate"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="8_guard"]
+[ext_resource type="Script" path="res://actors/common/behaviour/patrol_route.gd" id="9_route"]
+
+[sub_resource type="Resource" id="Opening_hall_hub"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+offset = 3.0
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_radio"]
+script = ExtResource("2_opening")
+node_name = &"ToRadioRoom"
+wall = 3
+offset = 8.6
+width = 1.6
+height = 2.4
+
+[sub_resource type="Resource" id="Opening_radio_hall"]
+script = ExtResource("2_opening")
+node_name = &"ToHall"
+wall = 1
+offset = 8.6
+width = 1.6
+height = 2.4
+
+[node name="AIArena" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 10)
+size = Vector3(18, 4, 20)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_hub"), SubResource("Opening_hall_radio")])
+
+[node name="RadioRoom" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 10)
+size = Vector3(5, 3, 20)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_radio_hall")])
+
+[node name="RadioDesk" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 0.8)
+height = 1.0
+width = 1.6
+depth = 0.7
+surface = "wood"
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="LampEntry" parent="Lamps" instance=ExtResource("5_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 4, 3.5)
+
+[node name="Light" parent="Lamps/LampEntry"]
+light_energy = 1.2
+
+[node name="LampEast" parent="Lamps" instance=ExtResource("5_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 4, 10.5)
+
+[node name="Light" parent="Lamps/LampEast"]
+light_energy = 1.2
+
+[node name="LampDowned" parent="Lamps" instance=ExtResource("5_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 4, 9.9)
+
+[node name="Light" parent="Lamps/LampDowned"]
+light_energy = 1.5
+
+[node name="LampSouth" parent="Lamps" instance=ExtResource("5_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 4, 17.5)
+
+[node name="Light" parent="Lamps/LampSouth"]
+light_energy = 1.2
+
+[node name="LampRadio" parent="Lamps" instance=ExtResource("5_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 3, 3)
+
+[node name="Cover" type="Node3D" parent="."]
+
+[node name="LargeCrate1" parent="Cover" instance=ExtResource("6_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.6, 10)
+
+[node name="LargeCrate2" parent="Cover" instance=ExtResource("6_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 0.6, 10)
+
+[node name="MetalCrate1" parent="Cover" instance=ExtResource("7_metal_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3, 0.4, 10.3)
+
+[node name="LargeCrate3" parent="Cover" instance=ExtResource("6_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 0.6, 15.2)
+
+[node name="LargeCrate4" parent="Cover" instance=ExtResource("6_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 0.6, 3.5)
+
+[node name="MetalCrate2" parent="Cover" instance=ExtResource("7_metal_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.6, 0.4, 10)
+
+[node name="Routes" type="Node3D" parent="."]
+
+[node name="RouteA" type="Node3D" parent="Routes"]
+script = ExtResource("9_route")
+
+[node name="A0" type="Marker3D" parent="Routes/RouteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, 6)
+
+[node name="A1" type="Marker3D" parent="Routes/RouteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 6)
+metadata/wait = 2.0
+
+[node name="A2" type="Marker3D" parent="Routes/RouteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 14)
+
+[node name="A3" type="Marker3D" parent="Routes/RouteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, 14)
+metadata/wait = 2.0
+
+[node name="RouteB" type="Node3D" parent="Routes"]
+script = ExtResource("9_route")
+
+[node name="B0" type="Marker3D" parent="Routes/RouteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 17.5)
+metadata/wait = 3.0
+
+[node name="B1" type="Marker3D" parent="Routes/RouteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 17.5)
+metadata/wait = 3.0
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="GuardPistolA" parent="Guards" instance=ExtResource("8_guard")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6.5, 0, 6)
+
+[node name="Behaviour" parent="Guards/GuardPistolA"]
+patrol_route = NodePath("../../../Routes/RouteA")
+
+[node name="GuardPistolB" parent="Guards" instance=ExtResource("8_guard")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 17.5)
+
+[node name="Behaviour" parent="Guards/GuardPistolB"]
+patrol_route = NodePath("../../../Routes/RouteB")
+
+[node name="GuardBatonPost" parent="Guards" instance=ExtResource("8_guard")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4, 0, 3)
+
+[node name="GuardBatonDowned" parent="Guards" instance=ExtResource("8_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, 0, 9)
+
+[node name="Tags" parent="Guards/GuardBatonDowned"]
+initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio", &"state.unconscious"])
+
+[node name="GuardPistolRadio" parent="Guards" instance=ExtResource("8_guard")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -15, 0, 1.6)
+
+[node name="AmbientDark" type="ReflectionProbe" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.75, 2, 10.05)
+size = Vector3(24.5, 5, 20.9)
+intensity = 0.5
+blend_distance = 0.3
+ambient_mode = 2
+ambient_color = Color(0.5, 0.55, 0.65, 1)
+ambient_color_energy = 0.12
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="Room" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3, 3, 19.95)
+text = "6 AI arena"
+size = 3
+
+[node name="Takedown" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2.3, 0.05)
+text = "Sneak up behind a guard: the baton knocks it out
+Hide the body in the dark corner (far right)"
+size = 0
+
+[node name="Alarm" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.6, 0.05)
+text = "Debug panel (` key): raise the alarm"
+size = 0
+
+[node name="Wake" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.95, 2.3, 9.9)
+text = "A guard who finds an unconscious ally wakes it
+Carry a downed guard: E on the body · Q drops it"
+size = 0
+
+[node name="Comms" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.95, 3.1, 18.6)
+text = "Radio room
+Shouts carry about 17 m (walking distance)
+Radios 30 m, through walls"
+size = 0
+
+[node name="DarkCorner" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.95, 2.2, 18.5)
+text = "Dark corner"
+size = 1
+
+[node name="Radio" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2.3, 0.05)
+text = "Radio post: too far to hear shouts
+alerted by radio"
+size = 0
