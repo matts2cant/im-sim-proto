@@ -10,6 +10,8 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - After a sub-agent finishes, check no stray Godot processes remain (`tasklist | grep -i godot`) before merging or removing worktrees.
 - Filter noisy output in the main session: `git add ... 2>/dev/null`, `git status --short | grep -v '\.import$'`, grep test runner output for the summary line.
 - Before sending a brief, check its numbers against [design/levels/metrics.md](design/levels/metrics.md) and each other (clearances with margin, feasible/infeasible distances computed, not guessed). State what every measurement is relative to, hold vs toggle for inputs, and how the player gets out of any mode. Give level layouts as a short sketch (coordinates or an ASCII plan).
+- Every distance in a brief says "gap (surface to surface)" or "centre to centre"; compute the resulting timings/thresholds in the brief and check they aren't knife-edge.
+- Parallel briefs list the features another agent owns as "do not build" (and don't mention them in passing as if they will exist).
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.
 - Briefs point sub-agents at AGENTS.md (definition of done) and ask for a short report: files, verification results, deviations, screenshot paths.
 

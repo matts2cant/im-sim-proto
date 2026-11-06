@@ -1,0 +1,6 @@
+# One regex per line (grep -E), matched against a whole error block. Known engine noise only.
+# Never allowlist errors from project code: fix them.
+# gdUnit4 runtest.sh remote debugger port 0 errors
+remote_port|Remote debugger|port 0|Error starting remote debug
+# Exit-time leak lines
+ObjectDB instances leaked at exit|resources still in use at exit|RID allocations .* leaked

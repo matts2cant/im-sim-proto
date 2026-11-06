@@ -2,6 +2,7 @@
 # Renders a scene in a real window for N frames and keeps only the final frame as a PNG.
 # Usage: tools/screenshot.sh <res://path/scene.tscn> [frames=15] [out_png]
 #   Default output: reports/screenshots/<scene_basename>.png
+# Window size: $SHOT_SIZE=WxH (default 1152x648); forced via --resolution.
 # Godot binary: $GODOT_BIN, defaulting to the project's standard install path.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -31,7 +32,7 @@ rm -rf "$tmp"
 mkdir -p "$tmp"
 mkdir -p "$(dirname "$out")"
 
-"$GODOT_BIN" --path . --write-movie "$tmp/frame.png" --fixed-fps 30 --quit-after "$frames" "$scene"
+"$GODOT_BIN" --path . --resolution "${SHOT_SIZE:-1152x648}" --write-movie "$tmp/frame.png" --fixed-fps 30 --quit-after "$frames" "$scene"
 
 last="$(find "$tmp" -name 'frame*.png' | sort | tail -n 1)"
 if [ -z "$last" ]; then

@@ -4,6 +4,33 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M3 — Physics objects & fire, M4 — Body damage & weapons (systems) (2026-11-06/07, autonomous night)
+
+The user authorised autonomous work on M3–M5 overnight with retrospectives, stopping at M5 for a morning playtest. M3 and M4 systems ran as three agents: M3 systems, then the M3 room (main checkout) in parallel with M4 systems (worktree based on the committed M3 systems). The M4 shooting range is built with the M5 levels.
+
+**What went well**
+- Parallel pipeline kept work flowing: M4 systems ran while the M3 room was built; one small conflict (see 2), resolved by a Sonnet agent in 2.5 min.
+- Probes paid off (M3 contact-speed probe); pure models first made M4's dummy integration suite pass first time.
+- In-room scenario tests (fire row, barrel chain, barricade burn-out, Reset) test the actual gallery content, not just fixtures.
+- First-person screenshots caught occlusion problems in the room that no layout test would.
+- 416 tests after merging M3 + M4 systems.
+
+**What went wrong**
+1. **Ambiguous distance in my brief (again)**: "a crate 0.6 m from a burning crate ignites in ~3 s" didn't say gap or centre-to-centre. With 0.6 m gaps (1.2 m centres) each crate took ~19 s and the chain was knife-edge; the room agent tightened the row to 0.3 m gaps (~5 s per ignition). I had already written a rule to state measurement references; I didn't apply it to object spacing.
+2. **Duplicate feature**: "Reset level" was built twice: I assigned it to the M3 room agent while the M4 brief mentioned it in passing ("the Spawn tab will have a Reset level button"), so the M4 agent built it too.
+3. **Shared scratchpad collision**: two agents wrote scripts with the same name in the shared scratchpad; one overwrote the other.
+4. **Script errors invisible to tests**: errors from freed stimulus sources only showed in windowed runs; GdUnit passes even when Godot prints `SCRIPT ERROR`.
+5. **Screenshot UI cropping**: this machine opens an 840×648 window, cropping the 2D layer in screenshots.
+6. New gotchas: a static method named `reload` collides with `GDScript.reload`; consecutive simulated presses of the same action need a released frame between them; check view-model scale in a screenshot before writing tests.
+
+**Changes made**
+- CLAUDE.md brief checklist: every distance says "gap (surface to surface)" or "centre to centre", with the expected timing computed in the brief; parallel briefs list features owned by other agents as "do not build". (Fixes 1, 2.)
+- `tools/run_tests.sh` fails on `SCRIPT ERROR`/`ERROR` lines from project code (allowlist for engine noise); `tools/screenshot.sh` forces 1152×648. AGENTS.md: private scratch subfolder per agent; new gotchas. (Fixes 3–6.)
+
+**Questions for the user (morning)**
+- Fire spread speed: ~5 s per crate with 0.3 m gaps. Should heat be measured to the receiver's nearest surface instead of its centre (more intuitive for level design, faster spread for big objects)?
+- Pistol sound is a muffled kenney impact thud: does it read as a suppressed shot?
+
 ## M2 — Stimulus framework + graybox kit (2026-11-06)
 
 **What went well**

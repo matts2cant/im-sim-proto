@@ -95,12 +95,13 @@ A task is done only when all of these hold:
 - Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances.
 - Rigid-body contacts (Jolt): with `contact_monitor` on, `PhysicsServer3D.body_get_direct_state(rid)` in `_physics_process` gives the last step's contacts and post-step velocity; keep the previous tick's velocity to measure an impact (see `ImpactNoise`).
 - `for x: T in [a, b]` types the array literal: a freed object in it errors "invalid (previously freed?) object instance into a TypedArray". Stimulus sources are often freed before processing (a broken crate's noise): check `is_instance_valid` first.
-- `tools/screenshot.sh` crops the 2D layer when the OS window is smaller than the 1152x648 base size (this machine opens 840x648): for UI shots save `get_viewport().get_texture().get_image()` from a fixture script (`tests/objects/fixtures/showcase/showcase_trigger.gd`).
+- `tools/screenshot.sh` forces a 1152x648 window (`SHOT_SIZE=WxH` overrides) because this machine's default 840x648 cropped the 2D layer; if UI shots still look wrong, save `get_viewport().get_texture().get_image()` from a fixture script (`tests/objects/fixtures/showcase/showcase_trigger.gd`).
 
 ## Engine probes
 
 - When engine behaviour is uncertain (CSG timing, navigation map sync, physics frame order), write a 10–20 line `--script` probe **before** building on an assumption. It is far cheaper than debugging the full feature.
 - Probes live in the scratchpad, not in `res://`, end with `quit()`, and run under `timeout 60 "$GODOT_BIN" --headless ...`. Never leave a Godot process running when you finish: check with `tasklist | grep -i godot`.
+- Scratch files go in a private subfolder of the scratchpad named after your task (other agents share the scratchpad).
 - After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports first; for ad-hoc runs use `--headless --import`.
 - In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
 
