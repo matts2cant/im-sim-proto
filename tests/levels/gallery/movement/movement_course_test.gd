@@ -34,10 +34,12 @@ func test_surface_strips_have_metadata_collision_and_distinct_colours() -> void:
 
 	var colours: Array[Color] = []
 	for surface: StringName in SURFACES:
-		var strip := course.get_node("Surfaces/Strip" + String(surface).capitalize()) as CSGBox3D
+		var strip := course.get_node("Surfaces/Strip" + String(surface).capitalize()) as SurfaceFloor
 		assert_bool(strip.use_collision).is_true()
 		assert_str(strip.get_meta(&"surface")).is_equal(surface)
-		var colour := (strip.material as StandardMaterial3D).albedo_color
+		var material := (strip.get_node("Slab") as CSGBox3D).material as ShaderMaterial
+		assert_object(material).is_same(GrayboxMaterials.for_surface(surface))
+		var colour: Color = material.get_shader_parameter(&"color_a")
 		assert_array(colours).not_contains([colour])
 		colours.append(colour)
 
@@ -46,15 +48,26 @@ func test_ledge_heights() -> void:
 	var course: Node3D = auto_free(COURSE_SCENE.instantiate())
 
 	for ledge_name: String in LEDGE_HEIGHTS:
-		var ledge := course.get_node("Ledges/" + ledge_name) as CSGBox3D
-		assert_float(ledge.position.y + ledge.size.y * 0.5).is_equal_approx(LEDGE_HEIGHTS[ledge_name], 0.001)
+		var ledge := course.get_node("Ledges/" + ledge_name) as Ledge
+		var block := ledge.get_node("Block") as CSGBox3D
+		var top := ledge.position.y + block.position.y + block.size.y * 0.5
+		assert_float(top).is_equal_approx(LEDGE_HEIGHTS[ledge_name], 0.001)
 		assert_bool(ledge.use_collision).is_true()
 
 
-func test_vent_is_metal() -> void:
+func test_vent_is_metal_and_segments_connect() -> void:
 	var course: Node3D = auto_free(COURSE_SCENE.instantiate())
 
-	assert_str(course.get_node("Vent").get_meta(&"surface")).is_equal("metal")
+	var segments := course.get_node("Vent").get_children()
+	assert_int(segments.size()).is_equal(4)
+	for i in segments.size():
+		var segment := segments[i] as VentSegment
+		assert_str(segment.get_meta(&"surface")).is_equal("metal")
+		assert_bool(segment.use_collision).is_true()
+		if i > 0:
+			var previous := segments[i - 1] as VentSegment
+			var snapped := previous.transform * previous.exit_transform()
+			assert_bool(snapped.is_equal_approx(segment.transform)).override_failure_message(segment.name).is_true()
 
 
 func test_walks_from_hub_into_course() -> void:
@@ -84,17 +97,22 @@ func test_each_strip_reports_its_surface() -> void:
 
 func test_gap_widths_and_labels() -> void:
 	var course: Node3D = auto_free(COURSE_SCENE.instantiate())
-	var runway := course.get_node("GapTrack/Runway") as CSGBox3D
-	var platform2 := course.get_node("GapTrack/Platform2") as CSGBox3D
-	var platform3 := course.get_node("GapTrack/Platform3") as CSGBox3D
+	var runway := _platform_z(course, "GapTrack/Gap2/NearPlatform")
+	var platform2 := _platform_z(course, "GapTrack/Gap2/FarPlatform")
+	var platform2_again := _platform_z(course, "GapTrack/Gap33/NearPlatform")
+	var platform3 := _platform_z(course, "GapTrack/Gap33/FarPlatform")
 
-	var gap2 := (runway.position.z - runway.size.z * 0.5) - (platform2.position.z + platform2.size.z * 0.5)
-	var gap33 := (platform2.position.z - platform2.size.z * 0.5) - (platform3.position.z + platform3.size.z * 0.5)
-
-	assert_float(gap2).is_equal_approx(2.0, 0.001)
-	assert_float(gap33).is_equal_approx(3.3, 0.001)
+	assert_vector(platform2_again).is_equal(Vector2.ZERO)  # Gap33 reuses Gap2's far platform.
+	assert_float(runway.x - platform2.y).is_equal_approx(2.0, 0.001)
+	assert_float(platform2.x - platform3.y).is_equal_approx(3.3, 0.001)
+	assert_float(runway.y - runway.x).is_equal_approx(4.0, 0.001)
+	assert_float(platform3.y - platform3.x).is_equal_approx(4.0, 0.001)
+	var gap2 := course.get_node("GapTrack/Gap2") as Gap
+	var gap33 := course.get_node("GapTrack/Gap33") as Gap
 	assert_str((course.get_node("Labels/Gap2") as Label3D).text).is_equal("2 m: walk-jump")
 	assert_str((course.get_node("Labels/Gap33") as Label3D).text).is_equal("3.3 m: sprint-jump")
+	assert_str(gap2.difficulty_label).is_equal("2 m: walk-jump")
+	assert_str(gap33.difficulty_label).is_equal("3.3 m: sprint-jump")
 	assert_str((course.get_node("Labels/Ledge050") as Label3D).text).is_equal("0.5 m: jump up")
 
 
@@ -198,6 +216,17 @@ func _assert_gap_jump(start_z: float, edge_z: float, sprint: bool, expect_across
 		)
 		. is_equal(expect_across)
 	)
+
+
+# Course-space z extent (min, max) of a generated platform box with its top at 2 m; ZERO if absent.
+func _platform_z(course: Node3D, path: String) -> Vector2:
+	var box := course.get_node_or_null(path) as CSGBox3D
+	if box == null:
+		return Vector2.ZERO
+	var part := box.get_parent() as Node3D
+	var center := part.transform * box.position
+	assert_float(center.y + box.size.y * 0.5).is_equal_approx(2.0, 0.001)
+	return Vector2(center.z - box.size.z * 0.5, center.z + box.size.z * 0.5)
 
 
 func _load_hub() -> void:
