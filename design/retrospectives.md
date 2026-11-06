@@ -28,7 +28,10 @@ Format per milestone: **What went well**, **What went wrong**, **Changes made**,
 - The concrete strip in the course uses the same material as the hall floor (only its floor sign distinguishes it).
 
 **User playtest feedback**
-- Pending.
+- Dark striped slab above the "1 Movement" doorway → z-fighting: the `Room` ceiling slab covered the walls too, so a corridor's ceiling ended exactly on the hub wall face. Fixed in the kit part (walls full height, slabs interior only, [ADR 0043](decisions/0043-room-connections-share-a-wall.md)); regression guard `KitGeometry.coplanar_material_overlaps()` fails on coplanar overlapping faces with different materials (hub + course).
+- Floor threshold strips and corridor alignment: not bugs (my screenshot reading over-reported; the user corrected it).
+- Lesson: agent screenshots were taken from overview cameras, never at player eye height near seams. Screenshot reviews should include first-person views at connections.
+- Follow-up: `kit_showcase.tscn` still has same-plane overlaps with its ground slab (not covered by the guard).
 
 **Open questions for the user**
 - M2 cost ~620k sub-agent tokens. Is that acceptable per milestone, or should I trade some verification depth / use Sonnet more for level work to cut it? → **Keep quality** (user, 2026-11-06): keep full verification and the stronger model for system and level work; keep cutting waste through probes, gotchas and better briefs.

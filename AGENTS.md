@@ -61,7 +61,7 @@ Design entry point: [design/README.md](design/README.md). Full spec lives in `de
 A task is done only when all of these hold:
 
 1. `tools/run_tests.sh` and `tools/lint.sh` pass; new behaviour has tests in the same change.
-2. Any scene or visual change is checked with `tools/screenshot.sh res://path/scene.tscn` and the PNG looked at (open it as an image). Report the PNG path.
+2. Any scene or visual change is checked with `tools/screenshot.sh res://path/scene.tscn` and the PNG looked at (open it as an image). Include first-person views at eye height (1.65 m) at every connection between parts (doorways, corridor ends, ledges), not only overview shots: seams and z-fighting only show up close. Level tests run `KitGeometry.coplanar_material_overlaps()`. Report the PNG paths.
 3. Headless import and a run of the main scene print no errors from project code.
 4. The relevant `design/` docs are updated; a new design decision has an ADR; `design/tech/playtest-checklist.md` lists the manual checks for new feel-related behaviour.
 5. `git status --short | grep -v '\.import$'` shows only intended files.

@@ -46,3 +46,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0040](0040-override-modifier-conflict-rule.md) | Override modifier conflict rule | Accepted |
 | [0041](0041-runtime-navmesh-bake.md) | Runtime navmesh bake on level load | Accepted |
 | [0042](0042-kit-part-conventions.md) | Kit part conventions | Accepted |
+| [0043](0043-room-connections-share-a-wall.md) | Room connections share one overlapped wall | Accepted |
