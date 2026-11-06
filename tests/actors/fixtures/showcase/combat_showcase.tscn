@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="3_dummy"]
+[ext_resource type="Script" path="res://tests/actors/fixtures/showcase/combat_showcase.gd" id="4_showcase"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="5_barrel"]
+[ext_resource type="PackedScene" path="res://objects/medkit/medkit.tscn" id="6_medkit"]
+
+[sub_resource type="Environment" id="Environment_range"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.7, 0.75, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+
+[node name="CombatShowcase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_range")
+
+[node name="Room" parent="." instance=ExtResource("1_room")]
+size = Vector3(8, 3.5, 14)
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0.5)
+light_energy = 1.2
+omni_range = 12.0
+shadow_enabled = true
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 4)
+
+[node name="TrainingDummy" parent="." instance=ExtResource("3_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -1)
+
+[node name="TrainingDummy2" parent="." instance=ExtResource("3_dummy")]
+transform = Transform3D(-0.866, 0, -0.5, 0, 1, 0, 0.5, 0, -0.866, 2, 0, -2.5)
+
+[node name="ExplosiveBarrel" parent="." instance=ExtResource("5_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 0.45, -3.5)
+
+[node name="Medkit" parent="." instance=ExtResource("6_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.06, 1.5)
+
+[node name="Showcase" type="Node" parent="."]
+script = ExtResource("4_showcase")
+player_path = NodePath("../Player")
+dummy_path = NodePath("../TrainingDummy")
+capture_path = "res://reports/screenshots/m4_hud_rest.png"
+capture_after = 1.0

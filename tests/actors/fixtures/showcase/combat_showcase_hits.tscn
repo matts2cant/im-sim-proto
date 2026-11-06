@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/actors/fixtures/showcase/combat_showcase.tscn" id="1_base"]
+
+[node name="CombatShowcaseHits" instance=ExtResource("1_base")]
+
+[node name="Player" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+
+[node name="Showcase" parent="."]
+shots = Array[StringName]([&"torso", &"leg_l", &"arm_r", &"torso"])
+first_shot = 0.3
+shot_interval = 0.37
+capture_path = "res://reports/screenshots/m4_dummy_damage_numbers.png"
+capture_after = 1.75

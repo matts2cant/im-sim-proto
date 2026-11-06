@@ -1,20 +1,33 @@
 class_name Player
 extends CharacterBody3D
-## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects.
+## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects,
+## use things, weapons (WeaponHolder) and body-part damage (BodyParts, Hitboxes).
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, PlayerNoiseRules, CarryRules);
 ## tuning comes from `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
-## Its StimulusReceiver logs `player.hurt` for damage stimuli until M4. Saveable (group `saveable`).
+## Its StimulusReceiver's `body_damage` receptron feeds every `damage.*` stimulus to BodyParts.
+## Injuries: `move_speed_mult` scales speed, both legs disabled force a crawl; hard landings hurt
+## the legs. Dead: input is off except `use`, which asks for a level reset. Saveable.
 
 signal mantled(height: float)
+## The player pressed `use` while dead (the HUD's death overlay says so).
+signal reset_requested
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
 const GROUP: StringName = &"player"
-## Actions handled on their press edge in _physics_process, for the carry component.
-const CARRY_ACTIONS: Array[StringName] = [&"use", &"drop_throw", &"fire"]
+## Actions handled on their press edge in _physics_process (carry, use, weapons).
+const PRESS_ACTIONS: Array[StringName] = [&"use", &"drop_throw", &"fire", &"reload", &"belt_1", &"belt_2"]
+const MOVE_SPEED: StringName = &"move_speed_mult"
+## Horizontal speed above which the aim counts as moving.
+const AIM_MOVING_SPEED: float = 0.5
+## Airborne this long (s) before the aim counts as jumping/falling (a teleport or a step off a
+## kerb does not bloom the cone).
+const AIM_AIR_GRACE: float = 0.1
 
 @export var config: PlayerConfig
 ## When false the player ignores input (cutscenes, tests that drive it directly).
 @export var input_enabled: bool = true
+## When false, `use` while dead only emits `reset_requested` (tests) instead of reloading the level.
+@export var reload_on_reset: bool = true
 
 var mode: PlayerMotion.Mode = PlayerMotion.Mode.IDLE
 var crouched: bool = false
@@ -27,6 +40,7 @@ var _footsteps := FootstepTracker.new()
 var _jump_requested: bool = false
 var _jump_was_held: bool = false
 var _was_grounded: bool = true
+var _air_time: float = 0.0
 var _air_speed_cap: float = 0.0
 ## Height of the ground last stood on; caps how high a ledge can be mantled after a jump.
 var _ground_y: float = 0.0
@@ -38,6 +52,10 @@ var _actions_held: Dictionary[StringName, bool] = {}
 
 @onready var noise: PlayerNoise = $Noise
 @onready var carry: PlayerCarry = $Carry
+@onready var body: BodyParts = $BodyParts
+@onready var hitboxes: Hitboxes = $Hitboxes
+@onready var weapons: WeaponHolder = $Head/Camera/WeaponHolder
+@onready var attributes: Attributes = $Attributes
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _head: Node3D = $Head
 @onready var _floor_ray: RayCast3D = $FloorRay
@@ -49,6 +67,8 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	carry.player = self
 	carry.config = config
+	weapons.setup(self, _camera)
+	body.died.connect(_on_died)
 	_collision.shape = _collision.shape.duplicate()
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
@@ -107,12 +127,14 @@ func _physics_process(delta: float) -> void:
 	else:
 		_step_movement(delta, jump_held)
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
-	_handle_carry_input()
+	_handle_actions()
 	carry.physics_step()
+	weapons.physics_step(delta, aim_stance())
 
 
-## Turns the view by a mouse delta in screen pixels.
+## Turns the view by a mouse delta in screen pixels (and blooms the aim cone).
 func look(screen_delta: Vector2) -> void:
+	weapons.add_look(screen_delta.length())
 	rotation.y = wrapf(rotation.y - screen_delta.x * config.mouse_sensitivity, -PI, PI)
 	var limit := deg_to_rad(config.max_pitch_deg)
 	pitch = clampf(pitch - screen_delta.y * config.mouse_sensitivity, -limit, limit)
@@ -121,6 +143,30 @@ func look(screen_delta: Vector2) -> void:
 
 func is_mantling() -> bool:
 	return _mantle != null
+
+
+func is_dead() -> bool:
+	return body.is_dead()
+
+
+## Movement stance for the aim cone.
+func aim_stance() -> AimModel.Stance:
+	if _air_time > AIM_AIR_GRACE or _mantle != null:
+		return AimModel.Stance.AIR
+	if mode == PlayerMotion.Mode.SPRINT:
+		return AimModel.Stance.SPRINT
+	if horizontal_speed() > AIM_MOVING_SPEED:
+		return AimModel.Stance.WALK
+	return AimModel.Stance.CROUCH_STILL if crouched else AimModel.Stance.STILL
+
+
+## Ground speed cap for `p_mode`: the mode's speed x carry load x `move_speed_mult`; both legs
+## disabled: the crawl speed instead of the mode's.
+func speed_cap(p_mode: PlayerMotion.Mode) -> float:
+	var base := PlayerMotion.max_speed(p_mode, config)
+	if body.legs_disabled():
+		base = body.profile.crawl_speed
+	return base * carry.speed_factor() * attributes.value(MOVE_SPEED)
 
 
 func horizontal_speed() -> float:
@@ -192,7 +238,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	var sprint_held := _input_allowed() and Input.is_action_pressed(&"sprint")
 	mode = PlayerMotion.select_mode(grounded, crouched, sprint_held, input, config)
 	if grounded:
-		_air_speed_cap = PlayerMotion.max_speed(mode, config) * carry.speed_factor()
+		_air_speed_cap = speed_cap(mode)
 	var wish := global_basis * Vector3(input.x, 0.0, input.y)
 	var horizontal := PlayerMotion.horizontal_velocity(velocity, wish, _air_speed_cap, grounded, delta, config)
 	velocity.x = horizontal.x
@@ -217,11 +263,13 @@ func _after_move(before: Vector3, fall_speed: float) -> void:
 		if not _was_grounded:
 			_footsteps.reset()
 			noise.landed(fall_speed, surface)
+			body.take_fall(fall_speed)
 		else:
 			var travelled := Vector2(global_position.x - before.x, global_position.z - before.z).length()
 			if _footsteps.advance(travelled, PlayerNoiseRules.stride(mode, config)):
 				noise.footstep(mode, surface)
 	_was_grounded = grounded
+	_air_time = 0.0 if grounded else _air_time + get_physics_process_delta_time()
 
 
 func _update_surface() -> void:
@@ -230,8 +278,12 @@ func _update_surface() -> void:
 		surface = config.surfaces.surface_of(_floor_ray.get_collider())
 
 
-# Crouch is held. Standing up waits until there is headroom.
+# Crouch is held. Standing up waits until there is headroom. Both legs disabled: always crouched.
 func _update_crouch() -> void:
+	if body.legs_disabled():
+		if not crouched:
+			_apply_crouched(true)
+		return
 	var wants_crouch := _input_allowed() and Input.is_action_pressed(&"crouch")
 	if wants_crouch and not crouched:
 		_apply_crouched(true)
@@ -244,6 +296,7 @@ func _apply_crouched(value: bool) -> void:
 	var height := config.crouched_height if value else config.standing_height
 	(_collision.shape as CapsuleShape3D).height = height
 	_collision.position.y = height * 0.5
+	hitboxes.set_height_factor(height / config.standing_height)
 
 
 func _try_start_mantle() -> bool:
@@ -283,21 +336,60 @@ func _register_debug_tab() -> void:
 	DebugPanel.register_tab("Player", _debug_tab as Control)
 
 
-# use: pick up / put down; drop_throw: drop; fire: throw (only while carrying for now).
-func _handle_carry_input() -> void:
-	for action in CARRY_ACTIONS:
-		var held := _input_allowed() and Input.is_action_pressed(action)
+# use: use the looked-at thing, else pick up / put down; drop_throw: drop; fire: throw while
+# carrying, else the weapon; reload; belt_1 / belt_2: pistol / baton (until the M5 belt).
+# Dead: only `use`, which asks for a level reset.
+func _handle_actions() -> void:
+	var can_press: bool = input_enabled and not DebugPanel.is_open()
+	for action in PRESS_ACTIONS:
+		var held: bool = can_press and Input.is_action_pressed(action)
 		var pressed: bool = held and not _actions_held.get(action, false)
 		_actions_held[action] = held
 		if not pressed:
 			continue
+		if not body.can_act():
+			if action == &"use" and body.is_dead():
+				request_reset()
+			continue
 		match action:
 			&"use":
-				carry.use()
+				_use()
 			&"drop_throw":
 				carry.drop()
 			&"fire":
-				carry.throw()
+				if carry.is_carrying():
+					carry.throw()
+				else:
+					weapons.trigger()
+			&"reload":
+				weapons.reload()
+			&"belt_1":
+				weapons.toggle(0)
+			&"belt_2":
+				weapons.toggle(1)
+
+
+## Death overlay: reloads the level (or only signals, for tests).
+func request_reset() -> void:
+	reset_requested.emit()
+	if reload_on_reset:
+		LevelReset.reload_level(get_tree())
+
+
+# Something Usable under the crosshair (a medkit) is used; otherwise carry handles it.
+func _use() -> void:
+	if not carry.is_carrying():
+		var hit := look_hit(config.carry_reach)
+		var usable := Usable.of(hit["collider"] as Node) if not hit.is_empty() else null
+		if usable != null and usable.use(self):
+			return
+	carry.use()
+
+
+func _on_died() -> void:
+	_mantle = null
+	carry.drop(&"died")
+	weapons.holster()
 
 
 func _respawn() -> void:
@@ -315,4 +407,4 @@ func _move_input() -> Vector2:
 
 
 func _input_allowed() -> bool:
-	return input_enabled and not DebugPanel.is_open()
+	return input_enabled and not DebugPanel.is_open() and body.can_act()

@@ -145,13 +145,19 @@ func test_carrying_a_burning_object_hurts_the_carrier() -> void:
 	Flammable.of(crate).ignite(null)
 	await _driver.frames(3)
 
-	var hurt := EventLog.find(&"player.hurt").filter(
-		func(entry: EventLogEntry) -> bool: return entry.data["shape"] == "contact"
+	# The carrier gets damage.fire 2.0 CONTACT per pulse, split evenly over the six body parts.
+	var contact := EventLog.find(&"stimulus.emitted").filter(
+		func(entry: EventLogEntry) -> bool: return entry.data["shape"] == "contact" and entry.target == "Player"
 	)
-	assert_array(hurt).has_size(1)
-	assert_str(hurt[0].data["type"]).is_equal("damage.fire")
-	assert_float(hurt[0].data["perceived"]).is_equal(2.0)
-	assert_str(hurt[0].target).is_equal("Player")
+	assert_array(contact).has_size(1)
+	assert_str(contact[0].data["type"]).is_equal("damage.fire")
+	var id: int = contact[0].data["id"]
+	var hurt := Objects.logged(&"actor.damaged", "by", id)
+	assert_array(hurt).has_size(6)
+	for entry in hurt:
+		assert_str(entry.target).is_equal("Player")
+		assert_float(entry.data["amount"]).is_equal_approx(2.0 / 6.0, 0.0001)
+	assert_float(_player.body.health(&"torso")).is_less(100.0)
 
 
 func test_stuck_object_is_dropped() -> void:

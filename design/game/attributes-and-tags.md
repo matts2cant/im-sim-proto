@@ -14,7 +14,7 @@ Indirect: a burning crate, a slowed player with a damaged leg, a skill tier that
 
 ### Tags (`core/attributes/`)
 
-- Hierarchical StringNames (`material.metal`, `state.burning`, `actor.guard`). In use since M3: `material.wood|metal|glass|cardboard`, `object.crate|box|barrel|explosive|bottle|barricade|brazier`, `state.burning`, `state.charred`, `actor.player` ([objects-and-fire.md](objects-and-fire.md)).
+- Hierarchical StringNames (`material.metal`, `state.burning`, `actor.guard`). In use since M3: `material.wood|metal|glass|cardboard`, `object.crate|box|barrel|explosive|bottle|barricade|brazier`, `state.burning`, `state.charred`, `actor.player` ([objects-and-fire.md](objects-and-fire.md)). Since M4: `actor.dummy`, `object.medkit`, `state.dead`, `state.unconscious`, `state.legs_disabled`, `state.arms_disabled` ([damage.md](damage.md)).
 - `TagContainer` (RefCounted): `add(tag)`, `remove(tag)` (exactly that tag, not its descendants), `has(query)`: true if `query` or any descendant is held (`has(&"material")` while `material.metal` is held; `material` does not match `materials`). Also `has_exact`, `has_all`, `has_any`, `tags()`. Signal `changed(tag, added)`, only on real changes. `to_dict()` / `from_dict()`.
 - `TagContainer.matches(tag, query)` is the one hierarchy rule; receptron stimulus types use it too.
 - `Tags` component (Node): `initial_tags` exported for the inspector, added in `_ready`; `container` holds the live tags. Saveable (`save_state` / `load_state`, group `saveable`).
@@ -26,6 +26,7 @@ Indirect: a burning crate, a slowed player with a damaged leg, a skill tier that
 - Attributes without a base value start from 0.
 - `Attributes` component (Node): `base_values: Dictionary[StringName, float]` exported, applied in `_ready`; `attribute_set` holds the live set. Saveable.
 - Attributes in use since M3: `health` on objects (Breakable lowers its base value), `carry_mass_limit` on the player (base 20 kg; Combat Strength adds a modifier in M6).
+- Since M4 on characters: `move_speed_mult` (base 1; one disabled leg x0.6), `aim_spread_add` (base 0; +3 degrees per disabled arm), `aim_sway_mult` (base 1; x2 per disabled arm). `BodyParts` owns the injury modifiers (source `body_parts`) and re-derives them on every change; body-part health itself lives in `BodyParts`, not in attributes ([damage.md](damage.md)).
 
 ### Evaluation
 
@@ -62,4 +63,4 @@ flowchart TD
 ## Open questions
 
 - Modifier expiry (timed modifiers): add when a system needs it (M4 damage effects or M6 augmentations); today the source removes its modifiers.
-- Clamping (health >= 0, max values): left to the owning component (M4 `Health`).
+- Clamping (health >= 0, max values): left to the owning component (M4 `BodyParts` clamps part health to 0..max).
