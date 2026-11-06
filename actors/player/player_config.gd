@@ -68,14 +68,20 @@ extends Resource
 @export_group("Carry")
 ## Reach of the pick-up look ray from the eyes. The mass limit is the `carry_mass_limit` attribute.
 @export var carry_reach: float
-## Hold point: this far along the view from the eyes, then this much lower.
-@export var hold_distance: float
+## Hold point (ADR 0053): the centre sits (base + largest half-extent) along the view from the eyes
+## and (drop + half-extent) lower on the screen. A release aims at least capsule radius +
+## half-extent + clearance out from the player's axis.
+@export var hold_base_distance: float
 @export var hold_drop: float
-## Follow: the held body's velocity is (hold point - body) x this rate (1/s), capped at the max speed.
-@export var hold_follow_rate: float
-@export var hold_max_speed: float
-## The held object is dropped when it ends up further than this from the hold point (stuck).
-@export var hold_break_distance: float
+@export var hold_clearance: float
+## Seconds the object takes to move to the hold point and turn upright after pick-up.
+@export var hold_turn_time: float
+## See-through amount of the held object's meshes (0 opaque, 1 invisible).
+@export var held_transparency: float
+## Release: the shape is cast from the chest (this far below the eyes, on the player's axis) to the
+## hold point and placed this many metres short of the first contact.
+@export var release_start_drop: float
+@export var release_margin: float
 ## Throw: impulse along the view (N s); speed = min(max speed, impulse / mass).
 @export var throw_impulse: float
 @export var throw_max_speed: float

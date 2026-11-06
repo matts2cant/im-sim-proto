@@ -56,3 +56,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0050](0050-inventory-model-and-belt-references.md) | Inventory model and belt references | Accepted |
 | [0051](0051-single-interactor-hud-prompts.md) | Single Interactor and HUD prompts | Accepted |
 | [0052](0052-inventory-pauses-the-game.md) | Inventory pauses the game | Accepted |
+| [0053](0053-ghosted-upright-carry-safe-release.md) | Ghosted, upright carry with safe release | Accepted |

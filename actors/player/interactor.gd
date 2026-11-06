@@ -3,10 +3,11 @@ extends Node
 ## Component of the Player (ADR 0051): the one place that decides what E does. Every physics tick
 ## it casts one ray from the eyes (`interact_reach`, PhysicsLayers.INTERACT_MASK; a hitbox stands
 ## for its character) and resolves the thing hit by its components, in this order: ItemPickup
-## (pick up), Usable (use), Carryable (carry, or "Too heavy"). While carrying, E puts down. The HUD
-## shows `prompt`; perform() does it.
+## (pick up), Usable (use), Carryable (carry, or "Too heavy"). While carrying, E puts down ("No room"
+## when PlayerCarry has no free spot to release into, ADR 0053). The HUD shows `prompt`; perform()
+## does it.
 
-enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN }
+enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 
 var player: Player
 var kind: Kind = Kind.NONE
@@ -29,6 +30,8 @@ static func prompt_for(p_kind: Kind, target_name: String, count: int = 1, verb: 
 			return "Too heavy"
 		Kind.PUT_DOWN:
 			return "E: put down %s" % target_name
+		Kind.NO_ROOM:
+			return "No room to put down %s" % target_name
 	return ""
 
 
@@ -58,7 +61,8 @@ func refresh() -> void:
 		prompt = ""
 		return
 	if player.carry.is_carrying():
-		_resolve(Kind.PUT_DOWN, player.carry.held, prompt_for(Kind.PUT_DOWN, display_name_of(player.carry.held)))
+		var carry_kind := Kind.PUT_DOWN if player.carry.has_room() else Kind.NO_ROOM
+		_resolve(carry_kind, player.carry.held, prompt_for(carry_kind, display_name_of(player.carry.held)))
 		return
 	var entity := entity_of(_look_collider())
 	if entity == null:
@@ -89,9 +93,8 @@ func perform() -> bool:
 			return Usable.of(target).use(player)
 		Kind.CARRY, Kind.TOO_HEAVY:
 			return player.carry.try_pick_up_body(target as RigidBody3D)
-		Kind.PUT_DOWN:
-			player.carry.put_down()
-			return true
+		Kind.PUT_DOWN, Kind.NO_ROOM:
+			return player.carry.put_down()
 	return false
 
 
