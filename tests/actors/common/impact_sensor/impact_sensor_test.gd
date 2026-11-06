@@ -33,7 +33,7 @@ func after_test() -> void:
 func test_layer_rule_decides_whether_the_sensor_runs() -> void:
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.PLAYER)).is_true()
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.TRIGGERS)).is_true()
-	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.ACTORS)).is_false()
+	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.ACTORS)).is_true()
 	assert_bool(ImpactSensor.props_pass_through(PhysicsLayers.WORLD)).is_false()
 
 
@@ -74,7 +74,8 @@ func test_crate_thrown_through_a_pass_through_body_damages_it() -> void:
 
 func test_props_that_collide_are_left_to_impact_noise() -> void:
 	Characters.floor_box(_root)
-	var walker := Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR], PhysicsLayers.ACTORS)
+	# A body on the world layer: props scan it (characters on the player and actors layers they do not).
+	var walker := Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR], PhysicsLayers.WORLD)
 	await Fixtures.frames(get_tree(), 5)
 	assert_bool((walker.get_node("ImpactSensor") as ImpactSensor).active).is_false()
 
@@ -122,7 +123,9 @@ func test_crate_thrown_at_the_dummy_hits_once() -> void:
 	await driver.settle()
 	var dummy := Objects.spawn(driver.runner.scene(), DUMMY, Vector3(4, 0, 2)) as TrainingDummy
 	await driver.frames(3)
-	assert_bool((dummy.get_node("ImpactSensor") as ImpactSensor).active).is_false()
+	# The dummy is on the actors layer, which props do not scan since guards (M7, ADR 0068): the crate
+	# passes through it and its sensor reports the one hit, as for the player.
+	assert_bool((dummy.get_node("ImpactSensor") as ImpactSensor).active).is_true()
 	EventLog.clear()
 
 	_throw_crate(driver.runner.scene(), Vector3(4, 1.2, -0.5), Vector3(0, 0, THROW_SPEED))

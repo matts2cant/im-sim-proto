@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenarios/fixtures/guard_post_player.tscn" id="1_post"]
+[ext_resource type="Script" path="res://tests/scenarios/fixtures/showcase/guard_showcase.gd" id="2_showcase"]
+
+[node name="GuardShowcase" instance=ExtResource("1_post")]
+
+[node name="Player" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -3)
+
+[node name="Showcase" type="Node" parent="."]
+script = ExtResource("2_showcase")
+player_path = NodePath("../Player")
+guard_path = NodePath("../Post/Guard")
+cloak_player = true
+show_state = true

@@ -1,8 +1,8 @@
 class_name PushRules
 extends RefCounted
-## Pure rules for how the player moves rigid bodies (ADR 0054). Physics props do not collide with
-## the player's kinematic body in the solver (it would push them with infinite mass); PlayerPusher
-## applies these bounded pushes and the player's weight instead.
+## Pure rules for how a character moves rigid bodies (ADR 0054). Physics props do not collide with
+## kinematic characters in the solver (they would push them with infinite mass); BodyPusher
+## applies these bounded pushes and the character's weight instead.
 
 
 ## Impulse (N s, >= 0) along the push direction for one of `count` touched bodies: brings a body of

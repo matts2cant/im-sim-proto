@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AwarenessConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/awareness/awareness_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+suspicious_threshold = 0.3
+wary_suspicious_threshold = 0.2
+alert_threshold = 1.0
+decay = 0.25
+look_time = 2.0
+look_around_time = 4.0
+loud_noise = 10.0
+repoint_distance = 1.0
+lose_time = 4.0
+face_distance = 1.5
+search_points = 4
+search_radius = 8.0
+search_duration = 30.0
+search_look_time = 3.0
+wary_duration = 60.0
+glance_angle = 45.0
+glance_interval = 6.0
+glance_hold = 1.5
+look_around_angle = 60.0
+patrol_wait = 1.0

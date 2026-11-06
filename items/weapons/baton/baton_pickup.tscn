@@ -21,7 +21,7 @@ material = SubResource("Material_body")
 
 [node name="StunBaton" type="RigidBody3D"]
 collision_layer = 8
-collision_mask = 13
+collision_mask = 9
 mass = 0.8
 continuous_cd = true
 script = ExtResource("1_physics_object")

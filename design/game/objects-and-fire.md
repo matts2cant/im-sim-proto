@@ -113,9 +113,9 @@ flowchart LR
 - Carrying is not saved: loading drops the object where it is. Dying or respawning lets go at the free spot (else at the chest).
 - The player has `Tags` (`actor.player`), `Attributes` (`carry_mass_limit`, and the M4 injury attributes) and a `StimulusReceiver` (chest height) whose `body_damage` receptron (M4) applies every `damage` stimulus to its body parts: fire in range and a carried burning object (`damage.fire` CONTACT every pulse) are split evenly over the six parts, explosions 40 % torso / 12 % each other part ([damage.md](damage.md)).
 
-### Standing on and pushing props (player, `actors/player/player_pusher.gd`, `push_rules.gd`)
+### Standing on and pushing props (characters, `actors/common/pusher/body_pusher.gd`, `push_rules.gd`)
 
-Props do not collide with the player's kinematic body in the solver (it would move them with infinite mass: crates dragged along underfoot, flung by a mantle); the player still stands on, is blocked by and mantles onto them ([ADR 0054](../decisions/0054-player-and-physics-props.md)). Instead, each movement tick:
+Props do not collide with characters' kinematic bodies in the solver (props scan neither the player layer nor, since M7, the actors layer: guards and training dummies; [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md)). The numbers below are the player's (`player_push.tres`); guards use the same (`guard_push.tres`). For the player: (it would move them with infinite mass: crates dragged along underfoot, flung by a mantle); the player still stands on, is blocked by and mantles onto them ([ADR 0054](../decisions/0054-player-and-physics-props.md)). Instead, each movement tick:
 
 - The props under the player's feet share its weight, 80 kg x 9.8 m/s² = 784 N, pushed down through their centres; each gets at most 4 x its own weight (a small crate 392 N, a bottle 20 N), since large mass ratios destabilise the solver.
 - The props the player walks into (within 0.05 m ahead, above the feet) are pushed away from it up to the player's speed toward them, at most 2 m/s, with at most 250 N in total. A prop slides when pushed harder than 0.5 x mass x 9.8 N: small and metal crates, boxes and barrels move, a large crate (294 N) does not. Pushing slows the player to the prop's speed, and a pushed prop stays below the 2.5 m/s impact threshold.

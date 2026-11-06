@@ -43,7 +43,7 @@ func test_walking_into_small_crate_pushes_it_at_most_at_push_max_speed() -> void
 
 	print(_watch.summary("push small crate") + " moved %.3f" % _watch.drift(0))
 	assert_float(crate.global_position.z).is_less(-2.5)
-	assert_float(_watch.peak_speed[0]).is_less(_player.config.push_max_speed + 0.3)
+	assert_float(_watch.peak_speed[0]).is_less(BodyPusher.of(_player).config.push_max_speed + 0.3)
 	assert_float(_watch.max_tilt()).is_less(5.0)
 	assert_float(_player.global_position.z - crate.global_position.z).is_greater(0.6)
 

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="PerceptionConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/perception/perception_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+hostile_tags = Array[StringName]([&"actor.player"])
+ally_tags = Array[StringName]([&"actor.guard"])
+hidden_tags = Array[StringName]([&"state.cloaked"])
+eye_height = 1.6
+view_mask = 9
+focus_half_angle = 30.0
+focus_range = 20.0
+peripheral_half_angle = 60.0
+peripheral_range = 10.0
+peripheral_factor = 0.4
+base_gain = 1.25
+light_min = 0.1
+light_full = 0.5
+close_distance = 2.0
+close_light = 0.5
+distance_full = 5.0
+distance_far = 20.0
+distance_far_factor = 0.25
+crouch_factor = 0.7
+crouch_tag = &"stance.crouch"
+wary_factor = 1.5

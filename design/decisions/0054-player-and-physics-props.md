@@ -23,7 +23,7 @@ Jolt pairs a rigid body with a kinematic one only when the rigid body's mask con
 ## Decision
 
 - **Props do not scan the player layer.** `PhysicsLayers.OBJECT_MASK` = world, actors, objects; every prop scene uses it and `PhysicsObject._ready()` clears the player bit whatever the scene says (pickups owned by other features included). The player's own mask still has objects: it stands on, collides with and mantles onto props exactly as before (`PlayerProbe` unchanged).
-- **The player moves props with bounded forces instead** (`PlayerPusher`, pure numbers in `PushRules`, tuning in `player_config.tres`, run after `move_and_slide()` each movement tick, not while mantling):
+- **The player moves props with bounded forces instead** (`PlayerPusher`, pure numbers in `PushRules`, tuning in `player_config.tres`; since M7 the generic `BodyPusher` component with `player_push.tres`, ADR 0068, run after `move_and_slide()` each movement tick, not while mantling):
   - Weight: the bodies under the feet (a sphere query just below the capsule bottom) share a downward force of `body_mass` (80 kg) x engine gravity, through their centres so standing near an edge does not tip a crate; each body gets at most `weight_max_ratio` (4) x its own weight (the full 784 N on a 0.5 kg bottle flung it out from under the feet; solvers handle stacked mass ratios up to about 10:1).
   - Push: the bodies within `push_probe` (0.05 m) ahead of the capsule along the attempted horizontal velocity, above the feet (a cylinder query from 0.05 m up, so not what the player stands on), get a central impulse away from the capsule axis that brings them up to the player's speed toward them, at most `push_max_speed` (2 m/s), with a shared budget of `push_force` (250 N) x delta. The player's slide stops at the crate, so pushing slows the player to the crate's speed.
   - Bodies carried by the player and frozen bodies are skipped.
@@ -43,7 +43,7 @@ After the change (same scenarios): walking across the top, mantling and hopping 
 ## Consequences
 
 - Props pass through the player: a crate falling on the player's head, a thrown bottle or a crate blown by an explosion goes through the capsule, and the player is pushed out of a prop that ends up overlapping it (`move_and_slide` recovery). Their impacts no longer log `object.impact` against the player or deal `damage.blunt` to it. Revisit with a scripted response (cancel a prop's approach velocity near the capsule, forward impact damage) if playtests show it.
-- Guards (layer 3, `CharacterBody3D`) still collide with props in the solver and can shove them with infinite mass; apply the same rule when guards start moving among props (M7).
+- Guards (layer 3, `CharacterBody3D`) still collide with props in the solver and can shove them with infinite mass; apply the same rule when guards start moving among props (M7). Done in M7 ([ADR 0068](0068-awareness-states-and-guard-behaviour.md)): props scan neither character layer and guards push with `BodyPusher`.
 - Teleports of the player (load, respawn, test placement) no longer disturb props.
 - Lower friction: thrown and blown props slide a little further on the floor.
 - Tests: `tests/objects/crate_stack_test.gd`, `tests/actors/player/player_crate_stack_test.gd`, `player_crate_push_test.gd`, `player_pusher_test.gd`, `push_rules_test.gd`.

@@ -27,7 +27,7 @@ material = ExtResource("2_cardboard_surface")
 
 [node name="CardboardBox" type="RigidBody3D"]
 collision_layer = 8
-collision_mask = 13
+collision_mask = 9
 mass = 2.0
 continuous_cd = true
 script = ExtResource("1_physics_object")

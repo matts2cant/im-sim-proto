@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PushConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/pusher/push_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+body_mass = 80.0
+weight_max_ratio = 4.0
+push_force = 250.0
+push_max_speed = 2.0
+push_probe = 0.05

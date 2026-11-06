@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenarios/fixtures/guard_post.tscn" id="1_post"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+
+[node name="GuardPostPlayer" type="Node3D"]
+
+[node name="Post" parent="." instance=ExtResource("1_post")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 12, 0, -12)

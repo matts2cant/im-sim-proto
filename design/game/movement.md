@@ -104,8 +104,8 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | `actors/player/player_motion.gd` | Pure: mode selection, speed caps, acceleration, jump speed, eye height |
 | `actors/player/mantle_rules.gd` | Pure: mantle eligibility, duration, path |
 | `actors/player/player_probe.gd` | Physics queries: headroom, ledge detection, mantle path clearance |
-| `actors/player/push_rules.gd` | Pure: push impulse and weight share for physics props |
-| `actors/player/player_pusher.gd` | Physics queries and forces: props underfoot (weight) and walked into (push) |
+| `actors/common/pusher/push_rules.gd` | Pure: push impulse and weight share for physics props |
+| `actors/common/pusher/body_pusher.gd`, `push_config.gd` | Component (any CharacterBody3D; the controller calls `after_move()` after `move_and_slide()`): props underfoot (weight) and walked into (push); the player's tuning in `actors/player/player_push.tres` (was `PlayerPusher` and `PlayerConfig` fields until M7) |
 | `actors/common/movement/footstep_tracker.gd`, `landing_tracker.gd`, `movement_noise_rules.gd` | Pure: footstep distance, touchdown impact speed, loudness math |
 | `actors/common/movement/surface_table.gd`, `.tres` | Surface multipliers and sounds, metadata lookup |
 | `actors/common/movement/movement_noise.gd`, `movement_noise_config.gd` | Component (any CharacterBody3D): footsteps and landings, logs, `noise`, cue; the player's tuning in `actors/player/player_movement_noise.tres` |
