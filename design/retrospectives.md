@@ -4,6 +4,27 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## Systemic cleanup and second feedback batch (2026-11-07)
+
+User feedback after the retest: crates floating when the bottom of a stack burns, step climbing, belt mouse wheel + H holster, datapads read in place with a personal log, the baton pose. The user also asked to make the systemic principle explicit; an audit found no identity branching but several player-only behaviours and direct calls, fixed in two refactors (ADR 0056 characters, 0057 forces/items/heat). 559 → 702 tests. Eight agents, mostly in parallel worktrees.
+
+**What went well**
+- The "systemic design" section in AGENTS.md changed agent output immediately: new features (StepClimber, PersonalLog/Readable, Knockback) landed as generic components tested on minimal fixtures, and agents reported where they still had to special-case.
+- Assigning ADR numbers up front avoided the duplicate-number problem; only the index rows conflicted.
+- Agents ran engine probes before building (Jolt slide collisions, body_test_motion, sleeping bodies) and reported measured values.
+- Splitting by ownership ("do not build" lists) kept merges to ADR index rows plus two small `player.gd`/`.tscn` hunks.
+
+**What went wrong**
+1. **Parallel test runs confuse process checks**: agents saw each other's (and my) Godot processes and reported them as strays; one claimed a 15-min suite (it is ~3.5 min alone, slower when runs overlap).
+2. **Two refactors built against an agreed contract were never run together** until the merge (force stimuli emitter vs receiver). Caught because I asked the merge agent for an integration test; it passed.
+3. **A level knife-edge survives**: the barrel alley's top crate gets fire 6.1 vs a 6.0 ignition threshold; behaviour changed with the force refactor and the agent updated the doc instead of the layout.
+4. **Recurring engine exit leak** ("Stoke Coal Oven.wav" playback) reported by every agent; never traced.
+
+**Changes made**
+- AGENTS.md: check only the Godot processes you started (by PID); other agents' runs may be in progress. (Fix 1.)
+- CLAUDE.md already requires contracts in parallel briefs; added practice: when two parallel agents share a contract, the merge step adds an integration test across it. (Fix 2.)
+- Open items for the next level pass: move the barrel alley top crate off the knife-edge (fix 3); trace the crackle audio leak (fix 4).
+
 ## M3–M5 playtest feedback fixes (2026-11-07)
 
 User feedback: the health silhouette stayed green, the settled aim was too wide, crate stacks went unstable when jumped on, and carrying should be closer, see-through, collision-free and upright. Three agents in parallel worktrees (HUD + aim on Sonnet, stacking and carry on the stronger model). 503 → 549 tests.
