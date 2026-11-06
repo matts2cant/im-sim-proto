@@ -56,10 +56,19 @@ func wants(stimulus: Stimulus) -> bool:
 
 
 ## Called by StimulusSystem: logs the reception, then runs every matching receptron's effects.
+## `data` (distance, propagation, the collider hit) is passed on to the effects; nodes in it are
+## logged by name.
 func receive(stimulus: Stimulus, perceived: float, data: Dictionary = {}) -> void:
 	var entity_name := String(entity.name)
 	var received := {"id": stimulus.id, "type": stimulus.type, "perceived": perceived}
-	received.merge(data)
+	for key: Variant in data:
+		if received.has(key):
+			continue
+		var value: Variant = data[key]
+		if value is Object:
+			received[key] = String((value as Node).name) if is_instance_valid(value) and value is Node else ""
+		else:
+			received[key] = value
 	EventLog.record(&"stimulus.received", stimulus.source_name(), entity_name, received)
 	var own := is_own(stimulus)
 	var container := tags.container if tags != null else null
@@ -72,7 +81,7 @@ func receive(stimulus: Stimulus, perceived: float, data: Dictionary = {}) -> voi
 		var label: Variant = receptron.resource_name if not receptron.resource_name.is_empty() else index
 		var fired := {"id": stimulus.id, "receptron": label, "effects": receptron.effect_names()}
 		EventLog.record(&"receptron.fired", stimulus.source_name(), entity_name, fired)
-		var ctx := EffectContext.new(self, stimulus, perceived)
+		var ctx := EffectContext.new(self, stimulus, perceived, data)
 		for effect in receptron.effects:
 			if effect != null:
 				effect.apply(ctx)

@@ -17,6 +17,8 @@ const PLAYER_MASK: int = WORLD | ACTORS | OBJECTS
 const OBJECT_MASK: int = WORLD | PLAYER | ACTORS | OBJECTS
 ## What "looking at" queries (pick up, debug aim) hit.
 const LOOK_MASK: int = WORLD | ACTORS | OBJECTS
+## What weapon rays and melee sweeps hit: never the character bodies, their hitboxes instead (ADR 0047).
+const WEAPON_MASK: int = WORLD | OBJECTS | HITBOXES
 
 
 ## True when the straight segment from `from` to `to` hits nothing on `mask`, ignoring `exclude`.
