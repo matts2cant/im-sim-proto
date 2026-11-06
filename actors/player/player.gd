@@ -31,6 +31,7 @@ const PRESS_ACTIONS: Array[StringName] = [
 	&"drop_throw",
 	&"fire",
 	&"reload",
+	&"holster",
 	&"belt_1",
 	&"belt_2",
 	&"belt_3",
@@ -67,6 +68,9 @@ var _mantle_time: float = 0.0
 var _spawn_transform: Transform3D
 var _debug_tab: Node
 var _actions_held: Dictionary[StringName, bool] = {}
+## Mouse wheel notches since the last physics tick (+1 per `belt_next`, -1 per `belt_prev`). Wheel
+## buttons press and release within one event pair, so they are counted as events, not polled.
+var _belt_steps: int = 0
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
@@ -126,6 +130,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed(&"jump"):
 		_jump_requested = true
+	elif event.is_action_pressed(&"belt_next"):
+		_belt_steps += 1
+	elif event.is_action_pressed(&"belt_prev"):
+		_belt_steps -= 1
 	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed(&"ui_cancel"):
@@ -367,10 +375,17 @@ func _register_debug_tab() -> void:
 
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
-# item in hand; fire: throw while carrying, else the weapon (a tool does nothing until M8); reload;
-# belt keys: the belt slot. Dead: only `use`, which asks for a level reset.
+# item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, a medkit, a
+# datapad; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
+# (again: put away); wheel: the next / previous belt item (ADR 0059). Dead: only `use`, which asks
+# for a level reset.
 func _handle_actions() -> void:
 	var can_press: bool = input_enabled and not DebugPanel.is_open()
+	var steps := _belt_steps
+	_belt_steps = 0
+	if can_press and ActorState.can_act(self):
+		for i in absi(steps):
+			inventory.cycle(signi(steps))
 	for action in PRESS_ACTIONS:
 		var held: bool = can_press and Input.is_action_pressed(action)
 		var pressed: bool = held and not _actions_held.get(action, false)
@@ -392,10 +407,12 @@ func _handle_actions() -> void:
 			&"fire":
 				if carry.is_carrying():
 					carry.throw()
-				else:
+				elif not inventory.use_held():
 					weapons.trigger()
 			&"reload":
 				weapons.reload()
+			&"holster":
+				inventory.put_away()
 			_:
 				inventory.select_slot(BELT_ACTIONS.find(action))
 

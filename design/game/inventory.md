@@ -9,7 +9,8 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 ## Player-facing behaviour
 
 - Look at an item within 2 m: the HUD says "E: pick up Multitool (3)". E puts it into the grid; what does not fit stays on the floor ("No room in inventory").
-- New weapons, tools and consumables go to the first free belt slot. Keys 1-0 select a slot: a weapon is drawn (again: holstered), a tool goes in hand, a medkit is used at once, a datapad opens for reading, a biocell says "Nothing happens" (until M6).
+- New weapons, tools and consumables go to the first free belt slot. Keys 1-0 or the mouse wheel select a slot and put its item in hand, nothing more: a weapon is drawn, anything else is held; the same key again, or H, puts it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). The wheel steps to the next / previous non-empty slot (down = right), wrapping; from empty hands down takes the first item, up the last. A datapad's belt key still opens it for reading at once.
+- LMB uses the item in hand: a weapon fires, a medkit heals (one per click, it stays in hand until the last is used), a biocell says "Nothing happens" (until M6), a tool does nothing (until M8).
 - Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine, key or text.
 - I opens the inventory screen and pauses the game: drag items around the grid, onto belt slots, or out of the panel to drop them; right-click for Use / Drop / Split stack / Assign to belt slot; hover for a tooltip.
 
@@ -22,7 +23,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard), `title` and `text` (datapad; M8 codes go here). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
 
-| Item | id | Footprint | Stack | Use (belt key or Use) | Auto-belt | Instance state |
+| Item | id | Footprint | Stack | Use (LMB in hand, or Use) | Auto-belt | Instance state |
 |---|---|---|---|---|---|---|
 | Silenced pistol | `pistol` | 2 x 1 | 1 | equip / holster | yes | `magazine` (10 when new) |
 | Stun baton | `baton` | 1 x 3 | 1 | equip / holster | yes | |
@@ -55,12 +56,14 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - Slots reference stacks, never copies; a stack is in at most one slot. Assigning a stack moves it from its old slot. A stack that leaves the grid (used up, dropped) clears its slot.
 - `auto_belt` items (weapons, tools, consumables) take the first free slot when a new stack is placed (pickup, Give item, split).
 - `selected` is the slot whose item is in hand (highlighted on the HUD), -1 when none. Saved as stack indices.
+- `next_filled(from, step)`: the next non-empty slot from `from` towards `step` (> 0 right, < 0 left), wrapping; from -1 the first (step > 0) or last (step < 0) non-empty slot; `from` itself when it is the only item, -1 when the belt is empty. The mouse wheel uses it.
 
 ### Use, hand, ammo (`PlayerInventory`, `items/inventory/player_inventory.gd`)
 
-- Belt key or Use: `EQUIP_WEAPON` draws the weapon through the WeaponHolder (`equip_state`), the same stack again holsters; `EQUIP_TOOL` holds the tool (HUD shows its name; LMB does nothing until M8); a weapon replaces a tool and vice versa. `CONSUME` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): the item's `use_stimuli` (type -> intensity; medkit `{heal: 30}`) go to the player as CONTACT stimuli with the player as source, delivered at once (`StimulusSystem.emit_now`: the inventory screen pauses the game), and one is consumed; the player's receptrons decide what they do (the `heal` receptron -> `HealEffect` -> `BodyParts.heal`). Refused, item kept, when none of them would do anything to the player (`StimulusSystem.would_affect` dry run: a medkit when unhurt or dead): the item's `refused_message` ("You are not hurt") and `item.use_refused {item, reason: no_effect}`. Logged `item.used {item, action: consume, stimuli}`; the heal itself logs `actor.healed` (source: the player). `EQUIP_WEAPON`, `EQUIP_TOOL` and `READ` stay inventory / UI verbs: they change what is in hand or open an overlay and nothing in the world could react to them. `READ` opens the reading overlay. `NONE` shows the item's message. An empty slot does nothing.
+- In hand ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)): `select_slot` (belt key) and `cycle` (wheel) call `hold(stack)`: an `EQUIP_WEAPON` item is drawn through the WeaponHolder (`equip_state`), any other item becomes `held`; either replaces what was in hand. The same belt key again, H (`holster` action) and death call `put_away()`. `use_held()` (LMB, when nothing is carried) uses the held item as below, except a tool; with a weapon or nothing in hand LMB goes to the WeaponHolder. A `READ` item's belt key still uses it at once (datapads are leaving the inventory).
+- Use (LMB on a held item, or the inventory screen's Use): `EQUIP_WEAPON` / `EQUIP_TOOL` (screen only) toggle the item in hand; a tool in hand shows its name and LMB does nothing until M8. `CONSUME` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): the item's `use_stimuli` (type -> intensity; medkit `{heal: 30}`) go to the player as CONTACT stimuli with the player as source, delivered at once (`StimulusSystem.emit_now`: the inventory screen pauses the game), and one is consumed; the player's receptrons decide what they do (the `heal` receptron -> `HealEffect` -> `BodyParts.heal`). Refused, item kept, when none of them would do anything to the player (`StimulusSystem.would_affect` dry run: a medkit when unhurt or dead): the item's `refused_message` ("You are not hurt") and `item.use_refused {item, reason: no_effect}`. Logged `item.used {item, action: consume, stimuli}`; the heal itself logs `actor.healed` (source: the player). `EQUIP_WEAPON`, `EQUIP_TOOL` and `READ` stay inventory / UI verbs: they change what is in hand or open an overlay and nothing in the world could react to them. `READ` opens the reading overlay. `NONE` shows the item's message. An empty slot does nothing.
 - Each weapon stack gets a `WeaponState`; its magazine is mirrored into the stack's `magazine` state (after every shot, reload, equip, save and drop). Spare rounds are the inventory's stacks of the weapon's `ammo_item` (`InventoryAmmo`): a reload takes what the magazine needs from the smallest stacks first; the HUD shows "magazine / rounds in the inventory".
-- Death puts the weapon or tool away.
+- Death puts the item in hand away.
 
 ### Pickup and interaction ([ADR 0051](../decisions/0051-single-interactor-hud-prompts.md))
 
@@ -88,15 +91,16 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 ### HUD
 
 - Belt: bottom centre, 10 slots (52 px) with the key number, short name and count; the selected slot has a yellow border.
-- Prompt under the reticle; messages (2.5 s, fading) above the belt; weapon or tool name and ammo bottom right.
+- The name of the item put in hand shows just above the belt for `InventoryConfig.item_name_time` (1.5 s, fading over its last half); holstering hides it at once.
+- Prompt under the reticle; messages (2.5 s, fading) above the item name; the name of the item in hand and ammo bottom right.
 
 ### Saving
 
-- `Player.save_state()` includes `inventory`: `{inventory: Inventory.to_dict(), belt: Belt.to_dict(), in_hand: stack index or -1}`; `load_state` restores it and draws the item that was in hand. M6 wires quicksave.
+- `Player.save_state()` includes `inventory`: `{inventory: Inventory.to_dict(), belt: Belt.to_dict(), in_hand: stack index or -1}`; `load_state` restores it and puts the item that was in hand back in hand (never uses it). M6 wires quicksave.
 
 ### EventLog
 
-`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}` (`equip`, `heal` + `amount`, `read`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`.
+`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}` (`equip` for every item put in hand, `consume` + `stimuli`, `read`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`.
 
 ```mermaid
 flowchart TD
@@ -110,9 +114,10 @@ flowchart TD
     A -->|placed| B{"auto_belt?"}
     B -->|yes| BS["first free belt slot"]
     B -->|no| G["grid only"]
-    BS --> K["belt key 1-0"]
+    BS --> K["belt key 1-0 / mouse wheel"]
     G --> M["inventory screen: Use / drag to belt"]
-    K --> X{"use action"}
+    K --> HD["in hand (H or the key again: put away)"]
+    HD -->|LMB| X{"use action"}
     M --> X
     X -->|EQUIP_WEAPON| W["WeaponHolder.equip_state; again: holster"]
     X -->|EQUIP_TOOL| T["tool in hand"]

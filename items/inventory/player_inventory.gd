@@ -1,8 +1,10 @@
 class_name PlayerInventory
 extends Node
 ## Component of the Player: the grid Inventory, the Belt over it and the item in hand (a weapon
-## drawn through the WeaponHolder, or a tool). Picks up ItemPickups, uses items (equip, read, message,
-## or consume: the item's `use_stimuli` sent to the player as CONTACT stimuli, ADR 0057), drops
+## drawn through the WeaponHolder, or any other item: tool, medkit, datapad...). Selecting a belt
+## slot (number key, mouse wheel) only puts its item in hand; LMB uses it (ADR 0059). Picks up
+## ItemPickups, uses items (equip, read, message, or consume: the item's `use_stimuli` sent to the
+## player as CONTACT stimuli, ADR 0057), drops
 ## stacks back into the world as physics pickups. Each weapon stack gets its own WeaponState whose
 ## magazine is mirrored into the stack's `magazine` state and whose spare rounds
 ## are the inventory's ammo stacks (InventoryAmmo). Saved through the Player (ADR 0050).
@@ -12,7 +14,7 @@ extends Node
 signal message(text: String)
 ## A datapad was used: the reading overlay shows it.
 signal read_requested(stack: ItemStack)
-## The hand changed (weapon or tool drawn / put away).
+## The hand changed (an item put in hand, swapped or put away).
 signal hand_changed
 
 const NO_ROOM := "No room in inventory"
@@ -23,8 +25,8 @@ const NO_ROOM := "No room in inventory"
 var inventory: Inventory
 var belt: Belt
 var player: Player
-## Tool in hand (EQUIP_TOOL), or null.
-var tool: ItemStack = null
+## The non-weapon stack in hand (tool, consumable, datapad, keycard...), or null.
+var held: ItemStack = null
 
 var _weapon_states: Dictionary[ItemStack, WeaponState] = {}
 var _weapon_stack: ItemStack = null
@@ -69,24 +71,69 @@ func pick_up(pickup: ItemPickup) -> bool:
 	return true
 
 
-## Belt key `index` (0 = key 1): uses the stack in that slot; an empty slot does nothing.
+## Belt key `index` (0 = key 1): puts the slot's item in hand, or puts it away when it already
+## is; an empty slot does nothing. A datapad (READ) still opens at once (datapads leave the
+## inventory in a follow-up change).
 func select_slot(index: int) -> void:
 	var stack := belt.stack_in(index)
-	if stack != null:
+	if stack == null:
+		return
+	if stack.item.use_action == ItemData.UseAction.READ:
 		use_stack(stack)
+	elif in_hand() == stack:
+		put_away()
+	else:
+		hold(stack)
 
 
-## Uses `stack`: weapon / tool toggles in hand, a consumable (medkit) sends its stimuli to the
-## player, datapad opens the reading overlay, others show their message. Returns true when something
-## happened.
+## Mouse wheel: puts the item of the next non-empty belt slot in hand (`step` > 0: to the right,
+## < 0: to the left, wrapping; from empty hands the first / last one). Nothing when the belt is
+## empty or the item in hand is its only item.
+func cycle(step: int) -> void:
+	var from := belt.selected
+	var index := belt.next_filled(from, step)
+	if index >= 0 and index != from:
+		hold(belt.stack_in(index))
+
+
+## Puts `stack` in hand (a weapon is drawn, anything else is held), putting away what was there.
+func hold(stack: ItemStack) -> void:
+	if stack == null or not inventory.stacks.has(stack) or in_hand() == stack:
+		return
+	if stack.item.use_action == ItemData.UseAction.EQUIP_WEAPON:
+		held = null
+		_weapon_stack = stack
+		player.weapons.equip_state(weapon_state(stack))
+	else:
+		if _weapon_stack != null:
+			_weapon_stack = null
+			player.weapons.holster()
+		held = stack
+	belt.select(belt.slot_of(stack))
+	_log_used(stack, "equip")
+	hand_changed.emit()
+
+
+## LMB with a non-weapon item in hand: uses it (a consumable is used one at a time and stays in hand
+## while any are left; a datapad is read; a tool does nothing until M8). False when the hand holds a
+## weapon (the WeaponHolder fires it) or nothing, or the use was refused.
+func use_held() -> bool:
+	if held == null:
+		return false
+	if held.item.use_action == ItemData.UseAction.EQUIP_TOOL:
+		return false
+	return use_stack(held)
+
+
+## Uses `stack` (the inventory screen's Use, LMB on a held item): weapon / tool toggles in hand, a
+## consumable (medkit) sends its stimuli to the player, datapad opens the reading overlay, others
+## show their message. Returns true when something happened.
 func use_stack(stack: ItemStack) -> bool:
 	if stack == null or not inventory.stacks.has(stack):
 		return false
 	match stack.item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON:
-			_toggle_weapon(stack)
-		ItemData.UseAction.EQUIP_TOOL:
-			_toggle_tool(stack)
+		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
+			_toggle(stack)
 		ItemData.UseAction.CONSUME:
 			return _consume(stack)
 		ItemData.UseAction.READ:
@@ -98,18 +145,18 @@ func use_stack(stack: ItemStack) -> bool:
 	return true
 
 
-## The weapon or tool stack in hand, or null.
+## The stack in hand (weapon or held item), or null.
 func in_hand() -> ItemStack:
-	return _weapon_stack if _weapon_stack != null else tool
+	return _weapon_stack if _weapon_stack != null else held
 
 
-## Holsters the weapon and puts the tool away.
+## Holsters the weapon or puts the held item away (H, the same belt key again, death): empty hands.
 func put_away() -> void:
 	var had := in_hand() != null
 	if _weapon_stack != null:
 		_weapon_stack = null
 		player.weapons.holster()
-	tool = null
+	held = null
 	belt.select(-1)
 	if had:
 		hand_changed.emit()
@@ -175,32 +222,15 @@ func load_state(data: Dictionary) -> void:
 	var index := int(data.get("in_hand", -1))
 	belt.select(-1)
 	if index >= 0 and index < inventory.stacks.size():
-		use_stack(inventory.stacks[index])
+		hold(inventory.stacks[index])
 
 
-func _toggle_weapon(stack: ItemStack) -> void:
-	if _weapon_stack == stack:
+# Inventory screen Equip / Put away of a weapon or tool.
+func _toggle(stack: ItemStack) -> void:
+	if in_hand() == stack:
 		put_away()
-		return
-	tool = null
-	_weapon_stack = stack
-	player.weapons.equip_state(weapon_state(stack))
-	belt.select(belt.slot_of(stack))
-	_log_used(stack, "equip")
-	hand_changed.emit()
-
-
-func _toggle_tool(stack: ItemStack) -> void:
-	if tool == stack:
-		put_away()
-		return
-	if _weapon_stack != null:
-		_weapon_stack = null
-		player.weapons.holster()
-	tool = stack
-	belt.select(belt.slot_of(stack))
-	_log_used(stack, "equip")
-	hand_changed.emit()
+	else:
+		hold(stack)
 
 
 # Consumable: its stimuli go to the player (CONTACT, delivered at once: the inventory screen pauses

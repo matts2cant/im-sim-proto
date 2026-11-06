@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: the player's belt and item use (pistol pickup, belt keys equip / holster, reloads
-## from ammo stacks, medkit heal from the belt, tools, biocell message, death) and the inventory's
-## save_state / load_state through the Player.
+## from ammo stacks, medkit in hand used with LMB, tools, biocell message, death) and the
+## inventory's save_state / load_state through the Player. Wheel and H: belt_selection_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -82,14 +82,18 @@ func test_shots_are_kept_on_the_stack_magazine() -> void:
 	assert_str(_hud.ammo_label.text).is_equal("9 / 30")
 
 
-func test_medkit_from_the_belt_heals_and_decrements() -> void:
+func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 	await _load()
 	_player.inventory.give(Items.MEDKIT, 2)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 	_player.body.take_damage(&"damage.blunt", 4.0, &"head")
+	await _press(&"belt_1")
+	# Selecting only puts it in hand (ADR 0059).
+	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
+	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
 	EventLog.clear()
 
-	await _press(&"belt_1")
+	await _press(&"fire")
 
 	var healed := EventLog.find(&"actor.healed")
 	assert_array(healed).has_size(1)
@@ -101,19 +105,25 @@ func test_medkit_from_the_belt_heals_and_decrements() -> void:
 	# The medkit is a consumable: its `heal` 30 stimulus goes to the player (ADR 0057).
 	assert_str(used[0].data["action"]).is_equal("consume")
 	assert_array(used[0].data["stimuli"]).contains_exactly([&"heal"])
-	# The belt keeps the (now smaller) stack; the last medkit clears the slot.
+	# The belt keeps the (now smaller) stack, still in hand; the last medkit clears the slot and
+	# empties the hands.
 	assert_int(_player.inventory.belt.stack_in(0).count).is_equal(1)
-	await _press(&"belt_1")
+	assert_int(_player.inventory.belt.selected).is_equal(0)
+	await _press(&"fire")
 	assert_object(_player.inventory.belt.stack_in(0)).is_null()
+	assert_object(_player.inventory.in_hand()).is_null()
+	assert_int(_player.inventory.belt.selected).is_equal(-1)
 
 
 func test_medkit_is_refused_when_unhurt() -> void:
 	await _load()
 	_player.inventory.give(Items.MEDKIT, 1)
-
 	await _press(&"belt_1")
 
+	await _press(&"fire")
+
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
+	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
 	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
 	assert_str(_hud.message_label.text).is_equal("You are not hurt")
 
@@ -171,13 +181,14 @@ func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 	_player.inventory.give(Items.PISTOL, 1)
 
 	await _press(&"belt_1")
-	assert_object(_player.inventory.tool.item).is_same(Items.MULTITOOL)
+	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
 	assert_str(_hud.weapon_label.text).is_equal("Multitool")
 	await _press(&"fire")
 	assert_array(EventLog.find(&"weapon.fired")).is_empty()
+	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
 
 	await _press(&"belt_2")
-	assert_object(_player.inventory.tool).is_null()
+	assert_object(_player.inventory.held).is_null()
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.inventory.belt.selected).is_equal(1)
 
@@ -187,10 +198,14 @@ func test_biocell_says_nothing_happens_and_empty_slots_do_nothing() -> void:
 	_player.inventory.give(Items.BIOCELL, 3)
 
 	await _press(&"belt_1")
+	assert_str(_hud.message_label.text).is_equal("")
+	await _press(&"fire")
 	assert_str(_hud.message_label.text).is_equal("Nothing happens")
 	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(3)
 	await _press(&"belt_5")
-	assert_array(EventLog.find(&"item.used")).has_size(1)
+	# Put in hand ("equip"), then used ("nothing"); the empty slot logged nothing.
+	assert_array(EventLog.find(&"item.used")).has_size(2)
+	assert_int(_player.inventory.belt.selected).is_equal(0)
 
 
 func test_death_puts_the_weapon_away() -> void:

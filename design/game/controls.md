@@ -18,14 +18,16 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | R | Reload the equipped weapon |
 | Q | Drop what is carried; when nothing is carried: drop the item in hand (weapon or tool) in front of you |
 | I | Inventory screen (pauses the game); again or Esc closes |
-| 1-0 | Belt slots 1 ... 0: draw a weapon (again: holster), hold a tool, use a medkit, read a datapad. In the inventory screen, while hovering an item: assign it to that slot |
+| 1-0 | Belt slots 1 ... 0: put the slot's item in hand (a weapon is drawn; a tool, medkit, biocell... is held); the same key again: put it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). A datapad opens for reading at once. In the inventory screen, while hovering an item: assign it to that slot |
+| Mouse wheel | Down: the next non-empty belt slot to the right, up: the previous one; wraps; from empty hands down takes the first item, up the last. One item per notch; nothing is used |
+| H | Holster: put away whatever is in hand (empty hands, no belt highlight) |
 | F1-F4, F6 | Augmentations |
 | F5 | Quicksave (M6) |
 | F9 | Quickload (M6) |
 | ` (QuoteLeft) | Debug panel |
 | Mouse look | Look (captured mouse) |
 | Esc | Close the inventory screen or reading overlay; in game: release the mouse (click in the window to capture it again) |
-| LMB | Fire / swing the equipped weapon (a tool in hand: nothing until M8); while carrying: throw along the view. Inventory screen: drag items |
+| LMB | Use the item in hand: fire / swing a weapon, use one medkit, a biocell's message (a tool: nothing until M8; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
 | RMB | Alt. Inventory screen: item context menu |
 
 ## Rules
@@ -34,7 +36,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 - Lean has no binding in v0.
 - Crouch is hold-to-crouch; the player stays crouched while there is no headroom to stand ([movement.md](movement.md)).
 - The mouse is captured while the player is active and the debug panel is closed; opening the panel frees it and closing restores the previous mode. Movement input is ignored while the panel is open.
-- Carry and throw (M3): see [objects-and-fire.md](objects-and-fire.md). Interact, carry, weapon and belt actions (E, Q, LMB, R, 1-0) trigger on the press edge in the physics tick, like jump; they are ignored while the debug panel is open.
+- Carry and throw (M3): see [objects-and-fire.md](objects-and-fire.md). Interact, carry, weapon and belt actions (E, Q, LMB, R, H, 1-0) trigger on the press edge in the physics tick, like jump; they are ignored while the debug panel is open. Wheel notches (`belt_next` / `belt_prev`) are counted as input events and applied in the same physics tick with the same gating (dead or incapacitated, debug panel, pause screens).
 - Weapons (M4): see [weapons-and-aiming.md](weapons-and-aiming.md).
 - Inventory, belt, pickup prompts and drop (M5): see [inventory.md](inventory.md). The inventory screen and the reading overlay pause the game and free the mouse ([ADR 0052](../decisions/0052-inventory-pauses-the-game.md)); a key still held when they close does not count as a new press in game.
 - Dead (M4): every input is ignored except E, which reloads the level ([damage.md](damage.md)).

@@ -2,7 +2,7 @@ class_name Belt
 extends RefCounted
 ## Pure 10-slot belt (keys 1-0) over an Inventory (ADR 0050). Slots reference grid stacks, never
 ## copies; a stack is in at most one slot, and a stack that leaves the grid clears its slot.
-## `selected` is the slot whose item is in hand (weapon or tool), -1 when none.
+## `selected` is the slot whose item is in hand (any item: ADR 0059), -1 when none.
 
 signal changed
 
@@ -84,6 +84,22 @@ func select(index: int) -> void:
 	if selected != index:
 		selected = index
 		changed.emit()
+
+
+## The next non-empty slot from `from` in the direction of `step` (> 0: right, < 0: left),
+## wrapping around; from -1 (empty hands) the first non-empty slot from the left (step > 0) or the
+## last (step < 0). `from` itself when it is the only non-empty slot; -1 when the belt is empty.
+func next_filled(from: int, step: int) -> int:
+	var count := slots.size()
+	var direction := 1 if step >= 0 else -1
+	var start := from
+	if from < 0 or from >= count:
+		start = -1 if direction > 0 else count
+	for i in range(1, count + 1):
+		var index := posmod(start + direction * i, count)
+		if slots[index] != null:
+			return index
+	return -1
 
 
 ## Slots as inventory stack indices (-1 = empty) plus the selected slot.

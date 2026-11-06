@@ -37,6 +37,12 @@ font_color = Color(1, 0.84, 0.45, 1)
 outline_size = 4
 outline_color = Color(0, 0, 0, 0.85)
 
+[sub_resource type="LabelSettings" id="Label_item_name"]
+font_size = 18
+font_color = Color(1, 0.82, 0.3, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 0.85)
+
 [node name="Hud" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud")
@@ -121,13 +127,29 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -300.0
-offset_top = -118.0
+offset_top = -140.0
 offset_right = 300.0
-offset_bottom = -92.0
+offset_bottom = -114.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 label_settings = SubResource("Label_message")
+horizontal_alignment = 1
+
+[node name="ItemName" type="Label" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -106.0
+offset_right = 300.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+label_settings = SubResource("Label_item_name")
 horizontal_alignment = 1
 
 [node name="Belt" type="Control" parent="."]
