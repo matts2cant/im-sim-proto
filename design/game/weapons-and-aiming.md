@@ -8,7 +8,7 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 
 ## Player-facing behaviour
 
-- **Silenced pistol** (lethal), **stun baton** (non-lethal). Until the M5 belt exists, `1` (belt_1) draws the pistol, `2` (belt_2) the baton; the same key again holsters. LMB fires or swings, R reloads.
+- **Silenced pistol** (lethal), **stun baton** (non-lethal), carried as inventory items (M5, [inventory.md](inventory.md)). Their belt key draws them; the same key again holsters. LMB fires or swings, R reloads from the pistol ammo in the inventory.
 - The reticle circle is the exact spread cone; shots always land inside it. Standing still it settles over about 0.8 s (untrained) to a small circle; walking, sprinting, jumping, mouse look, each shot and arm injuries widen it.
 - The baton is quiet up close: one hit from behind on an unaware target knocks it out; from the front or on an aware target it takes three.
 
@@ -39,8 +39,8 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 ### Weapons (`items/weapons/`)
 
 - `WeaponData` Resource per weapon (`pistol/pistol.tres`, `baton/baton.tres`): damage stimuli, cycle time, range, ammo, sweep radius, noises, impulse, sounds, placeholder view model (a box in front of the camera).
-- `WeaponState` (pure, unit-tested): magazine, reserve, cooldown, reload timer. Results: `FIRED`, `DRY` (empty magazine: click, waits a cycle), `BUSY` (cycle running), `RELOADING`.
-- `WeaponHolder` (node, child of the player's camera): equipped slot, one `WeaponState` per weapon, the `AimModel`, the view model and sounds. Saveable (ammo per weapon, equipped slot).
+- `WeaponState` (pure, unit-tested): magazine, cooldown, reload timer; spare rounds come from an `AmmoPool` (a plain count for fixed loadouts, or `InventoryAmmo`: the inventory's stacks of the weapon's `ammo_item`, smallest first). Results: `FIRED`, `DRY` (empty magazine: click, waits a cycle), `BUSY` (cycle running), `RELOADING`.
+- `WeaponHolder` (node, child of the player's camera): the equipped `WeaponState`, the `AimModel`, the view model and sounds. Armed either from a fixed loadout (`weapons`, `equip(index)`; saveable; guards in M7) or with `equip_state()` from an inventory weapon stack (the player since M5: `PlayerInventory` owns one state per pistol stack and mirrors its magazine into the stack's `magazine`).
 
 | | Silenced pistol | Stun baton |
 |---|---|---|
@@ -48,7 +48,7 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 | Reach | ray 60 m along the sampled direction | sphere r 0.2 m swept along the view until its front is 1.8 m from the camera (no spread) |
 | Layers hit | world, objects, hitboxes (`WEAPON_MASK`) | same |
 | Rate | 0.35 s between shots | 0.6 s per swing |
-| Ammo | magazine 10, reserve 30, reload 1.6 s (R) | none |
+| Ammo | magazine 10, reload 1.6 s (R) from `pistol_ammo` stacks (HUD: magazine / rounds in the inventory); `reserve_ammo` 30 only for fixed loadouts | none |
 | Noise (PATH) | 6 m at the muzzle, 4 m at the hit point | 3 m swing (from the eye), 6 m on a hit (at the hit point) |
 | Physics objects hit | impulse 3 N s at the hit point (an explosive barrel's 25 health: one shot) | blunt 5 (stun x0 on objects) |
 | Sounds | shot: `kenney_impact-sounds/impactPunch_medium_000-002` (a muffled thud reads as suppressed; random pitch); hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
