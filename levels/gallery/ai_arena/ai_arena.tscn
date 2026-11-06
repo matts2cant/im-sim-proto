@@ -7,7 +7,8 @@
 [ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="5_ceiling_lamp"]
 [ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="6_large_crate"]
 [ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="7_metal_crate"]
-[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="8_guard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="8_guard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="8_guard_baton"]
 [ext_resource type="Script" path="res://actors/common/behaviour/patrol_route.gd" id="9_route"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
@@ -149,10 +150,10 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 17.5)
 [node name="Behaviour" parent="Guards/GuardPistolB"]
 patrol_route = NodePath("../../../Routes/RouteB")
 
-[node name="GuardBatonPost" parent="Guards" instance=ExtResource("8_guard")]
+[node name="GuardBatonPost" parent="Guards" instance=ExtResource("8_guard_baton")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4, 0, 3)
 
-[node name="GuardBatonDowned" parent="Guards" instance=ExtResource("8_guard")]
+[node name="GuardBatonDowned" parent="Guards" instance=ExtResource("8_guard_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, 0, 9)
 
 [node name="Tags" parent="Guards/GuardBatonDowned"]

@@ -5,7 +5,8 @@ extends Node
 ## at each point), or without one hold the post (where it spawned, facing its spawn direction) and
 ## glance `glance_angle` left or right every `glance_interval`. LOOK: stop and face the point.
 ## MOVE: walk to the destination (snapped to the navmesh) at the phase's pace and report arrival.
-## LOOK_AROUND: stop and sweep the view. CHASE: run to the last known position; within
+## LOOK_AROUND: stop and sweep the view. TEND (by a downed ally, ADR 0071): stop and face it.
+## CHASE: run to the last known position; within
 ## `face_distance` of a seen target, stop and face it (an armed character's CombatBehaviour takes
 ## the walker while it fights, ADR 0070, and this pauses until it is handed back). A character that
 ## cannot act stops. Paces map to the walker's speeds (walk, investigate, run). Saveable (patrol index,
@@ -42,7 +43,7 @@ func _ready() -> void:
 	if not patrol_route.is_empty():
 		route = get_node_or_null(patrol_route) as PatrolRoute
 	post = body.global_position
-	post_yaw = body.rotation.y
+	post_yaw = body.global_rotation.y
 
 
 func _physics_process(delta: float) -> void:
@@ -55,11 +56,11 @@ func _physics_process(delta: float) -> void:
 	var model := awareness.model
 	if model.phase != _phase:
 		_phase = model.phase
-		_sweep_yaw = body.rotation.y
+		_sweep_yaw = body.global_rotation.y
 	match model.phase:
 		AwarenessModel.Phase.ROUTINE:
 			_routine(delta)
-		AwarenessModel.Phase.LOOK:
+		AwarenessModel.Phase.LOOK, AwarenessModel.Phase.TEND:
 			body.stop()
 			body.face_towards(model.point)
 		AwarenessModel.Phase.MOVE:

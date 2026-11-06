@@ -230,7 +230,7 @@ func _turn_towards(direction: Vector3, delta: float) -> void:
 	if direction.is_zero_approx():
 		return
 	var yaw := atan2(-direction.x, -direction.z)
-	rotation.y = rotate_toward(rotation.y, yaw, deg_to_rad(config.turn_rate) * delta)
+	global_rotation.y = rotate_toward(global_rotation.y, yaw, deg_to_rad(config.turn_rate) * delta)
 
 
 static func _flat(vector: Vector3) -> Vector3:

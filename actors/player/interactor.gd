@@ -70,7 +70,7 @@ func refresh() -> void:
 		return
 	var pickup := ItemPickup.of(entity)
 	var usable := Usable.of(entity)
-	var body := entity as RigidBody3D
+	var body := entity as PhysicsBody3D
 	if pickup != null and pickup.count > 0:
 		_resolve(Kind.PICK_UP, entity, prompt_for(Kind.PICK_UP, pickup.item.display_name, pickup.count))
 	elif usable != null:
@@ -79,7 +79,7 @@ func refresh() -> void:
 			usable_name = display_name_of(entity)
 		_resolve(Kind.USE, entity, prompt_for(Kind.USE, usable_name, 1, usable.verb))
 	elif body != null and PlayerCarry.can_offer(body):
-		var heavy := not CarryRules.can_carry(body.mass, player.carry.mass_limit())
+		var heavy := not CarryRules.can_carry(Carryable.mass_of(body), player.carry.mass_limit())
 		var carry_kind := Kind.TOO_HEAVY if heavy else Kind.CARRY
 		_resolve(carry_kind, entity, prompt_for(carry_kind, display_name_of(entity)))
 	else:
@@ -95,7 +95,7 @@ func perform() -> bool:
 		Kind.USE:
 			return Usable.of(target).use(player)
 		Kind.CARRY, Kind.TOO_HEAVY:
-			return player.carry.try_pick_up_body(target as RigidBody3D)
+			return player.carry.try_pick_up_body(target as PhysicsBody3D)
 		Kind.PUT_DOWN, Kind.NO_ROOM:
 			return player.carry.put_down()
 	return false

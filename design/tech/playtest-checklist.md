@@ -232,6 +232,20 @@ No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and 
 - [ ] It pushes small crates out of its way gently (at most 2 m/s), cannot shove the large crate, and never flings props.
 - [ ] Guard icons toggle off and on in the Overlays tab; barks are readable at a distance and disappear after about 2 s.
 
+## M7 Bodies, shouts, radio, alarm ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md), [ADR 0072](../decisions/0072-shouts-radio-level-alarm.md))
+
+In the hub: AI arena (doorway "6 AI Arena", south wall) and the Perception lab. Debug panel Overlays: "Guard state" shows state, meter and wary time; Event Log: `actor.body_found`, `actor.wake`, `actor.revived`, `actor.shout`, `actor.radio`, `actor.heard_call`, `alarm.raised`, `alarm.ended`.
+
+- [ ] AI arena: shortly after loading, patrol A walks down the A3 > A0 leg, sees the unconscious guard lying lit beside it ("Man down!", `?` orange), runs to it, stands by it about 3 s and wakes it ("My head..."); both then search around and later return to routine.
+- [ ] From the hub door the baton post guard has its back to you: sneak up and knock it out with the baton without it turning, even during its ±45° glances.
+- [ ] E on a downed guard's body: "E: carry Guard baton post"-style prompt; carried see-through, about 1.35 m ahead and low, you move clearly slower (0.6); E puts it down, Q drops it, LMB tosses it gently. It lands on the floor, stays down, never sinks in. In a narrow spot "No room to put down" shows.
+- [ ] Carry a downed guard into the dark corner (far right, light gauge dark): patrol B at B1, 2 m away, does not find it; leave it lit on a route and a patrol finds it within about a second of looking.
+- [ ] Alert a guard in the hall: it shouts (others within about 17 m walking distance turn orange `?`, "On my way!", and run to it); the radio guard at the far end of the radio room reacts only through the radio (it is too far to hear the shout). A guard that is shooting at you does not stop to wake a body.
+- [ ] Debug panel (`): "Raise alarm": the HUD shows a red "ALARM", every guard (the radio guard too) searches and keeps searching until it ends 90 s later (or "Clear alarm"); the panel shows the seconds left.
+- [ ] Quicksave while carrying a body and quickload: the body is on the floor where you held it, still down. Quicksave with the alarm on: it is still on after loading.
+- [ ] Perception lab: the guard holds the post at the back, facing the lanes. Standing in the lit lane, it sees you; open the breaker and it no longer does until you are within about 2 m.
+- [ ] Walls and corners from the arena doorway, the radio room door from both sides, the dark corner: no seams; the dark corner looks dark, not grey.
+
 ## M7 Guard combat ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md))
 
 No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run it (F6). You start hidden behind a 12 m wall (z -12) with a training dummy and a small crate; a pistol guard stands at (-3, 0, 0) and a baton guard at (3, 0, 0), both facing you across the lit yard. Event Log: `actor.engaged`, `actor.disengaged`, `weapon.fired`, `weapon.swung`.

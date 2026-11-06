@@ -11,6 +11,8 @@ extends Resource
 @export var ally_tags: Array[StringName] = [&"actor.guard"]
 ## Entities with any of these tags are never seen (Cloak).
 @export var hidden_tags: Array[StringName] = [&"state.cloaked"]
+## An ally with any of these tags is a body to discover (ADR 0071).
+@export var body_tags: Array[StringName] = [&"state.unconscious", &"state.dead"]
 
 @export_group("Eyes")
 ## Eye height above the feet (the body's origin), m.

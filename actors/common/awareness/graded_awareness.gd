@@ -4,9 +4,11 @@ extends Awareness
 ## Every physics tick it asks the sibling PerceptionSensor what it sees (look(), with the wary gain)
 ## and steps the model. Heard noises and harm arrive through AwarenessEffect (the `heard_noise` and
 ## `harmed` receptrons): noise from an entity with an ally tag is ignored, harm counts only from an
-## entity with a hostile tag (PerceptionConfig of the sensor). alert_at() is the external input for
-## alarms, radio and shouts (next wave). A character that cannot act (ActorState: dead,
-## unconscious) keeps no state: the model is reset and nothing is perceived.
+## entity with a hostile tag (PerceptionConfig of the sensor). alert_at() alerts at once;
+## search_at() (alarm, being woken) and notice_call() (an ally's shout or radio call, ADR 0072) start
+## a search; notice_body() reports a downed ally found by the BodyDiscovery (ADR 0071). A character
+## that cannot act (ActorState: dead, unconscious) keeps no state: the model is reset and nothing is
+## perceived.
 ## is_aware() (the knockout rule, ADR 0049) is true while Alerted or Searching.
 ## Every state change is logged `actor.awareness {actor, from, to, reason, meter, point}`; every
 ## heard noise `actor.heard {actor, perceived, point}`. Saveable (the model's state).
@@ -82,6 +84,30 @@ func notice_harm(source: Node, at: Vector3) -> void:
 func alert_at(at: Vector3) -> void:
 	if _can_perceive():
 		model.alert(at)
+
+
+func search_at(at: Vector3, why: String) -> void:
+	if _can_perceive():
+		model.search_at(at, why)
+
+
+func notice_call(at: Vector3, source: Node, why: String) -> void:
+	if not _can_perceive() or source == null or _sensor == null or not _sensor.is_ally(source):
+		return
+	var data := {"actor": String(entity.name), "from": String(source.name), "kind": why, "point": at}
+	EventLog.record(&"actor.heard_call", String(source.name), String(entity.name), data)
+	model.search_at(at, why)
+
+
+## A downed ally at `at` was found (AwarenessModel.discover_body); true when a search started.
+func notice_body(at: Vector3, approach: Vector3, tend: bool) -> bool:
+	return _can_perceive() and model.discover_body(at, approach, tend)
+
+
+## Stays wary at least `seconds` more (the level alarm).
+func make_wary(seconds: float) -> void:
+	if _can_perceive():
+		model.make_wary(seconds)
 
 
 func save_state() -> Dictionary:

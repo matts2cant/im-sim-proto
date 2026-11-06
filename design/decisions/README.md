@@ -73,3 +73,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0068](0068-awareness-states-and-guard-behaviour.md) | Awareness states and guard behaviour | Accepted |
 | [0069](0069-hostile-and-ally-tags.md) | Who perceives whom: hostile and ally tags | Accepted |
 | [0070](0070-guard-combat-and-loadouts.md) | Guard combat: one weapon path for every actor, loadouts as data; static characters block props | Accepted |
+| [0071](0071-bodies-discovery-waking-carrying.md) | Bodies: discovery, waking and carrying downed characters | Accepted |
+| [0072](0072-shouts-radio-level-alarm.md) | Shouts, radio and the level alarm | Accepted |

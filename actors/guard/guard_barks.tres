@@ -9,3 +9,6 @@ alerted = Array[String](["There you are!", "Intruder!", "Hey! Stop right there!"
 searching = Array[String](["Where did they go?", "I lost them.", "Come out, come out..."])
 calm = Array[String](["Must be nothing.", "Just my imagination.", "Hm. Nothing there."])
 gave_up = Array[String](["They're gone.", "I'll keep my eyes open.", "Must have slipped away."])
+body_found = Array[String](["Man down!", "Man down! Someone got him!"])
+called = Array[String](["On my way!", "Coming!", "Copy, moving in."])
+woken = Array[String](["Ugh... what hit me?", "My head..."])

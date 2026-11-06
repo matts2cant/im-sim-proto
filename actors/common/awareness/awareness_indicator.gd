@@ -122,7 +122,7 @@ func _on_state_changed(from: AwarenessModel.State, to: AwarenessModel.State, rea
 	refresh()
 	if reason == "reset" or barks == null:
 		return
-	var line := barks.pick(from, to, _rng)
+	var line := barks.pick(from, to, _rng, reason)
 	if line.is_empty():
 		return
 	var data := {

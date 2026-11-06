@@ -25,6 +25,8 @@ stateDiagram-v2
     Alerted --> Searching : target unseen 4 s
     Searching --> Alerted : target seen, harm, alert_at()
     Searching --> Unaware : search over (wary)
+    Unaware --> Searching : body found, ally's shout or radio, alarm, woken
+    Suspicious --> Searching : body found, ally's shout or radio, alarm
 ```
 
 [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md). **Deviation from the first sketch** (Suspicious -> Searching -> Alerted): investigating a suspicion happens inside Suspicious (look, walk to the point, look around); Searching follows a lost target after Alerted. After any return to Unaware the guard is wary for 60 s: vision gain x1.5 and Suspicious from 0.2.
@@ -34,7 +36,22 @@ stateDiagram-v2
 | Unaware | none | Patrol its route (`PatrolRoute`, waits per point); without one hold the post (spawn position and facing), glancing ±45° for 1.5 s every 6 s |
 | Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (5 m/s) |
 | Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Armed and seeing the target: fight it ([Combat](#combat)). Unseen 4 s: Searching |
-| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most |
+| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most) |
+
+## Bodies ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md))
+
+- A **body** is any entity with an ally tag of the watcher (`actor.guard`) and a `body_tags` tag (`state.unconscious`, `state.dead`; `guard_perception.tres`). `PerceptionSensor.look_for_bodies()` uses the vision rules (cones, line of sight, the body's light level, wary x1.5) measured to the middle of its collision shape; sight rays aim at its real height (a body lying down is 0.7 m high, so a low wall hides it).
+- **Discovery** (`BodyDiscovery` + pure `BodyDiscoveryModel`): per body, the vision gain accumulates to 1.0 (decay 0.5/s unseen; `guard_awareness.tres` group Bodies): a lit body 4 m ahead is found in 0.8 s; in the dark (light level < 0.1) only within 2 m (the close-light override: 1.6 s at 1.5 m). Each body is found once per watcher (saved) until it stands up again.
+- **Found**: `actor.body_found {actor, body, state, point}`, the bark "Man down!", a shout, wary for at least 180 s; unless Alerted (an engaged guard keeps fighting), Searching around the body (reason `body`), running first to 0.5 m beside it.
+- **Waking** an unconscious body: the guard stands by it (phase TEND, facing it); after 3 s within 1.2 m (its centre to the body's bounds, horizontal) it emits a `revive` CONTACT stimulus at the body (`actor.wake {actor, body}`). The body's `revive` receptron (requires `state.unconscious`, blocked by `state.dead`) runs `ReviveEffect` (BodyParts.revive(): stun 0, conscious, `state.unconscious` removed; health and injuries stay; `actor.revived {actor, by}`) and an `AwarenessEffect` SEARCH (reason `woken`): the woken guard searches around where it lay, and the waker searches on. Sight of the player ends a tend at once (Alerted, combat). Dead bodies are never woken; unconscious ones never wake by themselves.
+- **Carried bodies** ([controls.md](controls.md)): the player can carry a downed character and drop it anywhere; guards find it where it lies.
+
+## Communication and the alarm ([ADR 0072](../decisions/0072-shouts-radio-level-alarm.md))
+
+- **Shout** (`AlertComms`, tuning `guard_comms.tres`): on entering Alerted and on finding a body a guard emits `alert.shout`, loudness 18 along the navmesh like noise. Allies' `heard_shout` receptron on the `Ears` (perceived >= 1: up to 17 m of path) calls `notice_call()`: only a source with an ally tag counts; the hearer searches at the shouter's position (run pace, reason `shout`) unless Alerted or tending. Allies' footsteps (`noise`) are still ignored.
+- **Radio**: on entering Alerted a guard tagged `equipment.radio` (guard.tscn has it) emits `alert.radio`, 30 m straight-line radius (walls do not matter). Allies' `heard_radio` receptron (requires `equipment.radio`) makes them search at the sender's position (reason `radio`). Searchers neither shout nor radio, so calls do not cascade.
+- **Level alarm**: one `LevelAlarm` per level (`levels/kit/level_alarm.tscn`, group `level_alarm`, no autoload). An `alarm.raise` stimulus from any emitter (`LevelAlarm.make_raise()`: reaches the whole level) raises it for 90 s (raising again restarts it). While raised, every guard's `AlertComms` keeps it wary and, when Unaware or Suspicious, starts a search around where it stands (reason `alarm`); Alerted and Searching guards carry on. The HUD shows "ALARM"; the debug panel raises and clears it. Saved. Guards do not run to alarm panels yet (M8).
+- EventLog: `actor.shout {actor, reason, point}`, `actor.radio {actor, point}`, `actor.heard_call {actor, from, kind, point}`, `alarm.raised {by, point, duration, again}`, `alarm.ended {reason}`.
 
 ## Vision ([ADR 0067](../decisions/0067-vision-and-detection.md))
 
@@ -92,12 +109,13 @@ Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 h
 - Perception is a receiver on the stimulus framework ([stimulus-response.md](stimulus-response.md)); hearing uses navmesh path distance with door attenuation.
 - Guards are built from the same character components as the player ([ADR 0056](../decisions/0056-generic-character-components.md)): `MovementNoise` (their footsteps and landings are `noise` other guards ignore as allies'; the controller sets `stance.sprint` from 4 m/s; guard loudness walk 5, run 12), `FallImpact` + the `fall_damage` receptron, `Knockback` + the `knockback` receptron, BodyParts + `body_damage`, `StepClimber` (walks up steps and stairs of up to 0.35 m; the navmesh climbs 0.3 m; [ADR 0058](../decisions/0058-step-climbing.md)), `BodyPusher` (pushes props with bounded force, ADR 0054), `ImpactSensor` (props pass through guards and their hits deal `damage.blunt`). Whether a guard can act comes from its `state.*` tags (`ActorState`); unconscious or dead it lies down (`DownedPose`), sees and hears nothing and keeps no awareness state.
 - Vision depends on light level ([light-and-visibility.md](light-and-visibility.md)) and Cloak ([abilities.md](abilities.md)).
-- Components (`actors/common/`): `CombatBehaviour` + `CombatModel` + `CombatConfig` (combat/), `PerceptionSensor` + `VisionRules` (perception/), `GradedAwareness` + `AwarenessModel` + `AwarenessEffect` + `AwarenessIndicator` + `BarkLines` (awareness/), `AwarenessBehaviour` + `PatrolRoute` (behaviour/), `NavWalker` (movement/), `BodyPusher` (pusher/), `DownedPose` (body/). The guard (`actors/guard/guard.tscn`) is a scene of these plus `.tres` tuning; it has no script of its own.
+- Components (`actors/common/`): `CombatBehaviour` + `CombatModel` + `CombatConfig` (combat/), `PerceptionSensor` + `VisionRules` (perception/), `GradedAwareness` + `AwarenessModel` + `AwarenessEffect` + `AwarenessIndicator` + `BarkLines` + `BodyDiscovery` + `BodyDiscoveryModel` + `AlertComms` + `CommsRules` + `CommsConfig` (awareness/), `AwarenessBehaviour` + `PatrolRoute` (behaviour/), `NavWalker` (movement/), `BodyPusher` (pusher/), `DownedPose` + `ReviveEffect` (body/), `Carryable` (objects/components/). `LevelAlarm` + `AlarmTimer` + `RaiseAlarmEffect` live in `levels/kit/`. The guard (`actors/guard/guard.tscn`) is a scene of these plus `.tres` tuning; it has no script of its own.
 - Navigation via NavigationServer3D (`NavWalker` follows its NavigationAgent3D; walk 1.8, investigate 2.5, run 5.0 m/s, turn 240°/s); doors are navigation links.
-- Barks: a text line above the head for 2 s on each state change with a generated beep (lines in `actors/guard/guard_barks.tres`).
+- Barks: a text line above the head for 2 s on each state change with a generated beep (lines in `actors/guard/guard_barks.tres`); a search entered for a body ("Man down!"), a call or the alarm ("On my way!") or after being woken ("My head...") has its own lines.
 - Icons, state labels and barks: [debug-panel.md](debug-panel.md) Overlays tab toggles.
-- EventLog: `actor.awareness {actor, from, to, reason, meter, point}` (reasons: sight, noise, harm, alert, nothing_found, lost, search_over, reset), `actor.heard {actor, perceived, point}`, `actor.bark {actor, line, from, to}`.
-- Extension points for the next wave: `Awareness.alert_at(position)` (alarm, radio, shouts; or an `AwarenessEffect` of kind ALERT on a receptron). Combat plugs into Alerted (ADR 0070).
+- EventLog: `actor.awareness {actor, from, to, reason, meter, point}` (reasons: sight, noise, harm, alert, nothing_found, lost, search_over, reset, body, shout, radio, alarm, woken), `actor.heard {actor, perceived, point}`, `actor.bark {actor, line, from, to}`.
+- Inputs: `Awareness.alert_at(position)` (Alerted at once; `AwarenessEffect` ALERT), `search_at(position, why)` (SEARCH), `notice_call(position, source, why)` (CALL: allies only), `GradedAwareness.notice_body()`, `make_wary()`. Combat plugs into Alerted (ADR 0070).
+- Facing is world yaw: `NavWalker` turns its global rotation, so guards in a room instanced turned (90 or 180 degrees) face where they should.
 
 ## Interactions
 
@@ -107,9 +125,10 @@ Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 h
 
 ## Open questions
 
-- Radio range, shouts, body discovery and the alarm: next wave.
+- Guards running to alarm panels, cameras raising the alarm (M8, [security.md](security.md)).
+- Two guards may both go to wake the same body; the second gives up once it stands.
 - Combat tactics beyond keeping range: cover, flanking, strafing while firing, leading a moving target, grenades.
 - Vertical limits of the cones (guards on balconies), if levels get tall.
 - Guard avoidance of each other (NavigationAgent3D avoidance is off).
 
-Settled in M7 ([ADR 0067](../decisions/0067-vision-and-detection.md), [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md)): cone angles and ranges, gains and thresholds, transition timings, wary duration (60 s), patrol authoring (`PatrolRoute`), bark lines.
+Settled in M7 ([ADR 0067](../decisions/0067-vision-and-detection.md), [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md), [ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md), [ADR 0072](../decisions/0072-shouts-radio-level-alarm.md)): cone angles and ranges, gains and thresholds, transition timings, wary duration (60 s; 180 s after a body), patrol authoring (`PatrolRoute`), bark lines, body discovery and waking, shout loudness (18) and radio range (30 m), alarm duration (90 s).

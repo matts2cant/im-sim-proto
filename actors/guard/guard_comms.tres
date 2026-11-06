@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CommsConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/awareness/comms_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+shout_type = &"alert.shout"
+shout_loudness = 18.0
+radio_type = &"alert.radio"
+radio_range = 30.0
+radio_tag = &"equipment.radio"
+alarm_wary = 60.0

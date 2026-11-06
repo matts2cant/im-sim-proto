@@ -138,6 +138,22 @@ func reset() -> void:
 	changed.emit()
 
 
+## Wakes an unconscious character (ADR 0071, the `revive` receptron): stun back to 0, conscious,
+## `state.unconscious` removed (whatever added it); health and injuries stay. Dead: nothing.
+## Logged `actor.revived {actor, by}`. Returns true when it woke.
+func revive(by_name: String = "") -> bool:
+	if dead or (_tags != null and _tags.has(DEAD_TAG)):
+		return false
+	var was_down := unconscious or (_tags != null and _tags.has(UNCONSCIOUS_TAG))
+	stun = 0.0
+	unconscious = false
+	_set_tag(UNCONSCIOUS_TAG, false)
+	if was_down:
+		EventLog.record(&"actor.revived", by_name, String(entity.name), {"actor": String(entity.name), "by": by_name})
+	changed.emit()
+	return was_down
+
+
 func debug_text() -> String:
 	var parts: PackedStringArray = []
 	for part in BodyDamageModel.PARTS:

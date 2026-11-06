@@ -40,6 +40,13 @@
 [ext_resource type="Resource" path="res://actors/guard/guard_aim.tres" id="38_aim"]
 [ext_resource type="Script" path="res://actors/common/combat/combat_behaviour.gd" id="39_combat"]
 [ext_resource type="Resource" path="res://actors/guard/guard_combat.tres" id="40_combat_config"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/revive.tres" id="41_revive"]
+[ext_resource type="Resource" path="res://actors/common/awareness/receptrons/heard_radio.tres" id="42_heard_radio"]
+[ext_resource type="Resource" path="res://actors/common/awareness/receptrons/heard_shout.tres" id="43_heard_shout"]
+[ext_resource type="Script" path="res://actors/common/awareness/body_discovery.gd" id="44_discovery"]
+[ext_resource type="Script" path="res://actors/common/awareness/alert_comms.gd" id="45_comms"]
+[ext_resource type="Resource" path="res://actors/guard/guard_comms.tres" id="46_comms_config"]
+[ext_resource type="Script" path="res://objects/components/carryable.gd" id="47_carryable"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -126,7 +133,7 @@ mesh = SubResource("Mesh_leg")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("6_tags")
-initial_tags = Array[StringName]([&"actor.guard"])
+initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("7_attributes")
@@ -135,12 +142,12 @@ base_values = Dictionary[StringName, float]({&"move_speed_mult": 1.0, &"aim_spre
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 script = ExtResource("8_receiver")
-receptrons = Array[ExtResource("9_receptron")]([ExtResource("10_body_damage"), ExtResource("11_fall_damage"), ExtResource("12_knockback_receptron"), ExtResource("13_heal"), ExtResource("14_harmed")])
+receptrons = Array[ExtResource("9_receptron")]([ExtResource("10_body_damage"), ExtResource("11_fall_damage"), ExtResource("12_knockback_receptron"), ExtResource("13_heal"), ExtResource("14_harmed"), ExtResource("41_revive"), ExtResource("42_heard_radio")])
 
 [node name="Ears" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 script = ExtResource("8_receiver")
-receptrons = Array[ExtResource("9_receptron")]([ExtResource("15_heard_noise")])
+receptrons = Array[ExtResource("9_receptron")]([ExtResource("15_heard_noise"), ExtResource("43_heard_shout")])
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("16_body_parts")
@@ -192,6 +199,19 @@ script = ExtResource("31_behaviour")
 [node name="Combat" type="Node" parent="."]
 script = ExtResource("39_combat")
 config = ExtResource("40_combat_config")
+
+[node name="BodyDiscovery" type="Node" parent="."]
+script = ExtResource("44_discovery")
+
+[node name="Comms" type="Node" parent="."]
+script = ExtResource("45_comms")
+config = ExtResource("46_comms_config")
+
+[node name="Carryable" type="Node" parent="."]
+script = ExtResource("47_carryable")
+enabled_tags = Array[StringName]([&"state.unconscious", &"state.dead"])
+carry_mass = 15.0
+carry_speed_factor = 0.75
 
 [node name="DownedPose" type="Node" parent="."]
 script = ExtResource("32_downed_pose")
