@@ -4,6 +4,32 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M3–M5 playtest feedback fixes (2026-11-07)
+
+User feedback: the health silhouette stayed green, the settled aim was too wide, crate stacks went unstable when jumped on, and carrying should be closer, see-through, collision-free and upright. Three agents in parallel worktrees (HUD + aim on Sonnet, stacking and carry on the stronger model). 503 → 549 tests.
+
+**What went well**
+- Every agent reproduced its bug in a failing test before fixing it, and reported before/after numbers (stacking: walking across a 2-crate column drifted 3.9 m and tipped 172°, now 0.5 mm).
+- The parallel split held: the only merge conflict was the ADR index.
+- The carry agent found a Jolt quirk by probing (`cast_motion` ignores a start overlap) instead of guessing.
+
+**What went wrong**
+1. **HUD "bug" was tuning**: the silhouette did update, but green only gave way at 50% health, so typical hits (80–90%) looked untouched. The M4 tests checked the ramp's endpoints, not whether a real hit is visible.
+2. **My stacking scenarios already passed**: the real failures were walking across the top, mantling and teleporting next to crates, which the agent found on its own. My brief guessed the cause instead of asking for the user's exact actions to be replayed.
+3. **ADR number collision**: both parallel agents took 0053; renumbered the stacking ADR to 0054 at merge.
+4. **`.venv` junctions in worktrees**: two agents linked the main `.venv` into their worktree to run lint; removing such a worktree could have deleted the real venv (I removed the links by hand first).
+
+**Changes made**
+- CLAUDE.md: parallel briefs assign ADR numbers; bug-fix briefs replay the user's exact actions with real values first. (Fixes 2–3.)
+- `tools/lint.sh` falls back to the main checkout's `.venv` from a worktree; AGENTS.md forbids linking it. (Fix 4.)
+- AGENTS.md gotchas: kinematic bodies vs props in Jolt (ADR 0054, applies to guards in M7) and the `cast_motion` start overlap.
+- HUD test now asserts a real graze changes the colour (fix 1 is covered by the test, no process change beyond rule 2).
+
+**Trade-offs to playtest**
+- Props no longer hit the player (falling crates, thrown bottles pass through); the player now pushes small crates at up to 2 m/s, the large crate stays fixed. Prop friction 0.5 (was 1.0).
+- Moving aim cones are 1° tighter than before (base 0.5° under every stance).
+- Stacking by putting a crate down works best ~0.9 m from the lower crate; "place where you look" is the fallback if it feels fiddly.
+
 ## M5 — Inventory, belt, items + gallery rooms 4 & 7 (2026-11-07, autonomous night)
 
 **What went well**

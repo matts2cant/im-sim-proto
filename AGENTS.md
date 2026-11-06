@@ -97,6 +97,9 @@ A task is done only when all of these hold:
 - Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances.
 - Rigid-body contacts (Jolt): with `contact_monitor` on, `PhysicsServer3D.body_get_direct_state(rid)` in `_physics_process` gives the last step's contacts and post-step velocity; keep the previous tick's velocity to measure an impact (see `ImpactNoise`).
 - `for x: T in [a, b]` types the array literal: a freed object in it errors "invalid (previously freed?) object instance into a TypedArray". Stimulus sources are often freed before processing (a broken crate's noise): check `is_instance_valid` first.
+- Jolt pairs a rigid body with a kinematic body (player, guards) only when the **rigid body's** mask has the kinematic body's layer. Props do not scan the player layer, so the solver never shoves them with infinite mass; `PlayerPusher` applies bounded push and weight instead ([ADR 0054](design/decisions/0054-player-and-physics-props.md)). New kinematic actors follow the same rule.
+- Jolt `cast_motion` ignores an overlap at the start of the cast (returns [1, 1]): check the start with `intersect_shape` first.
+- In a worktree, `tools/lint.sh` uses the main checkout's `.venv`: never link or copy `.venv` into a worktree (removing the worktree can delete the linked venv).
 - `tools/screenshot.sh` forces a 1152x648 window (`SHOT_SIZE=WxH` overrides) because this machine's default 840x648 cropped the 2D layer; if UI shots still look wrong, save `get_viewport().get_texture().get_image()` from a fixture script (`tests/objects/fixtures/showcase/showcase_trigger.gd`).
 
 ## Engine probes

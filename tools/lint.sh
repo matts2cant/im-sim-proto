@@ -5,8 +5,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-bin_dir=.venv/Scripts
-[ -d "$bin_dir" ] || bin_dir=.venv/bin
+# In a git worktree without its own .venv, use the main checkout's (never link it into the worktree:
+# removing the worktree could delete the linked venv).
+venv=.venv
+if [ ! -d "$venv" ]; then
+	common_dir=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+	[ -n "$common_dir" ] && [ -d "$(dirname "$common_dir")/.venv" ] && venv="$(dirname "$common_dir")/.venv"
+fi
+bin_dir=$venv/Scripts
+[ -d "$bin_dir" ] || bin_dir=$venv/bin
 if [ ! -x "$bin_dir/gdlint" ] && [ ! -x "$bin_dir/gdlint.exe" ]; then
 	echo "gdtoolkit not found in .venv. Run: py -3.12 -m venv .venv && .venv/Scripts/pip install -r tools/requirements-dev.txt" >&2
 	exit 1
