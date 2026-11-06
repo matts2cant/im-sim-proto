@@ -1,6 +1,6 @@
 # Level metrics
 
-Hard numbers every level must respect. Source of truth for the values is `actors/player/player_config.tres`; update this page when tuning changes them. Back to [design/README.md](../README.md).
+Hard numbers every level must respect. Source of truth for the values is `actors/player/player_config.tres`; update this page when tuning changes them. The [graybox kit](kit.md) parts enforce these rules (clamp and warn), so prefer them to free CSG. Back to [design/README.md](../README.md).
 
 ## Player body
 
@@ -8,7 +8,7 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 |---|---|---|
 | Capsule radius | 0.35 m | Corridors and vents ≥ 0.8 m wide (1.2 m recommended so the mouth is easy to line up) |
 | Standing height | 1.8 m | Standing headroom ≥ 1.9 m |
-| Crouched height | 0.95 m | Crawl spaces (vents) 1.0–1.2 m high; anything < 1.9 m forces crouch |
+| Crouched height | 0.95 m | Crawl spaces (vents) 1.0–1.2 m high (kit `VentSegment` default 1.1 m); anything < 1.9 m forces crouch |
 | Eye height | 1.65 m standing / 0.9 m crouched | Windows and peep holes at these heights |
 | Max walkable slope | 45° | Use ramps ≤ 40° for stairs; there is no step-up: steps of 0.1–1.0 m are jumped onto, steps ≥ 1.0 m are mantled |
 
@@ -32,4 +32,8 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Footsteps | walk 6 · sprint 14 · crouch 2 (× surface) |
 | Landing | 6 × clamp(impact speed / 5, 1, 4) × surface, from 3 m/s impact (on concrete: 1 m jump 6.3 m/s → 7.5, 2 m drop 8.9 m/s → 10.6, 5 m drop 14.0 m/s → 16.8) |
 
-Floors declare their surface with node metadata `surface` on the CSG root that has collision ([ADR 0033](../decisions/README.md)).
+Floors declare their surface with node metadata `surface` on the CSG root that has collision ([ADR 0033](../decisions/README.md)); kit parts set it from their `surface` property.
+
+## Navigation
+
+Guards navigate a navmesh baked at level load for a standing human: radius 0.35 m, height 1.8 m, max slope 45°, max climb 5 cm ([ADR 0041](../decisions/0041-runtime-navmesh-bake.md)). Anything lower than 1.8 m (vents, crawl spaces) is off the navmesh, and so is anything reached only by a step of 10 cm or more, a jump or a mantle: give guards ramps where they must follow.

@@ -1,8 +1,8 @@
 class_name PlayerNoise
 extends Node3D
 ## Component: the single exit point for noise the player's movement makes. Computes loudness,
-## records it in the EventLog and plays the footstep/landing cue.
-## M2: StimulusSystem.emit() of a `noise` stimulus goes in _make_noise(), nothing else changes.
+## records it in the EventLog, emits a `noise` stimulus from the feet (source: the parent actor)
+## and plays the footstep/landing cue.
 
 var config: PlayerConfig
 ## Event source name; the owning actor's node name.
@@ -42,6 +42,8 @@ func landed(impact_speed: float, surface: StringName) -> float:
 
 func _make_noise(kind: StringName, loudness: float, surface: StringName, data: Dictionary) -> void:
 	EventLog.record(kind, source_name, "", data)
+	# This node sits at the actor's origin, which is at the feet.
+	StimulusSystem.emit(Stimulus.make_noise(loudness, global_position, get_parent()))
 	_play(surface, loudness)
 
 

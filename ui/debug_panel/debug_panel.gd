@@ -2,6 +2,10 @@ extends CanvasLayer
 ## Autoload: in-game developer panel. Systems add their own tabs through register_tab().
 
 const EVENT_LOG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/event_log_tab.tscn")
+const OVERLAYS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/overlays_tab.tscn")
+
+## World-space stimulus drawing; lives outside the tabs so it shows while the panel is closed.
+var stimulus_overlay: StimulusOverlay
 
 var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 
@@ -9,6 +13,11 @@ var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 
 
 func _ready() -> void:
+	stimulus_overlay = StimulusOverlay.new()
+	add_child(stimulus_overlay)
+	var overlays := OVERLAYS_TAB.instantiate() as OverlaysTab
+	overlays.stimulus_overlay = stimulus_overlay
+	register_tab("Overlays", overlays)
 	register_tab("Event Log", EVENT_LOG_TAB.instantiate() as Control)
 
 

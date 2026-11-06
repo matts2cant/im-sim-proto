@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: footstep and landing events (EventLog) from the real player on CSG floors.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
+const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const FLAT_FLOOR := "res://tests/actors/player/fixtures/flat_floor.tscn"
 const OBSTACLES := "res://tests/actors/player/fixtures/obstacles.tscn"
 const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
@@ -90,6 +91,36 @@ func test_csg_floor_collider_is_the_csg_node_with_metadata() -> void:
 	assert_object(collision.get_collider()).is_same(floor_node)
 	assert_object(ray.get_collider()).is_same(floor_node)
 	assert_str(CONFIG.surfaces.surface_of(collision.get_collider())).is_equal("wood")
+
+
+func test_footstep_emits_noise_stimulus_heard_by_a_receiver() -> void:
+	await _load(FLAT_FLOOR)
+	StimulusSystem.clear()
+	var listener_position := Vector3(2, 1.6, -2)
+	var listener := Fixtures.entity(
+		_driver.runner.scene(), "Listener", listener_position, [Fixtures.receptron(&"noise")]
+	)
+	await _driver.place(Vector3.ZERO)
+
+	await _driver.hold(&"move_forward", 60)
+	await _driver.frames(2)
+
+	var step := EventLog.find(&"player.footstep")[0]
+	var noise := EventLog.find(&"stimulus.emitted")[0]
+	assert_str(noise.source).is_equal("Player")
+	assert_str(noise.data["type"]).is_equal("noise")
+	assert_float(noise.data["intensity"]).is_equal_approx(step.data["loudness"], 0.0001)
+	assert_int(noise.tick).is_equal(step.tick + 1)
+	var origin: Vector3 = noise.data["origin"]
+	assert_float(origin.y).is_equal_approx(0.0, 0.05)
+	var heard := Fixtures.entries(&"stimulus.received", noise.data["id"])
+	assert_int(heard.size()).is_equal(1)
+	assert_str(heard[0].target).is_equal(listener.name)
+	# No navmesh in this fixture: straight-line distance; perceived = loudness - distance.
+	var distance := origin.distance_to(listener_position)
+	assert_str(heard[0].data["propagation"]).is_equal("straight_fallback")
+	assert_float(heard[0].data["distance"]).is_equal_approx(distance, 0.0001)
+	assert_float(heard[0].data["perceived"]).is_equal_approx(CONFIG.walk_loudness * 1.2 - distance, 0.001)
 
 
 func _distance(speed: float, frames: int) -> float:

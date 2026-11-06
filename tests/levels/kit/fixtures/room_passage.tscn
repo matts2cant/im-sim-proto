@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="2_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="3_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/surface_floor.tscn" id="4_floor"]
+
+[sub_resource type="Resource" id="Opening_door"]
+script = ExtResource("3_opening")
+node_name = &"Door"
+
+[node name="RoomPassage" type="Node3D"]
+
+[node name="Ground" parent="." instance=ExtResource("4_floor")]
+size = Vector2(30, 30)
+thickness = 0.5
+
+[node name="Room" parent="." instance=ExtResource("2_room")]
+openings = Array[ExtResource("3_opening")]([SubResource("Opening_door")])
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)

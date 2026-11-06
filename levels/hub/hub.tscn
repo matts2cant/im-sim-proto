@@ -2,6 +2,10 @@
 
 [ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://levels/gallery/movement/movement_course.tscn" id="2_course"]
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="3_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="4_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="5_sign"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="6_navigation"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -11,132 +15,149 @@ ambient_light_color = Color(0.6, 0.6, 0.65, 1)
 ambient_light_energy = 0.4
 tonemap_mode = 2
 
-[node name="Hub" type="Node3D" unique_id=2093154773]
+[sub_resource type="Resource" id="Opening_movement"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayMovement"
+wall = 0
+offset = -7.5
+width = 2.0
+height = 3.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=252615019]
+[sub_resource type="Resource" id="Opening_perception"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayPerception"
+wall = 0
+offset = 7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_physics_fire"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayPhysicsFire"
+wall = 1
+offset = -7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_shooting_range"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayShootingRange"
+wall = 1
+offset = 7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_security"]
+script = ExtResource("4_opening")
+node_name = &"DoorwaySecurity"
+wall = 2
+offset = 7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_ai_arena"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayAIArena"
+wall = 2
+offset = -7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_inventory_abilities"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayInventoryAbilities"
+wall = 3
+offset = 7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_mission"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayMission"
+wall = 3
+offset = -7.5
+width = 2.0
+height = 3.0
+
+[node name="Hub" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1nc5w")
 
-[node name="Room" type="CSGCombiner3D" parent="." unique_id=2081468172]
-use_collision = true
-
-[node name="Shell" type="CSGBox3D" parent="Room" unique_id=2058356505]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
-size = Vector3(31, 6, 31)
-
-[node name="Interior" type="CSGBox3D" parent="Room" unique_id=1378417355]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
-operation = 2
+[node name="Room" parent="." instance=ExtResource("3_room")]
 size = Vector3(30, 5, 30)
+wall_thickness = 0.5
+openings = Array[ExtResource("4_opening")]([SubResource("Opening_movement"), SubResource("Opening_perception"), SubResource("Opening_physics_fire"), SubResource("Opening_shooting_range"), SubResource("Opening_security"), SubResource("Opening_ai_arena"), SubResource("Opening_inventory_abilities"), SubResource("Opening_mission")])
 
-[node name="DoorwayMovement" type="CSGBox3D" parent="Room" unique_id=312627796]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 1.5, -15)
-operation = 2
-size = Vector3(2, 3, 2)
+[node name="Doorways" type="Node3D" parent="."]
 
-[node name="DoorwayPerception" type="CSGBox3D" parent="Room" unique_id=344518212]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 1.5, -15)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwayPhysicsFire" type="CSGBox3D" parent="Room" unique_id=204928275]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1.5, -7.5)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwayShootingRange" type="CSGBox3D" parent="Room" unique_id=2101345469]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1.5, 7.5)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwaySecurity" type="CSGBox3D" parent="Room" unique_id=1518587202]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 1.5, 15)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwayAIArena" type="CSGBox3D" parent="Room" unique_id=1987255823]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 1.5, 15)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwayInventoryAbilities" type="CSGBox3D" parent="Room" unique_id=75102905]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1.5, 7.5)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="DoorwayMission" type="CSGBox3D" parent="Room" unique_id=1509887382]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1.5, -7.5)
-operation = 2
-size = Vector3(2, 3, 2)
-
-[node name="Doorways" type="Node3D" parent="." unique_id=1879099344]
-
-[node name="LabelMovement" type="Label3D" parent="Doorways" unique_id=1531144354]
+[node name="LabelMovement" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 3.6, -14.95)
 text = "1 Movement"
-font_size = 96
+size = 2
 
-[node name="LabelPerception" type="Label3D" parent="Doorways" unique_id=1742717429]
+[node name="LabelPerception" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 3.6, -14.95)
 text = "2 Perception"
-font_size = 96
+size = 2
 
-[node name="LabelPhysicsFire" type="Label3D" parent="Doorways" unique_id=1970304178]
+[node name="LabelPhysicsFire" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 14.95, 3.6, -7.5)
 text = "3 Physics & Fire"
-font_size = 96
+size = 2
 
-[node name="LabelShootingRange" type="Label3D" parent="Doorways" unique_id=283385330]
+[node name="LabelShootingRange" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 14.95, 3.6, 7.5)
 text = "4 Shooting Range"
-font_size = 96
+size = 2
 
-[node name="LabelSecurity" type="Label3D" parent="Doorways" unique_id=986970555]
+[node name="LabelSecurity" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 7.5, 3.6, 14.95)
 text = "5 Security"
-font_size = 96
+size = 2
 
-[node name="LabelAIArena" type="Label3D" parent="Doorways" unique_id=2039247406]
+[node name="LabelAIArena" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -7.5, 3.6, 14.95)
 text = "6 AI Arena"
-font_size = 96
+size = 2
 
-[node name="LabelInventoryAbilities" type="Label3D" parent="Doorways" unique_id=1494884780]
+[node name="LabelInventoryAbilities" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -14.95, 3.6, 7.5)
 text = "7 Inventory & Abilities"
-font_size = 96
+size = 2
 
-[node name="LabelMission" type="Label3D" parent="Doorways" unique_id=1311279247]
+[node name="LabelMission" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -14.95, 3.6, -7.5)
 text = "Mission"
-font_size = 96
+size = 2
 
-[node name="Lights" type="Node3D" parent="." unique_id=817455083]
+[node name="Lights" type="Node3D" parent="."]
 
-[node name="OmniLight1" type="OmniLight3D" parent="Lights" unique_id=769695666]
+[node name="OmniLight1" type="OmniLight3D" parent="Lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 4.2, -7.5)
 light_energy = 1.5
 shadow_enabled = true
 omni_range = 14.0
 
-[node name="OmniLight2" type="OmniLight3D" parent="Lights" unique_id=2063349]
+[node name="OmniLight2" type="OmniLight3D" parent="Lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 4.2, -7.5)
 light_energy = 1.5
 shadow_enabled = true
 omni_range = 14.0
 
-[node name="OmniLight3" type="OmniLight3D" parent="Lights" unique_id=389017278]
+[node name="OmniLight3" type="OmniLight3D" parent="Lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 4.2, 7.5)
 light_energy = 1.5
 shadow_enabled = true
 omni_range = 14.0
 
-[node name="OmniLight4" type="OmniLight3D" parent="Lights" unique_id=1829329404]
+[node name="OmniLight4" type="OmniLight3D" parent="Lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 4.2, 7.5)
 light_energy = 1.5
 shadow_enabled = true
 omni_range = 14.0
 
-[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=957745340]
+[node name="PlayerSpawn" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
 
 [node name="MovementCourse" parent="." instance=ExtResource("2_course")]
@@ -144,3 +165,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, -15.5)
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="Navigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("6_navigation")

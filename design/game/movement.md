@@ -78,7 +78,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 - Landing: on touchdown with a downward impact speed of at least 3 m/s, loudness = walk base x clamp(impact speed / 5, 1, 4) x surface multiplier. A 1 m jump lands at 6.3 m/s (loudness 7.5 on concrete), a 2 m drop at 8.9 m/s (10.6), a 5 m drop at 14.0 m/s (16.8).
 - Each footstep and landing plays a Kenney impact sound for the surface (random variant, ±8% pitch around a per-surface base pitch: 1.0, except metal 0.8 with the impactPlate sounds); volume follows loudness (0 dB at 6, 10 dB per decade, clamped to -18..+6 dB).
 - Events in the `EventLog` (source = player node name): `player.footstep` {mode, surface, loudness}, `player.landed` {impact_speed, surface, loudness}, `player.mantled` {height}.
-- M2 turns footsteps and landings into `noise` stimuli ([stimulus-response.md](stimulus-response.md)); the single emit point is `PlayerNoise._make_noise()` in `actors/player/player_noise.gd`. Guards hear them via path distance ([perception-and-ai.md](perception-and-ai.md)).
+- Footsteps and landings emit `noise` stimuli (M2, [stimulus-response.md](stimulus-response.md)): RADIUS, PATH propagation, intensity = radius = loudness, origin at the feet, source = the player; the single emit point is `PlayerNoise._make_noise()` in `actors/player/player_noise.gd`, next to the existing `player.footstep` / `player.landed` log entries. Guards hear them via path distance ([perception-and-ai.md](perception-and-ai.md)).
 
 ### Other
 

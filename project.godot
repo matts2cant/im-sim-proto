@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 EventLog="*res://core/event_log/event_log.gd"
+StimulusSystem="*res://core/stimulus/stimulus_system.gd"
 DebugPanel="*res://ui/debug_panel/debug_panel.tscn"
 
 [debug]

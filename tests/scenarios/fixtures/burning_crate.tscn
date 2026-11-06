@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="2_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="3_receptron"]
+[ext_resource type="Script" path="res://core/stimulus/effects/effect.gd" id="4_effect"]
+[ext_resource type="Script" path="res://core/stimulus/effects/add_tag_effect.gd" id="5_add_tag"]
+[ext_resource type="Script" path="res://core/stimulus/effects/emit_stimulus_effect.gd" id="6_emit"]
+
+[sub_resource type="Resource" id="Resource_burn"]
+script = ExtResource("5_add_tag")
+tag = &"state.burning"
+
+[sub_resource type="Resource" id="Resource_crackle"]
+script = ExtResource("6_emit")
+type = &"noise"
+intensity = 10.0
+radius = 10.0
+propagation = 1
+
+[sub_resource type="Resource" id="Resource_ignite"]
+resource_name = "ignite"
+script = ExtResource("3_receptron")
+stimulus_type = &"fire"
+required_tags = Array[StringName]([&"material.wood"])
+blocked_tags = Array[StringName]([&"state.burning"])
+effects = Array[ExtResource("4_effect")]([SubResource("Resource_burn"), SubResource("Resource_crackle")])
+
+[sub_resource type="Resource" id="Resource_hear"]
+resource_name = "hear"
+script = ExtResource("3_receptron")
+stimulus_type = &"noise"
+
+[node name="BurningCrate" type="Node3D"]
+
+[node name="FireSource" type="Node3D" parent="."]
+
+[node name="Crate" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 0)
+
+[node name="Tags" type="Node" parent="Crate"]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.wood"])
+
+[node name="StimulusReceiver" type="Node3D" parent="Crate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("2_receiver")
+receptrons = Array[ExtResource("3_receptron")]([SubResource("Resource_ignite")])
+
+[node name="MetalCrate" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0)
+
+[node name="Tags" type="Node" parent="MetalCrate"]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.metal"])
+
+[node name="StimulusReceiver" type="Node3D" parent="MetalCrate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("2_receiver")
+receptrons = Array[ExtResource("3_receptron")]([SubResource("Resource_ignite")])
+
+[node name="Listener" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 0)
+
+[node name="StimulusReceiver" type="Node3D" parent="Listener"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+script = ExtResource("2_receiver")
+receptrons = Array[ExtResource("3_receptron")]([SubResource("Resource_hear")])

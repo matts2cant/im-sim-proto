@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/materials/graybox/grid_triplanar.gdshader" id="1_shader"]
+
+[resource]
+resource_name = "graybox_concrete"
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/color_a = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/color_b = Color(0.44, 0.44, 0.44, 1)
+shader_parameter/grid_color = Color(0.22, 0.22, 0.22, 0.9)
+shader_parameter/sub_grid_color = Color(0.33, 0.33, 0.33, 0.5)
+shader_parameter/grid_scale = 1.0
+shader_parameter/sub_grid_divisions = 2.0
+shader_parameter/line_thickness = 0.02
+shader_parameter/sub_line_thickness = 0.01
+shader_parameter/triplanar_sharpness = 8.0
+shader_parameter/use_checker = true
+shader_parameter/world_aligned = true
+shader_parameter/roughness = 0.85
+shader_parameter/metallic = 0.0

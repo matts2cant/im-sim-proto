@@ -11,7 +11,7 @@ Design entry point: [design/README.md](design/README.md). Full spec lives in `de
 - `objects/` crates, barrels, doors, lights
 - `items/`
 - `ui/hud/`, `ui/debug_panel/`
-- `levels/hub/`, `levels/gallery/<room>/`, `levels/mission/`
+- `levels/hub/`, `levels/gallery/<room>/`, `levels/mission/`; `levels/kit/` graybox kit parts: build levels from them ([design/levels/kit.md](design/levels/kit.md))
 - `tests/` mirrors the source tree (`tests/core/stimulus/stimulus_system_test.gd`); `tests/scenarios/` for scenario tests and fixture scenes
 - `tools/` scripts (`run_tests.sh`, `lint.sh`, `hooks/`); `design/` docs; `assets/` third-party media
 - `addons/` gdUnit4, csg_blockout: never edit
@@ -82,13 +82,17 @@ A task is done only when all of these hold:
 - gdlint `max-public-methods` (20) counts `test_` functions: split suites by concern.
 - Collision shape sizes are float32: compare with `is_equal_approx`, not `==`.
 - CSG collision is built a few frames after load: wait before querying it. `get_collider()` returns the CSG root that has `use_collision`.
+- In the tree, `CSGShape3D.bake_collision_shape()` returns the last built shape (empty right after load, stale right after an edit); out of the tree it computes the current one.
+- Kit parts' generated CSG children are internal: `get_children()` skips them; use `get_node("Block")` or `get_children(true)`.
 - CharacterBody3D often reports no slide collision on flat floors: use a RayCast3D for the floor collider.
 - Main-scene nodes enter the tree before autoloads run `_ready`: never call autoloads from `_enter_tree`.
 - `find_children(..., owned=true)` on a freshly instanced scene still returns nodes of instanced sub-scenes.
 - `.tscn` `Transform3D(...)` lists the basis **row by row** then origin: `Transform3D(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z, ox, oy, oz)` where x/y/z are the basis axes (verified on 4.7.2). Prefer building one CSG root per surface/material.
 - Level geometry must respect [design/levels/metrics.md](design/levels/metrics.md) (player size, clearances, jump and mantle limits).
 - Git Bash: long multi-file heredoc chains can fail to parse; write files with the Write tool or one per command.
-- Reusable test helpers: `tests/actors/player/player_driver.gd` drives the player in integration tests; reuse it instead of writing a new one.
+- Reusable test helpers: `tests/actors/player/player_driver.gd` drives the player in integration tests; reuse it instead of writing a new one. `tests/core/stimulus/stimulus_fixtures.gd` builds stimulus entities (Tags + Attributes + StimulusReceiver) in code.
+- `await get_tree().physics_frame` resumes *before* that frame's `_physics_process` calls: a stimulus emitted from a test is delivered after the second await.
+- Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances.
 
 ## Workflow
 

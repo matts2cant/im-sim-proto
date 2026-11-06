@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/materials/graybox/grid_triplanar.gdshader" id="1_shader"]
+
+[resource]
+resource_name = "graybox_metal"
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/color_a = Color(0.52, 0.6, 0.7, 1)
+shader_parameter/color_b = Color(0.45, 0.52, 0.62, 1)
+shader_parameter/grid_color = Color(0.2, 0.25, 0.32, 0.9)
+shader_parameter/sub_grid_color = Color(0.32, 0.38, 0.46, 0.5)
+shader_parameter/grid_scale = 1.0
+shader_parameter/sub_grid_divisions = 2.0
+shader_parameter/line_thickness = 0.02
+shader_parameter/sub_line_thickness = 0.01
+shader_parameter/triplanar_sharpness = 8.0
+shader_parameter/use_checker = true
+shader_parameter/world_aligned = true
+shader_parameter/roughness = 0.4
+shader_parameter/metallic = 0.5

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Format check + lint for project GDScript (addons/, .godot/ and .venv/ excluded).
+# Format check + lint for project GDScript (addons/ and hidden folders such as .godot/, .venv/ and
+# .claude/ agent worktrees excluded).
 # Usage: tools/lint.sh [--fix]   --fix reformats files in place before linting.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -11,8 +12,7 @@ if [ ! -x "$bin_dir/gdlint" ] && [ ! -x "$bin_dir/gdlint.exe" ]; then
 	exit 1
 fi
 
-mapfile -t files < <(find . \( -path ./addons -o -path ./.godot -o -path ./.venv -o -path ./.git \) -prune \
-	-o -name '*.gd' -print | sort)
+mapfile -t files < <(find . \( -path ./addons -o -path './.*' \) -prune -o -name '*.gd' -print | sort)
 if [ ${#files[@]} -eq 0 ]; then
 	echo "No GDScript files to lint."
 	exit 0
