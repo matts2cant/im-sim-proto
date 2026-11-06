@@ -16,7 +16,7 @@ Scope ([ADR 0044](../decisions/0044-fire-scope-v0.md)): characters never catch f
 
 ### Objects (`objects/<object>/`)
 
-Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md); friction 0.5, `objects/materials/prop_physics.tres`) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor, in group `navigation_source` so a level's navmesh bake treats them as obstacles.
+Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md); friction 0.5, `objects/materials/prop_physics.tres`) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. `PhysicsObject._ready` appends its `force_receptron` (`receptrons/pushed_by_force.tres`) to that receiver, creating one at the body origin when the scene has none (item pickups), so every prop is pushed by `force.blast` and `force.impact` without repeating the receptron in each scene ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor, in group `navigation_source` so a level's navmesh bake treats them as obstacles.
 
 | Object | Scene | Size | Mass | Health | Material | Flammable: threshold / fuel / intensity / radius |
 |---|---|---|---|---|---|---|
@@ -39,7 +39,8 @@ All carry Carryable except the static ones; only objects up to the carry limit (
 - **ImpactNoise** (`MaterialProfile`, `impact_settings.tres`): collision noise and blunt damage.
 - **Carryable**: marks a body the player can carry; `carrier` while held.
 - **SupportWake** (static helper): when a body stops supporting others, wakes the sleeping props resting on or touching it, and those touching them ([ADR 0055](../decisions/0055-wake-props-when-support-goes.md)). Jolt leaves them asleep, so a stack would hang in the air. Called when a `PhysicsObject` leaves the tree (broken, burnt out, exploded, pickup consumed), when a Carryable is picked up, and when a non-prop Breakable (the barricade) breaks.
-- Receptrons shared by all objects: `receptrons/heat_from_fire.tres` (`fire`, blocked while `state.burning` or `state.charred`, `HeatEffect` -> Flammable/Explosive `add_heat`) and `receptrons/take_damage.tres` (`damage`, `DamageEffect` -> Breakable `take_damage`).
+- Receptrons shared by all objects: `receptrons/heat_from_fire.tres` (`fire`, blocked while `state.burning` or `state.charred`, `HeatEffect` -> `add_heat(amount, cause)` on every heat-reactive component), `receptrons/take_damage.tres` (`damage`, `DamageEffect` -> Breakable `take_damage`) and `receptrons/pushed_by_force.tres` (`force`, `ApplyImpulseEffect` with `radial_lift` 0.3; added by `PhysicsObject`).
+- Heat-reactive components ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): a component that reacts to heat joins group `HeatEffect.GROUP` (`heat_reactive`) and implements `add_heat(amount: float, cause: Stimulus)`; `HeatEffect` calls it on every such direct child of the entity. Flammable and Explosive do; a new heat-reactive component needs no change to `HeatEffect`.
 - Materials (`objects/materials/*.tres`, `MaterialProfile`): impact loudness multiplier, impact sounds (light/medium/heavy), damage multipliers by stimulus type (most specific entry wins, missing = x1), break sound, break-on-impact speed, debris colour.
 
 | Material | Impact loudness | Damage multipliers | Impact sounds | Break sound |
@@ -75,13 +76,13 @@ stateDiagram-v2
 ### Explosions (`Explosive`)
 
 - Trigger: health <= 0 (its Breakable has `break_on_depleted` off and emits `depleted`) or heat >= 4 (fire adds heat like Flammable).
-- Blast, emitted as children of the triggering stimulus (depth + 1, `cause_id` = its id): `damage.explosive` 100 / 4 m (LOS), `fire` 20 / 3 m (LOS), `noise` 60 m (PATH). Radial impulse to physics objects within 4 m that the blast can see: 120 N s x (1 - d / 4), slightly upwards. Sound `Hollywood/Mega Bomb.wav`, flash light and fireball/smoke particles. Log `object.exploded {object, by}`; the barrel is freed.
+- Blast, emitted as children of the triggering stimulus (depth + 1, `cause_id` = its id): `damage.explosive` 100 / 4 m (LOS), `fire` 20 / 3 m (LOS), `noise` 60 m (PATH), and first of them `force.blast` 120 N s / 4 m (LOS): every physics object the blast can see within 4 m is pushed by 120 N s x (1 - d / 4) away from the centre, tilted up by the receiver's `radial_lift` 0.3 ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). The push lands on the same tick as the damage and the fire burst (it used to be applied one tick earlier, directly); it is emitted first, so what the damage breaks open is not flung. Sound `Hollywood/Mega Bomb.wav`, flash light and fireball/smoke particles. Log `object.exploded {object, by}`; the barrel is freed.
 - Effects at distance d: the fire burst ignites small crates within 2.0 m (20 x (1 - 2/3) = 6.7 >= 6), large crates within 1.5 m, cardboard within 2.7 m and barrels within 2.4 m (heat 4) on the next tick. Wood takes explosive damage x0.5: a small crate at 1.8 m takes 27.5 and survives burning; closer than about 1.6 m it is blown apart.
 
 ```mermaid
 flowchart LR
     S["fire or damage reaches barrel A (tick t)"] --> A{"heat >= 4 or health <= 0"}
-    A -->|"explode: object.exploded"| E["damage.explosive 100/4 m, fire 20/3 m, noise 60 m (depth +1, cause_id) + impulse"]
+    A -->|"explode: object.exploded"| E["damage.explosive 100/4 m, fire 20/3 m, noise 60 m + force.blast 120/4 m (depth +1, cause_id)"]
     E -->|"tick t+1"| C["crates within ~2 m: heat >= 6, object.ignited"]
     E -->|"tick t+1"| B["barrel B 2 m away: heat 6.7 >= 4 and damage 50 >= 25: explodes"]
     E -->|"tick t+1, PATH"| L["listener round the corner hears it"]
@@ -92,7 +93,7 @@ flowchart LR
 ### Breaking (`Breakable`)
 
 - Damage: the `damage` receptron passes the stimulus type and perceived intensity; dealt = intensity x the material multiplier for that type; health is the `health` attribute's base value. Log `object.damaged {object, type, amount, health}`.
-- At health <= 0 (or burn-out, or a glass impact): emit `noise` 15 m (PATH), play the material's break sound, spawn 3-6 debris pieces (`Debris`: on no collision layer, collide with the world only, despawn after 10 s, not saved), spawn each scene of `contents` at the object's centre (several items spread on a horizontal circle a quarter of the object's size wide, so they never spawn inside each other), log `object.broken {object, reason, by, debris, contents}`, free the entity. A broken or burnt-out barricade frees its doorway. Whatever rested on the object falls, even if it was asleep (SupportWake): a 3-crate column whose bottom crate breaks ends as a 2-crate column (top 1.2 m).
+- At health <= 0 (or burn-out, or a glass impact): emit `noise` 15 m (PATH), play the material's break sound, spawn 3-6 debris pieces (`Debris`: on no collision layer, collide with the world only, despawn after 10 s, not saved; mass 0.3 kg, scattered up to 0.3 x the object's size from its centre, thrown outwards at 2.5 m/s with lift 0.5, all in `break_settings.tres`), spawn each scene of `contents` at the object's centre (several items spread on a horizontal circle a quarter of the object's size wide, so they never spawn inside each other), log `object.broken {object, reason, by, debris, contents}`, free the entity. A broken or burnt-out barricade frees its doorway. Whatever rested on the object falls, even if it was asleep (SupportWake): a 3-crate column whose bottom crate breaks ends as a 2-crate column (top 1.2 m).
 
 ### Impacts (`ImpactNoise`)
 

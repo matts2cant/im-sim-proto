@@ -44,6 +44,25 @@ func _physics_process(_delta: float) -> void:
 ## Queues `stimulus` for the next tick and assigns its id and depth. Depth is the depth of the
 ## stimulus being delivered (or of `parent`) + 1, else 0. Beyond MAX_DEPTH it is dropped and logged.
 func emit(stimulus: Stimulus, parent: Stimulus = null) -> void:
+	if _prepare(stimulus, parent):
+		_queue.append(stimulus)
+
+
+## Delivers `stimulus` right away when called outside stimulus processing: a deliberate act from
+## input or UI (using an item, possibly while the game is paused and no tick runs; ADR 0057). Called
+## during processing (from an effect) it queues like emit(), so there is still no recursion.
+## Stimuli its effects emit are queued for the next tick as its children.
+func emit_now(stimulus: Stimulus) -> void:
+	if _current != null:
+		emit(stimulus)
+		return
+	if _prepare(stimulus, null):
+		_process_stimulus(stimulus)
+		_current = null
+
+
+# Assigns id, depth and cause_id; false (and logged) when beyond MAX_DEPTH.
+func _prepare(stimulus: Stimulus, parent: Stimulus) -> bool:
 	stimulus.source_label = stimulus.source_name()
 	stimulus.id = _next_id
 	_next_id += 1
@@ -54,8 +73,8 @@ func emit(stimulus: Stimulus, parent: Stimulus = null) -> void:
 	if stimulus.depth > MAX_DEPTH:
 		var data := {"id": stimulus.id, "type": stimulus.type, "depth": stimulus.depth}
 		EventLog.record(&"stimulus.dropped", stimulus.source_name(), "", data)
-		return
-	_queue.append(stimulus)
+		return false
+	return true
 
 
 ## Drops every queued stimulus (level change, quickload).
@@ -78,6 +97,21 @@ func unregister(receiver: StimulusReceiver) -> void:
 
 func receivers() -> Array[StimulusReceiver]:
 	return _receivers.duplicate()
+
+
+## Dry run of a CONTACT stimulus: true when delivering it now would run at least one effect that
+## can apply (StimulusReceiver.would_react()). Nothing is queued or logged. Other shapes: true.
+## Lets a deliberate act be refused when it would do nothing (using a medkit when unhurt).
+func would_affect(stimulus: Stimulus) -> bool:
+	if stimulus.shape != Stimulus.Shape.CONTACT:
+		return true
+	if not is_instance_valid(stimulus.target):
+		return false
+	var data := {"distance": 0.0, "collider": stimulus.target}
+	for receiver in _receivers_of(stimulus.target):
+		if receiver.wants(stimulus) and receiver.would_react(stimulus, stimulus.intensity, data):
+			return true
+	return false
 
 
 func _process_stimulus(stimulus: Stimulus) -> void:
@@ -155,16 +189,21 @@ func _deliver_ray(stimulus: Stimulus, paths: Array[PackedVector3Array]) -> void:
 ## effects (EffectContext.data): `distance` and `collider` (the node actually touched or hit, so
 ## BodyParts can tell which hitbox), plus `position` and `normal` for rays.
 func _deliver_to_node(stimulus: Stimulus, node: Node, data: Dictionary) -> void:
+	for receiver in _receivers_of(node):
+		if receiver.wants(stimulus):
+			receiver.receive(stimulus, stimulus.intensity, data)
+
+
+## The receivers of `node`, or of its nearest ancestor that has receivers; empty when none has.
+func _receivers_of(node: Node) -> Array[StimulusReceiver]:
 	while node != null:
 		var owned: Array[StimulusReceiver] = _receivers.filter(
 			func(receiver: StimulusReceiver) -> bool: return _deliverable(receiver) and receiver.entity == node
 		)
 		if not owned.is_empty():
-			for receiver in owned:
-				if receiver.wants(stimulus):
-					receiver.receive(stimulus, stimulus.intensity, data)
-			return
+			return owned
 		node = node.get_parent()
+	return []
 
 
 func _deliverable(receiver: StimulusReceiver) -> bool:

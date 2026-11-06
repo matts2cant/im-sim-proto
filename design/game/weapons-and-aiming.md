@@ -50,11 +50,11 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 | Rate | 0.35 s between shots | 0.6 s per swing |
 | Ammo | magazine 10, reload 1.6 s (R) from `pistol_ammo` stacks (HUD: magazine / rounds in the inventory); `reserve_ammo` 30 only for fixed loadouts | none |
 | Noise (PATH) | 6 m at the muzzle, 4 m at the hit point | 3 m swing (from the eye), 6 m on a hit (at the hit point) |
-| Physics objects hit | impulse 3 N s at the hit point (an explosive barrel's 25 health: one shot) | blunt 5 (stun x0 on objects) |
+| Physics objects hit | `force.impact` 3 N s at the hit point (an explosive barrel's 25 health: one shot) | blunt 5 (stun x0 on objects) |
 | Sounds | shot: `kenney_impact-sounds/impactPunch_medium_000-002` (a muffled thud reads as suppressed; random pitch); hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
 
 - The baton hit is resolved when the swing starts; the rest of the 0.6 s is the animation and cooldown.
-- A shot is one immediate ray (impact point, impulse, impact noise, hit sound) plus one RAY stimulus per damage entry with the same origin and direction, delivered on the next tick. A shot at an object carried by someone else is not possible: `fire` throws while carrying.
+- A shot is one immediate ray (impact point, impact noise, hit sound) plus one RAY stimulus per damage entry and a `force.impact` RAY (intensity `impact_impulse` N s) with the same origin and direction, delivered on the next tick. The push is no longer applied by the weapon: whatever the ray hits and has a `force` receptron (every physics prop) pushes itself at the hit point ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). A shot at an object carried by someone else is not possible: `fire` throws while carrying.
 - Both arms disabled, dead or unconscious: `trigger()` refuses (`weapon.refused {weapon, reason}`).
 - EventLog: `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started {weapon, time}`, `weapon.reloaded {weapon, magazine}`, `weapon.refused`.
 

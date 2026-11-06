@@ -3,7 +3,8 @@ extends Node3D
 ## Component: heat accumulation, ignition, burning and burn-out (ADR 0044, ADR 0046).
 ## Place it where the fire is (the object's centre): pulses are emitted from here, distances to
 ## neighbours are measured from here and the fire effect shows here (+ `fx_offset`).
-## Fire reaches it through the `heat_from_fire` receptron (HeatEffect -> add_heat()).
+## Fire reaches it through the `heat_from_fire` receptron (HeatEffect -> add_heat(); it is in
+## HeatEffect's heat-reactive group).
 ## Burning: every `pulse_interval` it emits `fire` and `damage.fire` (RADIUS, LINE_OF_SIGHT) and a
 ## crackle `noise`, each a new chain (depth 0) whose `cause_id` is the stimulus that ignited it; a
 ## carrier (Carryable) also gets `damage.fire` CONTACT. Out of fuel: `state.charred`, and a
@@ -43,6 +44,7 @@ var _tags: Tags
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	add_to_group(HeatEffect.GROUP)
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
 	_tags = entity.get_node_or_null(^"Tags") as Tags

@@ -98,7 +98,9 @@ func test_medkit_from_the_belt_heals_and_decrements() -> void:
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
 	var used := EventLog.find(&"item.used")
 	assert_array(used).has_size(1)
-	assert_str(used[0].data["action"]).is_equal("heal")
+	# The medkit is a consumable: its `heal` 30 stimulus goes to the player (ADR 0057).
+	assert_str(used[0].data["action"]).is_equal("consume")
+	assert_array(used[0].data["stimuli"]).contains_exactly([&"heal"])
 	# The belt keeps the (now smaller) stack; the last medkit clears the slot.
 	assert_int(_player.inventory.belt.stack_in(0).count).is_equal(1)
 	await _press(&"belt_1")
@@ -114,6 +116,39 @@ func test_medkit_is_refused_when_unhurt() -> void:
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
 	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
 	assert_str(_hud.message_label.text).is_equal("You are not hurt")
+
+
+func test_any_consumable_sends_its_stimuli_to_the_player() -> void:
+	# Not a medkit: an item made here whose stimulus only a receptron added here reacts to.
+	await _load()
+	var tonic := ItemData.new()
+	tonic.id = &"tonic"
+	tonic.display_name = "Tonic"
+	tonic.max_stack = 5
+	tonic.use_action = ItemData.UseAction.CONSUME
+	tonic.use_stimuli = {&"test.tonic": 1.0}
+	tonic.refused_message = "Tastes of nothing"
+	_player.inventory.give(tonic, 2)
+	var stack: ItemStack = _player.inventory.inventory.stacks_of(&"tonic")[0]
+
+	assert_bool(_player.inventory.use_stack(stack)).is_false()
+	assert_str(_hud.message_label.text).is_equal("Tastes of nothing")
+	assert_int(_player.inventory.inventory.count_of(&"tonic")).is_equal(2)
+
+	var receiver := _player.get_node("StimulusReceiver") as StimulusReceiver
+	var glow := Receptron.new()
+	glow.stimulus_type = &"test.tonic"
+	glow.include_self = true
+	var effect := AddTagEffect.new()
+	effect.tag = &"state.glowing"
+	glow.effects = [effect]
+	var receptrons := receiver.receptrons.duplicate()
+	receptrons.append(glow)
+	receiver.receptrons = receptrons
+	assert_bool(_player.inventory.use_stack(stack)).is_true()
+
+	assert_int(_player.inventory.inventory.count_of(&"tonic")).is_equal(1)
+	assert_bool((_player.get_node("Tags") as Tags).has(&"state.glowing")).is_true()
 
 
 func test_e_picks_a_medkit_up_instead_of_using_it() -> void:

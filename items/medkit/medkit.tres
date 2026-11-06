@@ -15,4 +15,5 @@ world_scene = "res://items/medkit/medkit.tscn"
 auto_belt = true
 default_state = {}
 use_action = 2
-heal_amount = 30
+use_stimuli = Dictionary[StringName, float]({&"heal": 30.0})
+refused_message = "You are not hurt"

@@ -10,3 +10,6 @@ debris_max = 6
 debris_lifetime = 10.0
 debris_size_fraction = 0.35
 debris_speed = 2.5
+debris_mass = 0.3
+debris_scatter = 0.3
+debris_lift = 0.5

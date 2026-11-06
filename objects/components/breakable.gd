@@ -93,12 +93,14 @@ func _spawn_debris(parent: Node, origin: Vector3) -> int:
 	var color := material.debris_color if material != null else Color.GRAY
 	for i in count:
 		var piece := Debris.new()
-		piece.setup(piece_size, color, settings.debris_lifetime)
-		var offset := Vector3(randf_range(-1, 1), randf_range(-0.5, 1), randf_range(-1, 1)) * size * 0.3
+		piece.setup(piece_size, color, settings.debris_lifetime, settings.debris_mass)
+		var offset := (
+			Vector3(randf_range(-1, 1), randf_range(-0.5, 1), randf_range(-1, 1)) * size * settings.debris_scatter
+		)
 		piece.position = origin + offset
 		parent.add_child(piece)
 		var outward := offset.normalized() if not offset.is_zero_approx() else Vector3.UP
-		piece.linear_velocity = (outward + Vector3.UP * 0.5).normalized() * settings.debris_speed
+		piece.linear_velocity = (outward + Vector3.UP * settings.debris_lift).normalized() * settings.debris_speed
 	return count
 
 

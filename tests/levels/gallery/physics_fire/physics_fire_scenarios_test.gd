@@ -73,8 +73,9 @@ func test_damaged_barrel_chains_into_the_second_and_lights_the_stack() -> void:
 	assert_array(second).has_size(1)
 	assert_int(second[0].tick).is_equal(first[0].tick + 1)
 	# Barrel 1's fire burst lights the two lower crates on the next tick (1.8 m: 8.0 >= 6). The top
-	# crate (2.08 m: 6.1) is already pushed out of reach by the blast impulse; it catches from the
-	# burning crates below within a few seconds.
+	# crate (2.08 m: 6.1 >= 6) is on the edge: since the blast push became a `force.blast` stimulus
+	# delivered on the same tick as the fire burst (ADR 0057) it catches at once too; before, the
+	# push landed a tick earlier and moved it just out of reach. Either way it burns within 6 s.
 	for name: String in ["StackCrate1", "StackCrate2"]:
 		var ignited := Objects.logged(&"object.ignited", "object", name)
 		assert_array(ignited).override_failure_message(name).has_size(1)

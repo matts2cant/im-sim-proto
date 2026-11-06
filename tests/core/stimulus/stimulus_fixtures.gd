@@ -8,7 +8,46 @@ extends RefCounted
 static func entity(
 	parent: Node, entity_name: String, position: Vector3, receptrons: Array[Receptron], tags: Array[StringName] = []
 ) -> Node3D:
-	var root := Node3D.new()
+	return compose(Node3D.new(), parent, entity_name, position, receptrons, tags)
+
+
+## Like entity(), but the root is a RigidBody3D on the objects layer (a `size` m box of `mass` kg,
+## colliding with world and objects) so physics effects (ApplyImpulseEffect) and components that need
+## a body (ImpactNoise, Carryable) work on it. `gravity_scale` 0 keeps it floating in place.
+static func rigid_entity(
+	parent: Node,
+	entity_name: String,
+	position: Vector3,
+	receptrons: Array[Receptron],
+	tags: Array[StringName] = [],
+	size: float = 0.4,
+	mass: float = 2.0,
+	gravity_scale: float = 1.0,
+) -> RigidBody3D:
+	var body := RigidBody3D.new()
+	body.mass = mass
+	body.gravity_scale = gravity_scale
+	body.collision_layer = PhysicsLayers.OBJECTS
+	body.collision_mask = PhysicsLayers.WORLD | PhysicsLayers.OBJECTS
+	var box := BoxShape3D.new()
+	box.size = Vector3.ONE * size
+	var collision := CollisionShape3D.new()
+	collision.name = "Collision"
+	collision.shape = box
+	body.add_child(collision)
+	return compose(body, parent, entity_name, position, receptrons, tags) as RigidBody3D
+
+
+## Gives `root` Tags, Attributes and a StimulusReceiver holding `receptrons`, then adds it under
+## `parent` at `position`.
+static func compose(
+	root: Node3D,
+	parent: Node,
+	entity_name: String,
+	position: Vector3,
+	receptrons: Array[Receptron],
+	tags: Array[StringName] = [],
+) -> Node3D:
 	root.name = entity_name
 	root.position = position
 	var tag_node := Tags.new()

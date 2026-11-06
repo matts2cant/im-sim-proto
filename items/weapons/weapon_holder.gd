@@ -2,9 +2,11 @@ class_name WeaponHolder
 extends Node3D
 ## Component of a character, child of its camera: the weapons it holds, the equipped one and its
 ## AimModel. Ranged weapons emit a `damage.*` RAY per damage entry along a direction sampled inside
-## the aim cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a muzzle
-## `noise`, an impact `noise` and an impulse on a physics object hit. Melee weapons sweep a sphere
-## along the view and send `damage.*` CONTACT to what they hit (a hitbox carries its part).
+## the aim cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a
+## `force.impact` RAY along the same line (WeaponData.impact_impulse in N s: whatever it hits and has
+## a `force` receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
+## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
+## carries its part).
 ## The view model is a placeholder box. Two ways to arm it: a fixed loadout (`weapons`, equip(index);
 ## guards in M7) that the holder saves itself, or equip_state() with a WeaponState owned elsewhere
 ## (the player's inventory weapon stacks, saved by PlayerInventory; ADR 0050).
@@ -229,9 +231,12 @@ func _shoot(data: WeaponData) -> void:
 		eye.origin, eye.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
 	)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
-	for type: StringName in data.damage:
+	var rays: Dictionary[StringName, float] = data.damage.duplicate()
+	if data.impact_impulse > 0.0:
+		rays[&"force.impact"] = data.impact_impulse
+	for type: StringName in rays:
 		var ray := Stimulus.make_ray(
-			type, data.damage[type], eye.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
+			type, rays[type], eye.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
 		)
 		ray.exclude = exclude
 		StimulusSystem.emit(ray)
@@ -244,9 +249,6 @@ func _shoot(data: WeaponData) -> void:
 		hit_name = String(collider.name)
 		last_hit = {"collider": collider, "position": point}
 		StimulusSystem.emit(Stimulus.make_noise(data.impact_noise, point, user))
-		var body := collider as RigidBody3D
-		if body != null and data.impact_impulse > 0.0:
-			body.apply_impulse(direction * data.impact_impulse, point - body.global_position)
 		_play_at(data.hit_sound, point)
 	aim.add_shot()
 	_play(data.fire_sound, data.fire_volume_db)

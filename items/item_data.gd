@@ -5,14 +5,16 @@ extends Resource
 ## Per-instance data (a pistol's magazine, a keycard's key_id, a datapad's text) lives in the
 ## stack's `state` Dictionary, starting from `default_state`.
 
-## What using the item does (belt key or the inventory screen's Use).
+## What using the item does (belt key or the inventory screen's Use). What a consumable does to its
+## user is data (`use_stimuli`, ADR 0057); the other actions are inventory and UI verbs.
 enum UseAction {
 	## Nothing yet: shows `use_message` ("Nothing happens"; biocells until M6).
 	NONE,
 	## Draws `weapon` through the WeaponHolder; using it again holsters.
 	EQUIP_WEAPON,
-	## Heals `heal_amount` and consumes one; refused when unhurt.
-	HEAL,
+	## Sends `use_stimuli` to the user (CONTACT) and consumes one; refused with `refused_message`
+	## when none of them would do anything to the user (StimulusSystem.would_affect()).
+	CONSUME,
 	## Opens the reading overlay with the stack's `title` and `text`.
 	READ,
 	## Holds the tool in hand (placeholder until M8: LMB does nothing).
@@ -41,8 +43,11 @@ enum UseAction {
 @export var use_action: UseAction = UseAction.NONE
 ## EQUIP_WEAPON: the weapon drawn.
 @export var weapon: WeaponData
-## HEAL: health restored (split over the damaged parts).
-@export var heal_amount: float = 0.0
+## CONSUME: stimuli sent to the user, type -> intensity (medkit: `heal` 30). The user's receptrons
+## decide what they do.
+@export var use_stimuli: Dictionary[StringName, float] = {}
+## CONSUME: shown when the user would not react to any of `use_stimuli` (the item is kept).
+@export var refused_message: String = "Nothing happens"
 ## NONE: the message shown on use.
 @export var use_message: String = "Nothing happens"
 

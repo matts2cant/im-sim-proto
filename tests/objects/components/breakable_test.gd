@@ -83,7 +83,7 @@ func test_metal_ignores_fire_and_halves_blunt_damage() -> void:
 
 func test_debris_despawns_after_its_lifetime() -> void:
 	var piece := Debris.new()
-	piece.setup(0.2, Color.BROWN, 0.1)
+	piece.setup(0.2, Color.BROWN, 0.1, 0.3)
 	_floor.add_child(piece)
 
 	await Objects.frames(get_tree(), 10)
@@ -107,12 +107,13 @@ func test_barrel_explodes_at_zero_health_instead_of_breaking() -> void:
 	)
 	(
 		assert_array(blast.map(func(entry: EventLogEntry) -> StringName: return entry.data["type"]))
-		. contains_exactly([&"damage.explosive", &"fire", &"noise"])
+		. contains_exactly([&"force.blast", &"damage.explosive", &"fire", &"noise"])
 	)
 	for entry: EventLogEntry in blast:
 		assert_int(entry.data["depth"]).is_equal(1)
 		assert_int(entry.data["cause_id"]).is_equal(hit.id)
-	assert_float(blast[2].data["intensity"]).is_equal(60.0)
+	assert_float(blast[0].data["intensity"]).is_equal(120.0)
+	assert_float(blast[3].data["intensity"]).is_equal(60.0)
 
 
 func test_barrel_explodes_when_heat_reaches_threshold() -> void:
