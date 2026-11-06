@@ -1,9 +1,9 @@
 extends RefCounted
-## Test helper (not a suite) for save tests: a test quicksave slot, a level made the tree's current
-## scene (quickload changes the current scene), key presses, waiting for a quickload, and a
+## Test helper (not a suite) for save tests: a test save slot, a level made the tree's current
+## scene (a load changes the current scene), key presses, waiting for a load, and a
 ## tolerant comparison of saved dictionaries.
 
-## Tests never touch the player's real quicksave.
+## Tests never touch the player's real save.
 const SLOT := "user://test_saves/quicksave.save"
 const TOLERANCE := 0.0005
 
@@ -36,7 +36,7 @@ static func open_level(tree: SceneTree, path: String, settle: int = 10) -> Node:
 	return level
 
 
-## Frees the current scene (the level, or the one a quickload made) and restores `original`.
+## Frees the current scene (the level, or the one a load made) and restores `original`.
 static func close_level(tree: SceneTree, original: Node) -> void:
 	var current := tree.current_scene
 	tree.current_scene = original
@@ -50,17 +50,19 @@ static func close_level(tree: SceneTree, original: Node) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-## A key press and release (physical keycode, as the project's input map binds them).
+## A key press and release. Both the physical and the logical keycode are set, so actions bound
+## either way match (the project binds physical keys; the built-in ui_* actions logical ones).
 static func press(key: Key) -> void:
 	for pressed: bool in [true, false]:
 		var event := InputEventKey.new()
 		event.physical_keycode = key
+		event.keycode = key
 		event.pressed = pressed
 		Input.parse_input_event(event)
 	Input.flush_buffered_events()
 
 
-## Waits until a quickload started from `old_level` has finished; returns the new level (null if
+## Waits until a load started from `old_level` has finished; returns the new level (null if
 ## nothing was loaded within `max_frames`).
 static func wait_for_load(tree: SceneTree, old_level: Node, max_frames: int = 60) -> Node:
 	for i in max_frames:

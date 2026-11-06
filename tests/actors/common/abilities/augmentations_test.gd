@@ -152,10 +152,10 @@ func test_slots_map_to_the_toggles() -> void:
 
 
 func test_key_labels_follow_the_input_map() -> void:
-	# aug_5 is F6: F5 is quicksave.
+	# aug_5 is F5 (ADR 0064; it was F6 while F5 was quicksave).
 	assert_str(_augs.find(&"cloak").key_label()).is_equal("F1")
 	assert_str(_augs.find(&"regeneration").key_label()).is_equal("F4")
-	assert_str(_augs.find(&"combat_strength").key_label()).is_equal("F6")
+	assert_str(_augs.find(&"combat_strength").key_label()).is_equal("F5")
 	assert_str(AugmentationData.new().key_label()).is_equal("")
 
 

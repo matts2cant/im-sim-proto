@@ -41,7 +41,7 @@ Speed Enhancement ([abilities](../game/abilities.md), [ADR 0061](../decisions/00
 | Landing noise | x1 | x1.5 (Run Silent: x0, also footsteps) | — |
 | Drop from a 2.3 m ledge | 9.5 m/s, harmless (fall damage from 10 m/s) | same | — |
 
-Combat Strength (F6 toggle, off by default, 1 energy/s): carry limit 70 kg instead of 20 while on, so the metal crate (25 kg) and the large crate (60 kg) can be carried; a carried large crate is a 1.2 m step anywhere.
+Combat Strength (F5 toggle, off by default, 1 energy/s): carry limit 70 kg instead of 20 while on, so the metal crate (25 kg) and the large crate (60 kg) can be carried; a carried large crate is a 1.2 m step anywhere.
 
 ## Objects (M3)
 

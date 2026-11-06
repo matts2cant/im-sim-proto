@@ -20,3 +20,7 @@ Every stateful node joins group saveable and implements save_state() -> Dictiona
 
 - Every feature carries a small saving cost.
 - See [saving](../game/saving.md).
+
+## Amended (2026-11-06)
+
+F5/F9 were replaced by Save and Load in the Esc game menu ([ADR 0064](0064-game-menu.md)).

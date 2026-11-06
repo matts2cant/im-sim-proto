@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration in the real inventory bay (inside the hub) with the player: the abilities station.
 ## The 2.3 m ledge is refused without Speed Enhancement and mantled with it (F3); the dais biocells
-## (x10) are picked up with E; the 60 kg crate is lifted only with Combat Strength on (F6); sprinting
+## (x10) are picked up with E; the 60 kg crate is lifted only with Combat Strength on (F5); sprinting
 ## along the metal strip makes metal footsteps, none with Run Silent (F2).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")

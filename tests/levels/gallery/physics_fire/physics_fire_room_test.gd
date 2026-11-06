@@ -17,7 +17,7 @@ const SIGNS: Dictionary[String, String] = {
 	"BarrelChain": "Barrel chain",
 	"Barricade": "Burn the barricade",
 	"Throwables": "Throw things · listen",
-	"TooHeavy": "Too heavy\n(F6 Combat Strength)",
+	"TooHeavy": "Too heavy\n(F5 Combat Strength)",
 }
 
 var _room: Node3D

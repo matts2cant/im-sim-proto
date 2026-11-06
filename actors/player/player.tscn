@@ -34,7 +34,7 @@
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="32_impact_settings"]
 [ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="33_step"]
 [ext_resource type="Resource" path="res://actors/player/player_step.tres" id="34_step_config"]
-[ext_resource type="Script" path="res://actors/player/quick_save_keys.gd" id="46_quick_save_keys"]
+[ext_resource type="PackedScene" path="res://ui/game_menu/game_menu.tscn" id="46_game_menu"]
 [ext_resource type="Resource" path="res://actors/common/abilities/receptrons/energy.tres" id="35_energy_receptron"]
 [ext_resource type="Script" path="res://actors/common/abilities/skills.gd" id="36_skills"]
 [ext_resource type="Resource" path="res://actors/common/abilities/skill_table.tres" id="37_skill_table"]
@@ -148,5 +148,4 @@ script = ExtResource("39_augmentations")
 catalog = Array[ExtResource("40_aug_data")]([ExtResource("41_cloak"), ExtResource("42_run_silent"), ExtResource("43_speed"), ExtResource("44_regeneration"), ExtResource("45_combat_strength")])
 installed_at_start = Array[StringName]([&"cloak", &"run_silent", &"speed_enhancement", &"regeneration", &"combat_strength"])
 
-[node name="QuickSaveKeys" type="Node" parent="."]
-script = ExtResource("46_quick_save_keys")
+[node name="GameMenu" parent="." instance=ExtResource("46_game_menu")]

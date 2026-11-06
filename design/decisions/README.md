@@ -28,7 +28,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0022](0022-guard-feedback.md) | Guard feedback: MGS-style icons and text barks | Accepted |
 | [0023](0023-aiming.md) | Aiming: softened Deus Ex 1 reticle | Accepted |
 | [0024](0024-baton-knockout.md) | Baton knockout rules | Accepted |
-| [0025](0025-saving.md) | Saving: saveable contract from M0, F5/F9 in M6 | Accepted |
+| [0025](0025-saving.md) | Saving: saveable contract from M0, F5/F9 in M6 | Accepted (F5/F9 replaced by the game menu, 0064) |
 | [0026](0026-audio.md) | Audio: starter pack plus Kenney CC0, placeholders, no auto-downloads | Accepted |
 | [0027](0027-sound-propagation.md) | Sound propagation by navmesh path distance | Accepted |
 | [0028](0028-input-physical-keys.md) | Input: physical-key bindings | Accepted |
@@ -65,4 +65,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |
 | [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted |
 | [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted |
-| [0063](0063-quicksave-quickload.md) | Quicksave and quickload: one JSON slot, level snapshot with removed and spawned nodes | Accepted |
+| [0063](0063-quicksave-quickload.md) | Quicksave and quickload: one JSON slot, level snapshot with removed and spawned nodes | Accepted (keys amended by 0064) |
+| [0064](0064-game-menu.md) | Esc game menu: save, load and quit; F5 becomes Combat Strength | Accepted |

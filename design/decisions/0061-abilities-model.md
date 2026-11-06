@@ -40,12 +40,12 @@ M6 adds skills (Pistols, Low-Tech, Medicine, Electronics, Lockpicking; four tier
   | Run Silent | F2 | 1.5 /s | `footstep_noise_mult` ×0, `landing_noise_mult` ×0 |
   | Speed Enhancement | F3 | 2 /s | `move_speed_mult` ×1.5 (sprint 9 m/s), `jump_apex_height` ×1.6 (1.6 m), `mantle_max_height` +0.6 (2.5 m), `landing_noise_mult` ×1.5 |
   | Regeneration | F4 | 5 /s | `heal` 2 on itself every 0.5 s (4 HP/s, split like a medkit) while something is hurt; it keeps running (and draining) when nothing is |
-  | Combat Strength | F6 (amended; was passive) | 1 /s | `carry_mass_limit` +50 (70 kg), `melee_damage_mult` ×1.5 |
+  | Combat Strength | F5 (amended; was passive, then F6) | 1 /s | `carry_mass_limit` +50 (70 kg), `melee_damage_mult` ×1.5 |
 
 - **Cloak** only adds `state.cloaked`. Guard sight reads it in M7 (guards do not see a cloaked entity; cameras and turrets still do). First-person feedback reads the same tag: the WeaponHolder draws its view model at 30 % opacity and the HUD shows a faint blue tint.
 - **Crouched aim** (added in M6 on request): `AimConfig.crouch_settle_factor` 0.6 multiplies the settle time while the shooter has `stance.crouch` (still or moving): 0.8 → 0.48 s untrained, 0.2 → 0.12 s at Pistols Master.
 - **Saving**: `Skills` (tiers) and `Augmentations` (installed, active) are `saveable`; their modifiers and tags are re-derived on load, so the load order with Attributes and Tags does not matter. Energy needs nothing of its own (the attributes hold it).
-- **UI**: the HUD shows an energy bar beside the body silhouette and a chip per augmentation that is on; the debug panel's **Stats** tab (registered by the player for itself, but it works on any entity with the components) edits tiers, installed, on/off and energy live. Keys F1-F4 (`aug_1`-`aug_4`) and F6 (`aug_5`, Combat Strength since the amendment below).
+- **UI**: the HUD shows an energy bar beside the body silhouette and a chip per augmentation that is on; the debug panel's **Stats** tab (registered by the player for itself, but it works on any entity with the components) edits tiers, installed, on/off and energy live. Keys F1-F4 (`aug_1`-`aug_4`) and F5 (`aug_5`, Combat Strength since the amendments below; F6 until ADR 0064).
 
 ## Alternatives considered
 
@@ -65,3 +65,7 @@ M6 adds skills (Pistols, Low-Tech, Medicine, Electronics, Lockpicking; four tier
 ## Amended (Combat Strength becomes a toggle)
 
 As a passive augmentation installed by default, Combat Strength changed the default player: the 60 kg crate was liftable and dummies went down in two frontal baton hits, contradicting the gallery signs ("Aware · 3 hits") and forcing tests to uninstall it. It is now a toggle like the others, as in Deus Ex: key F6 (`aug_5`, slot 5; F5 is quicksave), drain 1 energy/s, same effects while on. The default player (all installed, none on) behaves as before M6. When the carry limit falls below the held mass (Combat Strength switched off or out of energy), `PlayerCarry` drops the object at once with the HUD message "Too heavy" (`player.dropped` how `too_heavy`), as Deus Ex does. HUD chips read the key from the input map, so slot 5 shows "F6". The `passive` flag stays in `AugmentationData` for later augmentations.
+
+## Amended (Combat Strength on F5)
+
+Save and load moved into the Esc game menu ([ADR 0064](0064-game-menu.md)), which freed F5: `aug_5` (Combat Strength) is now F5, so the augmentation keys are F1-F5 with no gap. Chips read "F5 Combat Strength"; the gallery signs say F5.

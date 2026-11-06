@@ -16,7 +16,7 @@ extends CharacterBody3D
 ## (dead: asks for a level reset), `state.legs_disabled` forces a crawl; `move_speed_mult` scales
 ## speed. The attributes `jump_apex_height` and `mantle_max_height` (base: config) change the jump
 ## and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
-## generic components; this script only maps F1-F4 and F6 (`aug_<n>`) to Augmentations.toggle_slot().
+## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
 ## Saveable.
 
 signal mantled(height: float)
@@ -53,7 +53,7 @@ const PRESS_ACTIONS: Array[StringName] = [
 	&"aug_4",
 	&"aug_5",
 ]
-## Augmentation toggle keys (F1-F4, F6), slot 1 first.
+## Augmentation toggle keys (F1-F5), slot 1 first.
 const AUG_ACTIONS: Array[StringName] = [&"aug_1", &"aug_2", &"aug_3", &"aug_4", &"aug_5"]
 const MOVE_SPEED: StringName = &"move_speed_mult"
 const JUMP_APEX: StringName = &"jump_apex_height"

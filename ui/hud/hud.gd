@@ -6,8 +6,8 @@ extends CanvasLayer
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
 ## the energy bar beside the silhouette with chips for the augmentations that are on, a faint tint
 ## while the player is cloaked (`state.cloaked`; ADR 0061), and the death overlay (E resets the
-## level, F9 loads the quicksave; ADR 0063). It only reads the player's components. Layer 10: the
-## debug panel (layer 100) draws over it.
+## level, Esc opens the game menu, whose Load works there; ADR 0064). It only reads the player's
+## components. Layer 10: the debug panel (layer 100) draws over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35

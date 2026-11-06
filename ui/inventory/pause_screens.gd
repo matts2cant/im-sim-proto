@@ -1,7 +1,7 @@
 class_name PauseScreens
 extends RefCounted
-## Full-screen UI that pauses the game (ADR 0052): the inventory screen, the reading overlay and the
-## log screen (ADR 0060).
+## Full-screen UI that pauses the game (ADR 0052): the inventory screen, the reading overlay, the
+## log screen (ADR 0060) and the game menu (ADR 0064).
 ## Each such CanvasLayer joins GROUP, runs with PROCESS_MODE_ALWAYS, has is_open(), and calls
 ## update() after opening or closing. While any is open the SceneTree is paused and the mouse is
 ## free; when the last one closes the pause ends and the previous mouse mode comes back.
