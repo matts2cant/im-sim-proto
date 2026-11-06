@@ -4,6 +4,18 @@ First-person immersive sim prototype (Deus Ex 2000 inspired), Godot 4.7.2, stati
 v0 = hub + test gallery (one room per system) + one small warehouse mission.
 Design entry point: [design/README.md](design/README.md). Full spec lives in `design/`.
 
+## Systemic design (core principle)
+
+No hardcoded rules about specific things. Behaviour comes from systems that interact through tags, attributes, components and stimuli, so any entity with the right properties behaves the same way.
+
+- Write rules about **properties, never identities**. Not "the explosive barrel explodes" but "anything `Explosive` explodes when its trigger is met"; the barrel is just a prop that has `Explosive`, `Flammable` and `Breakable` with tuning `.tres`.
+- Never branch on an entity's name, scene path or concrete class (`if name == "Barrel"`, `is ExplosiveBarrel`, `"crate" in path`). Branch on a tag, component, attribute or stimulus.
+- Systems talk through stimuli (or a component's public API found via the entity's tags or components), not by calling each other directly.
+- The player is not special: fire, blasts, impacts, noise and damage reach the player through the same receivers and components as any NPC or prop. Player-only code is limited to input and camera.
+- A new object that combines existing behaviours needs **zero new code**: only a scene composing components and `.tres` tuning. A new behaviour is a new component or Effect usable by any entity.
+- Tests prove the generality: test a behaviour on a minimal entity built from its components (`tests/core/stimulus/stimulus_fixtures.gd`), not only on the one prop that ships with it, and write scenario tests for chains between systems.
+- If a feature seems to need a special case, stop and describe it in your report instead of hardcoding it.
+
 ## Where things live
 
 - `core/` framework only, no game content: `core/stimulus/`, `core/attributes/`, `core/event_log/`, `core/save/`
