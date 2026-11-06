@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
-base_min_deg = 1.5
+base_min_deg = 0.5
 walk_add_deg = 3.0
 sprint_add_deg = 6.0
 air_add_deg = 6.0

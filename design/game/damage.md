@@ -8,7 +8,7 @@ Deus Ex 1 style per-body-part damage for the player and guards.
 
 ## Player-facing behaviour
 
-A HUD body silhouette shows each part's health (green, yellow, red, black when disabled) and the screen flashes red on every hit. Injuries change behaviour: a shot leg slows you, two legs force a crawl, a disabled arm makes aim wide and shaky, two arms stop you from using weapons. A head or torso at 0 kills: "You died", press E to reset the level. Hard landings hurt the legs. Medkits heal.
+A HUD body silhouette shows each part's health (pure green only at full health, yellow at half, red near 0, black when disabled; any damage already shifts a part toward yellow, `HudRules.HURT_GREEN_SHARE`) and the screen flashes red on every hit. Injuries change behaviour: a shot leg slows you, two legs force a crawl, a disabled arm makes aim wide and shaky, two arms stop you from using weapons. A head or torso at 0 kills: "You died", press E to reset the level. Hard landings hurt the legs. Medkits heal.
 
 ## Rules
 

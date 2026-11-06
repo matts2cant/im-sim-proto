@@ -164,7 +164,7 @@ func test_one_disabled_arm_widens_the_cone() -> void:
 
 	assert_float(_player.attributes.value(&"aim_spread_add")).is_equal(3.0)
 	assert_float(_player.attributes.value(&"aim_sway_mult")).is_equal(2.0)
-	assert_float(_player.weapons.aim.spread).is_equal_approx(4.5, 0.001)
+	assert_float(_player.weapons.aim.spread).is_equal_approx(3.5, 0.001)
 
 
 func test_jumping_widens_the_cone_after_the_grace_time() -> void:
@@ -179,7 +179,7 @@ func test_jumping_widens_the_cone_after_the_grace_time() -> void:
 	_driver.runner.simulate_action_release(&"jump")
 
 	assert_int(_player.aim_stance()).is_equal(AimModel.Stance.AIR)
-	assert_float(_player.weapons.aim.spread).is_equal_approx(7.5, 0.001)
+	assert_float(_player.weapons.aim.spread).is_equal_approx(6.5, 0.001)
 
 
 func test_both_arms_disabled_cannot_fire() -> void:
