@@ -38,6 +38,26 @@ func test_break_spawns_contents_and_debris_and_frees_the_object() -> void:
 	assert_float(noise[0].data["intensity"]).is_equal(15.0)
 
 
+func test_several_contents_spawn_apart_and_survive() -> void:
+	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
+	var bottle := load(Objects.GLASS_BOTTLE) as PackedScene
+	Breakable.of(crate).contents = [bottle, bottle]
+	await Objects.frames(get_tree(), 3)
+	EventLog.clear()
+
+	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 40.0, crate))
+	await Objects.frames(get_tree(), 60)
+
+	var bottles := _floor.get_children().filter(func(node: Node) -> bool: return node.name.begins_with("GlassBottle"))
+	assert_int(bottles.size()).is_equal(2)
+	var a := (bottles[0] as Node3D).global_position
+	var b := (bottles[1] as Node3D).global_position
+	assert_float(Vector2(a.x - b.x, a.z - b.z).length()).is_greater(0.2)
+	assert_array(Objects.logged(&"object.broken", "reason", &"impact")).is_empty()
+	assert_vector(Breakable.content_offset(0, 1, 0.6)).is_equal(Vector3.ZERO)
+	assert_float(Breakable.content_offset(1, 2, 0.6).length()).is_equal_approx(0.15, 0.0001)
+
+
 func test_damage_below_health_only_wears_it_down() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
 	await Objects.frames(get_tree(), 3)

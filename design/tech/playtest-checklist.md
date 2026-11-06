@@ -48,7 +48,7 @@ See [../levels/kit.md](../levels/kit.md).
 
 ## M3 Physics objects and fire (Physics and fire)
 
-Until the gallery room exists: start the hub, open the debug panel (`) and use the Spawn tab (objects appear 2 m in front of you). Keep the Event Log tab (filter `object.` / `player.`) and Overlays > Heat at hand. See [../game/objects-and-fire.md](../game/objects-and-fire.md).
+Start the hub and go through doorway "3 Physics & Fire" (east wall) into the gallery room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#3-physics-and-fire)); the debug panel (`) Spawn tab spawns more objects 2 m in front of you and "Reset level" brings everything back. Keep the Event Log tab (filter `object.` / `player.`) and Overlays > Heat at hand. See [../game/objects-and-fire.md](../game/objects-and-fire.md).
 
 - [ ] Pick up a small crate, cardboard box and bottle with E (look at it within 2 m): it floats 1.2 m ahead slightly below the eyes, follows the view smoothly without lag or jitter, and bumps into walls instead of passing through them. The large and metal crates and the barrel refuse (`player.pickup_refused`).
 - [ ] Walking with the small crate (10 kg) feels a bit slower (x0.8); with a box or bottle it does not. Mantling does nothing while carrying; jumping still works.
@@ -62,6 +62,17 @@ Until the gallery room exists: start the hub, open the debug panel (`) and use t
 - [ ] Wooden barricade: spawn one, ignite it; it burns for 30 s, then disappears and the gap is passable.
 - [ ] Time tab: 0.25 x makes the fire and flying objects slow-motion; Reset returns to normal. Heat overlay labels are readable and disappear when unticked.
 - [ ] Fire light and particles look right (orange flicker, soft flames, no square sprites); several fires do not tank the frame rate.
+
+Gallery room 3 (Physics and fire):
+
+- [ ] Walk in from the hub: doorway 3, both corridor ends, the side-room doorway and the parapet show plain walls, no striped (z-fighting) faces or gaps; every station sign reads from about 6 m and from the entrance the room reads as six separate stations.
+- [ ] A Fire spread: ignite crate 1 (Ignite looked-at, or set a crate lit at the brazier against it). Fire walks along the row about every 5 s; it stops at the metal crate (crates 6 and 7 stay at heat 0.0 in the Heat overlay); the crate tucked behind the thin wall never warms. The burning row lights the back wall and floor orange.
+- [ ] B Brazier: throw a box and place a crate against the brazier: the box flares almost at once, the crate catches in about 2 s; carrying the burning crate hurts (`player.hurt`) and lights what you set it against.
+- [ ] C Barrel chain: from behind the parapet, "Damage looked-at" barrel 1 until it blows (or throw a burning box at it): barrel 2 goes off right after, the crate stack is thrown and burns. The blast reads well from the parapet; nothing at the fire row or the brazier is touched.
+- [ ] D Barricade: set a burning crate in the barricaded doorway: the barricade catches within about 10 s, burns for 30 s, then disappears and you can walk into the side room. Throw or break its crate: two glass bottles drop out whole.
+- [ ] E Throwables: bottles thrown at a wall shatter; boxes and crates thrown onto the metal floor sound and log louder (`object.impact` loudness) than on concrete; the table items are easy to pick off the 1.0 m table.
+- [ ] F Too heavy: E on the large and the metal crate is refused (`player.pickup_refused`), the sign explains why.
+- [ ] Reset level (Spawn tab) after a few fires: the hub reloads with every object back, nothing still burning, the panel still works, and the time scale you set stays.
 
 ## M4 Damage and weapons (Shooting range)
 

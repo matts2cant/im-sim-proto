@@ -1,7 +1,8 @@
 class_name SpawnTab
 extends VBoxContainer
-## Debug panel tab: spawns catalogue objects in front of the player and pokes the object under the
-## crosshair (ignite with a strong CONTACT `fire`, hit with `damage.blunt`).
+## Debug panel tab: spawns catalogue objects in front of the player, pokes the object under the
+## crosshair (ignite with a strong CONTACT `fire`, hit with `damage.blunt`) and resets the level
+## (fires and explosions use objects up; playtests need a fresh room).
 
 const CATALOG: ObjectCatalog = preload("res://objects/object_catalog.tres")
 ## Horizontal distance in front of the player where objects appear.
@@ -15,6 +16,7 @@ const DAMAGE_AMOUNT: float = 10.0
 @onready var _buttons: GridContainer = $Buttons
 @onready var _ignite: Button = $Actions/Ignite
 @onready var _damage: Button = $Actions/Damage
+@onready var _reset: Button = $Actions/ResetLevel
 @onready var _status: Label = $Status
 
 
@@ -27,6 +29,7 @@ func _ready() -> void:
 		_buttons.add_child(button)
 	_ignite.pressed.connect(ignite_looked_at)
 	_damage.pressed.connect(damage_looked_at)
+	_reset.pressed.connect(reset_level)
 
 
 ## Spawns `scene` 2 m in front of the player, facing the same way; null without a player.
@@ -57,6 +60,22 @@ func ignite_looked_at() -> Node:
 ## Sends a CONTACT `damage.blunt` of 10 to what the player looks at. Returns the node hit.
 func damage_looked_at() -> Node:
 	return _poke(&"damage.blunt", DAMAGE_AMOUNT)
+
+
+## Reloads the current main scene from its file, dropping stimuli still queued for the old one;
+## logged `debug.reset_level`. Returns the reload error (ERR_UNAVAILABLE without a level).
+func reset_level() -> Error:
+	var tree := get_tree()
+	var level := tree.current_scene
+	if level == null or level.scene_file_path.is_empty():
+		_report("No level to reset")
+		return ERR_UNAVAILABLE
+	var path := level.scene_file_path
+	StimulusSystem.clear()
+	EventLog.record(&"debug.reset_level", "DebugPanel", "", {"scene": path})
+	var error := tree.reload_current_scene()
+	_report("Reset %s" % path.get_file() if error == OK else "Reset failed: %s" % error_string(error))
+	return error
 
 
 func _poke(type: StringName, intensity: float) -> Node:

@@ -101,15 +101,26 @@ func _spawn_debris(parent: Node, origin: Vector3) -> int:
 
 func _spawn_contents(parent: Node, origin: Vector3) -> Array[String]:
 	var names: Array[String] = []
-	for scene in contents:
+	for i in contents.size():
+		var scene := contents[i]
 		if scene == null:
 			continue
 		var node := scene.instantiate()
-		parent.add_child(node)
+		parent.add_child(node, true)
 		if node is Node3D:
-			(node as Node3D).global_position = origin
+			(node as Node3D).global_position = origin + content_offset(i, contents.size(), size)
 		names.append(String(node.name))
 	return names
+
+
+## Where content item `index` of `count` appears relative to the centre: one item at the centre,
+## several spread on a horizontal circle a quarter of the object's size wide, so items never
+## spawn inside each other (overlapping bodies fly apart and bottles shatter).
+static func content_offset(index: int, count: int, object_size: float) -> Vector3:
+	if count <= 1:
+		return Vector3.ZERO
+	var angle := TAU * index / count
+	return Vector3(cos(angle), 0.0, sin(angle)) * object_size * 0.25
 
 
 func _play_sound(origin: Vector3) -> void:

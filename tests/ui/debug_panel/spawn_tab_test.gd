@@ -6,6 +6,7 @@ const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const CATALOG: ObjectCatalog = preload("res://objects/object_catalog.tres")
+const PHYSICS_FIRE_ROOM := "res://levels/gallery/physics_fire/physics_fire_room.tscn"
 
 var _driver: PlayerDriver
 
@@ -59,6 +60,49 @@ func test_ignite_and_damage_the_looked_at_object() -> void:
 	tab.ignite_looked_at()
 	await _driver.frames(2)
 	assert_bool(Flammable.of(crate).is_burning()).is_true()
+
+
+func test_reset_level_reloads_the_physics_fire_room() -> void:
+	var tree := get_tree()
+	var original := tree.current_scene
+	var room: Node3D = (load(PHYSICS_FIRE_ROOM) as PackedScene).instantiate()
+	tree.root.add_child(room)
+	tree.current_scene = room
+	await Objects.frames(tree, 5)
+	# Use the room up: a crate burns, one is broken, one is spawned.
+	Flammable.of(room.get_node("FireSpread/FireCrate1")).ignite(null)
+	Breakable.of(room.get_node("Throwables/TableCrate1")).break_apart(&"destroyed")
+	Objects.spawn(room, Objects.CARDBOARD_BOX, Vector3(0, 0.25, -8), "SpawnedBox")
+	await Objects.frames(tree, 2)
+	var tab := _tab("Spawn") as SpawnTab
+
+	var error := tab.reset_level()
+	await tree.process_frame
+	await tree.process_frame
+
+	var fresh := tree.current_scene
+	tree.current_scene = original
+	auto_free(fresh)
+	assert_int(error).is_equal(OK)
+	assert_bool(is_instance_valid(room)).is_false()
+	assert_str(fresh.scene_file_path).is_equal(PHYSICS_FIRE_ROOM)
+	assert_object(fresh.get_node_or_null("Throwables/TableCrate1")).is_not_null()
+	assert_bool(Flammable.of(fresh.get_node("FireSpread/FireCrate1")).is_burning()).is_false()
+	assert_object(fresh.get_node_or_null("SpawnedBox")).is_null()
+	assert_array(Objects.logged(&"debug.reset_level", "scene", PHYSICS_FIRE_ROOM)).has_size(1)
+	assert_int(StimulusSystem.pending_count()).is_equal(0)
+
+
+func test_reset_level_without_a_level_does_nothing() -> void:
+	var tree := get_tree()
+	var original := tree.current_scene
+	tree.current_scene = null
+
+	var error := (_tab("Spawn") as SpawnTab).reset_level()
+
+	tree.current_scene = original
+	assert_int(error).is_equal(ERR_UNAVAILABLE)
+	assert_array(EventLog.find(&"debug.reset_level")).is_empty()
 
 
 func test_time_tab_sets_and_resets_time_scale() -> void:

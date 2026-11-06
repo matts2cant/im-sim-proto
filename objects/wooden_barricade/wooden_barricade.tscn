@@ -24,7 +24,7 @@ material = ExtResource("1_wood_surface")
 size = Vector3(0.12, 2.1, 0.05)
 material = ExtResource("1_wood_surface")
 
-[node name="WoodenBarricade" type="StaticBody3D"]
+[node name="WoodenBarricade" type="StaticBody3D" groups=["navigation_source"]]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]

@@ -1,6 +1,6 @@
 # Objects and fire
 
-Milestone: M3 (Physics and fire room). Systems done in M3; the gallery room is built on top of them.
+Milestone: M3 (Physics and fire room). Systems done in M3; the gallery room ([hub-and-gallery.md](../levels/hub-and-gallery.md#3-physics-and-fire)) is built on top of them.
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Scope ([ADR 0044](../decisions/0044-fire-scope-v0.md)): characters never catch f
 
 ### Objects (`objects/<object>/`)
 
-Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/player/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md)) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor.
+Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/player/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md)) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor, in group `navigation_source` so a level's navmesh bake treats them as obstacles.
 
 | Object | Scene | Size | Mass | Health | Material | Flammable: threshold / fuel / intensity / radius |
 |---|---|---|---|---|---|---|
@@ -91,7 +91,7 @@ flowchart LR
 ### Breaking (`Breakable`)
 
 - Damage: the `damage` receptron passes the stimulus type and perceived intensity; dealt = intensity x the material multiplier for that type; health is the `health` attribute's base value. Log `object.damaged {object, type, amount, health}`.
-- At health <= 0 (or burn-out, or a glass impact): emit `noise` 15 m (PATH), play the material's break sound, spawn 3-6 debris pieces (`Debris`: on no collision layer, collide with the world only, despawn after 10 s, not saved), spawn each scene of `contents` at the object's centre, log `object.broken {object, reason, by, debris, contents}`, free the entity. A broken or burnt-out barricade frees its doorway.
+- At health <= 0 (or burn-out, or a glass impact): emit `noise` 15 m (PATH), play the material's break sound, spawn 3-6 debris pieces (`Debris`: on no collision layer, collide with the world only, despawn after 10 s, not saved), spawn each scene of `contents` at the object's centre (several items spread on a horizontal circle a quarter of the object's size wide, so they never spawn inside each other), log `object.broken {object, reason, by, debris, contents}`, free the entity. A broken or burnt-out barricade frees its doorway.
 
 ### Impacts (`ImpactNoise`)
 

@@ -99,14 +99,14 @@ platform_height = 1.0
 pit_depth = 1.0
 
 [node name="Vent" parent="." instance=ExtResource("5_vent")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0.02, 0)
 
 [node name="VentCorner" parent="." instance=ExtResource("5_vent")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0.02, -2)
 kind = 1
 
 [node name="Room" parent="." instance=ExtResource("6_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -2.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.02, -2.5)
 size = Vector3(4, 2.5, 4)
 openings = Array[ExtResource("7_opening")]([SubResource("Opening_door"), SubResource("Opening_window")])
 

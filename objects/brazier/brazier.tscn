@@ -23,7 +23,7 @@ bottom_radius = 0.18
 height = 0.25
 material = ExtResource("1_brazier_surface")
 
-[node name="Brazier" type="StaticBody3D"]
+[node name="Brazier" type="StaticBody3D" groups=["navigation_source"]]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
