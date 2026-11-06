@@ -14,7 +14,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Ctrl | Crouch (hold) |
 | Shift | Sprint (hold, forward only) |
 | Space | Jump / mantle (press facing a ledge, or hold in the air) |
-| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level |
+| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level (F9: load the quicksave instead) |
 | R | Reload the equipped weapon |
 | Q | Drop what is carried; when nothing is carried: drop the item in hand (weapon or tool) in front of you |
 | I | Inventory screen (pauses the game); again or Esc closes |
@@ -23,8 +23,8 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Mouse wheel | Down: the next non-empty belt slot to the right, up: the previous one; wraps; from empty hands down takes the first item, up the last. One item per notch; nothing is used |
 | H | Holster: put away whatever is in hand (empty hands, no belt highlight) |
 | F1-F4, F6 | Augmentations |
-| F5 | Quicksave (M6) |
-| F9 | Quickload (M6) |
+| F5 | Quicksave (one slot; not while dead or in a pause screen) ([ADR 0063](../decisions/0063-quicksave-quickload.md)) |
+| F9 | Quickload: anywhere, also from a pause screen or the death screen |
 | ` (QuoteLeft) | Debug panel |
 | Mouse look | Look (captured mouse) |
 | Esc | Close the inventory screen, log screen or reading overlay; in game: release the mouse (click in the window to capture it again) |

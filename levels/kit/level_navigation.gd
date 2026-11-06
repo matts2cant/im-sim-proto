@@ -8,7 +8,8 @@ extends NavigationRegion3D
 ## out automatically. Max climb 0.3 m: characters walk up steps of up to 0.35 m (StepClimber,
 ## ADR 0058), so steps and stairs of up to 0.3 m (the level rule, with margin) are on the navmesh;
 ## higher ledges (jumped or mantled) are not.
-## Place it last among the level's children; call `bake()` again after changing the geometry.
+## Place it last among the level's children; call `bake()` again after changing the geometry
+## (a quickload that removed geometry, such as a burnt barricade, does: QuickSave.REBAKE_GROUP).
 
 const SOURCE_GROUP: StringName = &"navigation_source"
 
@@ -23,6 +24,7 @@ const SOURCE_GROUP: StringName = &"navigation_source"
 
 
 func _ready() -> void:
+	add_to_group(QuickSave.REBAKE_GROUP)
 	bake()
 
 

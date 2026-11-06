@@ -8,7 +8,7 @@ Deus Ex 1 style per-body-part damage for the player and guards.
 
 ## Player-facing behaviour
 
-A HUD body silhouette shows each part's health (pure green only at full health, yellow at half, red near 0, black when disabled; any damage already shifts a part toward yellow, `HudRules.HURT_GREEN_SHARE`) and the screen flashes red on every hit. Injuries change behaviour: a shot leg slows you, two legs force a crawl, a disabled arm makes aim wide and shaky, two arms stop you from using weapons. A head or torso at 0 kills: "You died", press E to reset the level. Hard landings hurt the legs. Medkits heal.
+A HUD body silhouette shows each part's health (pure green only at full health, yellow at half, red near 0, black when disabled; any damage already shifts a part toward yellow, `HudRules.HURT_GREEN_SHARE`) and the screen flashes red on every hit. Injuries change behaviour: a shot leg slows you, two legs force a crawl, a disabled arm makes aim wide and shaky, two arms stop you from using weapons. A head or torso at 0 kills: "You died", press E to reset the level or F9 to load the quicksave. Hard landings hurt the legs. Medkits heal.
 
 ## Rules
 
@@ -80,7 +80,7 @@ flowchart LR
 
 ### Death (player)
 
-- Input is disabled (no movement, look, weapons, carry); what is carried is dropped and the weapon holstered. The HUD shows "You died" and "Press E to reset the level"; E reloads the current scene (`LevelReset.reload_level`: clears queued stimuli, logs `level.reset`). The debug Spawn tab has the same "Reset level" button.
+- Input is disabled (no movement, look, weapons, carry); what is carried is dropped and the weapon holstered. The HUD shows "You died", "Press E to reset the level" and "F9: load quicksave" ([ADR 0063](../decisions/0063-quicksave-quickload.md)); E reloads the current scene (`LevelReset.reload_level`: clears queued stimuli, logs `level.reset`). The debug Spawn tab has the same "Reset level" button.
 
 ### Training dummy (`actors/dummy/`)
 

@@ -160,7 +160,15 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 - [ ] Each augmentation toggles, drains energy and has its stated effect.
 - [ ] Biocells refill energy; skill tier edits in the Stats tab change behaviour.
-- [ ] F5 quicksave and F9 quickload restore state.
+- [ ] Quicksave / quickload ([ADR 0063](../decisions/0063-quicksave-quickload.md)): F5 shows "Quicksaved"; F9 shows "Quickloaded" and puts you back where you stood, facing the same way, with the same health (body silhouette), inventory, belt and item in hand.
+- [ ] Physics and fire room: set a crate burning, break another (Spawn tab: Damage, or throw it), burn the barricade, F5, walk on; F9: the burning crate is still burning, the broken and burnt ones and the barricade stay gone, the bottles that fell out of the side room crate lie where they were; nothing flashes or explodes on load.
+- [ ] After F9 the doorway the burnt barricade blocked is open: you walk through it (no invisible wall).
+- [ ] Drop two items (Q) and spawn a crate from the Spawn tab, F5, pick the items up and push the crate away, F9: the items and the crate are back where they were saved.
+- [ ] Carry a crate, F5, F9: the crate drops in front of you, not inside you, and you are not carrying it.
+- [ ] Read a datapad, F5, read another, F9: the log (L) has only the first.
+- [ ] Die (fall or a barrel), the death screen says "F9: load quicksave"; F9 loads the save. F5 on the death screen does nothing.
+- [ ] F9 with the inventory, log screen or reading overlay open loads and closes it; F5 there does nothing.
+- [ ] F9 with no quicksave (delete `%APPDATA%/Godot/app_userdata/ImSimProto/saves/quicksave.save`): "No quicksave", nothing changes.
 
 ## M7 Light and AI (Perception lab, AI arena)
 
