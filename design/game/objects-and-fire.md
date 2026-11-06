@@ -43,10 +43,10 @@ All carry Carryable except the static ones; only objects up to the carry limit (
 
 | Material | Impact loudness | Damage multipliers | Impact sounds | Break sound |
 |---|---|---|---|---|
-| wood | x1.0 | fire x1, explosive x0.5 | impactWood | Hollywood/Wooden Crate Destruction |
-| metal | x1.4 | fire x0, blunt x0.5 | impactMetal | Hollywood/Metal Glass Destruction |
-| glass | x1.6 | fire x0 | impactGlass | impactGlass_heavy |
-| cardboard | x0.4 | fire x1 | impactSoft | impactSoft_heavy |
+| wood | x1.0 | fire x1, explosive x0.5, stun x0 | impactWood | Hollywood/Wooden Crate Destruction |
+| metal | x1.4 | fire x0, blunt x0.5, stun x0 | impactMetal | Hollywood/Metal Glass Destruction |
+| glass | x1.6 | fire x0, stun x0 | impactGlass | impactGlass_heavy |
+| cardboard | x0.4 | fire x1, stun x0 | impactSoft | impactSoft_heavy |
 
 ### Fire: heat, ignition, burning
 
@@ -106,7 +106,7 @@ flowchart LR
 - While carrying: **E** puts it down gently (velocity zero), **Q** (`drop_throw`) drops it, **LMB** (`fire`) throws it along the view at min(12, 40 / mass) m/s (40 N s impulse: small crate 4 m/s, cardboard and bottles 12 m/s). Carrying 10 kg or more: move speed x0.8. No mantling while carrying.
 - Log `player.picked_up {object}`, `player.dropped {object, how}` (`put_down`, `drop`, `stuck`, `load`, `respawn`), `player.threw {object, speed}`.
 - Carrying is not saved: loading drops the object.
-- The player has `Tags` (`actor.player`), `Attributes` (`carry_mass_limit`) and a `StimulusReceiver` (chest height) whose `hurt` receptron logs `player.hurt {id, type, perceived, shape}` for every `damage` stimulus (`LogEventEffect`) until M4 body-part damage replaces it.
+- The player has `Tags` (`actor.player`), `Attributes` (`carry_mass_limit`, and the M4 injury attributes) and a `StimulusReceiver` (chest height) whose `body_damage` receptron (M4) applies every `damage` stimulus to its body parts: fire in range and a carried burning object (`damage.fire` CONTACT every pulse) are split evenly over the six parts, explosions 40 % torso / 12 % each other part ([damage.md](damage.md)).
 
 ## Interactions
 
@@ -125,4 +125,4 @@ flowchart LR
 - Pushing props by walking into them: the player is a `CharacterBody3D` and only stops; revisit if the room needs shoving.
 - Navmesh after a barricade burns away: static props are part of the bake; M7 decides whether guards need a re-bake.
 - M6 save/load: level-placed objects that were destroyed need a "removed" record; spawned objects are recreated from `scene_file_path`.
-- Fire damage numbers against characters (perceived 2-3 per pulse) are placeholders until M4 resistances.
+- Fire damage against characters (perceived 2-3 per pulse, split over six parts) is mild; tune with the M4 profiles' `damage.fire` multiplier if fire feels harmless.

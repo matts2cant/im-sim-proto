@@ -83,7 +83,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 ### Other
 
 - Speed Enhancement augmentation: faster, higher jump/mantle, louder landings. Run Silent: footstep noise x0. See [abilities.md](abilities.md).
-- Leg damage: one leg at 0 = slow, both = crawl. See [damage.md](damage.md).
+- Injuries (M4, [damage.md](damage.md)): every ground speed is multiplied by the `move_speed_mult` attribute (one leg at 0: x0.6); both legs at 0 force a crawl: crouched, cannot stand, 1.0 m/s. Landing faster than 10 m/s hurts both legs ((speed - 10) x 8 each: 32 from a 5 m drop).
 - Vents are paths only passable while crouched (1.0 m high).
 - The player is saveable: position, yaw, pitch, crouched, velocity ([saving.md](saving.md)).
 - The debug panel's Player tab shows speed, mode, grounded, crouched, surface and the last footstep and landing loudness ([debug-panel.md](debug-panel.md)).
