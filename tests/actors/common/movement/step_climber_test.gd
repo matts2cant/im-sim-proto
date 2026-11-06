@@ -210,8 +210,9 @@ func test_steps_onto_a_physics_prop_that_passes_through_it() -> void:
 
 
 func test_does_not_step_onto_a_prop_the_solver_pushes_it_against() -> void:
-	# A body on the actors layer is in the props' mask: stepping onto one would fling it.
-	var prop := _prop(Vector3(0, 0.1, FACE_Z - 0.6))
+	# A prop whose mask has the walker's layer (actors) collides with it in the solver: stepping onto
+	# it would fling it. (Shipped props never scan the character layers, ADR 0054.)
+	var prop := _prop(Vector3(0, 0.1, FACE_Z - 0.6), PhysicsLayers.OBJECT_MASK | PhysicsLayers.ACTORS)
 	var walker := _walker("Walker", Vector3(0, 0, START_Z), CLIMBER_ONLY)
 	await Fixtures.frames(get_tree(), 10)
 	walker.set(&"drive", Vector3(0, 0, -2.0))
@@ -246,10 +247,10 @@ func _walker(walker_name: String, feet: Vector3, components: Array[StringName]) 
 
 
 # A 200 kg, 0.2 m high slab of debris (1.6 x 1.2 m) on the objects layer.
-func _prop(centre: Vector3) -> RigidBody3D:
+func _prop(centre: Vector3, mask: int = PhysicsLayers.OBJECT_MASK) -> RigidBody3D:
 	var prop := RigidBody3D.new()
 	prop.collision_layer = PhysicsLayers.OBJECTS
-	prop.collision_mask = PhysicsLayers.OBJECT_MASK
+	prop.collision_mask = mask
 	prop.mass = 200.0
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()

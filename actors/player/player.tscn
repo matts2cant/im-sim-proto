@@ -46,6 +46,8 @@
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/speed_enhancement.tres" id="43_speed"]
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/regeneration.tres" id="44_regeneration"]
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/combat_strength.tres" id="45_combat_strength"]
+[ext_resource type="Script" path="res://actors/common/pusher/body_pusher.gd" id="47_pusher"]
+[ext_resource type="Resource" path="res://actors/player/player_push.tres" id="48_push_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -131,6 +133,10 @@ script = ExtResource("26_fall_impact")
 [node name="Knockback" type="Node" parent="."]
 script = ExtResource("28_knockback")
 config = ExtResource("29_knockback_config")
+
+[node name="Pusher" type="Node" parent="."]
+script = ExtResource("47_pusher")
+config = ExtResource("48_push_config")
 
 [node name="ImpactSensor" type="Node" parent="."]
 script = ExtResource("31_impact_sensor")

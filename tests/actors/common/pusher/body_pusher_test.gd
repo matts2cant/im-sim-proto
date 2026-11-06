@@ -1,5 +1,6 @@
 extends GdUnitTestSuite
-## Integration: PlayerPusher finds the bodies under the feet and the bodies walked into (ADR 0054).
+## Integration: BodyPusher (the player's) finds the bodies under the feet and the bodies walked into
+## (ADR 0054).
 ## The player stands on crate A (top 0.6 m); in front (-Z) crate C on the floor carries crate B,
 ## whose face is a 0.01 m gap (surface to surface) from the capsule.
 
@@ -9,7 +10,7 @@ const FLOOR := "res://tests/actors/player/fixtures/flat_floor.tscn"
 
 var _driver: PlayerDriver
 var _player: Player
-var _pusher: PlayerPusher
+var _pusher: BodyPusher
 var _a: RigidBody3D
 var _b: RigidBody3D
 var _c: RigidBody3D
@@ -30,7 +31,7 @@ func before_test() -> void:
 	_c = watch.small(scene, 0.0, 0.3, -2.66)
 	_b = watch.small(scene, 0.0, 0.9, -2.66)
 	await _driver.frames(20)
-	_pusher = PlayerPusher.new(_player, _player.config)
+	_pusher = BodyPusher.of(_player)
 
 
 func after_test() -> void:
@@ -69,3 +70,8 @@ func test_walking_into_crate_on_crate_moves_only_the_top_one() -> void:
 
 func _ahead(direction: Vector3, exclude: Array[RID]) -> Array[RigidBody3D]:
 	return _pusher.bodies_ahead(_player.global_position, _player.capsule_height(), direction, exclude)
+
+
+func test_the_pushers_capsule_is_the_players() -> void:
+	assert_float(_pusher.capsule_radius()).is_equal_approx(_player.config.capsule_radius, 0.0001)
+	assert_float(_pusher.capsule_height()).is_equal_approx(_player.capsule_height(), 0.0001)

@@ -19,8 +19,8 @@ const RECEIVER_NAME: String = "StimulusReceiver"
 func _ready() -> void:
 	add_to_group(GROUP)
 	add_to_group(&"saveable")
-	# Props never scan the player's layer, whatever their scene says (ADR 0054).
-	collision_mask &= ~PhysicsLayers.PLAYER
+	# Props never scan the characters' layers (player, actors), whatever their scene says (ADR 0054).
+	collision_mask &= ~PhysicsLayers.CHARACTER_LAYERS
 	if force_receptron != null:
 		_add_receptron(force_receptron)
 

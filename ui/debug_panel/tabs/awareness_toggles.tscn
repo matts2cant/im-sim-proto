@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/tabs/awareness_toggles.gd" id="1_toggles"]
+
+[node name="AwarenessToggles" type="VBoxContainer"]
+script = ExtResource("1_toggles")
+
+[node name="Icons" type="CheckBox" parent="."]
+layout_mode = 2
+tooltip_text = "Show ? / ! icons above guards (Suspicious yellow, Searching orange, Alerted red)"
+text = "Guard icons"
+
+[node name="StateText" type="CheckBox" parent="."]
+layout_mode = 2
+tooltip_text = "Show each guard's awareness state, suspicion meter and wary time above it"
+text = "Guard state"

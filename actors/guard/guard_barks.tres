@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BarkLines" format=3]
+
+[ext_resource type="Script" path="res://actors/common/awareness/bark_lines.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+suspicious = Array[String](["Huh?", "Who's there?", "What was that?"])
+alerted = Array[String](["There you are!", "Intruder!", "Hey! Stop right there!"])
+searching = Array[String](["Where did they go?", "I lost them.", "Come out, come out..."])
+calm = Array[String](["Must be nothing.", "Just my imagination.", "Hm. Nothing there."])
+gave_up = Array[String](["They're gone.", "I'll keep my eyes open.", "Must have slipped away."])

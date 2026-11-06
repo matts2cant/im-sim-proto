@@ -38,4 +38,4 @@ ADR 0034 chose ramps over automatic stair stepping. Playtest feedback: the chara
 - A step moves the body up to ~0.1 m further than its velocity that tick (the forward reach); on stairs at walk speed the extra is mostly under one tick of motion. Playtest whether it reads as a hitch.
 - Walking off a 0.35 m or lower ledge no longer falls: no landing noise, no air time.
 - Debris and dropped items can be walked over by the player; ADR 0045's reason for keeping debris off the props layer (it would block the player) no longer holds, but nothing changes.
-- **Open**: guards on the actors layer will not step onto dynamic props (they shove them). If guards get the player's arrangement (ADR 0056's open question), they step onto props too.
+- **Open**: guards on the actors layer will not step onto dynamic props (they shove them). If guards get the player's arrangement (ADR 0056's open question), they step onto props too. Resolved in M7 ([ADR 0068](0068-awareness-states-and-guard-behaviour.md)): props pass through guards, so they step onto props like the player.

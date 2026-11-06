@@ -210,3 +210,18 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] The 5 m drop in the movement course still hurts both legs by about 32 (HUD silhouette), the 2 m drop does not; the Event Log shows `damage.fall` emitted by the Player and the `fall_damage` receptron firing.
 - [ ] Throw a small crate at a wall so it bounces back into you, or have a crate fall on you from a stack: the HUD flashes and the torso takes about the damage the dummy takes from the same throw (`actor.struck` in the log). Walking or pushing into crates never hurts.
 - [ ] Blow up a barrel about 2 m away: you are shoved clearly away (about a metre), never thrown into the air, and you can walk normally right after. A wall behind you stops the shove without snagging. Standing next to the barrel does not launch you over obstacles.
+
+## M7 Guards ([ADR 0067](../decisions/0067-vision-and-detection.md), [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md))
+
+No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and run it (F6). The guard patrols A (0, 0, 2) -> B (5, 0, 6) -> C (-5, 0, 6); the player starts at the far corner (12, 0, -12). Debug panel Overlays: "Guard state" on shows state, meter and wary time. Event Log: `actor.awareness`, `actor.heard`, `actor.bark`.
+
+- [ ] The guard walks its route at an unhurried pace (1.8 m/s), turns smoothly (240°/s, no snapping), waits 2 s at A and 1 s elsewhere; footsteps are audible but quieter than the player's.
+- [ ] Walking into its view in the open: `?` (yellow) with a bark ("Huh?") after a moment, then `!` (red, "There you are!") within about a second at 4-9 m. It runs at you and stops about 1.5 m away facing you, not bumping into you.
+- [ ] Crouch-walking at 8 m in its view takes noticeably longer to be noticed than standing (x0.7); at the edge of its view (45°, 6 m) it takes about 2 s. Behind it you are never seen.
+- [ ] Sprinting behind it within about 13 m is heard: `?`, it turns to the spot for 2 s, walks there, looks around (sweeps ±60°) and gives up ("Must be nothing."). Walking behind it at 4 m or more is not heard (concrete).
+- [ ] Throw a small crate near it: it investigates; a crate breaking or a barrel exploding nearby makes it run there at once.
+- [ ] Once alerted, break line of sight (behind the wall at x 1..7 or round the closet): after 4 s it searches (`?` orange, "Where did they go?"), runs then walks to points around where it lost you for up to 30 s, then returns to its route ("They're gone."). While wary (60 s, "Guard state" text) it notices you faster.
+- [ ] Cloak (F1) makes you invisible to it even right in front (it still hears your footsteps).
+- [ ] Baton from behind while it is Unaware or Suspicious knocks it out in one hit: it tips over backwards, the icon and barks stop, and it ignores noise. From the front or once Alerted it takes several hits; hitting it from the front alerts it.
+- [ ] It pushes small crates out of its way gently (at most 2 m/s), cannot shove the large crate, and never flings props.
+- [ ] Guard icons toggle off and on in the Overlays tab; barks are readable at a distance and disappear after about 2 s.

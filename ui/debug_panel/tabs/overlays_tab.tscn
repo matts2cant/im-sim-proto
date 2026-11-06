@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://ui/debug_panel/tabs/overlays_tab.gd" id="1_tab"]
+[ext_resource type="PackedScene" path="res://ui/debug_panel/tabs/awareness_toggles.tscn" id="2_awareness"]
 
 [node name="OverlaysTab" type="VBoxContainer"]
 script = ExtResource("1_tab")
@@ -14,3 +15,6 @@ text = "Stimuli"
 layout_mode = 2
 tooltip_text = "Label flammables and explosives with heat / threshold and fuel left"
 text = "Heat"
+
+[node name="AwarenessToggles" parent="." instance=ExtResource("2_awareness")]
+layout_mode = 2

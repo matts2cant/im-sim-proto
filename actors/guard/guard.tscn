@@ -1,0 +1,185 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://actors/common/movement/nav_walker.gd" id="1_walker"]
+[ext_resource type="Resource" path="res://actors/guard/guard_walker.tres" id="2_walker_config"]
+[ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="3_step"]
+[ext_resource type="Resource" path="res://actors/guard/guard_step.tres" id="4_step_config"]
+[ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="5_hitboxes"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="6_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="7_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="8_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="9_receptron"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/body_damage.tres" id="10_body_damage"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/fall_damage.tres" id="11_fall_damage"]
+[ext_resource type="Resource" path="res://actors/common/knockback/receptrons/knockback.tres" id="12_knockback_receptron"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/heal.tres" id="13_heal"]
+[ext_resource type="Resource" path="res://actors/common/awareness/receptrons/harmed.tres" id="14_harmed"]
+[ext_resource type="Resource" path="res://actors/common/awareness/receptrons/heard_noise.tres" id="15_heard_noise"]
+[ext_resource type="Script" path="res://actors/common/body/body_parts.gd" id="16_body_parts"]
+[ext_resource type="Resource" path="res://actors/guard/guard_body.tres" id="17_guard_body"]
+[ext_resource type="Script" path="res://actors/common/movement/movement_noise.gd" id="18_noise"]
+[ext_resource type="Resource" path="res://actors/guard/guard_movement_noise.tres" id="19_noise_config"]
+[ext_resource type="Script" path="res://actors/common/movement/fall_impact.gd" id="20_fall_impact"]
+[ext_resource type="Script" path="res://actors/common/knockback/knockback.gd" id="21_knockback"]
+[ext_resource type="Resource" path="res://actors/guard/guard_knockback.tres" id="22_knockback_config"]
+[ext_resource type="Script" path="res://actors/common/impact_sensor/impact_sensor.gd" id="23_impact_sensor"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="24_impact_settings"]
+[ext_resource type="Script" path="res://actors/common/pusher/body_pusher.gd" id="25_pusher"]
+[ext_resource type="Resource" path="res://actors/guard/guard_push.tres" id="26_push_config"]
+[ext_resource type="Script" path="res://actors/common/perception/perception_sensor.gd" id="27_perception"]
+[ext_resource type="Resource" path="res://actors/guard/guard_perception.tres" id="28_perception_config"]
+[ext_resource type="Script" path="res://actors/common/awareness/graded_awareness.gd" id="29_awareness"]
+[ext_resource type="Resource" path="res://actors/guard/guard_awareness.tres" id="30_awareness_config"]
+[ext_resource type="Script" path="res://actors/common/behaviour/awareness_behaviour.gd" id="31_behaviour"]
+[ext_resource type="Script" path="res://actors/common/body/downed_pose.gd" id="32_downed_pose"]
+[ext_resource type="Script" path="res://actors/common/awareness/awareness_indicator.gd" id="33_indicator"]
+[ext_resource type="Resource" path="res://actors/guard/guard_barks.tres" id="34_barks"]
+
+[sub_resource type="CapsuleShape3D" id="Shape_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="Material_uniform"]
+albedo_color = Color(0.27, 0.33, 0.45, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Material_skin"]
+albedo_color = Color(0.78, 0.66, 0.55, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Material_visor"]
+albedo_color = Color(0.1, 0.1, 0.12, 1)
+roughness = 0.3
+
+[sub_resource type="SphereMesh" id="Mesh_head"]
+material = SubResource("Material_skin")
+radius = 0.14
+height = 0.28
+
+[sub_resource type="BoxMesh" id="Mesh_visor"]
+material = SubResource("Material_visor")
+size = Vector3(0.2, 0.06, 0.06)
+
+[sub_resource type="BoxMesh" id="Mesh_torso"]
+material = SubResource("Material_uniform")
+size = Vector3(0.44, 0.62, 0.26)
+
+[sub_resource type="BoxMesh" id="Mesh_arm"]
+material = SubResource("Material_uniform")
+size = Vector3(0.13, 0.66, 0.16)
+
+[sub_resource type="BoxMesh" id="Mesh_leg"]
+material = SubResource("Material_uniform")
+size = Vector3(0.17, 0.9, 0.2)
+
+[node name="Guard" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 15
+script = ExtResource("1_walker")
+config = ExtResource("2_walker_config")
+
+[node name="Step" type="Node" parent="."]
+script = ExtResource("3_step")
+config = ExtResource("4_step_config")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Shape_body")
+
+[node name="Pose" type="Node3D" parent="."]
+
+[node name="Head" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0)
+mesh = SubResource("Mesh_head")
+
+[node name="Visor" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.67, -0.115)
+mesh = SubResource("Mesh_visor")
+
+[node name="Torso" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.21, 0)
+mesh = SubResource("Mesh_torso")
+
+[node name="ArmL" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 1.18, 0)
+mesh = SubResource("Mesh_arm")
+
+[node name="ArmR" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.18, 0)
+mesh = SubResource("Mesh_arm")
+
+[node name="LegL" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.45, 0)
+mesh = SubResource("Mesh_leg")
+
+[node name="LegR" type="MeshInstance3D" parent="Pose"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.45, 0)
+mesh = SubResource("Mesh_leg")
+
+[node name="Hitboxes" parent="." instance=ExtResource("5_hitboxes")]
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("6_tags")
+initial_tags = Array[StringName]([&"actor.guard"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("7_attributes")
+base_values = Dictionary[StringName, float]({&"move_speed_mult": 1.0, &"aim_spread_add": 0.0, &"aim_sway_mult": 1.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+script = ExtResource("8_receiver")
+receptrons = Array[ExtResource("9_receptron")]([ExtResource("10_body_damage"), ExtResource("11_fall_damage"), ExtResource("12_knockback_receptron"), ExtResource("13_heal"), ExtResource("14_harmed")])
+
+[node name="Ears" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+script = ExtResource("8_receiver")
+receptrons = Array[ExtResource("9_receptron")]([ExtResource("15_heard_noise")])
+
+[node name="BodyParts" type="Node" parent="."]
+script = ExtResource("16_body_parts")
+profile = ExtResource("17_guard_body")
+
+[node name="Noise" type="Node3D" parent="."]
+script = ExtResource("18_noise")
+config = ExtResource("19_noise_config")
+
+[node name="FallImpact" type="Node" parent="."]
+script = ExtResource("20_fall_impact")
+
+[node name="Knockback" type="Node" parent="."]
+script = ExtResource("21_knockback")
+config = ExtResource("22_knockback_config")
+
+[node name="ImpactSensor" type="Node" parent="."]
+script = ExtResource("23_impact_sensor")
+settings = ExtResource("24_impact_settings")
+
+[node name="Pusher" type="Node" parent="."]
+script = ExtResource("25_pusher")
+config = ExtResource("26_push_config")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.4
+radius = 0.35
+height = 1.8
+
+[node name="Perception" type="Node" parent="."]
+script = ExtResource("27_perception")
+config = ExtResource("28_perception_config")
+
+[node name="Awareness" type="Node" parent="."]
+script = ExtResource("29_awareness")
+config = ExtResource("30_awareness_config")
+
+[node name="Behaviour" type="Node" parent="."]
+script = ExtResource("31_behaviour")
+
+[node name="DownedPose" type="Node" parent="."]
+script = ExtResource("32_downed_pose")
+
+[node name="Indicator" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.15, 0)
+script = ExtResource("33_indicator")
+barks = ExtResource("34_barks")

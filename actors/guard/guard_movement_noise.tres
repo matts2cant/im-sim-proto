@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MovementNoiseConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/movement/movement_noise_config.gd" id="1_script"]
+[ext_resource type="Resource" path="res://actors/common/movement/surface_table.tres" id="2_surfaces"]
+
+[resource]
+script = ExtResource("1_script")
+walk_stride = 2.0
+sprint_stride = 2.6
+crouch_stride = 1.2
+walk_loudness = 5.0
+sprint_loudness = 12.0
+crouch_loudness = 2.0
+landing_min_impact_speed = 3.0
+landing_loudness = 6.0
+landing_reference_speed = 5.0
+landing_max_factor = 4.0
+surfaces = ExtResource("2_surfaces")
+surface_probe_mask = 1
+audio_reference_loudness = 6.0
+audio_min_db = -18.0
+audio_max_db = 6.0

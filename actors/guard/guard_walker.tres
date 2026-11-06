@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NavWalkerConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/movement/nav_walker_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+walk_speed = 1.8
+investigate_speed = 2.5
+run_speed = 5.0
+sprint_tag_speed = 4.0
+acceleration = 14.0
+turn_rate = 240.0
+gravity_scale = 1.0
+arrive_distance = 0.4
+stuck_time = 1.5
+stuck_speed_ratio = 0.2

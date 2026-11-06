@@ -5,8 +5,8 @@ extends CharacterBody3D
 ## (PlayerInventory), weapons (WeaponHolder) and body-part damage (BodyParts, Hitboxes).
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, CarryRules); tuning comes from
 ## `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
-## Physics props do not collide with this body in the solver; PlayerPusher pushes them and presses
-## on what the player stands on with bounded forces instead (ADR 0054); ImpactSensor turns props
+## Physics props do not collide with this body in the solver; the BodyPusher component pushes them
+## and presses on what the player stands on with bounded forces instead (ADR 0054); ImpactSensor turns props
 ## flying into it into `damage.blunt`.
 ## Generic character components do the rest (ADR 0056): MovementNoise (footsteps, landings; reads
 ## the stance tags this script sets), FallImpact (`damage.fall` -> the `fall_damage` receptron),
@@ -70,7 +70,6 @@ var crouched: bool = false
 var pitch: float = 0.0
 
 var _probe: PlayerProbe
-var _pusher: PlayerPusher
 var _jump_requested: bool = false
 var _jump_was_held: bool = false
 var _air_time: float = 0.0
@@ -92,6 +91,7 @@ var _view_offset: float = 0.0
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
 @onready var step: StepClimber = $Step
+@onready var pusher: BodyPusher = $Pusher
 @onready var carry: PlayerCarry = $Carry
 @onready var body: BodyParts = $BodyParts
 @onready var hitboxes: Hitboxes = $Hitboxes
@@ -121,7 +121,6 @@ func _ready() -> void:
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
 	_probe = PlayerProbe.new(self, config)
-	_pusher = PlayerPusher.new(self, config)
 	_spawn_transform = global_transform
 	_ground_y = global_position.y
 	_air_speed_cap = config.walk_speed
@@ -266,14 +265,6 @@ func look_hit(length: float) -> Dictionary:
 	return get_world_3d().direct_space_state.intersect_ray(query)
 
 
-# The player's body and what it carries: PlayerPusher leaves them alone.
-func _own_rids() -> Array[RID]:
-	var rids: Array[RID] = [get_rid()]
-	if carry.is_carrying():
-		rids.append(carry.held.get_rid())
-	return rids
-
-
 ## Takes the current key state as "already held", so a key still down when a pause screen closes
 ## (E closing the reading overlay) does not count as a new press.
 func resync_actions() -> void:
@@ -346,7 +337,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	if on_floor:
 		_ground_y = global_position.y
 	_air_time = 0.0 if on_floor else _air_time + delta
-	_pusher.step(attempted, on_floor, capsule_height(), delta, _own_rids())
+	pusher.after_move(attempted, delta)
 
 
 # The stance tags MovementNoise, StepClimber (and anything else) read: crouched, sprinting, mantling.
