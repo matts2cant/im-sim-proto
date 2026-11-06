@@ -78,6 +78,9 @@ func test_reset_level_reloads_the_physics_fire_room() -> void:
 	var tab := _tab("Spawn") as SpawnTab
 
 	var error := tab.reset_level()
+	# The queue is cleared by the reset itself; the reloaded room's objects may queue new stimuli
+	# (fire pulses, impact noises) within the frames awaited below.
+	var pending_after_reset := StimulusSystem.pending_count()
 	await tree.process_frame
 	await tree.process_frame
 
@@ -91,7 +94,7 @@ func test_reset_level_reloads_the_physics_fire_room() -> void:
 	assert_bool(Flammable.of(fresh.get_node("FireSpread/FireCrate1")).is_burning()).is_false()
 	assert_object(fresh.get_node_or_null("SpawnedBox")).is_null()
 	assert_array(Objects.logged(&"debug.reset_level", "scene", PHYSICS_FIRE_ROOM)).has_size(1)
-	assert_int(StimulusSystem.pending_count()).is_equal(0)
+	assert_int(pending_after_reset).is_equal(0)
 
 
 func test_reset_level_without_a_level_does_nothing() -> void:

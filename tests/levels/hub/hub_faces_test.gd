@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
-## Hub geometry (with the movement course behind doorway "1 Movement" and the physics and fire
-## room behind "3 Physics & Fire"): no two kit parts render different materials on the same plane.
+## Hub geometry with every gallery room instanced in it (movement course behind doorway
+## "1 Movement", physics and fire room behind "3 Physics & Fire", shooting range behind
+## "4 Shooting Range"): no two kit parts render different materials on the same plane.
 ## Guards against the corridor ceiling that ended flush with the hub and hall wall faces and
 ## z-fought above both corridor doorways.
 
