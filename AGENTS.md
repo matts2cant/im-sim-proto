@@ -93,6 +93,9 @@ A task is done only when all of these hold:
 - Reusable test helpers: `tests/actors/player/player_driver.gd` drives the player in integration tests; reuse it instead of writing a new one. `tests/core/stimulus/stimulus_fixtures.gd` builds stimulus entities (Tags + Attributes + StimulusReceiver) in code.
 - `await get_tree().physics_frame` resumes *before* that frame's `_physics_process` calls: a stimulus emitted from a test is delivered after the second await.
 - Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances.
+- Rigid-body contacts (Jolt): with `contact_monitor` on, `PhysicsServer3D.body_get_direct_state(rid)` in `_physics_process` gives the last step's contacts and post-step velocity; keep the previous tick's velocity to measure an impact (see `ImpactNoise`).
+- `for x: T in [a, b]` types the array literal: a freed object in it errors "invalid (previously freed?) object instance into a TypedArray". Stimulus sources are often freed before processing (a broken crate's noise): check `is_instance_valid` first.
+- `tools/screenshot.sh` crops the 2D layer when the OS window is smaller than the 1152x648 base size (this machine opens 840x648): for UI shots save `get_viewport().get_texture().get_image()` from a fixture script (`tests/objects/fixtures/showcase/showcase_trigger.gd`).
 
 ## Engine probes
 

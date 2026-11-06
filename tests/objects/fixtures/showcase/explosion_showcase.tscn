@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="2_small"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="3_barrel"]
+[ext_resource type="Script" path="res://tests/objects/fixtures/showcase/showcase_trigger.gd" id="4_trigger"]
+
+[sub_resource type="Environment" id="Environment_dim"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.3
+tonemap_mode = 2
+
+[node name="ExplosionShowcase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dim")
+
+[node name="Room" parent="." instance=ExtResource("1_room")]
+size = Vector3(14, 5, 14)
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 3)
+light_energy = 0.6
+omni_range = 12.0
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9848, 0.1736, 0, -0.1736, 0.9848, 0, 1.65, 5.5)
+current = true
+fov = 80.0
+
+[node name="BarrelA" parent="." instance=ExtResource("3_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+
+[node name="BarrelB" parent="." instance=ExtResource("3_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.45, -0.5)
+
+[node name="Crate1" parent="." instance=ExtResource("2_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.3, 0)
+
+[node name="Crate2" parent="." instance=ExtResource("2_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.3, -1.8)
+
+[node name="Crate3" parent="." instance=ExtResource("2_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.3, 0.62)
+
+[node name="Trigger" type="Node" parent="."]
+script = ExtResource("4_trigger")
+target = NodePath("../BarrelA")
+delay = 0.5

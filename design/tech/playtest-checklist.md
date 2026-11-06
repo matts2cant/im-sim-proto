@@ -48,9 +48,20 @@ See [../levels/kit.md](../levels/kit.md).
 
 ## M3 Physics objects and fire (Physics and fire)
 
-- [ ] Objects can be picked up, carried and thrown; impacts make noise.
-- [ ] Fire spreads to flammable neighbours only.
-- [ ] Explosive objects explode when shot or burned.
+Until the gallery room exists: start the hub, open the debug panel (`) and use the Spawn tab (objects appear 2 m in front of you). Keep the Event Log tab (filter `object.` / `player.`) and Overlays > Heat at hand. See [../game/objects-and-fire.md](../game/objects-and-fire.md).
+
+- [ ] Pick up a small crate, cardboard box and bottle with E (look at it within 2 m): it floats 1.2 m ahead slightly below the eyes, follows the view smoothly without lag or jitter, and bumps into walls instead of passing through them. The large and metal crates and the barrel refuse (`player.pickup_refused`).
+- [ ] Walking with the small crate (10 kg) feels a bit slower (x0.8); with a box or bottle it does not. Mantling does nothing while carrying; jumping still works.
+- [ ] E puts the object down gently; Q drops it; LMB throws it: a crate flies a short arc (4 m/s), a box or bottle flies fast and far (12 m/s). Pushing a held crate into a corner and walking away drops it (`how: stuck`) rather than dragging it through the wall.
+- [ ] Impacts: dropping and throwing objects makes sounds that match the material (wood thunk, metal clang, glass, soft cardboard) and get louder with harder hits; a crate set down gently is silent. A thrown bottle shatters on the wall with glass sounds and debris.
+- [ ] Fire: Spawn two small crates side by side (touching), "Ignite looked-at" one. Light, flames and a quiet crackle start; the neighbour's Heat label climbs and it catches after about 3 s. A metal crate beside it never burns; a crate behind a wall never warms up.
+- [ ] Brazier: spawn one and throw or place a crate against it: the crate catches in about 2 s. Standing next to the brazier logs `player.hurt` (damage.fire) a couple of times a second.
+- [ ] Carry a burning crate: `player.hurt` with shape `contact` every 0.5 s; carry it to a cold crate and it lights that one.
+- [ ] A burning crate burns out after 20 s (cardboard 8 s): flames stop, it turns black for a moment and falls apart into debris that disappears after about 10 s. Debris never blocks walking.
+- [ ] Explosive barrel: "Ignite looked-at" (or push burning crates against it): big bang, flash, fireball; nearby crates are knocked away and the ones within about 2 m catch fire at once; a second barrel 2 m away goes off right after. Very close crates are blown apart.
+- [ ] Wooden barricade: spawn one, ignite it; it burns for 30 s, then disappears and the gap is passable.
+- [ ] Time tab: 0.25 x makes the fire and flying objects slow-motion; Reset returns to normal. Heat overlay labels are readable and disappear when unticked.
+- [ ] Fire light and particles look right (orange flicker, soft flames, no square sprites); several fires do not tank the frame rate.
 
 ## M4 Damage and weapons (Shooting range)
 

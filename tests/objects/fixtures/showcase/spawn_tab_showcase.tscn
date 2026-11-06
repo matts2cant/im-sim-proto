@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="2_small"]
+[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="3_large"]
+[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="4_metal"]
+[ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="5_cardboard"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="6_barrel"]
+[ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="7_bottle"]
+[ext_resource type="PackedScene" path="res://objects/wooden_barricade/wooden_barricade.tscn" id="8_barricade"]
+[ext_resource type="PackedScene" path="res://objects/brazier/brazier.tscn" id="9_brazier"]
+[ext_resource type="Script" path="res://tests/objects/fixtures/showcase/showcase_trigger.gd" id="10_trigger"]
+
+[sub_resource type="Environment" id="Environment_dim"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.25
+tonemap_mode = 2
+
+[node name="SpawnTabShowcase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dim")
+
+[node name="Room" parent="." instance=ExtResource("1_room")]
+size = Vector3(10, 4, 10)
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3.5, 2)
+light_energy = 0.6
+omni_range = 10.0
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 1.65, 3)
+current = true
+fov = 80.0
+
+[node name="BurningCrate" parent="." instance=ExtResource("2_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="ColdCrate" parent="." instance=ExtResource("2_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62, 0.3, 0)
+
+[node name="MetalCrate" parent="." instance=ExtResource("4_metal")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.82, 0.4, 0.1)
+
+[node name="GlassBottle" parent="." instance=ExtResource("7_bottle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.95, 0.2)
+
+[node name="CardboardBox" parent="." instance=ExtResource("5_cardboard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.25, 1.0)
+
+[node name="LargeCrate" parent="." instance=ExtResource("3_large")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 0.6, -1.6)
+
+[node name="ExplosiveBarrel" parent="." instance=ExtResource("6_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 0.45, -1.4)
+
+[node name="Brazier" parent="." instance=ExtResource("9_brazier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, 0, 0.8)
+
+[node name="WoodenBarricade" parent="." instance=ExtResource("8_barricade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.2)
+
+[node name="Trigger" type="Node" parent="."]
+script = ExtResource("10_trigger")
+target = NodePath("../BurningCrate")
+delay = 0.05
+open_tab = "Spawn"
+capture_path = "res://reports/screenshots/m3_spawn_tab.png"
+capture_after = 1.5

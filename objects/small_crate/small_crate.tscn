@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/physics_object.gd" id="1_physics_object"]
+[ext_resource type="Material" path="res://objects/materials/wood_surface.tres" id="2_wood_surface"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="4_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="5_stimulus_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="6_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/heat_from_fire.tres" id="7_heat_from_fire"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="8_take_damage"]
+[ext_resource type="Resource" path="res://objects/materials/wood.tres" id="9_wood"]
+[ext_resource type="Script" path="res://objects/components/flammable.gd" id="10_flammable"]
+[ext_resource type="Resource" path="res://objects/small_crate/small_crate_fire.tres" id="11_small_crate_fire"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="12_breakable"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="13_break_settings"]
+[ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="14_impact_noise"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="15_impact_settings"]
+[ext_resource type="Script" path="res://objects/components/carryable.gd" id="16_carryable"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.6, 0.6, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+size = Vector3(0.6, 0.6, 0.6)
+material = ExtResource("2_wood_surface")
+
+[node name="SmallCrate" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 15
+mass = 10.0
+script = ExtResource("1_physics_object")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_body")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("3_tags")
+initial_tags = Array[StringName]([&"material.wood", &"object.crate"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("4_attributes")
+base_values = Dictionary[StringName, float]({&"health": 30.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("5_stimulus_receiver")
+receptrons = Array[ExtResource("6_receptron")]([ExtResource("7_heat_from_fire"), ExtResource("8_take_damage")])
+
+[node name="Flammable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("10_flammable")
+config = ExtResource("11_small_crate_fire")
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("12_breakable")
+material = ExtResource("9_wood")
+settings = ExtResource("13_break_settings")
+size = 0.6
+
+[node name="ImpactNoise" type="Node" parent="."]
+script = ExtResource("14_impact_noise")
+material = ExtResource("9_wood")
+settings = ExtResource("15_impact_settings")
+
+[node name="Carryable" type="Node" parent="."]
+script = ExtResource("16_carryable")

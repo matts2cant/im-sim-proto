@@ -47,3 +47,6 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0041](0041-runtime-navmesh-bake.md) | Runtime navmesh bake on level load | Accepted |
 | [0042](0042-kit-part-conventions.md) | Kit part conventions | Accepted |
 | [0043](0043-room-connections-share-a-wall.md) | Room connections share one overlapped wall | Accepted |
+| [0044](0044-fire-scope-v0.md) | Fire scope in v0 | Accepted |
+| [0045](0045-collision-layers.md) | Collision layers | Accepted |
+| [0046](0046-heat-accumulation-fire-model.md) | Heat accumulation fire model, fresh chain per pulse with cause_id | Accepted |

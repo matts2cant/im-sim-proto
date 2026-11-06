@@ -1,0 +1,74 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/physics_object.gd" id="1_physics_object"]
+[ext_resource type="Material" path="res://objects/materials/barrel_surface.tres" id="2_barrel_surface"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="4_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="5_stimulus_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="6_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/heat_from_fire.tres" id="7_heat_from_fire"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="8_take_damage"]
+[ext_resource type="Resource" path="res://objects/materials/metal.tres" id="9_metal"]
+[ext_resource type="Script" path="res://objects/components/explosive.gd" id="10_explosive"]
+[ext_resource type="Resource" path="res://objects/explosive_barrel/explosive_barrel_explosive.tres" id="11_explosive_barrel_explosive"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="12_breakable"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="13_break_settings"]
+[ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="14_impact_noise"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="15_impact_settings"]
+[ext_resource type="Script" path="res://objects/components/carryable.gd" id="16_carryable"]
+
+[sub_resource type="CylinderShape3D" id="Shape_body"]
+height = 0.9
+radius = 0.3
+
+[sub_resource type="CylinderMesh" id="Mesh_body"]
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.9
+material = ExtResource("2_barrel_surface")
+
+[node name="ExplosiveBarrel" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 15
+mass = 30.0
+script = ExtResource("1_physics_object")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_body")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("3_tags")
+initial_tags = Array[StringName]([&"material.metal", &"object.barrel", &"object.explosive"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("4_attributes")
+base_values = Dictionary[StringName, float]({&"health": 25.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("5_stimulus_receiver")
+receptrons = Array[ExtResource("6_receptron")]([ExtResource("7_heat_from_fire"), ExtResource("8_take_damage")])
+
+[node name="Explosive" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("10_explosive")
+config = ExtResource("11_explosive_barrel_explosive")
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("12_breakable")
+material = ExtResource("9_metal")
+settings = ExtResource("13_break_settings")
+size = 0.9
+break_on_depleted = false
+
+[node name="ImpactNoise" type="Node" parent="."]
+script = ExtResource("14_impact_noise")
+material = ExtResource("9_metal")
+settings = ExtResource("15_impact_settings")
+
+[node name="Carryable" type="Node" parent="."]
+script = ExtResource("16_carryable")

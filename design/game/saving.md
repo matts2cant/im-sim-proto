@@ -14,7 +14,7 @@ F5 quicksave, F9 quickload (M6). Death leads to reload/restart ([../levels/missi
 
 - Nodes in group `saveable` implement `save_state() -> Dictionary` and `load_state(data: Dictionary) -> void`.
 - Save code lives in `core/save/`.
-- Systems that must comply: player ([movement.md](movement.md), done in M1), attributes ([attributes-and-tags.md](attributes-and-tags.md)), inventory ([inventory.md](inventory.md)), health ([damage.md](damage.md)), AI ([perception-and-ai.md](perception-and-ai.md)), objects ([objects-and-fire.md](objects-and-fire.md)).
+- Systems that must comply: player ([movement.md](movement.md), done in M1), attributes ([attributes-and-tags.md](attributes-and-tags.md)), inventory ([inventory.md](inventory.md)), health ([damage.md](damage.md)), AI ([perception-and-ai.md](perception-and-ai.md)), objects ([objects-and-fire.md](objects-and-fire.md); M3: `PhysicsObject` saves `scene_file_path`, transform and velocities, `Flammable` and `Explosive` their fire state; a carried object is dropped on load).
 - Contract tests are written with each feature.
 
 ## Open questions

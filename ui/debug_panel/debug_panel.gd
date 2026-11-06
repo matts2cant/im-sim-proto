@@ -3,9 +3,13 @@ extends CanvasLayer
 
 const EVENT_LOG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/event_log_tab.tscn")
 const OVERLAYS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/overlays_tab.tscn")
+const SPAWN_TAB: PackedScene = preload("res://ui/debug_panel/tabs/spawn_tab.tscn")
+const TIME_TAB: PackedScene = preload("res://ui/debug_panel/tabs/time_tab.tscn")
 
 ## World-space stimulus drawing; lives outside the tabs so it shows while the panel is closed.
 var stimulus_overlay: StimulusOverlay
+## Heat / fuel labels above flammables and explosives; also outside the tabs.
+var heat_overlay: HeatOverlay
 
 var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 
@@ -15,9 +19,14 @@ var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 func _ready() -> void:
 	stimulus_overlay = StimulusOverlay.new()
 	add_child(stimulus_overlay)
+	heat_overlay = HeatOverlay.new()
+	add_child(heat_overlay)
 	var overlays := OVERLAYS_TAB.instantiate() as OverlaysTab
 	overlays.stimulus_overlay = stimulus_overlay
+	overlays.heat_overlay = heat_overlay
 	register_tab("Overlays", overlays)
+	register_tab("Spawn", SPAWN_TAB.instantiate() as Control)
+	register_tab("Time", TIME_TAB.instantiate() as Control)
 	register_tab("Event Log", EVENT_LOG_TAB.instantiate() as Control)
 
 

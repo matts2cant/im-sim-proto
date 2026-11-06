@@ -3,12 +3,20 @@
 [ext_resource type="Script" path="res://actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://actors/player/player_config.tres" id="2_config"]
 [ext_resource type="Script" path="res://actors/player/player_noise.gd" id="3_noise"]
+[ext_resource type="Script" path="res://actors/player/player_carry.gd" id="4_carry"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="5_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="6_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="7_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="8_receptron"]
+[ext_resource type="Resource" path="res://actors/player/player_hurt.tres" id="9_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
 height = 1.8
 
 [node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 13
 script = ExtResource("1_player")
 config = ExtResource("2_config")
 
@@ -34,3 +42,19 @@ script = ExtResource("3_noise")
 
 [node name="Audio" type="AudioStreamPlayer3D" parent="Noise"]
 max_polyphony = 2
+
+[node name="Carry" type="Node" parent="."]
+script = ExtResource("4_carry")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("5_tags")
+initial_tags = Array[StringName]([&"actor.player"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("6_attributes")
+base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+script = ExtResource("7_receiver")
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_hurt")])

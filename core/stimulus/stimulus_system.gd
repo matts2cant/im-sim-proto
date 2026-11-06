@@ -44,10 +44,13 @@ func _physics_process(_delta: float) -> void:
 ## Queues `stimulus` for the next tick and assigns its id and depth. Depth is the depth of the
 ## stimulus being delivered (or of `parent`) + 1, else 0. Beyond MAX_DEPTH it is dropped and logged.
 func emit(stimulus: Stimulus, parent: Stimulus = null) -> void:
+	stimulus.source_label = stimulus.source_name()
 	stimulus.id = _next_id
 	_next_id += 1
 	var cause := parent if parent != null else _current
 	stimulus.depth = cause.depth + 1 if cause != null else 0
+	if stimulus.cause_id == 0 and cause != null:
+		stimulus.cause_id = cause.id
 	if stimulus.depth > MAX_DEPTH:
 		var data := {"id": stimulus.id, "type": stimulus.type, "depth": stimulus.depth}
 		EventLog.record(&"stimulus.dropped", stimulus.source_name(), "", data)
@@ -88,6 +91,7 @@ func _process_stimulus(stimulus: Stimulus) -> void:
 		"depth": stimulus.depth,
 		"source": stimulus.source_name(),
 		"shape": Stimulus.shape_name(stimulus.shape),
+		"cause_id": stimulus.cause_id,
 	}
 	EventLog.record(&"stimulus.emitted", stimulus.source_name(), target, emitted)
 	var paths: Array[PackedVector3Array] = []
@@ -111,6 +115,8 @@ func _deliver_radius(stimulus: Stimulus, paths: Array[PackedVector3Array]) -> vo
 		if stimulus.origin.distance_to(to) > stimulus.radius:
 			continue
 		var reach := _reach(stimulus, receiver)
+		if reach == null:
+			continue
 		if stimulus.propagation == Stimulus.Propagation.PATH:
 			paths.append(reach.points)
 		var perceived := stimulus.perceived_at(reach.distance)
@@ -154,11 +160,17 @@ func _deliverable(receiver: StimulusReceiver) -> bool:
 	return is_instance_valid(receiver) and receiver.is_inside_tree()
 
 
+## How far the stimulus travels to the receiver, or null when it cannot reach it (line of sight
+## blocked by world geometry).
 func _reach(stimulus: Stimulus, receiver: StimulusReceiver) -> Reach:
 	var to := receiver.global_position
 	var straight := PackedVector3Array([stimulus.origin, to])
 	if stimulus.propagation == Stimulus.Propagation.STRAIGHT:
 		return Reach.new(stimulus.origin.distance_to(to), straight, "straight")
+	if stimulus.propagation == Stimulus.Propagation.LINE_OF_SIGHT:
+		if not _line_of_sight(stimulus, receiver):
+			return null
+		return Reach.new(stimulus.origin.distance_to(to), straight, "line_of_sight")
 	var map := receiver.get_world_3d().navigation_map
 	var nav := PackedVector3Array()
 	if NavigationServer3D.map_get_iteration_id(map) > 0 and not NavigationServer3D.map_get_regions(map).is_empty():
@@ -170,6 +182,20 @@ func _reach(stimulus: Stimulus, receiver: StimulusReceiver) -> Reach:
 	points.append_array(nav)
 	points.append(to)
 	return Reach.new(StimulusPropagation.polyline_length(points) + _attenuation(points), points, "path")
+
+
+## True when a ray from the origin to the receiver hits nothing on the world layer. The source's and
+## the receiver entity's own bodies never block (a barricade on the world layer still gets the fire
+## aimed at its centre); physics objects (layer 4) are not on the mask.
+func _line_of_sight(stimulus: Stimulus, receiver: StimulusReceiver) -> bool:
+	var exclude: Array[RID] = []
+	# The source is often freed by now (an exploded barrel): check before touching it.
+	if is_instance_valid(stimulus.source) and stimulus.source is CollisionObject3D:
+		exclude.append((stimulus.source as CollisionObject3D).get_rid())
+	if is_instance_valid(receiver.entity) and receiver.entity is CollisionObject3D:
+		exclude.append((receiver.entity as CollisionObject3D).get_rid())
+	var space := receiver.get_world_3d().direct_space_state
+	return PhysicsLayers.segment_clear(space, stimulus.origin, receiver.global_position, PhysicsLayers.WORLD, exclude)
 
 
 ## Sum of extra_metres of every enabled SoundAttenuator the polyline passes through (each once).

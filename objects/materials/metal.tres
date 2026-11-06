@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="MaterialProfile" format=3]
+
+[ext_resource type="Script" path="res://objects/materials/material_profile.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_000.ogg" id="2_impactMetal_light_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_001.ogg" id="3_impactMetal_light_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_002.ogg" id="4_impactMetal_light_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_003.ogg" id="5_impactMetal_light_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_004.ogg" id="6_impactMetal_light_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_000.ogg" id="7_impactMetal_medium_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_001.ogg" id="8_impactMetal_medium_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_002.ogg" id="9_impactMetal_medium_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_003.ogg" id="10_impactMetal_medium_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_004.ogg" id="11_impactMetal_medium_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg" id="12_impactMetal_heavy_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_001.ogg" id="13_impactMetal_heavy_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_002.ogg" id="14_impactMetal_heavy_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_003.ogg" id="15_impactMetal_heavy_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_004.ogg" id="16_impactMetal_heavy_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Metal Glass Destruction.wav" id="17_break"]
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_0"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("2_impactMetal_light_0")
+stream_1/stream = ExtResource("3_impactMetal_light_1")
+stream_2/stream = ExtResource("4_impactMetal_light_2")
+stream_3/stream = ExtResource("5_impactMetal_light_3")
+stream_4/stream = ExtResource("6_impactMetal_light_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_1"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("7_impactMetal_medium_0")
+stream_1/stream = ExtResource("8_impactMetal_medium_1")
+stream_2/stream = ExtResource("9_impactMetal_medium_2")
+stream_3/stream = ExtResource("10_impactMetal_medium_3")
+stream_4/stream = ExtResource("11_impactMetal_medium_4")
+
+[sub_resource type="AudioStreamRandomizer" id="Impact_2"]
+random_pitch = 1.1
+streams_count = 5
+stream_0/stream = ExtResource("12_impactMetal_heavy_0")
+stream_1/stream = ExtResource("13_impactMetal_heavy_1")
+stream_2/stream = ExtResource("14_impactMetal_heavy_2")
+stream_3/stream = ExtResource("15_impactMetal_heavy_3")
+stream_4/stream = ExtResource("16_impactMetal_heavy_4")
+
+[resource]
+script = ExtResource("1_script")
+tag = &"material.metal"
+impact_loudness = 1.4
+impact_sounds = Array[AudioStream]([SubResource("Impact_0"), SubResource("Impact_1"), SubResource("Impact_2")])
+damage_multipliers = Dictionary[StringName, float]({&"damage.fire": 0.0, &"damage.blunt": 0.5})
+break_impact_speed = 0.0
+break_sound = ExtResource("17_break")
+break_volume_db = -4.0
+debris_color = Color(0.35, 0.36, 0.38, 1)

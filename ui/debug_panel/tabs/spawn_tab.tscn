@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/tabs/spawn_tab.gd" id="1_tab"]
+
+[node name="SpawnTab" type="VBoxContainer"]
+script = ExtResource("1_tab")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+text = "Spawn 2 m in front of the player"
+
+[node name="Buttons" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 4
+
+[node name="Separator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Ignite" type="Button" parent="Actions"]
+layout_mode = 2
+tooltip_text = "CONTACT fire, intensity 100, to the object under the crosshair"
+text = "Ignite looked-at"
+
+[node name="Damage" type="Button" parent="Actions"]
+layout_mode = 2
+tooltip_text = "CONTACT damage.blunt 10 to the object under the crosshair"
+text = "Damage looked-at 10"
+
+[node name="Status" type="Label" parent="."]
+layout_mode = 2

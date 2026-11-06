@@ -25,12 +25,27 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Mantle reach | 0.8 m horizontal from the capsule | Ledge lips must be within reach of a standable spot |
 | Mantle clearance | standing clearance on top, or crouched clearance (ends crouched) | A vent mouth on a ledge needs ≥ 1.0 m height above the ledge |
 
+## Objects (M3)
+
+| Object | Size | Level use |
+|---|---|---|
+| Small wooden crate | 0.6 m cube, 10 kg | Jump onto (< 1.0 m); carryable; two stacked (1.2 m) are mantled |
+| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to carry |
+| Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry |
+| Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s) |
+| Explosive barrel | Ø0.6 x 0.9 m, 30 kg | Keep 4 m from things that should survive; 2 m from another barrel chains |
+| Wooden barricade | 1.3 x 2.2 x 0.12 m, origin on the floor | Fills a 1.2 x 2.2 m doorway (ends overlap the jambs) |
+| Brazier | Ø0.6 x 0.9 m, origin on the floor | Permanent fire, reach 1.2 m from its centre |
+
+Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (layer 1); props do not shield it. Touching small crates catch in 3 s, crates 0.6 m apart in 19 s ([objects-and-fire.md](../game/objects-and-fire.md)). Carry: pick-up reach 2.0 m, limit 20 kg.
+
 ## Noise (audible distance in metres, walking on concrete = 6)
 
 | Surface multiplier | concrete 1.0 · carpet 0.5 · grass 0.7 · wood 1.2 · metal 1.6 |
 |---|---|
 | Footsteps | walk 6 · sprint 14 · crouch 2 (× surface) |
 | Landing | 6 × clamp(impact speed / 5, 1, 4) × surface, from 3 m/s impact (on concrete: 1 m jump 6.3 m/s → 7.5, 2 m drop 8.9 m/s → 10.6, 5 m drop 14.0 m/s → 16.8) |
+| Object impacts | clamp(speed × √mass × 0.8, 2, 30) × material (wood 1.0, metal 1.4, glass 1.6, cardboard 0.4), from 2.5 m/s; burning crackle 4; break 15; explosion 60 |
 
 Floors declare their surface with node metadata `surface` on the CSG root that has collision ([ADR 0033](../decisions/README.md)); kit parts set it from their `surface` property.
 

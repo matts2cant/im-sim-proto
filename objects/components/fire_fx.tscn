@@ -1,0 +1,69 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/fire_fx.gd" id="1_fx"]
+
+[sub_resource type="Gradient" id="Gradient_soft"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.45, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_soft"]
+gradient = SubResource("Gradient_soft")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flame"]
+albedo_texture = SubResource("GradientTexture2D_soft")
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_flame"]
+material = SubResource("StandardMaterial3D_flame")
+size = Vector2(0.5, 0.5)
+
+[sub_resource type="Curve" id="Curve_flame"]
+_data = [Vector2(0, 0.6), 0.0, 0.0, 0, 0, Vector2(0.3, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_flame"]
+offsets = PackedFloat32Array(0, 0.35, 0.75, 1)
+colors = PackedColorArray(1, 0.9, 0.45, 1, 1, 0.5, 0.08, 0.9, 0.7, 0.18, 0.03, 0.5, 0.15, 0.1, 0.1, 0)
+
+[node name="FireFx" type="Node3D"]
+script = ExtResource("1_fx")
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+light_color = Color(1, 0.55, 0.2, 1)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 4.5
+
+[node name="Flames" type="CPUParticles3D" parent="."]
+amount = 40
+lifetime = 0.7
+randomness = 0.3
+mesh = SubResource("QuadMesh_flame")
+emission_shape = 1
+emission_sphere_radius = 0.3
+direction = Vector3(0, 1, 0)
+spread = 15.0
+gravity = Vector3(0, 2.5, 0)
+initial_velocity_min = 0.4
+initial_velocity_max = 1.0
+scale_amount_min = 0.4
+scale_amount_max = 0.7
+scale_amount_curve = SubResource("Curve_flame")
+color_ramp = SubResource("Gradient_flame")
+
+[node name="Crackle" type="AudioStreamPlayer3D" parent="."]
+unit_size = 4.0
+max_distance = 20.0

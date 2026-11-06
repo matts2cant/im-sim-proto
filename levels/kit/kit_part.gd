@@ -18,6 +18,8 @@ var _warnings: PackedStringArray = []
 
 func _init() -> void:
 	use_collision = true
+	# Level geometry is the world layer (ADR 0045): it blocks line-of-sight stimuli (fire).
+	collision_layer = PhysicsLayers.WORLD
 	rebuild()
 
 

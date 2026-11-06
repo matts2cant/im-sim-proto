@@ -26,6 +26,10 @@ A HUD body silhouette shows part health. Injuries change behaviour. Medkits heal
 
 - [stimulus-response.md](stimulus-response.md), [attributes-and-tags.md](attributes-and-tags.md) (health and resistances as attributes), [movement.md](movement.md), [perception-and-ai.md](perception-and-ai.md), [objects-and-fire.md](objects-and-fire.md) (fire and explosive damage)
 
+## Objects (M3)
+
+Objects already take damage: `Breakable` reacts to every `damage.*` stimulus through the `take_damage` receptron, scales it by its material's per-type multiplier and lowers the `health` attribute; at 0 it breaks, or an `Explosive` explodes ([objects-and-fire.md](objects-and-fire.md)). M4 weapons only need to emit `damage.ballistic` RAY / `damage.blunt` CONTACT stimuli at objects; resistances per material are in `objects/materials/*.tres`. The player's `hurt` receptron (logs `player.hurt`) is the hook M4 body-part damage replaces; fire (`damage.fire`, RADIUS and carried CONTACT) and explosions (`damage.explosive` 100 / 4 m) already reach it.
+
 ## Open questions
 
 - Part health values, per-type resistance numbers, medkit distribution rule, how stun accumulates per part: TBD in M4.
