@@ -41,14 +41,14 @@ Speed Enhancement ([abilities](../game/abilities.md), [ADR 0061](../decisions/00
 | Landing noise | x1 | x1.5 (Run Silent: x0, also footsteps) | — |
 | Drop from a 2.3 m ledge | 9.5 m/s, harmless (fall damage from 10 m/s) | same | — |
 
-Combat Strength (passive, installed by default on the player): carry limit 70 kg instead of 20, so the metal crate (25 kg) and the large crate (60 kg) can be carried; a carried large crate is a 1.2 m step anywhere.
+Combat Strength (F6 toggle, off by default, 1 energy/s): carry limit 70 kg instead of 20 while on, so the metal crate (25 kg) and the large crate (60 kg) can be carried; a carried large crate is a 1.2 m step anywhere.
 
 ## Objects (M3)
 
 | Object | Size | Level use |
 |---|---|---|
 | Small wooden crate | 0.6 m cube, 10 kg | Jump onto (above the 0.35 m step height, below 1.0 m); carryable; pushed by walking into it (up to 2 m/s); two stacked (1.2 m) are mantled |
-| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to push; carried only with Combat Strength (70 kg), otherwise a fixed climbing aid |
+| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to push; carried only with Combat Strength on (70 kg), otherwise a fixed climbing aid |
 | Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry without Combat Strength; pushed slowly by walking into it |
 | Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s); above the step height, so standing on one is a jump |
 | Explosive barrel | Ø0.6 x 0.9 m, 30 kg | Keep 4 m from things that should survive; 2 m from another barrel chains |

@@ -263,7 +263,7 @@ text = "Drop things here · listen"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 3.2, -19.98)
 text = "F1 Cloak · F2 Run Silent
 F3 Speed · F4 Regeneration
-Combat Strength: passive
+F6 Combat Strength
 Biocells: +25 energy"
 
 [node name="SpeedLedge" parent="Labels" instance=ExtResource("3_sign")]
@@ -274,7 +274,7 @@ size = 0
 
 [node name="HeavyCrate" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.9, -18.6)
-text = "Combat Strength
+text = "F6 Combat Strength
 lift me"
 size = 0
 

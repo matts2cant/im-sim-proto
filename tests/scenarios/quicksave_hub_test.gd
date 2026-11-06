@@ -2,7 +2,9 @@ extends GdUnitTestSuite
 ## Scenario: quicksave and quickload on the real hub (the current scene). Change many systems, save,
 ## change them all again, load: everything is back as saved (a capture of the loaded level matches
 ## the saved one), removed things stay gone, spawned things are back, nothing is queued.
-## Also: real F5 / F9 key presses, and a carried object lands where it was held.
+## Also: real F5 / F9 key presses, a carried object lands where it was held, and the abilities
+## (skill tiers, energy, installed and active augmentations with their tags and modifiers) come back
+## without duplicate modifiers (ADR 0061, ADR 0063).
 
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -17,6 +19,20 @@ const BARRICADE := "PhysicsFireRoom/BarricadeRoom/Barricade"
 const DATAPAD := "InventoryBayRoom/DatapadPedestal/Datapad/Readable"
 const OTHER_DATAPAD := "InventoryBayRoom/DatapadPedestal/StorageAccess/Readable"
 const SAVED_SPOT := Vector3(1.0, 0.0, 8.0)
+## Attributes the saved skills and augmentations change (their values must match after the load).
+const ABILITY_ATTRIBUTES: Array[StringName] = [
+	&"pistol_spread_mult",
+	&"pistol_settle_time",
+	&"pistol_reload_mult",
+	&"pistol_damage_mult",
+	&"medical_heal_mult",
+	&"move_speed_mult",
+	&"jump_apex_height",
+	&"mantle_max_height",
+	&"landing_noise_mult",
+	&"footstep_noise_mult",
+	&"carry_mass_limit",
+]
 
 var _original: Node
 
@@ -195,3 +211,67 @@ func test_a_carried_object_is_dropped_where_it_was_held() -> void:
 	var offset := restored.global_position - fresh_player.global_position
 	assert_float(Vector2(offset.x, offset.z).length()).is_greater(0.65)
 	assert_float(restored.global_position.y).is_equal_approx(0.3, 0.05)
+
+
+func test_abilities_round_trip_without_duplicate_modifiers() -> void:
+	var hub := await Saves.open_level(get_tree(), HUB)
+	var player := _player(hub)
+	player.skills.set_tier(&"pistols", 3)
+	player.skills.set_tier(&"medicine", 2)
+	player.augmentations.set_installed(&"run_silent", false)
+	assert_bool(player.augmentations.activate(&"cloak")).is_true()
+	assert_bool(player.augmentations.activate(&"speed_enhancement")).is_true()
+	await _frames(3)
+	# Set right before saving (no tick in between): exactly 63 in the save.
+	player.energy.set_current(63.0)
+	var before := _ability_values(player)
+	var modifier_count := _attribute_set(player).modifiers().size()
+	assert_int(QuickSave.save_game(get_tree())).is_equal(SaveFile.Status.OK)
+
+	# Change all of it.
+	player.skills.set_tier(&"pistols", 0)
+	player.skills.set_tier(&"medicine", 3)
+	player.augmentations.set_installed(&"run_silent", true)
+	player.augmentations.activate(&"run_silent")
+	player.augmentations.deactivate(&"cloak")
+	player.augmentations.deactivate(&"speed_enhancement")
+	player.augmentations.activate(&"combat_strength")
+	player.energy.set_current(10.0)
+	await _frames(3)
+
+	var status: SaveFile.Status = await QuickSave.load_game(get_tree())
+	var restored := _player(get_tree().current_scene)
+
+	assert_int(status).is_equal(SaveFile.Status.OK)
+	assert_object(restored).is_not_same(player)
+	assert_int(restored.skills.tier(&"pistols")).is_equal(3)
+	assert_int(restored.skills.tier(&"medicine")).is_equal(2)
+	# The load keeps the tree paused while it settles, so nothing drains before this read; the
+	# tolerance (0.5) is far above any tick of drain (cloak + speed: 0.1 per tick).
+	assert_float(restored.energy.current()).is_equal_approx(63.0, 0.5)
+	var augmentations := restored.augmentations
+	assert_array(augmentations.active_ids()).is_equal([&"cloak", &"speed_enhancement"])
+	assert_bool(augmentations.is_installed(&"run_silent")).is_false()
+	for id: StringName in [&"cloak", &"speed_enhancement", &"regeneration", &"combat_strength"]:
+		assert_bool(augmentations.is_installed(id)).override_failure_message(String(id)).is_true()
+	assert_bool((restored.get_node("Tags") as Tags).has(&"state.cloaked")).is_true()
+	assert_float(Attributes.read(restored, &"move_speed_mult", 1.0)).is_equal_approx(1.5, 0.0001)
+	# No duplicates: the same modifiers and the same attribute values as before the save.
+	assert_int(_attribute_set(restored).modifiers().size()).is_equal(modifier_count)
+	var after := _ability_values(restored)
+	for attribute: StringName in ABILITY_ATTRIBUTES:
+		assert_float(after[attribute]).override_failure_message(String(attribute)).is_equal_approx(
+			before[attribute], 0.0001
+		)
+
+
+func _attribute_set(player: Player) -> AttributeSet:
+	return Attributes.of(player).attribute_set
+
+
+## Each ability attribute evaluated from a base of 1 (modifiers only).
+func _ability_values(player: Player) -> Dictionary:
+	var values := {}
+	for attribute: StringName in ABILITY_ATTRIBUTES:
+		values[attribute] = Attributes.read(player, attribute, 1.0)
+	return values

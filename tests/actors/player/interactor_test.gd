@@ -106,10 +106,9 @@ func _look_at(target: Vector3) -> void:
 	await _driver.frames(3)
 
 
-# The base 20 kg carry limit: the player's passive Combat Strength (+50 kg) is uninstalled.
+# The base 20 kg carry limit (Combat Strength is off by default).
 func _load() -> void:
 	_driver = PlayerDriver.new(scene_runner(ROOM))
 	_player = _driver.player
-	_player.augmentations.set_installed(&"combat_strength", false)
 	await _driver.settle()
 	await _driver.place(Vector3.ZERO)

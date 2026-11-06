@@ -9,15 +9,20 @@ extends Node
 ## cast from the chest towards the hold point (pushed clear of the capsule) and placed short of the
 ## first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No room")
 ## when that spot overlaps anything.
-## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg).
+## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on).
+## When the limit falls below the held mass (Combat Strength switched off or out of energy), the
+## object is dropped at once (`player.dropped` how `too_heavy`) with the HUD message "Too heavy".
 ## Not saved: loading a save drops what is held where it is.
 
 signal picked_up(body: RigidBody3D)
 signal released(body: RigidBody3D, how: StringName)
 ## A put down / drop / throw found no free spot; the object stays held.
 signal release_refused(body: RigidBody3D, how: StringName)
+## Short feedback for the HUD ("Too heavy" when a held object outgrows the limit).
+signal message(text: String)
 
 const LIMIT_ATTRIBUTE: StringName = &"carry_mass_limit"
+const TOO_HEAVY := "Too heavy"
 ## What a released object must be clear of besides the player (world, objects, actors).
 const RELEASE_MASK: int = PhysicsLayers.WORLD | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS
 
@@ -134,8 +139,8 @@ func put_down() -> bool:
 
 
 ## Q: lets go at a free spot with the carry velocity (false when refused). Other reasons (`load`,
-## `died`, `respawn`) always let go: `load` where the object is, the others at a free spot, else
-## at the chest.
+## `died`, `respawn`, `too_heavy`) always let go: `load` where the object is, the others at a free
+## spot, else at the chest.
 func drop(reason: StringName = &"drop") -> bool:
 	if not is_carrying():
 		return false
@@ -167,6 +172,10 @@ func physics_step() -> void:
 		held = null
 		_faded.clear()
 		_room = true
+		return
+	if not CarryRules.can_carry(held.mass, mass_limit()):
+		drop(&"too_heavy")
+		message.emit(TOO_HEAVY)
 		return
 	var delta := get_physics_process_delta_time()
 	var before := held.global_position

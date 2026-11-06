@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration in the real inventory bay (inside the hub) with the player: the abilities station.
 ## The 2.3 m ledge is refused without Speed Enhancement and mantled with it (F3); the dais biocells
-## (x10) are picked up with E; the 60 kg crate is lifted only with Combat Strength installed; sprinting
+## (x10) are picked up with E; the 60 kg crate is lifted only with Combat Strength on (F6); sprinting
 ## along the metal strip makes metal footsteps, none with Run Silent (F2).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -63,13 +63,12 @@ func test_heavy_crate_needs_combat_strength() -> void:
 	await _load_hub()
 	var crate := _room.get_node("AbilitiesDais/LargeCrate") as RigidBody3D
 	await _face(Vector3(5.2, 0, -16.9), _room.to_local(crate.global_position))
-	_player.augmentations.set_installed(&"combat_strength", false)
 
 	await _press(&"use")
 	assert_bool(_player.carry.is_carrying()).is_false()
 	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
 
-	_player.augmentations.set_installed(&"combat_strength", true)
+	await _press(&"aug_5")
 	await _press(&"use")
 	assert_object(_player.carry.held).is_same(crate)
 

@@ -38,7 +38,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	{
 		"feet": Vector3(1.5, 0, -9.0),
 		"look": Vector3(-3.0, 1.0, -18.5),
-		"augs": [&"run_silent", &"speed_enhancement", &"regeneration"],
+		"augs": [&"run_silent", &"speed_enhancement", &"regeneration", &"combat_strength"],
 		"energy": 73.0,
 		"pistol": true,
 	},

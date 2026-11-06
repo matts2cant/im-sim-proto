@@ -42,7 +42,8 @@ func test_set_tier_replaces_the_skill_modifiers_and_logs() -> void:
 
 
 func test_skill_modifiers_stack_with_other_sources() -> void:
-	# The fixture installs everything: Combat Strength's melee x1.5 is already on.
+	# Combat Strength's melee x1.5 (an augmentation source) stacks with Low-Tech Advanced x1.5.
+	Augmentations.of(_entity).activate(&"combat_strength")
 	_skills.set_tier(&"low_tech", 2)
 
 	assert_float(_attributes.evaluate(&"melee_damage_mult", 20.0)).is_equal_approx(45.0, 0.0001)

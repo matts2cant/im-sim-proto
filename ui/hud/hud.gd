@@ -60,6 +60,7 @@ func _ready() -> void:
 	player.weapons.changed.connect(refresh_weapon)
 	belt_bar.bind(player.inventory)
 	player.inventory.message.connect(show_message)
+	player.carry.message.connect(show_message)
 	player.inventory.hand_changed.connect(_on_hand_changed)
 	var energy := Energy.of(player)
 	energy_bar.energy = energy

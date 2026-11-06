@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
-## Integration: the player's augmentations through the real input (F1-F4) and the generic consumers:
-## Speed Enhancement (sprint 9 m/s, mantles a 2.3 m ledge), Run Silent (no footstep noise sprinting on
-## metal), Combat Strength (60 kg crate), Regeneration, Cloak feedback and the HUD (ADR 0061).
+## Integration: the player's augmentations through the real input (F1-F4, F6) and the generic
+## consumers: Speed Enhancement (sprint 9 m/s, mantles a 2.3 m ledge), Run Silent (no footstep noise
+## sprinting on metal), Combat Strength (F6: 60 kg crate while on, dropped when it goes off),
+## Regeneration, Cloak feedback and the HUD (ADR 0061).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -28,16 +29,19 @@ func after_test() -> void:
 func test_f_keys_toggle_augmentations_and_the_hud_shows_chips() -> void:
 	await _load(METAL)
 
+	assert_array(_hud.chip_texts()).is_empty()
 	await _press(&"aug_1")
 	await _press(&"aug_3")
+	await _press(&"aug_5")
 	assert_bool(_player.augmentations.is_active(&"cloak")).is_true()
 	assert_bool(_player.augmentations.is_active(&"speed_enhancement")).is_true()
-	assert_array(_hud.chip_texts()).is_equal(["F1 Cloak", "F3 Speed Enhancement", "Combat Strength"])
+	assert_bool(_player.augmentations.is_active(&"combat_strength")).is_true()
+	assert_array(_hud.chip_texts()).is_equal(["F1 Cloak", "F3 Speed Enhancement", "F6 Combat Strength"])
 
 	await _press(&"aug_1")
 	assert_bool(_player.augmentations.is_active(&"cloak")).is_false()
-	assert_array(_hud.chip_texts()).is_equal(["F3 Speed Enhancement", "Combat Strength"])
-	assert_array(EventLog.find(&"augmentation.activated")).has_size(2)
+	assert_array(_hud.chip_texts()).is_equal(["F3 Speed Enhancement", "F6 Combat Strength"])
+	assert_array(EventLog.find(&"augmentation.activated")).has_size(3)
 	assert_array(EventLog.find(&"augmentation.deactivated")).has_size(1)
 
 
@@ -143,18 +147,71 @@ func test_without_speed_the_2_3_metre_ledge_is_refused() -> void:
 	assert_float(_player.global_position.y).is_less(0.05)
 
 
-func test_combat_strength_lifts_the_large_crate_and_is_refused_without_it() -> void:
+func test_f6_combat_strength_lifts_the_large_crate_only_while_on() -> void:
 	await _load(ROOM)
-	var crate := Objects.spawn(_driver.runner.scene(), Objects.LARGE_CRATE, Vector3(0, 0.6, -1.6)) as RigidBody3D
+	var crate := _spawn(Objects.LARGE_CRATE, Vector3(0, 0.6, -1.6))
 	await _driver.frames(20)
-	_player.augmentations.set_installed(&"combat_strength", false)
+	assert_float(_player.carry.mass_limit()).is_equal_approx(20.0, 0.001)
 
 	assert_bool(_player.carry.try_pick_up_body(crate)).is_false()
 	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
-	_player.augmentations.set_installed(&"combat_strength", true)
+	await _press(&"aug_5")
+	assert_float(_player.carry.mass_limit()).is_equal_approx(70.0, 0.001)
 	assert_bool(_player.carry.try_pick_up_body(crate)).is_true()
 	assert_object(_player.carry.held).is_same(crate)
-	assert_float(_player.carry.mass_limit()).is_equal_approx(70.0, 0.001)
+
+
+func test_combat_strength_drains_1_energy_per_second() -> void:
+	await _load(METAL)
+	await _press(&"aug_5")
+	await _driver.frames(120)
+
+	# About 2 s at 1/s (plus the press frames): 98 give or take a few ticks, nowhere near 97 or 99.
+	assert_float(_player.energy.current()).is_between(97.6, 98.2)
+
+
+func test_switching_combat_strength_off_drops_a_heavy_crate_with_a_message() -> void:
+	await _load(ROOM)
+	var crate := _spawn(Objects.LARGE_CRATE, Vector3(0, 0.6, -1.6))
+	await _driver.frames(20)
+	await _press(&"aug_5")
+	assert_bool(_player.carry.try_pick_up_body(crate)).is_true()
+	await _driver.frames(10)
+
+	await _press(&"aug_5")
+
+	assert_bool(_player.carry.is_carrying()).is_false()
+	assert_str(_hud.message_label.text).is_equal(PlayerCarry.TOO_HEAVY)
+	var dropped := EventLog.find(&"player.dropped")
+	assert_array(dropped).has_size(1)
+	assert_str(String(dropped[0].data["how"])).is_equal("too_heavy")
+	assert_int(crate.collision_layer).is_not_equal(0)
+
+
+func test_running_out_of_energy_drops_a_heavy_crate_but_keeps_a_light_one() -> void:
+	await _load(ROOM)
+	var crate := _spawn(Objects.LARGE_CRATE, Vector3(0, 0.6, -1.6))
+	await _driver.frames(20)
+	_player.energy.set_current(0.5)
+	await _press(&"aug_5")
+	assert_bool(_player.carry.try_pick_up_body(crate)).is_true()
+
+	# 0.5 energy at 1/s: empty after 30 ticks.
+	await _driver.frames(45)
+
+	assert_bool(_player.augmentations.is_active(&"combat_strength")).is_false()
+	assert_bool(_player.carry.is_carrying()).is_false()
+	assert_str(String(EventLog.find(&"player.dropped")[0].data["how"])).is_equal("too_heavy")
+
+	# A 20 kg-or-lighter object stays held when Combat Strength goes off.
+	_player.energy.set_current(50.0)
+	var small := _spawn(Objects.SMALL_CRATE, Vector3(1.5, 0.3, -1.6))
+	await _driver.frames(20)
+	await _press(&"aug_5")
+	assert_bool(_player.carry.try_pick_up_body(small)).is_true()
+	await _press(&"aug_5")
+	await _driver.frames(5)
+	assert_object(_player.carry.held).is_same(small)
 
 
 func test_regeneration_heals_the_player_and_costs_energy() -> void:
@@ -167,6 +224,10 @@ func test_regeneration_heals_the_player_and_costs_energy() -> void:
 
 	assert_float(_player.body.health(&"leg_l")).is_greater(hurt + 3.5)
 	assert_float(_player.energy.current()).is_less(95.0)
+
+
+func _spawn(path: String, position: Vector3) -> RigidBody3D:
+	return Objects.spawn(_driver.runner.scene(), path, position) as RigidBody3D
 
 
 func _view_material() -> StandardMaterial3D:

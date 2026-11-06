@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: skills on the player's weapons and medkit through attributes (ADR 0061): Pistols
 ## (cone floor, settle, reload, damage; stacks with an arm injury), crouched settling, Low-Tech
-## knockouts, Medicine heals. Weapon helpers uninstall Combat Strength (M4 baton numbers).
+## knockouts, Medicine heals. Combat Strength is off by default (M4 baton numbers); on (F6) it stacks.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
@@ -122,6 +122,22 @@ func test_low_tech_advanced_knocks_out_from_the_front_in_two_hits() -> void:
 	await _weapons.fire(4)
 
 	assert_float(dummy.body.stun).is_equal_approx(60.0, 0.001)
+	assert_bool(dummy.body.is_unconscious()).is_true()
+
+
+func test_combat_strength_on_f6_knocks_out_from_the_front_in_two_hits() -> void:
+	await _load(Weapons.DUMMY_RANGE)
+	var dummy := _driver.runner.find_child("TrainingDummy") as TrainingDummy
+	await _weapons.equip(2)
+	await _driver.hold(&"aug_5", 2)
+	assert_bool(_player.augmentations.is_active(&"combat_strength")).is_true()
+	await _weapons.aim_at(Vector3(0, 0, -1.7), Weapons.part_position(dummy, &"torso"))
+
+	await _weapons.fire(40)
+	assert_float(dummy.body.stun).is_equal_approx(30.0, 0.001)
+	assert_bool(dummy.body.is_unconscious()).is_false()
+	await _weapons.fire(4)
+
 	assert_bool(dummy.body.is_unconscious()).is_true()
 
 
