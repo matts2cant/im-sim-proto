@@ -5,8 +5,7 @@
 [ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="3_impact_noise"]
 [ext_resource type="Resource" path="res://objects/materials/metal.tres" id="4_material"]
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="5_impact_settings"]
-[ext_resource type="Script" path="res://items/item_pickup.gd" id="6_item_pickup"]
-[ext_resource type="Resource" path="res://items/datapad/datapad.tres" id="7_item"]
+[ext_resource type="Script" path="res://objects/components/readable.gd" id="6_readable"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
 size = Vector3(0.14, 0.02, 0.2)
@@ -47,13 +46,15 @@ mesh = SubResource("Mesh_screen")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("2_tags")
-initial_tags = Array[StringName]([&"object.item", &"object.datapad", &"material.metal"])
+initial_tags = Array[StringName]([&"object.datapad", &"material.metal"])
 
 [node name="ImpactNoise" type="Node" parent="."]
 script = ExtResource("3_impact_noise")
 material = ExtResource("4_material")
 settings = ExtResource("5_impact_settings")
 
-[node name="ItemPickup" type="Node" parent="."]
-script = ExtResource("6_item_pickup")
-item = ExtResource("7_item")
+[node name="Readable" type="Node" parent="."]
+script = ExtResource("6_readable")
+verb = "read"
+title = "Datapad"
+source = "Datapad"

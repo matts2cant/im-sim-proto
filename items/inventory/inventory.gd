@@ -3,8 +3,8 @@ extends RefCounted
 ## Pure Deus Ex style grid inventory (ADR 0050): stacks of items on a `size` grid of cells, each
 ## covering its item's footprint (no rotation, no overlap). add() fills existing stacks of the same
 ## item first, then places new stacks at the first free position scanning rows top to bottom, each
-## row left to right. Stackable items carry no instance state; items with state (weapons, keycards,
-## datapads) have max_stack 1.
+## row left to right. Stackable items carry no instance state; items with state (weapons, keycards)
+## have max_stack 1.
 
 ## Any change (add, move, remove, split, load).
 signal changed

@@ -1,7 +1,8 @@
 extends Node
 ## Showcase helper (screenshots only, runs while paused): gives the player a mixed loadout (every
 ## footprint), draws the pistol, then per `mode` opens the inventory (hovering an item for its
-## tooltip), drags an item over a blocked spot, looks at a pickup for its prompt, reads a datapad,
+## tooltip), drags an item over a blocked spot, looks at a pickup for its prompt, reads the world
+## datapad in place (`reading`, ADR 0060),
 ## or shows the belt HUD (`belt`: two wheel steps from the pistol, so the medkit is highlighted and
 ## its name shows above the belt). Saves the window's image (UI included) to `capture_path` after
 ## `capture_after` seconds and quits. Command line overrides after `--`: mode=<mode> out=<res path>.
@@ -14,6 +15,8 @@ const NOTE := (
 
 @export var player_path: NodePath
 @export var pickup_path: NodePath
+## The world datapad `reading` reads (its Readable gets NOTE).
+@export var datapad_path: NodePath = ^"../Datapad"
 ## inventory | drag | belt | prompt | reading
 @export var mode: String = "inventory"
 @export var capture_path: String = "res://reports/screenshots/m5_inventory.png"
@@ -44,8 +47,6 @@ func _ready() -> void:
 	inventory.give(Items.LOCKPICK, 2)
 	inventory.give(Items.BIOCELL, 4)
 	inventory.give(Items.KEYCARD, 1, {"key_id": "warehouse_office"})
-	inventory.give(Items.DATAPAD, 1, {"title": "Foreman's note", "text": NOTE})
-	inventory.belt.assign(9, inventory.inventory.stacks_of(&"datapad")[0])
 	inventory.select_slot(0)
 	if mode == "prompt":
 		var target := get_node(pickup_path) as Node3D
@@ -80,7 +81,11 @@ func _act() -> void:
 			_player.inventory.cycle(1)
 			_player.inventory.cycle(1)
 		"reading":
-			_player.inventory.use_stack(_player.inventory.inventory.stacks_of(&"datapad")[0])
+			var readable := Usable.of(get_node(datapad_path)) as Readable
+			readable.entry_id = &"showcase.foreman_note"
+			readable.title = "Foreman's note"
+			readable.text = NOTE
+			readable.use(_player)
 
 
 static func _mouse(view: InventoryView, at: Vector2, press: bool) -> void:

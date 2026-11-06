@@ -62,3 +62,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0056](0056-generic-character-components.md) | Generic character components: movement noise, falls, impacts, knockback, state tags | Accepted |
 | [0057](0057-forces-item-use-and-heat-as-generic-systems.md) | Forces, item use and heat as generic systems | Accepted |
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |
+| [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted |

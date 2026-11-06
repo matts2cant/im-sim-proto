@@ -9,18 +9,19 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 ## Player-facing behaviour
 
 - Look at an item within 2 m: the HUD says "E: pick up Multitool (3)". E puts it into the grid; what does not fit stays on the floor ("No room in inventory").
-- New weapons, tools and consumables go to the first free belt slot. Keys 1-0 or the mouse wheel select a slot and put its item in hand, nothing more: a weapon is drawn, anything else is held; the same key again, or H, puts it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). The wheel steps to the next / previous non-empty slot (down = right), wrapping; from empty hands down takes the first item, up the last. A datapad's belt key still opens it for reading at once.
+- New weapons, tools and consumables go to the first free belt slot. Keys 1-0 or the mouse wheel select a slot and put its item in hand, nothing more: a weapon is drawn, anything else is held; the same key again, or H, puts it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). The wheel steps to the next / previous non-empty slot (down = right), wrapping; from empty hands down takes the first item, up the last.
 - LMB uses the item in hand: a weapon fires, a medkit heals (one per click, it stays in hand until the last is used), a biocell says "Nothing happens" (until M6), a tool does nothing (until M8).
-- Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine, key or text.
+- Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine or key.
+- Datapads are not items: they are read in place (E) and what they say goes to the personal log (L), see [Datapads and the personal log](#datapads-and-the-personal-log).
 - I opens the inventory screen and pauses the game: drag items around the grid, onto belt slots, or out of the panel to drop them; right-click for Use / Drop / Split stack / Assign to belt slot; hover for a tooltip.
 
 ## Rules
 
 ### Items (`items/`)
 
-- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `READ`, `EQUIP_TOOL`) and its parameters (weapon; `use_stimuli` and `refused_message` for consumables; the `NONE` message).
+- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `EQUIP_TOOL`) and its parameters (weapon; `use_stimuli` and `refused_message` for consumables; the `NONE` message).
 - `items/item_catalog.tres` (`ItemCatalog`) lists every item; saves store ids and look them up there; the debug panel's "Give item" lists it.
-- Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard), `title` and `text` (datapad; M8 codes go here). Items with state have max stack 1 and never merge.
+- Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
 
 | Item | id | Footprint | Stack | Use (LMB in hand, or Use) | Auto-belt | Instance state |
@@ -33,7 +34,6 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Lockpick | `lockpick` | 1 x 1 | 10 | in hand (used in M8) | yes | |
 | Bioelectric cell | `biocell` | 1 x 1 | 20 | "Nothing happens" until M6 | yes | |
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door" (doors read `key_id` in M8) | no | `key_id` |
-| Datapad | `datapad` | 1 x 1 | 1 | read (overlay) | no | `title`, `text` |
 
 ### World pickups
 
@@ -60,15 +60,15 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### Use, hand, ammo (`PlayerInventory`, `items/inventory/player_inventory.gd`)
 
-- In hand ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)): `select_slot` (belt key) and `cycle` (wheel) call `hold(stack)`: an `EQUIP_WEAPON` item is drawn through the WeaponHolder (`equip_state`), any other item becomes `held`; either replaces what was in hand. The same belt key again, H (`holster` action) and death call `put_away()`. `use_held()` (LMB, when nothing is carried) uses the held item as below, except a tool; with a weapon or nothing in hand LMB goes to the WeaponHolder. A `READ` item's belt key still uses it at once (datapads are leaving the inventory).
-- Use (LMB on a held item, or the inventory screen's Use): `EQUIP_WEAPON` / `EQUIP_TOOL` (screen only) toggle the item in hand; a tool in hand shows its name and LMB does nothing until M8. `CONSUME` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): the item's `use_stimuli` (type -> intensity; medkit `{heal: 30}`) go to the player as CONTACT stimuli with the player as source, delivered at once (`StimulusSystem.emit_now`: the inventory screen pauses the game), and one is consumed; the player's receptrons decide what they do (the `heal` receptron -> `HealEffect` -> `BodyParts.heal`). Refused, item kept, when none of them would do anything to the player (`StimulusSystem.would_affect` dry run: a medkit when unhurt or dead): the item's `refused_message` ("You are not hurt") and `item.use_refused {item, reason: no_effect}`. Logged `item.used {item, action: consume, stimuli}`; the heal itself logs `actor.healed` (source: the player). `EQUIP_WEAPON`, `EQUIP_TOOL` and `READ` stay inventory / UI verbs: they change what is in hand or open an overlay and nothing in the world could react to them. `READ` opens the reading overlay. `NONE` shows the item's message. An empty slot does nothing.
+- In hand ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)): `select_slot` (belt key) and `cycle` (wheel) call `hold(stack)`: an `EQUIP_WEAPON` item is drawn through the WeaponHolder (`equip_state`), any other item becomes `held`; either replaces what was in hand. The same belt key again, H (`holster` action) and death call `put_away()`. `use_held()` (LMB, when nothing is carried) uses the held item as below, except a tool; with a weapon or nothing in hand LMB goes to the WeaponHolder.
+- Use (LMB on a held item, or the inventory screen's Use): `EQUIP_WEAPON` / `EQUIP_TOOL` (screen only) toggle the item in hand; a tool in hand shows its name and LMB does nothing until M8. `CONSUME` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): the item's `use_stimuli` (type -> intensity; medkit `{heal: 30}`) go to the player as CONTACT stimuli with the player as source, delivered at once (`StimulusSystem.emit_now`: the inventory screen pauses the game), and one is consumed; the player's receptrons decide what they do (the `heal` receptron -> `HealEffect` -> `BodyParts.heal`). Refused, item kept, when none of them would do anything to the player (`StimulusSystem.would_affect` dry run: a medkit when unhurt or dead): the item's `refused_message` ("You are not hurt") and `item.use_refused {item, reason: no_effect}`. Logged `item.used {item, action: consume, stimuli}`; the heal itself logs `actor.healed` (source: the player). `EQUIP_WEAPON` and `EQUIP_TOOL` stay inventory verbs: they change what is in hand and nothing in the world could react to them. `NONE` shows the item's message. An empty slot does nothing.
 - Each weapon stack gets a `WeaponState`; its magazine is mirrored into the stack's `magazine` state (after every shot, reload, equip, save and drop). Spare rounds are the inventory's stacks of the weapon's `ammo_item` (`InventoryAmmo`): a reload takes what the magazine needs from the smallest stacks first; the HUD shows "magazine / rounds in the inventory".
 - Death puts the item in hand away.
 
 ### Pickup and interaction ([ADR 0051](../decisions/0051-single-interactor-hud-prompts.md))
 
 - One `Interactor` component on the player casts one ray per physics tick from the eyes, 2.0 m (`interact_reach` in `player_config.tres`), on layers 1, 4 and 5 (world, objects, hitboxes; a hitbox stands for its character), excluding the player and its hitboxes.
-- Resolution order: `ItemPickup` ("E: pick up Multitool (3)", count only above 1), `Usable` ("E: reset Training dummy": the usable's verb), `Carryable` within the carry limit ("E: carry Small crate") or above it ("Too heavy"); while carrying: "E: put down Small crate". Names come from the item, else `display_name` metadata, else the node name in words.
+- Resolution order: `ItemPickup` ("E: pick up Multitool (3)", count only above 1), `Usable` ("E: reset Training dummy": the usable's verb; a `Readable` names its title: "E: read Storage access"), `Carryable` within the carry limit ("E: carry Small crate") or above it ("Too heavy"); while carrying: "E: put down Small crate". Names come from the item, else `Usable.target_name()`, else `display_name` metadata, else the node name in words.
 - E does what the prompt says. Picking up takes what fits: all of it frees the pickup, part of it leaves the rest with a smaller count ("No room in inventory (30 left behind)"), nothing leaves it untouched ("No room in inventory").
 
 ### Drop
@@ -81,12 +81,19 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - `ui/inventory/inventory_screen.tscn` (child of the Player). `inventory` (I) toggles, Esc closes. Opens only when the player can act (alive, conscious, input enabled, debug panel closed). While open the SceneTree is paused (the screen runs with `PROCESS_MODE_ALWAYS`) and the mouse is free; closing restores the previous mouse mode.
 - Dark panel, 64 px cells with thin grid lines, items as coloured rects with short name and count; the belt row (56 px slots) under the grid.
 - Left-drag: the item follows the mouse; over the grid a green (fits) or red (blocked or out of bounds) footprint shows where it lands; release on the grid moves it, on a belt slot assigns it, outside the panel drops it. Dragging an item out of a belt slot and releasing it anywhere but another slot clears that slot.
-- Right-click: Use (Equip / Put away / Read / Use) / Drop / Split stack (half, only for counts above 1) / Assign to belt slot 1-0. Hover: tooltip (name, description, count, magazine, key). Hover + a belt key assigns the item to that slot.
-- `PauseScreens` (`ui/inventory/pause_screens.gd`) tracks every open pause screen; the pause ends when the last closes. Closing resyncs the player's held keys so the closing key is not also an in-game press.
+- Right-click: Use (Equip / Put away / Use) / Drop / Split stack (half, only for counts above 1) / Assign to belt slot 1-0. Hover: tooltip (name, description, count, magazine, key). Hover + a belt key assigns the item to that slot.
+- `PauseScreens` (`ui/inventory/pause_screens.gd`) tracks every open pause screen (inventory, log screen, reading overlay); the pause ends when the last closes. Closing resyncs the player's held keys so the closing key is not also an in-game press.
 
-### Reading overlay
+### Datapads and the personal log
 
-- `ui/inventory/reading_overlay.tscn` (child of the Player): the datapad's title and text in a panel; pauses like the inventory (it can sit on top of it); E or Esc closes.
+[ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md).
+
+- A datapad (`objects/datapad/datapad.tscn`) is a physics prop, not an item: blasts and the player push it, it makes impact noise, it can never enter the inventory (and is not carried: E reads it). Its `Readable` component holds `entry_id` (stable, unique: `<level>.<room>.<name>`), `title`, `text`, `codes` (keypad code id -> code) and `source` ("Datapad"). Any entity with a `Readable` reads the same way.
+- Look at it within 2 m: "E: read Storage access". E opens the reading overlay and passes the entry to the player's `PersonalLog` (`actors/common/personal_log/`, any actor can have one): a new `entry_id` is added (HUD "Added to log: Storage access", EventLog `log.entry_added {entry_id, title, codes}`) and its codes become known; reading it again only shows it.
+- Known codes: the last entry added wins a shared code id. M8 keypads ask `PersonalLog.known_code(code_id)` and `code_source(code_id)` ([security.md](security.md)).
+- Reading overlay (`ui/log/reading_overlay.tscn`, child of the Player): the entry's title and text in a panel, shown on every read; pauses like the inventory; E or Esc closes (that E is not also an in-game press).
+- Log screen (`ui/log/log_screen.tscn`, child of the Player): L (`personal_log`) toggles, Esc closes; pauses like the inventory. Left: entry titles, newest first (the newest is selected), and the known codes ("Storage Door: 2817  (Storage access)"); right: the selected entry's title and text (mouse wheel scrolls long text). It opens only when the player can act and no other pause screen is open; the inventory does not open over it.
+- Saving: `PersonalLog` is in group `saveable` (`save_state()`: `{entries: [{entry_id, title, text, source, codes}]}`); codes are rebuilt from the entries on load.
 
 ### HUD
 
@@ -100,13 +107,14 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### EventLog
 
-`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}` (`equip` for every item put in hand, `consume` + `stimuli`, `read`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`.
+`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}` (`equip` for every item put in hand, `consume` + `stimuli`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`; reading: `log.entry_added {entry_id, title, codes}`.
 
 ```mermaid
 flowchart TD
     L["look within 2 m"] --> I{"Interactor: what is it?"}
     I -->|ItemPickup| P["E: pick up"]
     I -->|Usable| U["E: use"]
+    I -->|Readable| RD["E: read: overlay + personal log (L)"]
     I -->|Carryable| C["E: carry / Too heavy"]
     P --> A["Inventory.add: merge into stacks, then first free cell"]
     A -->|nothing fits| R["No room in inventory, item stays"]
@@ -122,7 +130,6 @@ flowchart TD
     X -->|EQUIP_WEAPON| W["WeaponHolder.equip_state; again: holster"]
     X -->|EQUIP_TOOL| T["tool in hand"]
     X -->|CONSUME| H["heal 30 CONTACT on the player, remove 1"]
-    X -->|READ| D["reading overlay"]
     X -->|NONE| N["message"]
     W --> Q["Q / Drop"]
     T --> Q

@@ -18,6 +18,11 @@ static func of(node: Node) -> Usable:
 	return null
 
 
+## What the prompt calls the target ("E: read Storage access"); empty: the entity's own name.
+func target_name() -> String:
+	return ""
+
+
 ## Returns true when the use did something (the player then does not try to pick the object up).
 func use(user: Node) -> bool:
 	used.emit(user)

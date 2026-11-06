@@ -1,21 +1,22 @@
 extends GdUnitTestSuite
 ## Inventory bay (gallery room 7): static layout checks on the room scene (hub-and-gallery.md): the
 ## shell, one pickup of every catalogue item on the item table with its "Name w x h" tag, the stack
-## station counts, enough bulky items to overflow the 6 x 5 grid, the datapad's text, the drop zone,
-## the abilities dais, the signs and no coplanar faces.
+## station counts, enough bulky items to overflow the 6 x 5 grid, the two pedestal datapads (a plain
+## note and one carrying a code, read in place), the drop zone, the abilities dais, the signs and no
+## coplanar faces.
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/inventory_bay/inventory_bay_room.tscn")
 const INVENTORY: InventoryConfig = preload("res://items/inventory/inventory_config.tres")
-const DATAPAD_TEXT := (
+const NOTE_TEXT := (
 	"Press I to open your inventory. Drag items to move them, right-click to use, drop or assign"
-	+ " to the belt. Door code for nothing yet: 0451."
+	+ " to the belt. Datapads stay where they are: what you read goes to your log (L)."
 )
 const SIGNS: Dictionary[String, String] = {
 	"ItemTable": "Item table\nevery item · E picks up",
 	"Stacks": "Stacks split at their max",
 	"FillGrid": "Fill the grid · 6 × 5\nuntil: No room in inventory",
-	"Datapad": "Datapad\nE takes · use it to read",
+	"Datapad": "Datapads\nE to read · L for log",
 	"DropZone": "Drop things here · listen",
 	"Abilities": "Skills & augmentations station — M6",
 }
@@ -99,15 +100,30 @@ func test_fill_the_grid_overflows_a_6_by_5_inventory() -> void:
 	assert_int(cells).is_greater(INVENTORY.grid_size.x * INVENTORY.grid_size.y)
 
 
-func test_datapad_pedestal_holds_the_inventory_bay_datapad() -> void:
+func test_datapad_pedestal_holds_a_note_and_a_code_datapad() -> void:
 	var pedestal := _room.get_node("DatapadPedestal/Pedestal") as Ledge
-	var datapad := _room.get_node("DatapadPedestal/Datapad") as RigidBody3D
-	var state := ItemPickup.of(datapad).stack_state()
+	var note := _room.get_node("DatapadPedestal/Datapad") as RigidBody3D
+	var storage := _room.get_node("DatapadPedestal/StorageAccess") as RigidBody3D
+	var note_text := Usable.of(note) as Readable
+	var storage_text := Usable.of(storage) as Readable
 
-	assert_str(String(ItemPickup.of(datapad).item.id)).is_equal("datapad")
-	assert_str(state["title"]).is_equal("Inventory bay")
-	assert_str(state["text"]).is_equal(DATAPAD_TEXT)
-	_assert_on_top(pedestal, datapad)
+	# Read in place: no pickups.
+	assert_object(ItemPickup.of(note)).is_null()
+	assert_object(ItemPickup.of(storage)).is_null()
+	assert_str(note_text.title).is_equal("Inventory bay")
+	assert_str(note_text.text).is_equal(NOTE_TEXT)
+	assert_dict(note_text.codes).is_empty()
+	assert_str(storage_text.title).is_equal("Storage access")
+	assert_str(storage_text.text).contains("2817")
+	assert_dict(storage_text.codes).is_equal({&"storage_door": "2817"})
+	assert_str(String(note_text.entry_id)).is_not_empty()
+	assert_str(String(storage_text.entry_id)).is_not_empty()
+	assert_str(String(note_text.entry_id)).is_not_equal(String(storage_text.entry_id))
+	_assert_on_top(pedestal, note)
+	_assert_on_top(pedestal, storage)
+	# Far enough apart for the crosshair to pick one: a gap (edge to edge) over 0.15 m.
+	var shape := (note.get_node("Collision") as CollisionShape3D).shape as BoxShape3D
+	assert_float(absf(storage.position.x - note.position.x) - shape.size.x).is_greater(0.15)
 
 
 func test_drop_zone_and_abilities_dais() -> void:

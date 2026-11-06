@@ -10,7 +10,6 @@ const MULTITOOL: ItemData = preload("res://items/multitool/multitool.tres")
 const LOCKPICK: ItemData = preload("res://items/lockpick/lockpick.tres")
 const BIOCELL: ItemData = preload("res://items/biocell/biocell.tres")
 const KEYCARD: ItemData = preload("res://items/keycard/keycard.tres")
-const DATAPAD: ItemData = preload("res://items/datapad/datapad.tres")
 
 
 ## Pistol (belt 1), baton (belt 2) and 30 pistol rounds: the M4 loadout the weapon tests expect.

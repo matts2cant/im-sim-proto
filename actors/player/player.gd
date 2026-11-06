@@ -1,8 +1,8 @@
 class_name Player
 extends CharacterBody3D
 ## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects,
-## use things (Interactor), inventory and belt (PlayerInventory), weapons (WeaponHolder) and
-## body-part damage (BodyParts, Hitboxes).
+## use things (Interactor; reading a datapad logs it in the PersonalLog), inventory and belt
+## (PlayerInventory), weapons (WeaponHolder) and body-part damage (BodyParts, Hitboxes).
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, CarryRules); tuning comes from
 ## `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
 ## Physics props do not collide with this body in the solver; PlayerPusher pushes them and presses
@@ -375,8 +375,8 @@ func _register_debug_tab() -> void:
 
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
-# item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, a medkit, a
-# datapad; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
+# item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
+# medkit; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
 # (again: put away); wheel: the next / previous belt item (ADR 0059). Dead: only `use`, which asks
 # for a level reset.
 func _handle_actions() -> void:

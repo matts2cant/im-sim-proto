@@ -1,8 +1,8 @@
 class_name ItemStack
 extends RefCounted
 ## One stack on the inventory grid: an item type, how many, its instance state (a pistol's
-## `magazine`, a keycard's `key_id`, a datapad's `title` / `text`) and its top-left cell. The belt
-## references stacks, not copies (ADR 0050).
+## `magazine`, a keycard's `key_id`) and its top-left cell. The belt references stacks, not copies
+## (ADR 0050).
 
 var item: ItemData
 var count: int = 1

@@ -1,8 +1,8 @@
 class_name ReadingOverlay
 extends CanvasLayer
-## Datapad reading panel (child of the Player): opens on PlayerInventory.read_requested with the
-## stack's `title` and `text`, pauses the game (PauseScreens, ADR 0052); Esc or E closes it. Drawn
-## above the inventory screen, which stays open underneath when the datapad was read from there.
+## Reading panel (child of the Player): opens on the player's PersonalLog.entry_read (a datapad
+## read in place, ADR 0060) with the entry's title and text, pauses the game (PauseScreens,
+## ADR 0052); Esc or E closes it.
 
 var player: Player
 
@@ -18,7 +18,9 @@ func _ready() -> void:
 		return
 	if not player.is_node_ready():
 		await player.ready
-	player.inventory.read_requested.connect(read)
+	var reader_log := PersonalLog.of(player)
+	if reader_log != null:
+		reader_log.entry_read.connect(read)
 
 
 func _exit_tree() -> void:
@@ -31,9 +33,9 @@ func is_open() -> bool:
 	return visible
 
 
-## Shows a datapad stack's text.
-func read(stack: ItemStack) -> void:
-	open(str(stack.state.get("title", stack.item.display_name)), str(stack.state.get("text", "")))
+## Shows a log entry's title and text.
+func read(entry: LogEntry) -> void:
+	open(entry.title, entry.text)
 
 
 func open(title: String, text: String) -> void:
