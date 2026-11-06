@@ -31,8 +31,10 @@ func setup(p_runner: GdUnitSceneRunner, patrol: bool = false) -> void:
 	var map := guard.get_world_3d().navigation_map
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(map)
 	NavigationServer3D.map_set_use_async_iterations(map, false)
-	var region := scene.find_child("LevelNavigation", true, false) as NavigationRegion3D
+	var region := scene.find_child("LevelNavigation", true, false) as LevelNavigation
 	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	# Baked in _ready while the region was still asynchronous: bake again so the map gets it now.
+	region.bake()
 	await frames(6)
 	EventLog.clear()
 

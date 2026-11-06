@@ -131,6 +131,9 @@ func _on_navmesh(point: Vector3) -> Vector3:
 	var map := body.get_world_3d().navigation_map
 	if NavigationServer3D.map_get_iteration_id(map) == 0 or NavigationServer3D.map_get_regions(map).is_empty():
 		return point
+	# A map without polygons yet (a region still being synced) answers the origin: keep the point.
+	if not NavigationServer3D.map_get_closest_point_owner(map, point).is_valid():
+		return point
 	return NavigationServer3D.map_get_closest_point(map, point)
 
 

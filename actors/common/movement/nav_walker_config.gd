@@ -24,3 +24,5 @@ extends Resource
 ## arrived: the way is blocked (a prop, another character).
 @export var stuck_time: float = 1.5
 @export var stuck_speed_ratio: float = 0.2
+## After arriving short of the target, asking for the same target again re-plans after this long (s).
+@export var retry_time: float = 0.5

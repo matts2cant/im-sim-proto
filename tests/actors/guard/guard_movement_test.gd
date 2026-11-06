@@ -70,8 +70,9 @@ func test_runs_when_alerted_with_the_sprint_tag() -> void:
 
 func test_alerted_guard_stops_and_faces_a_seen_target_at_arms_length() -> void:
 	await _setup(false)
-	# A stand-in hostile (no body: a 1.8 m figure on its origin), lit, 6 m ahead, off to the side.
-	var target := _g.tagged("Intruder", Vector3(1.5, 0, -6), [&"actor.player"])
+	# A stand-in hostile (no body: a 1.8 m figure on its origin), lit, 6 m ahead, off to the left of
+	# the wall (x 1..7).
+	var target := _g.tagged("Intruder", Vector3(-1.5, 0, -6), [&"actor.player"])
 	await _g.seconds(3.5)
 
 	assert_int(_g.awareness.state()).is_equal(AwarenessModel.State.ALERTED)

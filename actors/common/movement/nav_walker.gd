@@ -25,6 +25,7 @@ var _moving: bool = false
 var _arrived: bool = false
 var _face: Vector3 = Vector3.ZERO
 var _stuck_time: float = 0.0
+var _arrived_time: float = 0.0
 var _pusher: BodyPusher
 
 
@@ -40,18 +41,25 @@ func _ready() -> void:
 		agent.target_position = global_position
 
 
-## Walks to `point` at `p_speed`. Asking again for the same point only changes the speed.
+## Walks to `point` at `p_speed`. Asking again for the same point only changes the speed; once
+## arrived short of it (blocked, unreachable, or a path that was not ready), asking again after
+## `config.retry_time` tries again.
 func move_to(point: Vector3, p_speed: float) -> void:
 	speed = p_speed
 	if _moving and point.distance_to(_target) < 0.05:
 		return
 	if _arrived and point.distance_to(_target) < 0.05:
-		return
+		var there := _flat(point - global_position).length() <= config.arrive_distance
+		if there or _arrived_time < config.retry_time:
+			return
 	_target = point
+	_arrived_time = 0.0
 	_moving = true
 	_arrived = false
 	_stuck_time = 0.0
 	if agent != null:
+		# Through another value first, so asking again for the same point re-plans the path.
+		agent.target_position = global_position
 		agent.target_position = point
 
 
@@ -104,6 +112,8 @@ func braking_distance() -> float:
 
 
 func _physics_process(delta: float) -> void:
+	if _arrived:
+		_arrived_time += delta
 	var can_act := ActorState.can_act(self)
 	if not can_act:
 		_moving = false
@@ -135,13 +145,18 @@ func _walk_velocity(delta: float) -> Vector3:
 	var direction := to_target
 	if agent != null and _has_navmesh():
 		var next := agent.get_next_path_position()
-		if agent.is_navigation_finished():
-			return _arrive()
-		var to_next := _flat(next - global_position)
-		if to_next.length() > 0.01:
-			direction = to_next
-		if _flat(agent.get_final_position() - global_position).length() <= config.arrive_distance:
-			return _arrive()
+		if agent.get_current_navigation_path().is_empty():
+			# No path yet (the map has not taken in a freshly baked region): "finished" means nothing.
+			# Ask again next tick and head straight for the target meanwhile.
+			agent.target_position = _target
+		else:
+			if agent.is_navigation_finished():
+				return _arrive()
+			var to_next := _flat(next - global_position)
+			if to_next.length() > 0.01:
+				direction = to_next
+			if _flat(agent.get_final_position() - global_position).length() <= config.arrive_distance:
+				return _arrive()
 	var wanted := speed * Attributes.read(self, MOVE_SPEED, 1.0)
 	if _flat(get_real_velocity()).length() < wanted * config.stuck_speed_ratio:
 		_stuck_time += delta

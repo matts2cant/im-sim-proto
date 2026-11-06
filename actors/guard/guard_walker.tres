@@ -14,3 +14,4 @@ gravity_scale = 1.0
 arrive_distance = 0.4
 stuck_time = 1.5
 stuck_speed_ratio = 0.2
+retry_time = 0.5
