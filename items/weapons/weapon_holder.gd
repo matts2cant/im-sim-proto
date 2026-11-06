@@ -41,6 +41,7 @@ var _floor: float = 0.0
 var _kick: float = 0.0
 var _kick_length: float = KICK_TIME
 var _sway: Vector2 = Vector2.ZERO
+var _pivot: Node3D
 var _view: MeshInstance3D
 var _audio: AudioStreamPlayer3D
 
@@ -51,11 +52,15 @@ func _ready() -> void:
 	aim = AimModel.new(aim_config, rng_seed)
 	for data in weapons:
 		states.append(WeaponState.new(data))
+	# The pivot sits at the grip: swings and kicks turn it, the box hangs off it.
+	_pivot = Node3D.new()
+	_pivot.name = "ViewPivot"
+	_pivot.visible = false
+	add_child(_pivot)
 	_view = MeshInstance3D.new()
 	_view.name = "ViewModel"
 	_view.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_view.visible = false
-	add_child(_view)
+	_pivot.add_child(_view)
 	_audio = AudioStreamPlayer3D.new()
 	_audio.name = "Audio"
 	_audio.max_polyphony = 3
@@ -118,7 +123,7 @@ func holster() -> void:
 	_equipped.cancel_reload()
 	_equipped = null
 	current = -1
-	_view.visible = false
+	_pivot.visible = false
 	_log(&"weapon.holstered", {"weapon": data.id})
 	changed.emit()
 
@@ -309,7 +314,7 @@ func _own_rids() -> Array[RID]:
 
 
 func _muzzle() -> Vector3:
-	if _view != null and _view.visible:
+	if _pivot != null and _pivot.visible:
 		return _view.global_position
 	return camera.global_position
 
@@ -329,24 +334,54 @@ func _build_view(data: WeaponData) -> void:
 	material.roughness = 0.6
 	mesh.material = material
 	_view.mesh = mesh
-	_view.visible = true
+	_view.position = data.view_box_offset
+	_pivot.visible = true
 	_animate_view()
 
 
-# Recoil (pistol) or a downward chop (baton) while the kick timer runs.
+## Shows the equipped weapon's swing frozen at `progress` (0 = start, 1 = end); screenshots and
+## tests. The next physics step carries on from the real kick timer.
+func preview_swing(progress: float) -> void:
+	_kick = _kick_length * (1.0 - clampf(progress, 0.0, 1.0))
+	_animate_view()
+
+
+## Pose of the view pivot (grip), for tests.
+func view_pivot() -> Node3D:
+	return _pivot
+
+
+# Recoil (pistol) or a chop about the grip (baton) while the kick timer runs.
 func _animate_view() -> void:
 	var data := weapon()
 	if data == null:
 		return
 	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
-	var view := Transform3D(Basis.IDENTITY, data.view_offset)
+	var view := Transform3D(_euler_deg(data.view_rest_deg), data.view_offset)
 	if data.is_melee():
-		view.basis = Basis(Vector3.RIGHT, -1.2 * t)
-		view.origin += Vector3(0, 0.05 * t, -0.1 * t)
+		# Fast chop to the bottom of the swing, slower return to the ready pose.
+		var progress := 1.0 - t
+		var chop := data.view_chop_share
+		var amount := 0.0
+		if t > 0.0:
+			if progress < chop:
+				amount = sin(progress / chop * PI * 0.5)
+			else:
+				amount = cos((progress - chop) / (1.0 - chop) * PI * 0.5)
+		view.basis = _euler_deg(data.view_rest_deg + data.view_swing_deg * amount)
 	else:
-		view.basis = Basis(Vector3.RIGHT, 0.25 * t)
+		view.basis = Basis(Vector3.RIGHT, 0.25 * t) * view.basis
 		view.origin += Vector3(0, 0, 0.04 * t)
-	_view.transform = view
+	_pivot.transform = view
+
+
+# Pitch (about X), then yaw (Y), then roll (Z) in the camera's frame, degrees.
+static func _euler_deg(angles: Vector3) -> Basis:
+	return (
+		Basis(Vector3.BACK, deg_to_rad(angles.z))
+		* Basis(Vector3.UP, deg_to_rad(angles.y))
+		* Basis(Vector3.RIGHT, deg_to_rad(angles.x))
+	)
 
 
 func _play(stream: AudioStream, volume_db: float) -> void:

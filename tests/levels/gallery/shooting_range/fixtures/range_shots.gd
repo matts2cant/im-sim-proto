@@ -1,7 +1,7 @@
 extends Node3D
 ## Screenshot helper for reviews (not a test): first-person shots of the shooting range in the hub.
 ## Run the scene in a window with `-- shot=<name> out=<png path>`: it puts the hub player at a
-## station (eye height 1.65 m), optionally draws the pistol (settled reticle), waits, saves the
+## station (eye height 1.65 m), optionally draws the pistol or baton (settled reticle), waits, saves the
 ## window image and quits. Positions are room-local (origin on the hub wall, -Z into the room).
 
 ## feet / look: room-local points; pistol: draw it so the reticle shows; wait: game seconds.
@@ -13,6 +13,10 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"lane_40m": {"feet": Vector3(9.25, 0, -7.45), "look": Vector3(9.25, 1.21, -48), "pistol": true},
 	"lane_10m": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "pistol": true},
 	"hurt_lane_10m": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "pistol": true, "hurt": true},
+	"baton_rest": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "baton": true},
+	"baton_swing": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "baton": true, "swing": 0.15},
+	"baton_swing_late":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "baton": true, "swing": 0.4},
 	"melee_corner": {"feet": Vector3(4.6, 0, -6.6), "look": Vector3(8.6, 1.2, -5.6)},
 	"melee_behind": {"feet": Vector3(8.6, 0, -5.6), "look": Vector3(9.9, 1.2, -5.6)},
 	"blast_lane": {"feet": Vector3(-1.5, 0, -11.0), "look": Vector3(-1.5, 0.3, -20)},
@@ -23,6 +27,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
+const BATON: ItemData = preload("res://items/weapons/baton/baton_item.tres")
 const AMMO: ItemData = preload("res://items/pistol_ammo/pistol_ammo.tres")
 
 ## Review image size (the project's 16:9 default).
@@ -67,6 +72,9 @@ func _physics_process(delta: float) -> void:
 			_player.inventory.give(PISTOL, 1)
 			_player.inventory.give(AMMO, 30)
 			_player.inventory.select_slot(0)
+		if _shot.get("baton", false):
+			_player.inventory.give(BATON, 1)
+			_player.inventory.select_slot(0)
 		if _shot.get("hurt", false):
 			# A blast on the player through the stimulus path: the HUD silhouette must show it.
 			var origin := _player.global_position + Vector3(0, 1.2, 0)
@@ -76,7 +84,12 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(_delta: float) -> void:
-	if _shot.is_empty() or _time < float(_shot.get("wait", 1.0)):
+	if _shot.is_empty():
+		return
+	if _started and _shot.has("swing"):
+		# Freeze the swing animation at this progress (0..1) every frame (the physics step resets it).
+		_player.weapons.preview_swing(float(_shot["swing"]))
+	if _time < float(_shot.get("wait", 1.0)):
 		return
 	var image := get_viewport().get_texture().get_image()
 	image.save_png(ProjectSettings.globalize_path(_out))
