@@ -39,7 +39,10 @@ All numbers live in `actors/player/player_config.tres`; movement noise in `actor
 - Ground acceleration 40 m/s², deceleration 50 m/s² (no input).
 - Air control 0.3: in the air only 30% of ground acceleration steers, and without input momentum is kept. A jump keeps the speed cap of the mode it started from (a sprint jump stays at 6 m/s).
 - Gravity is the engine default 9.8 m/s² times `gravity_scale` 2.0 = 19.6 m/s², for the player only ([ADR 0036](../decisions/0036-player-gravity-scale.md)). Jump apex 1.0 m; launch speed = sqrt(2 g h) = 6.26 m/s. Air time on flat ground 0.64 s, so a flat jump covers about 2.6 m from walk and 3.8 m from sprint (plus up to ~0.25 m capsule overhang at each edge).
-- No automatic stair stepping: levels use ramps of at most 45° ([ADR 0034](../decisions/0034-ramps-not-stair-stepping.md)). Lips up to ~0.1 m are climbed by the rounded capsule bottom; anything higher is a mantle.
+- Steps ([ADR 0058](../decisions/0058-step-climbing.md)): walking (any speed) into an obstacle whose top is at most the step height (0.35 m, `actors/player/player_step.tres`, editable in the debug panel's Player tab) above the feet moves the player onto it, with no jump and no speed loss, when the top is walkable (≤ 45°) and the capsule fits there at its current height (standing 1.8 m or crouched 0.95 m). Only from the floor, not while jumping or mantling. Higher obstacles block: 0.35-1.0 m are jumped onto, 1.0-1.9 m mantled.
+- Stairs and small drops: walking off a ledge of at most the step height (or down stairs) keeps the player on the floor: no air time, no landing noise, no fall damage. A deeper drop falls as before.
+- The camera eases over a step's height change (about 0.1 s, `smooth_time`). Interaction, carry and weapon rays start from the eased camera, so they match the crosshair (at most 0.35 m off the real eye for under 0.1 s).
+- Steps are the generic `StepClimber` component (any CharacterBody3D that moves with `move_and_slide()`, guards included); props that collide with a body in the solver are not stepped onto (the player is not in their mask, so it stands on props).
 
 ### Mantle
 
@@ -89,7 +92,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 - Vents are paths only passable while crouched (1.0 m high).
 - Physics props: the player stands on, jumps from and mantles onto them like level geometry, presses on what it stands on with its weight (80 kg, at most 4 x the prop's own weight) and pushes props it walks into (at most 250 N, up to 2 m/s); props do not collide with the player's body in the solver ([ADR 0054](../decisions/0054-player-and-physics-props.md), [objects-and-fire.md](objects-and-fire.md)).
 - The player is saveable: position, yaw, pitch, crouched, velocity ([saving.md](saving.md)).
-- The debug panel's Player tab shows speed, mode, grounded, crouched, surface and the last footstep and landing loudness ([debug-panel.md](debug-panel.md)).
+- The debug panel's Player tab shows speed, mode, grounded, height, crouched, surface and the last footstep and landing loudness, and edits the step height ([debug-panel.md](debug-panel.md)).
 
 ## Code
 
@@ -107,6 +110,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | `actors/common/movement/movement_noise.gd`, `movement_noise_config.gd` | Component (any CharacterBody3D): footsteps and landings, logs, `noise`, cue; the player's tuning in `actors/player/player_movement_noise.tres` |
 | `actors/common/movement/fall_impact.gd` | Component (any CharacterBody3D): `damage.fall` on touchdown |
 | `actors/common/knockback/` | Component, effect and receptron: shoves from `force.*` |
+| `actors/common/movement/step_climber.gd`, `step_config.gd`, `step_rules.gd` | Component (any CharacterBody3D): walk up steps, down stairs; tuning (the player's in `actors/player/player_step.tres`); pure rules and view easing |
 | `ui/debug_panel/tabs/player_tab.*` | Debug panel Player tab |
 
 ## Interactions

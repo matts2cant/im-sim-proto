@@ -5,6 +5,19 @@
 [node name="PlayerTab" type="VBoxContainer"]
 script = ExtResource("1_tab")
 
+[node name="StepRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="StepRow"]
+layout_mode = 2
+text = "Step height (m)"
+
+[node name="StepHeight" type="SpinBox" parent="StepRow"]
+layout_mode = 2
+max_value = 0.6
+step = 0.01
+value = 0.35
+
 [node name="Readout" type="Label" parent="."]
 layout_mode = 2
 text = "No player"

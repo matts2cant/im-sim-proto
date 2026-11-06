@@ -17,7 +17,7 @@ Toggled with the ` key (QuoteLeft). Tabs:
 | Time | (M3) Time-scale slider 0.1-2.0 (step 0.05) and Reset to 1.0; sets `Engine.time_scale` (physics keeps its fixed 60 Hz step, game time slows or speeds up) |
 | Stats | Attributes, skills, augmentations, energy, body parts |
 | Event Log | Live stimulus log, filterable; empties when the log is cleared |
-| Player | Live speed, movement mode, grounded, crouched, floor surface, last footstep and landing loudness (M1); what is carried and the carry limit (M3); body-part health and stun, `move_speed_mult`, equipped weapon, aim spread and stance (M4) |
+| Player | Step height field (edits `player_step.tres` in memory, [ADR 0058](../decisions/0058-step-climbing.md)); live speed, movement mode, grounded, height of the feet, crouched, floor surface, last footstep and landing loudness (M1); what is carried and the carry limit (M3); body-part health and stun, `move_speed_mult`, equipped weapon, aim spread and stance (M4) |
 
 ## Rules
 

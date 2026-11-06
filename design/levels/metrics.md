@@ -10,7 +10,8 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Standing height | 1.8 m | Standing headroom ≥ 1.9 m |
 | Crouched height | 0.95 m | Crawl spaces (vents) 1.0–1.2 m high (kit `VentSegment` default 1.1 m); anything < 1.9 m forces crouch |
 | Eye height | 1.65 m standing / 0.9 m crouched | Windows and peep holes at these heights |
-| Max walkable slope | 45° | Use ramps ≤ 40° for stairs; there is no step-up: steps of 0.1–1.0 m are jumped onto, steps ≥ 1.0 m are mantled |
+| Max walkable slope | 45° | Ramps ≤ 40° |
+| Step height | 0.35 m, feet to the top surface (`actors/player/player_step.tres`, [ADR 0058](../decisions/0058-step-climbing.md)) | Walk-up steps and stair risers ≤ 0.3 m (margin below 0.35); 0.35–1.0 m is jumped onto; ≥ 1.0 m is mantled; avoid 0.3–0.35 m (grey zone). A drop ≤ 0.35 m is walked down without leaving the floor. Stairs: e.g. 0.17 m risers, 0.3 m treads, ≥ 1.2 m wide |
 
 ## Traversal
 
@@ -29,10 +30,10 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 
 | Object | Size | Level use |
 |---|---|---|
-| Small wooden crate | 0.6 m cube, 10 kg | Jump onto (< 1.0 m); carryable; pushed by walking into it (up to 2 m/s); two stacked (1.2 m) are mantled |
+| Small wooden crate | 0.6 m cube, 10 kg | Jump onto (above the 0.35 m step height, below 1.0 m); carryable; pushed by walking into it (up to 2 m/s); two stacked (1.2 m) are mantled |
 | Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to carry or push: a fixed climbing aid |
 | Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry; pushed slowly by walking into it |
-| Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s) |
+| Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s); above the step height, so standing on one is a jump |
 | Explosive barrel | Ø0.6 x 0.9 m, 30 kg | Keep 4 m from things that should survive; 2 m from another barrel chains |
 | Wooden barricade | 1.3 x 2.2 x 0.12 m, origin on the floor | Fills a 1.2 x 2.2 m doorway (ends overlap the jambs) |
 | Brazier | Ø0.6 x 0.9 m, origin on the floor | Permanent fire, reach 1.2 m from its centre |
@@ -51,4 +52,4 @@ Floors declare their surface with node metadata `surface` on the CSG root that h
 
 ## Navigation
 
-Guards navigate a navmesh baked at level load for a standing human: radius 0.35 m, height 1.8 m, max slope 45°, max climb 5 cm ([ADR 0041](../decisions/0041-runtime-navmesh-bake.md)). Anything lower than 1.8 m (vents, crawl spaces) is off the navmesh, and so is anything reached only by a step of 10 cm or more, a jump or a mantle: give guards ramps where they must follow.
+Guards navigate a navmesh baked at level load for a standing human: radius 0.35 m, height 1.8 m, max slope 45°, max climb 0.3 m ([ADR 0041](../decisions/0041-runtime-navmesh-bake.md), [ADR 0058](../decisions/0058-step-climbing.md)). Walk-up steps and stairs (≤ 0.3 m risers) are on the navmesh, as characters walk up them; anything lower than 1.8 m (vents, crawl spaces) is off it, and so is anything reached only by a step above 0.3 m, a jump or a mantle: give guards stairs or ramps where they must follow.

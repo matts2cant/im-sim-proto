@@ -5,9 +5,9 @@ extends NavigationRegion3D
 ## Source: every CSG root with collision under `source_root` (all kit parts and free CSG), plus
 ## static colliders of nodes in the group `navigation_source` (for non-CSG level objects).
 ## The agent is a standing human: spaces lower than `agent_height` (vents, crawl spaces) are left
-## out automatically. There is no step-up: max climb is one cell height (5 cm), the least that
-## keeps ramps up to the 45 degree slope limit connected (with 0 every voxel row of a ramp is a
-## step); 2 cm floor overlays stay connected, 10 cm steps do not.
+## out automatically. Max climb 0.3 m: characters walk up steps of up to 0.35 m (StepClimber,
+## ADR 0058), so steps and stairs of up to 0.3 m (the level rule, with margin) are on the navmesh;
+## higher ledges (jumped or mantled) are not.
 ## Place it last among the level's children; call `bake()` again after changing the geometry.
 
 const SOURCE_GROUP: StringName = &"navigation_source"
@@ -15,7 +15,7 @@ const SOURCE_GROUP: StringName = &"navigation_source"
 @export var source_root: NodePath = ^".."
 @export_range(0.1, 2.0, 0.05, "suffix:m") var agent_radius := 0.35
 @export_range(0.5, 3.0, 0.05, "suffix:m") var agent_height := 1.8
-@export_range(0.0, 1.0, 0.05, "suffix:m") var agent_max_climb := 0.05
+@export_range(0.0, 1.0, 0.05, "suffix:m") var agent_max_climb := 0.3
 @export_range(0.0, 89.0, 1.0, "suffix:deg") var agent_max_slope := 45.0
 ## Voxel size (a divisor of the agent radius keeps it exact); the navigation map is set to match.
 @export_range(0.05, 1.0, 0.05, "suffix:m") var cell_size := 0.05

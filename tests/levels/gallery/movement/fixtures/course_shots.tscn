@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/levels/gallery/movement/fixtures/course_shots.gd" id="1_shots"]
+[ext_resource type="PackedScene" path="res://levels/hub/hub.tscn" id="2_hub"]
+
+[node name="CourseShots" type="Node3D"]
+script = ExtResource("1_shots")
+
+[node name="Hub" parent="." instance=ExtResource("2_hub")]
+
+[node name="Player" parent="Hub"]
+input_enabled = false

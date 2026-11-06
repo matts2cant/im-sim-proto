@@ -15,6 +15,9 @@ const LEGS_DISABLED: StringName = &"state.legs_disabled"
 ## Stance tags, set by the character's movement controller.
 const CROUCHING: StringName = &"stance.crouch"
 const SPRINTING: StringName = &"stance.sprint"
+## Set by a controller while it moves the body by script instead of move_and_slide() (a mantle):
+## StepClimber leaves the body alone.
+const MANTLING: StringName = &"stance.mantle"
 
 
 static func tags_of(entity: Node) -> Tags:
