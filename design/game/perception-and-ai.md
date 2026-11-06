@@ -42,7 +42,7 @@ stateDiagram-v2
 - Targets: entities whose tags include a hostile tag (`actor.player`) and no hidden tag (`state.cloaked`) ([ADR 0069](../decisions/0069-hostile-and-ally-tags.md)).
 - Eyes 1.6 m above the feet; rays to the target's head, chest and feet (fractions of its collision shape, so crouching lowers them); world and props block; seen if any ray is clear.
 - Focus ±30°, 20 m; peripheral ±60°, 10 m, x0.4; nothing outside ±60° (horizontal angle and distance).
-- Suspicion per second = 1.25 x light x distance x zone x stance (crouch 0.7) x wary (1.5). Light = clamp((L - 0.1) / 0.4, 0, 1) from the target's light level L (`light_exposure` child; 1.0 without one), at least 0.5 within 2 m. Distance = 1 to 5 m, down to 0.25 at 20 m. Decay 0.25/s unseen. Suspicious at 0.3, Alerted at 1.0.
+- Suspicion per second = 1.25 x light x distance x zone x stance (crouch 0.7) x wary (1.5). Light = clamp((L - 0.1) / 0.4, 0, 1) from the target's light level L (its `LightExposure`, [ADR 0065](../decisions/0065-light-level-model.md); 1.0 without one; the guard has one too), at least 0.5 within 2 m. Distance = 1 to 5 m, down to 0.25 at 20 m. Decay 0.25/s unseen. Suspicious at 0.3, Alerted at 1.0.
 
 | Situation | Gain | Time to Alerted |
 |---|---|---|

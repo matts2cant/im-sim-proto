@@ -186,7 +186,12 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M7 Light and AI (Perception lab, AI arena)
 
-- [ ] HUD light indicator tracks light level; shooting lights and breaker change it.
+- [ ] Perception lab (doorway 2): walk the three lanes. The HUD light gauge (gem and bar above the body and energy bar) reads dark blue and nearly empty on the carpet lane, amber about a third on the wood lane, pale yellow nearly full on the metal lane; the debug Overlays tab shows the number (about 0.04 / 0.31 / 0.93).
+- [ ] Crouch (hold Ctrl) in the dim and lit lanes: the gauge drops a little (dim about 0.21, lit about 0.88); in the dark lane it stays empty.
+- [ ] What you see matches the gauge: the carpet lane looks dark, the wood lane has a weak pool of light, the metal lane is clearly lit; walls far from lamps look dark, not grey.
+- [ ] Breaker on the west wall by the doorway (lit by its own wall lamp): "E: switch off lab lights" clunks, the lever drops, the lane lamps and their bulbs go out and the gauge empties in every lane; the apron lamps stay on. E again ("switch on lab lights") brings them back.
+- [ ] Shoot a lane lamp with the pistol: glass breaks (sound, green shards), its light goes out, the gauge under it drops. Save, load: the lamp stays broken; an open breaker stays open.
+- [ ] Stand near a burning crate (room 3): the gauge rises.
 - [ ] Guards move through Unaware, Suspicious, Searching, Alerted/Combat and back; `?` / `!` icons and barks show.
 - [ ] Guards discover bodies and wake unconscious guards; unconscious guards do not wake alone.
 - [ ] Cloak hides the player from guards.
@@ -213,10 +218,11 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M7 Guards ([ADR 0067](../decisions/0067-vision-and-detection.md), [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md))
 
-No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and run it (F6). The guard patrols A (0, 0, 2) -> B (5, 0, 6) -> C (-5, 0, 6); the player starts at the far corner (12, 0, -12). Debug panel Overlays: "Guard state" on shows state, meter and wary time. Event Log: `actor.awareness`, `actor.heard`, `actor.bark`.
+No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and run it (F6). Two lamps light it (north of the wall and behind the guard); the HUD light gauge shows your level. The guard patrols A (0, 0, 2) -> B (5, 0, 6) -> C (-5, 0, 6); the player starts at the far corner (12, 0, -12). Debug panel Overlays: "Guard state" on shows state, meter and wary time. Event Log: `actor.awareness`, `actor.heard`, `actor.bark`.
 
 - [ ] The guard walks its route at an unhurried pace (1.8 m/s), turns smoothly (240°/s, no snapping), waits 2 s at A and 1 s elsewhere; footsteps are audible but quieter than the player's.
 - [ ] Walking into its view in the open: `?` (yellow) with a bark ("Huh?") after a moment, then `!` (red, "There you are!") within about a second at 4-9 m. It runs at you and stops about 1.5 m away facing you, not bumping into you.
+- [ ] Light: in the Perception lab's dark corners guards would barely notice you (dark at 6 m: never; within 2 m always); here, compare standing under a lamp with standing far from both lamps (the light gauge low): detection is slower in the dim.
 - [ ] Crouch-walking at 8 m in its view takes noticeably longer to be noticed than standing (x0.7); at the edge of its view (45°, 6 m) it takes about 2 s. Behind it you are never seen.
 - [ ] Sprinting behind it within about 13 m is heard: `?`, it turns to the spot for 2 s, walks there, looks around (sweeps ±60°) and gives up ("Must be nothing."). Walking behind it at 4 m or more is not heard (concrete).
 - [ ] Throw a small crate near it: it investigates; a crate breaking or a barrel exploding nearby makes it run there at once.

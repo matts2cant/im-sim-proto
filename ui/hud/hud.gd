@@ -4,7 +4,8 @@ extends CanvasLayer
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
-## the energy bar beside the silhouette with chips for the augmentations that are on, a faint tint
+## the energy bar beside the silhouette with chips for the augmentations that are on, the light
+## gauge above them (the player's LightExposure level, ADR 0065), a faint tint
 ## while the player is cloaked (`state.cloaked`; ADR 0061), and the death overlay (E resets the
 ## level, Esc opens the game menu, whose Load works there; ADR 0064). It only reads the player's
 ## components. Layer 10: the debug panel (layer 100) draws over it.
@@ -38,6 +39,7 @@ var _item_name_left: float = 0.0
 @onready var energy_label: Label = $Energy/Value
 @onready var aug_chips: VBoxContainer = $AugChips
 @onready var cloak_tint: ColorRect = $CloakTint
+@onready var light_gauge: LightGauge = $LightGauge
 
 
 func _ready() -> void:
@@ -64,6 +66,7 @@ func _ready() -> void:
 	player.inventory.hand_changed.connect(_on_hand_changed)
 	var energy := Energy.of(player)
 	energy_bar.energy = energy
+	light_gauge.exposure = LightExposure.of(player)
 	var augmentations := Augmentations.of(player)
 	if augmentations != null:
 		augmentations.changed.connect(refresh_augmentations)

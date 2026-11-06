@@ -6,7 +6,7 @@ Date: 2026-11-06
 
 ## Context
 
-Guards (M7) must see the player gradually, so light, distance, stance, Cloak and cover all matter and the player can read and play against it (ADR 0012). Binary "in cone and in line of sight" is unreadable and gives no room for shadows. The light system is built in parallel (its component: a child of a lit entity in group `light_exposure` with a public `level` in [0, 1]).
+Guards (M7) must see the player gradually, so light, distance, stance, Cloak and cover all matter and the player can read and play against it (ADR 0012). Binary "in cone and in line of sight" is unreadable and gives no room for shadows. The light system was built in parallel ([ADR 0065](0065-light-level-model.md): a `LightExposure` child of a lit entity with a public `level` in [0, 1]).
 
 ## Decision
 
@@ -19,7 +19,7 @@ Guards (M7) must see the player gradually, so light, distance, stance, Cloak and
   - distance = 1 up to 5 m, linear down to 0.25 at 20 m.
   - stance = 0.7 with `stance.crouch`; wary = 1.5 while wary (ADR 0068).
 - The meter, its decay (0.25/s) and its thresholds (Suspicious 0.3, 0.2 while wary; Alerted 1.0) belong to the awareness model (ADR 0068).
-- **Light lookup** is one function, `PerceptionSensor.light_level_of()`: the `level` of the entity's child in group `light_exposure`, else 1.0 (fully lit). The merge with the light branch swaps it for the light system's accessor.
+- **Light lookup** is one function, `PerceptionSensor.light_level_of()`: `LightExposure.of(entity).level`, else 1.0 (fully lit: an entity without the component is never hidden by darkness). The player and the guard have one.
 - Worked numbers (tests): lit at 4 m in focus → 1.25/s, Alerted in 0.8 s; lit at 12 m → 1.23 s; dim (L 0.25) at 4 m → 2.1 s; crouched dim at 8 m → 3.6 s; dark (0.05) at 6 m → never; peripheral 45° at 6 m → 2.1 s; behind → never; dark at 1.5 m in focus → 1.6 s.
 
 ## Alternatives considered
@@ -31,8 +31,8 @@ Guards (M7) must see the player gradually, so light, distance, stance, Cloak and
 
 ## Consequences
 
-- The light system only provides the `light_exposure` child; without one an entity counts as fully lit (no shadows until the light branch merges).
+- Darkness hides only entities with a LightExposure; levels need real lights (OmniLight3D, SpotLight3D) for anything to be seen at range: in a level with no lamps the player is at ambient (0.04) and seen only within 2 m. The guard test fixture has two lamps.
 - Cloak is just a tag in `hidden_tags`; cameras and turrets (later) can use a config without it.
 - `Tags` nodes join the group `tags`, so systems can find entities by tag without registries.
-- Tests: `tests/actors/common/perception/vision_rules_test.gd`, `perception_sensor_test.gd`.
+- Tests: `tests/actors/common/perception/vision_rules_test.gd`, `perception_sensor_test.gd`; across the light contract `tests/scenarios/guard_light_test.gd` (a real LightExposure in a lamp's light vs in a wall's shadow, same distance and angle: Alerted in 1 / gain seconds vs never).
 - See [perception and AI](../game/perception-and-ai.md).

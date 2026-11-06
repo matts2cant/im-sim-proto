@@ -2,12 +2,11 @@ extends GdUnitTestSuite
 ## Integration: PerceptionSensor (ADR 0067) on minimal entities built in code: a watcher (a Node3D
 ## with Tags and a sensor, facing -Z, eyes 1.6 m up) and a target that is not the player, only a
 ## static capsule (1.8 m, on the actors layer) carrying the tag `actor.player`: the rule is about the
-## tag. Walls (world) and props (objects) block the sight rays; light comes from a child in group
-## `light_exposure` (the light system's contract, faked here).
+## tag. Walls (world) and props (objects) block the sight rays; light comes from the target's
+## LightExposure, frozen at a set level here (the light model itself: guard_light_test.gd).
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const CONFIG: PerceptionConfig = preload("res://actors/guard/guard_perception.tres")
-const LIGHT_LEVEL := preload("res://tests/actors/common/perception/fixtures/fake_light_level.gd")
 
 var _root: Node3D
 var _watcher: Node3D
@@ -93,11 +92,11 @@ func test_light_level_scales_the_gain() -> void:
 	await _frames(2)
 	assert_float(_sensor.look().gain).is_equal_approx(0.46875, 0.0001)
 
-	light.set(&"level", 0.05)
+	light.level = 0.05
 	assert_object(_sensor.look()).is_null()
 
 
-func test_light_level_of_reads_the_light_exposure_child() -> void:
+func test_light_level_of_reads_the_light_exposure() -> void:
 	var target := _target(Vector3(0, 0, -4), [&"actor.player"])
 	assert_float(PerceptionSensor.light_level_of(target)).is_equal(1.0)
 	_light(target, 0.3)
@@ -180,9 +179,11 @@ func _box(centre: Vector3, size: Vector3, layer: int) -> StaticBody3D:
 	return body
 
 
-func _light(target: Node, level: float) -> Node:
-	var light: Node = LIGHT_LEVEL.new()
+# A LightExposure that keeps `level` (not updated from the lights).
+func _light(target: Node, level: float) -> LightExposure:
+	var light := LightExposure.new()
 	light.name = "LightExposure"
-	light.set(&"level", level)
 	target.add_child(light)
+	light.process_mode = Node.PROCESS_MODE_DISABLED
+	light.level = level
 	return light

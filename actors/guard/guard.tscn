@@ -34,6 +34,8 @@
 [ext_resource type="Script" path="res://actors/common/body/downed_pose.gd" id="32_downed_pose"]
 [ext_resource type="Script" path="res://actors/common/awareness/awareness_indicator.gd" id="33_indicator"]
 [ext_resource type="Resource" path="res://actors/guard/guard_barks.tres" id="34_barks"]
+[ext_resource type="Script" path="res://actors/common/light/light_exposure.gd" id="35_light_exposure"]
+[ext_resource type="Resource" path="res://actors/common/light/light_exposure.tres" id="36_light_config"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -183,3 +185,7 @@ script = ExtResource("32_downed_pose")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.15, 0)
 script = ExtResource("33_indicator")
 barks = ExtResource("34_barks")
+
+[node name="LightExposure" type="Node" parent="."]
+script = ExtResource("35_light_exposure")
+config = ExtResource("36_light_config")

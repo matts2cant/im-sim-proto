@@ -9,9 +9,6 @@ extends Node
 ## by tags only (group Tags.GROUP), never by class or name. A character that cannot act
 ## (ActorState) sees nothing. GradedAwareness calls look() once per tick.
 
-## The light level component's group (the light system, M7): a child of the lit entity with
-## a public `level: float` in [0, 1].
-const LIGHT_EXPOSURE_GROUP: StringName = &"light_exposure"
 ## Fractions of the target's height the sight rays aim at: head, chest, feet.
 const POINT_FRACTIONS: Array[float] = [0.9, 0.6, 0.1]
 ## Height assumed for a target without a collision shape (m), its origin at the feet.
@@ -62,17 +59,11 @@ static func of(node: Node) -> PerceptionSensor:
 	return null
 
 
-## Light level (0 dark .. 1 lit) of `target`: the `level` of its child in group `light_exposure`, or
-## 1.0 (fully lit) without one. The one place that reads the light system.
+## Light level (0 dark .. 1 lit) of `target`: its LightExposure's `level` (ADR 0065), or 1.0
+## (fully lit) without one. The one place that reads the light system.
 static func light_level_of(target: Node) -> float:
-	if target == null:
-		return 1.0
-	for child in target.get_children():
-		if child.is_in_group(LIGHT_EXPOSURE_GROUP):
-			var level: Variant = child.get(&"level")
-			if level is float or level is int:
-				return clampf(float(level), 0.0, 1.0)
-	return 1.0
+	var exposure := LightExposure.of(target)
+	return clampf(exposure.level, 0.0, 1.0) if exposure != null else 1.0
 
 
 func eye_position() -> Vector3:

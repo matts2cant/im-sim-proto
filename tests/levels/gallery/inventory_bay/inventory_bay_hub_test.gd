@@ -7,7 +7,9 @@ const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HUB := "res://levels/hub/hub.tscn"
 const HUB_SCENE: PackedScene = preload("res://levels/hub/hub.tscn")
-const ROOMS: Array[String] = ["MovementCourse", "PhysicsFireRoom", "ShootingRangeRoom", "InventoryBayRoom"]
+const ROOMS: Array[String] = [
+	"MovementCourse", "PerceptionLab", "PhysicsFireRoom", "ShootingRangeRoom", "InventoryBayRoom"
+]
 ## Room-local points (origin on the hub wall's outer face, -Z away from the hub).
 const NAV_POINTS: Array[Vector3] = [
 	Vector3(0, 0, -2),

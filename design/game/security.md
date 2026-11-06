@@ -11,7 +11,7 @@ Electronic and mechanical obstacles that offer several ways through.
 - **Cameras** see the player even when cloaked.
 - **Alarm panel** raises the level-wide alarm; linked to cameras.
 - **Turret** guards an area; Cloak does not hide the player from it.
-- **Breaker panel** cuts lights ([light-and-visibility.md](light-and-visibility.md)).
+- **Breaker panel** cuts lights ([light-and-visibility.md](light-and-visibility.md)). Built in M7 ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)): `objects/breaker_panel/breaker_panel.tscn`, a `CircuitBreaker` (a `Usable`, "E: switch off <label>" / "switch on") that switches every `Powered` on its `circuit` through the circuit's group, clunks (noise 6) and logs `power.switched`. Lamps opt in with their `Powered.circuit`; the breaker names none. The perception lab has one (circuit `perception_lab`).
 - **Terminals** are unlocked with credentials found in the world. The user's own hacking design comes later ([../backlog.md](../backlog.md)).
 
 ## Door and lock types

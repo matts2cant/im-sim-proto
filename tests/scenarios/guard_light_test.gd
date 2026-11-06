@@ -39,7 +39,9 @@ func after_test() -> void:
 
 
 func test_target_in_the_light_is_seen_as_predicted() -> void:
+	# Cloaked until its light level has settled, so the meter starts from 0 when the timer does.
 	var target := _target(LIT_SPOT)
+	ActorState.set_tag(target, ActorState.CLOAKED, true)
 	await _frames(12)
 	var level := LightExposure.of(target).level
 	assert_float(level).is_greater(0.5)
@@ -48,6 +50,7 @@ func test_target_in_the_light_is_seen_as_predicted() -> void:
 	var predicted := VisionRules.gain(angle, distance, level, false, false, PERCEPTION)
 	assert_float(predicted).is_greater(1.0)
 
+	ActorState.set_tag(target, ActorState.CLOAKED, false)
 	var alerted_after := -1.0
 	for tick in 180:
 		await _frames(1)
