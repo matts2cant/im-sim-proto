@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Integration in the real shooting range (inside the hub) with the player and its weapons: a pistol
 ## shot from the firing line hits the 10 m dummy's torso; the baton knocks the unaware melee dummy
 ## out from behind in one hit and the aware one in three; the blast lane barrel hurts a player on the
-## 2 m line more than one on the 6 m line. The weapon RNG is seeded (Weapons.SEED).
+## 2 m line more than on the 3 m line and not at all on the 6 m line. The weapon RNG is seeded (Weapons.SEED).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
@@ -89,18 +89,23 @@ func test_baton_from_behind_takes_three_hits_on_the_aware_melee_dummy() -> void:
 	assert_array(EventLog.find(&"actor.knocked_out")).has_size(1)
 
 
-func test_blast_lane_barrel_hurts_more_on_the_2_m_line_than_on_the_6_m_line() -> void:
+func test_blast_lane_damage_falls_from_the_2_m_to_the_3_m_line_and_is_zero_on_the_6_m_line() -> void:
 	await _load_hub()
 	await _weapons.equip(1)
 
-	# The room's barrel from the 6 m line, then a fresh one in its place from the 2 m line.
+	# The room's barrel from the 6 m line, then fresh ones in its place from the 3 m and 2 m lines.
 	var far := await _blast_damage(6.0)
 	Objects.spawn(_room, Objects.EXPLOSIVE_BARREL, _room.to_global(BLAST_BARREL), "BlastBarrel2")
 	await _driver.frames(5)
+	var middle := await _blast_damage(3.0)
+	Objects.spawn(_room, Objects.EXPLOSIVE_BARREL, _room.to_global(BLAST_BARREL), "BlastBarrel3")
+	await _driver.frames(5)
 	var near := await _blast_damage(2.0)
 
-	assert_float(near).override_failure_message("2 m %.1f, 6 m %.1f" % [near, far]).is_greater(far)
-	assert_float(near).is_greater(0.0)
+	var message := "2 m %.1f, 3 m %.1f, 6 m %.1f" % [near, middle, far]
+	assert_float(near).override_failure_message(message).is_greater(middle)
+	assert_float(middle).override_failure_message(message).is_greater(0.0)
+	assert_float(far).override_failure_message(message).is_equal(0.0)
 	assert_bool(_driver.player.is_dead()).is_false()
 
 

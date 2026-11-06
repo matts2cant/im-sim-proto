@@ -1,6 +1,6 @@
 # Inventory
 
-Milestone: M5 (Inventory bay). Systems done in M5; the gallery room is built on top of them.
+Milestone: M5 (Inventory bay). Systems done in M5; the gallery room ([7 Inventory and abilities bay](../levels/hub-and-gallery.md#7-inventory-and-abilities-bay)) and the hub's loadout table (the player starts empty) are built on top of them.
 
 ## Purpose
 

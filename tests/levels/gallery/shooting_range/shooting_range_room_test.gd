@@ -25,10 +25,10 @@ const SIGNS: Dictionary[String, String] = {
 	"MeleeAware": "Aware · 3 hits",
 	"BlastLane": "Blast lane\nStand on a line\nshoot the barrel",
 	"Blast2m": "2 m",
-	"Blast4m": "4 m",
+	"Blast3m": "3 m",
 	"Blast6m": "6 m",
 	"FarWall": "Long shots",
-	"Medkits": "Medkits · E heals 30",
+	"Medkits": "Medkits · E takes · use heals 30",
 }
 
 var _room: Node3D
@@ -136,13 +136,17 @@ func test_blast_lane_lines_and_crates() -> void:
 	# Beside the lanes (west of the first divider) and past the dividers' far end.
 	assert_float(barrel.x).is_less(dividers.position.x - 1.0)
 	assert_float(barrel.z).is_less(dividers.position.z - dividers.depth)
-	for metres: int in [2, 4, 6]:
+	for metres: int in [2, 3, 6]:
 		var stripe := _room.get_node("BlastLane/Stripe%dm" % metres) as SurfaceFloor
 		assert_object(stripe.material_override).is_same(HAZARD)
 		assert_float(stripe.size.y).is_equal_approx(0.1, 0.0001)
 		assert_float(stripe.position.x).is_equal_approx(barrel.x, 0.0001)
 		# Centre to centre, towards the firing line.
 		assert_float(stripe.position.z - barrel.z).is_equal_approx(metres, 0.0001)
+	# The 3 m line is well inside the blast radius (the old 4 m line sat on its edge and took
+	# nothing); the 6 m line is clearly outside.
+	assert_float(BARREL.damage_radius - 3.0).is_greater_equal(0.5)
+	assert_float(6.0 - BARREL.damage_radius).is_greater_equal(1.0)
 	for name: String in ["Crate1", "Crate2"]:
 		var crate := _pos("BlastLane/" + name)
 		var gap := Vector2(crate.x - barrel.x, crate.z - barrel.z).length() - 0.3 - 0.3
