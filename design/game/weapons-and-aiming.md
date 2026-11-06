@@ -42,7 +42,7 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 
 - `WeaponData` Resource per weapon (`pistol/pistol.tres`, `baton/baton.tres`): damage stimuli, cycle time, range, ammo, sweep radius, noises, impulse, sounds, placeholder view model (a box in front of the camera). The view model hangs off a pivot at the grip (`view_offset`; `view_box_offset`, `view_rest_deg`, `view_swing_deg`, `view_chop_share` in the `.tres`): the pistol's box turns about its centre, the baton is held pointing up and forward (about 60 degrees, tilted inwards) and a swing chops down across the view about the grip, then returns more slowly. Visual only: the swing timing and the hit sweep are unchanged.
 - `WeaponState` (pure, unit-tested): magazine, cooldown, reload timer; spare rounds come from an `AmmoPool` (a plain count for fixed loadouts, or `InventoryAmmo`: the inventory's stacks of the weapon's `ammo_item`, smallest first). Results: `FIRED`, `DRY` (empty magazine: click, waits a cycle), `BUSY` (cycle running), `RELOADING`.
-- `WeaponHolder` (node, child of the player's camera): the equipped `WeaponState`, the `AimModel`, the view model and sounds. Armed either from a fixed loadout (`weapons`, `equip(index)`; saveable; guards in M7) or with `equip_state()` from an inventory weapon stack (the player since M5: `PlayerInventory` owns one state per pistol stack and mirrors its magazine into the stack's `magazine`).
+- `WeaponHolder` (node, child of its user's eye: the player's camera, a guard's `Aim` node; [ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)): the equipped `WeaponState`, the `AimModel`, the view model and sounds. It reads no input: whoever drives it points the eye and calls `physics_step(delta, stance, floor_add)` and `trigger()`, so any actor fires through the same code and stimuli (guards: [perception-and-ai.md](perception-and-ai.md#combat)). Armed either from a fixed loadout (`weapons`, `equip(index)`; saveable; guards' loadouts `guard_pistol.tscn`, `guard_baton.tscn`) or with `equip_state()` from an inventory weapon stack (the player since M5: `PlayerInventory` owns one state per pistol stack and mirrors its magazine into the stack's `magazine`).
 
 | | Silenced pistol | Stun baton |
 |---|---|---|
@@ -85,10 +85,11 @@ flowchart TD
 - Skills: Pistols (cone, settle, reload, damage), Low-Tech (baton damage and swing speed): [abilities.md](abilities.md). Cloak (`state.cloaked`) draws the view model at 30 % opacity.
 - Damage types and parts: [damage.md](damage.md).
 - Shots emit stimuli ([stimulus-response.md](stimulus-response.md)); guards hear the 6 m muzzle noise and the impact noise in M7 ([perception-and-ai.md](perception-and-ai.md)); shooting lights: [light-and-visibility.md](light-and-visibility.md).
+- **Guards' pistol** (`items/weapons/pistol/pistol_unsilenced.tres`, ADR 0070): the same numbers as the player's pistol but muzzle noise 25 m and a muzzle flash (`muzzle_flash_size` 0.12: a `MuzzleFlash`, an unshaded box at the front of the gun and a 4 m light for 0.06 s; the silenced pistol has none). Guards aim with their own `AimConfig` (`actors/guard/guard_aim.tres`: floor 0 standing, +3 walking, no shot bloom, sway 0.1) whose floor the combat component raises with its range, target-speed and settle terms.
 - Controls: [controls.md](controls.md). Ammo and items: [inventory.md](inventory.md). Combat Strength strengthens melee: [abilities.md](abilities.md).
 
 ## Open questions
 
 - Auto-reload on an empty magazine (DX1 does it): v0 clicks dry until R.
 - View models are placeholder boxes; real meshes and muzzle flash later.
-- Pistol noise 6 m is quiet by design (silenced); revisit with M7 guards.
+- Pistol noise 6 m is quiet by design (silenced); guards' pistols are 25 m (ADR 0070).

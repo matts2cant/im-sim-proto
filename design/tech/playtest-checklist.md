@@ -231,3 +231,16 @@ No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and 
 - [ ] Baton from behind while it is Unaware or Suspicious knocks it out in one hit: it tips over backwards, the icon and barks stop, and it ignores noise. From the front or once Alerted it takes several hits; hitting it from the front alerts it.
 - [ ] It pushes small crates out of its way gently (at most 2 m/s), cannot shove the large crate, and never flings props.
 - [ ] Guard icons toggle off and on in the Overlays tab; barks are readable at a distance and disappear after about 2 s.
+
+## M7 Guard combat ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md))
+
+No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run it (F6). You start hidden behind a 12 m wall (z -12) with a training dummy and a small crate; a pistol guard stands at (-3, 0, 0) and a baton guard at (3, 0, 0), both facing you across the lit yard. Event Log: `actor.engaged`, `actor.disengaged`, `weapon.fired`, `weapon.swung`.
+
+- [ ] Step out from behind the wall: once a guard shows `!` the pistol guard draws (a dark box in its right hand) and after about half a second fires; each shot has a visible yellow flash at the gun and a loud report, every 0.6-0.9 s. The HUD flashes and the silhouette loses health on hits.
+- [ ] Standing in the open at about 10 m you have time (3 s or more) to get back behind the wall; at 4 m it kills you in about 2 s of fire. Crouched and still far away (about 15 m), most shots miss; running across its view at 6 m, most hit.
+- [ ] Walk up close to the pistol guard: it backs away, keeping its face to you, to about 7 m before shooting again; run far away (beyond 12 m) and it follows to about 11 m.
+- [ ] Break line of sight behind the wall: the shooting stops at once, the guard runs to where it last saw you and, 4 s later, searches (`?` orange). Its magazine empties after 10 shots: it pauses about 1.6 s to reload.
+- [ ] The baton guard runs straight at you and swings a blue box every 0.6 s when about 1.5 m away; three hits knock you out (no one-hit knockout from behind).
+- [ ] Stand so that the baton guard is between you and the pistol guard: the pistol guard does not fire through its colleague; after about a second it steps aside and fires past it.
+- [ ] Knock a guard out (baton from behind while it is still Unaware): it drops its weapon box from view and never fires again.
+- [ ] Throw the small crate at the training dummy: it bounces off (no longer passes through) and the dummy shows about 12 damage once. The guards still push crates gently out of their way.

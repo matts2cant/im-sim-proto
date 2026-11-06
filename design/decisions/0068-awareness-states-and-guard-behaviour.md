@@ -35,7 +35,7 @@ ADR 0012 chose graded states (Unaware, Suspicious, Searching, Alerted/Combat); M
 
 ## Consequences
 
-- Props pass through training dummies too (static, actors layer): a thrown crate flies through a dummy; its ImpactSensor reports the hit (same damage, one hit).
+- Props pass through training dummies too (static, actors layer): a thrown crate flies through a dummy; its ImpactSensor reports the hit (same damage, one hit). Fixed by [ADR 0070](0070-guard-combat-and-loadouts.md): static characters are also on layer 7, which props scan.
 - Combat, body discovery, waking guards, carrying bodies, shouts, radio and the alarm plug into Alerted and `alert_at()` (next wave).
 - Tests: `tests/actors/common/awareness/`, `tests/actors/guard/`, `tests/scenarios/guard_awareness_test.gd` (fixture `tests/scenarios/fixtures/guard_post.tscn`), `tests/actors/common/pusher/`.
 - See [perception and AI](../game/perception-and-ai.md).

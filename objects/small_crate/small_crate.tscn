@@ -27,7 +27,7 @@ material = ExtResource("2_wood_surface")
 
 [node name="SmallCrate" type="RigidBody3D"]
 collision_layer = 8
-collision_mask = 9
+collision_mask = 73
 mass = 10.0
 script = ExtResource("1_physics_object")
 physics_material_override = ExtResource("pm_prop_physics")

@@ -1,19 +1,24 @@
 class_name WeaponHolder
 extends Node3D
-## Component of a character, child of its camera: the weapons it holds, the equipped one and its
-## AimModel. Ranged weapons emit a `damage.*` RAY per damage entry along a direction sampled inside
-## the aim cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a
-## `force.impact` RAY along the same line (WeaponData.impact_impulse in N s: whatever it hits and has
-## a `force` receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
+## Component of any character (the player, guards; ADR 0070), child of its eye (the player's camera,
+## a guard's Aim node): the weapons it holds, the equipped one and its AimModel. Shots and sweeps
+## start at the eye along its -Z; whoever drives the holder points the eye (mouse look, or a combat
+## component aiming at a target) and calls physics_step() and trigger(). Nothing here reads input.
+## Ranged weapons emit a `damage.*` RAY per damage entry along a direction sampled inside the aim
+## cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a `force.impact` RAY
+## along the same line (WeaponData.impact_impulse in N s: whatever it hits and has a `force`
+## receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
 ## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
 ## carries its part).
 ## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
 ## (through Stimulus.scale_attribute), cycle, reload, cone floors and bloom, settle time; crouching
 ## (`stance.crouch`) settles faster (AimConfig.crouch_settle_factor). While the user is cloaked
 ## (`state.cloaked`) the view model is translucent.
-## The view model is a placeholder box. Two ways to arm it: a fixed loadout (`weapons`, equip(index);
-## guards in M7) that the holder saves itself, or equip_state() with a WeaponState owned elsewhere
-## (the player's inventory weapon stacks, saved by PlayerInventory; ADR 0050).
+## The view model is a placeholder box (on a guard: the box it holds); a ranged weapon with
+## `muzzle_flash_size` shows a MuzzleFlash at the front of the box on each shot. Two ways to arm it:
+## a fixed loadout (`weapons`, equip(index); guards' loadouts) that the holder saves itself, or
+## equip_state() with a WeaponState owned elsewhere (the player's inventory weapon stacks, saved by
+## PlayerInventory; ADR 0050).
 
 signal changed
 
@@ -32,14 +37,16 @@ const CLOAKED_ALPHA: float = 0.3
 
 ## The character holding the weapons (shots come from it; its body and hitboxes are excluded).
 var user: CollisionObject3D
-## Eye: shots and sweeps start here along -Z.
-var camera: Camera3D
+## Eye: shots and sweeps start here along -Z (the player's camera, a guard's Aim node).
+var eye: Node3D
 var states: Array[WeaponState] = []
 ## Index into `weapons` of the equipped one, -1 when holstered or armed through equip_state().
 var current: int = -1
 var aim: AimModel
 ## Last hit of the equipped weapon, for tests and the debug panel: {collider, position} or {}.
 var last_hit: Dictionary = {}
+## The muzzle flash at the front of the view model (MuzzleFlash.hold() freezes it for screenshots).
+var flash: MuzzleFlash
 
 var _equipped: WeaponState = null
 var _look_pixels: float = 0.0
@@ -68,15 +75,18 @@ func _ready() -> void:
 	_view.name = "ViewModel"
 	_view.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_pivot.add_child(_view)
+	flash = MuzzleFlash.new()
+	flash.name = "MuzzleFlash"
+	_view.add_child(flash)
 	_audio = AudioStreamPlayer3D.new()
 	_audio.name = "Audio"
 	_audio.max_polyphony = 3
 	add_child(_audio)
 
 
-func setup(p_user: CollisionObject3D, p_camera: Camera3D) -> void:
+func setup(p_user: CollisionObject3D, p_eye: Node3D) -> void:
 	user = p_user
-	camera = p_camera
+	eye = p_eye
 
 
 ## Reseeds the shot generator (tests).
@@ -131,6 +141,7 @@ func holster() -> void:
 	_equipped = null
 	current = -1
 	_pivot.visible = false
+	flash.clear()
 	_log(&"weapon.holstered", {"weapon": data.id})
 	changed.emit()
 
@@ -140,13 +151,15 @@ func add_look(pixels: float) -> void:
 	_look_pixels += absf(pixels)
 
 
-## Called by the user every physics tick with its movement stance.
-func physics_step(delta: float, stance: AimModel.Stance) -> void:
+## Called by the user every physics tick with its movement stance. `floor_add` (degrees) widens the
+## cone floor on top of the stance (a combat component's range and target-motion terms).
+func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0) -> void:
 	var spread_mult := _class_value("spread_mult", 1.0)
 	if _look_pixels > 0.0:
 		aim.add_look(_look_pixels, spread_mult)
 		_look_pixels = 0.0
-	_floor = aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult)
+	var stance_floor := aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult)
+	_floor = minf(stance_floor + floor_add, aim.config.max_spread_deg)
 	aim.step(delta, _floor, _settle_time())
 	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0))
 	var stepped := states.duplicate()
@@ -161,6 +174,7 @@ func physics_step(delta: float, stance: AimModel.Stance) -> void:
 	_kick = maxf(_kick - delta, 0.0)
 	_animate_view()
 	_update_cloak()
+	flash.step(delta)
 
 
 # Settle time constant of the cone now: AimConfig.settle_time through the user's
@@ -222,10 +236,10 @@ func reload() -> bool:
 	return true
 
 
-## The eye transform shots use: the camera turned by the current sway.
+## The eye transform shots use: the eye turned by the current sway.
 func aim_transform() -> Transform3D:
-	var eye := camera.global_transform
-	return Transform3D(AimModel.swayed(eye.basis, _sway), eye.origin)
+	var eye_transform := eye.global_transform
+	return Transform3D(AimModel.swayed(eye_transform.basis, _sway), eye_transform.origin)
 
 
 ## Fixed loadout only (the holder is saveable when `weapons` is not empty).
@@ -249,12 +263,12 @@ func load_state(data: Dictionary) -> void:
 
 
 func _shoot(data: WeaponData) -> void:
-	var eye := aim_transform()
-	var direction := aim.sample_direction(eye.basis)
+	var from := aim_transform()
+	var direction := aim.sample_direction(from.basis)
 	var spread := aim.spread
 	var exclude := _own_rids()
 	var query := PhysicsRayQueryParameters3D.create(
-		eye.origin, eye.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
+		from.origin, from.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
 	)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var rays: Dictionary[StringName, float] = data.damage.duplicate()
@@ -262,7 +276,7 @@ func _shoot(data: WeaponData) -> void:
 		rays[&"force.impact"] = data.impact_impulse
 	for type: StringName in rays:
 		var ray := Stimulus.make_ray(
-			type, rays[type], eye.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
+			type, rays[type], from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
 		)
 		ray.exclude = exclude
 		if data.damage.has(type):
@@ -280,6 +294,7 @@ func _shoot(data: WeaponData) -> void:
 		_play_at(data.hit_sound, point)
 	aim.add_shot(_class_value("spread_mult", 1.0))
 	_play(data.fire_sound, data.fire_volume_db)
+	flash.fire(data)
 	var logged := {
 		"weapon": data.id,
 		"magazine": _equipped.magazine,
@@ -290,20 +305,20 @@ func _shoot(data: WeaponData) -> void:
 
 
 func _swing(data: WeaponData) -> void:
-	var eye := camera.global_transform
-	var forward := -eye.basis.z.normalized()
+	var from := eye.global_transform
+	var forward := -from.basis.z.normalized()
 	var sphere := SphereShape3D.new()
 	sphere.radius = data.sweep_radius
 	var params := PhysicsShapeQueryParameters3D.new()
 	params.shape = sphere
 	params.collision_mask = PhysicsLayers.WEAPON_MASK
 	params.exclude = _own_rids()
-	params.transform = Transform3D(Basis.IDENTITY, eye.origin)
+	params.transform = Transform3D(Basis.IDENTITY, from.origin)
 	# The sphere's front reaches max_range from the eye.
 	params.motion = forward * maxf(data.max_range - data.sweep_radius, 0.0)
 	var space := get_world_3d().direct_space_state
 	var fractions := space.cast_motion(params)
-	StimulusSystem.emit(Stimulus.make_noise(data.fire_noise, eye.origin, user))
+	StimulusSystem.emit(Stimulus.make_noise(data.fire_noise, from.origin, user))
 	_play(data.fire_sound, data.fire_volume_db)
 	last_hit = {}
 	var hit_name := ""
@@ -338,7 +353,7 @@ func _own_rids() -> Array[RID]:
 func _muzzle() -> Vector3:
 	if _pivot != null and _pivot.visible:
 		return _view.global_position
-	return camera.global_position
+	return eye.global_position
 
 
 # `base` through the user's attribute `<class>_<stat>` of the equipped weapon (base itself unarmed or
@@ -368,6 +383,7 @@ func _build_view(data: WeaponData) -> void:
 	_view.mesh = mesh
 	_view.position = data.view_box_offset
 	_pivot.visible = true
+	flash.clear()
 	_animate_view()
 
 

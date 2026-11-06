@@ -105,6 +105,9 @@ func test_pushes_a_small_crate_with_bounded_force() -> void:
 	var crate := watch.small(_g.scene, 0.0, 0.3, 3.0)
 	await _g.frames(10)
 	assert_int(crate.collision_mask & PhysicsLayers.ACTORS).is_equal(0)
+	# Props scan static characters (a dummy, ADR 0070), not the guards' layer.
+	assert_int(crate.collision_mask & PhysicsLayers.STATIC_ACTORS).is_not_equal(0)
+	assert_int(_g.guard.collision_layer & PhysicsLayers.STATIC_ACTORS).is_equal(0)
 	var start := crate.global_position
 	_g.awareness.alert_at(Vector3(0, 0, 7))
 	var peak := 0.0
