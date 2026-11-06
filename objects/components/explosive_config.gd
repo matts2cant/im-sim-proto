@@ -17,7 +17,8 @@ extends Resource
 @export var fire_radius: float
 ## `noise` (PATH), audible metres.
 @export var noise_loudness: float
-## Radial impulse (N s) on physics objects at the centre, falling off linearly to 0 at the radius.
+## `force.blast` (RADIUS, LINE_OF_SIGHT): impulse (N s) at the centre, falling off linearly to 0 at
+## the radius. The upward tilt of the push is the receiver's (ApplyImpulseEffect.radial_lift).
 @export var impulse: float
 @export var impulse_radius: float
 

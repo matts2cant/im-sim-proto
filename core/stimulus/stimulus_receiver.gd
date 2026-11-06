@@ -55,6 +55,23 @@ func wants(stimulus: Stimulus) -> bool:
 	return false
 
 
+## True when receiving `stimulus` at `perceived` would run an effect that can apply
+## (Effect.can_apply()); nothing is run or logged. Same matching as receive().
+func would_react(stimulus: Stimulus, perceived: float, data: Dictionary = {}) -> bool:
+	var own := is_own(stimulus)
+	var container := tags.container if tags != null else null
+	for receptron in receptrons:
+		if receptron == null or (own and not receptron.include_self):
+			continue
+		if not receptron.matches(stimulus.type, perceived, container):
+			continue
+		var ctx := EffectContext.new(self, stimulus, perceived, data)
+		for effect in receptron.effects:
+			if effect != null and effect.can_apply(ctx):
+				return true
+	return false
+
+
 ## Called by StimulusSystem: logs the reception, then runs every matching receptron's effects.
 ## `data` (distance, propagation, the collider hit) is passed on to the effects; nodes in it are
 ## logged by name.

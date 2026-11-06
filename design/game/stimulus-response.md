@@ -16,7 +16,7 @@ The player never sees the framework directly. They see consequences: a shot barr
 
 | Field | Meaning |
 |---|---|
-| `type` | StringName, hierarchical: `noise`, `fire`, `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, ... |
+| `type` | StringName, hierarchical: `noise`, `fire`, `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, `force.blast`, `force.impact`, `heal`, ... |
 | `intensity` | float; for noise the loudness in audible metres ([ADR 0032](../decisions/0032-noise-loudness-audible-metres.md)) |
 | `origin`, `source` | world position; the causing node (may be null) |
 | `shape` | `RADIUS` (sphere of `radius`), `CONTACT` (`target` node), `RAY` (`direction` x `length`, first collider on `collision_mask`, ignoring `exclude`) |
@@ -26,6 +26,14 @@ The player never sees the framework directly. They see consequences: a shot barr
 | `source_label` | the source's name, remembered on emit, so the log still names a source freed before processing (a breaking crate's noise) |
 
 Constructors: `Stimulus.make_radius()`, `make_noise(loudness, origin, source)` (intensity = radius = loudness, PATH), `make_contact()`, `make_ray()`.
+
+Forces and healing are stimuli too ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)):
+
+| Type | Shape | Intensity | Emitted by | Reacted to by |
+|---|---|---|---|---|
+| `force.blast` | RADIUS, LINE_OF_SIGHT | impulse in N s at the centre, linear falloff to 0 at the radius; direction = origin to the receiving entity | `Explosive` (`ExplosiveConfig.impulse` / `impulse_radius`) | every `PhysicsObject` (`pushed_by_force` receptron, `ApplyImpulseEffect`, lift 0.3) |
+| `force.impact` | RAY | impulse in N s along `stimulus.direction`, at the hit `position` | ranged weapons (`WeaponData.impact_impulse`) | every `PhysicsObject` (same receptron) |
+| `heal` | CONTACT on the user | health restored, split over damaged parts | consumable items (`ItemData.use_stimuli`) | characters (`heal` receptron, `HealEffect`, `include_self`) |
 
 ### Falloff ([ADR 0038](../decisions/0038-linear-falloff-noise-metres.md))
 
@@ -51,13 +59,15 @@ Constructors: `Stimulus.make_radius()`, `make_noise(loudness, origin, source)` (
 - **StimulusReceiver** (`Node3D` component): `receptrons: Array[Receptron]`; distances are measured to the receiver node, so put it where the entity perceives from (a guard's head). Exported paths, resolved once in `_ready`: `entity_path` (default `..`), `tags_path` (`../Tags`), `attributes_path` (`../Attributes`); the last two are optional. Registers with `StimulusSystem` in `_ready` (and on re-entry), unregisters on exit.
 - **Self-exclusion**: a stimulus whose `source` is the receiver's entity (or inside it) only reaches receptrons with `include_self = true`.
 - **Receptron** (Resource): `stimulus_type` (exact or ancestor: `damage` matches `damage.fire`; empty matches nothing), `min_intensity` / `max_intensity` (inclusive, on the perceived intensity; `max <= 0` = no max), `required_tags` (all), `blocked_tags` (none), `include_self`, `effects`. Every matching receptron runs its effects in order.
-- **Effect** (Resource, `apply(ctx: EffectContext)`): `AddTagEffect`, `RemoveTagEffect`, `ApplyModifierEffect` (adds a copy of its `Modifier` to the entity's `Attributes`; `replace_same_source` stops stacking), `EmitStimulusEffect` (type, intensity, shape, radius, propagation, ray direction/length; origin = receiver position, source = entity, CONTACT target = the source of the stimulus reacted to), `PlayCueEffect` (one-shot `AudioStreamPlayer3D` at the receiver, freed when finished), `LogEventEffect` (records an EventLog entry of its `kind` with the stimulus id, type, perceived intensity and shape; a stand-in reaction before a system exists). Object effects live with the objects: `HeatEffect`, `DamageEffect` ([objects-and-fire.md](objects-and-fire.md)); characters use `BodyDamageEffect` ([damage.md](damage.md)). New effect = small subclass.
+- **Effect** (Resource, `apply(ctx: EffectContext)`; `can_apply(ctx) -> bool`, default true, says whether apply() would change anything, asked by the dry run below): `AddTagEffect`, `RemoveTagEffect`, `ApplyModifierEffect` (adds a copy of its `Modifier` to the entity's `Attributes`; `replace_same_source` stops stacking), `EmitStimulusEffect` (type, intensity, shape, radius, propagation, ray direction/length; origin = receiver position, source = entity, CONTACT target = the source of the stimulus reacted to), `PlayCueEffect` (one-shot `AudioStreamPlayer3D` at the receiver, freed when finished), `LogEventEffect` (records an EventLog entry of its `kind` with the stimulus id, type, perceived intensity and shape; a stand-in reaction before a system exists), `ApplyImpulseEffect` (pushes a `RigidBody3D` entity with the perceived intensity as an impulse in N s; RADIUS away from the origin tilted up by `radial_lift`, RAY and CONTACT along `stimulus.direction`, at the RAY hit `position` when there is one; [ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). Object effects live with the objects: `HeatEffect`, `DamageEffect` ([objects-and-fire.md](objects-and-fire.md)); characters use `BodyDamageEffect` ([damage.md](damage.md)) and `HealEffect` (`heal` -> `BodyParts.heal`, can_apply only when alive and hurt). New effect = small subclass.
 - **EffectContext**: `receiver`, `entity`, `stimulus`, `perceived`, `data` (delivery data, above), plus `tags()` / `attributes()` (null without the component) and `collider()`.
 
 ### StimulusSystem (autoload, `core/stimulus/stimulus_system.gd`)
 
 - `emit(stimulus, parent = null)`: assigns `id` and `depth` (depth of `parent` or of the stimulus being delivered, + 1; else 0) and queues. Beyond `MAX_DEPTH` (16) it is dropped and logged.
 - `_physics_process`: takes the whole queue and delivers it FIFO. Stimuli emitted meanwhile (by effects) form the next tick's queue: no recursion.
+- `emit_now(stimulus)` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): outside stimulus processing it delivers at once (a deliberate act from input or UI: using an item, also while the inventory screen pauses the game); called from an effect during processing it queues like `emit()`. What its effects emit is queued as its children.
+- `would_affect(stimulus)`: dry run of a CONTACT stimulus: true when delivering it now would run an effect whose `can_apply()` is true (same type, intensity, tag and self rules as delivery; nothing run or logged). Other shapes: true. Used to refuse a consumable that would do nothing.
 - `clear()` drops the queue (level change, quickload). The queue is transient and not saved; tags and attributes are.
 - `stimulus_processed(stimulus, paths)` signal after each delivery, with the PATH polylines and ray segments: for debug overlays only.
 - There is no `process_now()`: tests drive physics frames. Note that awaiting `physics_frame` resumes before that frame's processing, so a stimulus emitted from a test is observable after two awaits.

@@ -34,7 +34,8 @@ enum Kind { RANGED, MELEE }
 @export var fire_noise: float = 0.0
 ## Noise at the point hit.
 @export var impact_noise: float = 0.0
-## Impulse (N s) given to a physics object at the point hit.
+## `force.impact` RAY intensity: impulse (N s) given at the point hit to whatever reacts to `force`
+## (every PhysicsObject). 0: no force ray.
 @export var impact_impulse: float = 0.0
 
 @export_group("Audio")

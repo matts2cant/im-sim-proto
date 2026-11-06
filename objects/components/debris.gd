@@ -11,12 +11,12 @@ var _age: float = 0.0
 
 
 ## Builds the shape and mesh; call before adding it to the tree.
-func setup(piece_size: float, color: Color, p_lifetime: float) -> void:
+func setup(piece_size: float, color: Color, p_lifetime: float, p_mass: float) -> void:
 	name = "Debris"
 	lifetime = p_lifetime
 	collision_layer = 0
 	collision_mask = PhysicsLayers.WORLD
-	mass = 0.3
+	mass = p_mass
 	var size := Vector3(piece_size, piece_size * 0.4, piece_size * 0.7)
 	var box := BoxShape3D.new()
 	box.size = size

@@ -1,9 +1,10 @@
 class_name PlayerInventory
 extends Node
 ## Component of the Player: the grid Inventory, the Belt over it and the item in hand (a weapon
-## drawn through the WeaponHolder, or a tool). Picks up ItemPickups, uses items (equip, heal, read,
-## message), drops stacks back into the world as physics pickups. Each weapon stack gets its own
-## WeaponState whose magazine is mirrored into the stack's `magazine` state and whose spare rounds
+## drawn through the WeaponHolder, or a tool). Picks up ItemPickups, uses items (equip, read, message,
+## or consume: the item's `use_stimuli` sent to the player as CONTACT stimuli, ADR 0057), drops
+## stacks back into the world as physics pickups. Each weapon stack gets its own WeaponState whose
+## magazine is mirrored into the stack's `magazine` state and whose spare rounds
 ## are the inventory's ammo stacks (InventoryAmmo). Saved through the Player (ADR 0050).
 ## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`.
 
@@ -14,7 +15,6 @@ signal read_requested(stack: ItemStack)
 ## The hand changed (weapon or tool drawn / put away).
 signal hand_changed
 
-const NOTHING_TO_HEAL := "You are not hurt"
 const NO_ROOM := "No room in inventory"
 
 @export var config: InventoryConfig
@@ -76,8 +76,9 @@ func select_slot(index: int) -> void:
 		use_stack(stack)
 
 
-## Uses `stack`: weapon / tool toggles in hand, medkit heals, datapad opens the reading overlay,
-## others show their message. Returns true when something happened.
+## Uses `stack`: weapon / tool toggles in hand, a consumable (medkit) sends its stimuli to the
+## player, datapad opens the reading overlay, others show their message. Returns true when something
+## happened.
 func use_stack(stack: ItemStack) -> bool:
 	if stack == null or not inventory.stacks.has(stack):
 		return false
@@ -86,8 +87,8 @@ func use_stack(stack: ItemStack) -> bool:
 			_toggle_weapon(stack)
 		ItemData.UseAction.EQUIP_TOOL:
 			_toggle_tool(stack)
-		ItemData.UseAction.HEAL:
-			return _heal(stack)
+		ItemData.UseAction.CONSUME:
+			return _consume(stack)
 		ItemData.UseAction.READ:
 			_log_used(stack, "read")
 			read_requested.emit(stack)
@@ -202,16 +203,25 @@ func _toggle_tool(stack: ItemStack) -> void:
 	hand_changed.emit()
 
 
-# Medkit: heals the player's body parts and consumes one; refused (kept) when nothing to heal.
-func _heal(stack: ItemStack) -> bool:
-	var restored := player.body.heal(stack.item.heal_amount, stack.item.display_name)
-	if restored <= 0.0:
-		var data := {"item": String(stack.item.id), "reason": "nothing_to_heal"}
+# Consumable: its stimuli go to the player (CONTACT, delivered at once: the inventory screen pauses
+# the game) and one is used up. Refused (kept) when none of them would do anything to the player (a
+# medkit when unhurt).
+func _consume(stack: ItemStack) -> bool:
+	var stimuli: Array[Stimulus] = []
+	var affects := false
+	for type: StringName in stack.item.use_stimuli:
+		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], player, player)
+		stimuli.append(stimulus)
+		affects = affects or StimulusSystem.would_affect(stimulus)
+	if not affects:
+		var data := {"item": String(stack.item.id), "reason": "no_effect"}
 		EventLog.record(&"item.use_refused", _who(), "", data)
-		message.emit(NOTHING_TO_HEAL)
+		message.emit(stack.item.refused_message)
 		return false
+	for stimulus in stimuli:
+		StimulusSystem.emit_now(stimulus)
 	inventory.remove(stack, 1)
-	_log_used(stack, "heal", {"amount": restored})
+	_log_used(stack, "consume", {"stimuli": stack.item.use_stimuli.keys()})
 	return true
 
 

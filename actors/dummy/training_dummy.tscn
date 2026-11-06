@@ -11,6 +11,7 @@
 [ext_resource type="Resource" path="res://actors/dummy/dummy_body.tres" id="9_dummy_body"]
 [ext_resource type="Script" path="res://actors/common/awareness/awareness.gd" id="10_awareness"]
 [ext_resource type="Script" path="res://objects/components/usable.gd" id="11_usable"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/heal.tres" id="heal_receptron"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.3
@@ -111,7 +112,7 @@ base_values = Dictionary[StringName, float]({&"move_speed_mult": 1.0, &"aim_spre
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("5_receiver")
-receptrons = Array[ExtResource("6_receptron")]([ExtResource("7_body_damage")])
+receptrons = Array[ExtResource("6_receptron")]([ExtResource("7_body_damage"), ExtResource("heal_receptron")])
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("8_body_parts")

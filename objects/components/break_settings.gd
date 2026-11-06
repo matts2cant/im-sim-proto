@@ -12,3 +12,9 @@ extends Resource
 @export var debris_size_fraction: float
 ## Outward speed (m/s) given to debris pieces.
 @export var debris_speed: float
+## Mass (kg) of one debris piece.
+@export var debris_mass: float
+## Pieces spawn up to this fraction of the object's size from its centre (per axis; less downwards).
+@export var debris_scatter: float
+## Upward component added to a piece's outward direction before normalising.
+@export var debris_lift: float

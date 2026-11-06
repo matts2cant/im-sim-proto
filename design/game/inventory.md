@@ -17,7 +17,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### Items (`items/`)
 
-- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `HEAL`, `READ`, `EQUIP_TOOL`) and its parameters (weapon, heal amount, message).
+- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `READ`, `EQUIP_TOOL`) and its parameters (weapon; `use_stimuli` and `refused_message` for consumables; the `NONE` message).
 - `items/item_catalog.tres` (`ItemCatalog`) lists every item; saves store ids and look them up there; the debug panel's "Give item" lists it.
 - Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard), `title` and `text` (datapad; M8 codes go here). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
@@ -58,7 +58,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### Use, hand, ammo (`PlayerInventory`, `items/inventory/player_inventory.gd`)
 
-- Belt key or Use: `EQUIP_WEAPON` draws the weapon through the WeaponHolder (`equip_state`), the same stack again holsters; `EQUIP_TOOL` holds the tool (HUD shows its name; LMB does nothing until M8); a weapon replaces a tool and vice versa. `HEAL` heals the body (`BodyParts.heal`) and consumes one, refused when nothing to heal ("You are not hurt", `item.use_refused`). `READ` opens the reading overlay. `NONE` shows the item's message. An empty slot does nothing.
+- Belt key or Use: `EQUIP_WEAPON` draws the weapon through the WeaponHolder (`equip_state`), the same stack again holsters; `EQUIP_TOOL` holds the tool (HUD shows its name; LMB does nothing until M8); a weapon replaces a tool and vice versa. `CONSUME` ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)): the item's `use_stimuli` (type -> intensity; medkit `{heal: 30}`) go to the player as CONTACT stimuli with the player as source, delivered at once (`StimulusSystem.emit_now`: the inventory screen pauses the game), and one is consumed; the player's receptrons decide what they do (the `heal` receptron -> `HealEffect` -> `BodyParts.heal`). Refused, item kept, when none of them would do anything to the player (`StimulusSystem.would_affect` dry run: a medkit when unhurt or dead): the item's `refused_message` ("You are not hurt") and `item.use_refused {item, reason: no_effect}`. Logged `item.used {item, action: consume, stimuli}`; the heal itself logs `actor.healed` (source: the player). `EQUIP_WEAPON`, `EQUIP_TOOL` and `READ` stay inventory / UI verbs: they change what is in hand or open an overlay and nothing in the world could react to them. `READ` opens the reading overlay. `NONE` shows the item's message. An empty slot does nothing.
 - Each weapon stack gets a `WeaponState`; its magazine is mirrored into the stack's `magazine` state (after every shot, reload, equip, save and drop). Spare rounds are the inventory's stacks of the weapon's `ammo_item` (`InventoryAmmo`): a reload takes what the magazine needs from the smallest stacks first; the HUD shows "magazine / rounds in the inventory".
 - Death puts the weapon or tool away.
 
@@ -116,7 +116,7 @@ flowchart TD
     M --> X
     X -->|EQUIP_WEAPON| W["WeaponHolder.equip_state; again: holster"]
     X -->|EQUIP_TOOL| T["tool in hand"]
-    X -->|HEAL| H["heal 30, remove 1"]
+    X -->|CONSUME| H["heal 30 CONTACT on the player, remove 1"]
     X -->|READ| D["reading overlay"]
     X -->|NONE| N["message"]
     W --> Q["Q / Drop"]

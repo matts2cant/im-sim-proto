@@ -56,9 +56,12 @@ func test_shot_emits_ray_muzzle_noise_and_impact_noise() -> void:
 
 	var emitted := EventLog.find(&"stimulus.emitted")
 	var rays := emitted.filter(func(entry: EventLogEntry) -> bool: return entry.data["shape"] == "ray")
-	assert_array(rays).has_size(1)
+	assert_array(rays).has_size(2)
 	assert_str(rays[0].data["type"]).is_equal("damage.ballistic")
 	assert_float(rays[0].data["intensity"]).is_equal(25.0)
+	# The push is a `force.impact` ray along the same line (ADR 0057): 3 N s.
+	assert_str(rays[1].data["type"]).is_equal("force.impact")
+	assert_float(rays[1].data["intensity"]).is_equal(3.0)
 	var noises := emitted.filter(func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"noise")
 	(
 		assert_array(noises.map(func(entry: EventLogEntry) -> float: return entry.data["intensity"]))
