@@ -20,6 +20,11 @@ var radius: float = 0.0
 ## RAY: direction (normalised by the system) and length in metres.
 var direction: Vector3 = Vector3.FORWARD
 var length: float = 0.0
+## RAY: collision layers the ray hits (all by default). Weapons use PhysicsLayers.WEAPON_MASK: world,
+## objects and hitboxes, never the character bodies (ADR 0047).
+var collision_mask: int = 0xFFFFFFFF
+## RAY: bodies the ray ignores besides the source (the shooter's own hitboxes).
+var exclude: Array[RID] = []
 ## CONTACT: the node touched.
 var target: Node = null
 ## RADIUS only: STRAIGHT measures the straight line, PATH the navmesh path (noise), LINE_OF_SIGHT the
@@ -77,7 +82,8 @@ static func make_ray(
 	p_origin: Vector3,
 	p_direction: Vector3,
 	p_length: float,
-	p_source: Node = null
+	p_source: Node = null,
+	p_collision_mask: int = 0xFFFFFFFF,
 ) -> Stimulus:
 	var stimulus := Stimulus.new()
 	stimulus.type = p_type
@@ -86,6 +92,7 @@ static func make_ray(
 	stimulus.direction = p_direction
 	stimulus.length = p_length
 	stimulus.source = p_source
+	stimulus.collision_mask = p_collision_mask
 	stimulus.shape = Shape.RAY
 	return stimulus
 

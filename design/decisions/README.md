@@ -50,3 +50,6 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0044](0044-fire-scope-v0.md) | Fire scope in v0 | Accepted |
 | [0045](0045-collision-layers.md) | Collision layers | Accepted |
 | [0046](0046-heat-accumulation-fire-model.md) | Heat accumulation fire model, fresh chain per pulse with cause_id | Accepted |
+| [0047](0047-hitboxes-layer-5-part-aware-ray.md) | Hitboxes on layer 5 and part-aware RAY delivery | Accepted |
+| [0048](0048-aim-model.md) | Aim model | Accepted |
+| [0049](0049-knockout-rules-awareness.md) | Knockout rules and Awareness interface | Accepted |

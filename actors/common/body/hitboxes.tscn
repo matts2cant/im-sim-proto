@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://actors/common/body/hitboxes.gd" id="1_hitboxes"]
+
+[sub_resource type="SphereShape3D" id="Shape_head"]
+radius = 0.14
+
+[sub_resource type="BoxShape3D" id="Shape_torso"]
+size = Vector3(0.44, 0.62, 0.26)
+
+[sub_resource type="BoxShape3D" id="Shape_arm"]
+size = Vector3(0.13, 0.66, 0.16)
+
+[sub_resource type="BoxShape3D" id="Shape_leg"]
+size = Vector3(0.17, 0.9, 0.2)
+
+[node name="Hitboxes" type="Node3D"]
+script = ExtResource("1_hitboxes")
+
+[node name="Head" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"head"
+
+[node name="Shape" type="CollisionShape3D" parent="Head"]
+shape = SubResource("Shape_head")
+
+[node name="Torso" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.21, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"torso"
+
+[node name="Shape" type="CollisionShape3D" parent="Torso"]
+shape = SubResource("Shape_torso")
+
+[node name="ArmL" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 1.18, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"arm_l"
+
+[node name="Shape" type="CollisionShape3D" parent="ArmL"]
+shape = SubResource("Shape_arm")
+
+[node name="ArmR" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.18, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"arm_r"
+
+[node name="Shape" type="CollisionShape3D" parent="ArmR"]
+shape = SubResource("Shape_arm")
+
+[node name="LegL" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.45, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"leg_l"
+
+[node name="Shape" type="CollisionShape3D" parent="LegL"]
+shape = SubResource("Shape_leg")
+
+[node name="LegR" type="AnimatableBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.45, 0)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = false
+metadata/body_part = &"leg_r"
+
+[node name="Shape" type="CollisionShape3D" parent="LegR"]
+shape = SubResource("Shape_leg")

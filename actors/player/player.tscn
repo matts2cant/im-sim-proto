@@ -8,7 +8,16 @@
 [ext_resource type="Script" path="res://core/attributes/attributes.gd" id="6_attributes"]
 [ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="7_receiver"]
 [ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="8_receptron"]
-[ext_resource type="Resource" path="res://actors/player/player_hurt.tres" id="9_hurt"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/body_damage.tres" id="9_body_damage"]
+[ext_resource type="Script" path="res://actors/common/body/body_parts.gd" id="10_body_parts"]
+[ext_resource type="Resource" path="res://actors/player/player_body.tres" id="11_player_body"]
+[ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="12_hitboxes"]
+[ext_resource type="Script" path="res://items/weapons/weapon_holder.gd" id="13_weapon_holder"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol.tres" id="14_pistol"]
+[ext_resource type="Resource" path="res://items/weapons/baton/baton.tres" id="15_baton"]
+[ext_resource type="Resource" path="res://items/weapons/aim_untrained.tres" id="16_aim"]
+[ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="17_hud"]
+[ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="18_weapon_data"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -32,6 +41,11 @@ current = true
 fov = 80.0
 near = 0.05
 
+[node name="WeaponHolder" type="Node3D" parent="Head/Camera"]
+script = ExtResource("13_weapon_holder")
+weapons = Array[ExtResource("18_weapon_data")]([ExtResource("14_pistol"), ExtResource("15_baton")])
+aim_config = ExtResource("16_aim")
+
 [node name="FloorRay" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 target_position = Vector3(0, -0.4, 0)
@@ -52,9 +66,17 @@ initial_tags = Array[StringName]([&"actor.player"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("6_attributes")
-base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0})
+base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_speed_mult": 1.0, &"aim_spread_add": 0.0, &"aim_sway_mult": 1.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("7_receiver")
-receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_hurt")])
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage")])
+
+[node name="BodyParts" type="Node" parent="."]
+script = ExtResource("10_body_parts")
+profile = ExtResource("11_player_body")
+
+[node name="Hitboxes" parent="." instance=ExtResource("12_hitboxes")]
+
+[node name="Hud" parent="." instance=ExtResource("17_hud")]

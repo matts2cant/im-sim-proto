@@ -100,7 +100,7 @@ func _process_stimulus(stimulus: Stimulus) -> void:
 			_deliver_radius(stimulus, paths)
 		Stimulus.Shape.CONTACT:
 			if is_instance_valid(stimulus.target):
-				_deliver_to_node(stimulus, stimulus.target, 0.0)
+				_deliver_to_node(stimulus, stimulus.target, {"distance": 0.0, "collider": stimulus.target})
 		Stimulus.Shape.RAY:
 			_deliver_ray(stimulus, paths)
 	stimulus_processed.emit(stimulus, paths)
@@ -129,21 +129,32 @@ func _deliver_ray(stimulus: Stimulus, paths: Array[PackedVector3Array]) -> void:
 	var direction := stimulus.direction.normalized()
 	if direction.is_zero_approx() or stimulus.length <= 0.0:
 		return
-	var query := PhysicsRayQueryParameters3D.create(stimulus.origin, stimulus.origin + direction * stimulus.length)
-	if stimulus.source is CollisionObject3D and is_instance_valid(stimulus.source):
-		query.exclude = [(stimulus.source as CollisionObject3D).get_rid()]
+	var to := stimulus.origin + direction * stimulus.length
+	var exclude: Array[RID] = stimulus.exclude.duplicate()
+	if is_instance_valid(stimulus.source) and stimulus.source is CollisionObject3D:
+		exclude.append((stimulus.source as CollisionObject3D).get_rid())
+	var query := PhysicsRayQueryParameters3D.create(stimulus.origin, to, stimulus.collision_mask, exclude)
 	var hit := get_viewport().find_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		paths.append(PackedVector3Array([query.from, query.to]))
 		return
 	var point: Vector3 = hit["position"]
 	paths.append(PackedVector3Array([stimulus.origin, point]))
-	_deliver_to_node(stimulus, hit["collider"] as Node, stimulus.origin.distance_to(point))
+	var collider := hit["collider"] as Node
+	var data := {
+		"distance": stimulus.origin.distance_to(point),
+		"collider": collider,
+		"position": point,
+		"normal": hit["normal"],
+	}
+	_deliver_to_node(stimulus, collider, data)
 
 
 ## Delivers to the receivers of `node`, or of its nearest ancestor that has receivers
-## (a hitbox inside an entity delivers to the entity's receivers).
-func _deliver_to_node(stimulus: Stimulus, node: Node, distance: float) -> void:
+## (a hitbox inside an entity delivers to the entity's receivers). `data` reaches the receivers'
+## effects (EffectContext.data): `distance` and `collider` (the node actually touched or hit, so
+## BodyParts can tell which hitbox), plus `position` and `normal` for rays.
+func _deliver_to_node(stimulus: Stimulus, node: Node, data: Dictionary) -> void:
 	while node != null:
 		var owned: Array[StimulusReceiver] = _receivers.filter(
 			func(receiver: StimulusReceiver) -> bool: return _deliverable(receiver) and receiver.entity == node
@@ -151,7 +162,7 @@ func _deliver_to_node(stimulus: Stimulus, node: Node, distance: float) -> void:
 		if not owned.is_empty():
 			for receiver in owned:
 				if receiver.wants(stimulus):
-					receiver.receive(stimulus, stimulus.intensity, {"distance": distance})
+					receiver.receive(stimulus, stimulus.intensity, data)
 			return
 		node = node.get_parent()
 
