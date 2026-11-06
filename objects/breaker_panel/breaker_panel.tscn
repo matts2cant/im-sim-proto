@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="1_metal_surface"]
+[ext_resource type="Material" path="res://assets/materials/graybox/interactive.tres" id="2_interactive"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
+[ext_resource type="Script" path="res://objects/components/circuit_breaker.gd" id="4_breaker"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg" id="5_clunk"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.5, 0.7, 0.14)
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+material = ExtResource("1_metal_surface")
+size = Vector3(0.5, 0.7, 0.12)
+
+[sub_resource type="BoxMesh" id="Mesh_lever"]
+material = ExtResource("2_interactive")
+size = Vector3(0.06, 0.24, 0.06)
+
+[sub_resource type="BoxMesh" id="Mesh_hinge"]
+material = ExtResource("1_metal_surface")
+size = Vector3(0.14, 0.06, 0.06)
+
+[node name="BreakerPanel" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.07)
+shape = SubResource("Shape_body")
+
+[node name="Box" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+mesh = SubResource("Mesh_box")
+
+[node name="Hinge" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+mesh = SubResource("Mesh_hinge")
+
+[node name="Lever" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.819152, -0.573576, 0, 0.573576, 0.819152, 0, 0, 0.15)
+
+[node name="Handle" type="MeshInstance3D" parent="Lever"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("Mesh_lever")
+
+[node name="Clunk" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+stream = ExtResource("5_clunk")
+unit_size = 6.0
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("3_tags")
+initial_tags = Array[StringName]([&"material.metal", &"object.breaker"])
+
+[node name="CircuitBreaker" type="Node" parent="."]
+script = ExtResource("4_breaker")
+lever_path = NodePath("../Lever")
+sound_path = NodePath("../Clunk")

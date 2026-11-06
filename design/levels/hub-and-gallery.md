@@ -36,7 +36,7 @@ The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 
 30 x 30 m, 5 m high, doorways 2 x 3 m. The player spawns at `PlayerSpawn` (0, 0, 10) facing the north wall (doorways 1 and 2). Each room scene is instanced in `levels/hub/hub.tscn` behind its doorway, with its origin on the outer face of the hub wall.
 
-The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, physics and fire, shooting range, inventory bay) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
+The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, perception lab, physics and fire, shooting range, inventory bay) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
 
 Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 1.0 m wood `Ledge` (`Table`, 2.6 x 0.7 m, lip at (1.9, 0, 8.4), top z 7.7 to 8.4) stands to the front right of the spawn with the starting kit as item pickups, 0.36 m apart: `Pistol` (silenced pistol), `Baton` (stun baton), `PistolAmmo` x60, `Medkit` x2, `Multitool` x3, `Lockpick` x2, `Biocell` x2. Sign "Loadout" (SMALL) above its back edge. The table's west end (x 0.6) leaves the walk straight north from the spawn free, and it is more than 5 m from every doorway.
 
@@ -55,6 +55,40 @@ Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 
 | Drop tower | x 4 to 7.5, z -32 to -44.7 | 30° `Ramp` to a 5 m `Ledge` used as platform (3.5 x 4 m), drop off its far end |
 
 Gap labels come from the jump numbers in [../game/movement.md](../game/movement.md): a flat jump covers about 2.6 m from walk and 3.8 m from sprint, so 2 m is a walk jump and 3.3 m needs a sprint jump (a walk jump falls short). Integration tests (`tests/levels/gallery/movement/`) check the strips, steps and stair (heights, walked up, 0.45 m blocks, no landing over the stair), ledges, vent crawl, both gaps and the walk from the hub into the course. First-person review shots of the steps: `tests/levels/gallery/movement/fixtures/course_shots.tscn` (run in a window with `-- shot=<name> out=<png>`).
+
+## 2 Perception lab
+
+`levels/gallery/perception_lab/perception_lab.tscn`, instanced at hub (7.5, 0, -15.5), not turned (local -Z is hub -Z, through doorway "2 Perception Lab"). Kit parts only, M7 lamps and breaker from `objects/`, kit `Sign`s. No corridor: the hall's south wall is the hub's north wall ([ADR 0043](../decisions/0043-room-connections-share-a-wall.md); same 0.5 m thickness, the same 2 x 3 m door at local x 0). Hall 16 x 18 m, 4 m high, concrete (`Shell/Hall`, interior x -5.5 to 10.5, z 0 to -18; hub x 2 to 18). It sits off-centre on its door because the movement course's hall ends at hub x 1.0 (outer face) and the physics and fire room's hall starts at hub x 19.0: 0.5 m of void is left on each side.
+
+Floor plan (room-local, 1 column = 0.5 m, rows not to scale; top is the north wall):
+
+```
+  z -18  +--------------------------------+   sign "2 Perception lab" (XLARGE)
+         |              [P]               |   P GuardPost marker (2.5, 0, -16), facing +Z
+         |                                |
+  z -12  |  DARK     |  DIM      |  LIT    |   lanes 4.8 x 8 m strips (raised 2 cm), 0.2 m apart
+         |  carpet   |  wood     |  metal  |
+  z -10  |           |           |   L     |   L lit lamps (7.5, -6) and (7.5, -10), energy 2.0, range 5
+  z -8   |  x -2.5   |  D  x 2.5 |  x 7.5  |   D dim lamp (2.5, -8), energy 0.35, range 4
+  z -6   |           |           |   L     |
+  z -4   |  "Dark · carpet"  "Dim · wood"  "Lit · metal" (floor labels at z -4.6)
+         |W B                A            |   B breaker (west wall, z -2, 1.2 m), W wall lamp above it (2.6 m)
+         |    "Light gauge" floor sign    |   A apron lamp (2.5, -1.5), energy 0.8, range 5
+  z 0    +------[ door ]------------------+
+      x -5.5    0     2.5       7.5    10.5
+```
+
+| Station | Local position | Contents and spacing |
+|---|---|---|
+| Lanes (`Lanes/`) | centres x -2.5, 2.5, 7.5 (5 m centre to centre), z -4 to -12 | `DarkFloor` carpet, `DimFloor` wood, `LitFloor` metal: 4.8 x 8 m `SurfaceFloor`s raised 2 cm (footsteps differ: carpet x0.5, wood x1.2, metal x1.6). Floor labels "Dark · carpet", "Dim · wood", "Lit · metal" at z -4.6 |
+| Lamps (`Lamps/`) | ceiling lamps hang from 4 m (light at 3.6 m) | `LitLamp1`/`2` over the lit lane (z -6, -10), `DimLamp` over the dim lane centre: all on circuit `perception_lab`. `ApronLamp` (2.5, -1.5) and `BreakerLamp` (wall lamp above the breaker) on `perception_lab_apron`, never cut. Every lamp's light stays out of range of the other lanes' centres at chest height by at least 0.4 m (lit lamps 6.0 m from the dim centre with range 5; the dim lamp 5.6 m from the dark and lit centres with range 4; apron lamps 6.8 m or more from every lane centre) |
+| Breaker (`Breaker`) | west wall (-5.5, 1.2, -2), facing +X | Breaker panel, circuit `perception_lab`, label "lab lights": "E: switch off lab lights" / "switch on". Sign "Breaker · E: lab lights off / on" above it |
+| Guard post (`GuardPost`) | (2.5, 0, -16) | `Marker3D` facing +Z for the M7 guard; 8.0 m from the dim lane centre and 9.4 m from the dark and lit ones (centre to centre) |
+| Darkness (`AmbientDark`) | box x -6 to 11, y -0.5 to 4.5, z -18.5 to 0.4 | `ReflectionProbe` in ambient-colour mode (0.5, 0.55, 0.65) x 0.12, replacing the hub's ambient inside the lab so the dark lane looks dark ([ADR 0065](../decisions/0065-light-level-model.md)); its box stops short of the hub wall's inner face (local z 0.5) |
+
+Light levels at the lane centres (z -8), standing / crouched, measured by the player's `LightExposure` in the hub: breaker closed dark 0.04 / 0.04, dim 0.31 / 0.21, lit 0.93 / 0.88; breaker open 0.04 everywhere. The apron by the breaker reads about 0.6.
+
+Tests (`tests/levels/gallery/perception_lab/`): `perception_lab_room_test.gd` (shell and doorway, lane strips and surfaces, lamp circuits, lamp ranges against the other lanes, breaker, guard post distances, signs, no coplanar faces), `perception_lab_hub_test.gd` (hall between its neighbours, room on doorway 2, walk in, navmesh to the lanes, breaker and guard post), `perception_lab_light_test.gd` (in the hub with the player: lane values standing and crouched with the breaker closed, open with E and closed again; the apron lamps stay on; a shot lamp and the open breaker survive a save and load of the hub). First-person review shots: `tests/levels/gallery/perception_lab/fixtures/lab_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `breaker_open`, `lanes_from_post_off` and `apron_off` open the breaker first, `overlays` opens the debug panel's Overlays tab).
 
 ## 3 Physics and fire
 
@@ -184,4 +218,4 @@ Tests (`tests/levels/gallery/inventory_bay/`): `inventory_bay_room_test.gd` (she
 
 ## Open questions
 
-- Room dimensions and layout of rooms 2, 5 and 6: TBD per room milestone. The mission area behind the west wall's north doorway must stay north of hub z 1 (the outer face of room 7's north wall). Room 5 (security, south wall at hub x 7.5) must stay west of hub x 19 (the range's hall). Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
+- Room dimensions and layout of rooms 5 and 6: TBD per room milestone. The mission area behind the west wall's north doorway must stay north of hub z 1 (the outer face of room 7's north wall). Room 5 (security, south wall at hub x 7.5) must stay west of hub x 19 (the range's hall). Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).

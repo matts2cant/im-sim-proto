@@ -186,7 +186,12 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M7 Light and AI (Perception lab, AI arena)
 
-- [ ] HUD light indicator tracks light level; shooting lights and breaker change it.
+- [ ] Perception lab (doorway 2): walk the three lanes. The HUD light gauge (gem and bar above the body and energy bar) reads dark blue and nearly empty on the carpet lane, amber about a third on the wood lane, pale yellow nearly full on the metal lane; the debug Overlays tab shows the number (about 0.04 / 0.31 / 0.93).
+- [ ] Crouch (hold Ctrl) in the dim and lit lanes: the gauge drops a little (dim about 0.21, lit about 0.88); in the dark lane it stays empty.
+- [ ] What you see matches the gauge: the carpet lane looks dark, the wood lane has a weak pool of light, the metal lane is clearly lit; walls far from lamps look dark, not grey.
+- [ ] Breaker on the west wall by the doorway (lit by its own wall lamp): "E: switch off lab lights" clunks, the lever drops, the lane lamps and their bulbs go out and the gauge empties in every lane; the apron lamps stay on. E again ("switch on lab lights") brings them back.
+- [ ] Shoot a lane lamp with the pistol: glass breaks (sound, green shards), its light goes out, the gauge under it drops. Save, load: the lamp stays broken; an open breaker stays open.
+- [ ] Stand near a burning crate (room 3): the gauge rises.
 - [ ] Guards move through Unaware, Suspicious, Searching, Alerted/Combat and back; `?` / `!` icons and barks show.
 - [ ] Guards discover bodies and wake unconscious guards; unconscious guards do not wake alone.
 - [ ] Cloak hides the player from guards.

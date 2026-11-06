@@ -46,6 +46,8 @@
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/speed_enhancement.tres" id="43_speed"]
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/regeneration.tres" id="44_regeneration"]
 [ext_resource type="Resource" path="res://actors/common/abilities/augmentations/combat_strength.tres" id="45_combat_strength"]
+[ext_resource type="Script" path="res://actors/common/light/light_exposure.gd" id="47_light_exposure"]
+[ext_resource type="Resource" path="res://actors/common/light/light_exposure.tres" id="48_light_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -147,5 +149,9 @@ script = ExtResource("38_energy")
 script = ExtResource("39_augmentations")
 catalog = Array[ExtResource("40_aug_data")]([ExtResource("41_cloak"), ExtResource("42_run_silent"), ExtResource("43_speed"), ExtResource("44_regeneration"), ExtResource("45_combat_strength")])
 installed_at_start = Array[StringName]([&"cloak", &"run_silent", &"speed_enhancement", &"regeneration", &"combat_strength"])
+
+[node name="LightExposure" type="Node" parent="."]
+script = ExtResource("47_light_exposure")
+config = ExtResource("48_light_config")
 
 [node name="GameMenu" parent="." instance=ExtResource("46_game_menu")]

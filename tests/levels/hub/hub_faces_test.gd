@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Hub geometry with every gallery room instanced in it (movement course behind doorway
-## "1 Movement", physics and fire room behind "3 Physics & Fire", shooting range behind
-## "4 Shooting Range", inventory bay behind "7 Inventory & Abilities") and the loadout table:
+## "1 Movement", perception lab behind "2 Perception Lab", physics and fire room behind
+## "3 Physics & Fire", shooting range behind "4 Shooting Range", inventory bay behind
+## "7 Inventory & Abilities") and the loadout table:
 ## no two kit parts render different materials on the same plane.
 ## Guards against the corridor ceiling that ended flush with the hub and hall wall faces and
 ## z-fought above both corridor doorways.
