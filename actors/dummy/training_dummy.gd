@@ -3,7 +3,8 @@ extends StaticBody3D
 ## Training dummy: a static humanoid target with BodyParts (dummy profile), Hitboxes, Awareness
 ## (exported, unaware by default) and a facing (-Z, marked by the visor). Every hit shows a floating
 ## number (part and amount); knocked out or dead it tips over backwards. `use` (E) or reset()
-## restores health, consciousness and pose. Collision layer 3 (actors); weapons hit its hitboxes.
+## restores health, consciousness and pose. Collision layers 3 (actors) and 7 (static actors: props
+## bounce off it, ADR 0070); weapons hit its hitboxes.
 
 const NUMBER_TIME: float = 1.2
 const NUMBER_RISE: float = 0.5

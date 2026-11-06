@@ -10,7 +10,11 @@ extends CharacterBody3D
 ## `sprint_tag_speed` or more). A character that cannot act (ActorState:
 ## dead, unconscious) stops moving and turning but still falls. Without a navmesh it walks
 ## straight at the target. Origin at the feet; faces -Z. Tuning: `config`. Saveable (position,
-## facing, velocity). Something else decides where to go (AwarenessBehaviour).
+## facing, velocity). Something else decides where to go: one controller at a time (ADR 0070). The
+## default is the AwarenessBehaviour; a component that takes over (CombatBehaviour) calls
+## take_control() and release_control(), and the default skips its tick while
+## is_controlled_by_other() is true. hold_facing() keeps it facing a point while it walks (backing
+## away from a target it keeps in sight).
 
 const MOVE_SPEED: StringName = &"move_speed_mult"
 
@@ -24,6 +28,9 @@ var _target: Vector3 = Vector3.ZERO
 var _moving: bool = false
 var _arrived: bool = false
 var _face: Vector3 = Vector3.ZERO
+var _controller: Node = null
+var _hold_face: bool = false
+var _hold_point: Vector3 = Vector3.ZERO
 var _stuck_time: float = 0.0
 var _arrived_time: float = 0.0
 var _pusher: BodyPusher
@@ -61,6 +68,41 @@ func move_to(point: Vector3, p_speed: float) -> void:
 		# Through another value first, so asking again for the same point re-plans the path.
 		agent.target_position = global_position
 		agent.target_position = point
+
+
+## `by` steers the walker from now on (move_to, stop, face); the default controller pauses.
+func take_control(by: Node) -> void:
+	_controller = by
+
+
+## `by` hands the walker back to the default controller (stops, drops a held facing).
+func release_control(by: Node) -> void:
+	if _controller != by:
+		return
+	_controller = null
+	clear_hold_facing()
+	stop()
+
+
+## The node steering the walker now, or null (the default controller).
+func controller() -> Node:
+	return _controller if is_instance_valid(_controller) else null
+
+
+## True when a controller other than `node` has taken the walker.
+func is_controlled_by_other(node: Node) -> bool:
+	var current := controller()
+	return current != null and current != node
+
+
+## Keeps facing `point` (horizontally) even while walking, until clear_hold_facing().
+func hold_facing(point: Vector3) -> void:
+	_hold_face = true
+	_hold_point = point
+
+
+func clear_hold_facing() -> void:
+	_hold_face = false
 
 
 ## Stops where it is (keeps facing as asked).
@@ -125,7 +167,9 @@ func _physics_process(delta: float) -> void:
 	velocity.z = horizontal.z
 	if not is_on_floor():
 		velocity += get_gravity() * config.gravity_scale * delta
-	if not desired.is_zero_approx():
+	if _hold_face:
+		face_towards(_hold_point)
+	elif not desired.is_zero_approx():
 		# Walking: face the way it goes, and keep that facing when it stops.
 		_face = _flat(desired).normalized()
 	if can_act:
@@ -204,6 +248,7 @@ func load_state(data: Dictionary) -> void:
 	_moving = false
 	_arrived = false
 	_face = Vector3.ZERO
+	_hold_face = false
 	var step := StepClimber.of(self)
 	if step != null:
 		step.reset()

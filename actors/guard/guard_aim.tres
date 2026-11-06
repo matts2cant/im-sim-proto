@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AimConfig" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/aim_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+base_min_deg = 0.0
+walk_add_deg = 3.0
+sprint_add_deg = 6.0
+air_add_deg = 6.0
+crouch_still_factor = 0.8
+settle_time = 0.25
+crouch_settle_factor = 0.6
+look_bloom_per_px = 0.0
+look_bloom_max_per_frame = 0.0
+shot_bloom_deg = 0.0
+max_spread_deg = 10.0
+sway_deg = 0.1
+sway_frequency = 0.35

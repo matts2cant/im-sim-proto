@@ -6,8 +6,9 @@ extends Node
 ## glance `glance_angle` left or right every `glance_interval`. LOOK: stop and face the point.
 ## MOVE: walk to the destination (snapped to the navmesh) at the phase's pace and report arrival.
 ## LOOK_AROUND: stop and sweep the view. CHASE: run to the last known position; within
-## `face_distance` of a seen target, stop and face it (attacks: next wave). A character that cannot
-## act stops. Paces map to the walker's speeds (walk, investigate, run). Saveable (patrol index,
+## `face_distance` of a seen target, stop and face it (an armed character's CombatBehaviour takes
+## the walker while it fights, ADR 0070, and this pauses until it is handed back). A character that
+## cannot act stops. Paces map to the walker's speeds (walk, investigate, run). Saveable (patrol index,
 ## wait, post).
 
 ## Period (s) of the look-around sweep.
@@ -45,6 +46,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Another component (combat, ADR 0070) has taken the walker: it hands it back when done.
+	if body.is_controlled_by_other(self):
+		return
 	if awareness == null or not ActorState.can_act(body):
 		body.stop()
 		return
