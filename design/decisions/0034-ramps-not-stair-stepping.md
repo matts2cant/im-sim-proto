@@ -1,6 +1,6 @@
 # 34. Ramps instead of automatic stair stepping
 
-Status: Accepted
+Status: Superseded by [ADR 0058](0058-step-climbing.md) (characters walk up steps of up to 0.35 m)
 
 Date: 2026-11-06
 

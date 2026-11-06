@@ -25,6 +25,17 @@ Start the main scene (hub), walk through doorway "1 Movement". Keep the debug pa
 - [ ] Landing off the 2 m and 5 m drops is audibly louder than a footstep; `actor.landed` shows ~10.6 and ~16.8 (a plain 1 m jump on concrete lands at ~7.5). Ramps lead back up without snagging.
 - [ ] Walking off a hub doorway that leads nowhere respawns you at the hub spawn.
 
+## Step climbing ([ADR 0058](../decisions/0058-step-climbing.md))
+
+Movement course, steps strip left of the surface strips. Keep the Player tab open for height and grounded.
+
+- [ ] Walk, sprint and crouch into the 0.15 and 0.3 m steps without pressing Space: you go up with no visible stop or slowdown, and no hitch forward.
+- [ ] Walk and sprint up and down the 0.17 m stair: the view stays smooth (no pop per riser, about 0.1 s ease), you never feel airborne, and there is no landing thud going down (Event Log: no `actor.landed`); footsteps keep their rhythm.
+- [ ] The 0.45 m "jump" step blocks walking; Space jumps onto it.
+- [ ] Walk off the back of the 0.3 m step: no drop, no thud. The 1.0 m ledge still falls and lands.
+- [ ] Tune the Player tab's step height (e.g. 0.5 m: now the 0.45 step walks up; 0.1 m: the 0.15 step blocks) and set it back to 0.35; note a value that feels better.
+- [ ] Interact with, carry and shoot at something right after a step: the crosshair and the rays agree (rays use the eased camera).
+
 ## M2 Core framework
 
 - [ ] Spawned test stimuli appear in the Event Log tab.

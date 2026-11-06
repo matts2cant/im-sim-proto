@@ -37,7 +37,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0031](0031-agent-workflow.md) | Agent workflow: chief engineer and sub-agents | Accepted |
 | [0032](0032-noise-loudness-audible-metres.md) | Noise loudness unit: audible distance in metres | Accepted |
 | [0033](0033-floor-surface-metadata.md) | Floor surface via collider metadata | Accepted |
-| [0034](0034-ramps-not-stair-stepping.md) | Ramps instead of automatic stair stepping | Accepted |
+| [0034](0034-ramps-not-stair-stepping.md) | Ramps instead of automatic stair stepping | Superseded by [0058](0058-step-climbing.md) |
 | [0035](0035-mantle-rules.md) | Mantle rules | Accepted |
 | [0036](0036-player-gravity-scale.md) | Player gravity scale 2.0 | Accepted |
 | [0037](0037-graybox-kit.md) | Graybox kit of parametric parts and grid materials | Accepted |
@@ -61,4 +61,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0055](0055-wake-props-when-support-goes.md) | Wake props when their support goes | Accepted |
 | [0056](0056-generic-character-components.md) | Generic character components: movement noise, falls, impacts, knockback, state tags | Accepted |
 | [0057](0057-forces-item-use-and-heat-as-generic-systems.md) | Forces, item use and heat as generic systems | Accepted |
+| [0058](0058-step-climbing.md) | Step climbing as a generic character component | Accepted |
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |

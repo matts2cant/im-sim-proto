@@ -30,6 +30,8 @@
 [ext_resource type="Resource" path="res://actors/common/knockback/receptrons/knockback.tres" id="30_knockback_receptron"]
 [ext_resource type="Script" path="res://actors/common/impact_sensor/impact_sensor.gd" id="31_impact_sensor"]
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="32_impact_settings"]
+[ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="33_step"]
+[ext_resource type="Resource" path="res://actors/player/player_step.tres" id="34_step_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -40,6 +42,10 @@ collision_layer = 2
 collision_mask = 13
 script = ExtResource("1_player")
 config = ExtResource("2_config")
+
+[node name="Step" type="Node" parent="."]
+script = ExtResource("33_step")
+config = ExtResource("34_step_config")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

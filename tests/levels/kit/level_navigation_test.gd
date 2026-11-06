@@ -27,8 +27,8 @@ func test_hub_bakes_a_navmesh_when_it_loads() -> void:
 	assert_int(_nav.navigation_mesh.get_polygon_count()).is_greater(10)
 	assert_float(_nav.navigation_mesh.agent_radius).is_equal_approx(0.35, 0.0001)
 	assert_float(_nav.navigation_mesh.agent_height).is_equal_approx(1.8, 0.0001)
-	# One 5 cm cell: the least that keeps 45 degree ramps connected (ADR 0041).
-	assert_float(_nav.navigation_mesh.agent_max_climb).is_equal_approx(0.05, 0.0001)
+	# Walk-up steps of up to 0.3 m are on the navmesh (ADR 0058).
+	assert_float(_nav.navigation_mesh.agent_max_climb).is_equal_approx(0.3, 0.0001)
 	assert_float(_nav.navigation_mesh.agent_max_slope).is_equal_approx(45.0, 0.0001)
 
 

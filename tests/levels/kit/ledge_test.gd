@@ -31,6 +31,10 @@ func test_surface_metadata_and_material() -> void:
 
 func test_band_labels_follow_the_metrics() -> void:
 	var expected: Dictionary[float, String] = {
+		0.15: "step up",
+		0.3: "step up",
+		0.32: "between bands",
+		0.35: "jump up",
 		0.5: "jump up",
 		0.99: "jump up",
 		1.0: "mantle",
@@ -59,6 +63,9 @@ func test_heights_between_bands_warn_but_are_built() -> void:
 
 	assert_int(part._get_configuration_warnings().size()).is_equal(1)
 	assert_float(KitGeometry.collision_aabb(part).end.y).is_equal_approx(1.95, 0.001)
+	# Between a walk-up step and a jump.
+	part.height = 0.32
+	assert_int(part._get_configuration_warnings().size()).is_equal(1)
 
 
 func test_illegal_values_are_clamped_and_warned() -> void:

@@ -10,7 +10,8 @@ extends CharacterBody3D
 ## flying into it into `damage.blunt`.
 ## Generic character components do the rest (ADR 0056): MovementNoise (footsteps, landings; reads
 ## the stance tags this script sets), FallImpact (`damage.fall` -> the `fall_damage` receptron),
-## Knockback (`force.*`), BodyParts via the `body_damage` receptron.
+## Knockback (`force.*`), BodyParts via the `body_damage` receptron, StepClimber (walks up steps and
+## down stairs, ADR 0058; the camera eases over its `stepped` height changes).
 ## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`
 ## (dead: asks for a level reset), `state.legs_disabled` forces a crawl; `move_speed_mult` scales
 ## speed. Saveable.
@@ -71,9 +72,12 @@ var _actions_held: Dictionary[StringName, bool] = {}
 ## Mouse wheel notches since the last physics tick (+1 per `belt_next`, -1 per `belt_prev`). Wheel
 ## buttons press and release within one event pair, so they are counted as events, not polled.
 var _belt_steps: int = 0
+## Camera height minus eye height (m): a step moves the body at once, the view eases after it.
+var _view_offset: float = 0.0
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
+@onready var step: StepClimber = $Step
 @onready var carry: PlayerCarry = $Carry
 @onready var body: BodyParts = $BodyParts
 @onready var hitboxes: Hitboxes = $Hitboxes
@@ -95,6 +99,7 @@ func _ready() -> void:
 	inventory.setup(self)
 	interactor.player = self
 	body.died.connect(_on_died)
+	step.stepped.connect(_on_stepped)
 	_collision.shape = _collision.shape.duplicate()
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
 	floor_max_angle = deg_to_rad(config.max_slope_deg)
@@ -155,6 +160,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_step_movement(delta, jump_held)
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
+	_set_view_offset(StepRules.ease_offset(_view_offset, delta, step.config))
 	interactor.refresh()
 	_handle_actions()
 	carry.physics_step()
@@ -210,7 +216,8 @@ func eye_height() -> float:
 	return _head.position.y
 
 
-## The camera's global transform: eye position and view direction (-Z).
+## The camera's global transform: eye position and view direction (-Z). It includes the easing
+## after a step (ADR 0058): rays aim from where the view is, so they match the crosshair.
 func eye_transform() -> Transform3D:
 	return _camera.global_transform
 
@@ -269,6 +276,8 @@ func load_state(data: Dictionary) -> void:
 	_ground_y = global_position.y
 	noise.reset()
 	fall_impact.reset()
+	step.reset()
+	_set_view_offset(0.0)
 	if data.has("inventory"):
 		inventory.load_state(data["inventory"])
 
@@ -309,10 +318,11 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	_pusher.step(attempted, on_floor, capsule_height(), delta, _own_rids())
 
 
-# The stance tags MovementNoise (and anything else) reads: crouched, sprinting.
+# The stance tags MovementNoise, StepClimber (and anything else) read: crouched, sprinting, mantling.
 func _update_stance_tags() -> void:
 	ActorState.set_tag(self, ActorState.CROUCHING, crouched)
 	ActorState.set_tag(self, ActorState.SPRINTING, mode == PlayerMotion.Mode.SPRINT)
+	ActorState.set_tag(self, ActorState.MANTLING, _mantle != null)
 
 
 # Crouch is held. Standing up waits until there is headroom. Both legs disabled: always crouched.
@@ -436,6 +446,18 @@ func _respawn() -> void:
 	global_transform = _spawn_transform
 	velocity = Vector3.ZERO
 	_ground_y = global_position.y
+	step.reset()
+	_set_view_offset(0.0)
+
+
+# A step moved the body by `rise`: the camera stays where it was and eases after it.
+func _on_stepped(rise: float) -> void:
+	_set_view_offset(_view_offset - rise)
+
+
+func _set_view_offset(offset: float) -> void:
+	_view_offset = offset
+	_camera.position.y = offset
 
 
 func _move_input() -> Vector2:

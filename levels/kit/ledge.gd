@@ -5,6 +5,9 @@ extends KitPart
 ## Origin: bottom centre of the lip face. The lip (front face) is at z = 0 and faces +Z;
 ## the block extends `depth` towards -Z. The read-only `band` names what the player can do.
 
+## Walk-up steps (StepClimber step height 0.35 m with margin, ADR 0058).
+const STEP_MAX := 0.3
+const JUMP_UP_MIN := 0.35
 const JUMP_UP_BELOW := 1.0
 const MANTLE_MAX := 1.9
 const NO_MANTLE_MIN := 2.0
@@ -29,7 +32,7 @@ const OUT_OF_REACH_MIN := 2.3
 	set(value):
 		surface = value
 		rebuild()
-## Informational: "jump up", "mantle", "deliberate no", "out of reach" or "between bands".
+## Informational: "step up", "jump up", "mantle", "deliberate no", "out of reach" or "between bands".
 @export var band := "":
 	get:
 		return band_for(height)
@@ -39,6 +42,10 @@ const OUT_OF_REACH_MIN := 2.3
 
 ## Metric band of a ledge height (metrics.md, Traversal).
 static func band_for(ledge_height: float) -> String:
+	if ledge_height <= STEP_MAX:
+		return "step up"
+	if ledge_height < JUMP_UP_MIN:
+		return "between bands"
 	if ledge_height < JUMP_UP_BELOW:
 		return "jump up"
 	if ledge_height <= MANTLE_MAX:
@@ -67,8 +74,8 @@ func _build() -> void:
 		_warn(
 			(
 				(
-					"Height %s m is between metric bands: use < 1.0 (jump up), 1.0-1.9 (mantle), "
-					+ "2.0-2.2 (deliberate no) or >= 2.3 (out of reach)."
+					"Height %s m is between metric bands: use <= 0.3 (step up), 0.35-1.0 (jump up), "
+					+ "1.0-1.9 (mantle), 2.0-2.2 (deliberate no) or >= 2.3 (out of reach)."
 				)
 				% h
 			)

@@ -1,6 +1,6 @@
 extends RefCounted
 ## Test helper (not a suite): minimal characters and floors built in code for the generic character
-## components (MovementNoise, FallImpact, Knockback, ImpactSensor): a CharacterBody3D with a test
+## components (MovementNoise, FallImpact, Knockback, ImpactSensor, StepClimber): a CharacterBody3D with a test
 ## controller (fixtures/walker.gd), a capsule, Tags, Attributes, a StimulusReceiver with the shared
 ## body receptrons, BodyParts and whichever components the test asks for.
 
@@ -12,6 +12,7 @@ const KNOCKBACK: Receptron = preload("res://actors/common/knockback/receptrons/k
 const NOISE_CONFIG: MovementNoiseConfig = preload("res://actors/player/player_movement_noise.tres")
 const KNOCKBACK_CONFIG: KnockbackConfig = preload("res://actors/player/player_knockback.tres")
 const IMPACT_SETTINGS: ImpactSettings = preload("res://objects/components/impact_settings.tres")
+const STEP_CONFIG: StepConfig = preload("res://actors/player/player_step.tres")
 const RADIUS: float = 0.35
 const HEIGHT: float = 1.8
 
@@ -19,6 +20,8 @@ const MOVEMENT_NOISE := &"MovementNoise"
 const FALL_IMPACT := &"FallImpact"
 const KNOCKBACK_COMPONENT := &"Knockback"
 const IMPACT_SENSOR := &"ImpactSensor"
+## Not in ALL: the components' own suites run without step-up (a walk off a small ledge falls).
+const STEP_CLIMBER := &"StepClimber"
 const ALL: Array[StringName] = [MOVEMENT_NOISE, FALL_IMPACT, KNOCKBACK_COMPONENT, IMPACT_SENSOR]
 
 
@@ -80,6 +83,11 @@ static func character(
 		sensor.name = String(IMPACT_SENSOR)
 		sensor.settings = IMPACT_SETTINGS
 		body.add_child(sensor)
+	if components.has(STEP_CLIMBER):
+		var climber := StepClimber.new()
+		climber.name = String(STEP_CLIMBER)
+		climber.config = STEP_CONFIG
+		body.add_child(climber)
 	parent.add_child(body)
 	return body
 

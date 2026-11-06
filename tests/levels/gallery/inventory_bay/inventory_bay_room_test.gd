@@ -118,9 +118,9 @@ func test_drop_zone_and_abilities_dais() -> void:
 	assert_vector(zone.size).is_equal(Vector2(4, 4))
 	assert_str(zone.surface).is_equal("metal")
 	assert_float(zone.position.y).is_equal_approx(0.02, 0.0001)
-	# A low platform (jumped onto), against the back wall.
+	# A low platform (walked onto: a step, ADR 0058), against the back wall.
 	assert_float(dais.height).is_less(1.0)
-	assert_str(dais.band).is_equal("jump up")
+	assert_str(dais.band).is_equal("step up")
 	var back := hall.position.z - hall.size.z * 0.5
 	assert_float(dais.position.z - dais.depth).is_equal_approx(back, 0.0001)
 

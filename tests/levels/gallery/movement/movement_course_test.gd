@@ -12,6 +12,11 @@ const LEDGE_HEIGHTS: Dictionary[String, float] = {
 	"Ledge190": 1.9,
 	"Ledge230": 2.3,
 }
+## Steps strip (ADR 0058): single steps and their lanes (course-local x), lips at z -9.
+const STEP_HEIGHTS: Dictionary[String, float] = {"Step015": 0.15, "Step030": 0.3, "Step045": 0.45}
+const STEP_X: Dictionary[String, float] = {"Step015": -16.5, "Step030": -14.0, "Step045": -11.5}
+const STEP_LIP_Z := -9.0
+const STAIR_X := -9.0
 const TIME_FACTOR := 4.0
 
 var _runner: GdUnitSceneRunner
@@ -53,6 +58,31 @@ func test_ledge_heights() -> void:
 		var top := ledge.position.y + block.position.y + block.size.y * 0.5
 		assert_float(top).is_equal_approx(LEDGE_HEIGHTS[ledge_name], 0.001)
 		assert_bool(ledge.use_collision).is_true()
+
+
+func test_steps_strip_heights_and_labels() -> void:
+	var course: Node3D = auto_free(COURSE_SCENE.instantiate())
+
+	for step_name: String in STEP_HEIGHTS:
+		var step := course.get_node("Steps/" + step_name) as Ledge
+		assert_float(step.height).is_equal_approx(STEP_HEIGHTS[step_name], 0.0001)
+		assert_float(step.depth).is_greater_equal(0.8)
+		assert_float(step.position.z).is_equal_approx(STEP_LIP_Z, 0.0001)
+		assert_float(step.position.x).is_equal_approx(STEP_X[step_name], 0.0001)
+	assert_str((course.get_node("Steps/Step030") as Ledge).band).is_equal("step up")
+	assert_str((course.get_node("Steps/Step045") as Ledge).band).is_equal("jump up")
+	assert_str((course.get_node("Labels/Step045") as Label3D).text).is_equal("0.45 m: jump")
+	# Six 0.17 m tiers, treads 0.3 m, at least 1.2 m wide; the top tier is the 1.2 m landing.
+	var tiers := course.get_node("Steps/Stair").get_children()
+	assert_int(tiers.size()).is_equal(6)
+	for i in tiers.size():
+		var tier := tiers[i] as Ledge
+		assert_float(tier.height).is_equal_approx(0.17, 0.0001)
+		assert_float(tier.position.y).is_equal_approx(0.17 * i, 0.0001)
+		assert_float(tier.position.z).is_equal_approx(-0.3 * i, 0.0001)
+		assert_float(tier.width).is_greater_equal(1.2)
+		assert_str(tier.band).is_equal("step up")
+	assert_float((tiers[5] as Ledge).depth).is_greater_equal(0.8)
 
 
 func test_vent_is_metal_and_segments_connect() -> void:
@@ -142,6 +172,47 @@ func test_ledges_mantle_from_one_metre_and_jump_onto_half_metre() -> void:
 		# The 0.5 m ledge is jumped onto (not mantled); the 2.3 m ledge cannot be climbed.
 		var expected_y := 0.0 if height > 1.9 else height
 		assert_float(_local().y).is_equal_approx(expected_y, 0.03)
+
+
+func test_walks_up_the_low_steps_but_not_the_jump_step() -> void:
+	await _load_hub()
+	for step_name: String in STEP_HEIGHTS:
+		# Feet 1.5 m in front of the lip; 0.6 s of walking ends about 0.7 m onto a 1 m deep top.
+		_place(Vector3(STEP_X[step_name], 0, STEP_LIP_Z + 1.5), 0.0)
+		await _frames(5)
+
+		await _hold(&"move_forward", 36)
+
+		var height: float = STEP_HEIGHTS[step_name]
+		var expected_y := height if height < 0.35 else 0.0
+		var label := "%s: local %s" % [step_name, _local()]
+		assert_float(_local().y).override_failure_message(label).is_equal_approx(expected_y, 0.03)
+
+
+func test_walks_over_the_stair_without_landing() -> void:
+	await _load_hub()
+	_place(Vector3(STAIR_X, 0, STEP_LIP_Z + 3.0), 0.0)
+	await _frames(5)
+	EventLog.clear()
+	var highest := 0.0
+	var airborne := 0
+	var longest := 0
+
+	# Up the six risers, over the landing and down the far side.
+	_runner.simulate_action_press("move_forward")
+	for i in 150:
+		await get_tree().physics_frame
+		highest = maxf(highest, _local().y)
+		airborne = 0 if _player.is_on_floor() else airborne + 1
+		longest = maxi(longest, airborne)
+		if _local().z < STEP_LIP_Z - 5.5:
+			break
+	_runner.simulate_action_release("move_forward")
+
+	assert_float(highest).is_equal_approx(1.02, 0.03)
+	assert_float(_local().y).is_less(0.03)
+	assert_int(longest).is_less_equal(2)
+	assert_array(EventLog.find(&"actor.landed")).is_empty()
 
 
 func test_crawls_through_vent_from_floor_exit_to_ledge_mouth() -> void:
