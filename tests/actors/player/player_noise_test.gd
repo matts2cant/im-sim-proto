@@ -71,7 +71,7 @@ func test_landing_after_two_metre_drop_is_logged() -> void:
 	var landings := EventLog.find(&"player.landed")
 	assert_int(landings.size()).is_equal(1)
 	var impact: float = landings[0].data["impact_speed"]
-	assert_float(impact).is_equal_approx(sqrt(2.0 * 9.8 * 2.0), 0.4)
+	assert_float(impact).is_equal_approx(sqrt(2.0 * 9.8 * CONFIG.gravity_scale * 2.0), 0.5)
 	assert_str(landings[0].data["surface"]).is_equal("concrete")
 	var expected := CONFIG.walk_loudness * clampf(impact / CONFIG.landing_reference_speed, 1.0, 4.0)
 	assert_float(landings[0].data["loudness"]).is_equal_approx(expected, 0.001)

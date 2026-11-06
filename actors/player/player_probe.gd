@@ -50,7 +50,7 @@ func find_ledge(feet: Vector3, forward: Vector3, ground_y: float) -> MantleRules
 	var top_xz := feet + dir * (wall_distance + TOP_INSET)
 	var top_hit := _ray(
 		top_xz + Vector3.UP * (_config.mantle_max_height + 0.1),
-		top_xz + Vector3.UP * (_config.mantle_min_height - 0.1),
+		Vector3(top_xz.x, feet.y + LIFT, top_xz.z),
 	)
 	if top_hit.is_empty() or not _is_floor_normal(top_hit["normal"]):
 		return probe

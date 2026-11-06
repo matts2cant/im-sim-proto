@@ -41,6 +41,34 @@ func test_refuses_ledge_above_max_height_even_with_jump_held() -> void:
 	assert_float(_player.global_position.z).is_greater(-2.0)
 
 
+func test_jump_facing_low_ledge_jumps_and_lands_on_it() -> void:
+	await _load()
+	await _driver.place(Vector3(-5, 0, -1.4))
+	_driver.runner.simulate_action_press("move_forward")
+
+	await _driver.hold(&"jump", 3)
+	await _driver.frames(17)
+	_driver.runner.simulate_action_release("move_forward")
+	await _driver.frames(60)
+
+	assert_array(EventLog.find(&"player.mantled")).is_empty()
+	assert_float(_player.global_position.y).is_equal_approx(0.5, 0.02)
+	assert_float(_player.global_position.z).is_less(-2.0)
+	assert_bool(_player.is_on_floor()).is_true()
+
+
+func test_holding_jump_in_the_air_does_not_mantle_low_ledge() -> void:
+	await _load()
+	await _driver.place(Vector3(-5, 0, -1.4))
+
+	await _driver.hold(&"jump", 50)
+	await _driver.frames(40)
+
+	assert_array(EventLog.find(&"player.mantled")).is_empty()
+	assert_float(_player.global_position.y).is_less(0.05)
+	assert_float(_player.global_position.z).is_greater(-2.0)
+
+
 func _assert_mantles(start: Vector3, height: float, end_crouched: bool) -> void:
 	await _load()
 	await _driver.place(start)

@@ -82,7 +82,23 @@ func test_each_strip_reports_its_surface() -> void:
 		assert_str(steps[-1].data["surface"]).is_equal(SURFACES[i])
 
 
-func test_ledges_mantle_up_to_one_point_nine() -> void:
+func test_gap_widths_and_labels() -> void:
+	var course: Node3D = auto_free(COURSE_SCENE.instantiate())
+	var runway := course.get_node("GapTrack/Runway") as CSGBox3D
+	var platform2 := course.get_node("GapTrack/Platform2") as CSGBox3D
+	var platform3 := course.get_node("GapTrack/Platform3") as CSGBox3D
+
+	var gap2 := (runway.position.z - runway.size.z * 0.5) - (platform2.position.z + platform2.size.z * 0.5)
+	var gap33 := (platform2.position.z - platform2.size.z * 0.5) - (platform3.position.z + platform3.size.z * 0.5)
+
+	assert_float(gap2).is_equal_approx(2.0, 0.001)
+	assert_float(gap33).is_equal_approx(3.3, 0.001)
+	assert_str((course.get_node("Labels/Gap2") as Label3D).text).is_equal("2 m: walk-jump")
+	assert_str((course.get_node("Labels/Gap33") as Label3D).text).is_equal("3.3 m: sprint-jump")
+	assert_str((course.get_node("Labels/Ledge050") as Label3D).text).is_equal("0.5 m: jump up")
+
+
+func test_ledges_mantle_from_one_metre_and_jump_onto_half_metre() -> void:
 	await _load_hub()
 	var x_by_ledge: Dictionary[String, float] = {
 		"Ledge050": -11.75, "Ledge100": -8.75, "Ledge150": -6.0, "Ledge190": -1.25, "Ledge230": 1.75
@@ -92,13 +108,21 @@ func test_ledges_mantle_up_to_one_point_nine() -> void:
 		await _frames(5)
 		EventLog.clear()
 
+		# Below the mantle minimum the jump is a normal one: steer onto the ledge.
+		var steer: bool = LEDGE_HEIGHTS[ledge_name] < 1.0
+		if steer:
+			_runner.simulate_action_press("move_forward")
 		await _hold(&"jump", 3)
+		await _frames(17)
+		_runner.simulate_action_release("move_forward")
 		await _frames(60)
 
 		var height: float = LEDGE_HEIGHTS[ledge_name]
 		var mantled := not EventLog.find(&"player.mantled").is_empty()
-		assert_bool(mantled).override_failure_message("%s mantled: %s" % [ledge_name, mantled]).is_equal(height <= 1.9)
-		var expected_y := height if height <= 1.9 else 0.0
+		var expect_mantle := height >= 1.0 and height <= 1.9
+		assert_bool(mantled).override_failure_message("%s mantled: %s" % [ledge_name, mantled]).is_equal(expect_mantle)
+		# The 0.5 m ledge is jumped onto (not mantled); the 2.3 m ledge cannot be climbed.
+		var expected_y := 0.0 if height > 1.9 else height
 		assert_float(_local().y).is_equal_approx(expected_y, 0.03)
 
 
@@ -142,7 +166,7 @@ func test_two_metre_gap_clears_with_walk_jump() -> void:
 	await _assert_gap_jump(-35.0, -38.5, false, true)
 
 
-func test_four_metre_gap_needs_sprint_jump() -> void:
+func test_three_point_three_metre_gap_needs_sprint_jump() -> void:
 	await _assert_gap_jump(-41.0, -44.5, false, false)
 	await _assert_gap_jump(-41.0, -44.5, true, true)
 

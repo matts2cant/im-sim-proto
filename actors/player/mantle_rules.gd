@@ -10,7 +10,7 @@ class Probe:
 	var found: bool = false
 	## Ledge top above the feet.
 	var height: float = 0.0
-	## Ledge top above the ground the player last stood on (a jump does not extend mantle reach).
+	## Ledge top above the ground the player last stood on (a jump neither extends the maximum nor lowers the minimum).
 	var rise: float = 0.0
 	## Horizontal distance from the capsule axis to the ledge face.
 	var distance: float = 0.0
@@ -31,11 +31,16 @@ class Plan:
 	var duration: float
 
 
+## Tolerance on the height limits so a ledge of exactly the limit is not lost to float noise.
+const HEIGHT_TOLERANCE: float = 0.01
+
+
 static func in_range(height: float, rise: float, distance: float, config: PlayerConfig) -> bool:
 	return (
-		height >= config.mantle_min_height
-		and height <= config.mantle_max_height
-		and rise <= config.mantle_max_height
+		height > 0.0
+		and rise >= config.mantle_min_height - HEIGHT_TOLERANCE
+		and height <= config.mantle_max_height + HEIGHT_TOLERANCE
+		and rise <= config.mantle_max_height + HEIGHT_TOLERANCE
 		and distance <= config.mantle_reach
 	)
 

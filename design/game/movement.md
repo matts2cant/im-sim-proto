@@ -38,7 +38,7 @@ All numbers live in `actors/player/player_config.tres` (surfaces in `actors/play
 
 - Ground acceleration 40 m/s², deceleration 50 m/s² (no input).
 - Air control 0.3: in the air only 30% of ground acceleration steers, and without input momentum is kept. A jump keeps the speed cap of the mode it started from (a sprint jump stays at 6 m/s).
-- Jump apex 1.0 m; launch speed = sqrt(2 g h) = 4.43 m/s with the project default gravity 9.8 m/s². Air time on flat ground 0.90 s, so a flat jump covers about 3.6 m from walk and 5.4 m from sprint (plus up to ~0.25 m capsule overhang at each edge).
+- Gravity is the engine default 9.8 m/s² times `gravity_scale` 2.0 = 19.6 m/s², for the player only ([ADR 0036](../decisions/0036-player-gravity-scale.md)). Jump apex 1.0 m; launch speed = sqrt(2 g h) = 6.26 m/s. Air time on flat ground 0.64 s, so a flat jump covers about 2.6 m from walk and 3.8 m from sprint (plus up to ~0.25 m capsule overhang at each edge).
 - No automatic stair stepping: levels use ramps of at most 45° ([ADR 0034](../decisions/0034-ramps-not-stair-stepping.md)). Lips up to ~0.1 m are climbed by the rounded capsule bottom; anything higher is a mantle.
 
 ### Mantle
@@ -46,7 +46,7 @@ All numbers live in `actors/player/player_config.tres` (surfaces in `actors/play
 See [ADR 0035](../decisions/0035-mantle-rules.md).
 
 - Triggered by pressing jump on the ground, or by holding jump in the air, when facing a ledge.
-- The ledge top must be 0.3 to 1.9 m above the feet and at most 1.9 m above the ground the player last stood on (a jump does not extend mantle reach; the Speed augmentation will raise the limit).
+- The ledge top must be at least 1.0 m above the ground the player last stood on (grounded or in the air) and above the feet, and at most 1.9 m above both the feet and that ground (a jump neither extends the maximum nor lowers the minimum; the Speed augmentation will raise the limit). Ledges below 1.0 m are jumped onto physically.
 - The ledge face must be within 0.8 m of the capsule axis, measured horizontally.
 - The player needs standing or crouched clearance for the whole move (rise, move over, end position). With only crouched clearance (a vent entrance) the mantle ends crouched.
 - Duration 0.25 s + 0.15 s per metre of height. It is a scripted move (rise, then move over the edge), no physics during it.
@@ -75,8 +75,8 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | metal | 1.6 |
 | grass | 0.7 |
 
-- Landing: on touchdown with a downward impact speed of at least 3 m/s, loudness = walk base x clamp(impact speed / 5, 1, 4) x surface multiplier. A 1 m jump lands at 4.4 m/s (loudness 6 on concrete), a 2 m drop at 6.3 m/s (7.5), a 5 m drop at 9.9 m/s (11.9).
-- Each footstep and landing plays a Kenney impact sound for the surface (random variant, ±8% pitch); volume follows loudness (0 dB at 6, 10 dB per decade, clamped to -18..+6 dB).
+- Landing: on touchdown with a downward impact speed of at least 3 m/s, loudness = walk base x clamp(impact speed / 5, 1, 4) x surface multiplier. A 1 m jump lands at 6.3 m/s (loudness 7.5 on concrete), a 2 m drop at 8.9 m/s (10.6), a 5 m drop at 14.0 m/s (16.8).
+- Each footstep and landing plays a Kenney impact sound for the surface (random variant, ±8% pitch around a per-surface base pitch: 1.0, except metal 0.8 with the impactPlate sounds); volume follows loudness (0 dB at 6, 10 dB per decade, clamped to -18..+6 dB).
 - Events in the `EventLog` (source = player node name): `player.footstep` {mode, surface, loudness}, `player.landed` {impact_speed, surface, loudness}, `player.mantled` {height}.
 - M2 turns footsteps and landings into `noise` stimuli ([stimulus-response.md](stimulus-response.md)); the single emit point is `PlayerNoise._make_noise()` in `actors/player/player_noise.gd`. Guards hear them via path distance ([perception-and-ai.md](perception-and-ai.md)).
 
@@ -110,5 +110,5 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 
 ## Open questions
 
-- Holding jump in the air lets the player catch a ledge after falling short, which makes gaps more forgiving (a sprint jump plus catch reaches roughly 8 m). Keep, limit to the falling phase, or shorten reach: decide after playtest.
+- Holding jump in the air lets the player catch a ledge after falling short, which makes gaps more forgiving (the catch needs the ledge top at least 1.0 m above the last ground, so it cannot save a same-level gap; a sprint jump plus catch onto a ledge 1.0-1.9 m higher reaches about 4.6 m). Keep, limit to the falling phase, or shorten reach: decide after playtest.
 - Leg damage speeds: TBD in M4. Speed augmentation values: TBD in M6.

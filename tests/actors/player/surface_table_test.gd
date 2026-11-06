@@ -26,6 +26,17 @@ func test_shipped_multipliers() -> void:
 	assert_float(SURFACES.multiplier(&"unknown")).is_equal(1.0)
 
 
+func test_metal_uses_plate_sounds_at_lower_pitch() -> void:
+	var metal := SURFACES.sound(&"metal") as AudioStreamRandomizer
+
+	for i in metal.streams_count:
+		var path := metal.get_stream(i).resource_path
+		assert_str(path).contains("impactPlate_light_00%d" % i)
+	assert_float(SURFACES.pitch(&"metal")).is_equal(0.8)
+	assert_float(SURFACES.pitch(&"concrete")).is_equal(1.0)
+	assert_float(SURFACES.pitch(&"unknown")).is_equal(1.0)
+
+
 func test_every_surface_has_a_randomised_sound() -> void:
 	for surface: StringName in SURFACES.multipliers:
 		var sound := SURFACES.sound(surface)
