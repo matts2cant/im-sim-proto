@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="AugmentationData" format=3]
+
+[ext_resource type="Script" path="res://actors/common/abilities/augmentation_data.gd" id="1_aug"]
+[ext_resource type="Script" path="res://core/attributes/modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_footstep_noise_mult"]
+script = ExtResource("2_modifier")
+attribute = &"footstep_noise_mult"
+op = 1
+magnitude = 0.0
+
+[sub_resource type="Resource" id="Modifier_landing_noise_mult"]
+script = ExtResource("2_modifier")
+attribute = &"landing_noise_mult"
+op = 1
+magnitude = 0.0
+
+[resource]
+script = ExtResource("1_aug")
+id = &"run_silent"
+display_name = "Run Silent"
+description = "Your footsteps and landings make no noise. Drains 1.5 energy/s."
+slot = 2
+passive = false
+drain_per_second = 1.5
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_footstep_noise_mult"), SubResource("Modifier_landing_noise_mult")])
+tags = Array[StringName]([])
+pulse_interval = 0.5

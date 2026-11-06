@@ -200,9 +200,11 @@ func test_picking_up_the_bottom_crate_drops_the_one_on_top() -> void:
 	assert_float(top.global_position.y).is_equal_approx(0.3, 0.05)
 
 
+# The base 20 kg carry limit: the player's passive Combat Strength (+50 kg) is uninstalled.
 func _load() -> void:
 	_driver = PlayerDriver.new(scene_runner(ROOM))
 	_player = _driver.player
+	_player.augmentations.set_installed(&"combat_strength", false)
 	await _driver.settle()
 
 

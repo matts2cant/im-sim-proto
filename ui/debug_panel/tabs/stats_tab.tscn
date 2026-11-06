@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/debug_panel/tabs/stats_tab.gd" id="1_tab"]
+
+[node name="StatsTab" type="VBoxContainer"]
+script = ExtResource("1_tab")

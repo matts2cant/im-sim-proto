@@ -10,6 +10,7 @@ sprint_add_deg = 6.0
 air_add_deg = 6.0
 crouch_still_factor = 0.8
 settle_time = 0.8
+crouch_settle_factor = 0.6
 look_bloom_per_px = 0.02
 look_bloom_max_per_frame = 2.0
 shot_bloom_deg = 2.5

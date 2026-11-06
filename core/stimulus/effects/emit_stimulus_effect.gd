@@ -13,6 +13,8 @@ extends Effect
 @export var direction: Vector3 = Vector3.FORWARD
 ## RAY only.
 @export var length: float = 1.0
+## Attribute of the entity that scales the intensity on emit (Stimulus.scale_attribute; empty: none).
+@export var scale_attribute: StringName = &""
 
 
 func apply(ctx: EffectContext) -> void:
@@ -31,6 +33,7 @@ func make_stimulus(ctx: EffectContext) -> Stimulus:
 	stimulus.origin = ctx.receiver.global_position
 	stimulus.direction = ctx.receiver.global_basis * direction
 	stimulus.length = length
+	stimulus.scale_attribute = scale_attribute
 	if is_instance_valid(ctx.stimulus.source):
 		stimulus.target = ctx.stimulus.source
 	return stimulus

@@ -154,13 +154,22 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] L opens the personal log (paused, mouse free); L or Esc closes it. Entries are listed newest first, the newest selected; clicking an entry shows its text on the right; long text scrolls with the mouse wheel. Under "Codes": "Storage Door: 2817  (Storage access)". L does nothing while the inventory or the text overlay is open, or when dead; I does nothing while the log is open.
 - [ ] Debug panel Give item no longer lists a datapad; the inventory right-click menu has no "Read".
 - [ ] Drop zone: Q drops the item in hand onto the metal floor with a louder clatter than on concrete (Overlays > Stimuli: bigger impact sphere); dropped items can be picked up again.
-- [ ] Abilities dais: a low red platform (jump onto it) with the sign "Skills & augmentations station — M6"; nothing to use yet.
+- [ ] Abilities dais: see M6 (abilities station).
 
 ## M6 Abilities and saving (Inventory bay)
 
-- [ ] Each augmentation toggles, drains energy and has its stated effect.
-- [ ] Biocells refill energy; skill tier edits in the Stats tab change behaviour.
-- [ ] F5 quicksave and F9 quickload restore state.
+- [ ] HUD: an energy bar (blue, number above it) stands right of the body silhouette; with an augmentation on, a chip "F1 Cloak" etc. appears beside it (Combat Strength always listed while installed) and the bar falls steadily; chips do not cover the belt.
+- [ ] F1 Cloak: the held weapon turns see-through and the screen gets a faint blue tint; F1 again restores both. The energy bar empties in about 25 s from full; at 0 every augmentation switches off with "Energy depleted", and F1-F4 then refuse with the same message.
+- [ ] F2 Run Silent on the station's metal strip ("Run Silent (F2) · sprint here"): with Overlays > Stimuli on, sprinting draws yellow noise spheres and you hear metal steps; with Run Silent on there are no spheres and no step sounds, also on landing from a jump.
+- [ ] F3 Speed Enhancement: sprint feels about 1.5x faster (9 m/s, Player tab speed), jumps reach visibly higher (1.6 m), landings are louder. At the "Speed (F3) · mantle me" ledge (2.3 m): without Speed, jump does nothing useful; with Speed, jump (from standing) climbs onto it. Stepping off the top does not hurt (2.3 m drop).
+- [ ] F4 Regeneration: after a hurt leg (e.g. a blast lane barrel) the silhouette's leg goes back to green within a few seconds while the bar drains; with nothing hurt it keeps draining but heals nothing.
+- [ ] Combat Strength (passive, installed by default): E on the large crate ("Combat Strength · lift me") and on the physics room's "Too heavy (Combat Strength)" crates picks them up; uninstall it in the Stats tab and they are "Too heavy" again. With it the baton knocks a dummy out from the front in 2 hits instead of 3.
+- [ ] Biocells: the dais holds one pickup of 10; E takes them. LMB with a biocell in hand at full energy says "Energy full" and keeps it; after some drain it adds 25 (watch the number) and uses one.
+- [ ] Stats tab (`): set Pistols to Master: the standing reticle is much smaller and settles faster after a shot; reload is quicker; a torso shot on a range dummy shows 32.5 (Untrained 25). With a disabled arm the Master reticle still widens.
+- [ ] Crouch (any skill): after mouse movement or a shot, the reticle tightens noticeably faster crouched than standing.
+- [ ] Stats tab: Low-Tech Advanced: a frontal baton knockout takes 2 hits (Combat Strength uninstalled), swings come faster at Master. Medicine Master: a medkit heals 90 (watch several parts recover).
+- [ ] Stats tab: unchecking "installed" switches an augmentation off and its F-key does nothing ("on" greyed); the energy slider and "Refill energy" change the HUD bar at once; F-key toggles show up in the tab while it is open.
+- [ ] F5 quicksave and F9 quickload restore state (skill tiers, installed and active augmentations, energy included).
 
 ## M7 Light and AI (Perception lab, AI arena)
 

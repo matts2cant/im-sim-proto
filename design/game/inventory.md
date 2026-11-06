@@ -10,7 +10,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 - Look at an item within 2 m: the HUD says "E: pick up Multitool (3)". E puts it into the grid; what does not fit stays on the floor ("No room in inventory").
 - New weapons, tools and consumables go to the first free belt slot. Keys 1-0 or the mouse wheel select a slot and put its item in hand, nothing more: a weapon is drawn, anything else is held; the same key again, or H, puts it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). The wheel steps to the next / previous non-empty slot (down = right), wrapping; from empty hands down takes the first item, up the last.
-- LMB uses the item in hand: a weapon fires, a medkit heals (one per click, it stays in hand until the last is used), a biocell says "Nothing happens" (until M6), a tool does nothing (until M8).
+- LMB uses the item in hand: a weapon fires, a medkit heals (one per click, it stays in hand until the last is used), a biocell restores 25 energy (refused with "Energy full" at full energy, M6), a tool does nothing (until M8).
 - Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine or key.
 - Datapads are not items: they are read in place (E) and what they say goes to the personal log (L), see [Datapads and the personal log](#datapads-and-the-personal-log).
 - I opens the inventory screen and pauses the game: drag items around the grid, onto belt slots, or out of the panel to drop them; right-click for Use / Drop / Split stack / Assign to belt slot; hover for a tooltip.
@@ -19,7 +19,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### Items (`items/`)
 
-- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `EQUIP_TOOL`) and its parameters (weapon; `use_stimuli` and `refused_message` for consumables; the `NONE` message).
+- `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `EQUIP_TOOL`) and its parameters (weapon; `use_stimuli`, `use_scale_attribute` and `refused_message` for consumables; the `NONE` message). `use_scale_attribute` (M6) names an attribute of the user that scales every use stimulus on emit (`Stimulus.scale_attribute`, [ADR 0061](../decisions/0061-abilities-model.md)): the medkit's `medical_heal_mult` is the Medicine skill.
 - `items/item_catalog.tres` (`ItemCatalog`) lists every item; saves store ids and look them up there; the debug panel's "Give item" lists it.
 - Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
@@ -29,10 +29,10 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Silenced pistol | `pistol` | 2 x 1 | 1 | equip / holster | yes | `magazine` (10 when new) |
 | Stun baton | `baton` | 1 x 3 | 1 | equip / holster | yes | |
 | Pistol ammo | `pistol_ammo` | 1 x 1 | 100 | none ("Nothing happens") | no | |
-| Medkit | `medkit` | 1 x 1 | 15 | heal 30, consumes one; refused when unhurt | yes | |
+| Medkit | `medkit` | 1 x 1 | 15 | heal 30 x the user's `medical_heal_mult` (Medicine), consumes one; refused when unhurt | yes | |
 | Multitool | `multitool` | 1 x 1 | 10 | in hand (used in M8) | yes | |
 | Lockpick | `lockpick` | 1 x 1 | 10 | in hand (used in M8) | yes | |
-| Bioelectric cell | `biocell` | 1 x 1 | 20 | "Nothing happens" until M6 | yes | |
+| Bioelectric cell | `biocell` | 1 x 1 | 20 | `energy` 25 to the user, consumes one; refused ("Energy full") at full energy ([abilities.md](abilities.md)) | yes | |
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door" (doors read `key_id` in M8) | no | `key_id` |
 
 ### World pickups

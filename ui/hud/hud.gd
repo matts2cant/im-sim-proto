@@ -3,8 +3,10 @@ extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
-## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059)
-## and the death overlay. It only reads the player's components. Layer 10: the debug panel (layer 100) draws over it.
+## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
+## the energy bar beside the silhouette with chips for the augmentations that are on, a faint tint
+## while the player is cloaked (`state.cloaked`; ADR 0061), and the death overlay. It only reads the
+## player's components. Layer 10: the debug panel (layer 100) draws over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35
@@ -13,6 +15,7 @@ const FLASH_TIME: float = 0.4
 const MESSAGE_TIME: float = 2.5
 ## Shown when the player's PersonalLog gets a new entry (ADR 0060).
 const LOG_ADDED := "Added to log: %s"
+const CHIP_SETTINGS: LabelSettings = preload("res://ui/hud/aug_chip_label.tres")
 
 var player: Player
 
@@ -30,6 +33,10 @@ var _item_name_left: float = 0.0
 @onready var message_label: Label = $Message
 @onready var item_name_label: Label = $ItemName
 @onready var belt_bar: BeltBar = $Belt
+@onready var energy_bar: EnergyBar = $Energy/Bar
+@onready var energy_label: Label = $Energy/Value
+@onready var aug_chips: VBoxContainer = $AugChips
+@onready var cloak_tint: ColorRect = $CloakTint
 
 
 func _ready() -> void:
@@ -39,6 +46,7 @@ func _ready() -> void:
 	message_label.text = ""
 	item_name_label.text = ""
 	prompt_label.text = ""
+	cloak_tint.visible = false
 	if player == null:
 		return
 	# The player's _ready runs after ours: wait for it so its components are wired.
@@ -52,6 +60,13 @@ func _ready() -> void:
 	belt_bar.bind(player.inventory)
 	player.inventory.message.connect(show_message)
 	player.inventory.hand_changed.connect(_on_hand_changed)
+	var energy := Energy.of(player)
+	energy_bar.energy = energy
+	var augmentations := Augmentations.of(player)
+	if augmentations != null:
+		augmentations.changed.connect(refresh_augmentations)
+		augmentations.message.connect(show_message)
+	refresh_augmentations()
 	var reader_log := PersonalLog.of(player)
 	if reader_log != null:
 		reader_log.entry_added.connect(_on_log_entry_added)
@@ -74,6 +89,32 @@ func _process(delta: float) -> void:
 		_update_reticle()
 		refresh_weapon()
 		prompt_label.text = player.interactor.prompt if not player.is_dead() else ""
+		var energy := Energy.of(player)
+		energy_label.text = HudRules.energy_text(energy.current()) if energy != null else ""
+		cloak_tint.visible = ActorState.has(player, ActorState.CLOAKED)
+
+
+## Rebuilds the chips of the augmentations that are on (catalogue order).
+func refresh_augmentations() -> void:
+	for chip in aug_chips.get_children():
+		aug_chips.remove_child(chip)
+		chip.queue_free()
+	var augmentations := Augmentations.of(player)
+	if augmentations == null:
+		return
+	for id in augmentations.active_ids():
+		var chip := Label.new()
+		chip.text = HudRules.chip_text(augmentations.find(id))
+		chip.label_settings = CHIP_SETTINGS
+		aug_chips.add_child(chip)
+
+
+## Texts of the chips shown now.
+func chip_texts() -> Array[String]:
+	var texts: Array[String] = []
+	for chip in aug_chips.get_children():
+		texts.append((chip as Label).text)
+	return texts
 
 
 ## Reticle radius in pixels for the player's current spread (0 without a ranged weapon).

@@ -1,0 +1,75 @@
+extends GdUnitTestSuite
+## Integration: the Skills component on a minimal entity built in code: tiers become modifiers that
+## stack with other sources (injuries), are replaced on change, are logged and saved (ADR 0061).
+
+const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+const Abilities := preload("res://tests/actors/common/abilities/ability_fixtures.gd")
+
+var _world: Node3D
+var _entity: Node3D
+var _skills: Skills
+var _attributes: AttributeSet
+
+
+func before_test() -> void:
+	EventLog.clear()
+	_world = auto_free(Node3D.new())
+	add_child(_world)
+	_entity = Fixtures.entity(_world, "Subject", Vector3.ZERO, [])
+	Abilities.equip(_entity)
+	_skills = Skills.of(_entity)
+	_attributes = Attributes.of(_entity).attribute_set
+
+
+func test_starts_untrained_with_no_skill_modifiers() -> void:
+	for skill in _skills.skill_ids():
+		assert_int(_skills.tier(skill)).is_equal(0)
+	assert_array(_attributes.modifiers(&"pistol_spread_mult")).is_empty()
+
+
+func test_set_tier_replaces_the_skill_modifiers_and_logs() -> void:
+	_skills.set_tier(&"pistols", 1)
+	_skills.set_tier(&"pistols", 3)
+
+	assert_array(_attributes.modifiers(&"pistol_spread_mult")).has_size(1)
+	assert_float(_attributes.evaluate(&"pistol_spread_mult", 1.0)).is_equal_approx(0.4, 0.0001)
+	var changes := EventLog.find(&"skill.tier_changed")
+	assert_array(changes).has_size(2)
+	assert_str(changes[1].data["name"]).is_equal("Master")
+
+	_skills.set_tier(&"pistols", 0)
+	assert_array(_attributes.modifiers(&"pistol_spread_mult")).is_empty()
+
+
+func test_skill_modifiers_stack_with_other_sources() -> void:
+	# The fixture installs everything: Combat Strength's melee x1.5 is already on.
+	_skills.set_tier(&"low_tech", 2)
+
+	assert_float(_attributes.evaluate(&"melee_damage_mult", 20.0)).is_equal_approx(45.0, 0.0001)
+	_skills.set_tier(&"low_tech", 0)
+	assert_float(_attributes.evaluate(&"melee_damage_mult", 20.0)).is_equal_approx(30.0, 0.0001)
+
+
+func test_unknown_skills_and_out_of_range_tiers() -> void:
+	_skills.set_tier(&"juggling", 2)
+	_skills.set_tier(&"medicine", 7)
+
+	assert_int(_skills.tier(&"juggling")).is_equal(0)
+	assert_int(_skills.tier(&"medicine")).is_equal(3)
+
+
+func test_save_and_load_round_trip_re_derive_the_modifiers() -> void:
+	_skills.set_tier(&"medicine", 2)
+	_skills.set_tier(&"electronics", 1)
+	var saved := _skills.save_state()
+	_skills.set_tier(&"medicine", 0)
+	_skills.set_tier(&"lockpicking", 3)
+
+	_skills.load_state(saved)
+
+	assert_int(_skills.tier(&"medicine")).is_equal(2)
+	assert_int(_skills.tier(&"electronics")).is_equal(1)
+	assert_int(_skills.tier(&"lockpicking")).is_equal(0)
+	assert_float(_attributes.evaluate(&"medical_heal_mult", 1.0)).is_equal_approx(2.0, 0.0001)
+	assert_float(_attributes.evaluate(&"lockpick_time_mult", 1.0)).is_equal(1.0)
+	assert_array(_attributes.modifiers(&"medical_heal_mult")).has_size(1)

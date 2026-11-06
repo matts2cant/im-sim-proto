@@ -64,3 +64,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0058](0058-step-climbing.md) | Step climbing as a generic character component | Accepted |
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |
 | [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted |
+| [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted |

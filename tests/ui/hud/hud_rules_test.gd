@@ -31,3 +31,21 @@ func test_ammo_text() -> void:
 	assert_str(HudRules.ammo_text(state)).is_equal("reloading  / 30")
 	assert_str(HudRules.ammo_text(WeaponState.new(BATON))).is_equal("")
 	assert_str(HudRules.ammo_text(null)).is_equal("")
+
+
+func test_energy_text_rounds_up_and_reads_zero_only_when_empty() -> void:
+	assert_str(HudRules.energy_text(100.0)).is_equal("100")
+	assert_str(HudRules.energy_text(41.2)).is_equal("42")
+	assert_str(HudRules.energy_text(0.0)).is_equal("0")
+
+
+func test_chip_text_names_the_key_of_toggles_only() -> void:
+	var toggle := AugmentationData.new()
+	toggle.display_name = "Cloak"
+	toggle.slot = 1
+	var passive := AugmentationData.new()
+	passive.display_name = "Combat Strength"
+	passive.passive = true
+
+	assert_str(HudRules.chip_text(toggle)).is_equal("F1 Cloak")
+	assert_str(HudRules.chip_text(passive)).is_equal("Combat Strength")

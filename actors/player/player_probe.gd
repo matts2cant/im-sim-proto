@@ -38,18 +38,20 @@ func sweep_clear(from_feet: Vector3, to_feet: Vector3, height: float) -> bool:
 
 
 ## Looks for a ledge in front of `feet` along horizontal `forward` and checks the mantle path.
-## `ground_y` is the height of the ground the player last stood on.
-func find_ledge(feet: Vector3, forward: Vector3, ground_y: float) -> MantleRules.Probe:
+## `ground_y` is the height of the ground the player last stood on; `max_height` the highest ledge
+## top (< 0: config.mantle_max_height).
+func find_ledge(feet: Vector3, forward: Vector3, ground_y: float, max_height: float = -1.0) -> MantleRules.Probe:
+	var top := _config.mantle_max_height if max_height < 0.0 else max_height
 	var probe := MantleRules.Probe.new()
 	var dir := Vector3(forward.x, 0.0, forward.z).normalized()
 	if dir.is_zero_approx():
 		return probe
-	var wall_distance := _nearest_wall(feet, dir)
+	var wall_distance := _nearest_wall(feet, dir, top)
 	if wall_distance < 0.0:
 		return probe
 	var top_xz := feet + dir * (wall_distance + TOP_INSET)
 	var top_hit := _ray(
-		top_xz + Vector3.UP * (_config.mantle_max_height + 0.1),
+		top_xz + Vector3.UP * (top + 0.1),
 		Vector3(top_xz.x, feet.y + LIFT, top_xz.z),
 	)
 	if top_hit.is_empty() or not _is_floor_normal(top_hit["normal"]):
@@ -61,7 +63,7 @@ func find_ledge(feet: Vector3, forward: Vector3, ground_y: float) -> MantleRules
 	probe.distance = wall_distance
 	probe.end_position = feet + dir * (wall_distance + _config.capsule_radius + END_INSET)
 	probe.end_position.y = top_y
-	if MantleRules.in_range(probe.height, probe.rise, probe.distance, _config):
+	if MantleRules.in_range(probe.height, probe.rise, probe.distance, _config, top):
 		probe.standing_clear = _path_clear(feet, probe.end_position, _config.standing_height)
 		probe.crouched_clear = probe.standing_clear or _path_clear(feet, probe.end_position, _config.crouched_height)
 	return probe
@@ -74,10 +76,10 @@ func _path_clear(feet: Vector3, end: Vector3, height: float) -> bool:
 
 
 # Horizontal distance to the nearest ledge face within mantle reach, or -1.
-func _nearest_wall(feet: Vector3, dir: Vector3) -> float:
+func _nearest_wall(feet: Vector3, dir: Vector3, max_height: float) -> float:
 	var nearest := -1.0
 	for fraction: float in WALL_RAY_FRACTIONS:
-		var from := feet + Vector3.UP * (_config.mantle_max_height * fraction)
+		var from := feet + Vector3.UP * (max_height * fraction)
 		var hit := _ray(from, from + dir * _config.mantle_reach)
 		if hit.is_empty() or _is_floor_normal(hit["normal"]):
 			continue

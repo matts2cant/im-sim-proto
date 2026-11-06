@@ -43,14 +43,15 @@ func step(delta: float) -> void:
 		magazine += ammo.take(data.magazine_size - magazine)
 
 
-## Pulls the trigger: FIRED uses a round (if the weapon has ammo) and starts the cycle; DRY when
-## the magazine is empty (the click also waits a cycle); BUSY during the cycle; RELOADING.
-func try_fire() -> Result:
+## Pulls the trigger: FIRED uses a round (if the weapon has ammo) and starts the cycle (cycle_time x
+## `cycle_mult`, the user's skill); DRY when the magazine is empty (the click also waits a cycle);
+## BUSY during the cycle; RELOADING.
+func try_fire(cycle_mult: float = 1.0) -> Result:
 	if is_reloading():
 		return Result.RELOADING
 	if cooldown > EPSILON:
 		return Result.BUSY
-	cooldown = data.cycle_time
+	cooldown = data.cycle_time * cycle_mult
 	if data.uses_ammo():
 		if magazine <= 0:
 			return Result.DRY
@@ -58,12 +59,12 @@ func try_fire() -> Result:
 	return Result.FIRED
 
 
-## Starts a reload; false when there is nothing to do (no ammo weapon, already reloading, full,
-## no reserve).
-func start_reload() -> bool:
+## Starts a reload taking reload_time x `time_mult` (the user's skill); false when there is nothing
+## to do (no ammo weapon, already reloading, full, no reserve).
+func start_reload(time_mult: float = 1.0) -> bool:
 	if not data.uses_ammo() or is_reloading() or magazine >= data.magazine_size or reserve <= 0:
 		return false
-	reload_left = data.reload_time
+	reload_left = data.reload_time * time_mult
 	return true
 
 

@@ -7,6 +7,10 @@ extends Node3D
 ## a `force` receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
 ## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
 ## carries its part).
+## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
+## (through Stimulus.scale_attribute), cycle, reload, cone floors and bloom, settle time; crouching
+## (`stance.crouch`) settles faster (AimConfig.crouch_settle_factor). While the user is cloaked
+## (`state.cloaked`) the view model is translucent.
 ## The view model is a placeholder box. Two ways to arm it: a fixed loadout (`weapons`, equip(index);
 ## guards in M7) that the holder saves itself, or equip_state() with a WeaponState owned elsewhere
 ## (the player's inventory weapon stacks, saved by PlayerInventory; ADR 0050).
@@ -17,6 +21,8 @@ const ATTRIBUTE_SPREAD: StringName = &"aim_spread_add"
 const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
 ## Recoil time of a shot; a swing animates over half its cycle.
 const KICK_TIME: float = 0.12
+## Opacity of the view model while the user is cloaked.
+const CLOAKED_ALPHA: float = 0.3
 
 ## Fixed loadout (optional): one WeaponState each in `states`, saved by the holder.
 @export var weapons: Array[WeaponData] = []
@@ -43,6 +49,7 @@ var _kick_length: float = KICK_TIME
 var _sway: Vector2 = Vector2.ZERO
 var _pivot: Node3D
 var _view: MeshInstance3D
+var _view_material: StandardMaterial3D
 var _audio: AudioStreamPlayer3D
 
 
@@ -135,11 +142,12 @@ func add_look(pixels: float) -> void:
 
 ## Called by the user every physics tick with its movement stance.
 func physics_step(delta: float, stance: AimModel.Stance) -> void:
+	var spread_mult := _class_value("spread_mult", 1.0)
 	if _look_pixels > 0.0:
-		aim.add_look(_look_pixels)
+		aim.add_look(_look_pixels, spread_mult)
 		_look_pixels = 0.0
-	_floor = aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0))
-	aim.step(delta, _floor)
+	_floor = aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult)
+	aim.step(delta, _floor, _settle_time())
 	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0))
 	var stepped := states.duplicate()
 	if _equipped != null and not stepped.has(_equipped):
@@ -152,6 +160,16 @@ func physics_step(delta: float, stance: AimModel.Stance) -> void:
 			changed.emit()
 	_kick = maxf(_kick - delta, 0.0)
 	_animate_view()
+	_update_cloak()
+
+
+# Settle time constant of the cone now: AimConfig.settle_time through the user's
+# `<class>_settle_time` attribute, x crouch_settle_factor while the user is crouched.
+func _settle_time() -> float:
+	var settle := _class_value("settle_time", aim.config.settle_time)
+	if ActorState.has(user, ActorState.CROUCHING):
+		settle *= aim.config.crouch_settle_factor
+	return settle
 
 
 ## Snaps the cone to the floor of the last step (tests; a level start).
@@ -177,7 +195,7 @@ func trigger() -> int:
 			{"weapon": data.id, "reason": "arms_disabled" if ActorState.can_act(user) else "incapacitated"}
 		)
 		return -1
-	var result := _equipped.try_fire()
+	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0))
 	match result:
 		WeaponState.Result.FIRED:
 			_kick_length = data.cycle_time * 0.5 if data.is_melee() else KICK_TIME
@@ -196,10 +214,10 @@ func trigger() -> int:
 ## Starts reloading the equipped weapon; false when there is nothing to do.
 func reload() -> bool:
 	var weapon_state := state()
-	if weapon_state == null or not weapon_state.start_reload():
+	if weapon_state == null or not weapon_state.start_reload(_class_value("reload_mult", 1.0)):
 		return false
 	_play(weapon_state.data.reload_sound, -8.0)
-	_log(&"weapon.reload_started", {"weapon": weapon_state.data.id, "time": weapon_state.data.reload_time})
+	_log(&"weapon.reload_started", {"weapon": weapon_state.data.id, "time": weapon_state.reload_left})
 	changed.emit()
 	return true
 
@@ -247,6 +265,8 @@ func _shoot(data: WeaponData) -> void:
 			type, rays[type], eye.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
 		)
 		ray.exclude = exclude
+		if data.damage.has(type):
+			ray.scale_attribute = data.class_attribute("damage_mult")
 		StimulusSystem.emit(ray)
 	StimulusSystem.emit(Stimulus.make_noise(data.fire_noise, _muzzle(), user))
 	last_hit = {}
@@ -258,7 +278,7 @@ func _shoot(data: WeaponData) -> void:
 		last_hit = {"collider": collider, "position": point}
 		StimulusSystem.emit(Stimulus.make_noise(data.impact_noise, point, user))
 		_play_at(data.hit_sound, point)
-	aim.add_shot()
+	aim.add_shot(_class_value("spread_mult", 1.0))
 	_play(data.fire_sound, data.fire_volume_db)
 	var logged := {
 		"weapon": data.id,
@@ -299,7 +319,9 @@ func _swing(data: WeaponData) -> void:
 			hit_name = String(collider.name)
 			last_hit = {"collider": collider, "position": point}
 			for type: StringName in data.damage:
-				StimulusSystem.emit(Stimulus.make_contact(type, data.damage[type], collider, user))
+				var hit_stimulus := Stimulus.make_contact(type, data.damage[type], collider, user)
+				hit_stimulus.scale_attribute = data.class_attribute("damage_mult")
+				StimulusSystem.emit(hit_stimulus)
 			StimulusSystem.emit(Stimulus.make_noise(data.impact_noise, point, user))
 			_play_at(data.hit_sound, point)
 	_log(&"weapon.swung", {"weapon": data.id, "hit": hit_name})
@@ -319,6 +341,15 @@ func _muzzle() -> Vector3:
 	return camera.global_position
 
 
+# `base` through the user's attribute `<class>_<stat>` of the equipped weapon (base itself unarmed or
+# without a class).
+func _class_value(stat: String, base: float) -> float:
+	var data := weapon()
+	if data == null or data.attribute_class.is_empty():
+		return base
+	return Attributes.read(user, data.class_attribute(stat), base)
+
+
 func _attribute(attribute: StringName, fallback: float) -> float:
 	var attributes := user.get_node_or_null(^"Attributes") as Attributes if is_instance_valid(user) else null
 	if attributes == null or not attributes.attribute_set.has(attribute):
@@ -333,6 +364,7 @@ func _build_view(data: WeaponData) -> void:
 	material.albedo_color = data.view_color
 	material.roughness = 0.6
 	mesh.material = material
+	_view_material = material
 	_view.mesh = mesh
 	_view.position = data.view_box_offset
 	_pivot.visible = true
@@ -344,6 +376,24 @@ func _build_view(data: WeaponData) -> void:
 func preview_swing(progress: float) -> void:
 	_kick = _kick_length * (1.0 - clampf(progress, 0.0, 1.0))
 	_animate_view()
+
+
+# True while the view model is drawn see-through (the user is cloaked).
+func _is_view_cloaked() -> bool:
+	return _view_material != null and _view_material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+
+
+# Cloaked user (`state.cloaked`): the view model turns translucent; first-person feedback only.
+func _update_cloak() -> void:
+	if _view_material == null:
+		return
+	var cloaked := ActorState.has(user, ActorState.CLOAKED)
+	if cloaked == _is_view_cloaked():
+		return
+	_view_material.transparency = (
+		BaseMaterial3D.TRANSPARENCY_ALPHA if cloaked else BaseMaterial3D.TRANSPARENCY_DISABLED
+	)
+	_view_material.albedo_color.a = CLOAKED_ALPHA if cloaked else 1.0
 
 
 ## Pose of the view pivot (grip), for tests.

@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="12_biocell"]
 [ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="14_datapad"]
+[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="15_large_crate"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -206,11 +207,32 @@ surface = "metal"
 [node name="AbilitiesDais" type="Node3D" parent="."]
 
 [node name="Dais" parent="AbilitiesDais" instance=ExtResource("5_ledge")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -17.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 0, -17.5)
 height = 0.3
-width = 3
+width = 2.5
 depth = 2.5
 surface = "carpet"
+
+[node name="Biocells" parent="AbilitiesDais" instance=ExtResource("12_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 0.36, -18.6)
+
+[node name="ItemPickup" parent="AbilitiesDais/Biocells"]
+count = 10
+
+[node name="SpeedLedge" parent="AbilitiesDais" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.1, 0, -17.5)
+height = 2.3
+width = 1.8
+depth = 2.5
+
+[node name="LargeCrate" parent="AbilitiesDais" instance=ExtResource("15_large_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 0.6, -18.6)
+
+[node name="RunSilentStrip" parent="AbilitiesDais" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4, 0.02, -10)
+size = Vector2(1, 8)
+thickness = 0.1
+surface = "metal"
 
 [node name="Labels" type="Node3D" parent="."]
 
@@ -238,8 +260,29 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.03, -9.75)
 text = "Drop things here · listen"
 
 [node name="Abilities" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2.2, -19.98)
-text = "Skills & augmentations station — M6"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 3.2, -19.98)
+text = "F1 Cloak · F2 Run Silent
+F3 Speed · F4 Regeneration
+Combat Strength: passive
+Biocells: +25 energy"
+
+[node name="SpeedLedge" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.1, 1.5, -17.48)
+text = "Speed (F3)
+mantle me"
+size = 0
+
+[node name="HeavyCrate" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.9, -18.6)
+text = "Combat Strength
+lift me"
+size = 0
+
+[node name="RunSilent" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -3.4, 0.03, -5.6)
+text = "Run Silent (F2)
+sprint here"
+size = 0
 
 [node name="ItemTags" type="Node3D" parent="Labels"]
 

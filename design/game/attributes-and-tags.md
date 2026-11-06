@@ -25,8 +25,9 @@ Indirect: a burning crate, a slowed player with a damaged leg, a skill tier that
 - `AttributeSet` (RefCounted): named base values (`set_base`, `base`), `add_modifier` (one instance is applied at most once), `remove_modifier`, `remove_by_source(source)`, `value(name)`. Signal `changed(name, old, new)`, emitted only when the value actually changes. `to_dict()` / `from_dict()` (bases and modifiers in order).
 - Attributes without a base value start from 0.
 - `Attributes` component (Node): `base_values: Dictionary[StringName, float]` exported, applied in `_ready`; `attribute_set` holds the live set. Saveable.
-- Attributes in use since M3: `health` on objects (Breakable lowers its base value), `carry_mass_limit` on the player (base 20 kg; Combat Strength adds a modifier in M6).
+- Attributes in use since M3: `health` on objects (Breakable lowers its base value), `carry_mass_limit` on the player (base 20 kg; Combat Strength adds +50).
 - Since M4 on characters: `move_speed_mult` (base 1; one disabled leg x0.6), `aim_spread_add` (base 0; +3 degrees per disabled arm), `aim_sway_mult` (base 1; x2 per disabled arm). `BodyParts` owns the injury modifiers (source `body_parts`) and re-derives them on every change; body-part health itself lives in `BodyParts`, not in attributes ([damage.md](damage.md)).
+- Since M6 ([abilities.md](abilities.md), [ADR 0061](../decisions/0061-abilities-model.md)): `energy` (the base is the charge) and `energy_max`; attributes read with the consumer's own tuning as the base (`AttributeSet.evaluate(attribute, base)` / `Attributes.read(entity, attribute, base)`: the stored base is ignored, the entity's modifiers apply): `pistol_*` / `melee_*` `damage_mult`, `cycle_mult`, `reload_mult`, `spread_mult`, `settle_time` (weapons), `medical_heal_mult`, `jump_apex_height`, `mantle_max_height`, `footstep_noise_mult`, `landing_noise_mult`, `bypass_time_mult`, `lockpick_time_mult`. Modifier sources: `skill.<id>` (Skills) and `aug.<id>` (Augmentations), each re-derived on change like `body_parts`. Tag `state.cloaked` (Cloak; guard sight ignores it in M7).
 
 ### Evaluation
 

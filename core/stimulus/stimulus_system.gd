@@ -61,9 +61,12 @@ func emit_now(stimulus: Stimulus) -> void:
 		_current = null
 
 
-# Assigns id, depth and cause_id; false (and logged) when beyond MAX_DEPTH.
+# Assigns id, depth and cause_id and applies the source's scale (Stimulus.scale_attribute); false
+# (and logged) when beyond MAX_DEPTH.
 func _prepare(stimulus: Stimulus, parent: Stimulus) -> bool:
 	stimulus.source_label = stimulus.source_name()
+	stimulus.scale = stimulus.source_scale()
+	stimulus.intensity *= stimulus.scale
 	stimulus.id = _next_id
 	_next_id += 1
 	var cause := parent if parent != null else _current
@@ -108,8 +111,9 @@ func would_affect(stimulus: Stimulus) -> bool:
 	if not is_instance_valid(stimulus.target):
 		return false
 	var data := {"distance": 0.0, "collider": stimulus.target}
+	var perceived := stimulus.intensity * stimulus.source_scale()
 	for receiver in _receivers_of(stimulus.target):
-		if receiver.wants(stimulus) and receiver.would_react(stimulus, stimulus.intensity, data):
+		if receiver.wants(stimulus) and receiver.would_react(stimulus, perceived, data):
 			return true
 	return false
 
@@ -127,6 +131,9 @@ func _process_stimulus(stimulus: Stimulus) -> void:
 		"shape": Stimulus.shape_name(stimulus.shape),
 		"cause_id": stimulus.cause_id,
 	}
+	if not stimulus.scale_attribute.is_empty():
+		emitted["scale_attribute"] = stimulus.scale_attribute
+		emitted["scale"] = stimulus.scale
 	EventLog.record(&"stimulus.emitted", stimulus.source_name(), target, emitted)
 	var paths: Array[PackedVector3Array] = []
 	match stimulus.shape:

@@ -38,6 +38,13 @@ var id: int = 0
 ## with the parent's id when it is left at 0; components that re-emit on their own tick (a burning
 ## crate's fire pulses) set it to the stimulus that started them, so a whole fire can be traced.
 var cause_id: int = 0
+## Attribute of the source that scales `intensity` when the stimulus is emitted (Attributes.read()
+## with base 1; empty: none): what an entity puts out depends on its skills and augmentations, e.g.
+## a weapon's damage (`pistol_damage_mult`) or a medkit's heal (`medical_heal_mult`; ADR 0061).
+## StimulusSystem applies it once, on emit, and logs the factor as `scale`.
+var scale_attribute: StringName = &""
+## The factor `scale_attribute` gave on emit (1 until then, or without one).
+var scale: float = 1.0
 
 
 static func make_radius(
@@ -111,6 +118,13 @@ func perceived_at(distance: float) -> float:
 	if shape != Shape.RADIUS:
 		return intensity
 	return StimulusPropagation.falloff(intensity, radius, distance)
+
+
+## The factor `scale_attribute` of the source gives now (1 without an attribute or a source).
+func source_scale() -> float:
+	if scale_attribute.is_empty():
+		return 1.0
+	return Attributes.read(source, scale_attribute, 1.0)
 
 
 ## Name of the source node (remembered on emit if it has been freed since), or "" when there is none

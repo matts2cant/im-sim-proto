@@ -12,6 +12,7 @@ kind = 1
 damage = Dictionary[StringName, float]({&"damage.stun": 20.0, &"damage.blunt": 5.0})
 cycle_time = 0.6
 max_range = 1.8
+attribute_class = &"melee"
 sweep_radius = 0.2
 fire_noise = 3.0
 impact_noise = 6.0

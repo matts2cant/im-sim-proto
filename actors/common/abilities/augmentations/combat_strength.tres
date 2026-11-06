@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="AugmentationData" format=3]
+
+[ext_resource type="Script" path="res://actors/common/abilities/augmentation_data.gd" id="1_aug"]
+[ext_resource type="Script" path="res://core/attributes/modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_carry_mass_limit"]
+script = ExtResource("2_modifier")
+attribute = &"carry_mass_limit"
+op = 0
+magnitude = 50.0
+
+[sub_resource type="Resource" id="Modifier_melee_damage_mult"]
+script = ExtResource("2_modifier")
+attribute = &"melee_damage_mult"
+op = 1
+magnitude = 1.5
+
+[resource]
+script = ExtResource("1_aug")
+id = &"combat_strength"
+display_name = "Combat Strength"
+description = "Passive: carry up to 70 kg and hit 1.5x harder in melee."
+slot = 0
+passive = true
+drain_per_second = 0.0
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_carry_mass_limit"), SubResource("Modifier_melee_damage_mult")])
+tags = Array[StringName]([])
+pulse_interval = 0.5

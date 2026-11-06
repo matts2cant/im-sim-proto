@@ -22,23 +22,40 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Flat gap, walk jump | ~2.6 m (4 m/s × 0.64 s) | "Easy" gaps ≤ 2 m |
 | Flat gap, sprint jump | ~3.8 m (6 m/s × 0.64 s) | "Hard" gaps 3–3.5 m (walk jump fails, sprint clears); ≥ 4.2 m is impassable without augmentations |
 | Gap with mid-air ledge catch | same-level far ledge: no extension; far ledge 1.0–1.9 m above take-off: up to ~4.6 m | The catch needs the ledge top ≥ 1.0 m above the last ground (and above the feet), so a same-level ledge cannot be caught. Largest gap crossable with a sprint jump plus catch: 3.83 m + 0.8 m reach ≈ 4.6 m, only onto a ledge 1.0–1.9 m higher; onto a same-level ledge it stays ≈ 3.8 m (≈ 4.1 m counting the ~0.25 m capsule overhang at the lip). Do not rely on either; keep hard gaps at 3.5 m or less |
-| Mantle height | 1.0–1.9 m above the last ground stood on (and above the feet); the maximum also applies to the feet | Ledges below 1.0 m are jumped onto; 2.0–2.2 m are a deliberate "no"; ≥ 2.3 m is safely out of reach |
+| Mantle height | 1.0–1.9 m above the last ground stood on (and above the feet); the maximum also applies to the feet | Ledges below 1.0 m are jumped onto; 2.0–2.2 m are a deliberate "no"; ≥ 2.3 m is out of reach unaugmented (Speed Enhancement mantles up to 2.5 m: see Augmented) |
 | Mantle reach | 0.8 m horizontal from the capsule | Ledge lips must be within reach of a standable spot |
 | Mantle clearance | standing clearance on top, or crouched clearance (ends crouched) | A vent mouth on a ledge needs ≥ 1.0 m height above the ledge |
+
+## Augmented (M6)
+
+Speed Enhancement ([abilities](../game/abilities.md), [ADR 0061](../decisions/0061-abilities-model.md)) changes traversal while it is on. Levels must not rely on these being impossible except where intended (the inventory bay's 2.3 m Speed ledge).
+
+| Metric | Unaugmented | With Speed Enhancement | Level rule |
+|---|---|---|---|
+| Speeds | walk 4, sprint 6, crouch 2 m/s | walk 6, sprint 9, crouch 3 m/s (`move_speed_mult` x1.5) | — |
+| Jump apex | 1.0 m (launch 6.26 m/s, airtime 0.64 s) | 1.6 m (launch 7.92 m/s, airtime 0.81 s) | Obstacles up to ~1.5 m can be jumped over |
+| Flat gap, walk jump | ~2.6 m | ~4.9 m (6 m/s x 0.81 s) | — |
+| Flat gap, sprint jump | ~3.8 m | ~7.3 m (9 m/s x 0.81 s) | A gap that must stop an augmented player: ≥ 8 m |
+| Gap with mid-air catch | ~4.6 m onto a ledge 1.0–1.9 m higher | ~8.1 m (7.3 + 0.8 reach) onto a ledge 1.0–2.5 m higher | — |
+| Mantle height | 1.0–1.9 m | 1.0–2.5 m (`mantle_max_height` +0.6) | A ledge meant to need Speed: 2.2–2.4 m (2.3 used); ≥ 2.6 m is out of reach either way. Keep any top from which the rise drops to ≤ 1.9 m (a pedestal, a crate) more than ~5 m away, or it can be caught with a jump |
+| Landing noise | x1 | x1.5 (Run Silent: x0, also footsteps) | — |
+| Drop from a 2.3 m ledge | 9.5 m/s, harmless (fall damage from 10 m/s) | same | — |
+
+Combat Strength (passive, installed by default on the player): carry limit 70 kg instead of 20, so the metal crate (25 kg) and the large crate (60 kg) can be carried; a carried large crate is a 1.2 m step anywhere.
 
 ## Objects (M3)
 
 | Object | Size | Level use |
 |---|---|---|
 | Small wooden crate | 0.6 m cube, 10 kg | Jump onto (above the 0.35 m step height, below 1.0 m); carryable; pushed by walking into it (up to 2 m/s); two stacked (1.2 m) are mantled |
-| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to carry or push: a fixed climbing aid |
-| Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry; pushed slowly by walking into it |
+| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to push; carried only with Combat Strength (70 kg), otherwise a fixed climbing aid |
+| Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry without Combat Strength; pushed slowly by walking into it |
 | Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s); above the step height, so standing on one is a jump |
 | Explosive barrel | Ø0.6 x 0.9 m, 30 kg | Keep 4 m from things that should survive; 2 m from another barrel chains |
 | Wooden barricade | 1.3 x 2.2 x 0.12 m, origin on the floor | Fills a 1.2 x 2.2 m doorway (ends overlap the jambs) |
 | Brazier | Ø0.6 x 0.9 m, origin on the floor | Permanent fire, reach 1.2 m from its centre |
 
-Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (layer 1); props do not shield it. Touching small crates catch in 3 s, crates 0.6 m apart in 19 s ([objects-and-fire.md](../game/objects-and-fire.md)). Carry: pick-up reach 2.0 m, limit 20 kg; held centre 0.45 m + half the object's size ahead of the eyes (small crate 0.75 m, cardboard 0.7 m) and 0.1 m + half its size lower. Putting down or throwing needs room: a 0.6 m crate needs a gap over 0.6 m (surface to surface) between the capsule and a wall.
+Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (layer 1); props do not shield it. Touching small crates catch in 3 s, crates 0.6 m apart in 19 s ([objects-and-fire.md](../game/objects-and-fire.md)). Carry: pick-up reach 2.0 m, limit 20 kg (70 with Combat Strength); held centre 0.45 m + half the object's size ahead of the eyes (small crate 0.75 m, cardboard 0.7 m) and 0.1 m + half its size lower. Putting down or throwing needs room: a 0.6 m crate needs a gap over 0.6 m (surface to surface) between the capsule and a wall.
 
 ## Noise (audible distance in metres, walking on concrete = 6)
 

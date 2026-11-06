@@ -1,7 +1,8 @@
 extends RefCounted
 ## Test helper (not a suite): gives the player of a PlayerDriver the pistol (belt 1), the baton
 ## (belt 2) and 30 rounds, aims it at a point, equips weapons through the belt keys and fires through
-## the `fire` action, for the M4 weapon, dummy and HUD tests.
+## the `fire` action, for the M4 weapon, dummy and HUD tests. The player's passive Combat Strength is
+## uninstalled so the M4 numbers (baton stun 20, blunt 5) hold; skills start Untrained.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -17,6 +18,7 @@ func _init(p_driver: PlayerDriver) -> void:
 	driver = p_driver
 	player = driver.player
 	player.weapons.seed_rng(SEED)
+	player.augmentations.set_installed(&"combat_strength", false)
 	Items.arm(player)
 
 

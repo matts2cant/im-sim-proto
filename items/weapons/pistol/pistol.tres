@@ -23,6 +23,7 @@ kind = 0
 damage = Dictionary[StringName, float]({&"damage.ballistic": 25.0})
 cycle_time = 0.35
 max_range = 60.0
+attribute_class = &"pistol"
 magazine_size = 10
 reserve_ammo = 30
 ammo_item = &"pistol_ammo"

@@ -37,6 +37,13 @@ func names() -> Array[StringName]:
 
 ## Current value; attributes without a base value start from 0.
 func value(attribute: StringName) -> float:
+	return evaluate(attribute, base(attribute))
+
+
+## The value `attribute` would have with `base_value` as its base: the stored base is ignored. For
+## consumers whose base lives in their own tuning (AimConfig.settle_time, PlayerConfig.jump_apex_height)
+## so skills and augmentations change it through modifiers (ADR 0061).
+func evaluate(attribute: StringName, base_value: float) -> float:
 	var winner: Modifier = null
 	var added := 0.0
 	var factor := 1.0
@@ -54,7 +61,7 @@ func value(attribute: StringName) -> float:
 					winner = modifier
 	if winner != null:
 		return winner.magnitude
-	return (base(attribute) + added) * factor
+	return (base_value + added) * factor
 
 
 ## Returns false (and changes nothing) when this exact modifier instance is already applied.

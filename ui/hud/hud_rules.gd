@@ -23,6 +23,17 @@ static func part_color(ratio: float) -> Color:
 	return CRITICAL.lerp(HURT, ratio * 2.0)
 
 
+## Energy readout above the bar: whole points, rounded up so it reads 0 only when empty.
+static func energy_text(current: float) -> String:
+	return "%d" % ceili(maxf(current, 0.0) - 0.0001)
+
+
+## Active augmentation chip: "F1 Cloak", or the name alone for a passive one.
+static func chip_text(data: AugmentationData) -> String:
+	var key := data.key_label()
+	return data.display_name if key.is_empty() else "%s %s" % [key, data.display_name]
+
+
 ## "10 / 30" for weapons with ammo, "" otherwise; "reloading" while reloading.
 static func ammo_text(state: WeaponState) -> String:
 	if state == null or not state.data.uses_ammo():

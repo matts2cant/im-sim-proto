@@ -14,13 +14,17 @@ extends CharacterBody3D
 ## down stairs, ADR 0058; the camera eases over its `stepped` height changes).
 ## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`
 ## (dead: asks for a level reset), `state.legs_disabled` forces a crawl; `move_speed_mult` scales
-## speed. Saveable.
+## speed. The attributes `jump_apex_height` and `mantle_max_height` (base: config) change the jump
+## and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
+## generic components; this script only maps F1-F4 (`aug_<n>`) to Augmentations.toggle_slot().
+## Saveable.
 
 signal mantled(height: float)
 ## The player pressed `use` while dead (the HUD's death overlay says so).
 signal reset_requested
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
+const STATS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/stats_tab.tscn")
 const GROUP: StringName = &"player"
 ## Belt keys, slot 0 first (key 1 ... key 0).
 const BELT_ACTIONS: Array[StringName] = [
@@ -43,8 +47,17 @@ const PRESS_ACTIONS: Array[StringName] = [
 	&"belt_8",
 	&"belt_9",
 	&"belt_0",
+	&"aug_1",
+	&"aug_2",
+	&"aug_3",
+	&"aug_4",
+	&"aug_5",
 ]
+## Augmentation toggle keys (F1-F4, F6), slot 1 first.
+const AUG_ACTIONS: Array[StringName] = [&"aug_1", &"aug_2", &"aug_3", &"aug_4", &"aug_5"]
 const MOVE_SPEED: StringName = &"move_speed_mult"
+const JUMP_APEX: StringName = &"jump_apex_height"
+const MANTLE_MAX: StringName = &"mantle_max_height"
 
 @export var config: PlayerConfig
 ## When false the player ignores input (cutscenes, tests that drive it directly).
@@ -68,6 +81,7 @@ var _mantle: MantleRules.Plan = null
 var _mantle_time: float = 0.0
 var _spawn_transform: Transform3D
 var _debug_tab: Node
+var _stats_tab: Node
 var _actions_held: Dictionary[StringName, bool] = {}
 ## Mouse wheel notches since the last physics tick (+1 per `belt_next`, -1 per `belt_prev`). Wheel
 ## buttons press and release within one event pair, so they are counted as events, not polled.
@@ -85,6 +99,9 @@ var _view_offset: float = 0.0
 @onready var attributes: Attributes = $Attributes
 @onready var inventory: PlayerInventory = $Inventory
 @onready var interactor: Interactor = $Interactor
+@onready var skills: Skills = $Skills
+@onready var energy: Energy = $Energy
+@onready var augmentations: Augmentations = $Augmentations
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera
@@ -126,6 +143,9 @@ func _exit_tree() -> void:
 	if is_instance_valid(_debug_tab):
 		_debug_tab.queue_free()
 	_debug_tab = null
+	if is_instance_valid(_stats_tab):
+		_stats_tab.queue_free()
+	_stats_tab = null
 	if input_enabled and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -202,6 +222,17 @@ func speed_cap(p_mode: PlayerMotion.Mode) -> float:
 	if ActorState.legs_disabled(self):
 		base = body.profile.crawl_speed
 	return base * carry.speed_factor() * attributes.value(MOVE_SPEED)
+
+
+## Jump apex (m): config.jump_apex_height through the `jump_apex_height` attribute.
+func jump_apex_height() -> float:
+	return Attributes.read(self, JUMP_APEX, config.jump_apex_height)
+
+
+## Highest ledge top (m) above the last ground that can be mantled: config.mantle_max_height
+## through the `mantle_max_height` attribute.
+func mantle_max_height() -> float:
+	return Attributes.read(self, MANTLE_MAX, config.mantle_max_height)
 
 
 func horizontal_speed() -> float:
@@ -305,7 +336,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	velocity.z = horizontal.z
 	var gravity := get_gravity() * config.gravity_scale
 	if jumping:
-		velocity.y = PlayerMotion.jump_speed(config.jump_apex_height, gravity.length())
+		velocity.y = PlayerMotion.jump_speed(jump_apex_height(), gravity.length())
 	elif not grounded:
 		velocity += gravity * delta
 
@@ -348,8 +379,9 @@ func _apply_crouched(value: bool) -> void:
 
 
 func _try_start_mantle() -> bool:
-	var probe := _probe.find_ledge(global_position, -global_basis.z, _ground_y)
-	var plan := MantleRules.evaluate(probe, global_position, config)
+	var max_height := mantle_max_height()
+	var probe := _probe.find_ledge(global_position, -global_basis.z, _ground_y, max_height)
+	var plan := MantleRules.evaluate(probe, global_position, config, max_height)
 	if plan == null:
 		return false
 	_mantle = plan
@@ -382,13 +414,16 @@ func _register_debug_tab() -> void:
 	_debug_tab = DEBUG_TAB.instantiate()
 	_debug_tab.set(&"player", self)
 	DebugPanel.register_tab("Player", _debug_tab as Control)
+	_stats_tab = STATS_TAB.instantiate()
+	_stats_tab.set(&"entity", self)
+	DebugPanel.register_tab("Stats", _stats_tab as Control)
 
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
 # medkit; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
-# (again: put away); wheel: the next / previous belt item (ADR 0059). Dead: only `use`, which asks
-# for a level reset.
+# (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
+# Dead: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
 	var can_press: bool = input_enabled and not DebugPanel.is_open()
 	var steps := _belt_steps
@@ -423,6 +458,8 @@ func _handle_actions() -> void:
 				weapons.reload()
 			&"holster":
 				inventory.put_away()
+			&"aug_1", &"aug_2", &"aug_3", &"aug_4", &"aug_5":
+				augmentations.toggle_slot(AUG_ACTIONS.find(action) + 1)
 			_:
 				inventory.select_slot(BELT_ACTIONS.find(action))
 

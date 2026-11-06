@@ -9,7 +9,7 @@ extends Node
 ## cast from the chest towards the hold point (pushed clear of the capsule) and placed short of the
 ## first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No room")
 ## when that spot overlaps anything.
-## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength raises it in M6).
+## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg).
 ## Not saved: loading a save drops what is held where it is.
 
 signal picked_up(body: RigidBody3D)
