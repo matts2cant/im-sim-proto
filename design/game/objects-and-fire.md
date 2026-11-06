@@ -16,7 +16,7 @@ Scope ([ADR 0044](../decisions/0044-fire-scope-v0.md)): characters never catch f
 
 ### Objects (`objects/<object>/`)
 
-Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/player/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md)) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor, in group `navigation_source` so a level's navmesh bake treats them as obstacles.
+Every physics prop is a `PhysicsObject` (`RigidBody3D`, collision layer 4 objects, mask world/actors/objects, [ADR 0045](../decisions/0045-collision-layers.md); friction 0.5, `objects/materials/prop_physics.tres`) with `Tags` (`material.*`, `object.*`), `Attributes` (`health`), a `StimulusReceiver` at its centre and component children. Static props (barricade, brazier) are `StaticBody3D` on layer 1 (world) with their origin on the floor, in group `navigation_source` so a level's navmesh bake treats them as obstacles.
 
 | Object | Scene | Size | Mass | Health | Material | Flammable: threshold / fuel / intensity / radius |
 |---|---|---|---|---|---|---|
@@ -111,6 +111,14 @@ flowchart LR
 - Carrying is not saved: loading drops the object where it is. Dying or respawning lets go at the free spot (else at the chest).
 - The player has `Tags` (`actor.player`), `Attributes` (`carry_mass_limit`, and the M4 injury attributes) and a `StimulusReceiver` (chest height) whose `body_damage` receptron (M4) applies every `damage` stimulus to its body parts: fire in range and a carried burning object (`damage.fire` CONTACT every pulse) are split evenly over the six parts, explosions 40 % torso / 12 % each other part ([damage.md](damage.md)).
 
+### Standing on and pushing props (player, `actors/player/player_pusher.gd`, `push_rules.gd`)
+
+Props do not collide with the player's kinematic body in the solver (it would move them with infinite mass: crates dragged along underfoot, flung by a mantle); the player still stands on, is blocked by and mantles onto them ([ADR 0054](../decisions/0054-player-and-physics-props.md)). Instead, each movement tick:
+
+- The props under the player's feet share its weight, 80 kg x 9.8 m/s² = 784 N, pushed down through their centres; each gets at most 4 x its own weight (a small crate 392 N, a bottle 20 N), since large mass ratios destabilise the solver.
+- The props the player walks into (within 0.05 m ahead, above the feet) are pushed away from it up to the player's speed toward them, at most 2 m/s, with at most 250 N in total. A prop slides when pushed harder than 0.5 x mass x 9.8 N: small and metal crates, boxes and barrels move, a large crate (294 N) does not. Pushing slows the player to the prop's speed, and a pushed prop stays below the 2.5 m/s impact threshold.
+- Stacks stay put when the player stands, jumps, walks or mantles on them; a 2-crate column walked or sprinted into slides as one.
+
 ## Interactions
 
 - Stimuli, LINE_OF_SIGHT, `cause_id`: [stimulus-response.md](stimulus-response.md)
@@ -125,7 +133,7 @@ flowchart LR
 
 ## Open questions
 
-- Pushing props by walking into them: the player is a `CharacterBody3D` and only stops; revisit if the room needs shoving.
+- Props pass through the player (they do not scan its layer, [ADR 0054](../decisions/0054-player-and-physics-props.md)): a crate falling on the player or a thrown bottle goes through it and does not hurt it. Add a scripted response if playtests show it.
 - Navmesh after a barricade burns away: static props are part of the bake; M7 decides whether guards need a re-bake.
 - M6 save/load: level-placed objects that were destroyed need a "removed" record; spawned objects are recreated from `scene_file_path`.
 - Fire damage against characters (perceived 2-3 per pulse, split over six parts) is mild; tune with the M4 profiles' `damage.fire` multiplier if fire feels harmless.

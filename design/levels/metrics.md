@@ -29,9 +29,9 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 
 | Object | Size | Level use |
 |---|---|---|
-| Small wooden crate | 0.6 m cube, 10 kg | Jump onto (< 1.0 m); carryable; two stacked (1.2 m) are mantled |
-| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to carry |
-| Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry |
+| Small wooden crate | 0.6 m cube, 10 kg | Jump onto (< 1.0 m); carryable; pushed by walking into it (up to 2 m/s); two stacked (1.2 m) are mantled |
+| Large wooden crate | 1.2 m cube, 60 kg | Mantled (1.0-1.9 m); too heavy to carry or push: a fixed climbing aid |
+| Metal crate | 0.8 m cube, 25 kg | Jump onto; too heavy to carry; pushed slowly by walking into it |
 | Cardboard box | 0.5 m cube, 2 kg | Carryable, throws far (12 m/s) |
 | Explosive barrel | Ø0.6 x 0.9 m, 30 kg | Keep 4 m from things that should survive; 2 m from another barrel chains |
 | Wooden barricade | 1.3 x 2.2 x 0.12 m, origin on the floor | Fills a 1.2 x 2.2 m doorway (ends overlap the jambs) |

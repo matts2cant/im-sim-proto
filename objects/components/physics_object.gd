@@ -11,6 +11,8 @@ const GROUP: StringName = &"physics_object"
 func _ready() -> void:
 	add_to_group(GROUP)
 	add_to_group(&"saveable")
+	# Props never scan the player's layer, whatever their scene says (ADR 0054).
+	collision_mask &= ~PhysicsLayers.PLAYER
 
 
 func save_state() -> Dictionary:

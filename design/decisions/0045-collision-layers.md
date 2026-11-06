@@ -17,7 +17,7 @@ Named in `project.godot` `[layer_names]`, constants in `core/physics_layers.gd` 
 | 1 | world | Kit parts and all static level geometry, static props (wooden barricade, brazier) | (static) |
 | 2 | player | The player's capsule | world, actors, objects |
 | 3 | actors | Guards (M7) | |
-| 4 | objects | Physics props (crates, barrels, bottles) | world, player, actors, objects |
+| 4 | objects | Physics props (crates, barrels, bottles) | world, actors, objects (not player since [ADR 0054](0054-player-and-physics-props.md)) |
 | 5 | hitboxes | Body-part hitboxes (M4) | |
 | 6 | triggers | Trigger volumes (M8) | |
 
