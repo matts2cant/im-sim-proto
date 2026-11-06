@@ -77,7 +77,7 @@ func test_run_silent_strip_footsteps_are_metal_and_silenced_by_run_silent() -> v
 	await _load_hub()
 	await _face(STRIP_START, STRIP_END)
 	await _sprint(60)
-	var loud := EventLog.find(&"actor.footstep")
+	var loud := _player_steps()
 	assert_array(loud).is_not_empty()
 	for step in loud:
 		assert_str(String(step.data["surface"])).is_equal("metal")
@@ -87,7 +87,7 @@ func test_run_silent_strip_footsteps_are_metal_and_silenced_by_run_silent() -> v
 	EventLog.clear()
 	await _sprint(60)
 
-	assert_array(EventLog.find(&"actor.footstep")).is_empty()
+	assert_array(_player_steps()).is_empty()
 
 
 func _local_feet() -> Vector3:
@@ -122,3 +122,12 @@ func _load_hub() -> void:
 	_room = _driver.runner.find_child("InventoryBayRoom") as Node3D
 	await _driver.settle()
 	EventLog.clear()
+
+
+# The player's own footsteps: the hub's guards log theirs too (EventLog source = body name).
+func _player_steps() -> Array[EventLogEntry]:
+	var steps: Array[EventLogEntry] = []
+	for step in EventLog.find(&"actor.footstep"):
+		if step.source == String(_player.name):
+			steps.append(step)
+	return steps
