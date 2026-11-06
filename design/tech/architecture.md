@@ -29,7 +29,7 @@ Exactly three:
 
 | Autoload | Role | Added |
 |---|---|---|
-| `StimulusSystem` | Queue, propagate and deliver stimuli | M2 |
+| `StimulusSystem` | Queue, propagate (straight, navmesh path, ray) and deliver stimuli on the physics tick; registry of `StimulusReceiver`s; `stimulus_processed` signal for debug overlays | M2 |
 | `EventLog` | Record emits and receptron firings | M0 |
 | `DebugPanel` | Debug overlays, spawn, time, stats, log UI | M0 (shell) |
 
@@ -41,6 +41,8 @@ Exactly three:
 ## Determinism and tick model
 
 Stimulus processing runs in `_physics_process` on a fixed tick. Stimuli emitted during processing are queued for the next tick: no recursion, chain depth is tracked. This makes integration and scenario tests deterministic (fixed number of frames).
+
+Autoload order in `project.godot`: `EventLog`, `StimulusSystem`, `DebugPanel` (each may use the ones before it in `_ready`). Components register with `StimulusSystem` in `_ready`, never `_enter_tree` (main-scene nodes enter the tree before autoloads are ready). The stimulus queue is transient (not saved); `StimulusSystem.clear()` drops it. Details: [../game/stimulus-response.md](../game/stimulus-response.md).
 
 ## Saveable contract
 

@@ -19,4 +19,4 @@ F5 quicksave, F9 quickload (M6). Death leads to reload/restart ([../levels/missi
 
 ## Open questions
 
-- File format and location, scene restoration approach, handling of the in-flight stimulus queue: TBD in M6.
+- File format and location, scene restoration approach: TBD in M6. The in-flight stimulus queue is not saved (M2): `StimulusSystem.clear()` on load. `Tags` and `Attributes` components are in group `saveable` (TagContainer/AttributeSet `to_dict()`/`from_dict()`).

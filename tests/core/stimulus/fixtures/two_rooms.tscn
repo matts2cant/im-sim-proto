@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/stimulus/sound_attenuator.gd" id="1_atten"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_rooms"]
+geometry_parsed_geometry_type = 1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(20, 1, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(20, 1, 10)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(0.4, 3, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.35, 0.38, 0.45, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(0.4, 3, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(1, 2.5, 2)
+
+[node name="TwoRooms" type="Node3D"]
+
+[node name="NavigationRegion" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_rooms")
+
+[node name="Floor" type="StaticBody3D" parent="NavigationRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="Collision" type="CollisionShape3D" parent="NavigationRegion/Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavigationRegion/Floor"]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="Wall" type="StaticBody3D" parent="NavigationRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -1)
+
+[node name="Collision" type="CollisionShape3D" parent="NavigationRegion/Wall"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavigationRegion/Wall"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="DoorAttenuator" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 4)
+script = ExtResource("1_atten")
+extra_metres = 6.0
+enabled = false
+
+[node name="Collision" type="CollisionShape3D" parent="DoorAttenuator"]
+shape = SubResource("BoxShape3D_door")

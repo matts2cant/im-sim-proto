@@ -12,7 +12,7 @@ Toggled with the ` key (QuoteLeft). Tabs:
 
 | Tab | Content |
 |---|---|
-| Overlays | Sound radii/paths, vision cones, AI state labels, light level |
+| Overlays | "Stimuli" checkbox (M2): wire sphere per RADIUS stimulus, polyline per noise path and ray, colour per type (noise yellow, fire orange, damage red, others hashed), visible 1.5 s, drawn through walls. Later: vision cones, AI state labels, light level |
 | Spawn | Objects, guards |
 | Time | Time scale |
 | Stats | Attributes, skills, augmentations, energy, body parts |
@@ -25,6 +25,7 @@ Toggled with the ` key (QuoteLeft). Tabs:
 - Tuning in v0 lives in `.tres` files and this panel; there are no difficulty settings.
 - The Stats tab is where skill and augmentation values are edited ([abilities.md](abilities.md)).
 - The Event Log tab reads the `EventLog` autoload ([stimulus-response.md](stimulus-response.md)).
+- Overlays draw in the 3D world and stay visible while the panel is closed. The stimulus overlay (`ui/debug_panel/stimulus_overlay.gd`, `DebugPanel.stimulus_overlay`) only listens to `StimulusSystem.stimulus_processed`; core code holds no drawing logic.
 - Systems register their own tabs with `DebugPanel.register_tab()`; the Player tab is registered by the player and removed with it ([movement.md](movement.md)).
 
 ## Interactions

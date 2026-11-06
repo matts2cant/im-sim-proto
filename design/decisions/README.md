@@ -41,3 +41,6 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0035](0035-mantle-rules.md) | Mantle rules | Accepted |
 | [0036](0036-player-gravity-scale.md) | Player gravity scale 2.0 | Accepted |
 | [0037](0037-graybox-kit.md) | Graybox kit of parametric parts and grid materials | Accepted |
+| [0038](0038-linear-falloff-noise-metres.md) | Unified linear falloff, noise intensity = audible metres | Accepted |
+| [0039](0039-path-propagation-sound-attenuators.md) | Path propagation with SoundAttenuator areas | Accepted |
+| [0040](0040-override-modifier-conflict-rule.md) | Override modifier conflict rule | Accepted |

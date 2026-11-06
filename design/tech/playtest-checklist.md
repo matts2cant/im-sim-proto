@@ -30,6 +30,9 @@ Start the main scene (hub), walk through doorway "1 Movement". Keep the debug pa
 - [ ] Spawned test stimuli appear in the Event Log tab.
 - [ ] Chains are visible and terminate (no runaway loops).
 - [ ] Attribute and modifier changes show in the Stats tab.
+- [ ] Walking in the hub logs `stimulus.emitted` noise entries (Event Log tab, filter `stimulus`) with the same loudness as the `player.footstep` entry just before.
+- [ ] Debug panel Overlays tab, tick "Stimuli", close the panel: each footstep draws a yellow wire sphere of the loudness radius at the feet for about 1.5 s; sprinting on metal draws visibly bigger spheres than crouching on carpet. Lines are readable, not distracting, and do not tank the frame rate.
+- [ ] Run `tests/ui/debug_panel/fixtures/overlay_demo.tscn` (two rooms, navmesh baked at start, listener behind the wall): the yellow noise path goes round through the doorway, not through the wall; the orange fire sphere is distinct from the yellow noise sphere.
 
 ## M3 Physics objects and fire (Physics and fire)
 
