@@ -11,7 +11,7 @@ Design entry point: [design/README.md](design/README.md). Full spec lives in `de
 - `objects/` crates, barrels, doors, lights
 - `items/`
 - `ui/hud/`, `ui/debug_panel/`
-- `levels/hub/`, `levels/gallery/<room>/`, `levels/mission/`
+- `levels/hub/`, `levels/gallery/<room>/`, `levels/mission/`; `levels/kit/` graybox kit parts: build levels from them ([design/levels/kit.md](design/levels/kit.md))
 - `tests/` mirrors the source tree (`tests/core/stimulus/stimulus_system_test.gd`); `tests/scenarios/` for scenario tests and fixture scenes
 - `tools/` scripts (`run_tests.sh`, `lint.sh`, `hooks/`); `design/` docs; `assets/` third-party media
 - `addons/` gdUnit4, csg_blockout: never edit
@@ -82,6 +82,8 @@ A task is done only when all of these hold:
 - gdlint `max-public-methods` (20) counts `test_` functions: split suites by concern.
 - Collision shape sizes are float32: compare with `is_equal_approx`, not `==`.
 - CSG collision is built a few frames after load: wait before querying it. `get_collider()` returns the CSG root that has `use_collision`.
+- In the tree, `CSGShape3D.bake_collision_shape()` returns the last built shape (empty right after load, stale right after an edit); out of the tree it computes the current one.
+- Kit parts' generated CSG children are internal: `get_children()` skips them; use `get_node("Block")` or `get_children(true)`.
 - CharacterBody3D often reports no slide collision on flat floors: use a RayCast3D for the floor collider.
 - Main-scene nodes enter the tree before autoloads run `_ready`: never call autoloads from `_enter_tree`.
 - `find_children(..., owned=true)` on a freshly instanced scene still returns nodes of instanced sub-scenes.

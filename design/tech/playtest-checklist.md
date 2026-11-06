@@ -31,6 +31,17 @@ Start the main scene (hub), walk through doorway "1 Movement". Keep the debug pa
 - [ ] Chains are visible and terminate (no runaway loops).
 - [ ] Attribute and modifier changes show in the Stats tab.
 
+## M2 Graybox kit
+
+See [../levels/kit.md](../levels/kit.md).
+
+- [ ] Open `levels/kit/kit_showcase.tscn` in the editor: every part shows; changing a part's properties in the inspector rebuilds it immediately, without errors in the Output panel.
+- [ ] Typing an illegal value (Ledge height 1.95, Ramp rise above 40°, vent interior height 2.0, a door 0.6 m wide) shows a warning triangle on the node with a readable message; the geometry stays sane.
+- [ ] Ctrl+D on a part duplicates it once (no doubled geometry); saving the scene stores only the part's properties.
+- [ ] Hub and movement course play exactly as in M1 (re-run the M1 movement checks): doorways, strips, ledges, vent crawl (mouth, turn, slope, exit), gaps, drop tower.
+- [ ] The grid reads as a 1 m scale reference; surface strips are told apart at a glance; signs are readable from about 6 m.
+- [ ] Debug > Visible Navigation while running the hub: navmesh covers the hub, corridor, hall floor, strips, ramps and walkway tops; nothing inside the vent or under the 1.2 m ceiling.
+
 ## M3 Physics objects and fire (Physics and fire)
 
 - [ ] Objects can be picked up, carried and thrown; impacts make noise.
