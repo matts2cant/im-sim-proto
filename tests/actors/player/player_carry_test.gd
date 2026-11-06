@@ -1,5 +1,6 @@
 extends GdUnitTestSuite
-## Integration: picking up, carrying, putting down, dropping and throwing objects (PlayerCarry).
+## Integration: picking up, carrying, putting down, dropping and throwing objects (PlayerCarry,
+## ADR 0053). Ghosting, upright turn and safe release: player_carry_ghost_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -29,20 +30,27 @@ func test_pick_up_carry_and_put_down() -> void:
 	assert_object(_player.carry.held).is_same(crate)
 	assert_array(Objects.logged(&"player.picked_up", "object", "SmallCrate")).has_size(1)
 	await _driver.frames(30)
-	assert_float(crate.global_position.distance_to(_hold_point())).is_less(0.15)
-	assert_float(crate.gravity_scale).is_equal(0.0)
+	# Ghost: frozen kinematic, no layer or mask, exactly at the hold point (0.75 m for a 0.6 m crate).
+	assert_float(crate.global_position.distance_to(_hold_point(0.3))).is_less(0.001)
+	assert_bool(crate.freeze).is_true()
+	assert_int(crate.collision_layer).is_equal(0)
+	assert_int(crate.collision_mask).is_equal(0)
 
 	await _driver.hold(&"move_forward", 40)
 	await _driver.frames(20)
 	assert_float(_player.global_position.z).is_less(-1.0)
-	assert_float(crate.global_position.distance_to(_hold_point())).is_less(0.2)
+	assert_float(crate.global_position.distance_to(_hold_point(0.3))).is_less(0.001)
 
 	await _driver.hold(&"use", 2)
 	assert_bool(_player.carry.is_carrying()).is_false()
 	assert_array(Objects.logged(&"player.dropped", "how", &"put_down")).has_size(1)
-	assert_float(crate.gravity_scale).is_equal(1.0)
+	assert_bool(crate.freeze).is_false()
+	assert_int(crate.collision_layer).is_equal(PhysicsLayers.OBJECTS)
+	assert_int(crate.collision_mask).is_equal(PhysicsLayers.OBJECT_MASK)
 	await _driver.frames(90)
+	# Landed upright on the floor.
 	assert_float(crate.global_position.y).is_equal_approx(0.3, 0.05)
+	assert_float(crate.global_basis.y.dot(Vector3.UP)).is_greater(0.99)
 
 
 func test_drop_key_lets_go() -> void:
@@ -69,6 +77,7 @@ func test_throw_speed_is_impulse_over_mass() -> void:
 	await _driver.frames(2)
 	var velocity := crate.linear_velocity
 	_driver.runner.simulate_action_release(&"fire")
+	assert_int(crate.collision_layer).is_equal(PhysicsLayers.OBJECTS)
 
 	var thrown := Objects.logged(&"player.threw", "object", "SmallCrate")
 	assert_array(thrown).has_size(1)
@@ -160,17 +169,19 @@ func test_carrying_a_burning_object_hurts_the_carrier() -> void:
 	assert_float(_player.body.health(&"torso")).is_less(100.0)
 
 
-func test_stuck_object_is_dropped() -> void:
+func test_held_object_follows_the_hold_point_instead_of_dropping() -> void:
 	await _load()
-	var crate := _spawn(Objects.SMALL_CRATE, Vector3(0, 1.35, -1.2))
+	var crate := _spawn(Objects.SMALL_CRATE, Vector3(0, 1.25, -0.75))
 	_player.carry.pick_up(crate)
 	await _driver.frames(2)
 
+	# Knocked far away (formerly a "stuck" drop): it is simply placed back at the hold point.
 	crate.global_position = Vector3(0, 0.3, 5)
 	await _driver.frames(2)
 
-	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_array(Objects.logged(&"player.dropped", "how", &"stuck")).has_size(1)
+	assert_bool(_player.carry.is_carrying()).is_true()
+	assert_float(crate.global_position.distance_to(_hold_point(0.3))).is_less(0.001)
+	assert_array(EventLog.find(&"player.dropped")).is_empty()
 
 
 func _load() -> void:
@@ -189,5 +200,5 @@ func _place_aiming(feet: Vector3, target: Vector3) -> void:
 	EventLog.clear()
 
 
-func _hold_point() -> Vector3:
-	return CarryRules.hold_point(_player.eye_transform(), CONFIG)
+func _hold_point(half_extent: float) -> Vector3:
+	return CarryRules.hold_point(_player.eye_transform(), half_extent, CONFIG)

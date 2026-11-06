@@ -25,7 +25,7 @@ Named in `project.godot` `[layer_names]`, constants in `core/physics_layers.gd` 
 - LINE_OF_SIGHT stimuli are blocked by layer 1 only, so props never shield fire from each other while walls and barricades do.
 - The pick-up and debug look rays use `LOOK_MASK` (world, actors, objects).
 - **Debris** from broken objects is on no layer and collides with the world only: it is cosmetic and never blocks the player, who has no step-up ([ADR 0034](0034-ramps-not-stair-stepping.md)).
-- A carried object and the player ignore each other through collision exceptions, not layers.
+- A carried object and the player ignore each other through collision exceptions, not layers. (Superseded by [ADR 0053](0053-ghosted-upright-carry-safe-release.md): a carried object has layer and mask 0 while held.)
 
 ## Alternatives considered
 

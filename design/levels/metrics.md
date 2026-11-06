@@ -37,7 +37,7 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Wooden barricade | 1.3 x 2.2 x 0.12 m, origin on the floor | Fills a 1.2 x 2.2 m doorway (ends overlap the jambs) |
 | Brazier | Ø0.6 x 0.9 m, origin on the floor | Permanent fire, reach 1.2 m from its centre |
 
-Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (layer 1); props do not shield it. Touching small crates catch in 3 s, crates 0.6 m apart in 19 s ([objects-and-fire.md](../game/objects-and-fire.md)). Carry: pick-up reach 2.0 m, limit 20 kg.
+Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (layer 1); props do not shield it. Touching small crates catch in 3 s, crates 0.6 m apart in 19 s ([objects-and-fire.md](../game/objects-and-fire.md)). Carry: pick-up reach 2.0 m, limit 20 kg; held centre 0.45 m + half the object's size ahead of the eyes (small crate 0.75 m, cardboard 0.7 m) and 0.1 m + half its size lower. Putting down or throwing needs room: a 0.6 m crate needs a gap over 0.6 m (surface to surface) between the capsule and a wall.
 
 ## Noise (audible distance in metres, walking on concrete = 6)
 
