@@ -4,6 +4,35 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M2 — Stimulus framework + graybox kit (2026-11-06)
+
+**What went well**
+- First milestone split into two parallel briefs (framework in the main checkout, kit in an isolated worktree). Zero file overlap; the merge was conflict-free.
+- Framework: 194 tests including a scenario test asserting a fire → burn → noise → heard chain by tick; noise now travels along the navmesh around walls. Kit: 7 parametric parts with metric warnings, grid materials, runtime navmesh, hub and course converted with all tests intact. 243 tests after merge.
+- Both agents reported useful deviations (navmesh max climb 0.05, CSG baked from an out-of-tree copy, log ordering for tick determinism) and self-retrospectives.
+
+**What went wrong**
+1. **Stale class cache after merge**: new `class_name`s were unknown to the existing `.godot/` cache; the test run segfaulted (exit 139) and printed no summary. My first check almost read "no summary" as nothing.
+2. **Leaked processes**: the kit agent left two hung headless `--script res://_probe.gd` Godot processes, which locked its worktree folder.
+3. **Cost**: ~620k tokens across the two agents (kit ~364k / 38 min / 173 tool calls; framework ~257k / 20 min). Main drivers, self-reported: undocumented engine behaviour (CSG collision empty/stale right after load, navigation map async iterations, `await physics_frame` timing) discovered by trial inside full features; worktree shell restrictions causing retries.
+4. **Worktree inside the project** broke `gdformat` (argument list too long) until lint skipped hidden folders and `.gitignore` ignored `.claude/worktrees/`.
+
+**Changes made**
+- `tools/run_tests.sh` always re-imports before running (fixes 1). Chief engineer: always check the test summary line exists, not just the absence of failures.
+- AGENTS.md "Engine probes" section: probe uncertain engine behaviour with a small script first, probes live outside `res://` with `quit()` and `timeout`, no leftover Godot processes, class-cache refresh, scratch scripts in worktrees (fixes 2, 3).
+- Lint skips hidden folders; `.claude/worktrees/` ignored (fixes 4, done by the agents during M2).
+
+**Notes for later milestones**
+- Components that re-emit on their own timer (M3 fire spread) must pass the parent stimulus to keep chain depth.
+- Hearing distance is measured to the receiver node: a receiver at head height adds ~1.6 m (tune in M7).
+- The concrete strip in the course uses the same material as the hall floor (only its floor sign distinguishes it).
+
+**User playtest feedback**
+- Pending.
+
+**Open questions for the user**
+- M2 cost ~620k sub-agent tokens. Is that acceptable per milestone, or should I trade some verification depth / use Sonnet more for level work to cut it?
+
 ## M1 — Player controller (2026-11-06)
 
 **What went well**

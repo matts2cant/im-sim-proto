@@ -94,6 +94,13 @@ A task is done only when all of these hold:
 - `await get_tree().physics_frame` resumes *before* that frame's `_physics_process` calls: a stimulus emitted from a test is delivered after the second await.
 - Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances.
 
+## Engine probes
+
+- When engine behaviour is uncertain (CSG timing, navigation map sync, physics frame order), write a 10–20 line `--script` probe **before** building on an assumption. It is far cheaper than debugging the full feature.
+- Probes live in the scratchpad, not in `res://`, end with `quit()`, and run under `timeout 60 "$GODOT_BIN" --headless ...`. Never leave a Godot process running when you finish: check with `tasklist | grep -i godot`.
+- After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports first; for ad-hoc runs use `--headless --import`.
+- In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
+
 ## Workflow
 
 - One feature branch per milestone (`m0-skeleton`, `m1-player`, ...), merged into `master` with `--no-ff` after tests + lint pass. Small fixes may go directly on master.
