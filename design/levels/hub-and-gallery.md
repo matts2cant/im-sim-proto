@@ -36,7 +36,9 @@ The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 
 30 x 30 m, 5 m high, doorways 2 x 3 m. The player spawns at `PlayerSpawn` (0, 0, 10) facing the north wall (doorways 1 and 2). Each room scene is instanced in `levels/hub/hub.tscn` behind its doorway, with its origin on the outer face of the hub wall.
 
-The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, physics and fire, shooting range) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
+The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, physics and fire, shooting range, inventory bay) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
+
+Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 1.0 m wood `Ledge` (`Table`, 2.6 x 0.7 m, lip at (1.9, 0, 8.4), top z 7.7 to 8.4) stands to the front right of the spawn with the starting kit as item pickups, 0.36 m apart: `Pistol` (silenced pistol), `Baton` (stun baton), `PistolAmmo` x60, `Medkit` x2, `Multitool` x3, `Lockpick` x2, `Biocell` x2. Sign "Loadout" (SMALL) above its back edge. The table's west end (x 0.6) leaves the walk straight north from the spawn free, and it is more than 5 m from every doorway.
 
 ## 1 Movement course
 
@@ -105,7 +107,8 @@ Floor plan (room-local; columns to scale at 0.25 m, rows not to scale; top is th
     -22  |    c     c                                            |   2 small crates, 1.5 m gap from X
     -20  |       X                                               |   blast lane barrel, sign
     -18  |==============                D                        |   2 m line; 10 m dummy (lane 2)
-    -16  |============== |         |         |         |         |   4 m line; dividers end
+    -17  |==============                                         |   3 m line
+    -16  |               |         |         |         |         |   dividers end
     -14  |============== |         |         |         |         |   6 m line
     -13  |               |    D    |         |         |         |   5 m dummy (lane 1)
     -10  |               |         |         |         |         |   dividers 1.2 m start
@@ -125,13 +128,51 @@ The firing line is the counter's lip at z -8; distances are centre to centre fro
 | Firing line (`FiringLine/`) | z -8 | `Counter`: 1.0 m wood `Ledge`, 0.6 m deep, from x -2.3 to the east wall, leaving a 1.2 m gap at the west wall to walk downrange; `Stripe`: 0.1 m hazard `SurfaceFloor` (raised 2 cm) along its lip, wall to wall. Lane signs "5 m" to "40 m" lie on the counter top; sign "Firing line · 1 pistol · 2 baton · R reload" above it |
 | Lanes 1-4 (`Lanes/`) | x 1.75, 4.25, 6.75, 9.25 | 2.5 m lanes between four 1.2 m concrete `Ledge` dividers 0.2 m thick (x 0.5, 3, 5.5, 8; z -10 to -16: 2 m past the counter, 6 m long; `Divider1` also separates the blast lane). `Dummy5m`, `Dummy10m`, `Dummy20m`, `Dummy40m` at z -13, -18, -28, -48, turned to face the firing line (unaware) |
 | Melee corner (`Melee/`) | z -5.6, booth side | `AwareDummy` (x 6.9, `Awareness.aware` on) faces west, towards the walkway from the door: from behind it still takes three baton hits. `UnawareDummy` (x 9.9, 3 m further) faces the east wall, its back to the walkway: one hit from behind knocks it out. Signs "Aware · 3 hits" (south wall) and "Sneak behind · baton KO" (east wall) |
-| Blast lane (`BlastLane/`) | x -3.5 to 0.5 | The side lane west of `Divider1`, reached through the counter gap. `Barrel` at (-1.5, -20), past the dividers' end; hazard stripes `Stripe2m`/`4m`/`6m` (3.6 x 0.1 m) at 2, 4 and 6 m from it towards the firing line, with floor labels; `Crate1`/`Crate2` (small) 1.5 m gap behind it, so the blast throws and lights them. Sign "Blast lane · Stand on a line · shoot the barrel". Expected (pistol from the line): 2 m line ≈ 46 damage (torso 18.6, other parts 5.6 each); the 4 m line sits on the edge of the 4 m blast radius (measured to the chest at 1.2 m: 4.07 m) and takes nothing, like the 6 m line |
+| Blast lane (`BlastLane/`) | x -3.5 to 0.5 | The side lane west of `Divider1`, reached through the counter gap. `Barrel` at (-1.5, -20), past the dividers' end; hazard stripes `Stripe2m`/`3m`/`6m` (3.6 x 0.1 m) at 2, 3 and 6 m from it towards the firing line, with floor labels (the "3 m" one at the east end of its line so it does not crowd the "2 m" label a metre away); `Crate1`/`Crate2` (small) 1.5 m gap behind it, so the blast throws and lights them. Sign "Blast lane · Stand on a line · shoot the barrel". Expected (pistol from the line, measured by the scenario test): 2 m line 46.4 damage (torso 18.6, other parts 5.6 each), 3 m line 22.6, 6 m line 0 (outside the 4 m blast radius). The middle line was at 4 m until M5: exactly on the radius edge (4.07 m to the chest) it took nothing, so it taught nothing |
 | Far wall (`FarWall/`) | z -51.6 (43.6 m) | `Barrel1`-`3` at x -2, 1.6, 5.2 (3 m gaps: no chain, a neighbour's blast does 10 of its 25 health) and a `MetalCrate` between barrels 2 and 3; the nearest is 5.4 m from the 40 m dummy. Sign "Long shots" |
-| Medkits (`Medkits/`) | (3, -4.4) | `Table`: 1.0 m wood `Ledge` (1.2 x 0.6 m) against the south wall east of the door with three M4 `Medkit` world objects (inventory pickups after M5). Sign "Medkits · E heals 30" |
+| Medkits (`Medkits/`) | (3, -4.4) | `Table`: 1.0 m wood `Ledge` (1.2 x 0.6 m) against the south wall east of the door with three M5 medkit item pickups (`items/medkit/`: E takes one, using it from the belt heals 30). Sign "Medkits · E takes · use heals 30" |
 
 The hub's `Navigation` bakes the range with the rest: the booth, the blast lane through the counter gap, the lanes around the dividers and the far wall (dummies and objects are not navigation sources). Damage and objects get used up: E on a dummy resets it, the Spawn tab's "Reset level" (or E after dying) reloads the hub.
 
-Tests (`tests/levels/gallery/shooting_range/`): `shooting_range_room_test.gd` (shell, counter and stripe, dummy distances and facing, dividers, melee facing and awareness flags, blast lane lines and crates, far-wall spacing, medkits, signs, no coplanar faces), `shooting_range_hub_test.gd` (room on doorway 4, walk in to the counter, navmesh over the range floor), `shooting_range_scenarios_test.gd` (in the hub with the player, seeded weapon RNG: a pistol shot from the firing line hits the 10 m dummy's torso for 25; the baton knocks the unaware melee dummy out in one hit from behind and needs three on the aware one; the blast lane barrel hurts the player more on the 2 m line than on the 6 m line). First-person review shots: `tests/levels/gallery/shooting_range/fixtures/range_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `lane_40m` draws the pistol so the reticle shows).
+Tests (`tests/levels/gallery/shooting_range/`): `shooting_range_room_test.gd` (shell, counter and stripe, dummy distances and facing, dividers, melee facing and awareness flags, blast lane lines and crates, far-wall spacing, medkits, signs, no coplanar faces), `shooting_range_hub_test.gd` (room on doorway 4, walk in to the counter, navmesh over the range floor), `shooting_range_scenarios_test.gd` (in the hub with the player, seeded weapon RNG: a pistol shot from the firing line hits the 10 m dummy's torso for 25; the baton knocks the unaware melee dummy out in one hit from behind and needs three on the aware one; the blast lane barrel hurts the player more on the 2 m line than on the 3 m line and not at all on the 6 m line). First-person review shots: `tests/levels/gallery/shooting_range/fixtures/range_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `lane_40m` draws the pistol so the reticle shows).
+
+## 7 Inventory and abilities bay
+
+`levels/gallery/inventory_bay/inventory_bay_room.tscn`, instanced at hub (-15.5, 0, 7.5) and turned so its local -Z points west (-X) through doorway "7 Inventory & Abilities"; local +X is hub -Z (towards the mission doorway). Kit parts only, M5 item pickups from `items/`, kit `Sign`s. A 3.5 m corridor (`Shell/Corridor`, 2 x 3 m, walls shared as in [ADR 0043](../decisions/0043-room-connections-share-a-wall.md)) leads into a 12 x 16 m hall, 5 m high, concrete (`Shell/Hall`, interior x -6 to 6, z -4 to -20). Footprint in hub coordinates (outer wall faces): x -19 to -36, z 1 to 14. The hall is 12 m across the door rather than 16 so it stays south of hub z 0.5 (the mission doorway at z -7.5 keeps the north half of the west side) and north of hub z 15.5 (room 6 lies beyond the south wall). Lighting: a corridor light and four shadowed 0.9-energy ceiling lights.
+
+Floor plan (room-local, 1 column = 0.33 m, rows not to scale; top is the back wall):
+
+```
+  z -20  +------------------------------------+
+         |        +--------+                  |   Abilities dais (carpet, 0.3 m), sign on the back wall
+  -18.7  |        |  dais  |          [P]     |   P datapad pedestal 1.1 m, sign on the back wall
+  -17.5  |        +--------+                  |
+         |T                                  F|   F "Fill the grid" table (east wall, 1 m deep):
+  -14.4  |T i9                               F|     6 pistols, 6 batons, 2 x 100 ammo
+         |T  .           +-----------+       F|
+  -12    |T  .           |   metal   |       F|   drop zone 4 x 4 m (metal, raised 2 cm)
+         |T  .           |   drop    |       F|
+  -10    |T  .           +-----------+        |   floor label "Drop things here · listen"
+         |T  .                               S|   S stacks table: multitool 12, medkit 16, ammo 150
+  -6     |T i1                               S|
+  -5.4   |T                                  S|   T item table (west wall, 0.8 m deep), i1 .. i9
+  z -4   +------------[ door ]----------------+
+                     corridor -> hub doorway 7
+      x  -6            0                      6
+```
+
+| Station | Local position | Contents and spacing |
+|---|---|---|
+| Item table (`ItemTable/`) | west wall, z -5.4 to -15 | `Table`: 1.0 m wood `Ledge`, 9.6 x 0.8 m, lip facing +X at x -5.2. One pickup of every item in `items/item_catalog.tres` in catalogue order from the door: `Pistol`, `Baton`, `PistolAmmo` (a box of 10), `Medkit`, `Multitool`, `Lockpick`, `Biocell`, `Keycard` (key_id `inventory_bay`), `Datapad`, 1.05 m apart at x -5.6. Each has a tag on the wall behind it (`Labels/ItemTags/<name>`, SMALL at half pixel size: readable at the table, not across the room) "Name w×h" on two lines. Sign "Item table · every item · E picks up" |
+| Stacks (`Stacks/`) | east wall, z -5.1 to -8.1 | `Table`: 1.0 m wood `Ledge`, 3 x 0.8 m, lip facing -X at x 5.2. `Multitool` x12, `Medkit` x16, `PistolAmmo` x150 (one pickup each, all above their max stack of 10 / 15 / 100), 1 m apart, tags "Multitool ×12 · max 10" ... Sign "Stacks split at their max" |
+| Fill the grid (`FillGrid/`) | east wall, z -9.3 to -14.7 | `Table`: 1.0 m wood `Ledge`, 5.4 x 1 m. `Pistol1`-`6` (front row) and `Baton1`-`6` (back row), 0.75 m apart, `Ammo1`/`Ammo2` (100 rounds each): 12 + 18 + 2 = 32 cells for a 30-cell grid, so the table can never be emptied. Sign "Fill the grid · 6 × 5 · until: No room in inventory" |
+| Datapad pedestal (`DatapadPedestal/`) | (3.5, -18.7) | `Pedestal`: 1.1 m concrete `Ledge`, 0.6 x 0.6 m. `Datapad` titled "Inventory bay": "Press I to open your inventory. Drag items to move them, right-click to use, drop or assign to the belt. Door code for nothing yet: 0451." Sign "Datapad · E takes · use it to read" |
+| Drop zone (`DropZone/`) | centre (0, -12) | `Floor`: 4 x 4 m metal `SurfaceFloor` raised 2 cm: dropped items land loud (metal impact noise). Floor label "Drop things here · listen" at its near edge |
+| Abilities dais (`AbilitiesDais/`) | x -4 to -1, z -17.5 to -20 | `Dais`: 0.3 m carpet `Ledge` (jump onto it), 3 x 2.5 m against the back wall: empty placeholder for the M6 skills and augmentations station. Sign "Skills & augmentations station — M6" |
+
+The hub's `Navigation` bakes the bay with the rest (the dais top is off the navmesh: a 0.3 m step). Items get used up: the Spawn tab's "Reset level" reloads the hub with every pickup back.
+
+Tests (`tests/levels/gallery/inventory_bay/`): `inventory_bay_room_test.gd` (shell, every catalogue item on the item table with its "Name w×h" tag, stack counts above their max, the fill-the-grid table overflows a 6 x 5 grid, datapad title and text, drop zone and dais, signs, no coplanar faces), `inventory_bay_hub_test.gd` (hall footprints of all gallery rooms do not overlap and room 7 keeps to hub z 0.5-15.5, room on doorway 7, walk in from the hub, navmesh reaches every station), `inventory_bay_scenarios_test.gd` (in the hub with the player: pickups stay on their tables once physics runs; E on the item table's pistol, prompt "E: pick up Silenced pistol", puts it on belt slot 1 and key 1 draws it; taking the whole fill-the-grid table ends in "No room in inventory" with items left). The hub's loadout table: `tests/levels/hub/hub_loadout_test.gd`. First-person review shots: `tests/levels/gallery/inventory_bay/fixtures/bay_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `inventory` takes the whole item table and opens the inventory screen, `hub_loadout` and `spawn` show the hub's loadout table).
 
 ## Rules
 
@@ -142,4 +183,4 @@ Tests (`tests/levels/gallery/shooting_range/`): `shooting_range_room_test.gd` (s
 
 ## Open questions
 
-- Room dimensions and layout of rooms 2 and 5 to 7: TBD per room milestone. Room 5 (security, south wall at hub x 7.5) must stay west of hub x 19 (the range's hall). Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
+- Room dimensions and layout of rooms 2, 5 and 6: TBD per room milestone. The mission area behind the west wall's north doorway must stay north of hub z 1 (the outer face of room 7's north wall). Room 5 (security, south wall at hub x 7.5) must stay west of hub x 19 (the range's hall). Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).

@@ -109,6 +109,23 @@ func test_reset_level_without_a_level_does_nothing() -> void:
 	assert_array(EventLog.find(&"debug.reset_level")).is_empty()
 
 
+func test_give_item_adds_one_or_a_full_stack() -> void:
+	await _load()
+	var tab := _tab("Spawn") as SpawnTab
+	var items := tab.get_node("Items")
+	var inventory := _driver.player.inventory.inventory
+	assert_int(items.get_child_count()).is_equal(ItemCatalog.default().items.size() * 3)
+
+	(items.get_node("GiveMultitool") as Button).pressed.emit()
+	(items.get_node("StackPistolAmmo") as Button).pressed.emit()
+
+	assert_int(inventory.count_of(&"multitool")).is_equal(1)
+	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(100)
+	assert_array(EventLog.find(&"debug.gave_item")).has_size(2)
+	# A 6 x 5 grid holds 30 keycards and no more.
+	assert_int(tab.give(ItemCatalog.default().find(&"keycard"), 40)).is_equal(12)
+
+
 func test_time_tab_sets_and_resets_time_scale() -> void:
 	var tab := _tab("Time") as TimeTab
 

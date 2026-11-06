@@ -71,7 +71,7 @@ flowchart LR
 ### Healing
 
 - `BodyParts.heal(amount)`: split evenly over the damaged parts; what a part cannot take (it reached max) is split again over the parts still damaged. Disabled limbs heal too; the dead cannot heal. EventLog `actor.healed {actor, amount, requested}`.
-- **Medkit** (`objects/medkit/`): a small physics object (1 kg, no Carryable). Look at it within 2 m and press E: heals 30 and is freed. Unhurt (or dead): refused and kept, `item.use_refused {object, reason}`. Becomes a 1 x 1 inventory item in M5; the Medicine skill scales the amount in M6.
+- **Medkit** (M5: an inventory item, `items/medkit/`, 1 x 1, stack 15): E picks it up; using it (belt key or the inventory screen's Use) heals 30 and consumes one. Unhurt (or dead): refused and kept, `item.use_refused {item, reason}`, HUD "You are not hurt" ([inventory.md](inventory.md)). The M4 world-use medkit is gone. The Medicine skill scales the amount in M6.
 
 ### Death (player)
 

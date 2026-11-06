@@ -1,0 +1,107 @@
+extends Node3D
+## Screenshot helper for reviews (not a test): first-person shots of gallery room 7 (inventory bay)
+## and the hub's loadout table. Run the scene in a window with `-- shot=<name> out=<png path>`: it
+## puts the hub player at a spot (eye height 1.65 m), optionally picks up the whole item table and
+## opens the inventory screen, waits, saves the window image (UI included) and quits. Positions are
+## room-local (origin on the hub wall, -Z into the room) unless `hub` is set.
+
+## feet / look: points; hub: hub coordinates; take_table: pick up every item table pickup;
+## inventory: open the inventory screen; wait: seconds.
+const SHOTS: Dictionary[String, Dictionary] = {
+	"spawn": {"hub": true, "feet": Vector3(0, 0, 10), "look": Vector3(0, 1.65, 0)},
+	"hub_loadout": {"hub": true, "feet": Vector3(1.6, 0, 9.5), "look": Vector3(1.9, 1.0, 8.05)},
+	"hub_doorway": {"hub": true, "feet": Vector3(-9, 0, 7.5), "look": Vector3(-16, 1.6, 7.5)},
+	"corridor_entry": {"feet": Vector3(0, 0, 3.0), "look": Vector3(0, 1.6, -6)},
+	"corridor_exit": {"feet": Vector3(0.3, 0, -2.4), "look": Vector3(0, 1.4, -12)},
+	"hall_door_back": {"feet": Vector3(1.5, 0, -6.5), "look": Vector3(-0.5, 2.2, -3.6)},
+	"overview": {"feet": Vector3(4.2, 0, -4.6), "look": Vector3(-3, 0.8, -16)},
+	"overview_back": {"feet": Vector3(-0.5, 0, -16.5), "look": Vector3(1, 1.0, -4)},
+	"item_table": {"feet": Vector3(-4.6, 0, -6.4), "look": Vector3(-5.6, 1.03, -6.0)},
+	"item_table_long": {"feet": Vector3(-3.2, 0, -4.6), "look": Vector3(-5.6, 1.1, -12)},
+	"stacks": {"feet": Vector3(4.0, 0, -6.6), "look": Vector3(5.6, 1.1, -6.6)},
+	"fill_grid": {"feet": Vector3(3.4, 0, -12.0), "look": Vector3(5.5, 1.0, -12.0)},
+	"datapad": {"feet": Vector3(2.5, 0, -16.6), "look": Vector3(3.5, 1.2, -18.7)},
+	"drop_zone_dais": {"feet": Vector3(1, 0, -7.5), "look": Vector3(-1.5, 0.2, -16)},
+	"inventory":
+	{"feet": Vector3(-4.6, 0, -10.2), "look": Vector3(-5.6, 1.0, -10.2), "take_table": true, "inventory": true},
+}
+
+## Review image size (the project's 16:9 default).
+const SHOT_SIZE := Vector2i(1152, 648)
+
+var _shot: Dictionary = {}
+var _out: String = ""
+var _time: float = 0.0
+var _acted: bool = false
+
+@onready var _hub: Node3D = $Hub
+@onready var _room: Node3D = $Hub/InventoryBayRoom
+@onready var _player: Player = $Hub/Player
+
+
+func _ready() -> void:
+	# The inventory screen pauses the tree: keep counting time and saving the image.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	var args := {}
+	for arg in OS.get_cmdline_user_args():
+		var parts := arg.split("=", true, 1)
+		if parts.size() == 2:
+			args[parts[0]] = parts[1]
+	_shot = SHOTS.get(String(args.get("shot", "overview")), {})
+	_out = String(args.get("out", "res://reports/screenshots/bay_shot.png"))
+	if _shot.is_empty():
+		push_error("Unknown shot %s; known: %s" % [args.get("shot"), ", ".join(SHOTS.keys())])
+		get_tree().quit(1)
+		return
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# A plain window run ignores --resolution on this machine (840 x 648): force the review size.
+	get_window().size = SHOT_SIZE
+
+
+func _physics_process(_delta: float) -> void:
+	if _shot.is_empty() or _acted:
+		return
+	# Re-place every tick so the player never drifts; the first ticks let CSG build collision.
+	_place_player()
+
+
+func _process(delta: float) -> void:
+	_time += delta
+	if _shot.is_empty():
+		return
+	if not _acted and _time > 0.6:
+		_acted = true
+		_act()
+	if _time < float(_shot.get("wait", 1.2)):
+		return
+	var image := get_viewport().get_texture().get_image()
+	image.save_png(ProjectSettings.globalize_path(_out))
+	print("Saved ", _out)
+	_shot = {}
+	get_tree().quit()
+
+
+func _act() -> void:
+	if _shot.get("take_table", false):
+		for child: Node in _room.get_node("ItemTable").get_children():
+			var pickup := ItemPickup.of(child)
+			if pickup != null:
+				_player.inventory.pick_up(pickup)
+	if _shot.get("inventory", false):
+		_player.input_enabled = true
+		(_player.get_node("InventoryScreen") as InventoryScreen).open()
+
+
+func _place_player() -> void:
+	var space: Node3D = _hub if _shot.get("hub", false) else _room
+	var feet := space.to_global(_shot["feet"] as Vector3)
+	var eye := feet + Vector3.UP * _player.config.standing_eye_height
+	var to := space.to_global(_shot["look"] as Vector3) - eye
+	var state := {
+		"position": feet,
+		"yaw": atan2(-to.x, -to.z),
+		"pitch": atan2(to.y, Vector2(to.x, to.z).length()),
+		"crouched": false,
+		"velocity": Vector3.ZERO,
+	}
+	_player.load_state(state)

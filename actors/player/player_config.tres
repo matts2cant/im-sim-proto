@@ -39,6 +39,7 @@ landing_min_impact_speed = 3.0
 landing_reference_speed = 5.0
 landing_max_factor = 4.0
 surfaces = ExtResource("2_surfaces")
+interact_reach = 2.0
 carry_reach = 2.0
 hold_distance = 1.2
 hold_drop = 0.3

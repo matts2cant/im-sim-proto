@@ -1,7 +1,8 @@
 class_name Player
 extends CharacterBody3D
 ## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects,
-## use things, weapons (WeaponHolder) and body-part damage (BodyParts, Hitboxes).
+## use things (Interactor), inventory and belt (PlayerInventory), weapons (WeaponHolder) and
+## body-part damage (BodyParts, Hitboxes).
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, PlayerNoiseRules, CarryRules);
 ## tuning comes from `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
 ## Its StimulusReceiver's `body_damage` receptron feeds every `damage.*` stimulus to BodyParts.
@@ -14,8 +15,27 @@ signal reset_requested
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
 const GROUP: StringName = &"player"
-## Actions handled on their press edge in _physics_process (carry, use, weapons).
-const PRESS_ACTIONS: Array[StringName] = [&"use", &"drop_throw", &"fire", &"reload", &"belt_1", &"belt_2"]
+## Belt keys, slot 0 first (key 1 ... key 0).
+const BELT_ACTIONS: Array[StringName] = [
+	&"belt_1", &"belt_2", &"belt_3", &"belt_4", &"belt_5", &"belt_6", &"belt_7", &"belt_8", &"belt_9", &"belt_0"
+]
+## Actions handled on their press edge in _physics_process (interact, carry, weapons, belt).
+const PRESS_ACTIONS: Array[StringName] = [
+	&"use",
+	&"drop_throw",
+	&"fire",
+	&"reload",
+	&"belt_1",
+	&"belt_2",
+	&"belt_3",
+	&"belt_4",
+	&"belt_5",
+	&"belt_6",
+	&"belt_7",
+	&"belt_8",
+	&"belt_9",
+	&"belt_0",
+]
 const MOVE_SPEED: StringName = &"move_speed_mult"
 ## Horizontal speed above which the aim counts as moving.
 const AIM_MOVING_SPEED: float = 0.5
@@ -56,6 +76,8 @@ var _actions_held: Dictionary[StringName, bool] = {}
 @onready var hitboxes: Hitboxes = $Hitboxes
 @onready var weapons: WeaponHolder = $Head/Camera/WeaponHolder
 @onready var attributes: Attributes = $Attributes
+@onready var inventory: PlayerInventory = $Inventory
+@onready var interactor: Interactor = $Interactor
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _head: Node3D = $Head
 @onready var _floor_ray: RayCast3D = $FloorRay
@@ -68,6 +90,8 @@ func _ready() -> void:
 	carry.player = self
 	carry.config = config
 	weapons.setup(self, _camera)
+	inventory.setup(self)
+	interactor.player = self
 	body.died.connect(_on_died)
 	_collision.shape = _collision.shape.duplicate()
 	(_collision.shape as CapsuleShape3D).radius = config.capsule_radius
@@ -127,6 +151,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_step_movement(delta, jump_held)
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
+	interactor.refresh()
 	_handle_actions()
 	carry.physics_step()
 	weapons.physics_step(delta, aim_stance())
@@ -199,6 +224,14 @@ func look_hit(length: float) -> Dictionary:
 	return get_world_3d().direct_space_state.intersect_ray(query)
 
 
+## Takes the current key state as "already held", so a key still down when a pause screen closes
+## (E closing the reading overlay) does not count as a new press.
+func resync_actions() -> void:
+	for action in PRESS_ACTIONS:
+		_actions_held[action] = Input.is_action_pressed(action)
+	_jump_was_held = Input.is_action_pressed(&"jump")
+
+
 func save_state() -> Dictionary:
 	return {
 		"position": global_position,
@@ -206,9 +239,11 @@ func save_state() -> Dictionary:
 		"pitch": pitch,
 		"crouched": crouched,
 		"velocity": velocity,
+		"inventory": inventory.save_state(),
 	}
 
 
+## Restores what `data` has (tests pass only position and view; the inventory is optional).
 func load_state(data: Dictionary) -> void:
 	_mantle = null
 	carry.drop(&"load")
@@ -221,6 +256,8 @@ func load_state(data: Dictionary) -> void:
 	_head.position.y = PlayerMotion.eye_height(crouched, config)
 	_ground_y = global_position.y
 	_footsteps.reset()
+	if data.has("inventory"):
+		inventory.load_state(data["inventory"])
 
 
 func _step_movement(delta: float, jump_held: bool) -> void:
@@ -336,9 +373,9 @@ func _register_debug_tab() -> void:
 	DebugPanel.register_tab("Player", _debug_tab as Control)
 
 
-# use: use the looked-at thing, else pick up / put down; drop_throw: drop; fire: throw while
-# carrying, else the weapon; reload; belt_1 / belt_2: pistol / baton (until the M5 belt).
-# Dead: only `use`, which asks for a level reset.
+# use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
+# item in hand; fire: throw while carrying, else the weapon (a tool does nothing until M8); reload;
+# belt keys: the belt slot. Dead: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
 	var can_press: bool = input_enabled and not DebugPanel.is_open()
 	for action in PRESS_ACTIONS:
@@ -353,9 +390,12 @@ func _handle_actions() -> void:
 			continue
 		match action:
 			&"use":
-				_use()
+				interactor.perform()
 			&"drop_throw":
-				carry.drop()
+				if carry.is_carrying():
+					carry.drop()
+				else:
+					inventory.drop_in_hand()
 			&"fire":
 				if carry.is_carrying():
 					carry.throw()
@@ -363,10 +403,8 @@ func _handle_actions() -> void:
 					weapons.trigger()
 			&"reload":
 				weapons.reload()
-			&"belt_1":
-				weapons.toggle(0)
-			&"belt_2":
-				weapons.toggle(1)
+			_:
+				inventory.select_slot(BELT_ACTIONS.find(action))
 
 
 ## Death overlay: reloads the level (or only signals, for tests).
@@ -376,20 +414,10 @@ func request_reset() -> void:
 		LevelReset.reload_level(get_tree())
 
 
-# Something Usable under the crosshair (a medkit) is used; otherwise carry handles it.
-func _use() -> void:
-	if not carry.is_carrying():
-		var hit := look_hit(config.carry_reach)
-		var usable := Usable.of(hit["collider"] as Node) if not hit.is_empty() else null
-		if usable != null and usable.use(self):
-			return
-	carry.use()
-
-
 func _on_died() -> void:
 	_mantle = null
 	carry.drop(&"died")
-	weapons.holster()
+	inventory.put_away()
 
 
 func _respawn() -> void:

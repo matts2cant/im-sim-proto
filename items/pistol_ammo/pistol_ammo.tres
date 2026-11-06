@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"pistol_ammo"
+display_name = "Pistol ammo"
+short_name = "10MM"
+description = "Box of 10 mm rounds for the silenced pistol. Reloading takes them from here."
+footprint = Vector2i(1, 1)
+max_stack = 100
+colour = Color(0.72, 0.56, 0.26, 1)
+world_scene = "res://items/pistol_ammo/pistol_ammo.tscn"
+auto_belt = false
+default_state = {}
+use_action = 0

@@ -78,7 +78,7 @@ Gallery room 3 (Physics and fire):
 
 Start the hub and go through doorway "4 Shooting Range" (east wall, south of doorway 3) into the gallery room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range)); the debug panel (`) Spawn tab still places extra training dummies (2 m ahead, facing away from you), medkits and barrels. Keep the Event Log tab (filter `actor.` / `weapon.`) and the Player tab at hand. See [../game/damage.md](../game/damage.md) and [../game/weapons-and-aiming.md](../game/weapons-and-aiming.md).
 
-- [ ] 1 draws the pistol (box in the lower right), 2 the baton, the same key again holsters. HUD bottom right shows "Silenced pistol" and "10 / 30"; nothing for the baton's ammo.
+- [ ] (Since M5 take the pistol, baton and ammo from the hub's loadout table beside the spawn, or Spawn > Give item, first.) 1 draws the pistol (box in the lower right), 2 the baton, the same key again holsters. HUD bottom right shows "Silenced pistol" and "10 / <rounds in the inventory>"; nothing for the baton's ammo.
 - [ ] Reticle: standing still the circle shrinks to a small ring in under a second (0.8 s settle); walking widens it to about 4.5 degrees, sprinting or jumping to 7.5, right away; flicking the mouse and every shot bloom it; it never exceeds 10. The settle speed feels fair, not sluggish.
 - [ ] Shots land inside the circle (shoot a wall at 10 m and compare the impact noise sphere in Overlays > Stimuli); at rest a dummy's head at 5 m is reliable.
 - [ ] Pistol: shot sound reads as suppressed, not as a punch; 0.35 s between shots; empty magazine clicks; R reloads in 1.6 s (sound plays) and the counter shows "reloading". Shot noise 6 m at the muzzle and 4 m at the impact show in Overlays > Stimuli.
@@ -87,7 +87,7 @@ Start the hub and go through doorway "4 Shooting Range" (east wall, south of doo
 - [ ] Baton: swing with a visible chop; from behind an unaware dummy (Spawn puts it facing away) one hit shows "stun 200" and "KO" and it tips over; from the front three hits ("stun 20" each). Hitting a crate damages it a little (blunt 5), never through stun.
 - [ ] Player damage (Spawn tab "Damage looked-at" does not target yourself; use barrels and fire): standing about 2 m from an exploding barrel takes roughly 20 torso and 6 elsewhere; the screen flashes red; the silhouette (bottom left) turns yellow/red per part.
 - [ ] Jump off the movement course's 5 m drop: both legs lose about 32 (silhouette legs yellow). A second fall disables them: you crawl at 1 m/s and cannot stand. One disabled leg: walking is clearly slower (x0.6).
-- [ ] Medkit: E heals 30 spread over the damaged parts and it disappears; at full health it stays (`item.use_refused`).
+- [ ] Medkit (since M5 from the belt): its belt key heals 30 spread over the damaged parts and the count drops by one; at full health nothing is used (`item.use_refused`).
 - [ ] Death (stand next to two barrels): "You died" overlay, nothing but E works; E reloads the level. The Spawn tab's "Reset level" does the same.
 - [ ] Carrying a burning crate slowly hurts every part (`actor.damaged`, damage.fire).
 
@@ -98,15 +98,36 @@ Gallery room 4 (Shooting range):
 - [ ] Shots: 5 m and 10 m torso shots are reliable at rest; the 20 m dummy takes a few tries, the 40 m one several (settled cone ≈ 1 m wide there). Floating numbers read at 10 m, and at 20-40 m are at least visible.
 - [ ] Headshot x2: the 5 m dummy's head takes 50 ("head 50", it dies and tips over backwards); E on it (walk round the counter gap) resets it.
 - [ ] Baton KO rules (melee corner): sneak up behind the unaware dummy (facing the east wall): one swing shows "stun 200", "KO" and it tips over. From behind the aware one (facing the door): "stun 20" three times before it goes down. From the front of either: three hits.
-- [ ] Falloff on the blast lines: stand on the 6 m line, shoot the barrel: nothing (the bang, the crates thrown and lit). Reset level, stand on the 4 m line: nothing or a scratch (edge of the 4 m radius). Reset, 2 m line: about 46 in total (torso about 19, other parts about 6, silhouette yellow-ish, red flash). The far-wall barrels go off one at a time (3 m apart: no chain).
-- [ ] Medkit heal: after the 2 m blast, E on a medkit on the table heals 30 split over the hurt parts and it disappears; a second one tops up; at full health the third stays (`item.use_refused`).
+- [ ] Falloff on the blast lines: stand on the 6 m line, shoot the barrel: nothing (the bang, the crates thrown and lit). Reset level, stand on the 3 m line: about 23 in total, clearly less than at 2 m. Reset, 2 m line: about 46 in total (torso about 19, other parts about 6, silhouette yellow-ish, red flash). The "2 m" and "3 m" floor labels sit at opposite ends of their lines and both read from the 6 m line. The far-wall barrels go off one at a time (3 m apart: no chain).
+- [ ] Medkit heal: after the 2 m blast, E on a table medkit puts it in the inventory (and on the belt); its belt key heals 30 split over the hurt parts and the count drops; a second one tops up; at full health the third is kept (`item.use_refused`, "You are not hurt").
 - [ ] Death + Reset: a barrel shot from about 1 m does roughly 30 to the torso (of 100), so take the blast lane barrel and then the three far-wall barrels point blank without healing (or spawn barrels with the Spawn tab): the fourth kills. "You died", nothing but E works; E reloads the hub with every barrel, dummy and medkit back. The Spawn tab's "Reset level" does the same.
 
 ## M5 Inventory (Inventory bay)
 
-- [ ] Items of every footprint fit and block correctly on the 6x5 grid.
-- [ ] Belt slots 1-0 reference grid items; consumables stack.
-- [ ] Dropped items become physics objects and make noise.
+Start the hub: the player starts with an empty inventory; the loadout table right of the spawn holds the starting kit. Gallery room 7 is behind doorway "7 Inventory & Abilities" (west wall, south half) ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#7-inventory-and-abilities-bay)). Spawn > Give item in the debug panel (`) still adds anything. Keep the Event Log tab (filter `item.`) at hand. See [../game/inventory.md](../game/inventory.md).
+
+- [ ] Look at an item on the floor within 2 m: the prompt under the reticle reads "E: pick up Multitool (3)" (the count only above 1); a small crate says "E: carry Small crate", a large crate "Too heavy", a training dummy "E: reset Training dummy"; carrying, "E: put down ...". The prompt is readable and does not flicker when the crosshair sits on an edge.
+- [ ] E picks the item up; the pistol, baton, medkit, multitool, lockpick and biocell appear in the first free belt slot; ammo, keycard and datapad do not.
+- [ ] Fill the grid (Give item: keycard stack x30): E on another item says "No room in inventory" for about 2 s and the item stays. A big ammo pickup with little room leaves the rest on the floor with the smaller count.
+- [ ] 1-0: the pistol draws / holsters, the slot is highlighted on the belt HUD; a multitool shows "Multitool" bottom right and LMB does nothing; a medkit heals when hurt and is refused when not ("You are not hurt"); a biocell says "Nothing happens"; a datapad opens the reading panel and E or Esc closes it without also picking up what you look at.
+- [ ] R reloads from the ammo stacks: "2 / 103" becomes "10 / 95"; the smallest ammo stack is used up first and its cell frees up in the grid.
+- [ ] Q with the pistol drawn drops it about a metre ahead; it clatters (impact noise in Overlays > Stimuli); picking it up again keeps its magazine (tooltip "Magazine: n"). Q while carrying a crate still just lets go of the crate. Dropping against a wall never puts the item through it.
+- [ ] I opens the inventory: the game is paused (a falling object freezes, footsteps stop), the mouse is free, I or Esc closes and the mouse is captured again. It does not open while dead or with the debug panel open.
+- [ ] Items of every footprint fit and block correctly on the 6x5 grid: dragging shows a green footprint where it fits and red where it overlaps or sticks out; releasing on red changes nothing.
+- [ ] Drag an item onto a belt slot to assign it; drag a belt item off the belt to clear the slot; drag an item out of the panel to drop it. Hover an item and press a number to assign it.
+- [ ] Right-click: Use / Equip / Read, Drop, Split stack (halves it into a free cell), Assign to belt slot. The tooltip shows name, description and count; it does not cover the item under the mouse.
+- [ ] The inventory reads as Deus Ex: dark panel, thin grid lines, coloured item blocks with legible short names at 1152x648 and at the 840x648 window this machine opens.
+
+Hub loadout table and gallery room 7 (Inventory bay):
+
+- [ ] At the spawn the "Loadout" table is in view to the front right and does not get in the way of walking straight to doorways 1 and 2. E takes each item: pistol, baton, medkit, multitool, lockpick and biocell land on belt slots 1-6, the 60 rounds do not; 1 draws the pistol and R has rounds.
+- [ ] Walk in through doorway 7: the doorway and both corridor ends show plain walls, no striped (z-fighting) faces. From the door the room reads as: item table along the left wall, stack and "Fill the grid" tables on the right, metal drop zone in the middle, red dais and datapad pedestal at the back. Every station sign reads from the door.
+- [ ] Item table: each item's tag ("Silenced pistol 2×1" ...) reads when you stand at it and sits behind the right item; the prompt names the item you look at, never its neighbour. After taking all nine, I shows every footprint in the grid (pistol 2×1, baton 1×3, the rest 1×1).
+- [ ] Stacks (start without that item, e.g. skip the loadout table): E on "Multitool (12)" gives a stack of 10 and one of 2; medkits 16 give 15 + 1; ammo 150 gives 100 + 50; I shows the split stacks with their counts.
+- [ ] Fill the grid: take the pistols, batons and ammo one by one: before the table is empty E says "No room in inventory" for about 2 s and the item stays on the table.
+- [ ] Datapad pedestal: E takes the "Inventory bay" datapad; using it (inventory Use / Read) shows the text about I, dragging, right-click and the 0451 door code; E or Esc closes it.
+- [ ] Drop zone: Q drops the item in hand onto the metal floor with a louder clatter than on concrete (Overlays > Stimuli: bigger impact sphere); dropped items can be picked up again.
+- [ ] Abilities dais: a low red platform (jump onto it) with the sign "Skills & augmentations station — M6"; nothing to use yet.
 
 ## M6 Abilities and saving (Inventory bay)
 

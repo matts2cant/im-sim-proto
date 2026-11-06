@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="8_barrel"]
 [ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="9_small_crate"]
 [ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="10_metal_crate"]
-[ext_resource type="PackedScene" path="res://objects/medkit/medkit.tscn" id="11_medkit"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="11_medkit"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -121,8 +121,8 @@ material_override = ExtResource("6_hazard")
 size = Vector2(3.6, 0.1)
 thickness = 0.1
 
-[node name="Stripe4m" parent="BlastLane" instance=ExtResource("4_floor")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.02, -16)
+[node name="Stripe3m" parent="BlastLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.02, -17)
 material_override = ExtResource("6_hazard")
 size = Vector2(3.6, 0.1)
 thickness = 0.1
@@ -166,13 +166,13 @@ depth = 0.6
 surface = "wood"
 
 [node name="Medkit1" parent="Medkits" instance=ExtResource("11_medkit")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.62, 1.06, -4.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.62, 1.045, -4.4)
 
 [node name="Medkit2" parent="Medkits" instance=ExtResource("11_medkit")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.06, -4.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.045, -4.4)
 
 [node name="Medkit3" parent="Medkits" instance=ExtResource("11_medkit")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.38, 1.06, -4.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.38, 1.045, -4.4)
 
 [node name="Labels" type="Node3D" parent="."]
 
@@ -220,9 +220,9 @@ shoot the barrel"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -17.75)
 text = "2 m"
 
-[node name="Blast4m" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -15.75)
-text = "4 m"
+[node name="Blast3m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.3, 0.03, -16.75)
+text = "3 m"
 
 [node name="Blast6m" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -13.75)
@@ -235,7 +235,7 @@ size = 3
 
 [node name="Medkits" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3, 1.9, -4.05)
-text = "Medkits · E heals 30"
+text = "Medkits · E takes · use heals 30"
 
 [node name="Lights" type="Node3D" parent="."]
 

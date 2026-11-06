@@ -77,6 +77,8 @@ Object and player kinds (M3, [objects-and-fire.md](objects-and-fire.md)): `objec
 
 Damage and weapon kinds (M4, [damage.md](damage.md), [weapons-and-aiming.md](weapons-and-aiming.md)): `actor.damaged {actor, part, type, amount, health, by}`, `actor.stunned {actor, amount, stun, behind, aware, by}`, `actor.knocked_out {actor, stun, by}`, `actor.died {actor, by}`, `actor.healed {actor, amount, requested}`, `actor.reset`, `item.use_refused {object, reason}`, `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started`, `weapon.reloaded`, `weapon.refused {weapon, reason}`, `level.reset {scene}`. `by` is the id of the damaging stimulus. (`player.hurt` from M3 is gone: the `body_damage` receptron replaced it.)
 
+Inventory kinds (M5, [inventory.md](inventory.md)): `item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}`, `item.use_refused {item, reason}` (was `{object, reason}` for the M4 world medkit), `debug.gave_item {item, count}`.
+
 Tracing a fire: `object.ignited.by` is the id of the stimulus that lit it; that stimulus's `stimulus.emitted` entry names its source (the burning neighbour) and its `cause_id`, which equals the neighbour's own `object.ignited.by`; repeat until a stimulus with `cause_id` 0.
 
 ## One tick

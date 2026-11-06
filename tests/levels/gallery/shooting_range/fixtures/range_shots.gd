@@ -15,10 +15,14 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"melee_corner": {"feet": Vector3(4.6, 0, -6.6), "look": Vector3(8.6, 1.2, -5.6)},
 	"melee_behind": {"feet": Vector3(8.6, 0, -5.6), "look": Vector3(9.9, 1.2, -5.6)},
 	"blast_lane": {"feet": Vector3(-1.5, 0, -11.0), "look": Vector3(-1.5, 0.3, -20)},
+	"blast_line_6m": {"feet": Vector3(-1.5, 0, -14.0), "look": Vector3(-1.5, 0.2, -20)},
 	"blast_gap": {"feet": Vector3(-2.9, 0, -6.0), "look": Vector3(-2.2, 0.8, -13)},
 	"far_wall": {"feet": Vector3(3.5, 0, -40.0), "look": Vector3(2.6, 0.8, -51.6)},
 	"medkits": {"feet": Vector3(3.0, 0, -6.2), "look": Vector3(3.0, 1.0, -4.3)},
 }
+
+const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
+const AMMO: ItemData = preload("res://items/pistol_ammo/pistol_ammo.tres")
 
 ## Review image size (the project's 16:9 default).
 const SHOT_SIZE := Vector2i(1152, 648)
@@ -58,7 +62,10 @@ func _physics_process(delta: float) -> void:
 	if not _started and _time > 0.2:
 		_started = true
 		if _shot.get("pistol", false):
-			_player.weapons.equip(0)
+			# M5: the player starts empty; the pistol goes to belt slot 1 (index 0).
+			_player.inventory.give(PISTOL, 1)
+			_player.inventory.give(AMMO, 30)
+			_player.inventory.select_slot(0)
 	if _started and _shot.get("pistol", false):
 		_player.weapons.settle()
 

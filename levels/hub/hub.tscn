@@ -8,6 +8,15 @@
 [ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="6_navigation"]
 [ext_resource type="PackedScene" path="res://levels/gallery/physics_fire/physics_fire_room.tscn" id="7_physics_fire"]
 [ext_resource type="PackedScene" path="res://levels/gallery/shooting_range/shooting_range_room.tscn" id="8_shooting_range"]
+[ext_resource type="PackedScene" path="res://levels/gallery/inventory_bay/inventory_bay_room.tscn" id="9_inventory_bay"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="10_ledge"]
+[ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_pickup.tscn" id="11_pistol"]
+[ext_resource type="PackedScene" path="res://items/weapons/baton/baton_pickup.tscn" id="12_baton"]
+[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="13_pistol_ammo"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="14_medkit"]
+[ext_resource type="PackedScene" path="res://items/multitool/multitool.tscn" id="15_multitool"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="16_lockpick"]
+[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="17_biocell"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -170,6 +179,59 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15.5, 0, -7.5)
 
 [node name="ShootingRangeRoom" parent="." instance=ExtResource("8_shooting_range")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15.5, 0, 7.5)
+
+[node name="InventoryBayRoom" parent="." instance=ExtResource("9_inventory_bay")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -15.5, 0, 7.5)
+
+[node name="Loadout" type="Node3D" parent="."]
+
+[node name="Table" parent="Loadout" instance=ExtResource("10_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 0, 8.4)
+height = 1.0
+width = 2.6
+depth = 0.7
+surface = "wood"
+
+[node name="Pistol" parent="Loadout" instance=ExtResource("11_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.82, 1.025, 8.05)
+
+[node name="Baton" parent="Loadout" instance=ExtResource("12_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.18, 1.025, 8.05)
+
+[node name="PistolAmmo" parent="Loadout" instance=ExtResource("13_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.54, 1.03, 8.05)
+
+[node name="ItemPickup" parent="Loadout/PistolAmmo"]
+count = 60
+
+[node name="Medkit" parent="Loadout" instance=ExtResource("14_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.045, 8.05)
+
+[node name="ItemPickup" parent="Loadout/Medkit"]
+count = 2
+
+[node name="Multitool" parent="Loadout" instance=ExtResource("15_multitool")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.26, 1.015, 8.05)
+
+[node name="ItemPickup" parent="Loadout/Multitool"]
+count = 3
+
+[node name="Lockpick" parent="Loadout" instance=ExtResource("16_lockpick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.62, 1.01, 8.05)
+
+[node name="ItemPickup" parent="Loadout/Lockpick"]
+count = 2
+
+[node name="Biocell" parent="Loadout" instance=ExtResource("17_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.98, 1.06, 8.05)
+
+[node name="ItemPickup" parent="Loadout/Biocell"]
+count = 2
+
+[node name="Sign" parent="Loadout" instance=ExtResource("5_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.6, 7.72)
+text = "Loadout"
+size = 0
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)

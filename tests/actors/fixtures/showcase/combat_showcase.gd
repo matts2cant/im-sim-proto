@@ -3,6 +3,8 @@ extends Node
 ## window's image (HUD included) to `capture_path` after `capture_after` seconds and quits.
 ## Modes: equip a weapon, sprint forward, shoot dummy parts in turn, or die.
 
+const Items := preload("res://tests/items/item_test_helpers.gd")
+
 @export var player_path: NodePath
 @export var dummy_path: NodePath
 ## 0 = nothing, 1 = pistol, 2 = baton.
@@ -32,8 +34,9 @@ func _ready() -> void:
 		await _player.ready
 	_player.reload_on_reset = false
 	_player.weapons.seed_rng(7)
+	Items.arm(_player)
 	if equip > 0:
-		_player.weapons.equip(equip - 1)
+		_player.inventory.select_slot(equip - 1)
 	if sprint:
 		Input.action_press(&"move_forward")
 		Input.action_press(&"sprint")

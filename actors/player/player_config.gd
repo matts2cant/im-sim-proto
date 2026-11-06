@@ -61,6 +61,10 @@ extends Resource
 @export var landing_max_factor: float
 @export var surfaces: SurfaceTable
 
+@export_group("Interact")
+## Reach of the Interactor ray from the eyes (E: pick up, use, carry; ADR 0051).
+@export var interact_reach: float
+
 @export_group("Carry")
 ## Reach of the pick-up look ray from the eyes. The mass limit is the `carry_mass_limit` attribute.
 @export var carry_reach: float

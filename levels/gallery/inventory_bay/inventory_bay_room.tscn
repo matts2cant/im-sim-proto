@@ -1,0 +1,356 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/surface_floor.tscn" id="4_floor"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="5_ledge"]
+[ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_pickup.tscn" id="6_pistol"]
+[ext_resource type="PackedScene" path="res://items/weapons/baton/baton_pickup.tscn" id="7_baton"]
+[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="8_pistol_ammo"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="9_medkit"]
+[ext_resource type="PackedScene" path="res://items/multitool/multitool.tscn" id="10_multitool"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="11_lockpick"]
+[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="12_biocell"]
+[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
+[ext_resource type="PackedScene" path="res://items/datapad/datapad.tscn" id="14_datapad"]
+
+[sub_resource type="Resource" id="Opening_corridor_south"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+wall = 2
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_corridor_north"]
+script = ExtResource("2_opening")
+node_name = &"ToHall"
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_south"]
+script = ExtResource("2_opening")
+node_name = &"FromCorridor"
+wall = 2
+width = 2.0
+height = 3.0
+
+[node name="InventoryBayRoom" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Corridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.75)
+size = Vector3(2, 3, 3.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_south"), SubResource("Opening_corridor_north")])
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+size = Vector3(12, 5, 16)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south")])
+
+[node name="ItemTable" type="Node3D" parent="."]
+
+[node name="Table" parent="ItemTable" instance=ExtResource("5_ledge")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.2, 0, -10.2)
+height = 1
+width = 9.6
+depth = 0.8
+surface = "wood"
+
+[node name="Pistol" parent="ItemTable" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -6)
+
+[node name="Baton" parent="ItemTable" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -7.05)
+
+[node name="PistolAmmo" parent="ItemTable" instance=ExtResource("8_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.03, -8.1)
+
+[node name="Medkit" parent="ItemTable" instance=ExtResource("9_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.045, -9.15)
+
+[node name="Multitool" parent="ItemTable" instance=ExtResource("10_multitool")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.015, -10.2)
+
+[node name="Lockpick" parent="ItemTable" instance=ExtResource("11_lockpick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -11.25)
+
+[node name="Biocell" parent="ItemTable" instance=ExtResource("12_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -12.3)
+
+[node name="Keycard" parent="ItemTable" instance=ExtResource("13_keycard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -13.35)
+
+[node name="ItemPickup" parent="ItemTable/Keycard"]
+state = {"key_id": "inventory_bay"}
+
+[node name="Datapad" parent="ItemTable" instance=ExtResource("14_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -14.4)
+
+[node name="ItemPickup" parent="ItemTable/Datapad"]
+state = {"text": "Datapads hold text: use one from the inventory to read it.", "title": "Datapad"}
+
+[node name="Stacks" type="Node3D" parent="."]
+
+[node name="Table" parent="Stacks" instance=ExtResource("5_ledge")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.2, 0, -6.6)
+height = 1
+width = 3
+depth = 0.8
+surface = "wood"
+
+[node name="Multitool" parent="Stacks" instance=ExtResource("10_multitool")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.015, -5.6)
+
+[node name="ItemPickup" parent="Stacks/Multitool"]
+count = 12
+
+[node name="Medkit" parent="Stacks" instance=ExtResource("9_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.045, -6.6)
+
+[node name="ItemPickup" parent="Stacks/Medkit"]
+count = 16
+
+[node name="PistolAmmo" parent="Stacks" instance=ExtResource("8_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.03, -7.6)
+
+[node name="ItemPickup" parent="Stacks/PistolAmmo"]
+count = 150
+
+[node name="FillGrid" type="Node3D" parent="."]
+
+[node name="Table" parent="FillGrid" instance=ExtResource("5_ledge")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5, 0, -12)
+height = 1
+width = 5.4
+depth = 1
+surface = "wood"
+
+[node name="Pistol1" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -9.8)
+
+[node name="Baton1" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -9.8)
+
+[node name="Pistol2" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -10.55)
+
+[node name="Baton2" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -10.55)
+
+[node name="Pistol3" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -11.3)
+
+[node name="Baton3" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -11.3)
+
+[node name="Pistol4" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -12.05)
+
+[node name="Baton4" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -12.05)
+
+[node name="Pistol5" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -12.8)
+
+[node name="Baton5" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -12.8)
+
+[node name="Pistol6" parent="FillGrid" instance=ExtResource("6_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -13.55)
+
+[node name="Baton6" parent="FillGrid" instance=ExtResource("7_baton")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -13.55)
+
+[node name="Ammo1" parent="FillGrid" instance=ExtResource("8_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.03, -14.3)
+
+[node name="ItemPickup" parent="FillGrid/Ammo1"]
+count = 100
+
+[node name="Ammo2" parent="FillGrid" instance=ExtResource("8_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.03, -14.3)
+
+[node name="ItemPickup" parent="FillGrid/Ammo2"]
+count = 100
+
+[node name="DatapadPedestal" type="Node3D" parent="."]
+
+[node name="Pedestal" parent="DatapadPedestal" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -18.4)
+height = 1.1
+width = 0.6
+depth = 0.6
+
+[node name="Datapad" parent="DatapadPedestal" instance=ExtResource("14_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 1.11, -18.7)
+
+[node name="ItemPickup" parent="DatapadPedestal/Datapad"]
+state = {"text": "Press I to open your inventory. Drag items to move them, right-click to use, drop or assign to the belt. Door code for nothing yet: 0451.", "title": "Inventory bay"}
+
+[node name="DropZone" type="Node3D" parent="."]
+
+[node name="Floor" parent="DropZone" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -12)
+thickness = 0.1
+surface = "metal"
+
+[node name="AbilitiesDais" type="Node3D" parent="."]
+
+[node name="Dais" parent="AbilitiesDais" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -17.5)
+height = 0.3
+width = 3
+depth = 2.5
+surface = "carpet"
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="ItemTable" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 2.6, -10.2)
+text = "Item table
+every item · E picks up"
+
+[node name="Stacks" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 2.4, -6.6)
+text = "Stacks split at their max"
+
+[node name="FillGrid" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 2.4, -12)
+text = "Fill the grid · 6 × 5
+until: No room in inventory"
+
+[node name="Datapad" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.2, -19.98)
+text = "Datapad
+E takes · use it to read"
+
+[node name="DropZone" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.03, -9.75)
+text = "Drop things here · listen"
+
+[node name="Abilities" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2.2, -19.98)
+text = "Skills & augmentations station — M6"
+
+[node name="ItemTags" type="Node3D" parent="Labels"]
+
+[node name="Pistol" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -6)
+text = "Silenced pistol
+2×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Baton" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -7.05)
+text = "Stun baton
+1×3"
+size = 0
+pixel_size = 0.0025
+
+[node name="PistolAmmo" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -8.1)
+text = "Pistol ammo
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Medkit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -9.15)
+text = "Medkit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Multitool" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -10.2)
+text = "Multitool
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Lockpick" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -11.25)
+text = "Lockpick
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Biocell" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -12.3)
+text = "Bioelectric cell
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Keycard" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -13.35)
+text = "Keycard
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Datapad" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -14.4)
+text = "Datapad
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="StackTags" type="Node3D" parent="Labels"]
+
+[node name="Multitool" parent="Labels/StackTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.4, -5.6)
+text = "Multitool ×12
+max 10"
+size = 0
+pixel_size = 0.0025
+
+[node name="Medkit" parent="Labels/StackTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.4, -6.6)
+text = "Medkit ×16
+max 15"
+size = 0
+pixel_size = 0.0025
+
+[node name="PistolAmmo" parent="Labels/StackTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.4, -7.6)
+text = "Ammo ×150
+max 100"
+size = 0
+pixel_size = 0.0025
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="Corridor" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, -2)
+light_energy = 0.8
+omni_range = 6
+
+[node name="Front1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 4.4, -8)
+light_energy = 0.9
+shadow_enabled = true
+omni_range = 10
+
+[node name="Front2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 4.4, -8)
+light_energy = 0.9
+shadow_enabled = true
+omni_range = 10
+
+[node name="Back1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 4.4, -16)
+light_energy = 0.9
+shadow_enabled = true
+omni_range = 10
+
+[node name="Back2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 4.4, -16)
+light_energy = 0.9
+shadow_enabled = true
+omni_range = 10

@@ -51,11 +51,19 @@ func try_pick_up() -> bool:
 	if hit.is_empty():
 		return false
 	var body := hit["collider"] as RigidBody3D
-	if body == null:
+	if body == null or not can_offer(body):
 		return false
+	return try_pick_up_body(body)
+
+
+## True when `body` has an enabled Carryable nobody holds (whatever its mass).
+static func can_offer(body: RigidBody3D) -> bool:
 	var carryable := Carryable.of(body)
-	if carryable == null or not carryable.enabled or carryable.is_carried():
-		return false
+	return carryable != null and carryable.enabled and not carryable.is_carried()
+
+
+## Picks up `body` if it is within the mass limit; otherwise logs `player.pickup_refused`.
+func try_pick_up_body(body: RigidBody3D) -> bool:
 	var limit := mass_limit()
 	if not CarryRules.can_carry(body.mass, limit):
 		var data := {"object": String(body.name), "mass": body.mass, "limit": limit}

@@ -1,16 +1,21 @@
 class_name Hud
 extends CanvasLayer
-## In-game HUD of the player it is a child of: reticle (exact aim cone), weapon name and ammo, body
-## silhouette, a red flash on every hit, and the death overlay. It only reads the player's
-## BodyParts and WeaponHolder. Layer 10: the debug panel (layer 100) draws over it.
+## In-game HUD of the player it is a child of: reticle (exact aim cone), weapon (or tool) name and
+## ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit, the
+## Interactor's prompt under the reticle, short messages, the belt (bottom centre) and the death
+## overlay. It only reads the player's components. Layer 10: the debug panel (layer 100) draws
+## over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35
 const FLASH_TIME: float = 0.4
+## Seconds a message stays, the last half fading out.
+const MESSAGE_TIME: float = 2.5
 
 var player: Player
 
 var _flash: float = 0.0
+var _message_left: float = 0.0
 
 @onready var reticle: Reticle = $Reticle
 @onready var weapon_label: Label = $Weapon/Name
@@ -18,12 +23,17 @@ var _flash: float = 0.0
 @onready var silhouette: BodySilhouette = $Body
 @onready var damage_flash: ColorRect = $DamageFlash
 @onready var death_overlay: Control = $DeathOverlay
+@onready var prompt_label: Label = $Prompt
+@onready var message_label: Label = $Message
+@onready var belt_bar: BeltBar = $Belt
 
 
 func _ready() -> void:
 	player = get_parent() as Player
 	death_overlay.visible = false
 	damage_flash.color.a = 0.0
+	message_label.text = ""
+	prompt_label.text = ""
 	if player == null:
 		return
 	# The player's _ready runs after ours: wait for it so its components are wired.
@@ -34,6 +44,8 @@ func _ready() -> void:
 	player.body.died.connect(_on_died)
 	player.body.changed.connect(_on_body_changed)
 	player.weapons.changed.connect(refresh_weapon)
+	belt_bar.bind(player.inventory)
+	player.inventory.message.connect(show_message)
 	refresh_weapon()
 
 
@@ -41,9 +53,13 @@ func _process(delta: float) -> void:
 	if _flash > 0.0:
 		_flash = maxf(_flash - delta, 0.0)
 		damage_flash.color.a = FLASH_ALPHA * _flash / FLASH_TIME
+	if _message_left > 0.0:
+		_message_left = maxf(_message_left - delta, 0.0)
+		message_label.modulate.a = minf(_message_left / (MESSAGE_TIME * 0.5), 1.0)
 	if player != null and player.is_node_ready():
 		_update_reticle()
 		refresh_weapon()
+		prompt_label.text = player.interactor.prompt if not player.is_dead() else ""
 
 
 ## Reticle radius in pixels for the player's current spread (0 without a ranged weapon).
@@ -58,8 +74,19 @@ func reticle_radius() -> float:
 
 func refresh_weapon() -> void:
 	var data := player.weapons.weapon()
-	weapon_label.text = data.display_name if data != null else ""
+	var tool := player.inventory.tool
+	if data != null:
+		weapon_label.text = data.display_name
+	else:
+		weapon_label.text = tool.item.display_name if tool != null else ""
 	ammo_label.text = HudRules.ammo_text(player.weapons.state())
+
+
+## Shows `text` above the belt for a few seconds ("No room in inventory").
+func show_message(text: String) -> void:
+	message_label.text = text
+	message_label.modulate.a = 1.0
+	_message_left = MESSAGE_TIME
 
 
 func flash_alpha() -> float:

@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://ui/hud/reticle.gd" id="2_reticle"]
 [ext_resource type="Script" path="res://ui/hud/body_silhouette.gd" id="3_body"]
+[ext_resource type="Script" path="res://ui/hud/belt_bar.gd" id="4_belt"]
 
 [sub_resource type="LabelSettings" id="Label_weapon"]
 font_size = 18
@@ -24,6 +25,17 @@ outline_color = Color(0, 0, 0, 1)
 font_size = 22
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="Label_prompt"]
+font_size = 18
+outline_size = 4
+outline_color = Color(0, 0, 0, 0.85)
+
+[sub_resource type="LabelSettings" id="Label_message"]
+font_size = 18
+font_color = Color(1, 0.84, 0.45, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 0.85)
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
@@ -85,6 +97,54 @@ horizontal_alignment = 2
 layout_mode = 2
 label_settings = SubResource("Label_ammo")
 horizontal_alignment = 2
+
+[node name="Prompt" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 66.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+label_settings = SubResource("Label_prompt")
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -118.0
+offset_right = 300.0
+offset_bottom = -92.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+label_settings = SubResource("Label_message")
+horizontal_alignment = 1
+
+[node name="Belt" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -278.0
+offset_top = -76.0
+offset_right = 278.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4_belt")
 
 [node name="DeathOverlay" type="ColorRect" parent="."]
 visible = false
