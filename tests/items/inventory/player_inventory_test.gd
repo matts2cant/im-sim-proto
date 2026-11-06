@@ -224,8 +224,8 @@ func test_death_puts_the_weapon_away() -> void:
 func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	await _load()
 	Items.arm(_player)
-	_player.inventory.give(Items.DATAPAD, 1, {"title": "Note", "text": "1234"})
-	_player.inventory.belt.assign(7, _player.inventory.inventory.stacks_of(&"datapad")[0])
+	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
+	_player.inventory.belt.assign(7, _player.inventory.inventory.stacks_of(&"keycard")[0])
 	await _press(&"belt_1")
 	_player.weapons.state().magazine = 6
 	var saved := _player.save_state()
@@ -238,7 +238,7 @@ func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	var inventory := _player.inventory.inventory
 	assert_int(inventory.stacks.size()).is_equal(4)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(30)
-	assert_str(_player.inventory.belt.stack_in(7).state["text"]).is_equal("1234")
+	assert_str(_player.inventory.belt.stack_in(7).state["key_id"]).is_equal("vault")
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.weapons.state().magazine).is_equal(6)
 	assert_int(_player.inventory.belt.selected).is_equal(0)

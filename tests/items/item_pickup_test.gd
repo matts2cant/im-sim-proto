@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: picking items up with E (prompt, stacking, auto-belt, no room, partial pickup) and
 ## dropping them back into the world as physics pickups (Q with the item in hand, drop_stack()),
-## including the round trip of instance state (magazine, key_id, datapad text).
+## including the round trip of instance state (magazine, key_id).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -113,10 +113,8 @@ func test_q_drops_the_weapon_in_hand_as_a_physics_pickup() -> void:
 
 func test_drop_round_trip_keeps_instance_state() -> void:
 	await _load()
-	var text := "Door code 0451.\nDo not tell Paul."
 	_player.inventory.give(Items.PISTOL, 1, {"magazine": 3})
 	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "office"})
-	_player.inventory.give(Items.DATAPAD, 1, {"title": "Note", "text": text})
 	_player.inventory.give(Items.AMMO, 25)
 	var stacks := _player.inventory.inventory.stacks.duplicate()
 
@@ -130,10 +128,9 @@ func test_drop_round_trip_keeps_instance_state() -> void:
 	var inventory := _player.inventory.inventory
 	assert_int(inventory.stacks_of(&"pistol")[0].state["magazine"]).is_equal(3)
 	assert_str(inventory.stacks_of(&"keycard")[0].state["key_id"]).is_equal("office")
-	assert_str(inventory.stacks_of(&"datapad")[0].state["text"]).is_equal(text)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(25)
-	assert_array(EventLog.find(&"item.dropped")).has_size(4)
-	assert_array(EventLog.find(&"item.picked_up")).has_size(4)
+	assert_array(EventLog.find(&"item.dropped")).has_size(3)
+	assert_array(EventLog.find(&"item.picked_up")).has_size(3)
 
 
 func test_drop_against_a_wall_stays_on_this_side() -> void:

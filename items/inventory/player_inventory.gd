@@ -1,9 +1,9 @@
 class_name PlayerInventory
 extends Node
 ## Component of the Player: the grid Inventory, the Belt over it and the item in hand (a weapon
-## drawn through the WeaponHolder, or any other item: tool, medkit, datapad...). Selecting a belt
+## drawn through the WeaponHolder, or any other item: tool, medkit, keycard...). Selecting a belt
 ## slot (number key, mouse wheel) only puts its item in hand; LMB uses it (ADR 0059). Picks up
-## ItemPickups, uses items (equip, read, message, or consume: the item's `use_stimuli` sent to the
+## ItemPickups, uses items (equip, message, or consume: the item's `use_stimuli` sent to the
 ## player as CONTACT stimuli, ADR 0057), drops
 ## stacks back into the world as physics pickups. Each weapon stack gets its own WeaponState whose
 ## magazine is mirrored into the stack's `magazine` state and whose spare rounds
@@ -12,8 +12,6 @@ extends Node
 
 ## Short feedback for the HUD ("No room in inventory", "Nothing happens").
 signal message(text: String)
-## A datapad was used: the reading overlay shows it.
-signal read_requested(stack: ItemStack)
 ## The hand changed (an item put in hand, swapped or put away).
 signal hand_changed
 
@@ -25,7 +23,7 @@ const NO_ROOM := "No room in inventory"
 var inventory: Inventory
 var belt: Belt
 var player: Player
-## The non-weapon stack in hand (tool, consumable, datapad, keycard...), or null.
+## The non-weapon stack in hand (tool, consumable, keycard...), or null.
 var held: ItemStack = null
 
 var _weapon_states: Dictionary[ItemStack, WeaponState] = {}
@@ -72,15 +70,12 @@ func pick_up(pickup: ItemPickup) -> bool:
 
 
 ## Belt key `index` (0 = key 1): puts the slot's item in hand, or puts it away when it already
-## is; an empty slot does nothing. A datapad (READ) still opens at once (datapads leave the
-## inventory in a follow-up change).
+## is; an empty slot does nothing.
 func select_slot(index: int) -> void:
 	var stack := belt.stack_in(index)
 	if stack == null:
 		return
-	if stack.item.use_action == ItemData.UseAction.READ:
-		use_stack(stack)
-	elif in_hand() == stack:
+	if in_hand() == stack:
 		put_away()
 	else:
 		hold(stack)
@@ -115,7 +110,7 @@ func hold(stack: ItemStack) -> void:
 
 
 ## LMB with a non-weapon item in hand: uses it (a consumable is used one at a time and stays in hand
-## while any are left; a datapad is read; a tool does nothing until M8). False when the hand holds a
+## while any are left; a tool does nothing until M8). False when the hand holds a
 ## weapon (the WeaponHolder fires it) or nothing, or the use was refused.
 func use_held() -> bool:
 	if held == null:
@@ -126,8 +121,7 @@ func use_held() -> bool:
 
 
 ## Uses `stack` (the inventory screen's Use, LMB on a held item): weapon / tool toggles in hand, a
-## consumable (medkit) sends its stimuli to the player, datapad opens the reading overlay, others
-## show their message. Returns true when something happened.
+## consumable (medkit) sends its stimuli to the player, others show their message. Returns true when something happened.
 func use_stack(stack: ItemStack) -> bool:
 	if stack == null or not inventory.stacks.has(stack):
 		return false
@@ -136,9 +130,6 @@ func use_stack(stack: ItemStack) -> bool:
 			_toggle(stack)
 		ItemData.UseAction.CONSUME:
 			return _consume(stack)
-		ItemData.UseAction.READ:
-			_log_used(stack, "read")
-			read_requested.emit(stack)
 		_:
 			_log_used(stack, "nothing")
 			message.emit(stack.item.use_message)

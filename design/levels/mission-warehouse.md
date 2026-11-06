@@ -4,7 +4,7 @@ Milestone: M9.
 
 ## Goal
 
-Small two-storey warehouse compound. Take the datapad from the security office, then reach extraction.
+Small two-storey warehouse compound. Read the datapad in the security office (datapads are read in place, [ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)), then reach extraction.
 
 ## Contents
 
@@ -25,13 +25,13 @@ graph TD
     R -->|"stacked crates + mantle, or Speed aug"| V["Vent"]
     V --> O
     W -->|"weakened wall + explosive barrel (loud)"| O
-    O --> P["Take datapad"]
+    O --> P["Read datapad"]
     P --> X["Extraction"]
 ```
 
 ## Rules
 
-- Success: extraction with the datapad. Fail: death, then reload or restart ([../game/saving.md](../game/saving.md)).
+- Success: extraction after reading the datapad (its entry is in the personal log). Fail: death, then reload or restart ([../game/saving.md](../game/saving.md)).
 - Summary screen on extraction: time, alarms, kills/knockouts, route used.
 - Route relevance: movement ([../game/movement.md](../game/movement.md)), physics and explosives ([../game/objects-and-fire.md](../game/objects-and-fire.md)), abilities ([../game/abilities.md](../game/abilities.md)).
 - Scenario tests cover the routes ([../tech/testing.md](../tech/testing.md)).
@@ -39,4 +39,4 @@ graph TD
 
 ## Open questions
 
-- Layout, guard patrols, how route is detected for the summary, datapad pickup mechanics: TBD in M9.
+- Layout, guard patrols, how route is detected for the summary, how reading the datapad is checked (`PersonalLog.has(entry_id)`): TBD in M9.

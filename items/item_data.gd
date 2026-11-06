@@ -2,7 +2,7 @@ class_name ItemData
 extends Resource
 ## One inventory item type (`items/<item>/<item>.tres`): name, grid footprint, stack size, graybox
 ## icon colour, the world scene it becomes when dropped, and what selecting / using it does.
-## Per-instance data (a pistol's magazine, a keycard's key_id, a datapad's text) lives in the
+## Per-instance data (a pistol's magazine, a keycard's key_id) lives in the
 ## stack's `state` Dictionary, starting from `default_state`.
 
 ## What using the item does (belt key or the inventory screen's Use). What a consumable does to its
@@ -15,8 +15,6 @@ enum UseAction {
 	## Sends `use_stimuli` to the user (CONTACT) and consumes one; refused with `refused_message`
 	## when none of them would do anything to the user (StimulusSystem.would_affect()).
 	CONSUME,
-	## Opens the reading overlay with the stack's `title` and `text`.
-	READ,
 	## Holds the tool in hand (placeholder until M8: LMB does nothing).
 	EQUIP_TOOL,
 }
@@ -36,7 +34,7 @@ enum UseAction {
 @export_file("*.tscn") var world_scene: String = ""
 ## New pickups go to the first free belt slot (weapons, tools, consumables).
 @export var auto_belt: bool = false
-## Instance state a new stack starts with (`magazine`, `key_id`, `title`, `text`).
+## Instance state a new stack starts with (`magazine`, `key_id`).
 @export var default_state: Dictionary = {}
 
 @export_group("Use")

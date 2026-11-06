@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://ui/inventory/reading_overlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://ui/log/reading_overlay.gd" id="1_overlay"]
 
 [sub_resource type="StyleBoxFlat" id="Style_panel"]
 content_margin_left = 24.0

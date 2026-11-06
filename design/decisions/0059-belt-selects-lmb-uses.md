@@ -1,6 +1,6 @@
 # 59. Belt selects, LMB uses; mouse wheel and H
 
-Status: Accepted
+Status: Accepted (the datapad belt-key exception is superseded by [ADR 0060](0060-datapads-read-in-place-personal-log.md): datapads are no longer items)
 
 Date: 2026-11-06
 

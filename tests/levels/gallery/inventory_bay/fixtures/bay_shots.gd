@@ -2,11 +2,13 @@ extends Node3D
 ## Screenshot helper for reviews (not a test): first-person shots of gallery room 7 (inventory bay)
 ## and the hub's loadout table. Run the scene in a window with `-- shot=<name> out=<png path>`: it
 ## puts the hub player at a spot (eye height 1.65 m), optionally picks up the whole item table and
-## opens the inventory screen, waits, saves the window image (UI included) and quits. Positions are
-## room-local (origin on the hub wall, -Z into the room) unless `hub` is set.
+## opens the inventory screen, or reads the pedestal datapads and opens the log screen (ADR 0060),
+## waits, saves the window image (UI included) and quits. Positions are room-local (origin on the
+## hub wall, -Z into the room) unless `hub` is set.
 
 ## feet / look: points; hub: hub coordinates; take_table: pick up every item table pickup;
-## inventory: open the inventory screen; wait: seconds.
+## inventory: open the inventory screen; read_pads: read every datapad on the pedestal (closing
+## the reading overlay); log: open the log screen; wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
 	"spawn": {"hub": true, "feet": Vector3(0, 0, 10), "look": Vector3(0, 1.65, 0)},
 	"hub_loadout": {"hub": true, "feet": Vector3(1.6, 0, 9.5), "look": Vector3(1.9, 1.0, 8.05)},
@@ -20,7 +22,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"item_table_long": {"feet": Vector3(-3.2, 0, -4.6), "look": Vector3(-5.6, 1.1, -12)},
 	"stacks": {"feet": Vector3(4.0, 0, -6.6), "look": Vector3(5.6, 1.1, -6.6)},
 	"fill_grid": {"feet": Vector3(3.4, 0, -12.0), "look": Vector3(5.5, 1.0, -12.0)},
-	"datapad": {"feet": Vector3(2.5, 0, -16.6), "look": Vector3(3.5, 1.2, -18.7)},
+	"datapad": {"feet": Vector3(3.75, 0, -17.3), "look": Vector3(3.75, 1.12, -18.7)},
+	"datapads": {"feet": Vector3(2.5, 0, -16.6), "look": Vector3(3.5, 1.2, -18.7)},
+	"log": {"feet": Vector3(3.5, 0, -17.3), "look": Vector3(3.5, 1.12, -18.7), "read_pads": true, "log": true},
 	"drop_zone_dais": {"feet": Vector3(1, 0, -7.5), "look": Vector3(-1.5, 0.2, -16)},
 	"inventory":
 	{"feet": Vector3(-4.6, 0, -10.2), "look": Vector3(-5.6, 1.0, -10.2), "take_table": true, "inventory": true},
@@ -90,6 +94,15 @@ func _act() -> void:
 	if _shot.get("inventory", false):
 		_player.input_enabled = true
 		(_player.get_node("InventoryScreen") as InventoryScreen).open()
+	if _shot.get("read_pads", false):
+		for child: Node in _room.get_node("DatapadPedestal").get_children():
+			var readable := Usable.of(child) as Readable
+			if readable != null:
+				readable.use(_player)
+		(_player.get_node("ReadingOverlay") as ReadingOverlay).close()
+	if _shot.get("log", false):
+		_player.input_enabled = true
+		(_player.get_node("LogScreen") as LogScreen).open()
 
 
 func _place_player() -> void:

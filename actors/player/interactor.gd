@@ -3,9 +3,9 @@ extends Node
 ## Component of the Player (ADR 0051): the one place that decides what E does. Every physics tick
 ## it casts one ray from the eyes (`interact_reach`, PhysicsLayers.INTERACT_MASK; a hitbox stands
 ## for its character) and resolves the thing hit by its components, in this order: ItemPickup
-## (pick up), Usable (use), Carryable (carry, or "Too heavy"). While carrying, E puts down ("No room"
-## when PlayerCarry has no free spot to release into, ADR 0053). The HUD shows `prompt`; perform()
-## does it.
+## (pick up), Usable (use; a Readable is read in place, ADR 0060), Carryable (carry, or "Too
+## heavy"). While carrying, E puts down ("No room" when PlayerCarry has no free spot to release
+## into, ADR 0053). The HUD shows `prompt`; perform() does it.
 
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 
@@ -74,7 +74,10 @@ func refresh() -> void:
 	if pickup != null and pickup.count > 0:
 		_resolve(Kind.PICK_UP, entity, prompt_for(Kind.PICK_UP, pickup.item.display_name, pickup.count))
 	elif usable != null:
-		_resolve(Kind.USE, entity, prompt_for(Kind.USE, display_name_of(entity), 1, usable.verb))
+		var usable_name := usable.target_name()
+		if usable_name.is_empty():
+			usable_name = display_name_of(entity)
+		_resolve(Kind.USE, entity, prompt_for(Kind.USE, usable_name, 1, usable.verb))
 	elif body != null and PlayerCarry.can_offer(body):
 		var heavy := not CarryRules.can_carry(body.mass, player.carry.mass_limit())
 		var carry_kind := Kind.TOO_HEAVY if heavy else Kind.CARRY

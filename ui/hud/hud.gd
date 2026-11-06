@@ -2,15 +2,17 @@ class_name Hud
 extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
-## the Interactor's prompt under the reticle, short messages, the belt (bottom centre) with the name
-## of the item put in hand above it for a moment (ADR 0059) and the death overlay. It only reads
-## the player's components. Layer 10: the debug panel (layer 100) draws over it.
+## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
+## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059)
+## and the death overlay. It only reads the player's components. Layer 10: the debug panel (layer 100) draws over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35
 const FLASH_TIME: float = 0.4
 ## Seconds a message stays, the last half fading out.
 const MESSAGE_TIME: float = 2.5
+## Shown when the player's PersonalLog gets a new entry (ADR 0060).
+const LOG_ADDED := "Added to log: %s"
 
 var player: Player
 
@@ -50,6 +52,9 @@ func _ready() -> void:
 	belt_bar.bind(player.inventory)
 	player.inventory.message.connect(show_message)
 	player.inventory.hand_changed.connect(_on_hand_changed)
+	var reader_log := PersonalLog.of(player)
+	if reader_log != null:
+		reader_log.entry_added.connect(_on_log_entry_added)
 	refresh_weapon()
 
 
@@ -131,6 +136,10 @@ func _on_hand_changed() -> void:
 	item_name_label.text = stack.item.display_name
 	item_name_label.modulate.a = 1.0
 	_item_name_left = _item_name_time()
+
+
+func _on_log_entry_added(entry: LogEntry) -> void:
+	show_message(LOG_ADDED % entry.title)
 
 
 func _on_damaged(_part: StringName, _type: StringName, amount: float) -> void:

@@ -2,10 +2,9 @@ extends GdUnitTestSuite
 ## Integration: the inventory screen (I opens / pauses / frees the mouse, I or Esc closes), mouse
 ## drag-and-drop on the grid and belt (events sent to the InventoryView like the viewport would:
 ## headless GUI does not route pushed mouse events), the context menu (Use, Split, Drop, belt),
-## hover + belt key, and the datapad reading overlay.
+## hover + belt key.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
-const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 
@@ -169,51 +168,6 @@ func test_hover_and_belt_key_assigns() -> void:
 
 	assert_object(_player.inventory.belt.stack_in(2)).is_same(_player.inventory.inventory.stacks[0])
 	assert_str(InventoryView.tooltip_text(_player.inventory.inventory.stacks[0])).contains("Key: office")
-
-
-func test_datapad_opens_the_reading_overlay_over_the_inventory() -> void:
-	await _load()
-	_player.inventory.give(Items.DATAPAD, 1, {"title": "Shift notes", "text": "Code: 0451"})
-	var overlay := _player.get_node("ReadingOverlay") as ReadingOverlay
-	await _open()
-
-	_screen.show_menu(_player.inventory.inventory.stacks[0], Vector2(300, 200))
-	assert_str(_screen.menu.get_item_text(0)).is_equal("Read")
-	_screen.choose(InventoryScreen.MENU_USE)
-
-	assert_bool(overlay.is_open()).is_true()
-	assert_str(overlay.title_label.text).is_equal("Shift notes")
-	assert_str(overlay.text_label.text).is_equal("Code: 0451")
-	await _press(&"ui_cancel")
-	assert_bool(overlay.is_open()).is_false()
-	assert_bool(_screen.is_open()).is_true()
-	assert_bool(get_tree().paused).is_true()
-	await _press(&"ui_cancel")
-	assert_bool(get_tree().paused).is_false()
-
-
-func test_datapad_from_the_belt_reads_and_e_closes() -> void:
-	await _load()
-	_player.inventory.give(Items.DATAPAD, 1, {"title": "Memo", "text": "Hello"})
-	_player.inventory.belt.assign(0, _player.inventory.inventory.stacks[0])
-	var overlay := _player.get_node("ReadingOverlay") as ReadingOverlay
-	var medkit := Items.spawn_pickup(_driver.runner.scene(), Items.MEDKIT, Vector3(0, 0.05, -0.9))
-	await _driver.frames(20)
-	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, medkit.global_position))
-	await _driver.frames(3)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Medkit")
-
-	await _press(&"belt_1")
-	assert_bool(overlay.is_open()).is_true()
-	assert_bool(get_tree().paused).is_true()
-
-	await _press(&"use")
-	assert_bool(overlay.is_open()).is_false()
-	assert_bool(get_tree().paused).is_false()
-	# The E that closed it is not also a pick-up press.
-	await _driver.frames(3)
-	assert_bool(is_instance_valid(medkit)).is_true()
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(0)
 
 
 func _drag(from: Vector2, to: Vector2) -> void:

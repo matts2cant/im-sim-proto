@@ -125,8 +125,6 @@ func use_label(stack: ItemStack) -> String:
 	match stack.item.use_action:
 		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
 			return "Put away" if player.inventory.in_hand() == stack else "Equip"
-		ItemData.UseAction.READ:
-			return "Read"
 	return "Use"
 
 
