@@ -67,3 +67,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted |
 | [0063](0063-quicksave-quickload.md) | Quicksave and quickload: one JSON slot, level snapshot with removed and spawned nodes | Accepted (keys amended by 0064) |
 | [0064](0064-game-menu.md) | Esc game menu: save, load and quit; F5 becomes Combat Strength | Accepted |
+| [0065](0065-light-level-model.md) | Light level model: Godot's attenuation, three body points, saturating sum | Accepted |
+| [0066](0066-power-circuits-shootable-lights.md) | Power circuits and shootable lights | Accepted |

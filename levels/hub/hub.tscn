@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://items/multitool/multitool.tscn" id="15_multitool"]
 [ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="16_lockpick"]
 [ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="17_biocell"]
+[ext_resource type="PackedScene" path="res://levels/gallery/perception_lab/perception_lab.tscn" id="18_perception_lab"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -182,6 +183,9 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15.5, 0, 7.5)
 
 [node name="InventoryBayRoom" parent="." instance=ExtResource("9_inventory_bay")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -15.5, 0, 7.5)
+
+[node name="PerceptionLab" parent="." instance=ExtResource("18_perception_lab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, -15.5)
 
 [node name="Loadout" type="Node3D" parent="."]
 
