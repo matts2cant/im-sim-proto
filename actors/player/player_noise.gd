@@ -50,5 +50,6 @@ func _play(surface: StringName, loudness: float) -> void:
 	if stream == null:
 		return
 	_audio.stream = stream
+	_audio.pitch_scale = config.surfaces.pitch(surface)
 	_audio.volume_db = PlayerNoiseRules.volume_db(loudness, config)
 	_audio.play()

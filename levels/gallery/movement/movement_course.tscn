@@ -239,7 +239,7 @@ size = Vector3(4, 2, 4)
 material = SubResource("Mat_gap")
 
 [node name="Platform3" type="CSGBox3D" parent="GapTrack"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -50.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -49.8)
 size = Vector3(4, 2, 4)
 material = SubResource("Mat_gap")
 
@@ -258,7 +258,7 @@ material = SubResource("Mat_tower")
 
 [node name="Ledge050" type="Label3D" parent="Labels"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.75, 0.85, -23.95)
-text = "0.5 m"
+text = "0.5 m: jump up"
 font_size = 64
 outline_size = 16
 
@@ -306,18 +306,18 @@ outline_size = 16
 
 [node name="Gap2" type="Label3D" parent="Labels"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -38.45)
-text = "2 m gap\nwalk-jump"
+text = "2 m: walk-jump"
 font_size = 64
 outline_size = 16
 
-[node name="Gap4" type="Label3D" parent="Labels"]
+[node name="Gap33" type="Label3D" parent="Labels"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -44.45)
-text = "4 m gap\nsprint-jump"
+text = "3.3 m: sprint-jump"
 font_size = 64
 outline_size = 16
 
 [node name="Drop2" type="Label3D" parent="Labels"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -52.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4.4, -51.75)
 text = "2 m drop"
 font_size = 64
 outline_size = 16

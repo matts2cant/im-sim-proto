@@ -9,6 +9,8 @@ const SURFACE_META: StringName = &"surface"
 @export var default_surface: StringName
 @export var multipliers: Dictionary[StringName, float] = {}
 @export var sounds: Dictionary[StringName, AudioStream] = {}
+## Base pitch scale per surface (default 1.0); the randomizer adds its small variance on top.
+@export var pitches: Dictionary[StringName, float] = {}
 
 
 ## Surface name of a floor collider, or the default when it declares none.
@@ -23,6 +25,11 @@ func multiplier(surface: StringName) -> float:
 	if multipliers.has(surface):
 		return multipliers[surface]
 	return multipliers.get(default_surface, 1.0)
+
+
+## Base pitch scale of a surface's sounds; 1.0 unless the table sets one.
+func pitch(surface: StringName) -> float:
+	return pitches.get(surface, 1.0)
 
 
 func sound(surface: StringName) -> AudioStream:

@@ -73,6 +73,12 @@ func test_jump_speed_reaches_apex() -> void:
 	assert_float(speed * speed / (2.0 * 9.8)).is_equal_approx(1.0, 0.0001)
 
 
+func test_jump_speed_with_scaled_gravity() -> void:
+	var speed := PlayerMotion.jump_speed(1.0, 9.8 * 2.0)
+	assert_float(speed).is_equal_approx(6.261, 0.001)
+	assert_float(2.0 * speed / (9.8 * 2.0)).is_equal_approx(0.639, 0.001)
+
+
 func test_eye_transition_takes_configured_time() -> void:
 	var eye := 1.65
 	for i in 9:

@@ -21,11 +21,11 @@
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_002.ogg" id="grass_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_003.ogg" id="grass_3"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/footstep_grass_004.ogg" id="grass_4"]
-[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_000.ogg" id="metal_0"]
-[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_001.ogg" id="metal_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_002.ogg" id="metal_2"]
-[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_003.ogg" id="metal_3"]
-[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_light_004.ogg" id="metal_4"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPlate_light_000.ogg" id="metal_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPlate_light_001.ogg" id="metal_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPlate_light_002.ogg" id="metal_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPlate_light_003.ogg" id="metal_3"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPlate_light_004.ogg" id="metal_4"]
 
 [sub_resource type="AudioStreamRandomizer" id="Footsteps_concrete"]
 random_pitch = 1.08
@@ -81,6 +81,9 @@ multipliers = Dictionary[StringName, float]({
 &"grass": 0.7,
 &"metal": 1.6,
 &"wood": 1.2
+})
+pitches = Dictionary[StringName, float]({
+&"metal": 0.8
 })
 sounds = Dictionary[StringName, AudioStream]({
 &"carpet": SubResource("Footsteps_carpet"),

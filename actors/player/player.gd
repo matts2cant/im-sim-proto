@@ -165,10 +165,11 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	var horizontal := PlayerMotion.horizontal_velocity(velocity, wish, _air_speed_cap, grounded, delta, config)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
+	var gravity := get_gravity() * config.gravity_scale
 	if jumping:
-		velocity.y = PlayerMotion.jump_speed(config.jump_apex_height, get_gravity().length())
+		velocity.y = PlayerMotion.jump_speed(config.jump_apex_height, gravity.length())
 	elif not grounded:
-		velocity += get_gravity() * delta
+		velocity += gravity * delta
 
 	var fall_speed := maxf(-velocity.y, 0.0)
 	var before := global_position

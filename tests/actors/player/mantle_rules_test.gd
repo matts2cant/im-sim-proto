@@ -5,7 +5,7 @@ var _config: PlayerConfig
 
 func before_test() -> void:
 	_config = PlayerConfig.new()
-	_config.mantle_min_height = 0.3
+	_config.mantle_min_height = 1.0
 	_config.mantle_max_height = 1.9
 	_config.mantle_reach = 0.8
 	_config.mantle_base_duration = 0.25
@@ -18,10 +18,12 @@ func test_refuses_when_nothing_found() -> void:
 
 
 func test_height_limits() -> void:
-	assert_object(MantleRules.evaluate(_probe(0.29), Vector3.ZERO, _config)).is_null()
-	assert_object(MantleRules.evaluate(_probe(0.3), Vector3.ZERO, _config)).is_not_null()
+	assert_object(MantleRules.evaluate(_probe(0.5), Vector3.ZERO, _config)).is_null()
+	assert_object(MantleRules.evaluate(_probe(0.98), Vector3.ZERO, _config)).is_null()
+	assert_object(MantleRules.evaluate(_probe(1.0), Vector3.ZERO, _config)).is_not_null()
+	assert_object(MantleRules.evaluate(_probe(1.5), Vector3.ZERO, _config)).is_not_null()
 	assert_object(MantleRules.evaluate(_probe(1.9), Vector3.ZERO, _config)).is_not_null()
-	assert_object(MantleRules.evaluate(_probe(1.91), Vector3.ZERO, _config)).is_null()
+	assert_object(MantleRules.evaluate(_probe(1.95), Vector3.ZERO, _config)).is_null()
 	assert_object(MantleRules.evaluate(_probe(2.3), Vector3.ZERO, _config)).is_null()
 
 
@@ -33,12 +35,36 @@ func test_jump_does_not_extend_reach() -> void:
 	assert_object(MantleRules.evaluate(probe, Vector3.UP, _config)).is_null()
 
 
-func test_falling_short_can_still_grab_a_ledge() -> void:
-	# Fell into a gap: the far ledge is at take-off height, now 1 m above the feet.
+func test_falling_short_cannot_catch_a_same_level_ledge() -> void:
+	# Fell into a gap: the far ledge is at take-off height (rise 0), 1 m above the feet.
 	var probe := _probe(1.0)
 	probe.rise = 0.0
 
+	assert_object(MantleRules.evaluate(probe, Vector3.ZERO, _config)).is_null()
+
+
+func test_falling_short_can_catch_a_ledge_one_metre_above_take_off() -> void:
+	var probe := _probe(1.2)
+	probe.rise = 1.0
+
 	assert_object(MantleRules.evaluate(probe, Vector3.ZERO, _config)).is_not_null()
+
+
+func test_jump_does_not_lower_the_minimum() -> void:
+	# At the jump apex a 0.5 m ledge top is only just above the feet, 0.5 m above the ground.
+	var probe := _probe(0.1)
+	probe.rise = 0.5
+
+	assert_object(MantleRules.evaluate(probe, Vector3.UP, _config)).is_null()
+
+
+func test_ledge_top_must_be_above_the_feet() -> void:
+	var probe := _probe(0.0)
+	probe.rise = 1.5
+
+	assert_object(MantleRules.evaluate(probe, Vector3.ZERO, _config)).is_null()
+	probe.height = -0.2
+	assert_object(MantleRules.evaluate(probe, Vector3.ZERO, _config)).is_null()
 
 
 func test_reach_limit() -> void:

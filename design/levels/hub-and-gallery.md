@@ -46,10 +46,10 @@ The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 | Ledges | faces at z -24 | 0.5, 1.0, 1.5, 1.9 m (mantleable, orange) and 2.3 m (not mantleable, red; Speed aug target) |
 | Vent | x -4, z -24 to -29.6, then to x -11 | Metal duct, 1.2 m wide, 1.0 m high. Mouth on the 1.5 m ledge line (mantle in, ends crouched), 5 m straight, 90° turn, 20° down-ramp, exit at floor level facing the gap track |
 | Low ceiling | x 4 to 7.5, z -24 to -30 | 3 m wide crawl space under a 1.2 m ceiling (blocked uncrouch) |
-| Gap track | x -17 to -13 | 30° ramp to a 2 m high walkway: runway, 2 m gap (walk jump), platform, 4 m gap (sprint jump), platform with a 2 m drop off its end |
+| Gap track | x -17 to -13 | 30° ramp to a 2 m high walkway: runway, 2 m gap (walk jump), platform, 3.3 m gap (sprint jump), platform with a 2 m drop off its end |
 | Drop tower | x 4 to 7.5, z -32 to -44.7 | 30° ramp to a 5 m platform, drop off its far end |
 
-Gap labels come from the jump numbers in [../game/movement.md](../game/movement.md): a flat jump covers about 3.6 m from walk and 5.4 m from sprint, so 2 m is a walk jump and 4 m needs a sprint jump. Integration tests (`tests/levels/gallery/movement/`) check the strips, ledges, vent crawl, both gaps and the walk from the hub into the course.
+Gap labels come from the jump numbers in [../game/movement.md](../game/movement.md): a flat jump covers about 2.6 m from walk and 3.8 m from sprint, so 2 m is a walk jump and 3.3 m needs a sprint jump (a walk jump falls short). Integration tests (`tests/levels/gallery/movement/`) check the strips, ledges, vent crawl, both gaps and the walk from the hub into the course.
 
 ## Rules
 

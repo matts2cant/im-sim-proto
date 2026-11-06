@@ -26,7 +26,9 @@ extends Resource
 @export var ground_deceleration: float
 ## Fraction of ground acceleration available in the air.
 @export var air_control: float
-## Jump apex height in metres; the launch speed is derived from gravity.
+## Multiplier on the engine gravity, applied to the player only (ADR 0036).
+@export var gravity_scale: float
+## Jump apex height in metres; the launch speed is derived from the scaled gravity.
 @export var jump_apex_height: float
 
 @export_group("Look")
@@ -35,7 +37,7 @@ extends Resource
 @export var max_pitch_deg: float
 
 @export_group("Mantle")
-## Ledge top above the feet.
+## Ledge top above the ground the player last stood on (and above the feet).
 @export var mantle_min_height: float
 @export var mantle_max_height: float
 ## Horizontal distance from the capsule axis to the ledge face.

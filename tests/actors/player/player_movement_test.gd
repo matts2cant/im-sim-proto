@@ -115,6 +115,47 @@ func test_jump_apex_matches_config() -> void:
 	assert_float(_player.global_position.y).is_equal_approx(ground, 0.01)
 
 
+func test_jump_launch_speed_uses_scaled_gravity() -> void:
+	await _load(FLAT_FLOOR)
+	await _driver.place(Vector3.ZERO)
+
+	_driver.runner.simulate_action_press("jump")
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_driver.runner.simulate_action_release("jump")
+
+	var expected := PlayerMotion.jump_speed(CONFIG.jump_apex_height, 9.8 * CONFIG.gravity_scale)
+	assert_float(expected).is_equal_approx(6.26, 0.01)
+	assert_float(_player.velocity.y).is_equal_approx(expected - 9.8 * CONFIG.gravity_scale / 60.0, 0.3)
+
+
+func test_flat_jump_air_time() -> void:
+	await _load(FLAT_FLOOR)
+	await _driver.place(Vector3.ZERO)
+
+	var airborne := await _jump_flight(false)
+
+	assert_float(airborne.x).is_equal_approx(0.64, 0.04)
+
+
+func test_walk_jump_distance() -> void:
+	await _load(FLAT_FLOOR)
+	await _driver.place(Vector3.ZERO)
+
+	var flight := await _jump_flight(true, false)
+
+	assert_float(flight.y).is_equal_approx(2.5, 0.2)
+
+
+func test_sprint_jump_distance() -> void:
+	await _load(FLAT_FLOOR)
+	await _driver.place(Vector3.ZERO)
+
+	var flight := await _jump_flight(true, true)
+
+	assert_float(flight.y).is_equal_approx(3.8, 0.25)
+
+
 func test_look_clamps_pitch() -> void:
 	await _load(FLAT_FLOOR)
 
@@ -133,6 +174,27 @@ func test_ignores_movement_while_debug_panel_open() -> void:
 	DebugPanel.set_open(false)
 
 	assert_float(_player.global_position.z).is_equal_approx(0.0, 0.001)
+
+
+# Optionally runs up (walk or sprint), jumps and returns Vector2(air time in s, ground distance in m).
+func _jump_flight(run: bool, sprint: bool = false) -> Vector2:
+	if run:
+		if sprint:
+			_driver.runner.simulate_action_press("sprint")
+		_driver.runner.simulate_action_press("move_forward")
+		await _driver.frames(60)
+	var takeoff := _player.global_position
+	_driver.runner.simulate_action_press("jump")
+	await _driver.frames(2)
+	_driver.runner.simulate_action_release("jump")
+	var frames := 2
+	while not _player.is_on_floor() and frames < 200:
+		await _driver.frames(1)
+		frames += 1
+	_driver.runner.simulate_action_release("move_forward")
+	_driver.runner.simulate_action_release("sprint")
+	var flat := Vector3(_player.global_position.x - takeoff.x, 0.0, _player.global_position.z - takeoff.z)
+	return Vector2(frames / 60.0, flat.length())
 
 
 func _distance(speed: float, frames: int) -> float:
