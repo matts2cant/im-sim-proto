@@ -4,6 +4,28 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M6 — Abilities and saving (2026-11-07)
+
+Two agents in parallel worktrees (abilities: skills, energy, augmentations, Stats tab, HUD, room 7 station, ADR 0061; saving: F5/F9, JSON quicksave, removed/spawned records, project-wide saveable contract test, ADR 0063), then one agent for the merge, a design amendment and the integration test. 702 → 807 tests. ~870k sub-agent tokens.
+
+**What went well**
+- The systemic rule held: skills and augmentations are attribute modifiers read by consumers with their config as base (`Attributes.read`), plus one generic "scale outgoing stimulus by a source attribute" mechanism for pistol damage, baton damage and medkit healing. Any actor can carry them.
+- The saving agent probed `var_to_str` first and found `str_to_var` instantiates objects (code execution from a save file); chose `JSON.from_native` with objects off.
+- The project-wide saveable contract test caught a real orphan after the merge (HUD chips freed with `queue_free`).
+- Agents flagged a design side effect as a decision instead of silently changing tests' meaning.
+
+**What went wrong**
+1. **My brief changed the baseline**: "all augmentations installed" + "Combat Strength passive" made the default player lift 60 kg and knock out in 2 hits, contradicting gallery signs; the agent added test workarounds to keep old numbers. Fixed by making Combat Strength an F6 toggle (1 energy/s), as in Deus Ex.
+2. **I named input actions as new without grepping**: F1–F6, F5/F9 were already in the input map (planned in M0). Harmless, but a breach of the "grep before naming" rule.
+3. **`.tscn` ext_resource id clash at merge** (both sides appended id `35_…` to player.tscn); the merge agent renumbered. The scene-load smoke test would have caught a broken file.
+
+**Changes made**
+- CLAUDE.md: a brief that adds an always-on or default-on modifier source must check it against the baselines that signs and tests encode (default player behaviour must not change unless intended). Grep the input map (project.godot) before naming input actions.
+
+**Open questions for the user (playtest)**
+- Combat Strength as an F6 toggle (Deus Ex) rather than passive: OK?
+- Per-tier skill numbers and drain rates: first-pass values in `actors/common/abilities/`.
+
 ## Systemic cleanup and second feedback batch (2026-11-07)
 
 User feedback after the retest: crates floating when the bottom of a stack burns, step climbing, belt mouse wheel + H holster, datapads read in place with a personal log, the baton pose. The user also asked to make the systemic principle explicit; an audit found no identity branching but several player-only behaviours and direct calls, fixed in two refactors (ADR 0056 characters, 0057 forces/items/heat). 559 → 702 tests. Eight agents, mostly in parallel worktrees.
