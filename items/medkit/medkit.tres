@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"medkit"
+display_name = "Medkit"
+short_name = "MEDKIT"
+description = "Restores 30 health, spread over the injured body parts. Refused when you are not hurt."
+footprint = Vector2i(1, 1)
+max_stack = 15
+colour = Color(0.78, 0.2, 0.2, 1)
+world_scene = "res://items/medkit/medkit.tscn"
+auto_belt = true
+default_state = {}
+use_action = 2
+heal_amount = 30

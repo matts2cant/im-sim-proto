@@ -36,3 +36,14 @@ text = "Reset level"
 
 [node name="Status" type="Label" parent="."]
 layout_mode = 2
+
+[node name="ItemsSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ItemsTitle" type="Label" parent="."]
+layout_mode = 2
+text = "Give item to the player's inventory"
+
+[node name="Items" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 3

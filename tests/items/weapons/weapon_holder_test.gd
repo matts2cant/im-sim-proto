@@ -94,7 +94,7 @@ func test_shots_land_inside_the_cone() -> void:
 
 func test_shot_pushes_a_physics_object() -> void:
 	await _load()
-	var medkit := Objects.spawn(_driver.runner.scene(), "res://objects/medkit/medkit.tscn", Vector3(0, 0.06, -3))
+	var medkit := Objects.spawn(_driver.runner.scene(), "res://items/medkit/medkit.tscn", Vector3(0, 0.06, -3))
 	await _driver.frames(30)
 	var start := medkit.global_position
 	await _weapons.equip(1)

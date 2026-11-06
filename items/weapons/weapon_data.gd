@@ -18,8 +18,11 @@ enum Kind { RANGED, MELEE }
 @export_group("Ammo")
 ## 0 = no ammo (melee).
 @export var magazine_size: int = 0
-## Spare rounds carried at the start.
+## Spare rounds of a fixed loadout (WeaponHolder.weapons). The player's spare rounds are the
+## inventory stacks of `ammo_item` instead.
 @export var reserve_ammo: int = 0
+## Inventory item a reload takes rounds from (`pistol_ammo`).
+@export var ammo_item: StringName = &""
 @export var reload_time: float = 0.0
 
 @export_group("Melee")

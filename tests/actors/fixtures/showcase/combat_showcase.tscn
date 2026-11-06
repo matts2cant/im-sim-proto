@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="3_dummy"]
 [ext_resource type="Script" path="res://tests/actors/fixtures/showcase/combat_showcase.gd" id="4_showcase"]
 [ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="5_barrel"]
-[ext_resource type="PackedScene" path="res://objects/medkit/medkit.tscn" id="6_medkit"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="6_medkit"]
 
 [sub_resource type="Environment" id="Environment_range"]
 background_mode = 1

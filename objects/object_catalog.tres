@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="7_glass_bottle"]
 [ext_resource type="PackedScene" path="res://objects/wooden_barricade/wooden_barricade.tscn" id="8_wooden_barricade"]
 [ext_resource type="PackedScene" path="res://objects/brazier/brazier.tscn" id="9_brazier"]
-[ext_resource type="PackedScene" path="res://objects/medkit/medkit.tscn" id="10_medkit"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="10_medkit"]
 [ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="11_training_dummy"]
 
 [resource]

@@ -58,7 +58,7 @@ func test_reload_takes_its_time_and_moves_rounds() -> void:
 func test_reload_takes_only_what_the_reserve_has() -> void:
 	var state := WeaponState.new(PISTOL)
 	state.magazine = 0
-	state.reserve = 4
+	state.ammo.rounds = 4
 
 	state.start_reload()
 	_frames(state, 96)

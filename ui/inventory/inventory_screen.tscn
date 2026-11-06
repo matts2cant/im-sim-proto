@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/inventory/inventory_screen.gd" id="1_screen"]
+[ext_resource type="Script" path="res://ui/inventory/inventory_view.gd" id="2_view"]
+
+[sub_resource type="StyleBoxFlat" id="Style_panel"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.055, 0.07, 0.08, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.52, 0.56, 0.8)
+
+[sub_resource type="LabelSettings" id="Label_title"]
+font_size = 22
+font_color = Color(0.86, 0.9, 0.9, 1)
+
+[sub_resource type="LabelSettings" id="Label_hint"]
+font_size = 13
+font_color = Color(0.55, 0.64, 0.67, 1)
+
+[sub_resource type="LabelSettings" id="Label_status"]
+font_size = 14
+font_color = Color(1, 0.82, 0.4, 1)
+
+[node name="InventoryScreen" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+visible = false
+script = ExtResource("1_screen")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_panel")
+
+[node name="Box" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Center/Panel/Box"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/Panel/Box/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "INVENTORY"
+label_settings = SubResource("Label_title")
+
+[node name="Close" type="Label" parent="Center/Panel/Box/Header"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "I / Esc: close"
+label_settings = SubResource("Label_hint")
+
+[node name="View" type="Control" parent="Center/Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_view")
+
+[node name="Hint" type="Label" parent="Center/Panel/Box"]
+layout_mode = 2
+text = "Drag to move  |  onto a belt slot: assign  |  out of the panel: drop
+Right-click: use, drop, split, assign  |  hover + 1-0: assign to that belt slot"
+label_settings = SubResource("Label_hint")
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Center/Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+label_settings = SubResource("Label_status")
+horizontal_alignment = 1
+
+[node name="Menu" type="PopupMenu" parent="."]
