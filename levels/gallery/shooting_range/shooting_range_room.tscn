@@ -1,0 +1,293 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/surface_floor.tscn" id="4_floor"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="5_ledge"]
+[ext_resource type="Material" path="res://assets/materials/graybox/hazard.tres" id="6_hazard"]
+[ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="7_dummy"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="8_barrel"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="9_small_crate"]
+[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="10_metal_crate"]
+[ext_resource type="PackedScene" path="res://objects/medkit/medkit.tscn" id="11_medkit"]
+
+[sub_resource type="Resource" id="Opening_corridor_south"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+wall = 2
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_corridor_north"]
+script = ExtResource("2_opening")
+node_name = &"ToHall"
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_south"]
+script = ExtResource("2_opening")
+node_name = &"FromCorridor"
+wall = 2
+offset = -3.5
+width = 2.0
+height = 3.0
+
+[node name="ShootingRangeRoom" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Corridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.75)
+size = Vector3(2, 3, 3.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_south"), SubResource("Opening_corridor_north")])
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -28)
+size = Vector3(14, 5, 48)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south")])
+
+[node name="FiringLine" type="Node3D" parent="."]
+
+[node name="Counter" parent="FiringLine" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.1, 0, -8)
+height = 1.0
+width = 12.8
+depth = 0.6
+surface = "wood"
+
+[node name="Stripe" parent="FiringLine" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0.02, -7.95)
+material_override = ExtResource("6_hazard")
+size = Vector2(14, 0.1)
+thickness = 0.1
+
+[node name="Lanes" type="Node3D" parent="."]
+
+[node name="Divider1" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="Divider2" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="Divider3" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="Divider4" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="Dummy5m" parent="Lanes" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1.75, 0, -13)
+
+[node name="Dummy10m" parent="Lanes" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.25, 0, -18)
+
+[node name="Dummy20m" parent="Lanes" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6.75, 0, -28)
+
+[node name="Dummy40m" parent="Lanes" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.25, 0, -48)
+
+[node name="Melee" type="Node3D" parent="."]
+
+[node name="AwareDummy" parent="Melee" instance=ExtResource("7_dummy")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6.9, 0, -5.6)
+
+[node name="Awareness" parent="Melee/AwareDummy"]
+aware = true
+
+[node name="UnawareDummy" parent="Melee" instance=ExtResource("7_dummy")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.9, 0, -5.6)
+
+[node name="BlastLane" type="Node3D" parent="."]
+
+[node name="Stripe2m" parent="BlastLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.02, -18)
+material_override = ExtResource("6_hazard")
+size = Vector2(3.6, 0.1)
+thickness = 0.1
+
+[node name="Stripe4m" parent="BlastLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.02, -16)
+material_override = ExtResource("6_hazard")
+size = Vector2(3.6, 0.1)
+thickness = 0.1
+
+[node name="Stripe6m" parent="BlastLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.02, -14)
+material_override = ExtResource("6_hazard")
+size = Vector2(3.6, 0.1)
+thickness = 0.1
+
+[node name="Barrel" parent="BlastLane" instance=ExtResource("8_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.45, -20)
+
+[node name="Crate1" parent="BlastLane" instance=ExtResource("9_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 0.3, -21.98)
+
+[node name="Crate2" parent="BlastLane" instance=ExtResource("9_small_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.3, -21.98)
+
+[node name="FarWall" type="Node3D" parent="."]
+
+[node name="Barrel1" parent="FarWall" instance=ExtResource("8_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.45, -51.6)
+
+[node name="Barrel2" parent="FarWall" instance=ExtResource("8_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0.45, -51.6)
+
+[node name="Barrel3" parent="FarWall" instance=ExtResource("8_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 0.45, -51.6)
+
+[node name="MetalCrate" parent="FarWall" instance=ExtResource("10_metal_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.4, 0.4, -51.6)
+
+[node name="Medkits" type="Node3D" parent="."]
+
+[node name="Table" parent="Medkits" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -4.1)
+height = 1.0
+width = 1.2
+depth = 0.6
+surface = "wood"
+
+[node name="Medkit1" parent="Medkits" instance=ExtResource("11_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.62, 1.06, -4.4)
+
+[node name="Medkit2" parent="Medkits" instance=ExtResource("11_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.06, -4.4)
+
+[node name="Medkit3" parent="Medkits" instance=ExtResource("11_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.38, 1.06, -4.4)
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="FiringLine" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 3, -8.3)
+text = "Firing line
+1 pistol · 2 baton · R reload"
+size = 2
+
+[node name="Lane1" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 1.75, 1.01, -8.3)
+text = "5 m"
+size = 0
+
+[node name="Lane2" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 4.25, 1.01, -8.3)
+text = "10 m"
+size = 0
+
+[node name="Lane3" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 6.75, 1.01, -8.3)
+text = "20 m"
+size = 0
+
+[node name="Lane4" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 9.25, 1.01, -8.3)
+text = "40 m"
+size = 0
+
+[node name="MeleeUnaware" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.45, 2.8, -6)
+text = "Sneak behind · baton KO"
+
+[node name="MeleeAware" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6.9, 2.4, -4.05)
+text = "Aware · 3 hits"
+
+[node name="BlastLane" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 2.6, -21)
+text = "Blast lane
+Stand on a line
+shoot the barrel"
+
+[node name="Blast2m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -17.75)
+text = "2 m"
+
+[node name="Blast4m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -15.75)
+text = "4 m"
+
+[node name="Blast6m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.7, 0.03, -13.75)
+text = "6 m"
+
+[node name="FarWall" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 2.6, -51.95)
+text = "Long shots"
+size = 3
+
+[node name="Medkits" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3, 1.9, -4.05)
+text = "Medkits · E heals 30"
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="Corridor" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, -2)
+light_energy = 0.8
+omni_range = 6.0
+
+[node name="Booth1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -6)
+light_energy = 0.8
+shadow_enabled = true
+omni_range = 9.0
+
+[node name="Booth2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 4.4, -6)
+light_energy = 0.8
+shadow_enabled = true
+omni_range = 9.0
+
+[node name="Range1" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 4.4, -16)
+light_energy = 1.0
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Range2" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 4.4, -26)
+light_energy = 1.0
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Range3" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 4.4, -36)
+light_energy = 1.0
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Range4" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 4.4, -46)
+light_energy = 1.0
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="Target20m" type="SpotLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 0.842, 0.539, 0, -0.539, 0.842, 6.75, 4.4, -23)
+light_energy = 2.0
+spot_range = 9.0
+spot_angle = 18.0
+
+[node name="Target40m" type="SpotLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 0.842, 0.539, 0, -0.539, 0.842, 9.25, 4.4, -43)
+light_energy = 2.0
+spot_range = 9.0
+spot_angle = 18.0

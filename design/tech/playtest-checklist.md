@@ -76,7 +76,7 @@ Gallery room 3 (Physics and fire):
 
 ## M4 Damage and weapons (Shooting range)
 
-Until the gallery room exists: start the hub, open the debug panel (`) and use the Spawn tab to place training dummies (they appear 2 m ahead facing away from you), medkits and barrels. Keep the Event Log tab (filter `actor.` / `weapon.`) and the Player tab at hand. See [../game/damage.md](../game/damage.md) and [../game/weapons-and-aiming.md](../game/weapons-and-aiming.md).
+Start the hub and go through doorway "4 Shooting Range" (east wall, south of doorway 3) into the gallery room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range)); the debug panel (`) Spawn tab still places extra training dummies (2 m ahead, facing away from you), medkits and barrels. Keep the Event Log tab (filter `actor.` / `weapon.`) and the Player tab at hand. See [../game/damage.md](../game/damage.md) and [../game/weapons-and-aiming.md](../game/weapons-and-aiming.md).
 
 - [ ] 1 draws the pistol (box in the lower right), 2 the baton, the same key again holsters. HUD bottom right shows "Silenced pistol" and "10 / 30"; nothing for the baton's ammo.
 - [ ] Reticle: standing still the circle shrinks to a small ring in under a second (0.8 s settle); walking widens it to about 4.5 degrees, sprinting or jumping to 7.5, right away; flicking the mouse and every shot bloom it; it never exceeds 10. The settle speed feels fair, not sluggish.
@@ -90,6 +90,17 @@ Until the gallery room exists: start the hub, open the debug panel (`) and use t
 - [ ] Medkit: E heals 30 spread over the damaged parts and it disappears; at full health it stays (`item.use_refused`).
 - [ ] Death (stand next to two barrels): "You died" overlay, nothing but E works; E reloads the level. The Spawn tab's "Reset level" does the same.
 - [ ] Carrying a burning crate slowly hurts every part (`actor.damaged`, damage.fire).
+
+Gallery room 4 (Shooting range):
+
+- [ ] Walk in from the hub: doorway 4 and both corridor ends show plain walls, no striped (z-fighting) faces; from the door the booth reads as firing line ahead, melee corner to the right, medkit table beside the door, counter gap on the left. Every sign reads from about 6 m; the lane signs on the counter read when you step up to it.
+- [ ] Reticle settling at the firing line: draw the pistol, stand still at the counter: the ring settles onto the 10 m dummy's torso in under a second; look around and back: it blooms and settles again. On lane 4 the 40 m dummy is clearly visible inside the settled ring (lit, not lost against the wall).
+- [ ] Shots: 5 m and 10 m torso shots are reliable at rest; the 20 m dummy takes a few tries, the 40 m one several (settled cone ≈ 1 m wide there). Floating numbers read at 10 m, and at 20-40 m are at least visible.
+- [ ] Headshot x2: the 5 m dummy's head takes 50 ("head 50", it dies and tips over backwards); E on it (walk round the counter gap) resets it.
+- [ ] Baton KO rules (melee corner): sneak up behind the unaware dummy (facing the east wall): one swing shows "stun 200", "KO" and it tips over. From behind the aware one (facing the door): "stun 20" three times before it goes down. From the front of either: three hits.
+- [ ] Falloff on the blast lines: stand on the 6 m line, shoot the barrel: nothing (the bang, the crates thrown and lit). Reset level, stand on the 4 m line: nothing or a scratch (edge of the 4 m radius). Reset, 2 m line: about 46 in total (torso about 19, other parts about 6, silhouette yellow-ish, red flash). The far-wall barrels go off one at a time (3 m apart: no chain).
+- [ ] Medkit heal: after the 2 m blast, E on a medkit on the table heals 30 split over the hurt parts and it disappears; a second one tops up; at full health the third stays (`item.use_refused`).
+- [ ] Death + Reset: a barrel shot from about 1 m does roughly 30 to the torso (of 100), so take the blast lane barrel and then the three far-wall barrels point blank without healing (or spawn barrels with the Spawn tab): the fourth kills. "You died", nothing but E works; E reloads the hub with every barrel, dummy and medkit back. The Spawn tab's "Reset level" does the same.
 
 ## M5 Inventory (Inventory bay)
 

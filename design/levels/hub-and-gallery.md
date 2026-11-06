@@ -36,7 +36,7 @@ The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 
 30 x 30 m, 5 m high, doorways 2 x 3 m. The player spawns at `PlayerSpawn` (0, 0, 10) facing the north wall (doorways 1 and 2). Each room scene is instanced in `levels/hub/hub.tscn` behind its doorway, with its origin on the outer face of the hub wall.
 
-The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub, the movement course and the physics and fire room when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
+The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, physics and fire, shooting range) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
 
 ## 1 Movement course
 
@@ -90,6 +90,49 @@ Nothing outside the alley is within 5 m of a barrel; flammables of different sta
 
 Tests (`tests/levels/gallery/physics_fire/`): `physics_fire_room_test.gd` (shell, station spacing above, signs, no coplanar faces), `physics_fire_scenarios_test.gd` (in the real room scene: row A burns crates 1-5 within about 20 s and never 6, 7 or the walled-off crate over 45 s; damaging barrel 1 chains barrel 2 on the next tick and lights the stack, nothing else touched; the side room crate breaks into two whole bottles), `physics_fire_hub_test.gd` (walk in from the hub, navmesh coverage, the burnt barricade opens the side room for the player and, after a re-bake, the navmesh). First-person review shots: `tests/levels/gallery/physics_fire/fixtures/room_shots.tscn` (run in a window with `-- shot=<name> out=<png>`).
 
+## 4 Shooting range
+
+`levels/gallery/shooting_range/shooting_range_room.tscn`, instanced at hub (15.5, 0, 7.5) and turned like room 3 (local -Z points east through doorway "4 Shooting Range", local +X is hub +Z). Kit parts only, M4 training dummies from `actors/dummy/`, M3/M4 objects from `objects/`, kit `Sign`s. A 3.5 m corridor (`Shell/Corridor`, 2 x 3 m, walls shared as in [ADR 0043](../decisions/0043-room-connections-share-a-wall.md)) leads into a 14 x 48 m hall, 5 m high, concrete (`Shell/Hall`, interior x -3.5 to 10.5, z -4 to -52). The hall is off-centre on its door (offset -3.5) so its west wall (hub z 3.5 to 4) stays clear of room 3's hall, whose east wall ends at hub z 3. Lighting: two shadowed 0.8-energy lights over the booth, four 1.0-energy lights down the range, and two spot lights on the 20 m and 40 m dummies so the 40 m one reads inside the settled reticle from the firing line.
+
+Floor plan (room-local; columns to scale at 0.25 m, rows not to scale; top is the far wall):
+
+```
+  z -52  +-------------------------------------------------------+   far wall, sign "Long shots"
+  -51.6  |     B             B       M      B                    |   barrels 3 m apart (gap), M metal crate
+    -48  |                                                  D    |   40 m dummy (lane 4), spot light
+         :                                                       :
+    -28  |                                        D              |   20 m dummy (lane 3), spot light
+    -22  |    c     c                                            |   2 small crates, 1.5 m gap from X
+    -20  |       X                                               |   blast lane barrel, sign
+    -18  |==============                D                        |   2 m line; 10 m dummy (lane 2)
+    -16  |============== |         |         |         |         |   4 m line; dividers end
+    -14  |============== |         |         |         |         |   6 m line
+    -13  |               |    D    |         |         |         |   5 m dummy (lane 1)
+    -10  |               |         |         |         |         |   dividers 1.2 m start
+     -8  |    ###################################################|   counter 1.0 m + stripe: firing line
+         |gap              5m        10m       20m       40m     |   lane signs on the counter
+   -5.6  |                                         A<          >U|   melee: A aware, U unaware (3 m)
+   -4.4  |                       [TTT]                           |   medkit table, 3 medkits
+   z -4  +---------[  door  ]------------------------------------+
+                   corridor -> hub doorway 4
+      x  -3.5            0.5       3         5.5       8         10.5
+```
+
+The firing line is the counter's lip at z -8; distances are centre to centre from it.
+
+| Station | Local position | Contents and spacing |
+|---|---|---|
+| Firing line (`FiringLine/`) | z -8 | `Counter`: 1.0 m wood `Ledge`, 0.6 m deep, from x -2.3 to the east wall, leaving a 1.2 m gap at the west wall to walk downrange; `Stripe`: 0.1 m hazard `SurfaceFloor` (raised 2 cm) along its lip, wall to wall. Lane signs "5 m" to "40 m" lie on the counter top; sign "Firing line · 1 pistol · 2 baton · R reload" above it |
+| Lanes 1-4 (`Lanes/`) | x 1.75, 4.25, 6.75, 9.25 | 2.5 m lanes between four 1.2 m concrete `Ledge` dividers 0.2 m thick (x 0.5, 3, 5.5, 8; z -10 to -16: 2 m past the counter, 6 m long; `Divider1` also separates the blast lane). `Dummy5m`, `Dummy10m`, `Dummy20m`, `Dummy40m` at z -13, -18, -28, -48, turned to face the firing line (unaware) |
+| Melee corner (`Melee/`) | z -5.6, booth side | `AwareDummy` (x 6.9, `Awareness.aware` on) faces west, towards the walkway from the door: from behind it still takes three baton hits. `UnawareDummy` (x 9.9, 3 m further) faces the east wall, its back to the walkway: one hit from behind knocks it out. Signs "Aware · 3 hits" (south wall) and "Sneak behind · baton KO" (east wall) |
+| Blast lane (`BlastLane/`) | x -3.5 to 0.5 | The side lane west of `Divider1`, reached through the counter gap. `Barrel` at (-1.5, -20), past the dividers' end; hazard stripes `Stripe2m`/`4m`/`6m` (3.6 x 0.1 m) at 2, 4 and 6 m from it towards the firing line, with floor labels; `Crate1`/`Crate2` (small) 1.5 m gap behind it, so the blast throws and lights them. Sign "Blast lane · Stand on a line · shoot the barrel". Expected (pistol from the line): 2 m line ≈ 46 damage (torso 18.6, other parts 5.6 each); the 4 m line sits on the edge of the 4 m blast radius (measured to the chest at 1.2 m: 4.07 m) and takes nothing, like the 6 m line |
+| Far wall (`FarWall/`) | z -51.6 (43.6 m) | `Barrel1`-`3` at x -2, 1.6, 5.2 (3 m gaps: no chain, a neighbour's blast does 10 of its 25 health) and a `MetalCrate` between barrels 2 and 3; the nearest is 5.4 m from the 40 m dummy. Sign "Long shots" |
+| Medkits (`Medkits/`) | (3, -4.4) | `Table`: 1.0 m wood `Ledge` (1.2 x 0.6 m) against the south wall east of the door with three M4 `Medkit` world objects (inventory pickups after M5). Sign "Medkits · E heals 30" |
+
+The hub's `Navigation` bakes the range with the rest: the booth, the blast lane through the counter gap, the lanes around the dividers and the far wall (dummies and objects are not navigation sources). Damage and objects get used up: E on a dummy resets it, the Spawn tab's "Reset level" (or E after dying) reloads the hub.
+
+Tests (`tests/levels/gallery/shooting_range/`): `shooting_range_room_test.gd` (shell, counter and stripe, dummy distances and facing, dividers, melee facing and awareness flags, blast lane lines and crates, far-wall spacing, medkits, signs, no coplanar faces), `shooting_range_hub_test.gd` (room on doorway 4, walk in to the counter, navmesh over the range floor), `shooting_range_scenarios_test.gd` (in the hub with the player, seeded weapon RNG: a pistol shot from the firing line hits the 10 m dummy's torso for 25; the baton knocks the unaware melee dummy out in one hit from behind and needs three on the aware one; the blast lane barrel hurts the player more on the 2 m line than on the 6 m line). First-person review shots: `tests/levels/gallery/shooting_range/fixtures/range_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `lane_40m` draws the pistol so the reticle shows).
+
 ## Rules
 
 - Levels are CSG graybox built from the [graybox kit](kit.md) plus free CSG where needed (csg_blockout addon for editing); fiction is abstract ([ADR 0010](../decisions/0010-fiction-graybox.md), [ADR 0037](../decisions/0037-graybox-kit.md)).
@@ -99,4 +142,4 @@ Tests (`tests/levels/gallery/physics_fire/`): `physics_fire_room_test.gd` (shell
 
 ## Open questions
 
-- Room dimensions and layout of rooms 2 and 4 to 7: TBD per room milestone. Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
+- Room dimensions and layout of rooms 2 and 5 to 7: TBD per room milestone. Room 5 (security, south wall at hub x 7.5) must stay west of hub x 19 (the range's hall). Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).

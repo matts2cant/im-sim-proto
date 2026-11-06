@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="5_sign"]
 [ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="6_navigation"]
 [ext_resource type="PackedScene" path="res://levels/gallery/physics_fire/physics_fire_room.tscn" id="7_physics_fire"]
+[ext_resource type="PackedScene" path="res://levels/gallery/shooting_range/shooting_range_room.tscn" id="8_shooting_range"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -166,6 +167,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, -15.5)
 
 [node name="PhysicsFireRoom" parent="." instance=ExtResource("7_physics_fire")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15.5, 0, -7.5)
+
+[node name="ShootingRangeRoom" parent="." instance=ExtResource("8_shooting_range")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15.5, 0, 7.5)
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
