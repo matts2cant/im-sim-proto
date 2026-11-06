@@ -1,10 +1,10 @@
 extends GdUnitTestSuite
-## Scenario: quicksave and quickload on the real hub (the current scene). Change many systems, save,
+## Scenario: saving and loading on the real hub (the current scene). Change many systems, save,
 ## change them all again, load: everything is back as saved (a capture of the loaded level matches
 ## the saved one), removed things stay gone, spawned things are back, nothing is queued.
-## Also: real F5 / F9 key presses, a carried object lands where it was held, and the abilities
-## (skill tiers, energy, installed and active augmentations with their tags and modifiers) come back
-## without duplicate modifiers (ADR 0061, ADR 0063).
+## Also: Save and Load through the Esc game menu (ADR 0064), a carried object lands where it was
+## held, and the abilities (skill tiers, energy, installed and active augmentations with their tags
+## and modifiers) come back without duplicate modifiers (ADR 0061, ADR 0063).
 
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -165,24 +165,35 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	assert_int(loaded_entries[0].data["skipped"]).is_equal(0)
 
 
-func test_f5_and_f9_keys_on_the_hub() -> void:
+func test_save_and_load_through_the_game_menu_on_the_hub() -> void:
 	var hub := await Saves.open_level(get_tree(), HUB)
 	_player(hub).load_state({"position": SAVED_SPOT, "yaw": 0.3, "pitch": 0.0, "velocity": Vector3.ZERO})
 	await _frames(3)
 	var saved := _player(hub).global_position
+	var menu := _player(hub).get_node("GameMenu") as GameMenu
 
-	Saves.press(KEY_F5)
+	Saves.press(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_str((_player(hub).get_node("Hud") as Hud).message_label.text).is_equal(QuickSaveKeys.SAVED)
+	assert_bool(menu.is_open()).is_true()
+	menu.save_button.pressed.emit()
+	assert_str(menu.status_label.text).is_equal(GameMenu.SAVED)
+	assert_str(menu.slot_label.text).ends_with(" · Hub")
+	Saves.press(KEY_ESCAPE)
+	await get_tree().process_frame
+	assert_bool(menu.is_open()).is_false()
 	_player(hub).load_state({"position": Vector3(-3, 0, 12), "yaw": 0.0, "pitch": 0.0, "velocity": Vector3.ZERO})
 	await _frames(3)
-	Saves.press(KEY_F9)
+	Saves.press(KEY_ESCAPE)
+	await get_tree().process_frame
+	menu.load_button.pressed.emit()
 	var fresh := await Saves.wait_for_load(get_tree(), hub)
 
 	assert_object(fresh).is_not_null()
 	assert_vector(_player(fresh).global_position).is_equal_approx(saved, Vector3.ONE * 0.01)
 	assert_float(_player(fresh).rotation.y).is_equal_approx(0.3, 0.001)
-	assert_str((_player(fresh).get_node("Hud") as Hud).message_label.text).is_equal(QuickSaveKeys.LOADED)
+	assert_str((_player(fresh).get_node("Hud") as Hud).message_label.text).is_equal(GameMenu.LOADED)
+	assert_bool((_player(fresh).get_node("GameMenu") as GameMenu).is_open()).is_false()
+	assert_bool(get_tree().paused).is_false()
 
 
 func test_a_carried_object_is_dropped_where_it_was_held() -> void:

@@ -18,9 +18,9 @@ const SIGNS: Dictionary[String, String] = {
 	"FillGrid": "Fill the grid · 6 × 5\nuntil: No room in inventory",
 	"Datapad": "Datapads\nE to read · L for log",
 	"DropZone": "Drop things here · listen",
-	"Abilities": "F1 Cloak · F2 Run Silent\nF3 Speed · F4 Regeneration\nF6 Combat Strength\nBiocells: +25 energy",
+	"Abilities": "F1 Cloak · F2 Run Silent\nF3 Speed · F4 Regeneration\nF5 Combat Strength\nBiocells: +25 energy",
 	"SpeedLedge": "Speed (F3)\nmantle me",
-	"HeavyCrate": "F6 Combat Strength\nlift me",
+	"HeavyCrate": "F5 Combat Strength\nlift me",
 	"RunSilent": "Run Silent (F2)\nsprint here",
 }
 const PLAYER: PlayerConfig = preload("res://actors/player/player_config.tres")

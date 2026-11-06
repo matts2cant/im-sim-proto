@@ -14,7 +14,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Ctrl | Crouch (hold) |
 | Shift | Sprint (hold, forward only) |
 | Space | Jump / mantle (press facing a ledge, or hold in the air) |
-| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level (F9: load the quicksave instead) |
+| E | Interact with the looked-at thing within 2 m, as the HUD prompt says: pick up an item into the inventory, use a usable (a training dummy resets), read a datapad in place (its text opens and goes to the personal log), carry a physics object (up to the carry limit); while carrying: put it down gently where there is room (else the prompt reads "No room to put down ..." and nothing happens; Q and LMB likewise). While reading a datapad: close it. Dead: reset the level (or Esc: game menu, Load) |
 | R | Reload the equipped weapon |
 | Q | Drop what is carried; when nothing is carried: drop the item in hand (weapon or tool) in front of you |
 | I | Inventory screen (pauses the game); again or Esc closes |
@@ -22,12 +22,10 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | 1-0 | Belt slots 1 ... 0: put the slot's item in hand (a weapon is drawn; a tool, medkit, biocell... is held); the same key again: put it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). In the inventory screen, while hovering an item: assign it to that slot |
 | Mouse wheel | Down: the next non-empty belt slot to the right, up: the previous one; wraps; from empty hands down takes the first item, up the last. One item per notch; nothing is used |
 | H | Holster: put away whatever is in hand (empty hands, no belt highlight) |
-| F1 / F2 / F3 / F4 / F6 | Toggle Cloak / Run Silent / Speed Enhancement / Regeneration / Combat Strength (press; fails with "Energy depleted" at 0 energy). F6 because F5 is quicksave ([abilities.md](abilities.md)) |
-| F5 | Quicksave (one slot; not while dead or in a pause screen) ([ADR 0063](../decisions/0063-quicksave-quickload.md)) |
-| F9 | Quickload: anywhere, also from a pause screen or the death screen |
+| F1 / F2 / F3 / F4 / F5 | Toggle Cloak / Run Silent / Speed Enhancement / Regeneration / Combat Strength (press; fails with "Energy depleted" at 0 energy) ([abilities.md](abilities.md)) |
 | ` (QuoteLeft) | Debug panel |
 | Mouse look | Look (captured mouse) |
-| Esc | Close the inventory screen, log screen or reading overlay; in game: release the mouse (click in the window to capture it again) |
+| Esc | Close the inventory screen, log screen or reading overlay (only that, never also the menu); otherwise open the game menu (pauses, frees the mouse): Resume, Save, Load, Quit game ([ADR 0064](../decisions/0064-game-menu.md)). In the menu: Esc closes it (on the quit question: No); Up/Down/Tab move between buttons, Enter/Space press. Also on the death screen |
 | LMB | Use the item in hand: fire / swing a weapon, use one medkit, a biocell's message (a tool: nothing until M8; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
 | RMB | Alt. Inventory screen: item context menu |
 

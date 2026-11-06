@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
-## Integration: the player's augmentations through the real input (F1-F4, F6) and the generic
+## Integration: the player's augmentations through the real input (F1-F5) and the generic
 ## consumers: Speed Enhancement (sprint 9 m/s, mantles a 2.3 m ledge), Run Silent (no footstep noise
-## sprinting on metal), Combat Strength (F6: 60 kg crate while on, dropped when it goes off),
+## sprinting on metal), Combat Strength (F5: 60 kg crate while on, dropped when it goes off),
 ## Regeneration, Cloak feedback and the HUD (ADR 0061).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -36,11 +36,11 @@ func test_f_keys_toggle_augmentations_and_the_hud_shows_chips() -> void:
 	assert_bool(_player.augmentations.is_active(&"cloak")).is_true()
 	assert_bool(_player.augmentations.is_active(&"speed_enhancement")).is_true()
 	assert_bool(_player.augmentations.is_active(&"combat_strength")).is_true()
-	assert_array(_hud.chip_texts()).is_equal(["F1 Cloak", "F3 Speed Enhancement", "F6 Combat Strength"])
+	assert_array(_hud.chip_texts()).is_equal(["F1 Cloak", "F3 Speed Enhancement", "F5 Combat Strength"])
 
 	await _press(&"aug_1")
 	assert_bool(_player.augmentations.is_active(&"cloak")).is_false()
-	assert_array(_hud.chip_texts()).is_equal(["F3 Speed Enhancement", "F6 Combat Strength"])
+	assert_array(_hud.chip_texts()).is_equal(["F3 Speed Enhancement", "F5 Combat Strength"])
 	assert_array(EventLog.find(&"augmentation.activated")).has_size(3)
 	assert_array(EventLog.find(&"augmentation.deactivated")).has_size(1)
 

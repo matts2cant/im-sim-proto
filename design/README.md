@@ -16,7 +16,7 @@ In:
 - Player movement incl. mantle and vents; body-part damage; silenced pistol and stun baton; grid inventory.
 - Skills (4 tiers) and augmentations with energy; no leveling.
 - Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm, locks, keypads, terminals.
-- Stimulus/response framework with attributes, modifiers and tags; EventLog; debug panel; quicksave/quickload.
+- Stimulus/response framework with attributes, modifiers and tags; EventLog; debug panel; save/load from the Esc game menu.
 - GdUnit4 tests in three layers.
 
 Out (parked in [backlog](backlog.md)): progression, own hacking design, security robot, water/electricity, lean/ladders, gamepad and rebinding, difficulty settings, real art, voiced barks, inventory rotation, remote/CI.
@@ -59,7 +59,7 @@ flowchart LR
 | M3 | Physics objects and fire | Physics and fire |
 | M4 | Body-part damage, pistol, baton, aiming | Shooting range |
 | M5 | Grid inventory, belt, items, pickup/drop | Inventory bay |
-| M6 | Skills, augmentations, energy, stats tab, quicksave/quickload | Inventory bay |
+| M6 | Skills, augmentations, energy, stats tab, save/load (Esc game menu) | Inventory bay |
 | M7 | Light level, guard perception and AI, alerts, bodies | Perception lab, AI arena |
 | M8 | Security: cameras, alarms, turret, doors/locks/keypads, terminals | Security wing |
 | M9 | Mission area and scenario tests | Mission |
@@ -83,7 +83,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 - [game/inventory.md](game/inventory.md): grid, belt, items.
 - [game/abilities.md](game/abilities.md): skills and augmentations.
 - [game/debug-panel.md](game/debug-panel.md): debug tabs.
-- [game/saving.md](game/saving.md): saveable contract, quicksave/quickload.
+- [game/saving.md](game/saving.md): saveable contract, save/load (Esc game menu).
 
 ### Levels
 

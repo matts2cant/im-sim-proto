@@ -158,28 +158,31 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M6 Abilities and saving (Inventory bay)
 
-- [ ] HUD: an energy bar (blue, number above it) stands right of the body silhouette; with an augmentation on, a chip "F1 Cloak" etc. appears beside it (Combat Strength reads "F6 Combat Strength") and the bar falls steadily; chips do not cover the belt.
-- [ ] F1 Cloak: the held weapon turns see-through and the screen gets a faint blue tint; F1 again restores both. The energy bar empties in about 25 s from full; at 0 every augmentation switches off with "Energy depleted", and F1-F4 and F6 then refuse with the same message.
+- [ ] HUD: an energy bar (blue, number above it) stands right of the body silhouette; with an augmentation on, a chip "F1 Cloak" etc. appears beside it (Combat Strength reads "F5 Combat Strength") and the bar falls steadily; chips do not cover the belt.
+- [ ] F1 Cloak: the held weapon turns see-through and the screen gets a faint blue tint; F1 again restores both. The energy bar empties in about 25 s from full; at 0 every augmentation switches off with "Energy depleted", and F1-F5 then refuse with the same message.
 - [ ] F2 Run Silent on the station's metal strip ("Run Silent (F2) · sprint here"): with Overlays > Stimuli on, sprinting draws yellow noise spheres and you hear metal steps; with Run Silent on there are no spheres and no step sounds, also on landing from a jump.
 - [ ] F3 Speed Enhancement: sprint feels about 1.5x faster (9 m/s, Player tab speed), jumps reach visibly higher (1.6 m), landings are louder. At the "Speed (F3) · mantle me" ledge (2.3 m): without Speed, jump does nothing useful; with Speed, jump (from standing) climbs onto it. Stepping off the top does not hurt (2.3 m drop).
 - [ ] F4 Regeneration: after a hurt leg (e.g. a blast lane barrel) the silhouette's leg goes back to green within a few seconds while the bar drains; with nothing hurt it keeps draining but heals nothing.
-- [ ] Combat Strength is off by default: the large crate ("F6 Combat Strength · lift me") and the physics room's "Too heavy (F6 Combat Strength)" crates say "Too heavy", and the baton needs 3 frontal hits on a dummy. F6: the chip "F6 Combat Strength" appears, the bar falls slowly (1/s), E picks those crates up, and the baton knocks a dummy out from the front in 2 hits.
-- [ ] Carrying the large crate, F6 again: it drops in front of you (not into you) with "Too heavy". Carry it with Combat Strength on and little energy left (Stats tab slider ~3): when the energy runs out it drops the same way. A small crate stays in your hands when F6 goes off.
+- [ ] Combat Strength is off by default: the large crate ("F5 Combat Strength · lift me") and the physics room's "Too heavy (F5 Combat Strength)" crates say "Too heavy", and the baton needs 3 frontal hits on a dummy. F5: the chip "F5 Combat Strength" appears, the bar falls slowly (1/s), E picks those crates up, and the baton knocks a dummy out from the front in 2 hits.
+- [ ] Carrying the large crate, F5 again: it drops in front of you (not into you) with "Too heavy". Carry it with Combat Strength on and little energy left (Stats tab slider ~3): when the energy runs out it drops the same way. A small crate stays in your hands when F5 goes off.
 - [ ] Biocells: the dais holds one pickup of 10; E takes them. LMB with a biocell in hand at full energy says "Energy full" and keeps it; after some drain it adds 25 (watch the number) and uses one.
 - [ ] Stats tab (`): set Pistols to Master: the standing reticle is much smaller and settles faster after a shot; reload is quicker; a torso shot on a range dummy shows 32.5 (Untrained 25). With a disabled arm the Master reticle still widens.
 - [ ] Crouch (any skill): after mouse movement or a shot, the reticle tightens noticeably faster crouched than standing.
 - [ ] Stats tab: Low-Tech Advanced: a frontal baton knockout takes 2 hits (Combat Strength off), swings come faster at Master. Medicine Master: a medkit heals 90 (watch several parts recover).
 - [ ] Stats tab: unchecking "installed" switches an augmentation off and its F-key does nothing ("on" greyed); the energy slider and "Refill energy" change the HUD bar at once; F-key toggles show up in the tab while it is open.
-- [ ] Quicksave / quickload ([ADR 0063](../decisions/0063-quicksave-quickload.md)): F5 shows "Quicksaved"; F9 shows "Quickloaded" and puts you back where you stood, facing the same way, with the same health (body silhouette), inventory, belt and item in hand.
-- [ ] Physics and fire room: set a crate burning, break another (Spawn tab: Damage, or throw it), burn the barricade, F5, walk on; F9: the burning crate is still burning, the broken and burnt ones and the barricade stay gone, the bottles that fell out of the side room crate lie where they were; nothing flashes or explodes on load.
-- [ ] After F9 the doorway the burnt barricade blocked is open: you walk through it (no invisible wall).
-- [ ] Drop two items (Q) and spawn a crate from the Spawn tab, F5, pick the items up and push the crate away, F9: the items and the crate are back where they were saved.
-- [ ] Carry a crate, F5, F9: the crate drops in front of you, not inside you, and you are not carrying it.
-- [ ] Read a datapad, F5, read another, F9: the log (L) has only the first.
-- [ ] Die (fall or a barrel), the death screen says "F9: load quicksave"; F9 loads the save. F5 on the death screen does nothing.
-- [ ] F9 with the inventory, log screen or reading overlay open loads and closes it; F5 there does nothing.
-- [ ] F9 with no quicksave (delete `%APPDATA%/Godot/app_userdata/ImSimProto/saves/quicksave.save`): "No quicksave", nothing changes.
-- [ ] F5 quicksave and F9 quickload restore state (skill tiers, installed and active augmentations, energy included).
+- [ ] Esc game menu ([ADR 0064](../decisions/0064-game-menu.md)): Esc pauses the game, frees the mouse and shows Resume / Save / Load / Quit game in the log screen's style, Resume highlighted; Up/Down move, Enter presses; Esc or Resume closes it and the mouse is captured again (looking works at once, Space jumps, it does not re-press a button).
+- [ ] With the inventory, log screen or reading overlay open, Esc closes only that screen; the next Esc opens the menu. I and L do nothing while the menu is open. With the debug panel open (`), Esc does not open the menu.
+- [ ] Save: "Saved" shows in the menu, which stays open; the line under Load reads "Saved <your local time> · Hub". Load: the menu closes, the HUD says "Loaded" and you are back where you stood, facing the same way, with the same health (body silhouette), inventory, belt and item in hand.
+- [ ] Quit game: "Quit? Unsaved progress is lost." with Yes / No (No highlighted); No or Esc goes back to the menu; Yes closes the game.
+- [ ] Physics and fire room: set a crate burning, break another (Spawn tab: Damage, or throw it), burn the barricade, save, walk on; load: the burning crate is still burning, the broken and burnt ones and the barricade stay gone, the bottles that fell out of the side room crate lie where they were; nothing flashes or explodes on load.
+- [ ] After a load the doorway the burnt barricade blocked is open: you walk through it (no invisible wall).
+- [ ] Drop two items (Q) and spawn a crate from the Spawn tab, save, pick the items up and push the crate away, load: the items and the crate are back where they were saved.
+- [ ] Carry a crate, save, load: the crate drops in front of you, not inside you, and you are not carrying it.
+- [ ] Read a datapad, save, read another, load: the log (L) has only the first.
+- [ ] Die (fall or a barrel): the death screen says "E: restart level · Esc: menu"; E restarts; Esc opens the menu, Save says "Cannot save while dead", Load loads the save.
+- [ ] No save (delete `%APPDATA%/Godot/app_userdata/ImSimProto/saves/quicksave.save`): Load is greyed out and the line under it says "No save".
+- [ ] F5 toggles Combat Strength (chip "F5 Combat Strength"); F9 does nothing.
+- [ ] Save and load restore state (skill tiers, installed and active augmentations, energy included).
 
 ## M7 Light and AI (Perception lab, AI arena)
 

@@ -47,14 +47,14 @@ All usable at once in v0 (body-slot conflicts come with progression). All five a
 | Run Silent | F2 | toggle | 1.5 /s | Footstep and landing noise ×0 (no noise stimulus, no sound) |
 | Speed Enhancement | F3 | toggle | 2 /s | Walk/sprint/crouch speed ×1.5 (sprint 9 m/s), jump apex 1.0 → 1.6 m, mantle up to 2.5 m above the last ground (from 1.9), landing noise ×1.5 |
 | Regeneration | F4 | toggle | 5 /s | `heal` 2 on itself every 0.5 s (4 HP/s), split over the damaged parts like a medkit; it keeps running and draining when nothing is hurt, but sends nothing then |
-| Combat Strength | F6 | toggle | 1 /s | Carry limit 20 → 70 kg (metal crate 25 kg and large crate 60 kg become liftable); melee damage ×1.5 (stacks with Low-Tech). When it switches off (F6, or energy runs out) while you hold something over 20 kg, the object is dropped in front of you with the HUD message "Too heavy" (`player.dropped` how `too_heavy`); lighter objects stay held |
+| Combat Strength | F5 | toggle | 1 /s | Carry limit 20 → 70 kg (metal crate 25 kg and large crate 60 kg become liftable); melee damage ×1.5 (stacks with Low-Tech). When it switches off (F5, or energy runs out) while you hold something over 20 kg, the object is dropped in front of you with the HUD message "Too heavy" (`player.dropped` how `too_heavy`); lighter objects stay held |
 
 Every switch is logged (`augmentation.activated`, `augmentation.deactivated` {reason}, `augmentation.refused` {reason}, `augmentation.installed`).
 
 ## Rules
 
 - Skills and augmentations are implemented as modifiers ([attributes-and-tags.md](attributes-and-tags.md)).
-- Augmentations are toggled with F1-F4 and F6 (`aug_1`-`aug_5`; F5 is quicksave) ([controls.md](controls.md)). HUD chips and the Stats tab name the key bound to the action ("F6 Combat Strength").
+- Augmentations are toggled with F1-F5 (`aug_1`-`aug_5`; Combat Strength was on F6 until save/load moved into the game menu, [ADR 0064](../decisions/0064-game-menu.md)) ([controls.md](controls.md)). HUD chips and the Stats tab name the key bound to the action ("F5 Combat Strength").
 - The carry limit is checked every tick while carrying: any change that drops `carry_mass_limit` below the held mass (Combat Strength off, a future injury modifier) drops the object.
 - Crouching (`stance.crouch`) settles the aim cone faster (×0.6 settle time), stacking with Pistols ([weapons-and-aiming.md](weapons-and-aiming.md)).
 - Saving: `Skills` (tiers) and `Augmentations` (installed, active) are saveable; the energy is in the attributes; modifiers and tags are re-derived on load ([saving.md](saving.md)).

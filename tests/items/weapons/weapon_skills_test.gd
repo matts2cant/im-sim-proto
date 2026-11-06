@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: skills on the player's weapons and medkit through attributes (ADR 0061): Pistols
 ## (cone floor, settle, reload, damage; stacks with an arm injury), crouched settling, Low-Tech
-## knockouts, Medicine heals. Combat Strength is off by default (M4 baton numbers); on (F6) it stacks.
+## knockouts, Medicine heals. Combat Strength is off by default (M4 baton numbers); on (F5) it stacks.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")

@@ -9,7 +9,7 @@ extends Resource
 @export var id: StringName = &""
 @export var display_name: String = ""
 @export_multiline var description: String = ""
-## Toggle key: action `aug_<slot>` (1 = F1 ... 4 = F4, 5 = F6: F5 is quicksave). 0: no key (passive).
+## Toggle key: action `aug_<slot>` (1 = F1 ... 5 = F5). 0: no key (passive).
 @export var slot: int = 0
 @export var passive: bool = false
 @export var drain_per_second: float = 0.0
@@ -39,7 +39,7 @@ func make_modifiers() -> Array[Modifier]:
 	return result
 
 
-## Name of the key bound to `aug_<slot>` ("F1" for slot 1, "F6" for slot 5), "" without a key;
+## Name of the key bound to `aug_<slot>` ("F1" for slot 1, "F5" for slot 5), "" without a key;
 ## "F<slot>" when the action has no key event.
 func key_label() -> String:
 	if slot <= 0:
