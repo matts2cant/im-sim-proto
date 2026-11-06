@@ -17,6 +17,7 @@ Electronic and mechanical obstacles that offer several ways through.
 ## Door and lock types
 
 - Keypad: code found in world notes, or multitool.
+  - Datapads are read in place and copied to the player's personal log (not picked up). A datapad can carry codes linked to a keypad (by the keypad's code id). Once the player has read it, the keypad's entry screen shows a reminder with the known code ("Note: 0451, from 'Shift roster'"); the player still types it. A code learned any other way (a conversation, a log entry) feeds the same reminder.
 - Mechanical lock: lockpick.
 - Electronic: multitool.
 - Keycard.
