@@ -73,6 +73,8 @@ A task is done only when all of these hold:
 - gdformat writes CRLF on Windows; always format through `tools/lint.sh --fix` (it strips CR).
 - New shell scripts: `#!/usr/bin/env bash` and tell the reviewer to set `git update-index --chmod=+x` (git does not track the executable bit here).
 - Scenes saved via `ResourceSaver` lack `uid=` headers; that is fine, the editor adds them.
+- Python on this machine defaults to cp1252: always open files with `encoding='utf-8'` (or set `PYTHONUTF8=1`), otherwise text like `·` or `×` silently fails to match or gets garbled.
+- Screenshots from plain windowed runs may open at 840×648 despite `--resolution`; screenshot fixtures set the size with `DisplayServer.window_set_size(Vector2i(1152, 648))`.
 
 ## Godot 4.7 / GdUnit4 gotchas
 
@@ -110,6 +112,7 @@ A task is done only when all of these hold:
 - One feature branch per milestone (`m0-skeleton`, `m1-player`, ...), merged into `master` with `--no-ff` after tests + lint pass. Small fixes may go directly on master.
 - Never download files or add dependencies without the user's OK.
 - Do not edit `addons/`.
+- When a change deletes or moves a resource, grep the whole project for its path and fix every reference in the same change.
 - Keep design docs in sync with code: update the relevant `design/` doc, and add an ADR in `design/decisions/` for any new design decision ([index](design/decisions/README.md)).
 - Missing audio: use generated placeholder beeps; do not fetch sounds.
 - Backlog items are out of scope: [design/backlog.md](design/backlog.md).

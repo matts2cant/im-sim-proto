@@ -4,6 +4,27 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M5 — Inventory, belt, items + gallery rooms 4 & 7 (2026-11-07, autonomous night)
+
+**What went well**
+- Pipeline: M5 systems ran in a worktree (on top of the finished M4 systems) while the shooting range was built in the main checkout; a final agent finished the merge and did the level pass. 502 tests after M5, all gallery rooms 1, 3, 4 and 7 built.
+- Agents generated item resources and room layouts from scratch scripts: consistent and quick to redo after screenshot reviews.
+- A headless-GUI probe settled early that pushed mouse events don't reach Controls headless; drag tests call `_gui_input` directly instead of failing mysteriously.
+- The new "fail on script errors" runner caught a parse error immediately.
+
+**What went wrong**
+1. **Cross-branch breakage**: M5 deleted `objects/medkit/` (medkits became inventory items) while the range, built in parallel, placed those objects. Caught only because I grepped after the merge.
+2. **Encoding slip**: Python edits defaulted to cp1252; text with `·`/`×` silently didn't match and a sign text missed the merge commit.
+3. **Windowed screenshots** may still open at 840×648 despite `--resolution`; agents worked around it in fixtures.
+4. **Cost**: the night (M3–M5, 10 agents) used ~2.1M sub-agent tokens, ~3–4 h of agent time, about 690k per milestone, in line with M2.
+
+**Changes made**
+- `tests/smoke/scenes_load_test.gd`: every scene in the game folders must load and instantiate (catches dangling references after merges). AGENTS.md: grep for references when deleting/moving resources; UTF-8 for Python edits; window size in screenshot fixtures. (Fixes 1–3.)
+
+**Open questions for the user (morning)**
+- See the M3/M4 questions (fire spread speed, pistol sound).
+- Items currently have graybox icons (coloured tiles with names). Fine until an art pass?
+
 ## M3 — Physics objects & fire, M4 — Body damage & weapons (systems) (2026-11-06/07, autonomous night)
 
 The user authorised autonomous work on M3–M5 overnight with retrospectives, stopping at M5 for a morning playtest. M3 and M4 systems ran as three agents: M3 systems, then the M3 room (main checkout) in parallel with M4 systems (worktree based on the committed M3 systems). The M4 shooting range is built with the M5 levels.
