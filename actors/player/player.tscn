@@ -34,6 +34,7 @@
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="32_impact_settings"]
 [ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="33_step"]
 [ext_resource type="Resource" path="res://actors/player/player_step.tres" id="34_step_config"]
+[ext_resource type="Script" path="res://actors/player/quick_save_keys.gd" id="35_quick_save_keys"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -123,3 +124,6 @@ config = ExtResource("29_knockback_config")
 [node name="ImpactSensor" type="Node" parent="."]
 script = ExtResource("31_impact_sensor")
 settings = ExtResource("32_impact_settings")
+
+[node name="QuickSaveKeys" type="Node" parent="."]
+script = ExtResource("35_quick_save_keys")

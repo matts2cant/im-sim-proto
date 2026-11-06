@@ -4,7 +4,8 @@ extends CanvasLayer
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059)
-## and the death overlay. It only reads the player's components. Layer 10: the debug panel (layer 100) draws over it.
+## and the death overlay (E resets the level, F9 loads the quicksave). It only reads the player's
+## components. Layer 10: the debug panel (layer 100) draws over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35

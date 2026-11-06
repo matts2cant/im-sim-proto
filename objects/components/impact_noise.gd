@@ -35,6 +35,13 @@ func _ready() -> void:
 	body.add_child.call_deferred(_audio)
 
 
+func _notification(what: int) -> void:
+	# Freed before the deferred add_child ran (a quickload frees removed props right after their
+	# _ready): the player never got a parent, free it with us.
+	if what == NOTIFICATION_PREDELETE and is_instance_valid(_audio) and _audio.get_parent() == null:
+		_audio.free()
+
+
 func _physics_process(delta: float) -> void:
 	_cooldown -= delta
 	var state := PhysicsServer3D.body_get_direct_state(body.get_rid())
