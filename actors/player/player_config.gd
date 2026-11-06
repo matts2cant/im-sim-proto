@@ -1,6 +1,7 @@
 class_name PlayerConfig
 extends Resource
-## Tuning for the first-person player controller and its movement noise.
+## Tuning for the first-person player controller. Movement noise, knockback and body tuning live in
+## their own components' .tres (player_movement_noise.tres, player_knockback.tres, player_body.tres).
 ## The values live in player_config.tres; the script only declares them.
 ## Distances in metres, speeds in m/s, loudness in audible metres (ADR 0032).
 
@@ -45,21 +46,12 @@ extends Resource
 @export var mantle_base_duration: float
 @export var mantle_duration_per_metre: float
 
-@export_group("Noise")
-## Ground distance between footsteps per movement mode.
-@export var walk_stride: float
-@export var sprint_stride: float
-@export var crouch_stride: float
-## Footstep loudness (audible metres) per movement mode, before the surface multiplier.
-@export var walk_loudness: float
-@export var sprint_loudness: float
-@export var crouch_loudness: float
-## Touchdowns slower than this (downward m/s) make no landing noise.
-@export var landing_min_impact_speed: float
-## Landing loudness = walk_loudness x clamp(impact / reference, 1, max factor) x surface.
-@export var landing_reference_speed: float
-@export var landing_max_factor: float
-@export var surfaces: SurfaceTable
+@export_group("Aim")
+## Horizontal speed (m/s) above which the aim cone counts as moving.
+@export var aim_moving_speed: float
+## Airborne this long (s) before the aim counts as jumping/falling (a teleport or a step off a
+## kerb does not bloom the cone).
+@export var aim_air_grace: float
 
 @export_group("Interact")
 ## Reach of the Interactor ray from the eyes (E: pick up, use, carry; ADR 0051).
@@ -88,12 +80,6 @@ extends Resource
 ## Carrying at least this mass (kg) multiplies the move speed by `heavy_carry_speed_factor`.
 @export var heavy_carry_mass: float
 @export var heavy_carry_speed_factor: float
-
-@export_group("Audio")
-## Loudness that plays at 0 dB; louder or quieter noises scale 10 dB per decade, clamped.
-@export var audio_reference_loudness: float
-@export var audio_min_db: float
-@export var audio_max_db: float
 
 @export_group("Physics props")
 ## Mass (kg) whose weight (x engine gravity) presses on the rigid bodies the player stands on

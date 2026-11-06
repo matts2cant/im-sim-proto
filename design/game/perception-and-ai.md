@@ -32,6 +32,7 @@ After an alert guards stay wary: they re-alert faster. The arrows are a first sk
 ## Rules
 
 - Perception is a receiver on the stimulus framework ([stimulus-response.md](stimulus-response.md)); hearing uses navmesh path distance with door attenuation.
+- Guards are built from the same character components as the player ([ADR 0056](../decisions/0056-generic-character-components.md)): `MovementNoise` (their footsteps and landings are `noise` other guards hear; the controller sets `stance.crouch` / `stance.sprint`), `FallImpact` + the `fall_damage` receptron, `Knockback` + the `knockback` receptron, BodyParts + `body_damage`. Whether a guard can act comes from its `state.*` tags (`ActorState`). Before thrown props hit guards: a kinematic body that scans props under-reads their impact in `ImpactNoise` (ADR 0056, open).
 - Vision depends on light level ([light-and-visibility.md](light-and-visibility.md)) and Cloak ([abilities.md](abilities.md)).
 - Components: `PerceptionSensor` plus pure AI-transition logic (unit-tested).
 - Navigation via NavigationServer3D; doors are navigation links.

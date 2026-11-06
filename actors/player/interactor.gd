@@ -57,7 +57,7 @@ static func entity_of(collider: Node) -> Node:
 func refresh() -> void:
 	kind = Kind.NONE
 	target = null
-	if not player.body.can_act():
+	if not ActorState.can_act(player):
 		prompt = ""
 		return
 	if player.carry.is_carrying():

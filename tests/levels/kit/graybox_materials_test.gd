@@ -35,7 +35,7 @@ func test_metal_is_shiny_and_ceiling_has_no_checker() -> void:
 
 
 func test_surfaces_match_the_footstep_table() -> void:
-	var table := load("res://actors/player/surface_table.tres") as SurfaceTable
+	var table := load("res://actors/common/movement/surface_table.tres") as SurfaceTable
 
 	for surface: String in GrayboxMaterials.SURFACES:
 		assert_bool(table.multipliers.has(StringName(surface))).override_failure_message(surface).is_true()

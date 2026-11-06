@@ -32,16 +32,20 @@ A HUD body silhouette shows each part's health (pure green only at full health, 
 | Each arm at 0 | `aim_spread_add` +3 degrees and `aim_sway_mult` x2 ([weapons-and-aiming.md](weapons-and-aiming.md)) |
 | Both arms at 0 | tag `state.arms_disabled`: weapons refuse to fire (`weapon.refused {reason: arms_disabled}`); no two-handed items exist in v0 |
 
+- **Other systems check the tags, never BodyParts** (`ActorState`, `actors/common/actor_state.gd`, [ADR 0056](../decisions/0056-generic-character-components.md)): `state.dead` or `state.unconscious` stop input, using things, the inventory screen and weapons (`weapon.refused {reason: incapacitated}`); `state.arms_disabled` stops weapons; `state.legs_disabled` forces the crawl. So an Effect adding the same tag (sleep gas: `state.unconscious`, handcuffs: `state.arms_disabled`) has exactly the injury's effect.
+
 ### Hit location ([ADR 0047](../decisions/0047-hitboxes-layer-5-part-aware-ray.md))
 
 - Characters carry `actors/common/body/hitboxes.tscn`: six `AnimatableBody3D` boxes/spheres on collision layer 5 (hitboxes) with no mask and metadata `body_part`, sized for a 1.8 m humanoid (origin at the feet, facing -Z). The player's hitboxes move down with crouching.
 - Weapon rays and melee sweeps query `PhysicsLayers.WEAPON_MASK` (world, objects, hitboxes), never the character bodies (layers 2/3), and exclude the shooter's own body and hitboxes.
 - StimulusSystem passes the hit `collider` to the receivers' effects (`EffectContext.data`, also for CONTACT: the node touched). The `body_damage` receptron (`actors/common/body/receptrons/body_damage.tres`, `BodyDamageEffect`) reads the part from the collider's metadata.
-- **Without a part** (RADIUS, or CONTACT to the entity itself) damage is shared out by the profile: `damage.explosive` torso 40 %, each other part 12 %; `damage.fire` evenly over all six; anything else (a blunt CONTACT) to the torso.
+- **Without a part** (RADIUS, or CONTACT to the entity itself) damage is shared out by the profile's `area_weights_by_type` (type -> part shares, the most specific type wins; data in the `.tres`, ADR 0056): `damage.explosive` torso 40 %, each other part 12 %; `damage.fire` evenly over all six; `damage.blunt` torso; `damage.fall` both legs 50/50; any type without an entry to `default_part` (torso).
 
 ### Damage types and resistances
 
-- Types arrive as stimuli: `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`; fall damage is applied directly as `damage.fall`.
+- Types arrive as stimuli: `damage.ballistic`, `damage.blunt`, `damage.stun`, `damage.fire`, `damage.explosive`, `damage.fall` (see Fall damage).
+- `BodyDamageEffect` deals (perceived - `threshold`) x `scale`: the `body_damage` receptron uses 0 and x1 (the intensity is the damage).
+- Props thrown at a character: `ImpactNoise` sends `damage.blunt` CONTACT (kinetic energy / 40) to what the prop collides with. Props pass through the player (ADR 0054), so the player's `ImpactSensor` reports a prop flying into its capsule with the same formula (a 10 kg crate at 10 m/s: about 12); on bodies props collide with (the dummy) the sensor is off, so a hit counts once (ADR 0056).
 - Dealt = amount x the profile's type multiplier (most specific entry wins, missing = x1; all 1.0 in v0) x the part's multiplier for the type (head `damage.ballistic` x2: headshots). EventLog `actor.damaged {actor, part, type, amount, health, by}` per part, `amount` before clamping (a 50 headshot on a 40 head reads 50).
 - `damage.stun` never lowers health: it adds stun points (knockout, [weapons-and-aiming.md](weapons-and-aiming.md)). Objects take no stun (`damage.stun` x0 in every material).
 - Fire and explosions already reach characters (M3): standing in a fire's radius or carrying a burning object (`damage.fire` 2 CONTACT per 0.5 s pulse, split over six parts) hurts.
@@ -64,9 +68,10 @@ flowchart LR
     M --> I["injury modifiers and tags"]
 ```
 
-### Fall damage (player)
+### Fall damage (any character with `FallImpact`)
 
-- Landing faster than 10 m/s (downwards): each leg takes (speed - 10) x 8 (`fall_min_speed`, `fall_damage_per_speed` in the profile). With the player's 2x gravity a 5 m drop lands at about 14 m/s: 32 per leg. A 2 m drop (8.9 m/s) is harmless.
+- `FallImpact` (`actors/common/movement/`) emits `damage.fall` CONTACT on its own body on every touchdown of at least 3 m/s, intensity = impact speed (m/s), source = the body itself. The `fall_damage` receptron (`actors/common/body/receptrons/fall_damage.tres`, `include_self`) runs `BodyDamageEffect` with threshold 10 and scale 16, shared 50/50 over the legs: each leg takes (speed - 10) x 8. `body_damage` ignores it (own stimulus). With the player's 2x gravity a 5 m drop lands at about 14 m/s: 32 per leg. A 2 m drop (8.9 m/s) is harmless.
+- An augmentation or armour changes falls by swapping or blocking the receptron (e.g. a higher threshold) or with a `damage.fall` type multiplier in the profile.
 
 ### Healing
 
@@ -79,7 +84,7 @@ flowchart LR
 
 ### Training dummy (`actors/dummy/`)
 
-- Static humanoid graybox figure (`StaticBody3D` on layer 3, actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move.
+- Static humanoid graybox figure (`StaticBody3D` on layer 3, actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move, so it has no MovementNoise, FallImpact or Knockback; its ImpactSensor stays off (props collide with layer 3).
 - Every hit shows a floating number (`Label3D`, part and amount; stun points in blue, `KO` in yellow) that rises and fades over 1.2 s.
 - Knocked out or dead it tips over backwards (figure, hitboxes and collision together). `use` (E) on it, or `reset()`, restores health, stun, consciousness and pose (`actor.reset`).
 

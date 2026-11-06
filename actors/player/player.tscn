@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://actors/player/player_config.tres" id="2_config"]
-[ext_resource type="Script" path="res://actors/player/player_noise.gd" id="3_noise"]
+[ext_resource type="Script" path="res://actors/common/movement/movement_noise.gd" id="3_noise"]
 [ext_resource type="Script" path="res://actors/player/player_carry.gd" id="4_carry"]
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="5_tags"]
 [ext_resource type="Script" path="res://core/attributes/attributes.gd" id="6_attributes"]
@@ -21,6 +21,14 @@
 [ext_resource type="Script" path="res://actors/player/interactor.gd" id="22_interactor"]
 [ext_resource type="PackedScene" path="res://ui/inventory/inventory_screen.tscn" id="23_inventory_screen"]
 [ext_resource type="PackedScene" path="res://ui/inventory/reading_overlay.tscn" id="24_reading_overlay"]
+[ext_resource type="Resource" path="res://actors/player/player_movement_noise.tres" id="25_movement_noise"]
+[ext_resource type="Script" path="res://actors/common/movement/fall_impact.gd" id="26_fall_impact"]
+[ext_resource type="Resource" path="res://actors/common/body/receptrons/fall_damage.tres" id="27_fall_damage"]
+[ext_resource type="Script" path="res://actors/common/knockback/knockback.gd" id="28_knockback"]
+[ext_resource type="Resource" path="res://actors/player/player_knockback.tres" id="29_knockback_config"]
+[ext_resource type="Resource" path="res://actors/common/knockback/receptrons/knockback.tres" id="30_knockback_receptron"]
+[ext_resource type="Script" path="res://actors/common/impact_sensor/impact_sensor.gd" id="31_impact_sensor"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="32_impact_settings"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -48,13 +56,9 @@ near = 0.05
 script = ExtResource("13_weapon_holder")
 aim_config = ExtResource("16_aim")
 
-[node name="FloorRay" type="RayCast3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
-target_position = Vector3(0, -0.4, 0)
-hit_back_faces = false
-
 [node name="Noise" type="Node3D" parent="."]
 script = ExtResource("3_noise")
+config = ExtResource("25_movement_noise")
 
 [node name="Audio" type="AudioStreamPlayer3D" parent="Noise"]
 max_polyphony = 2
@@ -73,7 +77,7 @@ base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_s
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("7_receiver")
-receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage")])
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron")])
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("10_body_parts")
@@ -94,3 +98,14 @@ script = ExtResource("22_interactor")
 [node name="InventoryScreen" parent="." instance=ExtResource("23_inventory_screen")]
 
 [node name="ReadingOverlay" parent="." instance=ExtResource("24_reading_overlay")]
+
+[node name="FallImpact" type="Node" parent="."]
+script = ExtResource("26_fall_impact")
+
+[node name="Knockback" type="Node" parent="."]
+script = ExtResource("28_knockback")
+config = ExtResource("29_knockback_config")
+
+[node name="ImpactSensor" type="Node" parent="."]
+script = ExtResource("31_impact_sensor")
+settings = ExtResource("32_impact_settings")

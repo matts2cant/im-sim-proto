@@ -6,6 +6,7 @@ const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const FLAT_FLOOR := "res://tests/actors/player/fixtures/flat_floor.tscn"
 const OBSTACLES := "res://tests/actors/player/fixtures/obstacles.tscn"
 const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
+const NOISE: MovementNoiseConfig = preload("res://actors/player/player_movement_noise.tres")
 
 var _driver: PlayerDriver
 var _player: Player
@@ -26,14 +27,14 @@ func test_footsteps_report_csg_floor_surface() -> void:
 
 	await _driver.hold(&"move_forward", 120)
 
-	var steps := EventLog.find(&"player.footstep")
-	assert_int(steps.size()).is_equal(floori(_distance(CONFIG.walk_speed, 120) / CONFIG.walk_stride))
+	var steps := EventLog.find(&"actor.footstep")
+	assert_int(steps.size()).is_equal(floori(_distance(CONFIG.walk_speed, 120) / NOISE.walk_stride))
 	for step: EventLogEntry in steps:
 		assert_str(step.source).is_equal("Player")
 		assert_str(step.data["mode"]).is_equal("walk")
 		assert_str(step.data["surface"]).is_equal("wood")
-		assert_float(step.data["loudness"]).is_equal_approx(CONFIG.walk_loudness * 1.2, 0.001)
-	assert_float(_player.noise.last_footstep_loudness).is_equal_approx(CONFIG.walk_loudness * 1.2, 0.001)
+		assert_float(step.data["loudness"]).is_equal_approx(NOISE.walk_loudness * 1.2, 0.001)
+	assert_float(_player.noise.last_footstep_loudness).is_equal_approx(NOISE.walk_loudness * 1.2, 0.001)
 
 
 func test_footsteps_default_to_concrete_without_metadata() -> void:
@@ -42,10 +43,10 @@ func test_footsteps_default_to_concrete_without_metadata() -> void:
 
 	await _driver.hold(&"move_forward", 90)
 
-	var steps := EventLog.find(&"player.footstep")
+	var steps := EventLog.find(&"actor.footstep")
 	assert_int(steps.size()).is_greater(0)
 	assert_str(steps[0].data["surface"]).is_equal("concrete")
-	assert_float(steps[0].data["loudness"]).is_equal_approx(CONFIG.walk_loudness, 0.001)
+	assert_float(steps[0].data["loudness"]).is_equal_approx(NOISE.walk_loudness, 0.001)
 
 
 func test_crouched_footsteps_are_quieter_and_more_frequent() -> void:
@@ -56,10 +57,10 @@ func test_crouched_footsteps_are_quieter_and_more_frequent() -> void:
 	await _driver.hold(&"move_forward", 120)
 	_driver.runner.simulate_action_release("crouch")
 
-	var steps := EventLog.find(&"player.footstep")
-	assert_int(steps.size()).is_equal(floori(_distance(CONFIG.crouch_speed, 120) / CONFIG.crouch_stride))
+	var steps := EventLog.find(&"actor.footstep")
+	assert_int(steps.size()).is_equal(floori(_distance(CONFIG.crouch_speed, 120) / NOISE.crouch_stride))
 	assert_str(steps[0].data["mode"]).is_equal("crouch")
-	assert_float(steps[0].data["loudness"]).is_equal_approx(CONFIG.crouch_loudness * 1.2, 0.001)
+	assert_float(steps[0].data["loudness"]).is_equal_approx(NOISE.crouch_loudness * 1.2, 0.001)
 
 
 func test_landing_after_two_metre_drop_is_logged() -> void:
@@ -69,12 +70,12 @@ func test_landing_after_two_metre_drop_is_logged() -> void:
 	await _driver.hold(&"move_forward", 40)
 	await _driver.frames(60)
 
-	var landings := EventLog.find(&"player.landed")
+	var landings := EventLog.find(&"actor.landed")
 	assert_int(landings.size()).is_equal(1)
 	var impact: float = landings[0].data["impact_speed"]
 	assert_float(impact).is_equal_approx(sqrt(2.0 * 9.8 * CONFIG.gravity_scale * 2.0), 0.5)
 	assert_str(landings[0].data["surface"]).is_equal("concrete")
-	var expected := CONFIG.walk_loudness * clampf(impact / CONFIG.landing_reference_speed, 1.0, 4.0)
+	var expected := NOISE.landing_loudness * clampf(impact / NOISE.landing_reference_speed, 1.0, 4.0)
 	assert_float(landings[0].data["loudness"]).is_equal_approx(expected, 0.001)
 
 
@@ -84,13 +85,15 @@ func test_csg_floor_collider_is_the_csg_node_with_metadata() -> void:
 	var floor_node := _driver.runner.find_child("WoodFloor")
 
 	var collision := _player.move_and_collide(Vector3.DOWN * 0.5, true)
-	var ray: RayCast3D = _player.get_node("FloorRay")
-	ray.force_raycast_update()
+	var feet := _player.global_position
+	var query := PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 0.1, feet + Vector3.DOWN * 0.3)
+	var hit := _player.get_world_3d().direct_space_state.intersect_ray(query)
 
 	assert_object(collision).is_not_null()
 	assert_object(collision.get_collider()).is_same(floor_node)
-	assert_object(ray.get_collider()).is_same(floor_node)
-	assert_str(CONFIG.surfaces.surface_of(collision.get_collider())).is_equal("wood")
+	assert_object(hit["collider"]).is_same(floor_node)
+	assert_str(NOISE.surfaces.surface_of(collision.get_collider())).is_equal("wood")
+	assert_str(_player.noise.surface).is_equal("wood")
 
 
 func test_footstep_emits_noise_stimulus_heard_by_a_receiver() -> void:
@@ -105,7 +108,7 @@ func test_footstep_emits_noise_stimulus_heard_by_a_receiver() -> void:
 	await _driver.hold(&"move_forward", 60)
 	await _driver.frames(2)
 
-	var step := EventLog.find(&"player.footstep")[0]
+	var step := EventLog.find(&"actor.footstep")[0]
 	var noise := EventLog.find(&"stimulus.emitted")[0]
 	assert_str(noise.source).is_equal("Player")
 	assert_str(noise.data["type"]).is_equal("noise")
@@ -120,7 +123,7 @@ func test_footstep_emits_noise_stimulus_heard_by_a_receiver() -> void:
 	var distance := origin.distance_to(listener_position)
 	assert_str(heard[0].data["propagation"]).is_equal("straight_fallback")
 	assert_float(heard[0].data["distance"]).is_equal_approx(distance, 0.0001)
-	assert_float(heard[0].data["perceived"]).is_equal_approx(CONFIG.walk_loudness * 1.2 - distance, 0.001)
+	assert_float(heard[0].data["perceived"]).is_equal_approx(NOISE.walk_loudness * 1.2 - distance, 0.001)
 
 
 func _distance(speed: float, frames: int) -> float:

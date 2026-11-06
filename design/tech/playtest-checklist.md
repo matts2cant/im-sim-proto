@@ -22,7 +22,7 @@ Start the main scene (hub), walk through doorway "1 Movement". Keep the debug pa
 - [ ] Under the 1.2 m ceiling, releasing Ctrl keeps you crouched; you stand up on your own after leaving it.
 - [ ] Gaps: 2 m clears with a walk jump; 3.3 m needs a sprint jump (a walk jump falls short). Holding Space in the air does not catch the same-level far platform (a ledge catch needs a ledge 1.0 m or more above where you last stood).
 - [ ] Footsteps: walk each surface strip; sound and the Player tab's surface/loudness change per strip (concrete 6, carpet 3, wood 7.2, metal 9.6, grass 4.2 when walking). Sprint and crouch change step rate and loudness. Metal steps sound like a dull metal plate, not a spoon on glass (impactPlate sounds, pitch 0.8).
-- [ ] Landing off the 2 m and 5 m drops is audibly louder than a footstep; `player.landed` shows ~10.6 and ~16.8 (a plain 1 m jump on concrete lands at ~7.5). Ramps lead back up without snagging.
+- [ ] Landing off the 2 m and 5 m drops is audibly louder than a footstep; `actor.landed` shows ~10.6 and ~16.8 (a plain 1 m jump on concrete lands at ~7.5). Ramps lead back up without snagging.
 - [ ] Walking off a hub doorway that leads nowhere respawns you at the hub spawn.
 
 ## M2 Core framework
@@ -30,7 +30,7 @@ Start the main scene (hub), walk through doorway "1 Movement". Keep the debug pa
 - [ ] Spawned test stimuli appear in the Event Log tab.
 - [ ] Chains are visible and terminate (no runaway loops).
 - [ ] Attribute and modifier changes show in the Stats tab.
-- [ ] Walking in the hub logs `stimulus.emitted` noise entries (Event Log tab, filter `stimulus`) with the same loudness as the `player.footstep` entry just before.
+- [ ] Walking in the hub logs `stimulus.emitted` noise entries (Event Log tab, filter `stimulus`) with the same loudness as the `actor.footstep` entry just before.
 - [ ] Debug panel Overlays tab, tick "Stimuli", close the panel: each footstep draws a yellow wire sphere of the loudness radius at the feet for about 1.5 s; sprinting on metal draws visibly bigger spheres than crouching on carpet. Lines are readable, not distracting, and do not tank the frame rate.
 - [ ] Run `tests/ui/debug_panel/fixtures/overlay_demo.tscn` (two rooms, navmesh baked at start, listener behind the wall): the yellow noise path goes round through the doorway, not through the wall; the orange fire sphere is distinct from the yellow noise sphere.
 
@@ -163,3 +163,10 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] All four routes are completable.
 - [ ] Death leads to reload/restart; extraction shows the summary (time, alarms, kills/knockouts, route).
 - [ ] Mission is playable start to finish without debug tools.
+
+## Generic character components (ADR 0056)
+
+- [ ] Footsteps and landings sound and log as before (walk, sprint, crouch on each surface; `actor.footstep` / `actor.landed` in the Event Log). Sprinting while injured (one leg) still logs `mode: sprint`.
+- [ ] The 5 m drop in the movement course still hurts both legs by about 32 (HUD silhouette), the 2 m drop does not; the Event Log shows `damage.fall` emitted by the Player and the `fall_damage` receptron firing.
+- [ ] Throw a small crate at a wall so it bounces back into you, or have a crate fall on you from a stack: the HUD flashes and the torso takes about the damage the dummy takes from the same throw (`actor.struck` in the log). Walking or pushing into crates never hurts.
+- [ ] (Once explosions emit `force.blast`, parallel change.) Blow up a barrel about 2 m away: you are shoved clearly away (about a metre), never thrown into the air, and you can walk normally right after. A wall behind you stops the shove without snagging. Standing next to the barrel does not launch you over obstacles.

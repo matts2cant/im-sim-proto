@@ -54,7 +54,7 @@ func can_open() -> bool:
 	return (
 		player != null
 		and player.input_enabled
-		and player.body.can_act()
+		and ActorState.can_act(player)
 		and not DebugPanel.is_open()
 		and not PauseScreens.any_open(get_tree())
 	)

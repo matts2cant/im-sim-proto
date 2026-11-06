@@ -77,6 +77,20 @@ Object and player kinds (M3, [objects-and-fire.md](objects-and-fire.md)): `objec
 
 Damage and weapon kinds (M4, [damage.md](damage.md), [weapons-and-aiming.md](weapons-and-aiming.md)): `actor.damaged {actor, part, type, amount, health, by}`, `actor.stunned {actor, amount, stun, behind, aware, by}`, `actor.knocked_out {actor, stun, by}`, `actor.died {actor, by}`, `actor.healed {actor, amount, requested}`, `actor.reset`, `item.use_refused {object, reason}`, `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started`, `weapon.reloaded`, `weapon.refused {weapon, reason}`, `level.reset {scene}`. `by` is the id of the damaging stimulus. (`player.hurt` from M3 is gone: the `body_damage` receptron replaced it.)
 
+Character component kinds ([ADR 0056](../decisions/0056-generic-character-components.md)): `actor.footstep {mode, surface, loudness}` and `actor.landed {impact_speed, surface, loudness}` (MovementNoise; were `player.footstep` / `player.landed`), `actor.struck {actor, object, speed, damage}` (ImpactSensor), `actor.knocked_back {actor, impulse, speed}` (Knockback).
+
+### What characters receive ([ADR 0056](../decisions/0056-generic-character-components.md))
+
+Generic components and receptrons any character composes (the player has all of them; the static training dummy only `body_damage` and an inactive ImpactSensor):
+
+| Stimulus | From | Receptron / effect | Result |
+|---|---|---|---|
+| `damage.*` | weapons, fire, explosions, `ImpactNoise`, `ImpactSensor` | `body_damage` (`BodyDamageEffect`, x1) | body-part damage ([damage.md](damage.md)) |
+| `damage.fall` CONTACT, intensity = impact speed (m/s), source = the faller | `FallImpact` on the character itself (touchdown at 3 m/s or more) | `fall_damage` (`include_self`; `BodyDamageEffect` threshold 10, x16, legs 50/50) | (v - 10) x 8 per leg; `body_damage` skips it (own stimulus) |
+| `damage.blunt` CONTACT, source = the prop | `ImpactSensor` on a body props pass through (the player), when a prop flies into it | `body_damage` | kinetic energy / 40, as `ImpactNoise` |
+| `force.blast` RADIUS, intensity = impulse (N s) at the centre, linear falloff | explosions | `knockback` on `force` (`KnockbackEffect`) | shove away from the origin towards the receiver |
+| `force.impact` RAY, intensity = impulse (N s) | weapon hits | `knockback` | shove along the ray |
+
 Inventory kinds (M5, [inventory.md](inventory.md)): `item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}`, `item.use_refused {item, reason}` (was `{object, reason}` for the M4 world medkit), `debug.gave_item {item, count}`.
 
 Tracing a fire: `object.ignited.by` is the id of the stimulus that lit it; that stimulus's `stimulus.emitted` entry names its source (the burning neighbour) and its `cause_id`, which equals the neighbour's own `object.ignited.by`; repeat until a stimulus with `cause_id` 0.

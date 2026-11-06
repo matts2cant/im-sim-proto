@@ -84,7 +84,7 @@ func _assert_mantles(start: Vector3, height: float, end_crouched: bool) -> void:
 	assert_float(_player.global_position.z).is_less(-2.3)
 	assert_bool(_player.crouched).is_equal(end_crouched)
 	assert_bool(_player.is_on_floor()).is_true()
-	assert_array(EventLog.find(&"player.landed")).is_empty()
+	assert_array(EventLog.find(&"actor.landed")).is_empty()
 
 
 func _load() -> void:

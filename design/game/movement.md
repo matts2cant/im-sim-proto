@@ -12,7 +12,7 @@ Walk, crouch, sprint, jump, mantle (ledges, crates), and vents (crouch-only path
 
 ## Rules
 
-All numbers live in `actors/player/player_config.tres` (surfaces in `actors/player/surface_table.tres`); the code holds none.
+All numbers live in `actors/player/player_config.tres`; movement noise in `actors/player/player_movement_noise.tres` (surfaces in `actors/common/movement/surface_table.tres`); the code holds none.
 
 ### Body and look
 
@@ -65,7 +65,8 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | Crouch | 1.2 m | 2 |
 
 - Footstep loudness = base loudness x surface multiplier.
-- The surface comes from node metadata `surface` (StringName) on the collider the player stands on; default `concrete` ([ADR 0033](../decisions/0033-floor-surface-metadata.md)). For CSG the collider is the CSG root node with `use_collision`, so the metadata goes there.
+- The stance comes from the character's tags: `stance.crouch` (crouch wins), `stance.sprint`, else walk; the player sets them from its crouch state and movement mode, any other controller does the same ([ADR 0056](../decisions/0056-generic-character-components.md)).
+- The surface comes from node metadata `surface` (StringName) on the collider the character stands on; default `concrete` ([ADR 0033](../decisions/0033-floor-surface-metadata.md)). For CSG the collider is the CSG root node with `use_collision`, so the metadata goes there.
 
 | Surface | Multiplier |
 |---|---|
@@ -75,15 +76,16 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | metal | 1.6 |
 | grass | 0.7 |
 
-- Landing: on touchdown with a downward impact speed of at least 3 m/s, loudness = walk base x clamp(impact speed / 5, 1, 4) x surface multiplier. A 1 m jump lands at 6.3 m/s (loudness 7.5 on concrete), a 2 m drop at 8.9 m/s (10.6), a 5 m drop at 14.0 m/s (16.8).
+- Landing: on touchdown with a downward impact speed of at least 3 m/s, loudness = landing base (6) x clamp(impact speed / 5, 1, 4) x surface multiplier. The impact speed is rebuilt from the two ticks before the touchdown (`LandingTracker`). A 1 m jump lands at 6.3 m/s (loudness 7.5 on concrete), a 2 m drop at 8.9 m/s (10.6), a 5 m drop at 14.0 m/s (16.8).
 - Each footstep and landing plays a Kenney impact sound for the surface (random variant, ±8% pitch around a per-surface base pitch: 1.0, except metal 0.8 with the impactPlate sounds); volume follows loudness (0 dB at 6, 10 dB per decade, clamped to -18..+6 dB).
-- Events in the `EventLog` (source = player node name): `player.footstep` {mode, surface, loudness}, `player.landed` {impact_speed, surface, loudness}, `player.mantled` {height}.
-- Footsteps and landings emit `noise` stimuli (M2, [stimulus-response.md](stimulus-response.md)): RADIUS, PATH propagation, intensity = radius = loudness, origin at the feet, source = the player; the single emit point is `PlayerNoise._make_noise()` in `actors/player/player_noise.gd`, next to the existing `player.footstep` / `player.landed` log entries. Guards hear them via path distance ([perception-and-ai.md](perception-and-ai.md)).
+- Events in the `EventLog` (source = the character's node name): `actor.footstep` {mode, surface, loudness}, `actor.landed` {impact_speed, surface, loudness}, `player.mantled` {height}.
+- Footstep and landing noise is the generic `MovementNoise` component (`actors/common/movement/`, ADR 0056), a child of any CharacterBody3D: after the body moves each tick it reads the floor state, the horizontal speed and the stance tags. It emits `noise` stimuli (M2, [stimulus-response.md](stimulus-response.md)): RADIUS, PATH propagation, intensity = radius = loudness, origin at the feet, source = the character, next to the `actor.footstep` / `actor.landed` log entries. Guards hear them via path distance ([perception-and-ai.md](perception-and-ai.md)) and make them with the same component.
 
 ### Other
 
 - Speed Enhancement augmentation: faster, higher jump/mantle, louder landings. Run Silent: footstep noise x0. See [abilities.md](abilities.md).
-- Injuries (M4, [damage.md](damage.md)): every ground speed is multiplied by the `move_speed_mult` attribute (one leg at 0: x0.6); both legs at 0 force a crawl: crouched, cannot stand, 1.0 m/s. Landing faster than 10 m/s hurts both legs ((speed - 10) x 8 each: 32 from a 5 m drop).
+- Injuries (M4, [damage.md](damage.md)): every ground speed is multiplied by the `move_speed_mult` attribute (one leg at 0: x0.6); both legs at 0 (tag `state.legs_disabled`, from injuries or any effect) force a crawl: crouched, cannot stand, 1.0 m/s. Landing faster than 10 m/s hurts both legs ((speed - 10) x 8 each: 32 from a 5 m drop): `FallImpact` emits `damage.fall`, the `fall_damage` receptron hurts the legs ([damage.md](damage.md)).
+- Knockback: `force.blast` / `force.impact` stimuli shove the player through the generic `Knockback` component (`actors/player/player_knockback.tres`): velocity change = impulse x 6 / 80 kg, horizontal part carried and damped (8 m/s² on the ground, 2 in the air, at most 8 m/s), upward part at most 3 m/s (feet rise at most 0.23 m). A barrel blast at 2 m shoves the player about a metre ([ADR 0056](../decisions/0056-generic-character-components.md)).
 - Vents are paths only passable while crouched (1.0 m high).
 - Physics props: the player stands on, jumps from and mantles onto them like level geometry, presses on what it stands on with its weight (80 kg, at most 4 x the prop's own weight) and pushes props it walks into (at most 250 N, up to 2 m/s); props do not collide with the player's body in the solver ([ADR 0054](../decisions/0054-player-and-physics-props.md), [objects-and-fire.md](objects-and-fire.md)).
 - The player is saveable: position, yaw, pitch, crouched, velocity ([saving.md](saving.md)).
@@ -100,9 +102,11 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | `actors/player/player_probe.gd` | Physics queries: headroom, ledge detection, mantle path clearance |
 | `actors/player/push_rules.gd` | Pure: push impulse and weight share for physics props |
 | `actors/player/player_pusher.gd` | Physics queries and forces: props underfoot (weight) and walked into (push) |
-| `actors/player/footstep_tracker.gd`, `player_noise_rules.gd` | Pure: footstep distance, loudness math |
-| `actors/player/surface_table.gd`, `.tres` | Surface multipliers and sounds, metadata lookup |
-| `actors/player/player_noise.gd` | Component: logs noise events and plays the cue |
+| `actors/common/movement/footstep_tracker.gd`, `landing_tracker.gd`, `movement_noise_rules.gd` | Pure: footstep distance, touchdown impact speed, loudness math |
+| `actors/common/movement/surface_table.gd`, `.tres` | Surface multipliers and sounds, metadata lookup |
+| `actors/common/movement/movement_noise.gd`, `movement_noise_config.gd` | Component (any CharacterBody3D): footsteps and landings, logs, `noise`, cue; the player's tuning in `actors/player/player_movement_noise.tres` |
+| `actors/common/movement/fall_impact.gd` | Component (any CharacterBody3D): `damage.fall` on touchdown |
+| `actors/common/knockback/` | Component, effect and receptron: shoves from `force.*` |
 | `ui/debug_panel/tabs/player_tab.*` | Debug panel Player tab |
 
 ## Interactions

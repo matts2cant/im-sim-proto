@@ -7,7 +7,9 @@ extends Node
 ## `settings.min_speed`, at most one per `settings.throttle` seconds and never while carried:
 ## `object.impact` log entry, `noise` (PATH) of ImpactRules.loudness(), material impact sound,
 ## `damage.blunt` CONTACT = kinetic energy / divisor to the body itself and to what it hit. Glass
-## (material.break_impact_speed) breaks outright on a fast enough impact.
+## (material.break_impact_speed) breaks outright on a fast enough impact. Contacts with bodies
+## outside the body's collision mask (the player, which props pass through) are not impacts; those
+## actors report props hitting them with ImpactSensor (ADR 0056).
 
 @export var material: MaterialProfile
 @export var settings: ImpactSettings
@@ -45,7 +47,7 @@ func _physics_process(delta: float) -> void:
 		var id := state.get_contact_collider_id(i)
 		var is_new := not _contacts.has(id) and not current.has(id)
 		current[id] = true
-		if not is_new:
+		if not is_new or not _scans(state.get_contact_collider_object(i)):
 			continue
 		var relative := _previous_velocity - state.get_contact_collider_velocity_at_position(i)
 		var speed := -relative.dot(state.get_contact_local_normal(i))
@@ -79,6 +81,12 @@ func impact(speed: float, other: Node) -> float:
 		if breakable != null:
 			breakable.break_apart(&"impact")
 	return loudness
+
+
+# A body this one does not collide with (not in its mask: the player, ADR 0054) can still report a
+# contact while passing through it; that is no impact. Such actors sense props with ImpactSensor.
+func _scans(other: Object) -> bool:
+	return not other is CollisionObject3D or (body.collision_mask & (other as CollisionObject3D).collision_layer) != 0
 
 
 func _is_carried() -> bool:

@@ -11,6 +11,8 @@
 [ext_resource type="Resource" path="res://actors/dummy/dummy_body.tres" id="9_dummy_body"]
 [ext_resource type="Script" path="res://actors/common/awareness/awareness.gd" id="10_awareness"]
 [ext_resource type="Script" path="res://objects/components/usable.gd" id="11_usable"]
+[ext_resource type="Script" path="res://actors/common/impact_sensor/impact_sensor.gd" id="12_impact_sensor"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="13_impact_settings"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.3
@@ -125,3 +127,7 @@ script = ExtResource("11_usable")
 verb = "reset"
 
 [node name="Numbers" type="Node3D" parent="."]
+
+[node name="ImpactSensor" type="Node" parent="."]
+script = ExtResource("12_impact_sensor")
+settings = ExtResource("13_impact_settings")

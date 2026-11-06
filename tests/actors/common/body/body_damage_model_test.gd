@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 const PLAYER_PROFILE: BodyProfile = preload("res://actors/player/player_body.tres")
 const DUMMY_PROFILE: BodyProfile = preload("res://actors/dummy/dummy_body.tres")
+const FALL_DAMAGE: Receptron = preload("res://actors/common/body/receptrons/fall_damage.tres")
 
 var _model: BodyDamageModel
 
@@ -55,6 +56,21 @@ func test_explosive_split_torso_40_others_12() -> void:
 	for part: StringName in [&"head", &"arm_l", &"arm_r", &"leg_l", &"leg_r"]:
 		assert_float(dealt[part]).is_equal_approx(6.0, 0.0001)
 	assert_float(_model.health(&"torso")).is_equal_approx(80.0, 0.0001)
+
+
+func test_area_weights_are_data_per_type_most_specific_wins() -> void:
+	var profile := PLAYER_PROFILE.duplicate() as BodyProfile
+	profile.area_weights_by_type = profile.area_weights_by_type.duplicate()
+	profile.area_weights_by_type[&"damage.gas"] = {&"head": 0.5, &"torso": 0.5}
+	var model := BodyDamageModel.new(profile)
+
+	var gas := model.split(&"damage.gas.sleep", 10.0)
+	var blunt := model.split(&"damage.blunt", 10.0)
+	var ballistic := model.split(&"damage.ballistic", 10.0)
+
+	assert_dict(gas).is_equal({&"head": 5.0, &"torso": 5.0})
+	assert_dict(blunt).is_equal({&"torso": 10.0})
+	assert_dict(ballistic).is_equal({&"torso": 10.0})
 
 
 func test_fire_split_evenly() -> void:
@@ -122,11 +138,18 @@ func test_dead_cannot_heal() -> void:
 	assert_float(_model.health(&"head")).is_equal(0.0)
 
 
+# Fall damage = the fall_damage receptron's effect (impact speed -> damage) shared by the profile.
 func test_fall_damage_formula() -> void:
-	assert_float(PLAYER_PROFILE.fall_damage_per_leg(9.9)).is_equal(0.0)
-	assert_float(PLAYER_PROFILE.fall_damage_per_leg(10.0)).is_equal(0.0)
-	assert_float(PLAYER_PROFILE.fall_damage_per_leg(14.0)).is_equal_approx(32.0, 0.0001)
-	assert_float(PLAYER_PROFILE.fall_damage_per_leg(20.0)).is_equal_approx(80.0, 0.0001)
+	var effect := FALL_DAMAGE.effects[0] as BodyDamageEffect
+	for speed: float in [9.9, 10.0, 14.0, 20.0]:
+		var per_leg := _model.split(&"damage.fall", effect.damage(speed))
+		var expected := maxf(speed - 10.0, 0.0) * 8.0
+		if expected <= 0.0:
+			assert_float(effect.damage(speed)).is_equal(0.0)
+			continue
+		assert_array(per_leg.keys()).contains_exactly_in_any_order([&"leg_l", &"leg_r"])
+		for leg: StringName in per_leg:
+			assert_float(per_leg[leg]).is_equal_approx(expected, 0.0001)
 
 
 func test_save_round_trip() -> void:

@@ -2,7 +2,7 @@ class_name SurfaceTable
 extends Resource
 ## Floor surfaces: noise multiplier and footstep sound per surface name.
 ## A floor declares its surface with node metadata `surface` (StringName) on the collider
-## the player stands on; for CSG that is the CSG root node with use_collision (ADR 0033).
+## a character stands on; for CSG that is the CSG root node with use_collision (ADR 0033).
 
 const SURFACE_META: StringName = &"surface"
 

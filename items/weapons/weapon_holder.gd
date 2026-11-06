@@ -163,9 +163,12 @@ func trigger() -> int:
 	var data := weapon()
 	if data == null:
 		return -1
-	var body := BodyParts.of(user)
-	if body != null and (not body.can_act() or body.arms_disabled()):
-		_log(&"weapon.refused", {"weapon": data.id, "reason": "arms_disabled" if body.can_act() else "incapacitated"})
+	# State tags (ActorState): injuries, sleep gas or cuffs all block it the same way.
+	if not ActorState.can_use_arms(user):
+		_log(
+			&"weapon.refused",
+			{"weapon": data.id, "reason": "arms_disabled" if ActorState.can_act(user) else "incapacitated"}
+		)
 		return -1
 	var result := _equipped.try_fire()
 	match result:

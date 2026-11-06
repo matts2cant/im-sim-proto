@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="KnockbackConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/knockback/knockback_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+mass = 80.0
+impulse_scale = 6.0
+max_speed = 8.0
+max_up_speed = 3.0
+ground_damping = 8.0
+air_damping = 2.0

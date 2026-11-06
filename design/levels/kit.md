@@ -64,7 +64,7 @@ Two rooms connect through one shared wall ([ADR 0043](../decisions/0043-room-con
 | `hazard` | orange | Danger or "no" geometry (`material_override`) |
 | `interactive` | yellow | Things to use (`material_override`) |
 
-`GrayboxMaterials` (`levels/kit/graybox_materials.gd`) maps surface names to materials; the five surfaces match `actors/player/surface_table.tres`.
+`GrayboxMaterials` (`levels/kit/graybox_materials.gd`) maps surface names to materials; the five surfaces match `actors/common/movement/surface_table.tres`.
 
 ## Navigation
 
