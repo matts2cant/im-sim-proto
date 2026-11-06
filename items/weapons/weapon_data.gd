@@ -49,8 +49,16 @@ enum Kind { RANGED, MELEE }
 ## Placeholder box held in front of the camera.
 @export var view_size: Vector3 = Vector3(0.05, 0.1, 0.2)
 @export var view_color: Color = Color(0.2, 0.2, 0.22)
-## Box centre relative to the camera.
+## Pivot of the view model (the grip: a swing turns about it) relative to the camera.
 @export var view_offset: Vector3 = Vector3(0.22, -0.2, -0.45)
+## Box centre relative to the pivot, in the pivot's frame (zero: the box turns about its centre).
+@export var view_box_offset: Vector3 = Vector3.ZERO
+## Ready pose: Euler degrees (pitch, yaw, roll) of the pivot; zero points the box along -Z.
+@export var view_rest_deg: Vector3 = Vector3.ZERO
+## Melee: Euler degrees added to the ready pose at the bottom of the chop.
+@export var view_swing_deg: Vector3 = Vector3.ZERO
+## Melee: share of the swing the chop takes (0..1); the rest is the slower return.
+@export_range(0.05, 0.95) var view_chop_share: float = 0.3
 
 
 func is_melee() -> bool:
