@@ -232,6 +232,7 @@ func _consume(stack: ItemStack) -> bool:
 	var affects := false
 	for type: StringName in stack.item.use_stimuli:
 		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], player, player)
+		stimulus.scale_attribute = stack.item.use_scale_attribute
 		stimuli.append(stimulus)
 		affects = affects or StimulusSystem.would_affect(stimulus)
 	if not affects:

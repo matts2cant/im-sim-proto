@@ -8,7 +8,7 @@ extends Resource
 ## What using the item does (belt key or the inventory screen's Use). What a consumable does to its
 ## user is data (`use_stimuli`, ADR 0057); the other actions are inventory and UI verbs.
 enum UseAction {
-	## Nothing yet: shows `use_message` ("Nothing happens"; biocells until M6).
+	## Nothing yet: shows `use_message` ("Nothing happens").
 	NONE,
 	## Draws `weapon` through the WeaponHolder; using it again holsters.
 	EQUIP_WEAPON,
@@ -44,6 +44,9 @@ enum UseAction {
 ## CONSUME: stimuli sent to the user, type -> intensity (medkit: `heal` 30). The user's receptrons
 ## decide what they do.
 @export var use_stimuli: Dictionary[StringName, float] = {}
+## CONSUME: attribute of the user that scales each use stimulus (Stimulus.scale_attribute, ADR 0061;
+## medkit: `medical_heal_mult`, the Medicine skill). Empty: none.
+@export var use_scale_attribute: StringName = &""
 ## CONSUME: shown when the user would not react to any of `use_stimuli` (the item is kept).
 @export var refused_message: String = "Nothing happens"
 ## NONE: the message shown on use.

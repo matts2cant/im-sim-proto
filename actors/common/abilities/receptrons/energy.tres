@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Receptron" format=3]
+
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="1_receptron"]
+[ext_resource type="Script" path="res://core/stimulus/effects/effect.gd" id="2_effect"]
+[ext_resource type="Script" path="res://core/stimulus/effects/change_attribute_effect.gd" id="3_change"]
+
+[sub_resource type="Resource" id="Resource_restore"]
+script = ExtResource("3_change")
+attribute = &"energy"
+per_intensity = 1.0
+max_attribute = &"energy_max"
+min_value = 0.0
+
+[resource]
+resource_name = "energy"
+script = ExtResource("1_receptron")
+stimulus_type = &"energy"
+include_self = true
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_restore")])

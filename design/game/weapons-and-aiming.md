@@ -22,15 +22,17 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 |---|---|
 | Floor standing still | 0.5 degrees (`base_min_deg`; about 0.17 m radius at 20 m, head-sized) |
 | Crouched and still | base x0.8 = 0.4 |
+| Pistols skill | every floor above (not the arm penalty) and the look and shot bloom x `pistol_spread_mult`: x1.0 / 0.8 / 0.6 / 0.4 (Master standing floor 0.2) |
 | Walking / crouch-walking (> 0.5 m/s) | base + 3 = 3.5 |
 | Sprinting | base + 6 = 6.5 |
 | Airborne (after 0.1 s off the ground) | base + 6 = 6.5 |
 | Arm penalty | + `aim_spread_add` (3 per disabled arm) |
-| Settle | exponential toward the floor, time constant `settle_time` 0.8 s (M6 Pistols skill lowers it to 0.2) |
+| Settle | exponential toward the floor, time constant `settle_time` 0.8 s through the shooter's `pistol_settle_time` attribute (Pistols: 0.8 / 0.6 / 0.4 / 0.2 s), x `crouch_settle_factor` 0.6 while crouched (still or moving, tag `stance.crouch`): 0.48 s untrained, 0.12 s at Master. The reticle tightens faster when you crouch |
 | Mouse look | +0.02 degrees per pixel moved, at most +2 per physics frame |
 | Per shot | +2.5 |
 | Max | 10 |
 
+- Skills scale weapons through the holder's attributes, never through a skill check ([ADR 0061](../decisions/0061-abilities-model.md)): `WeaponData.attribute_class` (`pistol`, `melee`) names them, `<class>_damage_mult` (damage stimuli via `Stimulus.scale_attribute`, not the `force.impact`), `<class>_cycle_mult` (cycle_time), `<class>_reload_mult` (reload_time), `<class>_spread_mult`, `<class>_settle_time`. Pistols: damage x1.1 / 1.2 / 1.3, reload 1.6 s x0.85 / 0.7 / 0.5. Low-Tech: baton damage x1.25 / 1.5 / 2.0 (stun 25 / 30 / 40: frontal knockout in 3 / 2 / 2 hits), swing 0.6 s x0.9 / 0.8 / 0.7. Combat Strength: melee damage x1.5 on top ([abilities.md](abilities.md)).
 - Each physics step: if the floor is above the spread, the spread jumps to it (moving widens at once); otherwise the excess decays as `exp(-dt / settle_time)`. After one time constant 37 % of the excess is left, after 5 less than 1 %. Within 0.005 degrees of the floor the spread snaps onto it, so a settled cone is exactly `base_min_deg`.
 - A shot direction is sampled uniformly on the cone's disk: radius tan(spread) x sqrt(u), angle 2 pi v, from a `RandomNumberGenerator` owned by the holder (`rng_seed`, `seed_rng()`; tests seed it).
 - **Sway**: a slow figure-of-eight drift of the aim point, amplitude 0.15 degrees x `aim_sway_mult` (x2 per disabled arm), 0.35 Hz. The cone (and the reticle) is centred on the swayed aim.
@@ -80,7 +82,7 @@ flowchart TD
 
 ## Interactions
 
-- Skills: Pistols (accuracy, settle, reload), Low-Tech (baton damage/speed, knockout threshold): [abilities.md](abilities.md).
+- Skills: Pistols (cone, settle, reload, damage), Low-Tech (baton damage and swing speed): [abilities.md](abilities.md). Cloak (`state.cloaked`) draws the view model at 30 % opacity.
 - Damage types and parts: [damage.md](damage.md).
 - Shots emit stimuli ([stimulus-response.md](stimulus-response.md)); guards hear the 6 m muzzle noise and the impact noise in M7 ([perception-and-ai.md](perception-and-ai.md)); shooting lights: [light-and-visibility.md](light-and-visibility.md).
 - Controls: [controls.md](controls.md). Ammo and items: [inventory.md](inventory.md). Combat Strength strengthens melee: [abilities.md](abilities.md).

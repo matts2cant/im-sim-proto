@@ -37,6 +37,7 @@ All numbers live in `actors/player/player_config.tres`; movement noise in `actor
 | Crouch | 2.0 |
 
 - Ground acceleration 40 m/s², deceleration 50 m/s² (no input).
+- Every ground speed is multiplied by the `move_speed_mult` attribute (injuries x0.6 per leg, Speed Enhancement x1.5: walk 6, sprint 9, crouch 3 m/s).
 - Air control 0.3: in the air only 30% of ground acceleration steers, and without input momentum is kept. A jump keeps the speed cap of the mode it started from (a sprint jump stays at 6 m/s).
 - Gravity is the engine default 9.8 m/s² times `gravity_scale` 2.0 = 19.6 m/s², for the player only ([ADR 0036](../decisions/0036-player-gravity-scale.md)). Jump apex 1.0 m; launch speed = sqrt(2 g h) = 6.26 m/s. Air time on flat ground 0.64 s, so a flat jump covers about 2.6 m from walk and 3.8 m from sprint (plus up to ~0.25 m capsule overhang at each edge).
 - Steps ([ADR 0058](../decisions/0058-step-climbing.md)): walking (any speed) into an obstacle whose top is at most the step height (0.35 m, `actors/player/player_step.tres`, editable in the debug panel's Player tab) above the feet moves the player onto it, with no jump and no speed loss, when the top is walkable (≤ 45°) and the capsule fits there at its current height (standing 1.8 m or crouched 0.95 m). Only from the floor, not while jumping or mantling. Higher obstacles block: 0.35-1.0 m are jumped onto, 1.0-1.9 m mantled.
@@ -49,7 +50,7 @@ All numbers live in `actors/player/player_config.tres`; movement noise in `actor
 See [ADR 0035](../decisions/0035-mantle-rules.md).
 
 - Triggered by pressing jump on the ground, or by holding jump in the air, when facing a ledge.
-- The ledge top must be at least 1.0 m above the ground the player last stood on (grounded or in the air) and above the feet, and at most 1.9 m above both the feet and that ground (a jump neither extends the maximum nor lowers the minimum; the Speed augmentation will raise the limit). Ledges below 1.0 m are jumped onto physically.
+- The ledge top must be at least 1.0 m above the ground the player last stood on (grounded or in the air) and above the feet, and at most 1.9 m above both the feet and that ground (a jump neither extends the maximum nor lowers the minimum). The maximum is `PlayerConfig.mantle_max_height` through the `mantle_max_height` attribute: Speed Enhancement adds 0.6 (2.5 m), so a 2.3 m ledge is mantled from standing with it and refused without. Ledges below 1.0 m are jumped onto physically.
 - The ledge face must be within 0.8 m of the capsule axis, measured horizontally.
 - The player needs standing or crouched clearance for the whole move (rise, move over, end position). With only crouched clearance (a vent entrance) the mantle ends crouched.
 - Duration 0.25 s + 0.15 s per metre of height. It is a scripted move (rise, then move over the edge), no physics during it.
@@ -86,7 +87,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 
 ### Other
 
-- Speed Enhancement augmentation: faster, higher jump/mantle, louder landings. Run Silent: footstep noise x0. See [abilities.md](abilities.md).
+- Speed Enhancement augmentation: speeds x1.5, jump apex 1.0 → 1.6 m (`jump_apex_height` attribute, base `PlayerConfig.jump_apex_height`), mantle up to 2.5 m, landing loudness x1.5. Run Silent: footstep and landing loudness x0 (`footstep_noise_mult`, `landing_noise_mult` attributes read by `MovementNoise`; a noise scaled to 0 is not made: no log entry, stimulus or sound). See [abilities.md](abilities.md).
 - Injuries (M4, [damage.md](damage.md)): every ground speed is multiplied by the `move_speed_mult` attribute (one leg at 0: x0.6); both legs at 0 (tag `state.legs_disabled`, from injuries or any effect) force a crawl: crouched, cannot stand, 1.0 m/s. Landing faster than 10 m/s hurts both legs ((speed - 10) x 8 each: 32 from a 5 m drop): `FallImpact` emits `damage.fall`, the `fall_damage` receptron hurts the legs ([damage.md](damage.md)).
 - Knockback: `force.blast` / `force.impact` stimuli shove the player through the generic `Knockback` component (`actors/player/player_knockback.tres`): velocity change = impulse x 6 / 80 kg, horizontal part carried and damped (8 m/s² on the ground, 2 in the air, at most 8 m/s), upward part at most 3 m/s (feet rise at most 0.23 m). A barrel blast at 2 m shoves the player about a metre ([ADR 0056](../decisions/0056-generic-character-components.md)).
 - Vents are paths only passable while crouched (1.0 m high).
@@ -122,4 +123,4 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 ## Open questions
 
 - Holding jump in the air lets the player catch a ledge after falling short, which makes gaps more forgiving (the catch needs the ledge top at least 1.0 m above the last ground, so it cannot save a same-level gap; a sprint jump plus catch onto a ledge 1.0-1.9 m higher reaches about 4.6 m). Keep, limit to the falling phase, or shorten reach: decide after playtest.
-- Leg damage speeds: TBD in M4. Speed augmentation values: TBD in M6.
+- With Speed Enhancement a sprint jump covers about 7.3 m and a mid-air catch onto a higher ledge more: see the Augmented column in [metrics](../levels/metrics.md).

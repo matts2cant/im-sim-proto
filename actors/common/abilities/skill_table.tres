@@ -1,0 +1,99 @@
+[gd_resource type="Resource" script_class="SkillTable" format=3]
+
+[ext_resource type="Script" path="res://actors/common/abilities/skill_table.gd" id="1_table"]
+[ext_resource type="Script" path="res://actors/common/abilities/skill_data.gd" id="2_skill"]
+[ext_resource type="Script" path="res://actors/common/abilities/skill_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="Effect_pistol_spread_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_spread_mult"
+op = 1
+tier_values = Array[float]([1.0, 0.8, 0.6, 0.4])
+
+[sub_resource type="Resource" id="Effect_pistol_settle_time"]
+script = ExtResource("3_effect")
+attribute = &"pistol_settle_time"
+op = 1
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
+
+[sub_resource type="Resource" id="Effect_pistol_reload_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_reload_mult"
+op = 1
+tier_values = Array[float]([1.0, 0.85, 0.7, 0.5])
+
+[sub_resource type="Resource" id="Effect_pistol_damage_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_damage_mult"
+op = 1
+tier_values = Array[float]([1.0, 1.1, 1.2, 1.3])
+
+[sub_resource type="Resource" id="Skill_pistols"]
+script = ExtResource("2_skill")
+id = &"pistols"
+display_name = "Pistols"
+description = "Pistol accuracy, settle, reload speed and damage."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_pistol_spread_mult"), SubResource("Effect_pistol_settle_time"), SubResource("Effect_pistol_reload_mult"), SubResource("Effect_pistol_damage_mult")])
+
+[sub_resource type="Resource" id="Effect_melee_damage_mult"]
+script = ExtResource("3_effect")
+attribute = &"melee_damage_mult"
+op = 1
+tier_values = Array[float]([1.0, 1.25, 1.5, 2.0])
+
+[sub_resource type="Resource" id="Effect_melee_cycle_mult"]
+script = ExtResource("3_effect")
+attribute = &"melee_cycle_mult"
+op = 1
+tier_values = Array[float]([1.0, 0.9, 0.8, 0.7])
+
+[sub_resource type="Resource" id="Skill_low_tech"]
+script = ExtResource("2_skill")
+id = &"low_tech"
+display_name = "Low-Tech"
+description = "Melee damage (stun and blunt) and swing speed."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_melee_damage_mult"), SubResource("Effect_melee_cycle_mult")])
+
+[sub_resource type="Resource" id="Effect_medical_heal_mult"]
+script = ExtResource("3_effect")
+attribute = &"medical_heal_mult"
+op = 1
+tier_values = Array[float]([1.0, 1.5, 2.0, 3.0])
+
+[sub_resource type="Resource" id="Skill_medicine"]
+script = ExtResource("2_skill")
+id = &"medicine"
+display_name = "Medicine"
+description = "Health restored by the medkits this character uses (on itself or, later, on others)."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_medical_heal_mult")])
+
+[sub_resource type="Resource" id="Effect_bypass_time_mult"]
+script = ExtResource("3_effect")
+attribute = &"bypass_time_mult"
+op = 1
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
+
+[sub_resource type="Resource" id="Skill_electronics"]
+script = ExtResource("2_skill")
+id = &"electronics"
+display_name = "Electronics"
+description = "Multitool bypass time (consumer: M8)."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_bypass_time_mult")])
+
+[sub_resource type="Resource" id="Effect_lockpick_time_mult"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_time_mult"
+op = 1
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
+
+[sub_resource type="Resource" id="Skill_lockpicking"]
+script = ExtResource("2_skill")
+id = &"lockpicking"
+display_name = "Lockpicking"
+description = "Lockpick time (consumer: M8)."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_time_mult")])
+
+[resource]
+script = ExtResource("1_table")
+tier_names = Array[String](["Untrained", "Trained", "Advanced", "Master"])
+skills = Array[ExtResource("2_skill")]([SubResource("Skill_pistols"), SubResource("Skill_low_tech"), SubResource("Skill_medicine"), SubResource("Skill_electronics"), SubResource("Skill_lockpicking")])

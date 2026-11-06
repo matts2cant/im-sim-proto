@@ -29,8 +29,9 @@ func _init(p_config: AimConfig, p_seed: int = 0) -> void:
 		rng.randomize()
 
 
-## The spread the cone settles to in `stance`, plus `spread_add` (arm injuries), capped at max.
-func floor_for(stance: Stance, spread_add: float = 0.0) -> float:
+## The spread the cone settles to in `stance`: the stance floor x `spread_mult` (skill), plus
+## `spread_add` (arm injuries), capped at max.
+func floor_for(stance: Stance, spread_add: float = 0.0, spread_mult: float = 1.0) -> float:
 	var base := config.base_min_deg
 	match stance:
 		Stance.CROUCH_STILL:
@@ -41,27 +42,30 @@ func floor_for(stance: Stance, spread_add: float = 0.0) -> float:
 			base += config.sprint_add_deg
 		Stance.AIR:
 			base += config.air_add_deg
-	return minf(base + spread_add, config.max_spread_deg)
+	return minf(base * spread_mult + spread_add, config.max_spread_deg)
 
 
 ## Advances `delta` seconds toward `floor_deg`: below it the cone snaps up to it, above it the
-## excess decays by exp(-delta / settle_time).
-func step(delta: float, floor_deg: float) -> void:
+## excess decays by exp(-delta / settle_time). `settle_time` < 0: the config's.
+func step(delta: float, floor_deg: float, settle_time: float = -1.0) -> void:
 	_time += delta
-	if spread - floor_deg <= SNAP_DEG or config.settle_time <= 0.0:
+	var settle := config.settle_time if settle_time < 0.0 else settle_time
+	if spread - floor_deg <= SNAP_DEG or settle <= 0.0:
 		spread = floor_deg
 		return
-	spread = floor_deg + (spread - floor_deg) * exp(-delta / config.settle_time)
+	spread = floor_deg + (spread - floor_deg) * exp(-delta / settle)
 
 
-## Mouse look bloom for one physics frame's worth of movement (`pixels` moved in total).
-func add_look(pixels: float) -> void:
+## Mouse look bloom for one physics frame's worth of movement (`pixels` moved in total), x
+## `spread_mult` (skill).
+func add_look(pixels: float, spread_mult: float = 1.0) -> void:
 	var bloom := minf(absf(pixels) * config.look_bloom_per_px, config.look_bloom_max_per_frame)
-	spread = minf(spread + bloom, config.max_spread_deg)
+	spread = minf(spread + bloom * spread_mult, config.max_spread_deg)
 
 
-func add_shot() -> void:
-	spread = minf(spread + config.shot_bloom_deg, config.max_spread_deg)
+## Shot bloom x `spread_mult` (skill).
+func add_shot(spread_mult: float = 1.0) -> void:
+	spread = minf(spread + config.shot_bloom_deg * spread_mult, config.max_spread_deg)
 
 
 ## A shot direction uniformly inside the cone around -Z of `basis` (sampled on the disk at unit

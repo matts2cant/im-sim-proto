@@ -2,8 +2,8 @@ extends GdUnitTestSuite
 ## Inventory bay (gallery room 7): static layout checks on the room scene (hub-and-gallery.md): the
 ## shell, one pickup of every catalogue item on the item table with its "Name w x h" tag, the stack
 ## station counts, enough bulky items to overflow the 6 x 5 grid, the two pedestal datapads (a plain
-## note and one carrying a code, read in place), the drop zone, the abilities dais, the signs and no
-## coplanar faces.
+## note and one carrying a code, read in place), the drop zone, the abilities station (dais with
+## biocells, 2.3 m Speed ledge, 60 kg crate, Run Silent metal strip), the signs and no coplanar faces.
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/inventory_bay/inventory_bay_room.tscn")
@@ -18,8 +18,13 @@ const SIGNS: Dictionary[String, String] = {
 	"FillGrid": "Fill the grid · 6 × 5\nuntil: No room in inventory",
 	"Datapad": "Datapads\nE to read · L for log",
 	"DropZone": "Drop things here · listen",
-	"Abilities": "Skills & augmentations station — M6",
+	"Abilities": "F1 Cloak · F2 Run Silent\nF3 Speed · F4 Regeneration\nCombat Strength: passive\nBiocells: +25 energy",
+	"SpeedLedge": "Speed (F3)\nmantle me",
+	"HeavyCrate": "Combat Strength\nlift me",
+	"RunSilent": "Run Silent (F2)\nsprint here",
 }
+const PLAYER: PlayerConfig = preload("res://actors/player/player_config.tres")
+const SPEED: AugmentationData = preload("res://actors/common/abilities/augmentations/speed_enhancement.tres")
 
 var _room: Node3D
 
@@ -141,6 +146,46 @@ func test_drop_zone_and_abilities_dais() -> void:
 	assert_float(dais.position.z - dais.depth).is_equal_approx(back, 0.0001)
 
 
+func test_abilities_station_biocells_crate_and_strip() -> void:
+	var biocells := ItemPickup.of(_room.get_node("AbilitiesDais/Biocells"))
+	var crate := _room.get_node("AbilitiesDais/LargeCrate") as RigidBody3D
+	var strip := _room.get_node("AbilitiesDais/RunSilentStrip") as SurfaceFloor
+	var dais := _room.get_node("AbilitiesDais/Dais") as Ledge
+
+	assert_str(String(biocells.item.id)).is_equal("biocell")
+	assert_int(biocells.count).is_equal(10)
+	var on_dais := (_room.get_node("AbilitiesDais/Biocells") as Node3D).position
+	assert_float(absf(on_dais.x - dais.position.x)).is_less(dais.width * 0.5 - 0.2)
+	assert_float(crate.mass).is_equal(60.0)
+	assert_object(Carryable.of(crate)).is_not_null()
+	assert_str(strip.surface).is_equal("metal")
+	# Long enough to sprint a few strides (2.6 m each).
+	assert_float(strip.size.y).is_greater(3.0 * 2.6)
+
+
+func test_speed_ledge_needs_speed_enhancement() -> void:
+	var ledge := _room.get_node("AbilitiesDais/SpeedLedge") as Ledge
+	var dais := _room.get_node("AbilitiesDais/Dais") as Ledge
+	var pedestal := _room.get_node("DatapadPedestal/Pedestal") as Ledge
+	var speed_max := PLAYER.mantle_max_height + _added(&"mantle_max_height")
+
+	# Gap from the floor to the top, surface to surface.
+	assert_float(ledge.height).is_equal_approx(2.3, 0.0001)
+	assert_float(ledge.height).is_greater(PLAYER.mantle_max_height + 0.3)
+	assert_float(ledge.height).is_less(speed_max - 0.15)
+	# From the dais top the rise is still out of reach; the 1.1 m pedestal is over 5 m away
+	# (a mid-air catch from it covers at most ~4.4 m).
+	assert_float(ledge.height - dais.height).is_greater(PLAYER.mantle_max_height + 0.05)
+	var east_face := ledge.position.x + ledge.width * 0.5
+	var pedestal_west := pedestal.position.x - pedestal.width * 0.5
+	assert_float(pedestal_west - east_face).is_greater(5.0)
+	# Run-up: the lane between the item table's lip and the ledge's east face is clear for 3 m.
+	var table_lip := (_room.get_node("ItemTable/Table") as Ledge).position.x
+	assert_float(east_face - table_lip).is_greater(0.8)
+	var strip := _room.get_node("AbilitiesDais/RunSilentStrip") as SurfaceFloor
+	assert_float(strip.position.x - strip.size.x * 0.5).is_greater(east_face)
+
+
 func test_every_station_has_its_sign() -> void:
 	for name: String in SIGNS:
 		var sign := _room.get_node_or_null("Labels/" + name) as Sign
@@ -157,6 +202,15 @@ func test_no_coplanar_faces_with_different_materials() -> void:
 	var overlaps := KitGeometry.coplanar_material_overlaps(room)
 
 	assert_array(Array(overlaps)).override_failure_message("\n".join(overlaps)).is_empty()
+
+
+# What Speed Enhancement adds to `attribute` (its ADD modifiers).
+func _added(attribute: StringName) -> float:
+	var total := 0.0
+	for modifier in SPEED.modifiers:
+		if modifier.attribute == attribute and modifier.op == Modifier.Op.ADD:
+			total += modifier.magnitude
+	return total
 
 
 ## Item pickups directly under the station node `path`, by item id (one each).

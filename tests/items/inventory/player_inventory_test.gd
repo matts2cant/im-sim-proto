@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Integration: the player's belt and item use (pistol pickup, belt keys equip / holster, reloads
-## from ammo stacks, medkit in hand used with LMB, tools, biocell message, death) and the
+## from ammo stacks, medkit in hand used with LMB, tools, biocells, death) and the
 ## inventory's save_state / load_state through the Player. Wheel and H: belt_selection_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -193,18 +193,23 @@ func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 	assert_int(_player.inventory.belt.selected).is_equal(1)
 
 
-func test_biocell_says_nothing_happens_and_empty_slots_do_nothing() -> void:
+func test_biocell_is_refused_at_full_energy_restores_25_and_empty_slots_do_nothing() -> void:
 	await _load()
 	_player.inventory.give(Items.BIOCELL, 3)
 
 	await _press(&"belt_1")
 	assert_str(_hud.message_label.text).is_equal("")
 	await _press(&"fire")
-	assert_str(_hud.message_label.text).is_equal("Nothing happens")
+	assert_str(_hud.message_label.text).is_equal("Energy full")
 	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(3)
+	_player.energy.set_current(40.0)
+	await _press(&"fire")
+	assert_float(_player.energy.current()).is_equal_approx(65.0, 0.001)
+	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(2)
 	await _press(&"belt_5")
-	# Put in hand ("equip"), then used ("nothing"); the empty slot logged nothing.
+	# Put in hand ("equip"), then used once ("consume"); the refusal and the empty slot are not uses.
 	assert_array(EventLog.find(&"item.used")).has_size(2)
+	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
 	assert_int(_player.inventory.belt.selected).is_equal(0)
 
 

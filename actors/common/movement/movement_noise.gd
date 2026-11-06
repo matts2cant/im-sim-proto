@@ -8,10 +8,15 @@ extends Node3D
 ## `noise` stimulus from the feet (source: the body) and played on the `Audio` child (created when
 ## missing). The floor's surface comes from a short downward probe (ADR 0033). Tuning: `config`.
 ## Any character controller gets this by adding the node and setting its stance tags (ADR 0056).
+## The body's attributes `footstep_noise_mult` and `landing_noise_mult` (base 1) scale the loudness
+## (Run Silent x0, Speed Enhancement landings x1.5; ADR 0061); a noise scaled to 0 is not made at all
+## (no log entry, stimulus or sound).
 
 ## Probe start above the feet and length below that, as the player's old floor ray.
 const PROBE_UP: float = 0.1
 const PROBE_LENGTH: float = 0.4
+const FOOTSTEP_MULT: StringName = &"footstep_noise_mult"
+const LANDING_MULT: StringName = &"landing_noise_mult"
 
 @export var config: MovementNoiseConfig
 
@@ -63,17 +68,23 @@ func current_stance() -> MovementNoiseRules.Stance:
 	)
 
 
+## Returns the footstep loudness; 0 (and no noise) when the body's attributes silence it.
 func footstep(stance: MovementNoiseRules.Stance) -> float:
 	var loudness := MovementNoiseRules.footstep_loudness(stance, surface, config)
+	loudness *= Attributes.read(body, FOOTSTEP_MULT, 1.0)
 	last_footstep_loudness = loudness
+	if loudness <= 0.0:
+		return 0.0
 	var data := {"mode": MovementNoiseRules.stance_name(stance), "surface": surface, "loudness": loudness}
 	_make_noise(&"actor.footstep", loudness, data)
 	return loudness
 
 
-## Returns the landing loudness; 0 (and no noise) for soft touchdowns.
+## Returns the landing loudness; 0 (and no noise) for soft touchdowns or when the body's attributes
+## silence it.
 func landed(impact_speed: float) -> float:
 	var loudness := MovementNoiseRules.landing_loudness(impact_speed, surface, config)
+	loudness *= Attributes.read(body, LANDING_MULT, 1.0)
 	if loudness <= 0.0:
 		return 0.0
 	last_landing_loudness = loudness

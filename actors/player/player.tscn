@@ -34,7 +34,18 @@
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="32_impact_settings"]
 [ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="33_step"]
 [ext_resource type="Resource" path="res://actors/player/player_step.tres" id="34_step_config"]
-[ext_resource type="Script" path="res://actors/player/quick_save_keys.gd" id="35_quick_save_keys"]
+[ext_resource type="Script" path="res://actors/player/quick_save_keys.gd" id="46_quick_save_keys"]
+[ext_resource type="Resource" path="res://actors/common/abilities/receptrons/energy.tres" id="35_energy_receptron"]
+[ext_resource type="Script" path="res://actors/common/abilities/skills.gd" id="36_skills"]
+[ext_resource type="Resource" path="res://actors/common/abilities/skill_table.tres" id="37_skill_table"]
+[ext_resource type="Script" path="res://actors/common/abilities/energy.gd" id="38_energy"]
+[ext_resource type="Script" path="res://actors/common/abilities/augmentations.gd" id="39_augmentations"]
+[ext_resource type="Script" path="res://actors/common/abilities/augmentation_data.gd" id="40_aug_data"]
+[ext_resource type="Resource" path="res://actors/common/abilities/augmentations/cloak.tres" id="41_cloak"]
+[ext_resource type="Resource" path="res://actors/common/abilities/augmentations/run_silent.tres" id="42_run_silent"]
+[ext_resource type="Resource" path="res://actors/common/abilities/augmentations/speed_enhancement.tres" id="43_speed"]
+[ext_resource type="Resource" path="res://actors/common/abilities/augmentations/regeneration.tres" id="44_regeneration"]
+[ext_resource type="Resource" path="res://actors/common/abilities/augmentations/combat_strength.tres" id="45_combat_strength"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -82,12 +93,12 @@ initial_tags = Array[StringName]([&"actor.player"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("6_attributes")
-base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_speed_mult": 1.0, &"aim_spread_add": 0.0, &"aim_sway_mult": 1.0})
+base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_speed_mult": 1.0, &"aim_spread_add": 0.0, &"aim_sway_mult": 1.0, &"energy": 100.0, &"energy_max": 100.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("7_receiver")
-receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron")])
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron"), ExtResource("35_energy_receptron")])
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("10_body_parts")
@@ -125,5 +136,17 @@ config = ExtResource("29_knockback_config")
 script = ExtResource("31_impact_sensor")
 settings = ExtResource("32_impact_settings")
 
+[node name="Skills" type="Node" parent="."]
+script = ExtResource("36_skills")
+table = ExtResource("37_skill_table")
+
+[node name="Energy" type="Node" parent="."]
+script = ExtResource("38_energy")
+
+[node name="Augmentations" type="Node" parent="."]
+script = ExtResource("39_augmentations")
+catalog = Array[ExtResource("40_aug_data")]([ExtResource("41_cloak"), ExtResource("42_run_silent"), ExtResource("43_speed"), ExtResource("44_regeneration"), ExtResource("45_combat_strength")])
+installed_at_start = Array[StringName]([&"cloak", &"run_silent", &"speed_enhancement", &"regeneration", &"combat_strength"])
+
 [node name="QuickSaveKeys" type="Node" parent="."]
-script = ExtResource("35_quick_save_keys")
+script = ExtResource("46_quick_save_keys")

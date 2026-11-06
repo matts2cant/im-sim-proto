@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AugmentationData" format=3]
+
+[ext_resource type="Script" path="res://actors/common/abilities/augmentation_data.gd" id="1_aug"]
+[ext_resource type="Script" path="res://core/attributes/modifier.gd" id="2_modifier"]
+
+[resource]
+script = ExtResource("1_aug")
+id = &"regeneration"
+display_name = "Regeneration"
+description = "Heals 4 health per second over your injured body parts. Drains 5 energy/s."
+slot = 4
+passive = false
+drain_per_second = 5.0
+modifiers = Array[ExtResource("2_modifier")]([])
+tags = Array[StringName]([])
+pulse_stimuli = Dictionary[StringName, float]({&"heal": 2.0})
+pulse_interval = 0.5

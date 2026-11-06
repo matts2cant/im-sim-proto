@@ -22,7 +22,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | 1-0 | Belt slots 1 ... 0: put the slot's item in hand (a weapon is drawn; a tool, medkit, biocell... is held); the same key again: put it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). In the inventory screen, while hovering an item: assign it to that slot |
 | Mouse wheel | Down: the next non-empty belt slot to the right, up: the previous one; wraps; from empty hands down takes the first item, up the last. One item per notch; nothing is used |
 | H | Holster: put away whatever is in hand (empty hands, no belt highlight) |
-| F1-F4, F6 | Augmentations |
+| F1 / F2 / F3 / F4 | Toggle Cloak / Run Silent / Speed Enhancement / Regeneration (press; fails with "Energy depleted" at 0 energy). Combat Strength is passive. F6 (`aug_5`) is bound but unused |
 | F5 | Quicksave (one slot; not while dead or in a pause screen) ([ADR 0063](../decisions/0063-quicksave-quickload.md)) |
 | F9 | Quickload: anywhere, also from a pause screen or the death screen |
 | ` (QuoteLeft) | Debug panel |
@@ -49,5 +49,4 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 
 ## Open questions
 
-- Which of F1-F4 and F6 maps to which augmentation: TBD in M6.
 - Behaviour of RMB per item in game: still unbound (M6 may use it for augmentation targets).

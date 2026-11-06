@@ -8,7 +8,9 @@ extends Node3D
 
 ## feet / look: points; hub: hub coordinates; take_table: pick up every item table pickup;
 ## inventory: open the inventory screen; read_pads: read every datapad on the pedestal (closing
-## the reading overlay); log: open the log screen; wait: seconds.
+## the reading overlay); log: open the log screen; augs: augmentation ids switched on; energy: the
+## charge; tiers: skill -> tier; pistol: draw a pistol; stats: open the debug panel's Stats tab;
+## wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
 	"spawn": {"hub": true, "feet": Vector3(0, 0, 10), "look": Vector3(0, 1.65, 0)},
 	"hub_loadout": {"hub": true, "feet": Vector3(1.6, 0, 9.5), "look": Vector3(1.9, 1.0, 8.05)},
@@ -26,9 +28,35 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"datapads": {"feet": Vector3(2.5, 0, -16.6), "look": Vector3(3.5, 1.2, -18.7)},
 	"log": {"feet": Vector3(3.5, 0, -17.3), "look": Vector3(3.5, 1.12, -18.7), "read_pads": true, "log": true},
 	"drop_zone_dais": {"feet": Vector3(1, 0, -7.5), "look": Vector3(-1.5, 0.2, -16)},
+	"station": {"feet": Vector3(1.5, 0, -9.0), "look": Vector3(-3.0, 1.0, -18.5)},
+	"station_strip": {"feet": Vector3(-1.0, 0, -4.6), "look": Vector3(-3.4, 0.0, -12)},
+	"ledge_foot": {"feet": Vector3(-5.1, 0, -16.6), "look": Vector3(-5.1, 2.0, -18.5)},
+	"on_dais": {"feet": Vector3(-2.15, 0.3, -17.8), "look": Vector3(-2.15, 0.5, -19.0)},
+	"on_ledge": {"feet": Vector3(-5.1, 2.3, -18.0), "look": Vector3(0, 1.0, -12)},
+	"heavy_crate": {"feet": Vector3(4.6, 0, -16.6), "look": Vector3(5.2, 0.8, -18.6)},
+	"hud_augs":
+	{
+		"feet": Vector3(1.5, 0, -9.0),
+		"look": Vector3(-3.0, 1.0, -18.5),
+		"augs": [&"run_silent", &"speed_enhancement", &"regeneration"],
+		"energy": 73.0,
+		"pistol": true,
+	},
+	"cloak": {"feet": Vector3(1.5, 0, -9.0), "look": Vector3(-3.0, 1.0, -18.5), "augs": [&"cloak"], "pistol": true},
+	"stats":
+	{
+		"feet": Vector3(1.5, 0, -9.0),
+		"look": Vector3(-3.0, 1.0, -18.5),
+		"augs": [&"speed_enhancement"],
+		"tiers": {&"pistols": 3, &"low_tech": 2, &"medicine": 1},
+		"energy": 64.0,
+		"stats": true,
+	},
 	"inventory":
 	{"feet": Vector3(-4.6, 0, -10.2), "look": Vector3(-5.6, 1.0, -10.2), "take_table": true, "inventory": true},
 }
+
+const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
 
 ## Review image size (the project's 16:9 default).
 const SHOT_SIZE := Vector2i(1152, 648)
@@ -103,6 +131,26 @@ func _act() -> void:
 	if _shot.get("log", false):
 		_player.input_enabled = true
 		(_player.get_node("LogScreen") as LogScreen).open()
+	_act_abilities()
+
+
+func _act_abilities() -> void:
+	if _shot.has("energy"):
+		_player.energy.set_current(float(_shot["energy"]))
+	var tiers: Dictionary = _shot.get("tiers", {})
+	for skill: Variant in tiers:
+		_player.skills.set_tier(StringName(str(skill)), int(tiers[skill]))
+	for id: Variant in _shot.get("augs", []):
+		_player.augmentations.activate(StringName(str(id)))
+	if _shot.get("pistol", false):
+		_player.inventory.give(PISTOL, 1)
+		_player.inventory.use_stack(_player.inventory.inventory.stacks_of(&"pistol")[0])
+	if _shot.get("stats", false):
+		DebugPanel.set_open(true)
+		var tabs := DebugPanel.get_node("TabContainer") as TabContainer
+		for index in tabs.get_tab_count():
+			if tabs.get_tab_title(index) == "Stats":
+				tabs.current_tab = index
 
 
 func _place_player() -> void:

@@ -18,6 +18,9 @@ const SPRINTING: StringName = &"stance.sprint"
 ## Set by a controller while it moves the body by script instead of move_and_slide() (a mantle):
 ## StepClimber leaves the body alone.
 const MANTLING: StringName = &"stance.mantle"
+## Added by the Cloak augmentation (any source may add it): guards' sight ignores the entity (M7;
+## cameras and turrets still see it).
+const CLOAKED: StringName = &"state.cloaked"
 
 
 static func tags_of(entity: Node) -> Tags:

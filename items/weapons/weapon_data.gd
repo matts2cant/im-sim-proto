@@ -14,6 +14,11 @@ enum Kind { RANGED, MELEE }
 @export var cycle_time: float = 0.5
 ## RANGED: ray length in metres. MELEE: reach from the camera in metres.
 @export var max_range: float = 60.0
+## Weapon class whose attributes of the user scale this weapon (ADR 0061): `<class>_damage_mult`
+## (damage stimuli, Stimulus.scale_attribute), `<class>_cycle_mult`, `<class>_reload_mult`,
+## `<class>_spread_mult` (cone floors and bloom) and `<class>_settle_time` (base: AimConfig).
+## Pistols and Low-Tech skills, Combat Strength write them. Empty: nothing scales it.
+@export var attribute_class: StringName = &""
 
 @export_group("Ammo")
 ## 0 = no ammo (melee).
@@ -59,6 +64,13 @@ enum Kind { RANGED, MELEE }
 @export var view_swing_deg: Vector3 = Vector3.ZERO
 ## Melee: share of the swing the chop takes (0..1); the rest is the slower return.
 @export_range(0.05, 0.95) var view_chop_share: float = 0.3
+
+
+## `<attribute_class>_<stat>` (`pistol_damage_mult`), or empty without a class.
+func class_attribute(stat: String) -> StringName:
+	if attribute_class.is_empty():
+		return &""
+	return StringName("%s_%s" % [attribute_class, stat])
 
 
 func is_melee() -> bool:

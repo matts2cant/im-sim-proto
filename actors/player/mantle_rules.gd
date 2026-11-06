@@ -35,12 +35,16 @@ class Plan:
 const HEIGHT_TOLERANCE: float = 0.01
 
 
-static func in_range(height: float, rise: float, distance: float, config: PlayerConfig) -> bool:
+## `max_height` < 0: config.mantle_max_height (the player passes its `mantle_max_height` attribute).
+static func in_range(
+	height: float, rise: float, distance: float, config: PlayerConfig, max_height: float = -1.0
+) -> bool:
+	var top := config.mantle_max_height if max_height < 0.0 else max_height
 	return (
 		height > 0.0
 		and rise >= config.mantle_min_height - HEIGHT_TOLERANCE
-		and height <= config.mantle_max_height + HEIGHT_TOLERANCE
-		and rise <= config.mantle_max_height + HEIGHT_TOLERANCE
+		and height <= top + HEIGHT_TOLERANCE
+		and rise <= top + HEIGHT_TOLERANCE
 		and distance <= config.mantle_reach
 	)
 
@@ -49,9 +53,11 @@ static func duration(height: float, config: PlayerConfig) -> float:
 	return config.mantle_base_duration + config.mantle_duration_per_metre * height
 
 
-## Returns a plan, or null when the ledge cannot be mantled.
-static func evaluate(probe: Probe, start: Vector3, config: PlayerConfig) -> Plan:
-	if probe == null or not probe.found or not in_range(probe.height, probe.rise, probe.distance, config):
+## Returns a plan, or null when the ledge cannot be mantled. `max_height` < 0: the config's.
+static func evaluate(probe: Probe, start: Vector3, config: PlayerConfig, max_height: float = -1.0) -> Plan:
+	if probe == null or not probe.found:
+		return null
+	if not in_range(probe.height, probe.rise, probe.distance, config, max_height):
 		return null
 	if not probe.standing_clear and not probe.crouched_clear:
 		return null
