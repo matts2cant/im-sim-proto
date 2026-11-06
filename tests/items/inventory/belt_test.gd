@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Unit: Belt slots reference inventory stacks (auto-assign, move between slots, cleared when the
-## stack empties, selection) and its to_dict round trip; InventoryAmmo counting and reloads.
+## stack empties, selection, the mouse wheel's next / previous non-empty slot) and its to_dict round
+## trip; InventoryAmmo counting and reloads.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
 const PISTOL_DATA: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
@@ -78,6 +79,40 @@ func test_emptied_stack_clears_its_slot_and_selection() -> void:
 	assert_int(_belt.selected).is_equal(-1)
 
 
+func test_next_filled_skips_empty_slots_both_ways() -> void:
+	_fill_slots([1, 4, 7])
+
+	assert_int(_belt.next_filled(1, 1)).is_equal(4)
+	assert_int(_belt.next_filled(4, 1)).is_equal(7)
+	assert_int(_belt.next_filled(7, -1)).is_equal(4)
+	assert_int(_belt.next_filled(4, -1)).is_equal(1)
+
+
+func test_next_filled_wraps_around() -> void:
+	_fill_slots([1, 4, 7])
+
+	assert_int(_belt.next_filled(7, 1)).is_equal(1)
+	assert_int(_belt.next_filled(1, -1)).is_equal(7)
+
+
+func test_next_filled_from_empty_hands_takes_the_first_or_last() -> void:
+	_fill_slots([2, 5, 8])
+
+	assert_int(_belt.next_filled(-1, 1)).is_equal(2)
+	assert_int(_belt.next_filled(-1, -1)).is_equal(8)
+
+
+func test_next_filled_with_one_item_stays_and_empty_belt_gives_none() -> void:
+	assert_int(_belt.next_filled(-1, 1)).is_equal(-1)
+	assert_int(_belt.next_filled(-1, -1)).is_equal(-1)
+	assert_int(_belt.next_filled(3, 1)).is_equal(-1)
+
+	_fill_slots([3])
+	assert_int(_belt.next_filled(3, 1)).is_equal(3)
+	assert_int(_belt.next_filled(3, -1)).is_equal(3)
+	assert_int(_belt.next_filled(-1, 1)).is_equal(3)
+
+
 func test_to_dict_round_trip() -> void:
 	var catalog := ItemCatalog.default()
 	_inventory.add(Items.PISTOL, 1)
@@ -139,3 +174,11 @@ func test_no_ammo_in_the_inventory_means_no_reload() -> void:
 
 	assert_int(state.reserve).is_equal(0)
 	assert_bool(state.start_reload()).is_false()
+
+
+# A distinct one-cell item in each of `indices` (nothing auto-belts: the items are bare).
+func _fill_slots(indices: Array[int]) -> void:
+	for index in indices:
+		var item := Items.make_item(StringName("thing_%d" % index), Vector2i.ONE)
+		_inventory.add(item, 1)
+		_belt.assign(index, _inventory.stacks[-1])

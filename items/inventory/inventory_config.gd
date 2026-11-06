@@ -4,6 +4,8 @@ extends Resource
 
 @export var grid_size: Vector2i = Vector2i(6, 5)
 @export var belt_slots: int = 10
+## Seconds the HUD shows the name of the item put in hand above the belt (the last half fading).
+@export var item_name_time: float = 1.5
 
 @export_group("Drop")
 ## A dropped item appears this far in front of the player (horizontal metres) ...

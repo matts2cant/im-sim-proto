@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 grid_size = Vector2i(6, 5)
 belt_slots = 10
+item_name_time = 1.5
 drop_distance = 0.8
 drop_height = 1.3
 drop_speed = 1.0

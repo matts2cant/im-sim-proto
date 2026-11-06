@@ -2,7 +2,8 @@ extends Node
 ## Showcase helper (screenshots only, runs while paused): gives the player a mixed loadout (every
 ## footprint), draws the pistol, then per `mode` opens the inventory (hovering an item for its
 ## tooltip), drags an item over a blocked spot, looks at a pickup for its prompt, reads a datapad,
-## or just shows the belt HUD. Saves the window's image (UI included) to `capture_path` after
+## or shows the belt HUD (`belt`: two wheel steps from the pistol, so the medkit is highlighted and
+## its name shows above the belt). Saves the window's image (UI included) to `capture_path` after
 ## `capture_after` seconds and quits. Command line overrides after `--`: mode=<mode> out=<res path>.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
@@ -75,6 +76,9 @@ func _act() -> void:
 			var view := screen.view
 			_mouse(view, view.cell_center(Vector2i(2, 0)), true)
 			_mouse(view, view.cell_center(Vector2i(4, 1)), false)
+		"belt":
+			_player.inventory.cycle(1)
+			_player.inventory.cycle(1)
 		"reading":
 			_player.inventory.use_stack(_player.inventory.inventory.stacks_of(&"datapad")[0])
 

@@ -76,7 +76,7 @@ flowchart LR
 ### Healing
 
 - `BodyParts.heal(amount)`: split evenly over the damaged parts; what a part cannot take (it reached max) is split again over the parts still damaged. Disabled limbs heal too; the dead cannot heal. EventLog `actor.healed {actor, amount, requested}`.
-- **Medkit** (M5: an inventory item, `items/medkit/`, 1 x 1, stack 15): E picks it up; using it (belt key or the inventory screen's Use) sends a `heal` 30 CONTACT stimulus to the player and consumes one; any character with the `heal` receptron (`actors/common/body/receptrons/heal.tres`: `HealEffect` -> `BodyParts.heal`; player and training dummy) is healed by it ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). Unhurt (or dead): refused and kept, `item.use_refused {item, reason}`, HUD "You are not hurt" ([inventory.md](inventory.md)). The M4 world-use medkit is gone. The Medicine skill scales the amount in M6.
+- **Medkit** (M5: an inventory item, `items/medkit/`, 1 x 1, stack 15): E picks it up; using it (LMB with it in hand after its belt key or the wheel, ADR 0059; or the inventory screen's Use) sends a `heal` 30 CONTACT stimulus to the player and consumes one; any character with the `heal` receptron (`actors/common/body/receptrons/heal.tres`: `HealEffect` -> `BodyParts.heal`; player and training dummy) is healed by it ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). Unhurt (or dead): refused and kept, `item.use_refused {item, reason}`, HUD "You are not hurt" ([inventory.md](inventory.md)). The M4 world-use medkit is gone. The Medicine skill scales the amount in M6.
 
 ### Death (player)
 
