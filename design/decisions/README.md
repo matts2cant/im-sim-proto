@@ -44,3 +44,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0038](0038-linear-falloff-noise-metres.md) | Unified linear falloff, noise intensity = audible metres | Accepted |
 | [0039](0039-path-propagation-sound-attenuators.md) | Path propagation with SoundAttenuator areas | Accepted |
 | [0040](0040-override-modifier-conflict-rule.md) | Override modifier conflict rule | Accepted |
+| [0041](0041-runtime-navmesh-bake.md) | Runtime navmesh bake on level load | Accepted |
+| [0042](0042-kit-part-conventions.md) | Kit part conventions | Accepted |
