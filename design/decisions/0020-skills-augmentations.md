@@ -1,6 +1,6 @@
 # 20. Skills and augmentations list for v0
 
-Status: Accepted
+Status: Accepted (Electronics replaced by Computer: [ADR 0076](0076-computer-skill-multitool-removed.md))
 
 Date: 2026-11-05
 

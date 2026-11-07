@@ -1,6 +1,6 @@
 # 61. Abilities: skills, energy and augmentations as attribute modifiers
 
-Status: Accepted (details [ADR 0020](0020-skills-augmentations.md))
+Status: Accepted (details [ADR 0020](0020-skills-augmentations.md); Electronics and `bypass_time_mult` replaced by the Computer skill: [ADR 0076](0076-computer-skill-multitool-removed.md))
 
 Date: 2026-11-06
 

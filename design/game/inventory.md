@@ -8,7 +8,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ## Player-facing behaviour
 
-- Look at an item within 2 m: the HUD says "E: pick up Multitool (3)". E puts it into the grid; what does not fit stays on the floor ("No room in inventory").
+- Look at an item within 2 m: the HUD says "E: pick up Lockpick (3)". E puts it into the grid; what does not fit stays on the floor ("No room in inventory").
 - New weapons, tools and consumables go to the first free belt slot. Keys 1-0 or the mouse wheel select a slot and put its item in hand, nothing more: a weapon is drawn, anything else is held; the same key again, or H, puts it away ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md)). The wheel steps to the next / previous non-empty slot (down = right), wrapping; from empty hands down takes the first item, up the last.
 - LMB uses the item in hand: a weapon fires, a medkit heals (one per click, it stays in hand until the last is used), a biocell restores 25 energy (refused with "Energy full" at full energy, M6), a tool does nothing (until M8).
 - Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine or key.
@@ -30,10 +30,13 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Stun baton | `baton` | 1 x 3 | 1 | equip / holster | yes | |
 | Pistol ammo | `pistol_ammo` | 1 x 1 | 100 | none ("Nothing happens") | no | |
 | Medkit | `medkit` | 1 x 1 | 15 | heal 30 x the user's `medical_heal_mult` (Medicine), consumes one; refused when unhurt | yes | |
-| Multitool | `multitool` | 1 x 1 | 10 | in hand (used in M8) | yes | |
 | Lockpick | `lockpick` | 1 x 1 | 10 | in hand (M8: hold-to-pick placeholder; M10: [lockpicking minigame](lockpicking.md), breaks only on failure, success consumes nothing; loadout economy to retune) | yes | |
 | Bioelectric cell | `biocell` | 1 x 1 | 20 | `energy` 25 to the user, consumes one; refused ("Energy full") at full energy ([abilities.md](abilities.md)) | yes | |
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door" (doors read `key_id` in M8) | no | `key_id` |
+| Deck (M11) | `deck` | 2 x 1 | 1 | in hand: LMB on a wall jack, maintenance port or computer plugs it in; within an access point's range LMB raises it for wireless ([hacking.md](hacking.md)) | yes | copied files, Icebreaker progress per account |
+
+- The multitool is removed in M8 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): keypads take their code, network locks are hacked with the deck (M11). Until then it is still in the catalogue, the hub's loadout table and the inventory bay.
+- The deck is one model with no upgrades. Its contents live in its stack's `state`, so they travel with it when dropped and are saved with the inventory. Credentials and exploits are knowledge, kept in the PersonalLog, not on the deck.
 
 ### World pickups
 
@@ -68,7 +71,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 ### Pickup and interaction ([ADR 0051](../decisions/0051-single-interactor-hud-prompts.md))
 
 - One `Interactor` component on the player casts one ray per physics tick from the eyes, 2.0 m (`interact_reach` in `player_config.tres`), on layers 1, 4 and 5 (world, objects, hitboxes; a hitbox stands for its character), excluding the player and its hitboxes.
-- Resolution order: `ItemPickup` ("E: pick up Multitool (3)", count only above 1), `Usable` ("E: reset Training dummy": the usable's verb; a `Readable` names its title: "E: read Storage access"), `Carryable` within the carry limit ("E: carry Small crate") or above it ("Too heavy"); while carrying: "E: put down Small crate". Names come from the item, else `Usable.target_name()`, else `display_name` metadata, else the node name in words.
+- Resolution order: `ItemPickup` ("E: pick up Lockpick (3)", count only above 1), `Usable` ("E: reset Training dummy": the usable's verb; a `Readable` names its title: "E: read Storage access"), `Carryable` within the carry limit ("E: carry Small crate") or above it ("Too heavy"); while carrying: "E: put down Small crate". Names come from the item, else `Usable.target_name()`, else `display_name` metadata, else the node name in words.
 - E does what the prompt says. Picking up takes what fits: all of it frees the pickup, part of it leaves the rest with a smaller count ("No room in inventory (30 left behind)"), nothing leaves it untouched ("No room in inventory").
 
 ### Drop
@@ -141,7 +144,7 @@ flowchart TD
 ## Interactions
 
 - Dropped items are physics objects: [objects-and-fire.md](objects-and-fire.md)
-- Medkits: [damage.md](damage.md); biocells: [abilities.md](abilities.md); multitools, lockpicks, keycards: [security.md](security.md); weapons and ammo: [weapons-and-aiming.md](weapons-and-aiming.md)
+- Medkits: [damage.md](damage.md); biocells: [abilities.md](abilities.md); lockpicks, keycards: [security.md](security.md); the deck: [hacking.md](hacking.md); weapons and ammo: [weapons-and-aiming.md](weapons-and-aiming.md)
 - Controls: [controls.md](controls.md); debug Give item: [debug-panel.md](debug-panel.md); saving: [saving.md](saving.md)
 
 ## Open questions

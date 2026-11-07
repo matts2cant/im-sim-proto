@@ -26,8 +26,12 @@ Four tiers: 0 Untrained, 1 Trained, 2 Advanced, 3 Master. The player starts Untr
 | Low-Tech | `melee_damage_mult` (baton stun and blunt) | ×1.0 / 1.25 / 1.5 / 2.0 |
 | | `melee_cycle_mult` (swing interval 0.6 s) | ×1.0 / 0.9 / 0.8 / 0.7 |
 | Medicine | `medical_heal_mult` (medkit 30) | 30 / 45 / 60 / 90 |
-| Electronics | `bypass_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (attribute only; the multitool consumer is M8) |
+| Computer | crack time | ×1 / 0.75 / 0.5 / 0.3 (the deck's Icebreaker, M11: [hacking.md](hacking.md)) |
+| | trace gain | ×1 / 0.8 / 0.6 / 0.4 (every deck tool that adds trace) |
+| | strongest password the Icebreaker cracks | Weak / Medium / Strong / Strong |
 | Lockpicking | `lockpick_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (M8: scales the hold-to-pick placeholder timer. M10 replaces it with tolerance attributes: wider tension window and lift tolerance, lower drop threshold, slower pin drops, clearer feedback; tier 2 hints the binding pin, tier 3 auto-rakes Simple locks: [lockpicking.md](lockpicking.md), [ADR 0073](../decisions/0073-realistic-lockpicking.md)) |
+
+Computer replaces Electronics ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): Electronics and its `bypass_time_mult` go in M8 with the multitool, and Computer takes its place in the skill table with no consumer until M11's deck. It affects only the deck's tools; admin access allows every admin action. Attribute names are set in M11.
 
 Knockout check (dummy threshold 60, frontal): Untrained stun 20 → 3 hits; Trained 25 → 3; Advanced 30 → 2; Master 40 → 2. From behind on an unaware target ×10: always one hit. Combat Strength multiplies on top (×1.5).
 

@@ -20,10 +20,10 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0014](0014-movement-scope.md) | Movement scope: jump, mantle, vents | Accepted |
 | [0015](0015-inventory-grid.md) | Inventory: Deus Ex 1 grid | Accepted |
 | [0016](0016-bodies.md) | Bodies: carry, discovery, waking by others | Accepted |
-| [0017](0017-hacking-placeholder.md) | Hacking: multitools and credentials for now | Accepted |
+| [0017](0017-hacking-placeholder.md) | Hacking: multitools and credentials for now | Superseded by [0074](0074-network-hacking.md) |
 | [0018](0018-damage-body-parts.md) | Damage: Deus Ex 1 body parts and damage types | Accepted |
 | [0019](0019-version-control.md) | Version control: local git, branch per milestone | Accepted |
-| [0020](0020-skills-augmentations.md) | Skills and augmentations list for v0 | Accepted |
+| [0020](0020-skills-augmentations.md) | Skills and augmentations list for v0 | Accepted (Electronics replaced by Computer, 0076) |
 | [0021](0021-mission-design.md) | Mission area design | Accepted |
 | [0022](0022-guard-feedback.md) | Guard feedback: MGS-style icons and text barks | Accepted |
 | [0023](0023-aiming.md) | Aiming: softened Deus Ex 1 reticle | Accepted |
@@ -64,7 +64,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0058](0058-step-climbing.md) | Step climbing as a generic character component | Accepted |
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |
 | [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted |
-| [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted |
+| [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted (Electronics replaced by Computer, 0076) |
 | [0063](0063-quicksave-quickload.md) | Quicksave and quickload: one JSON slot, level snapshot with removed and spawned nodes | Accepted (keys amended by 0064) |
 | [0064](0064-game-menu.md) | Esc game menu: save, load and quit; F5 becomes Combat Strength | Accepted |
 | [0065](0065-light-level-model.md) | Light level model: Godot's attenuation, three body points, saturating sum | Accepted |
@@ -74,5 +74,8 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0069](0069-hostile-and-ally-tags.md) | Who perceives whom: hostile and ally tags | Accepted |
 | [0070](0070-guard-combat-and-loadouts.md) | Guard combat: one weapon path for every actor, loadouts as data; static characters block props | Accepted |
 | [0071](0071-bodies-discovery-waking-carrying.md) | Bodies: discovery, waking and carrying downed characters | Accepted |
-| [0072](0072-shouts-radio-level-alarm.md) | Shouts, radio and the level alarm | Accepted |
+| [0072](0072-shouts-radio-level-alarm.md) | Shouts, radio and the level alarm | Accepted (level alarm superseded by 0075) |
 | [0073](0073-realistic-lockpicking.md) | Realistic pin-tumbler lockpicking minigame | Accepted |
+| [0074](0074-network-hacking.md) | Network hacking: a realistic network, a deck and tracers | Accepted |
+| [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted |
+| [0076](0076-computer-skill-multitool-removed.md) | Computer skill replaces Electronics; the multitool is removed | Accepted |

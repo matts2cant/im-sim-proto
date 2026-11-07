@@ -11,7 +11,8 @@ Guards that see, hear, communicate and escalate in graded steps.
 - One guard archetype, two loadouts (pistol / baton).
 - Feedback: Metal Gear Solid style `?` / `!` icons above guards (toggleable) plus text barks with a placeholder sound. Voiced barks are parked.
 - Guards discover bodies (dead or unconscious) and raise the alert. Guards wake unconscious guards. Unconscious guards never wake on their own in v0. The player can carry and drop bodies.
-- Guards communicate (shouts are noise stimuli; radio within range). A level-wide alarm state exists (alarm panels, cameras: [security.md](security.md)).
+- Guards communicate (shouts are noise stimuli; radio within range). A level-wide alarm state exists until M8; from M8 the alarm is made of devices (alarm controller, sirens, radio base station: [security.md](security.md)).
+- From M11 guards log in to devices at patrol waypoints, and a security operator watches the monitors ([hacking.md](hacking.md)).
 
 ## Awareness states
 
@@ -50,7 +51,10 @@ stateDiagram-v2
 
 - **Shout** (`AlertComms`, tuning `guard_comms.tres`): on entering Alerted and on finding a body a guard emits `alert.shout`, loudness 18 along the navmesh like noise. Allies' `heard_shout` receptron on the `Ears` (perceived >= 1: up to 17 m of path) calls `notice_call()`: only a source with an ally tag counts; the hearer searches at the shouter's position (run pace, reason `shout`) unless Alerted or tending. Allies' footsteps (`noise`) are still ignored.
 - **Radio**: on entering Alerted a guard tagged `equipment.radio` (guard.tscn has it) emits `alert.radio`, 30 m straight-line radius (walls do not matter). Allies' `heard_radio` receptron (requires `equipment.radio`) makes them search at the sender's position (reason `radio`). Searchers neither shout nor radio, so calls do not cascade.
-- **Level alarm**: one `LevelAlarm` per level (`levels/kit/level_alarm.tscn`, group `level_alarm`, no autoload). An `alarm.raise` stimulus from any emitter (`LevelAlarm.make_raise()`: reaches the whole level) raises it for 90 s (raising again restarts it). While raised, every guard's `AlertComms` keeps it wary and, when Unaware or Suspicious, starts a search around where it stands (reason `alarm`); Alerted and Searching guards carry on. The HUD shows "ALARM"; the debug panel raises and clears it. Saved. Guards do not run to alarm panels yet (M8).
+- **Level alarm** (M7, replaced in M8 by alarm devices below): one `LevelAlarm` per level (`levels/kit/level_alarm.tscn`, group `level_alarm`, no autoload). An `alarm.raise` stimulus from any emitter (`LevelAlarm.make_raise()`: reaches the whole level) raises it for 90 s (raising again restarts it). While raised, every guard's `AlertComms` keeps it wary and, when Unaware or Suspicious, starts a search around where it stands (reason `alarm`); Alerted and Searching guards carry on. The HUD shows "ALARM"; the debug panel raises and clears it. Saved. Guards do not run to alarm panels yet (M8).
+- **From M8: alarm devices** ([ADR 0075](../decisions/0075-alarms-as-network-devices.md)) replace the `LevelAlarm`. A ringing siren emits a loud siren stimulus of its own type (not `noise`, so it is not ignored as an ally's): a guard who hears it reacts as to the level alarm above (wary, Searching around where it stands, reason `alarm`); a guard out of earshot does not. A radio base station the alarm controller reaches broadcasts the incident location: characters with `equipment.radio` in its range search there first. If no siren rings and no base station is reached, nobody reacts.
+- **Security operator** (M11): a guard posted at the security console's monitors. When a camera feed goes dark (disabled, unpowered or broken) or the console shows "Tracer offline", the operator radios someone to check it. Panning a camera away is not noticed.
+- **"Use device"** (M11): a patrol waypoint can name a device; the guard stops there and logs in. The login goes to the device's log and can be captured by the player's Sniffer ([hacking.md](hacking.md)).
 - EventLog: `actor.shout {actor, reason, point}`, `actor.radio {actor, point}`, `actor.heard_call {actor, from, kind, point}`, `alarm.raised {by, point, duration, again}`, `alarm.ended {reason}`.
 
 ## Vision ([ADR 0067](../decisions/0067-vision-and-detection.md))
@@ -125,7 +129,7 @@ Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 h
 
 ## Open questions
 
-- Guards running to alarm panels, cameras raising the alarm (M8, [security.md](security.md)).
+- Guards running to panic buttons (M8, [security.md](security.md)); how the operator's "check it" call is modelled (M11).
 - Two guards may both go to wake the same body; the second gives up once it stands.
 - Combat tactics beyond keeping range: cover, flanking, strafing while firing, leading a moving target, grenades.
 - Vertical limits of the cones (guards on balconies), if levels get tall.

@@ -1,6 +1,6 @@
 # 72. Shouts, radio and the level alarm
 
-Status: Accepted (extends [ADR 0068](0068-awareness-states-and-guard-behaviour.md))
+Status: Accepted (extends [ADR 0068](0068-awareness-states-and-guard-behaviour.md)); the level alarm part is superseded by [ADR 0075](0075-alarms-as-network-devices.md) in M8
 
 Date: 2026-11-06
 

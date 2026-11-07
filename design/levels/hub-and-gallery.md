@@ -15,6 +15,7 @@ graph TD
     H --> R5["5 Security wing"]
     H --> R6["6 AI arena"]
     H --> R7["7 Inventory and abilities bay"]
+    H --> R8["8 Network lab (M11)"]
     H --> M["Mission area"]
 ```
 
@@ -26,9 +27,10 @@ graph TD
 | 2 | Perception lab | Light levels, shootable lights, breaker, guard vision over different floors | M7 | [light](../game/light-and-visibility.md), [perception](../game/perception-and-ai.md) |
 | 3 | Physics and fire | Throwable, breakable, flammable, explosive objects; fire spread | M3 | [objects](../game/objects-and-fire.md) |
 | 4 | Shooting range | Per-part dummies, damage readouts | M4 | [damage](../game/damage.md), [weapons](../game/weapons-and-aiming.md) |
-| 5 | Security wing | Camera, alarm panel, turret, keypad/lock/keycard/breakable doors, terminal; practice locks (M10) | M8, M10 | [security](../game/security.md) |
+| 5 | Security wing | Camera, alarm devices (controller, sirens, radio base station, panic button), a switch, turret, keypad/lock/keycard/breakable doors, terminal; practice locks (M10) | M8, M10 | [security](../game/security.md) |
 | 6 | AI arena | Guard group, patrols, escalation, body discovery, waking | M7 | [perception](../game/perception-and-ai.md) |
 | 7 | Inventory and abilities bay | Items of every footprint, stats menu | M5, M6 | [inventory](../game/inventory.md), [abilities](../game/abilities.md) |
+| 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M11 | [hacking](../game/hacking.md) |
 
 The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 
@@ -38,7 +40,7 @@ The mission area is described in [mission-warehouse.md](mission-warehouse.md).
 
 The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, perception lab, physics and fire, shooting range, AI arena, inventory bay) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
 
-Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 1.0 m wood `Ledge` (`Table`, 2.6 x 0.7 m, lip at (1.9, 0, 8.4), top z 7.7 to 8.4) stands to the front right of the spawn with the starting kit as item pickups, 0.36 m apart: `Pistol` (silenced pistol), `Baton` (stun baton), `PistolAmmo` x60, `Medkit` x2, `Multitool` x3, `Lockpick` x2, `Biocell` x2. Sign "Loadout" (SMALL) above its back edge. The table's west end (x 0.6) leaves the walk straight north from the spawn free, and it is more than 5 m from every doorway.
+Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 1.0 m wood `Ledge` (`Table`, 2.6 x 0.7 m, lip at (1.9, 0, 8.4), top z 7.7 to 8.4) stands to the front right of the spawn with the starting kit as item pickups, 0.36 m apart: `Pistol` (silenced pistol), `Baton` (stun baton), `PistolAmmo` x60, `Medkit` x2, `Multitool` x3, `Lockpick` x2, `Biocell` x2 (M8 removes the multitool, [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)). Sign "Loadout" (SMALL) above its back edge. The table's west end (x 0.6) leaves the walk straight north from the spawn free, and it is more than 5 m from every doorway.
 
 ## 1 Movement course
 
@@ -174,7 +176,7 @@ Tests (`tests/levels/gallery/shooting_range/`): `shooting_range_room_test.gd` (s
 
 ## 5 Security wing
 
-Not built yet (M8). M10 adds clear acrylic practice locks, one per tier (Simple, Standard, Secure, High-security), showing the pins as the lockpicking tutorial: [lockpicking](../game/lockpicking.md), [ADR 0073](../decisions/0073-realistic-lockpicking.md).
+Not built yet (M8). M8 contents include an alarm controller, sirens, a radio base station, a panic button and a switch carrying them, so cutting power to the switch or breaking a siren visibly stops the alarm ([ADR 0075](../decisions/0075-alarms-as-network-devices.md)); the terminal keeps the credentials placeholder until M11. No multitool ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)). M10 adds clear acrylic practice locks, one per tier (Simple, Standard, Secure, High-security), showing the pins as the lockpicking tutorial: [lockpicking](../game/lockpicking.md), [ADR 0073](../decisions/0073-realistic-lockpicking.md).
 
 ## 6 AI arena
 
@@ -200,7 +202,7 @@ Floor plan (room-local, 1 column = 0.5 m, rows not to scale; top is the far (sou
         x -18      -12.5                -3    0           6
 ```
 
-Guards are named by their loadout: `GuardPistol*` are `guard_pistol.tscn`, `GuardBaton*` are `guard_baton.tscn` ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)). All have `equipment.radio` (from `guard.tscn`). A `LevelAlarm` in the hub covers the arena ([ADR 0072](../decisions/0072-shouts-radio-level-alarm.md)):
+Guards are named by their loadout: `GuardPistol*` are `guard_pistol.tscn`, `GuardBaton*` are `guard_baton.tscn` ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)). All have `equipment.radio` (from `guard.tscn`). A `LevelAlarm` in the hub covers the arena ([ADR 0072](../decisions/0072-shouts-radio-level-alarm.md); M8 replaces it with an alarm controller and sirens, [ADR 0075](../decisions/0075-alarms-as-network-devices.md)):
 
 | Guard (`Guards/`) | Local position, facing | Role |
 |---|---|---|
@@ -250,7 +252,7 @@ Floor plan (room-local, 1 column = 0.33 m, rows not to scale; top is the back wa
 | Station | Local position | Contents and spacing |
 |---|---|---|
 | Item table (`ItemTable/`) | west wall, z -5.4 to -15 | `Table`: 1.0 m wood `Ledge`, 9.6 x 0.8 m, lip facing +X at x -5.2. One pickup of every item in `items/item_catalog.tres` in catalogue order from the door: `Pistol`, `Baton`, `PistolAmmo` (a box of 10), `Medkit`, `Multitool`, `Lockpick`, `Biocell`, `Keycard` (key_id `inventory_bay`), 1.05 m apart at x -5.6 (the datapad left the catalogue, ADR 0060: its old spot at z -14.4 is empty). Each has a tag on the wall behind it (`Labels/ItemTags/<name>`, SMALL at half pixel size: readable at the table, not across the room) "Name w×h" on two lines. Sign "Item table · every item · E picks up" |
-| Stacks (`Stacks/`) | east wall, z -5.1 to -8.1 | `Table`: 1.0 m wood `Ledge`, 3 x 0.8 m, lip facing -X at x 5.2. `Multitool` x12, `Medkit` x16, `PistolAmmo` x150 (one pickup each, all above their max stack of 10 / 15 / 100), 1 m apart, tags "Multitool ×12 · max 10" ... Sign "Stacks split at their max" |
+| Stacks (`Stacks/`) | east wall, z -5.1 to -8.1 | `Table`: 1.0 m wood `Ledge`, 3 x 0.8 m, lip facing -X at x 5.2. `Multitool` x12, `Medkit` x16, `PistolAmmo` x150 (one pickup each, all above their max stack of 10 / 15 / 100), 1 m apart, tags "Multitool ×12 · max 10" ... Sign "Stacks split at their max". M8 removes the multitool ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): it leaves the item table and the loadout table, and here another stackable above its max replaces it (for example `Lockpick` x12, max 10) |
 | Fill the grid (`FillGrid/`) | east wall, z -9.3 to -14.7 | `Table`: 1.0 m wood `Ledge`, 5.4 x 1 m. `Pistol1`-`6` (front row) and `Baton1`-`6` (back row), 0.75 m apart, `Ammo1`/`Ammo2` (100 rounds each): 12 + 18 + 2 = 32 cells for a 30-cell grid, so the table can never be emptied. Sign "Fill the grid · 6 × 5 · until: No room in inventory" |
 | Datapad pedestal (`DatapadPedestal/`) | (3.5, -18.7) | `Pedestal`: 1.1 m concrete `Ledge`, 1.0 x 0.6 m. Two world datapads (`objects/datapad/datapad.tscn`, read in place, [ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)), 0.5 m apart centre to centre (gap 0.36 m): `Datapad` at x 3.25, a plain note, entry `gallery.inventory_bay.note`, "Inventory bay": "Press I to open your inventory. Drag items to move them, right-click to use, drop or assign to the belt. Datapads stay where they are: what you read goes to your log (L)."; `StorageAccess` at x 3.75, entry `gallery.inventory_bay.storage_access`, "Storage access": "New code for the storage room keypad: 2817. ...", codes `{storage_door: "2817"}` (no keypad yet: M8). Sign "Datapads · E to read · L for log" |
 | Drop zone (`DropZone/`) | centre (0, -12) | `Floor`: 4 x 4 m metal `SurfaceFloor` raised 2 cm: dropped items land loud (metal impact noise). Floor label "Drop things here · listen" at its near edge |
@@ -259,6 +261,18 @@ Floor plan (room-local, 1 column = 0.33 m, rows not to scale; top is the back wa
 The hub's `Navigation` bakes the bay with the rest (the dais top is a 0.3 m step, within the navmesh max climb). Items get used up: the Spawn tab's "Reset level" reloads the hub with every pickup back.
 
 Tests (`tests/levels/gallery/inventory_bay/`): `inventory_bay_room_test.gd` (shell, every catalogue item on the item table with its "Name w×h" tag, stack counts above their max, the fill-the-grid table overflows a 6 x 5 grid, the two pedestal datapads (Readables, no pickups, unique entry ids, the code), drop zone and dais, abilities station: biocells x10, 60 kg crate, metal strip, the Speed ledge's height against the mantle limits with and without Speed, its distance from the pedestal and its run-up lane, signs, no coplanar faces), `abilities_station_test.gd` (in the hub with the player: the ledge refused without Speed and mantled with F3; E takes the 10 biocells; the crate refused without Combat Strength and carried after F5; sprinting along the strip makes metal footsteps, none with F2), `inventory_bay_hub_test.gd` (hall footprints of all gallery rooms do not overlap and room 7 keeps to hub z 0.5-15.5, room on doorway 7, walk in from the hub, navmesh reaches every station), `inventory_bay_scenarios_test.gd` (in the hub with the player: pickups stay on their tables once physics runs; E on the item table's pistol, prompt "E: pick up Silenced pistol", puts it on belt slot 1 and key 1 draws it; taking the whole fill-the-grid table ends in "No room in inventory" with items left). The hub's loadout table: `tests/levels/hub/hub_loadout_test.gd`. First-person review shots: `tests/levels/gallery/inventory_bay/fixtures/bay_shots.tscn` (run in a window with `-- shot=<name> out=<png>`; `inventory` takes the whole item table and opens the inventory screen, `hub_loadout` and `spawn` show the hub's loadout table, `datapad` looks at the code datapad with its prompt, `log` reads both datapads and opens the log screen; M6: `station`, `station_strip`, `ledge_foot`, `on_dais`, `on_ledge`, `heavy_crate`, `hud_augs` (four augmentations on, Combat Strength included, energy 73, pistol drawn), `cloak`, `stats` (debug panel on the Stats tab)).
+
+## 8 Network lab
+
+Not built yet (M11). Size and position: measure the free space between neighbouring rooms when M11 is planned. Teaches hacking one idea per station ([hacking](../game/hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)):
+
+- Every entry point: a computer used bare-handed, a wall jack, an access point area (its range marked on the floor), an autonomous device with a maintenance port, a computer to plug the deck into.
+- Two or three subnets behind one gateway with a tracer, so the locked-subnet node, a firewall rule and a foothold can each be tried.
+- A security console with cameras that trust it, an office PC that cannot reach them ("Cannot reach SEC-SERVER").
+- Devices with remote actions: a door (one fail-safe, one fail-secure), a camera, a turret, a siren, an alarm controller, a keypad.
+- A switch and an access point with `Powered` and `Breakable`: cutting or breaking them shows what falls back to standalone.
+- Clues: an explicit one (sticky note or datapad), an implicit one (email plus a photo), an exploit datapad, passwords of each strength.
+- A guard whose patrol uses a device, for the Sniffer and the device log.
 
 ## Rules
 

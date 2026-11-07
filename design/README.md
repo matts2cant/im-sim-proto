@@ -15,11 +15,12 @@ In:
 - A hub, a test gallery (one room per system) and one small warehouse mission.
 - Player movement incl. mantle and vents; body-part damage; silenced pistol and stun baton; grid inventory.
 - Skills (4 tiers) and augmentations with energy; no leveling.
-- Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm, locks, keypads, terminals.
+- Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm devices (controller, sirens, radio base station), locks, keypads, terminals.
+- Network hacking: subnets, firewalls, a deck, computers with desktop apps, tracers ([game/hacking.md](game/hacking.md)).
 - Stimulus/response framework with attributes, modifiers and tags; EventLog; debug panel; save/load from the Esc game menu.
 - GdUnit4 tests in three layers.
 
-Out (parked in [backlog](backlog.md)): progression, own hacking design, security robot, water/electricity, lean/ladders, gamepad and rebinding, difficulty settings, real art, voiced barks, inventory rotation, remote/CI.
+Out (parked in [backlog](backlog.md)): progression, security robot, water/electricity, lean/ladders, gamepad and rebinding, difficulty settings, real art, voiced barks, inventory rotation, remote/CI.
 
 ## Doc map
 
@@ -50,6 +51,7 @@ flowchart LR
     M7 --> M8["M8 Security"]
     M8 --> M9["M9 Mission"]
     M9 --> M10["M10 Lockpicking minigame"]
+    M10 --> M11["M11 Network hacking"]
 ```
 
 | # | Milestone | Gallery room |
@@ -62,9 +64,10 @@ flowchart LR
 | M5 | Grid inventory, belt, items, pickup/drop | Inventory bay |
 | M6 | Skills, augmentations, energy, stats tab, save/load (Esc game menu) | Inventory bay |
 | M7 | Light level, guard perception and AI, alerts, bodies | Perception lab, AI arena |
-| M8 | Security: cameras, alarms, turret, doors/locks/keypads, terminals | Security wing |
+| M8 | Security: cameras, turret, doors/locks/keypads, terminals (credentials placeholder); security devices with a stimulus-based remote command interface over a physical link graph; alarm controller, sirens and radio base station replace the global LevelAlarm; multitool and Electronics removed ([ADR 0075](decisions/0075-alarms-as-network-devices.md), [ADR 0076](decisions/0076-computer-skill-multitool-removed.md)) | Security wing |
 | M9 | Mission area and scenario tests | Mission |
 | M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
+| M11 | Network hacking: addresses, subnets, firewalls; the deck and its tools; computers with Mail, Files, Security; intrusion (credentials, Icebreaker, exploits); tracers; Computer skill consumers ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
 
 Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](tech/playtest-checklist.md).
 
@@ -81,7 +84,8 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 - [game/damage.md](game/damage.md): body parts and damage types.
 - [game/weapons-and-aiming.md](game/weapons-and-aiming.md): pistol, baton, reticle.
 - [game/objects-and-fire.md](game/objects-and-fire.md): physics objects and fire.
-- [game/security.md](game/security.md): cameras, alarms, turret, doors and locks, terminals.
+- [game/security.md](game/security.md): cameras, alarm devices, turret, doors and locks, terminals.
+- [game/hacking.md](game/hacking.md): network, deck, computers, credentials, Icebreaker, exploits, tracers.
 - [game/lockpicking.md](game/lockpicking.md): pin-tumbler lockpicking minigame.
 - [game/inventory.md](game/inventory.md): grid, belt, items.
 - [game/abilities.md](game/abilities.md): skills and augmentations.
@@ -91,7 +95,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 ### Levels
 
 - [levels/metrics.md](levels/metrics.md): player size, clearances, jump/mantle limits, noise numbers for level building.
-- [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms.
+- [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms; a network lab planned for M11.
 - [levels/mission-warehouse.md](levels/mission-warehouse.md): warehouse mission, four routes.
 
 ### Tech
@@ -103,6 +107,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (72 decisions, 0001–0073; 0062 unused).
+- [decisions/README.md](decisions/README.md): ADR index (75 decisions, 0001–0076; 0062 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

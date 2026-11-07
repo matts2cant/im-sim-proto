@@ -4,7 +4,14 @@ Parked items, out of scope for v0.
 
 | Item | Note | Why parked |
 |---|---|---|
-| Own hacking design | The user's design replaces the placeholder (credentials + multitools) | Not designed yet ([ADR 0017](decisions/0017-hacking-placeholder.md)) |
+| Terminal (CLI) app | A command-line app on computers or the deck | The desktop apps and the deck's tools cover v0 ([hacking](game/hacking.md)) |
+| Deck upgrades | Better scanners, faster Icebreaker, more tools | One deck model in v0 ([ADR 0074](decisions/0074-network-hacking.md)) |
+| VLANs | Several subnets on one switch | One switch carries one subnet ([ADR 0074](decisions/0074-network-hacking.md)) |
+| Gamepad hacking | Cursor and typing on a gamepad | Part of the gamepad milestone |
+| Remote-hacking augmentation | Hack a device in view without a link | Not in the v0 augmentation list ([ADR 0020](decisions/0020-skills-augmentations.md)) |
+| Buying exploits | Exploits from vendors or contacts | No economy in v0; exploits are found ([hacking](game/hacking.md)) |
+| NPCs noticing changed firewall rules | Operators or admins review rules and react | v0 operators react to dark camera feeds and offline tracers only ([hacking](game/hacking.md)) |
+| Network app on computers | Discovery and hacking from any computer | Only the deck hacks in v0 ([ADR 0074](decisions/0074-network-hacking.md)) |
 | Security robot | Needs EMP/electricity to be interesting | Electricity not in v0 |
 | Water and electricity elements | Extra systemic pillars | v0 pillars are stealth, physics, security, fire ([ADR 0006](decisions/0006-pillars.md)) |
 | Progression | XP, skill points, augmentation canisters/slots, body-location conflicts; attributes/modifiers are built for it | No progression in v0 ([ADR 0008](decisions/0008-progression-none.md)) |
