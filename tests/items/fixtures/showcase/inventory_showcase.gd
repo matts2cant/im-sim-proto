@@ -43,7 +43,6 @@ func _ready() -> void:
 	inventory.give(Items.BATON, 1)
 	inventory.give(Items.AMMO, 64)
 	inventory.give(Items.MEDKIT, 5)
-	inventory.give(Items.MULTITOOL, 3)
 	inventory.give(Items.LOCKPICK, 2)
 	inventory.give(Items.BIOCELL, 4)
 	inventory.give(Items.KEYCARD, 1, {"key_id": "warehouse_office"})

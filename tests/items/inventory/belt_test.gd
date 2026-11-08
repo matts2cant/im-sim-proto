@@ -36,7 +36,7 @@ func test_slots_hold_references_not_copies() -> void:
 
 
 func test_auto_assign_takes_the_first_free_slot() -> void:
-	_inventory.add(Items.MULTITOOL, 1)
+	_inventory.add(Items.MEDKIT, 1)
 	_inventory.add(Items.LOCKPICK, 1)
 	_inventory.add(Items.BIOCELL, 1)
 	_belt.assign(0, _inventory.stacks[0])
@@ -46,7 +46,7 @@ func test_auto_assign_takes_the_first_free_slot() -> void:
 
 
 func test_assigning_moves_a_stack_between_slots() -> void:
-	_inventory.add(Items.MULTITOOL, 1)
+	_inventory.add(Items.MEDKIT, 1)
 	_inventory.add(Items.LOCKPICK, 1)
 	var tool := _inventory.stacks[0]
 	_belt.assign(0, tool)

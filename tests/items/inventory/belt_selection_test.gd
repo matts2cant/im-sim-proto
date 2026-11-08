@@ -64,6 +64,8 @@ func test_scrolling_onto_a_medkit_does_not_use_it() -> void:
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
 	assert_array(EventLog.find(&"actor.healed")).is_empty()
+	# The HUD updates in _process, which may lag physics frames under the time factor.
+	await get_tree().process_frame
 	assert_str(_hud.weapon_label.text).is_equal("Medkit")
 
 
@@ -88,9 +90,9 @@ func test_h_holsters_the_drawn_pistol_and_clears_the_highlight() -> void:
 
 func test_h_puts_a_held_item_away() -> void:
 	await _load()
-	_player.inventory.give(Items.MULTITOOL, 1)
+	_player.inventory.give(Items.LOCKPICK, 1)
 	await _press(&"belt_1")
-	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
+	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
 	await _press(&"holster")
 

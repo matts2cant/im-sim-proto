@@ -6,11 +6,10 @@
 [ext_resource type="Resource" path="res://items/weapons/baton/baton_item.tres" id="3_baton_item"]
 [ext_resource type="Resource" path="res://items/pistol_ammo/pistol_ammo.tres" id="4_pistol_ammo"]
 [ext_resource type="Resource" path="res://items/medkit/medkit.tres" id="5_medkit"]
-[ext_resource type="Resource" path="res://items/multitool/multitool.tres" id="6_multitool"]
 [ext_resource type="Resource" path="res://items/lockpick/lockpick.tres" id="7_lockpick"]
 [ext_resource type="Resource" path="res://items/biocell/biocell.tres" id="8_biocell"]
 [ext_resource type="Resource" path="res://items/keycard/keycard.tres" id="9_keycard"]
 
 [resource]
 script = ExtResource("1_script")
-items = Array[ExtResource("0_item_data")]([ExtResource("2_pistol_item"), ExtResource("3_baton_item"), ExtResource("4_pistol_ammo"), ExtResource("5_medkit"), ExtResource("6_multitool"), ExtResource("7_lockpick"), ExtResource("8_biocell"), ExtResource("9_keycard")])
+items = Array[ExtResource("0_item_data")]([ExtResource("2_pistol_item"), ExtResource("3_baton_item"), ExtResource("4_pistol_ammo"), ExtResource("5_medkit"), ExtResource("7_lockpick"), ExtResource("8_biocell"), ExtResource("9_keycard")])

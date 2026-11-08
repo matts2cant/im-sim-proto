@@ -76,7 +76,7 @@ func test_item_table_has_one_of_every_catalogue_item_with_its_tag() -> void:
 
 func test_stack_station_counts_exceed_one_stack() -> void:
 	var table := _room.get_node("Stacks/Table") as Ledge
-	var expected: Dictionary[StringName, int] = {&"multitool": 12, &"medkit": 16, &"pistol_ammo": 150}
+	var expected: Dictionary[StringName, int] = {&"lockpick": 12, &"medkit": 16, &"pistol_ammo": 150}
 	var found := _pickups_under("Stacks")
 
 	assert_array(found.keys()).contains_exactly_in_any_order(expected.keys())

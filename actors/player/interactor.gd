@@ -5,7 +5,9 @@ extends Node
 ## for its character) and resolves the thing hit by its components, in this order: ItemPickup
 ## (pick up), Usable (use; a Readable is read in place, ADR 0060), Carryable (carry, or "Too
 ## heavy"). While carrying, E puts down ("No room" when PlayerCarry has no free spot to release
-## into, ADR 0053). The HUD shows `prompt`; perform() does it.
+## into, ADR 0053). The HUD shows `prompt`; perform() does it. A Usable may write its whole prompt
+## (`Usable.prompt()`: a door's "Locked: keycard") or be unavailable (`Usable.available()`: a broken
+## door). `looked_at` is the entity under the crosshair (ToolUse works a held tool on it, ADR 0078).
 
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 
@@ -15,6 +17,8 @@ var kind: Kind = Kind.NONE
 var target: Node = null
 ## HUD text, "" when there is nothing to do.
 var prompt: String = ""
+## The entity under the crosshair within reach (a hitbox's character), or null; null while carrying.
+var looked_at: Node = null
 
 
 ## HUD prompt for an interaction kind with the target's name and count.
@@ -57,6 +61,7 @@ static func entity_of(collider: Node) -> Node:
 func refresh() -> void:
 	kind = Kind.NONE
 	target = null
+	looked_at = null
 	if not ActorState.can_act(player):
 		prompt = ""
 		return
@@ -65,19 +70,25 @@ func refresh() -> void:
 		_resolve(carry_kind, player.carry.held, prompt_for(carry_kind, display_name_of(player.carry.held)))
 		return
 	var entity := entity_of(_look_collider())
+	looked_at = entity
 	if entity == null:
 		prompt = ""
 		return
 	var pickup := ItemPickup.of(entity)
 	var usable := Usable.of(entity)
+	if usable != null and not usable.available(player):
+		usable = null
 	var body := entity as PhysicsBody3D
 	if pickup != null and pickup.count > 0:
 		_resolve(Kind.PICK_UP, entity, prompt_for(Kind.PICK_UP, pickup.item.display_name, pickup.count))
 	elif usable != null:
-		var usable_name := usable.target_name()
-		if usable_name.is_empty():
-			usable_name = display_name_of(entity)
-		_resolve(Kind.USE, entity, prompt_for(Kind.USE, usable_name, 1, usable.verb))
+		var text := usable.prompt(player)
+		if text.is_empty():
+			var usable_name := usable.target_name()
+			if usable_name.is_empty():
+				usable_name = display_name_of(entity)
+			text = prompt_for(Kind.USE, usable_name, 1, usable.verb)
+		_resolve(Kind.USE, entity, text)
 	elif body != null and PlayerCarry.can_offer(body):
 		var heavy := not CarryRules.can_carry(Carryable.mass_of(body), player.carry.mass_limit())
 		var carry_kind := Kind.TOO_HEAVY if heavy else Kind.CARRY

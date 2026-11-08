@@ -92,7 +92,7 @@ Times are for a player who understands the mechanic.
 
 ### Plan
 
-- **M8**: locks are data (pin count and pin types per lock) with a pick interaction hook, and a hold-to-pick placeholder whose timer is scaled by `lockpick_time_mult`. M10 drops in without touching doors.
+- **M8** (built, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)): `MechanicalLock` with `MechanicalLockData` (`pins`: one type per pin, `pin_seed`, `tool`), the pick hook is the `Lock` tool interface (`accepts_tool`, `tool_hold`, `tool_release`, `tool_progress`) driven by the user's `ToolUse` while LMB is held with a lockpick; the placeholder takes pins x 1 s x `lockpick_time_mult`. M10 replaces `tool_hold` without touching doors.
 - **M10**: the minigame on mouse and keyboard, the practice locks, the skill rework (tolerance attributes replace `lockpick_time_mult`).
 - **Later gamepad milestone** ([../backlog.md](../backlog.md)): L2 tension, R2 lift, right stick changes pins, rumble.
 

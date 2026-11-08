@@ -61,7 +61,7 @@ func test_unknown_skills_and_out_of_range_tiers() -> void:
 
 func test_save_and_load_round_trip_re_derive_the_modifiers() -> void:
 	_skills.set_tier(&"medicine", 2)
-	_skills.set_tier(&"electronics", 1)
+	_skills.set_tier(&"computer", 1)
 	var saved := _skills.save_state()
 	_skills.set_tier(&"medicine", 0)
 	_skills.set_tier(&"lockpicking", 3)
@@ -69,7 +69,7 @@ func test_save_and_load_round_trip_re_derive_the_modifiers() -> void:
 	_skills.load_state(saved)
 
 	assert_int(_skills.tier(&"medicine")).is_equal(2)
-	assert_int(_skills.tier(&"electronics")).is_equal(1)
+	assert_int(_skills.tier(&"computer")).is_equal(1)
 	assert_int(_skills.tier(&"lockpicking")).is_equal(0)
 	assert_float(_attributes.evaluate(&"medical_heal_mult", 1.0)).is_equal_approx(2.0, 0.0001)
 	assert_float(_attributes.evaluate(&"lockpick_time_mult", 1.0)).is_equal(1.0)

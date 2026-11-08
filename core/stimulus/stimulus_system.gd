@@ -9,6 +9,9 @@ extends Node
 signal stimulus_processed(stimulus: Stimulus, paths: Array[PackedVector3Array])
 
 const MAX_DEPTH: int = 16
+## PATH stimuli (noise) follow the navmesh on every navigation layer: they pass doorways characters
+## may not path through (a locked door's link is off their layer, ADR 0078).
+const PATH_NAVIGATION_LAYERS: int = 0xFFFFFFFF
 
 var _queue: Array[Stimulus] = []
 # Registration order is delivery order (deterministic).
@@ -231,7 +234,7 @@ func _reach(stimulus: Stimulus, receiver: StimulusReceiver) -> Reach:
 	var map := receiver.get_world_3d().navigation_map
 	var nav := PackedVector3Array()
 	if NavigationServer3D.map_get_iteration_id(map) > 0 and not NavigationServer3D.map_get_regions(map).is_empty():
-		nav = NavigationServer3D.map_get_path(map, stimulus.origin, to, true)
+		nav = NavigationServer3D.map_get_path(map, stimulus.origin, to, true, PATH_NAVIGATION_LAYERS)
 	if nav.is_empty():
 		var fallback := stimulus.origin.distance_to(to) + _attenuation(straight)
 		return Reach.new(fallback, straight, "straight_fallback")
