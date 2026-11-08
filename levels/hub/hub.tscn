@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="17_biocell"]
 [ext_resource type="PackedScene" path="res://levels/gallery/perception_lab/perception_lab.tscn" id="18_perception_lab"]
 [ext_resource type="PackedScene" path="res://levels/gallery/ai_arena/ai_arena.tscn" id="19_ai_arena"]
+[ext_resource type="PackedScene" path="res://levels/gallery/security_wing/security_wing.tscn" id="20_security_wing"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -189,6 +190,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, -15.5)
 
 [node name="AIArena" parent="." instance=ExtResource("19_ai_arena")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 15.5)
+
+[node name="SecurityWing" parent="." instance=ExtResource("20_security_wing")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, 15.5)
 
 [node name="Loadout" type="Node3D" parent="."]
 
