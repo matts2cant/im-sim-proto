@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const FIXTURE := "res://tests/scenarios/fixtures/barrel_chain.tscn"
 const LISTENER := Vector3(3, 0.5, -3)
 
@@ -19,9 +20,8 @@ func before_test() -> void:
 	_scene = auto_free(load(FIXTURE).instantiate())
 	add_child(_scene)
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(_map())
-	NavigationServer3D.map_set_use_async_iterations(_map(), false)
 	var region: NavigationRegion3D = _scene.get_node("Rooms/NavigationRegion")
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await GuardHelpers.use_sync_iterations(_map(), region)
 	region.navigation_mesh = region.navigation_mesh.duplicate() as NavigationMesh
 	region.bake_navigation_mesh(false)
 	await Objects.frames(get_tree(), 5)

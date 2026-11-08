@@ -30,9 +30,8 @@ func before_test() -> void:
 	_scene = runner.scene()
 	var map := _guard("Near").get_world_3d().navigation_map
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(map)
-	NavigationServer3D.map_set_use_async_iterations(map, false)
 	var region := _scene.get_node("LevelNavigation") as LevelNavigation
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await Guards.use_sync_iterations(map, region)
 	Guards.isolate_region(map, region)
 	region.bake()
 	await _frames(6)

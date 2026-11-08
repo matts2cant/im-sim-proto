@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## wall at x = 0 (z -5..3) with a doorway at z 3..5; the source stands in the left room.
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const TWO_ROOMS := "res://tests/core/stimulus/fixtures/two_rooms.tscn"
 const SOURCE := Vector3(-3, 0, -3)
 const BEHIND_WALL := Vector3(3, 0.5, -3)
@@ -22,9 +23,8 @@ func before_test() -> void:
 	# Synchronous map iterations: region changes (this fixture, the previous test's freed one)
 	# reach path queries on the next physics frame instead of whenever a worker thread finishes.
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(_map())
-	NavigationServer3D.map_set_use_async_iterations(_map(), false)
 	var region: NavigationRegion3D = _rooms.get_node("NavigationRegion")
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await GuardHelpers.use_sync_iterations(_map(), region)
 	await Fixtures.frames(get_tree(), 2)
 
 

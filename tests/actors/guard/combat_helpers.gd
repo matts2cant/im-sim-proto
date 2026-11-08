@@ -7,6 +7,7 @@ extends RefCounted
 ## guards, `actor.guard` an ally). The rules under test are about tags and components.
 
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const HITBOXES := preload("res://actors/common/body/hitboxes.tscn")
 const YARD := "res://tests/scenarios/fixtures/combat_yard.tscn"
 const YARD_WITH_PLAYER := "res://tests/scenarios/fixtures/combat_yard_player.tscn"
@@ -40,9 +41,8 @@ func setup(p_runner: GdUnitSceneRunner, guard_scene: String) -> void:
 	combat.model.rng.seed = 11
 	var map := guard.get_world_3d().navigation_map
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(map)
-	NavigationServer3D.map_set_use_async_iterations(map, false)
 	var region := scene.find_child("LevelNavigation", true, false) as LevelNavigation
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await GuardHelpers.use_sync_iterations(map, region)
 	region.bake()
 	await frames(6)
 	EventLog.clear()

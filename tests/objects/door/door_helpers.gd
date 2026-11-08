@@ -22,8 +22,7 @@ func sync_navigation(scene: Node) -> void:
 	var region := scene.find_child("LevelNavigation", true, false) as LevelNavigation
 	_map = region.get_navigation_map()
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(_map)
-	NavigationServer3D.map_set_use_async_iterations(_map, false)
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await GuardHelpers.use_sync_iterations(_map, region)
 	GuardHelpers.isolate_region(_map, region)
 	region.bake()
 	for i in 3:
