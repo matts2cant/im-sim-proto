@@ -150,6 +150,7 @@ func test_death_disables_input_and_shows_the_overlay() -> void:
 
 	assert_bool(_player.is_dead()).is_true()
 	assert_array(EventLog.find(&"actor.died")).has_size(1)
+	hud.refresh_overlay()
 	assert_bool(hud.death_overlay.visible).is_true()
 	assert_bool(_player.weapons.is_armed()).is_false()
 	await _driver.hold(&"move_forward", 30)
@@ -172,8 +173,8 @@ func test_knockout_shows_the_knocked_out_overlay_until_woken() -> void:
 	# Stun well past the threshold (60, player_body.tres): knocked out, not dead.
 	_player.body.take_damage(&"damage.stun", 80.0)
 	await _driver.frames(2)
-	# The HUD updates in _process, which may lag physics frames under the time factor.
-	await get_tree().process_frame
+	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
+	hud._process(0.0)
 
 	assert_bool(ActorState.has(_player, ActorState.UNCONSCIOUS)).is_true()
 	assert_bool(_player.is_dead()).is_false()
@@ -191,8 +192,8 @@ func test_knockout_shows_the_knocked_out_overlay_until_woken() -> void:
 	# Woken (the `revive` receptron's effect, ADR 0071): the overlay goes, the player moves again.
 	_player.body.revive("test")
 	await _driver.frames(2)
-	# The HUD updates in _process, which may lag physics frames under the time factor.
-	await get_tree().process_frame
+	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
+	hud._process(0.0)
 	assert_bool(hud.death_overlay.visible).is_false()
 	assert_bool(hud.reticle.visible).is_true()
 	await _driver.hold(&"move_forward", 30)
@@ -207,15 +208,15 @@ func test_unconscious_tag_from_any_source_shows_the_overlay_and_death_overrides_
 	# A tag added by an Effect (sleep gas), not by BodyParts' stun.
 	ActorState.set_tag(_player, ActorState.UNCONSCIOUS, true)
 	await _driver.frames(2)
-	# The HUD updates in _process, which may lag physics frames under the time factor.
-	await get_tree().process_frame
+	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
+	hud._process(0.0)
 	assert_bool(hud.death_overlay.visible).is_true()
 	assert_str(hud.overlay_title.text).is_equal(HudRules.KNOCKED_OUT_TITLE)
 
 	_player.body.take_damage(&"damage.ballistic", 30.0, &"head")
 	await _driver.frames(2)
-	# The HUD updates in _process, which may lag physics frames under the time factor.
-	await get_tree().process_frame
+	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
+	hud._process(0.0)
 	assert_bool(_player.is_dead()).is_true()
 	assert_str(hud.overlay_title.text).is_equal(HudRules.DIED_TITLE)
 

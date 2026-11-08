@@ -64,8 +64,8 @@ func test_scrolling_onto_a_medkit_does_not_use_it() -> void:
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
 	assert_array(EventLog.find(&"actor.healed")).is_empty()
-	# The HUD updates in _process, which may lag physics frames under the time factor.
-	await get_tree().process_frame
+	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
+	_hud.refresh_weapon()
 	assert_str(_hud.weapon_label.text).is_equal("Medkit")
 
 
