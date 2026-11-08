@@ -30,7 +30,7 @@ func test_pistol_pickup_auto_belts_and_key_1_equips_it() -> void:
 	await _driver.frames(20)
 	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, body.global_position))
 	await _driver.frames(3)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Silenced pistol")
+	assert_str(_player.interactor.prompt).is_equal("E: pick up Pistol")
 	await _driver.hold(&"use", 2)
 	await _driver.frames(1)
 
@@ -38,7 +38,7 @@ func test_pistol_pickup_auto_belts_and_key_1_equips_it() -> void:
 	await _press(&"belt_1")
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.inventory.belt.selected).is_equal(0)
-	assert_str(_hud.weapon_label.text).is_equal("Silenced pistol")
+	assert_str(_hud.weapon_label.text).is_equal("Pistol")
 	assert_str(_hud.ammo_label.text).is_equal("10 / 0")
 
 	await _press(&"belt_1")

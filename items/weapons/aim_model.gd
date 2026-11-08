@@ -63,9 +63,13 @@ func add_look(pixels: float, spread_mult: float = 1.0) -> void:
 	spread = minf(spread + bloom * spread_mult, config.max_spread_deg)
 
 
-## Shot bloom x `spread_mult` (skill).
+## Shot bloom x `spread_mult` (skill), up to `shot_bloom_cap_deg` (when set) and `max_spread_deg`; a
+## cone already wider than the cap (walking) is not narrowed.
 func add_shot(spread_mult: float = 1.0) -> void:
-	spread = minf(spread + config.shot_bloom_deg * spread_mult, config.max_spread_deg)
+	var cap := config.max_spread_deg
+	if config.shot_bloom_cap_deg > 0.0:
+		cap = minf(cap, config.shot_bloom_cap_deg)
+	spread = maxf(spread, minf(spread + config.shot_bloom_deg * spread_mult, cap))
 
 
 ## A shot direction uniformly inside the cone around -Z of `basis` (sampled on the disk at unit

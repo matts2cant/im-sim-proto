@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://items/attachments/attachment_data.gd" id="2_attachment"]
+[ext_resource type="Script" path="res://core/attributes/modifier.gd" id="3_modifier"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_blaster_kit/silencer-small.glb" id="4_model"]
+
+[sub_resource type="Resource" id="Modifier_noise"]
+script = ExtResource("3_modifier")
+attribute = &"fire_noise"
+op = 1
+magnitude = 0.25
+source = &"silencer"
+
+[sub_resource type="Resource" id="Modifier_flash"]
+script = ExtResource("3_modifier")
+attribute = &"muzzle_flash_size"
+op = 1
+magnitude = 0.0
+source = &"silencer"
+
+[sub_resource type="Resource" id="Modifier_volume"]
+script = ExtResource("3_modifier")
+attribute = &"fire_volume_db"
+op = 0
+magnitude = -2.0
+source = &"silencer"
+
+[sub_resource type="Resource" id="Modifier_suppressed"]
+script = ExtResource("3_modifier")
+attribute = &"suppressed"
+op = 2
+magnitude = 1.0
+source = &"silencer"
+
+[sub_resource type="Resource" id="Attachment"]
+script = ExtResource("2_attachment")
+slot = &"muzzle"
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Modifier_noise"), SubResource("Modifier_flash"), SubResource("Modifier_volume"), SubResource("Modifier_suppressed")])
+label = "silenced"
+short_label = "SIL"
+model = ExtResource("4_model")
+length = 0.244
+
+[resource]
+script = ExtResource("1_script")
+id = &"silencer"
+display_name = "Silencer"
+short_name = "SILENCER"
+description = "Screws onto a weapon's muzzle: shots are a quarter as loud and show no flash. Drag it onto a pistol, sniper rifle or assault rifle in the inventory to fit it. It cannot come off again."
+footprint = Vector2i(1, 1)
+max_stack = 1
+colour = Color(0.3, 0.42, 0.5, 1)
+world_scene = "res://items/attachments/silencer/silencer_pickup.tscn"
+auto_belt = false
+default_state = {}
+use_action = 0
+use_message = "Drag it onto a weapon in the inventory (I) to fit it"
+attachment = SubResource("Attachment")

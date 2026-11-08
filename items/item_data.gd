@@ -55,6 +55,11 @@ enum UseAction {
 ## NONE: the message shown on use.
 @export var use_message: String = "Nothing happens"
 
+@export_group("Attachment")
+## Set on attachment items (a silencer): dragged onto a weapon whose slots accept it in the
+## inventory screen, it is fitted and used up (ADR 0085).
+@export var attachment: AttachmentData
+
 
 ## Stacks with instance state never merge (each pistol keeps its own magazine).
 func stackable() -> bool:
@@ -64,5 +69,5 @@ func stackable() -> bool:
 ## A fresh copy of `default_state` with `overrides` applied.
 func make_state(overrides: Dictionary = {}) -> Dictionary:
 	var state := default_state.duplicate(true)
-	state.merge(overrides, true)
+	state.merge(overrides.duplicate(true), true)
 	return state

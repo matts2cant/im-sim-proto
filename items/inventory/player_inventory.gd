@@ -7,8 +7,11 @@ extends Node
 ## player as CONTACT stimuli, ADR 0057), drops
 ## stacks back into the world as physics pickups. Each weapon stack gets its own WeaponState whose
 ## magazine is mirrored into the stack's `magazine` state and whose spare rounds
-## are the inventory's ammo stacks (InventoryAmmo). Saved through the Player (ADR 0050).
-## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`.
+## are the inventory's ammo stacks (InventoryAmmo). Attachment items are fitted to compatible weapon
+## stacks (attach(): the attachment is used up, the weapon's state records it, its WeaponState applies
+## it; ADR 0085). Saved through the Player (ADR 0050).
+## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`,
+## `item.attached`.
 
 ## Short feedback for the HUD ("No room in inventory", "Nothing happens").
 signal message(text: String)
@@ -192,15 +195,55 @@ func drop_stack(stack: ItemStack, count: int = -1) -> RigidBody3D:
 	return body
 
 
-## The WeaponState of a weapon stack (made on first use from its `magazine` state).
+## The WeaponState of a weapon stack (made on first use from its `magazine` state, with the
+## attachments its state records fitted).
 func weapon_state(stack: ItemStack) -> WeaponState:
 	if not _weapon_states.has(stack):
 		var data := stack.item.weapon
 		var ammo: AmmoPool = InventoryAmmo.new(inventory, data.ammo_item) if data.uses_ammo() else AmmoPool.new()
 		var weapon_state := WeaponState.new(data, ammo)
 		weapon_state.magazine = int(stack.state.get("magazine", data.magazine_size))
+		for attachment in Attachments.fitted(stack.state, catalog):
+			weapon_state.attach(attachment)
 		_weapon_states[stack] = weapon_state
 	return _weapon_states[stack]
+
+
+## True when the attachment item of `attachment` can be fitted to the weapon stack `weapon_stack`
+## (its slot accepted and free; ADR 0085).
+func can_attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
+	if attachment == null or weapon_stack == null or attachment == weapon_stack:
+		return false
+	if not inventory.stacks.has(attachment) or not inventory.stacks.has(weapon_stack):
+		return false
+	return Attachments.can_attach(weapon_stack.item, weapon_stack.state, attachment.item)
+
+
+## The weapon stacks `attachment` can be fitted to (the inventory screen highlights them).
+func attach_targets(attachment: ItemStack) -> Array[ItemStack]:
+	var result: Array[ItemStack] = []
+	for stack in inventory.stacks:
+		if can_attach(attachment, stack):
+			result.append(stack)
+	return result
+
+
+## Fits one of `attachment` to `weapon_stack` for good: the weapon's state records it (kept when
+## dropped, saved), its WeaponState applies its modifiers and one attachment is used up. False (and
+## nothing changes) when it does not fit.
+func attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
+	if not can_attach(attachment, weapon_stack):
+		return false
+	var item := attachment.item
+	Attachments.attach(weapon_stack.state, item)
+	if _weapon_states.has(weapon_stack):
+		_weapon_states[weapon_stack].attach(item.attachment)
+	inventory.remove(attachment, 1)
+	inventory.changed.emit()
+	var data := {"item": String(item.id), "weapon": String(weapon_stack.item.id)}
+	EventLog.record(&"item.attached", _who(), "", data)
+	message.emit("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
+	return true
 
 
 func save_state() -> Dictionary:

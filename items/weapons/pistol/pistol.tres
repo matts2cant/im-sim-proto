@@ -7,8 +7,15 @@
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_interface-sounds/Audio/click_002.ogg" id="5_dry"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="6_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="7_reload"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Titan Handgun.wav" id="8_bang"]
+[ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_model.tscn" id="9_model"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
+random_pitch = 1.06
+streams_count = 1
+stream_0/stream = ExtResource("8_bang")
+
+[sub_resource type="AudioStreamRandomizer" id="Suppressed"]
 random_pitch = 1.08
 streams_count = 3
 stream_0/stream = ExtResource("2_shot_0")
@@ -18,24 +25,28 @@ stream_2/stream = ExtResource("4_shot_2")
 [resource]
 script = ExtResource("1_script")
 id = &"pistol"
-display_name = "Silenced pistol"
+display_name = "Pistol"
 kind = 0
 damage = Dictionary[StringName, float]({&"damage.ballistic": 25.0})
 cycle_time = 0.35
 max_range = 60.0
 attribute_class = &"pistol"
+attachment_slots = Array[StringName]([&"muzzle"])
 magazine_size = 10
 reserve_ammo = 30
 ammo_item = &"pistol_ammo"
 reload_time = 1.6
-fire_noise = 6.0
+fire_noise = 25.0
 impact_noise = 4.0
 impact_impulse = 3.0
+muzzle_flash_size = 0.12
 fire_sound = SubResource("Shot")
-fire_volume_db = -2.0
+suppressed_fire_sound = SubResource("Suppressed")
+fire_volume_db = -4.0
 dry_fire_sound = ExtResource("5_dry")
 hit_sound = ExtResource("6_hit")
 reload_sound = ExtResource("7_reload")
+view_scene = ExtResource("9_model")
 view_size = Vector3(0.04, 0.08, 0.2)
 view_color = Color(0.24, 0.24, 0.27, 1)
-view_offset = Vector3(0.17, -0.15, -0.55)
+view_offset = Vector3(0.2, -0.19, -0.5)

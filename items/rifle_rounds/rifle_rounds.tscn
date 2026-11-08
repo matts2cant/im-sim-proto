@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/physics_object.gd" id="1_physics_object"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
+[ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="3_impact_noise"]
+[ext_resource type="Resource" path="res://objects/materials/cardboard.tres" id="4_material"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="5_impact_settings"]
+[ext_resource type="Script" path="res://items/item_pickup.gd" id="6_item_pickup"]
+[ext_resource type="Resource" path="res://items/rifle_rounds/rifle_rounds.tres" id="7_item"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.12, 0.07, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="Material_body"]
+albedo_color = Color(0.35, 0.5, 0.3, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+size = Vector3(0.12, 0.07, 0.1)
+material = SubResource("Material_body")
+
+[node name="RifleRounds" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 73
+mass = 0.6
+continuous_cd = true
+script = ExtResource("1_physics_object")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_body")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("2_tags")
+initial_tags = Array[StringName]([&"object.item", &"object.rifle_rounds", &"material.cardboard"])
+
+[node name="ImpactNoise" type="Node" parent="."]
+script = ExtResource("3_impact_noise")
+material = ExtResource("4_material")
+settings = ExtResource("5_impact_settings")
+
+[node name="ItemPickup" type="Node" parent="."]
+script = ExtResource("6_item_pickup")
+item = ExtResource("7_item")
+count = 60

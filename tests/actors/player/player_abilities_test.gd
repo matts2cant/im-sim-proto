@@ -49,21 +49,24 @@ func test_cloak_tints_the_screen_and_makes_the_view_model_translucent() -> void:
 	await _load(METAL)
 	Items.arm(_player)
 	await _press(&"belt_1")
-	var material := _view_material()
-	assert_int(material.transparency).is_equal(BaseMaterial3D.TRANSPARENCY_DISABLED)
+	var view := _player.weapons.view_pivot()
+	assert_float(view.alpha()).is_equal(1.0)
+	assert_float(_model_transparency()).is_equal(0.0)
 
 	await _press(&"aug_1")
 	await _driver.frames(2)
 
 	assert_bool((_player.get_node("Tags") as Tags).has(&"state.cloaked")).is_true()
 	assert_bool(_hud.cloak_tint.visible).is_true()
-	assert_int(material.transparency).is_equal(BaseMaterial3D.TRANSPARENCY_ALPHA)
-	assert_float(material.albedo_color.a).is_less(0.5)
+	assert_float(view.alpha()).is_less(0.5)
+	# The pistol's model meshes fade (GeometryInstance3D.transparency).
+	assert_float(_model_transparency()).is_greater(0.5)
 
 	await _press(&"aug_1")
 	await _driver.frames(2)
 	assert_bool(_hud.cloak_tint.visible).is_false()
-	assert_float(material.albedo_color.a).is_equal(1.0)
+	assert_float(view.alpha()).is_equal(1.0)
+	assert_float(_model_transparency()).is_equal(0.0)
 
 
 func test_toggling_with_no_energy_shows_energy_depleted() -> void:
@@ -230,9 +233,8 @@ func _spawn(path: String, position: Vector3) -> RigidBody3D:
 	return Objects.spawn(_driver.runner.scene(), path, position) as RigidBody3D
 
 
-func _view_material() -> StandardMaterial3D:
-	var view := _player.weapons.view_pivot().get_node("ViewModel") as MeshInstance3D
-	return (view.mesh as BoxMesh).material as StandardMaterial3D
+func _model_transparency() -> float:
+	return _player.weapons.view_pivot().model.geometry()[0].transparency
 
 
 func _sprint(frames: int) -> void:

@@ -46,7 +46,7 @@ func test_e_takes_the_item_table_pistol_onto_the_belt_and_key_1_draws_it() -> vo
 	assert_bool(_player.weapons.is_armed()).is_false()
 	_player.load_state(Objects.aiming_state(_player, _room.to_global(BESIDE_PISTOL), pistol.global_position))
 	await _driver.frames(3)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Silenced pistol")
+	assert_str(_player.interactor.prompt).is_equal("E: pick up Pistol")
 
 	await _driver.hold(&"use", 2)
 	await _driver.frames(1)

@@ -2,7 +2,7 @@ extends Node
 ## Showcase helper (screenshots only, tools/screenshot.sh): the player stands still (no input) where
 ## an armed guard sees it; once the guard has attacked, every frame freezes the attack's look for
 ## the picture: a ranged weapon's muzzle flash (MuzzleFlash.hold) or a melee weapon at
-## `swing_progress` of its swing (WeaponHolder.preview_swing). The player cannot die meanwhile
+## `swing_progress` of its swing (WeaponView.preview_swing). The player cannot die meanwhile
 ## (its body is reset after each hit). An optional `camera_path` camera (at eye height, 1.65 m) shows
 ## both from the side instead of the player's view.
 
@@ -43,7 +43,7 @@ func _process(_delta: float) -> void:
 		return
 	if data.is_melee():
 		if not EventLog.find(&"weapon.swung").is_empty():
-			_holder.preview_swing(swing_progress)
+			_holder.view_pivot().preview_swing(swing_progress)
 	elif not EventLog.find(&"weapon.fired").is_empty():
 		_holder.flash.hold(data)
 

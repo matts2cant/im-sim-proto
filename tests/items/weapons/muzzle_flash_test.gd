@@ -1,10 +1,11 @@
 extends GdUnitTestSuite
 ## Unit/integration: MuzzleFlash (ADR 0070): shown for a moment on a shot of a weapon with a flash
-## size (the guards' unsilenced pistol), never for the silenced pistol or a melee weapon; hold()
+## size (the guards' pistol, the player's pistol), never for a weapon without one, a silenced shot
+## (size 0 through the silencer, ADR 0085) or a melee weapon; hold()
 ## keeps it for screenshots; it carries a real light.
 
 const LOUD: WeaponData = preload("res://items/weapons/pistol/pistol_unsilenced.tres")
-const SILENCED: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
+const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
 const BATON: WeaponData = preload("res://items/weapons/baton/baton.tres")
 
 var _flash: MuzzleFlash
@@ -26,8 +27,12 @@ func test_a_loud_shot_flashes_briefly_at_the_front_of_the_gun() -> void:
 	assert_bool(_flash.visible).is_false()
 
 
-func test_silenced_and_melee_weapons_do_not_flash() -> void:
-	_flash.fire(SILENCED)
+func test_quiet_silenced_and_melee_weapons_do_not_flash() -> void:
+	var quiet := WeaponData.new()
+	_flash.fire(quiet)
+	assert_bool(_flash.visible).is_false()
+	# A silenced pistol: the silencer's modifier makes the flash size 0.
+	_flash.fire(PISTOL, 0.0)
 	assert_bool(_flash.visible).is_false()
 	_flash.fire(BATON)
 	assert_bool(_flash.visible).is_false()
