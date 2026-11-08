@@ -1,0 +1,246 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
+[ext_resource type="PackedScene" path="res://objects/door/breakable_door.tscn" id="2_breakable"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="3_keypad"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock_data.gd" id="4_keypad_data"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="5_mechanical"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="6_mechanical_data"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock.gd" id="7_keycard"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock_data.gd" id="8_keycard_data"]
+[ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="9_electronic"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="10_powered"]
+[ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="11_breaker"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="12_datapad"]
+[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="14_lockpick"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="15_nav"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.42, 0.42, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.62, 0.63, 0.66, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_table"]
+albedo_color = Color(0.45, 0.33, 0.22, 1)
+
+[sub_resource type="Environment" id="Environment_showcase"]
+background_mode = 1
+background_color = Color(0.32, 0.36, 0.42, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="Resource" id="Keypad_data"]
+script = ExtResource("4_keypad_data")
+code_id = &"storage_door"
+code = "2817"
+
+[sub_resource type="Resource" id="Mechanical_data"]
+script = ExtResource("6_mechanical_data")
+pins = Array[StringName]([&"standard", &"standard", &"standard"])
+
+[sub_resource type="Resource" id="Keycard_data"]
+script = ExtResource("8_keycard_data")
+access_id = &"showcase"
+
+[node name="DoorShowcase" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_showcase")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 8, 0)
+shadow_enabled = true
+
+[node name="LampFront" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, 4)
+light_energy = 2.0
+omni_range = 14.0
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(26, 1, 14)
+material = SubResource("Material_floor")
+metadata/surface = &"concrete"
+
+[node name="Wall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+use_collision = true
+size = Vector3(22, 3, 0.25)
+material = SubResource("Material_wall")
+
+[node name="DoorwayPlain" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.75, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorwayKeypad" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorwayMechanical" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorwayKeycard" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorwayElectronic" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorwayBreakable" type="CSGBox3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.75, -0.5, 0)
+operation = 2
+size = Vector3(1.2, 2.4, 1)
+
+[node name="DoorPlain" parent="." instance=ExtResource("1_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.75, 0, 0)
+
+[node name="DoorKeypad" parent="." instance=ExtResource("1_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 0, 0)
+
+[node name="Lockable" parent="DoorKeypad"]
+locked = true
+
+[node name="KeypadLock" type="Node3D" parent="DoorKeypad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.15)
+script = ExtResource("3_keypad")
+data = SubResource("Keypad_data")
+
+[node name="DoorMechanical" parent="." instance=ExtResource("1_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 0, 0)
+
+[node name="Lockable" parent="DoorMechanical"]
+locked = true
+
+[node name="MechanicalLock" type="Node3D" parent="DoorMechanical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.15)
+script = ExtResource("5_mechanical")
+data = SubResource("Mechanical_data")
+
+[node name="DoorKeycard" parent="." instance=ExtResource("1_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 0, 0)
+
+[node name="Lockable" parent="DoorKeycard"]
+locked = true
+
+[node name="KeycardLock" type="Node3D" parent="DoorKeycard"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.15)
+script = ExtResource("7_keycard")
+data = SubResource("Keycard_data")
+
+[node name="DoorElectronic" parent="." instance=ExtResource("1_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, 0, 0)
+
+[node name="Tags" parent="DoorElectronic"]
+initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_safe"])
+
+[node name="Lockable" parent="DoorElectronic"]
+locked = true
+
+[node name="Powered" type="Node" parent="DoorElectronic"]
+script = ExtResource("10_powered")
+circuit = &"door_showcase"
+
+[node name="ElectronicLock" type="Node3D" parent="DoorElectronic"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.15)
+script = ExtResource("9_electronic")
+
+[node name="DoorBreakable" parent="." instance=ExtResource("2_breakable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.75, 0, 0)
+
+[node name="Lockable" parent="DoorBreakable"]
+locked = true
+
+[node name="Breaker" parent="." instance=ExtResource("11_breaker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 1.3, 0.125)
+
+[node name="CircuitBreaker" parent="Breaker"]
+circuit = &"door_showcase"
+label = "door power"
+
+[node name="Signs" type="Node3D" parent="."]
+
+[node name="Plain" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.75, 2.6, 0.14)
+pixel_size = 0.004
+text = "Plain"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Keypad" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 2.6, 0.14)
+pixel_size = 0.004
+text = "Keypad (datapad: 2817)"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Mechanical" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 2.6, 0.14)
+pixel_size = 0.004
+text = "Mechanical (hold LMB, lockpick)"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Keycard" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 2.6, 0.14)
+pixel_size = 0.004
+text = "Keycard"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Electronic" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, 2.6, 0.14)
+pixel_size = 0.004
+text = "Electronic, fail-safe (breaker)"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Breakable" type="Label3D" parent="Signs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.75, 2.6, 0.14)
+pixel_size = 0.004
+text = "Breakable (explosives)"
+font_size = 40
+modulate = Color(0.1, 0.1, 0.12, 1)
+outline_size = 0
+
+[node name="Table" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 5)
+use_collision = true
+size = Vector3(3, 1, 0.8)
+material = SubResource("Material_table")
+
+[node name="StorageAccess" parent="." instance=ExtResource("12_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.03, 5)
+
+[node name="Readable" parent="StorageAccess"]
+entry_id = &"showcase.door.storage_access"
+title = "Storage access"
+text = "New code for the storage room keypad: 2817. Learn it and wipe this pad. - R."
+codes = Dictionary[StringName, String]({&"storage_door": "2817"})
+
+[node name="Keycard" parent="." instance=ExtResource("13_keycard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, 5)
+
+[node name="ItemPickup" parent="Keycard"]
+state = {"key_id": "showcase"}
+
+[node name="Lockpick" parent="." instance=ExtResource("14_lockpick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.02, 5)
+
+[node name="LevelNavigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("15_nav")

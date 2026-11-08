@@ -5,7 +5,7 @@ extends Resource
 ## Seconds to open fully, and to close fully.
 @export var open_time: float = 0.6
 ## How far (m) the panel slides along +X into the wall to open.
-@export var slide_distance: float = 1.25
+@export var slide_distance: float = 1.3
 ## The SoundAttenuator counts while less than this fraction is open (the panel covers most of the
 ## doorway).
 @export var attenuate_below: float = 0.5

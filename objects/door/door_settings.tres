@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 open_time = 0.6
-slide_distance = 1.25
+slide_distance = 1.3
 attenuate_below = 0.5
 slide_noise = 3.0
 blocking_mask = 14

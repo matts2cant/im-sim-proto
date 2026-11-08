@@ -24,6 +24,7 @@ var entry := KeypadEntry.new()
 
 func _ready() -> void:
 	visible = false
+	reminder_label.visible = false
 	add_to_group(PauseScreens.GROUP)
 	for key in KEYS:
 		var button := Button.new()
