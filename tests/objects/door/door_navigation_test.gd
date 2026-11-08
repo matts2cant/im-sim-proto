@@ -29,7 +29,7 @@ func after_test() -> void:
 func test_guard_paths_through_an_unlocked_door_and_opens_it() -> void:
 	await _walk_to_target(9.0)
 
-	assert_float(_guards.guard.global_position.z).is_less(-3.0)
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
 	assert_bool(_door.is_open()).is_true()
 	var opened := EventLog.find(&"door.opened")
 	assert_array(opened).has_size(1)
@@ -43,7 +43,7 @@ func test_locked_door_blocks_the_guards_path() -> void:
 
 	await _walk_to_target(9.0)
 
-	assert_float(_guards.guard.global_position.z).is_greater(0.3)
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_greater(0.3)
 	assert_bool(_door.is_open()).is_false()
 	assert_array(EventLog.find(&"door.opened")).is_empty()
 
@@ -57,11 +57,11 @@ func test_guard_with_access_passes_a_locked_keycard_door() -> void:
 
 	await _walk_to_target(9.0)
 
-	assert_float(_guards.guard.global_position.z).is_less(-3.0)
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
 	assert_bool(_door.is_locked()).is_true()
 
 
 func _walk_to_target(seconds: float) -> void:
 	_guards.guard.take_control(self)
-	_guards.guard.move_to(TARGET, 1.8)
+	_guards.guard.move_to(Helpers.ORIGIN + TARGET, 1.8)
 	await _guards.seconds(seconds)

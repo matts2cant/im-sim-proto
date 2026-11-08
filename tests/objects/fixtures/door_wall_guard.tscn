@@ -6,6 +6,7 @@
 [node name="DoorWallGuard" type="Node3D"]
 
 [node name="DoorWall" parent="." instance=ExtResource("1_wall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200, 0, 200)
 
 [node name="Guard" parent="." instance=ExtResource("2_guard")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200, 0, 204)

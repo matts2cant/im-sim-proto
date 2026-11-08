@@ -1,12 +1,17 @@
 extends RefCounted
 ## Test helper (not a suite): sets up the door fixtures (tests/objects/fixtures/door_wall*.tscn: a
 ## 20 m wall along z = 0, 0.25 m thick, with a 1.2 x 2.2 m doorway at x = 0 holding `Door`, floor
-## 20 x 20, LevelNavigation) with synchronous navigation, and adds locks to a door in code.
+## 20 x 20, LevelNavigation) with synchronous navigation, and adds locks to a door in code. The
+## fixtures stand at ORIGIN, far from the origin, so a late-freed navmesh of theirs never joins
+## another suite's (M8a: barrel_chain_test).
 
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const WALL := "res://tests/objects/fixtures/door_wall.tscn"
 const WALL_PLAYER := "res://tests/objects/fixtures/door_wall_player.tscn"
 const WALL_GUARD := "res://tests/objects/fixtures/door_wall_guard.tscn"
+## Where the door fixtures stand (door_wall_player / door_wall_guard place it there; suites that
+## instance door_wall.tscn themselves move it there before adding it).
+const ORIGIN := Vector3(-200, 0, 200)
 
 var _map: RID
 var _map_was_async: bool = true

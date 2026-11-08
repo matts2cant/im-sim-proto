@@ -9,6 +9,7 @@ const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
+## Relative to the fixture (Helpers.ORIGIN).
 const FEET := Vector3(0, 0, 1.2)
 const PANEL := Vector3(0, 1.4, 0)
 const CONTROL := Vector3(-0.9, 1.25, 0.15)
@@ -211,7 +212,7 @@ func _hold_pick(seconds: float) -> void:
 
 
 func _aim(target: Vector3) -> void:
-	_player.load_state(Objects.aiming_state(_player, FEET, target))
+	_player.load_state(Objects.aiming_state(_player, Helpers.ORIGIN + FEET, Helpers.ORIGIN + target))
 	await _driver.frames(3)
 
 

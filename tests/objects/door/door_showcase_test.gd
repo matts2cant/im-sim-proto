@@ -14,6 +14,8 @@ func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
 	_scene = auto_free(load(SHOWCASE).instantiate())
+	# Far from the origin: its navmesh, if freed late, never joins another suite's.
+	_scene.position = Vector3(-200, 0, 400)
 	add_child(_scene)
 	for i in 5:
 		await get_tree().physics_frame

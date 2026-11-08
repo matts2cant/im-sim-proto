@@ -1,11 +1,11 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0078): every lock component on a minimal entity (Node3D + Tags + Attributes +
 ## StimulusReceiver + Lockable, no Door): each opens only by its own method, and remote lock / unlock
-## commands reach a bare Lockable, blocked by `state.unpowered` / `state.broken`.
+## commands reach a bare Lockable on a Device, blocked by `state.unpowered` / `state.broken`.
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-const COMMAND_LOCK: Receptron = preload("res://objects/door/receptrons/command_lock.tres")
-const COMMAND_UNLOCK: Receptron = preload("res://objects/door/receptrons/command_unlock.tres")
+const COMMAND_LOCK: Receptron = preload("res://objects/devices/receptrons/command_lock.tres")
+const COMMAND_UNLOCK: Receptron = preload("res://objects/devices/receptrons/command_unlock.tres")
 const FRAME := 1.0 / 60.0
 
 var _root: Node3D
@@ -185,6 +185,10 @@ func _locked_box(tags: Array[StringName], powered: bool = false, receptrons: Arr
 		var power := Powered.new()
 		power.name = "Powered"
 		box.add_child(power)
+	if not receptrons.is_empty():
+		var device := Device.new()
+		device.name = "Device"
+		box.add_child(device)
 	return Fixtures.compose(box, _root, "Box", Vector3.ZERO, receptrons, tags)
 
 

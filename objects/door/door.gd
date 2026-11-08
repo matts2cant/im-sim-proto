@@ -8,10 +8,11 @@ extends Usable
 ## "Locked: <what opens it>". Control panels on both wall faces carry the prompt target, a red /
 ## green lock light and the names of the locks.
 ## Locks: the entity's Lockable and Lock components (objects/locks/); a user who unlocks it through
-## one opens it. Remote commands: CONTACT `command.open` / `command.close` / `command.lock` /
-## `command.unlock` through the entity's StimulusReceiver (DoorCommandEffect; the receptrons are
-## blocked by `state.unpowered` and `state.broken`). A remote open is an authorised open: it opens
-## a locked door without unlocking it.
+## one opens it. Remote commands: the door is a network device (its `Device`, ADR 0077): the
+## shared receptrons `objects/devices/receptrons/command_*.tres` (blocked by `state.unpowered` and
+## `state.broken`) run DeviceActionEffect, and the Device's `action_received` brings `command.open`
+## / `command.close` here (command()) and `command.lock` / `command.unlock` to the Lockable. A
+## remote open is an authorised open: it opens a locked door without unlocking it.
 ## Navigation: the doorway is carved out of the navmesh (`NavCarve`) and bridged by a
 ## NavigationLink3D on AccessLayers.WALK while passable (unlocked, open or broken), else on
 ## AccessLayers.LOCKED plus the access layers of its locks; characters with a DoorOpener open it
@@ -22,9 +23,6 @@ extends Usable
 signal state_changed(open: bool)
 
 const GROUP: StringName = &"doors"
-const BROKEN: StringName = &"state.broken"
-const UNPOWERED: StringName = &"state.unpowered"
-const COMMANDS: Array[StringName] = [&"open", &"close", &"lock", &"unlock"]
 const LOCKED_COLOUR := Color(0.9, 0.15, 0.1)
 const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
@@ -75,6 +73,9 @@ func _ready() -> void:
 	var breakable := Breakable.of(entity)
 	if breakable != null:
 		breakable.broken.connect(_on_broken)
+	var device := Device.of(entity)
+	if device != null:
+		device.action_received.connect(_on_action)
 	_place_controls()
 	_open = start_open
 	openness = 1.0 if start_open else 0.0
@@ -137,23 +138,20 @@ func open_for(actor: Node) -> bool:
 	return open(actor)
 
 
-## Runs remote command `command` (`open`, `close`, `lock`, `unlock`) sent by `by`. True when it
-## changed something.
-func command(name: StringName, by: Node = null) -> bool:
+## Runs remote command `action` (Device.OPEN or Device.CLOSE) sent by `by`. True when it changed
+## something. Logged `door.command {door, command, done}`.
+func command(action: StringName, by: Node = null) -> bool:
 	var done := false
-	match name:
-		&"open":
+	match action:
+		Device.OPEN:
 			done = open(by)
-		&"close":
+		Device.CLOSE:
 			done = close(by)
-		&"lock":
-			done = lockable != null and lockable.lock(by, &"command")
-		&"unlock":
-			done = lockable != null and lockable.unlock(by, &"command")
+		_:
+			return false
 	var who := String(by.name) if is_instance_valid(by) else ""
-	EventLog.record(
-		&"door.command", who, String(entity.name), {"door": String(entity.name), "command": name, "done": done}
-	)
+	var data := {"door": String(entity.name), "command": action, "done": done}
+	EventLog.record(&"door.command", who, String(entity.name), data)
 	return done
 
 
@@ -302,7 +300,7 @@ func _place_controls() -> void:
 func _update_controls() -> void:
 	if _light_material != null:
 		var colour := LOCKED_COLOUR if is_locked() else UNLOCKED_COLOUR
-		if broken or ActorState.has(entity, UNPOWERED):
+		if broken or ActorState.has(entity, Device.UNPOWERED):
 			colour = DEAD_COLOUR
 		_light_material.albedo_color = colour
 		_light_material.emission_enabled = colour != DEAD_COLOUR
@@ -321,6 +319,10 @@ func _on_unlocked_by_user(user: Node) -> void:
 	open(user)
 
 
+func _on_action(action: StringName, stimulus: Stimulus) -> void:
+	command(action, stimulus.source if is_instance_valid(stimulus.source) else null)
+
+
 func _on_tag_changed(_tag: StringName, _added: bool) -> void:
 	_update_controls()
 
@@ -336,7 +338,7 @@ func _break() -> void:
 		breakable.is_broken = true
 	_open = true
 	openness = 1.0
-	ActorState.set_tag(entity, BROKEN, true)
+	ActorState.set_tag(entity, Device.BROKEN, true)
 	_apply()
 
 

@@ -5,7 +5,9 @@ extends Node
 ## for its character) and resolves the thing hit by its components, in this order: ItemPickup
 ## (pick up), Usable (use; a Readable is read in place, ADR 0060), Carryable (carry, or "Too
 ## heavy"). While carrying, E puts down ("No room" when PlayerCarry has no free spot to release
-## into, ADR 0053). The HUD shows `prompt`; perform() does it.
+## into, ADR 0053). The HUD shows `prompt`; perform() does it. A Usable may write its whole prompt
+## (`Usable.prompt()`: a door's "Locked: keycard") or be unavailable (`Usable.available()`: a broken
+## door). `looked_at` is the entity under the crosshair (ToolUse works a held tool on it, ADR 0078).
 
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 

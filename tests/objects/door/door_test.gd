@@ -7,7 +7,8 @@ extends GdUnitTestSuite
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-## Noise source and listener 3 m either side of the doorway (centre to centre), on the navmesh.
+## Noise source and listener 3 m either side of the doorway (centre to centre), relative to the
+## fixture.
 const SOURCE := Vector3(0, 0.5, 3)
 const LISTENER := Vector3(0, 0.5, -3)
 
@@ -23,6 +24,7 @@ func before_test() -> void:
 	await Helpers.GuardHelpers.let_old_scenes_go(get_tree())
 	_helpers = Helpers.new()
 	_scene = auto_free(load(Helpers.WALL).instantiate())
+	_scene.position = Helpers.ORIGIN
 	add_child(_scene)
 	await Helpers.frames(get_tree(), 5)
 	await _helpers.sync_navigation(_scene)
@@ -55,8 +57,8 @@ func test_opens_and_closes_in_0_6_seconds() -> void:
 
 
 func test_closed_door_blocks_sight_and_open_door_does_not() -> void:
-	var from := Vector3(0, 1.5, 2)
-	var to := Vector3(0, 1.5, -2)
+	var from := Helpers.ORIGIN + Vector3(0, 1.5, 2)
+	var to := Helpers.ORIGIN + Vector3(0, 1.5, -2)
 	var space := _entity.get_world_3d().direct_space_state
 	assert_bool(PhysicsLayers.segment_clear(space, from, to)).is_false()
 
@@ -102,7 +104,7 @@ func test_does_not_close_on_a_body_in_the_doorway() -> void:
 	shape.shape = box
 	crate.add_child(shape)
 	_scene.add_child(crate)
-	crate.global_position = Vector3(0, 0.2, 0)
+	crate.global_position = Helpers.ORIGIN + Vector3(0, 0.2, 0)
 	await Helpers.frames(get_tree(), 2)
 
 	assert_bool(_door.close()).is_false()
@@ -122,7 +124,12 @@ func test_remote_commands_open_close_lock_unlock() -> void:
 	assert_bool(_door.is_locked()).is_true()
 	await _command(&"command.unlock")
 	assert_bool(_door.is_locked()).is_false()
-	assert_array(EventLog.find(&"door.command")).has_size(4)
+	assert_array(EventLog.find(&"door.command")).has_size(2)
+	var hows := EventLog.find(&"lock.locked") + EventLog.find(&"lock.unlocked")
+	(
+		assert_array(hows.map(func(entry: EventLogEntry) -> String: return String(entry.data["how"])))
+		. is_equal(["command", "command"])
+	)
 
 
 func test_remote_open_opens_a_locked_door_without_unlocking_it() -> void:
@@ -207,7 +214,7 @@ func _command(type: StringName) -> void:
 
 func _noise_distance(listener: Node3D) -> float:
 	EventLog.clear()
-	StimulusSystem.emit(Stimulus.make_noise(30.0, SOURCE))
+	StimulusSystem.emit(Stimulus.make_noise(30.0, Helpers.ORIGIN + SOURCE))
 	await Helpers.frames(get_tree(), 2)
 	var received := EventLog.find(&"stimulus.received").filter(
 		func(entry: EventLogEntry) -> bool: return entry.target == listener.name

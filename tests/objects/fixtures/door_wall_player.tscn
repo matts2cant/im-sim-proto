@@ -6,6 +6,7 @@
 [node name="DoorWallPlayer" type="Node3D"]
 
 [node name="DoorWall" parent="." instance=ExtResource("1_wall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200, 0, 200)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200, 0, 202)

@@ -1,14 +1,13 @@
 class_name ElectronicLock
 extends Lock
 ## Lock component: an electronic lock, a network device (ADR 0078). Opened remotely (the entity's
-## `command.unlock` / `command.open` receptrons; from M11 with network access) or by losing power
+## `command.unlock` / `command.open` device actions; from M11 with network access) or by losing power
 ## when the entity is tagged `door.fail_safe`; a `door.fail_secure` entity (or one with neither tag)
 ## stays as it was. Power loss is the entity's Powered switching off, or the entity gaining
-## `state.unpowered` (whatever sets it: the device network).
+## `state.unpowered` (its Device mirrors its Powered into that tag; anything else may set it too).
 
 const FAIL_SAFE: StringName = &"door.fail_safe"
 const FAIL_SECURE: StringName = &"door.fail_secure"
-const UNPOWERED: StringName = &"state.unpowered"
 
 var _tags: Tags
 var _powered: Powered
@@ -47,5 +46,5 @@ func _on_power_changed(on: bool) -> void:
 
 
 func _on_tag_changed(tag: StringName, added: bool) -> void:
-	if added and tag == UNPOWERED:
+	if added and tag == Device.UNPOWERED:
 		power_lost()

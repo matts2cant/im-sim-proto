@@ -172,6 +172,8 @@ func test_knockout_shows_the_knocked_out_overlay_until_woken() -> void:
 	# Stun well past the threshold (60, player_body.tres): knocked out, not dead.
 	_player.body.take_damage(&"damage.stun", 80.0)
 	await _driver.frames(2)
+	# The HUD updates in _process, which may lag physics frames under the time factor.
+	await get_tree().process_frame
 
 	assert_bool(ActorState.has(_player, ActorState.UNCONSCIOUS)).is_true()
 	assert_bool(_player.is_dead()).is_false()

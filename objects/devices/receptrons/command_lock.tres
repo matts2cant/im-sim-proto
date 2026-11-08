@@ -2,15 +2,14 @@
 
 [ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="1_receptron"]
 [ext_resource type="Script" path="res://core/stimulus/effects/effect.gd" id="2_effect"]
-[ext_resource type="Script" path="res://objects/door/door_command_effect.gd" id="3_command"]
+[ext_resource type="Script" path="res://objects/devices/device_action_effect.gd" id="3_action"]
 
-[sub_resource type="Resource" id="Resource_command"]
-script = ExtResource("3_command")
-command = &"close"
+[sub_resource type="Resource" id="Resource_action"]
+script = ExtResource("3_action")
 
 [resource]
-resource_name = "command_close"
+resource_name = "command_lock"
 script = ExtResource("1_receptron")
-stimulus_type = &"command.close"
+stimulus_type = &"command.lock"
 blocked_tags = Array[StringName]([&"state.unpowered", &"state.broken"])
-effects = Array[ExtResource("2_effect")]([SubResource("Resource_command")])
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_action")])

@@ -91,7 +91,7 @@ Built in M8 ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). 
 
 ### Remote commands
 
-CONTACT stimuli delivered to the door: `command.open`, `command.close`, `command.lock`, `command.unlock` (intensity 1). The door's receptrons (`objects/door/receptrons/command_*.tres`, `DoorCommandEffect`) run them, blocked while the door carries `state.unpowered` or `state.broken`. A remote open is an authorised open: it opens a locked door without unlocking it (it is locked again once closed). `lock` / `unlock` also reach a `Lockable` without a door.
+Every door is a network device: `door.tscn` carries a `Device` ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)), standalone until cabled (`Device.links`). `command.open`, `command.close`, `command.lock`, `command.unlock` (`Device.OPEN` ... `Device.UNLOCK`, sent with `Device.send_command(command, door)` by a device that reaches the door) run through the shared receptrons `objects/devices/receptrons/command_*.tres` (blocked while the door carries `state.unpowered` or `state.broken`) and the Device's `action_received`: the `Door` opens / closes, the `Lockable` locks / unlocks (`lock.locked` / `lock.unlocked` with `how: command`). A remote open is an authorised open: it opens a locked door without unlocking it (it is locked again once closed). A door with a `Powered` on a circuit is unpowered while the circuit is off (the Device mirrors it into `state.unpowered`): no commands, and a fail-safe lock unlocks.
 
 ### Guards and doors
 

@@ -4,7 +4,9 @@ extends Node
 ## The Lock components on the same entity (keypad, mechanical, keycard, electronic) are the ways to
 ## unlock it; a remote command (or anything else) can lock and unlock it too. An entity with a
 ## Lockable and no Lock is locked until something unlocks it. A user who unlocks it on purpose
-## (right code, key, pick) also wants it opened: `unlocked_by_user` (a Door opens).
+## (right code, key, pick) also wants it opened: `unlocked_by_user` (a Door opens). On a network
+## device (a `Device` on the entity) the `command.lock` / `command.unlock` actions lock and unlock it
+## (the shared device receptrons block them while unpowered or broken).
 ## EventLog `lock.unlocked` / `lock.locked {entity, how}`. Saveable (`locked`).
 
 signal lock_changed(locked: bool)
@@ -20,6 +22,9 @@ var entity: Node
 func _ready() -> void:
 	add_to_group(&"saveable")
 	entity = get_node_or_null(entity_path)
+	var device := Device.of(entity)
+	if device != null:
+		device.action_received.connect(_on_action)
 
 
 static func of(node: Node) -> Lockable:
@@ -86,6 +91,14 @@ func load_state(data: Dictionary) -> void:
 	if value != locked:
 		locked = value
 		lock_changed.emit(locked)
+
+
+func _on_action(action: StringName, stimulus: Stimulus) -> void:
+	var by: Node = stimulus.source if is_instance_valid(stimulus.source) else null
+	if action == Device.LOCK:
+		lock(by, &"command")
+	elif action == Device.UNLOCK:
+		unlock(by, &"command")
 
 
 func _log(kind: StringName, by: Node, how: StringName) -> void:

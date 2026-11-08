@@ -226,7 +226,7 @@ flowchart LR
 - Damage types: [damage.md](damage.md)
 - Hearing and reactions: [perception-and-ai.md](perception-and-ai.md)
 - Door attenuation and door commands: [security.md](security.md)
-- Remote commands (M8): CONTACT stimuli `command.open`, `command.close`, `command.lock`, `command.unlock` (and the other devices' commands) delivered to a device and run by its receptrons, blocked by `state.unpowered` and `state.broken` ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md))
+- Door commands (`command.open` / `close` / `lock` / `unlock`, table above): the Door and its Lockable act on the Device's `action_received` ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md))
 - Live log and Overlays tab: [debug-panel.md](debug-panel.md)
 - Architecture: [../tech/architecture.md](../tech/architecture.md)
 
