@@ -20,6 +20,9 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Bug-fix briefs ask the agent to reproduce the user's exact actions (what they did in the level, with real in-game values) before testing hypotheses; my guessed scenarios may already pass.
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.
 - A brief that lets a state reach the player (a tag that stops input, a new damage outcome) also asks for the player-facing UI and a test that the player can always get out of it (wake, reload or load).
+- Every new UI screen in a brief states whether the game pauses or keeps running, and how the player leaves it.
+- Give tuning targets as measured outcomes (time to kill, time to detect) and ask for a test that measures them; my starting numbers are only a first guess.
+- Briefs tell agents to iterate on a test subset (`tools/run_tests.sh res://tests/<area>`) and run the full suite once at the end, and never to stop a running suite mid-way.
 - Briefs describe behaviour in terms of properties (components, tags, stimuli), not specific objects, and diff reviews check for identity branches (names, scene paths, concrete classes): AGENTS.md "Systemic design".
 - Briefs point sub-agents at AGENTS.md (definition of done) and ask for a short report: files, verification results, deviations, screenshot paths.
 

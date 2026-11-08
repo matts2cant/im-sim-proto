@@ -4,6 +4,34 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M8 — Security (2026-11-08)
+
+Four agents in three waves: M8a devices, cable graph, remote commands and alarm devices (ADR 0077, replacing the global LevelAlarm per ADR 0075); M8b doors, locks, keypads, multitool removal, Computer skill (ADR 0078, 0076); M8c cameras, turret, terminal (ADR 0079, 0080); M8d the security wing (gallery room 5). A Sonnet agent fixed a flaky HUD test before the last merge. Final suite: 1188 tests, 0 failures.
+
+**What went well**
+- Naming the shared contract in both wave-1 briefs (command stimulus types, the `state.unpowered`/`state.broken` tags) let devices and doors be built in parallel; merging M8a first and messaging the doors agent to switch to the real `Device` API and write the cross-feature test worked again (third time).
+- Starting wave 2 as soon as its only dependency (M8a) merged, instead of waiting for the whole wave, overlapped M8b and M8c.
+- No identity branches: the terminal's buttons come from which command receptrons each reached device has; the controller finds sirens and base stations the same way. The door appeared on the terminal with no door code.
+- Agents probed navigation before building door passage (carving obstacle + NavigationLink3D on access layers).
+- Asking for a measured outcome (turret time to kill 3-5 s) instead of trusting my numbers caught a bad value: 8 damage gave 7 s; the agent raised it to 15 and wrote the measurement as a test.
+- The room needed zero new system code.
+
+**What went wrong**
+- HUD asserts flaked under the time factor (labels refresh in `_process`), first in my knockout fix, then in two other suites; three agents hit it and one full run failed because of it.
+- Fixtures whose navmesh overlapped the origin broke unrelated suites through late-freed regions; agents worked around it by moving fixtures 200 m away, each rediscovering it.
+- Parallel briefs did not say whether UI screens pause: the keypad pauses the game, the terminal does not.
+- Full-suite runs are long and agents ran them several times; one agent stopped a run mid-way to merge and could not kill its own leftover Godot processes (auto-mode refused), so it waited.
+
+**Changes made**
+- AGENTS.md: assert on HUD/UI state only after calling the component's refresh (never a bare process-frame wait); place test fixtures with navigation far from the origin and from each other.
+- CLAUDE.md: briefs state pause vs. running for every new UI screen; tuning targets are given as measured outcomes with a test; agents iterate on a test subset and run the full suite once at the end; never stop a test run mid-way.
+- Test speed: options given to the user (skip re-import when unchanged, dummy audio driver, parallel shards, slow-suite fixes); to schedule after the playtest.
+
+**Open questions for the user**
+- Keypad pauses the game, the terminal does not: make them consistent (which way)?
+- A remote "open" opens a locked door but leaves it locked; guards leave doors they open open. OK?
+- Turret 15 damage a hit (about 4 s to kill a standing player at 6 m); camera spots a lit player at 4 m in about 1.25 s. Feel right?
+
 ## M7 — Light and AI (2026-11-07)
 
 Two waves of two agents in parallel worktrees. Wave 1: light level + lamps + breaker + Perception lab (ADR 0065–0066) and guard core: body, vision, hearing, graded awareness, patrols, feedback (ADR 0067–0069). Wave 2: guard combat and loadouts (ADR 0070) and bodies, shouts, radio, level alarm, AI arena, lab guard (ADR 0071–0072; that agent ran its own level sub-agent). Started without the M6 playtest at the user's request (they were travelling). 816 → 1023 tests. ~1.6M sub-agent tokens.
