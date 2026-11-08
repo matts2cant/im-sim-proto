@@ -10,6 +10,7 @@ Parked items, out of scope for v0.
 | Gamepad hacking | Cursor and typing on a gamepad | Part of the gamepad milestone |
 | Remote-hacking augmentation | Hack a device in view without a link | Not in the v0 augmentation list ([ADR 0020](decisions/0020-skills-augmentations.md)) |
 | Buying exploits | Exploits from vendors or contacts | No economy in v0; exploits are found ([hacking](game/hacking.md)) |
+| NPCs reading device logs | Operators find exploit runs and logins in logs and react | v0: only the player reads logs ([hacking](game/hacking.md)) |
 | NPCs noticing changed firewall rules | Operators or admins review rules and react | v0 operators react to dark camera feeds and offline tracers only ([hacking](game/hacking.md)) |
 | Network app on computers | Discovery and hacking from any computer | Only the deck hacks in v0 ([ADR 0074](decisions/0074-network-hacking.md)) |
 | Security robot | Needs EMP/electricity to be interesting | Electricity not in v0 |

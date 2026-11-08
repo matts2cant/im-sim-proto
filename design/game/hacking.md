@@ -33,7 +33,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 | Map | Scanner. Shows the devices you can see from your entry point (see [Discovery](#discovery)) |
 | Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs |
 | Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace |
-| Sniffer | Wireless only. Captures the logins of NPCs who log in nearby (see [NPCs and logs](#npcs-and-logs)) |
+| Sniffer | Wireless only. Captures the logins made on devices connected through the same access point as the deck, while it runs (see [NPCs and logs](#npcs-and-logs)) |
 | Firewall | As admin of a gateway: view and edit its rules |
 | Logs | As admin of a device: read its log and erase entries |
 
@@ -82,9 +82,9 @@ Brute force, deterministic. The letters lock in one by one.
 
 | Password strength | Base time |
 |---|---|
-| Weak | 15 s |
-| Medium | 40 s |
-| Strong | 90 s |
+| Weak | 10 s |
+| Medium | 24 s |
+| Strong | 50 s |
 
 | Computer skill | Crack time | Trace gain | Strongest password it cracks |
 |---|---|---|---|
@@ -93,7 +93,14 @@ Brute force, deterministic. The letters lock in one by one.
 | Advanced | ×0.5 | ×0.6 | Strong |
 | Master | ×0.3 | ×0.4 | Strong |
 
-Examples: a Medium password takes 40 s Trained (40 × 0.75 = 30 s), 20 s Advanced, 12 s Master.
+Resulting crack times (the longest is 25 s: no crack should make the player wait much longer):
+
+| Computer skill | Weak | Medium | Strong |
+|---|---|---|---|
+| Untrained | 10 s | can't | can't |
+| Trained | 7.5 s | 18 s | can't |
+| Advanced | 5 s | 12 s | 25 s |
+| Master | 3 s | 7 s | 15 s |
 
 - Stopping keeps the progress on the deck (saved with the game). Running it on the same account later resumes. If the password has changed since, the progress is lost.
 - The skill affects only the deck's tools. Admin access allows every admin action: no action is skill-gated.
@@ -108,7 +115,7 @@ Examples: a Medium password takes 40 s Trained (40 × 0.75 = 30 s), 20 s Advance
 ## Tracers
 
 - A tracer is not a property of a subnet. It is an app running on a computer, server or gateway. Example: "Sentry tracer" on firewall FW-01 watches the Guest and Office subnets. A subnet with no tracer is unwatched.
-- Tuning is a `.tres` on the tracer: trace gain rate, the amount a failed login or an exploit run adds, drain rate while you are idle, lockout duration (default 60 s).
+- Tuning is a `.tres` on the tracer: trace gain rate, the amount a failed login or an exploit run adds, drain rate while you are idle, lockout duration. Starting values in [Tuning](#tuning).
 - Activity against a device adds trace to every running tracer that watches the device's subnet. The Computer skill scales the gain.
 - Trace drains while nothing adds to it.
 - **Full trace**: the tracer behaves like a camera. It sends an incident to the alarm controller (location: your entry point, not your position) and blocks your address for the lockout duration. While blocked, the watched devices refuse your address and tools running against them stop (Icebreaker progress stays on the deck).
@@ -128,7 +135,7 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 
 | Device | Remote actions | Standalone (link lost) |
 |---|---|---|
-| Door | open, close, lock, unlock, grant access | Works locally (key, keycard, keypad); power loss follows its fail-safe or fail-secure tag |
+| Door | open, close, lock, unlock, grant access (adds the deck's owner to its access list: it then opens for them like for a keyholder and stays locked for others) | Works locally (key, keycard, keypad); power loss follows its fail-safe or fail-secure tag |
 | Camera | view feed, stop sweep, pan, disable | Keeps watching; its incidents reach no controller |
 | Turret | disable, edit target tags (its hostile tags, [ADR 0069](../decisions/0069-hostile-and-ally-tags.md)) | Keeps its target tags |
 | Siren | silence, test | Cannot be rung |
@@ -153,7 +160,7 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 ### NPCs and logs
 
 - NPCs log in to devices through a "use device" action at patrol waypoints. This feeds the Sniffer and the device logs.
-- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool.
+- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool. An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
 
 ## UI
 
@@ -192,12 +199,22 @@ Controls ([controls.md](controls.md)):
 - Deck item: [inventory.md](inventory.md). Skill: [abilities.md](abilities.md). Controls: [controls.md](controls.md).
 - Parked: [../backlog.md](../backlog.md) (terminal app, deck upgrades, VLANs, gamepad hacking, remote-hacking augmentation, buying exploits, NPCs noticing changed firewall rules, network app on computers).
 
-## Open questions
+## Tuning
 
-- Tracer numbers (gain rate, failed-login and exploit amounts, drain rate).
-- Exploit run time; whether an undetected exploit run leaves a log entry an operator can find later.
-- Where account names come from for the Icebreaker (login screens, clues, logs, the Sniffer).
-- Door "grant access": which keycard ids or characters it adds.
-- How the security operator's radio call is modelled (one guard sent to check, not a search by every radio guard).
-- Sniffer range: the access point you are connected through, or a fixed radius.
-- Whether anything in v0 reads device logs besides the player.
+Starting values, to be checked by feel in playtest ([playtest checklist](../tech/playtest-checklist.md)). Rule of thumb: no single wait longer than about 25 s, and trace drains fast enough that waiting it out takes seconds, not a minute.
+
+| Value | Start | Result |
+|---|---|---|
+| Icebreaker base time | Weak 10 s, Medium 24 s, Strong 50 s | See the crack time table above |
+| Map scan of a subnet | 2 s, +10 % trace | Matches the "12 % (your scan)" wireframe |
+| Exploit run | 4 s, +10 % trace | The fast route; burned if a tracer watches the subnet |
+| Failed login (wrong guess) | +15 % trace | About six wrong guesses fill a tracer |
+| Tracer gain while a tool runs against a watched device | 4 %/s | One crack fits: Trained Medium 18 s × 4 × 0.8 = 58 %; Advanced Strong 25 s × 4 × 0.6 = 60 %; two in a row without a pause fill it |
+| Sensitive tracer variant (`.tres`) | 7 %/s | Trained Medium 18 s × 7 × 0.8 = 101 %: find the password, use an exploit or train the skill |
+| Trace drain | 10 %/s, starting 2 s after the last gain | 60 % drains in 8 s |
+| Lockout after full trace | 30 s | Short: the alarm is the real penalty |
+
+All trace gains are multiplied by the Computer skill's trace gain (×1 / 0.8 / 0.6 / 0.4).
+
+- **Account names**: the Map lists the account names of every device you have seen (like a login banner). Passwords are the secret; clues, the Sniffer and Icebreaker supply them.
+- **Security operator's radio call**: on a dark camera feed or "Tracer offline", the operator radios the nearest guard with `equipment.radio`, who goes to investigate the device. Other guards are not alerted.

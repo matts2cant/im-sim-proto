@@ -258,3 +258,11 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 - [ ] Stand so that the baton guard is between you and the pistol guard: the pistol guard does not fire through its colleague; after about a second it steps aside and fires past it.
 - [ ] Knock a guard out (baton from behind while it is still Unaware): it drops its weapon box from view and never fires again.
 - [ ] Throw the small crate at the training dummy: it bounces off (no longer passes through) and the dummy shows about 12 damage once. The guards still push crates gently out of their way.
+
+## M11 Hacking feel ([ADR 0074](../decisions/0074-network-hacking.md), tuning in [hacking.md](../game/hacking.md#tuning))
+
+- [ ] No crack feels like dead waiting: Trained on a Medium password (18 s) and Advanced on a Strong one (25 s). Note any wait that drags.
+- [ ] One crack against a default tracer leaves room to spare; two in a row without a pause trip it; a short pause (about 8 s) drains it.
+- [ ] A sensitive tracer makes Trained brute force on Medium fail, so finding the password or an exploit feels worth it.
+- [ ] Guessing an implicit-clue password: a couple of wrong guesses are forgiven, careless guessing is not.
+- [ ] The 30 s lockout plus the alarm feels like a real penalty without stalling the player.
