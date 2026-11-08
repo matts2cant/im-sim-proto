@@ -45,6 +45,10 @@ var cause_id: int = 0
 var scale_attribute: StringName = &""
 ## The factor `scale_attribute` gave on emit (1 until then, or without one).
 var scale: float = 1.0
+## The place the stimulus is about when that is not where it travels from: a radio base station's
+## dispatch spreads from the station and names an incident elsewhere (ADR 0077). Vector3.INF:
+## unset; read it through about().
+var about_point: Vector3 = Vector3.INF
 
 
 static func make_radius(
@@ -125,6 +129,11 @@ func source_scale() -> float:
 	if scale_attribute.is_empty():
 		return 1.0
 	return Attributes.read(source, scale_attribute, 1.0)
+
+
+## The place the stimulus is about: `about_point` when set, else the origin.
+func about() -> Vector3:
+	return origin if about_point == Vector3.INF else about_point
 
 
 ## Name of the source node (remembered on emit if it has been freed since), or "" when there is none

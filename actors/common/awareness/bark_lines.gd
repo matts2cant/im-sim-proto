@@ -15,7 +15,7 @@ extends Resource
 @export var gave_up: Array[String] = []
 ## Searching because a downed ally was found (reason `body`, ADR 0071).
 @export var body_found: Array[String] = []
-## Searching because of an ally's shout or radio call or the level alarm (reasons `shout`, `radio`,
+## Searching because of an ally's shout or radio call, a dispatch or a siren (reasons `shout`, `radio`,
 ## `alarm`, ADR 0072).
 @export var called: Array[String] = []
 ## Searching right after being woken (reason `woken`).

@@ -199,7 +199,12 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M8 Security (Security wing)
 
-- [ ] Cameras see a cloaked player; alarm panel triggers level-wide alarm.
+- [ ] Cameras see a cloaked player.
+- [ ] AI arena (alarm devices, [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)): sneak behind the baton post guard and press the panic button (north wall, right of the hub door; "E: press panic button"): both sirens (east wall, west wall by the radio door) sound with a red beacon and a tone every second, the HUD shows "ALARM", and every guard runs to the panic button (the radio base station dispatched them). The sirens keep sounding for 90 s.
+- [ ] Debug panel "Raise alarm": sirens sound, guards search around where they stand (no dispatch); "Clear alarm" stops the sirens at once and the HUD "ALARM" goes within about 1.5 s.
+- [ ] Shoot the network switch (next to the controller; one pistol shot breaks it, its LEDs go out): "Raise alarm" no longer sounds the sirens; while they sound, shooting it silences them within about 2.5 s. Shoot a siren: it loses its horn and stays silent.
+- [ ] Walk away from a sounding siren: "ALARM" goes once you are about 34 m (walking distance) away; guards that far away do not react.
+- [ ] Quicksave while the sirens sound and quickload: they still sound and the controller's time continues.
 - [ ] Turret engages intruders.
 - [ ] Every door and lock type can be opened by its intended methods.
 - [ ] Terminal unlocks with credentials found in the world.
@@ -242,8 +247,8 @@ In the hub: AI arena (doorway "6 AI Arena", south wall) and the Perception lab. 
 - [ ] E on a downed guard's body: "E: carry Guard baton post"-style prompt; carried see-through, about 1.35 m ahead and low, you move clearly slower (0.6); E puts it down, Q drops it, LMB tosses it gently. It lands on the floor, stays down, never sinks in. In a narrow spot "No room to put down" shows.
 - [ ] Carry a downed guard into the dark corner (far right, light gauge dark): patrol B at B1, 2 m away, does not find it; leave it lit on a route and a patrol finds it within about a second of looking.
 - [ ] Alert a guard in the hall: it shouts (others within about 17 m walking distance turn orange `?`, "On my way!", and run to it); the radio guard at the far end of the radio room reacts only through the radio (it is too far to hear the shout). A guard that is shooting at you does not stop to wake a body.
-- [ ] Debug panel (`): "Raise alarm": the HUD shows a red "ALARM", every guard (the radio guard too) searches and keeps searching until it ends 90 s later (or "Clear alarm"); the panel shows the seconds left.
-- [ ] Quicksave while carrying a body and quickload: the body is on the floor where you held it, still down. Quicksave with the alarm on: it is still on after loading.
+- [ ] Debug panel (`): "Raise alarm": the HUD shows a red "ALARM", every guard (the radio guard too) searches and keeps searching until it ends 90 s later (or "Clear alarm"); the panel shows the seconds left. (From M8 the alarm rings the arena's sirens: see M8.)
+- [ ] Quicksave while carrying a body and quickload: the body is on the floor where you held it, still down.
 - [ ] Perception lab: the guard holds the post at the back, facing the lanes. Standing in the lit lane, it sees you; open the breaker and it no longer does until you are within about 2 m.
 - [ ] Walls and corners from the arena doorway, the radio room door from both sides, the dark corner: no seams; the dark corner looks dark, not grey.
 

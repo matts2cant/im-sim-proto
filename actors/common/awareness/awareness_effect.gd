@@ -4,9 +4,11 @@ extends Effect
 ## the stimulus origin with the perceived margin (the `heard_noise` receptron), HARM as harm from
 ## the stimulus source (the `harmed` receptron), ALERT as an external alert at the origin. CALL is
 ## a call for help from the source about the origin (the `heard_shout` and `heard_radio`
-## receptrons, ADR 0072), SEARCH a search around the origin (being woken, ADR 0071); both pass
-## `reason`. The Awareness decides what it means (allies' noise ignored, harm only from hostiles,
-## calls only from allies). Nothing happens on entities without an Awareness.
+## receptrons, ADR 0072), SEARCH a search around the place the stimulus is about (Stimulus.about():
+## the origin, or the incident a radio base station's dispatch names; being woken, ADR 0071, the
+## `heard_dispatch` receptron, ADR 0077); both pass `reason`. The Awareness decides what it means
+## (allies' noise ignored, harm only from hostiles, calls only from allies). Nothing happens on
+## entities without an Awareness.
 
 enum Kind { NOISE, HARM, ALERT, CALL, SEARCH }
 
@@ -34,7 +36,7 @@ func apply(ctx: EffectContext) -> void:
 		Kind.CALL:
 			awareness.notice_call(stimulus.origin, source, reason)
 		Kind.SEARCH:
-			awareness.search_at(stimulus.origin, reason)
+			awareness.search_at(stimulus.about(), reason)
 
 
 func can_apply(ctx: EffectContext) -> bool:

@@ -79,3 +79,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0074](0074-network-hacking.md) | Network hacking: a realistic network, a deck and tracers | Accepted |
 | [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted |
 | [0076](0076-computer-skill-multitool-removed.md) | Computer skill replaces Electronics; the multitool is removed | Accepted |
+| [0077](0077-devices-cables-and-remote-commands.md) | Devices, cables and remote commands (M8 alarm devices) | Accepted |

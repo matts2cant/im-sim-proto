@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
-## Unit: AlarmTimer (ADR 0072): on for its duration, restarted by raising again, ended by time or
-## by clearing.
+## Unit: AlarmTimer (ADR 0072; the alarm controller's ringing time, ADR 0077): on for its duration,
+## restarted by raising again, ended by time or by clearing.
 
 const TICK := 1.0 / 60.0
 

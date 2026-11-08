@@ -104,7 +104,7 @@ func notice_body(at: Vector3, approach: Vector3, tend: bool) -> bool:
 	return _can_perceive() and model.discover_body(at, approach, tend)
 
 
-## Stays wary at least `seconds` more (the level alarm).
+## Stays wary at least `seconds` more (a siren, ADR 0077).
 func make_wary(seconds: float) -> void:
 	if _can_perceive():
 		model.make_wary(seconds)

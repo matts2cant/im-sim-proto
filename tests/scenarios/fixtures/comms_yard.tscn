@@ -2,7 +2,6 @@
 
 [ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="1_guard"]
 [ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="2_nav"]
-[ext_resource type="PackedScene" path="res://levels/kit/level_alarm.tscn" id="3_alarm"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.42, 0.42, 0.4, 1)
@@ -55,8 +54,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -22)
 
 [node name="RadioFar" parent="." instance=ExtResource("1_guard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -32)
-
-[node name="LevelAlarm" parent="." instance=ExtResource("3_alarm")]
 
 [node name="LevelNavigation" type="NavigationRegion3D" parent="."]
 script = ExtResource("2_nav")
