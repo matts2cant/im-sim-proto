@@ -132,9 +132,34 @@ func test_guards_are_named_by_loadout_with_routes_and_posts() -> void:
 		assert_object(_behaviour(post_guard).route).override_failure_message(post_guard).is_null()
 	assert_int(_route_points("RouteA").size()).is_equal(4)
 	assert_int(_route_points("RouteB").size()).is_equal(2)
-	# Posts face into the room (+Z): the baton post towards the hall, the radio post its room's door.
-	for post_guard: String in ["GuardBatonPost", "GuardPistolRadio"]:
-		assert_vector(-_guard(post_guard).global_basis.z).is_equal_approx(Vector3.BACK, Vector3.ONE * 0.0001)
+	# Posts face into the room (+Z): the radio post its room's door, the baton post towards the hall,
+	# turned 30 degrees east so the downed guard stays out of its glances (next test).
+	assert_vector(-_guard("GuardPistolRadio").global_basis.z).is_equal_approx(Vector3.BACK, Vector3.ONE * 0.0001)
+	var baton_facing := Vector3(sin(deg_to_rad(30.0)), 0, cos(deg_to_rad(30.0)))
+	assert_vector(-_guard("GuardBatonPost").global_basis.z).is_equal_approx(baton_facing, Vector3.ONE * 0.0001)
+
+
+func test_baton_post_never_sees_the_downed_guard_while_glancing() -> void:
+	# Patrol A finds the downed guard (the M7 opening). The baton post stands 4 m from the hub door: a
+	# body shout from there sends the searchers to the doorway, in view of the hub's player spawn
+	# (M8 playtest bug). Its glances (post yaw +- glance_angle) plus 10 degrees of margin keep the
+	# body's centre (0.9 m along +Z from its feet) out of both view zones.
+	var post := _guard("GuardBatonPost")
+	var perception := PerceptionSensor.of(post).config
+	var glance := (post.get_node("Awareness") as GradedAwareness).config.glance_angle
+	var downed := _guard("GuardBatonDowned")
+	var centre := downed.position + downed.global_basis.z * 0.9
+	var distance := VisionRules.flat_distance(post.position, centre)
+	# Sanity: it is within focus range, so only the angle keeps it unseen.
+	assert_float(distance).is_less(perception.focus_range)
+	var offset := -(glance + 10.0)
+	while offset <= glance + 10.0:
+		var yaw := post.global_rotation.y + deg_to_rad(offset)
+		var facing := Vector3(-sin(yaw), 0, -cos(yaw))
+		var angle := VisionRules.angle_off(facing, post.position, centre)
+		var zone := VisionRules.zone_factor(angle, distance, perception)
+		assert_float(zone).override_failure_message("glance %.0f deg: %.1f deg off" % [offset, angle]).is_zero()
+		offset += 5.0
 
 
 func test_downed_guard_lies_unconscious_beside_route_a_with_room_to_stand() -> void:

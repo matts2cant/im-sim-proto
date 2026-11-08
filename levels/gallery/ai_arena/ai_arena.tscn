@@ -156,7 +156,7 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 17.5)
 patrol_route = NodePath("../../../Routes/RouteB")
 
 [node name="GuardBatonPost" parent="Guards" instance=ExtResource("8_guard_baton")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4, 0, 3)
+transform = Transform3D(-0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, -0.866025, 4, 0, 3)
 
 [node name="GuardBatonDowned" parent="Guards" instance=ExtResource("8_guard_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, 0, 9)
