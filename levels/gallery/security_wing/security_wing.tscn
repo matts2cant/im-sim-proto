@@ -609,6 +609,20 @@ login: datapad behind D2
 disable turret, open vault"
 size = 0
 
+[node name="BoothController" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.98, 2.3, 7.3)
+pixel_size = 0.003
+text = "Alarm
+controller"
+size = 0
+
+[node name="BoothBaseStation" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.98, 2.3, 8.35)
+pixel_size = 0.003
+text = "Radio base
+station"
+size = 0
+
 [node name="BreakerB" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.45, 2.05, 7.75)
 pixel_size = 0.0035

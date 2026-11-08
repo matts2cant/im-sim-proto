@@ -23,8 +23,13 @@ size = Vector3(0.4, 0.45, 0.2)
 material = ExtResource("12_led")
 size = Vector3(0.04, 0.04, 0.01)
 
+[sub_resource type="StandardMaterial3D" id="Material_paint"]
+albedo_color = Color(0.13, 0.24, 0.48, 1)
+metallic = 0.3
+roughness = 0.45
+
 [sub_resource type="BoxMesh" id="Mesh_box"]
-material = ExtResource("11_metal_surface")
+material = SubResource("Material_paint")
 size = Vector3(0.4, 0.45, 0.18)
 
 [sub_resource type="CylinderMesh" id="Mesh_antenna"]

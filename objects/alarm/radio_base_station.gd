@@ -6,6 +6,8 @@ extends Node
 ## the station (walls do not matter) whose about_point is the incident. Characters with the
 ## `heard_dispatch` receptron (requires `equipment.radio`) search there. The command arrives
 ## through its receptron (DeviceActionEffect, blocked while unpowered or broken).
+## Security screens (ADR 0083): device_status() says "broadcasting" for `broadcast_shown` seconds
+## after a dispatch, else "idle".
 ## EventLog: `radio.dispatch {station, point, range}`.
 
 @export var config: RadioBaseStationConfig
@@ -13,6 +15,8 @@ extends Node
 
 var entity: Node3D
 var device: Device
+## Seconds it still shows as broadcasting.
+var broadcast_left: float = 0.0
 
 
 func _ready() -> void:
@@ -20,8 +24,18 @@ func _ready() -> void:
 	device = Device.of(entity)
 	if device == null or config == null:
 		push_warning("RadioBaseStation %s: needs a Device sibling and a config" % get_path())
+		set_physics_process(false)
 		return
 	device.action_received.connect(_on_action)
+
+
+## Status words for security screens (DeviceStatus): broadcasting / idle.
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["broadcasting" if broadcast_left > 0.0 else "idle"])
+
+
+func _physics_process(delta: float) -> void:
+	broadcast_left = maxf(broadcast_left - delta, 0.0)
 
 
 ## Dispatches every radio in range to search at `at`.
@@ -29,6 +43,7 @@ func dispatch(at: Vector3) -> void:
 	var origin := entity.global_position
 	var stimulus := Stimulus.make_radius(config.dispatch_type, 1.0, origin, config.dispatch_range, entity)
 	stimulus.about_point = at
+	broadcast_left = config.broadcast_shown
 	var station := String(entity.name)
 	EventLog.record(&"radio.dispatch", station, "", {"station": station, "point": at, "range": config.dispatch_range})
 	StimulusSystem.emit(stimulus)

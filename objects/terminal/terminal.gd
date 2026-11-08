@@ -7,21 +7,19 @@ extends Usable
 ##   `Readable.codes[credentials_id]` = "user:password" (TerminalCredentials); the screen then shows
 ##   where it came from and offers to fill it in. A wrong login beeps (noise `error_loudness`). The
 ##   terminal stays logged in until someone logs out (saved).
-## - Devices: listing() gives every device the terminal is cabled to through up devices
-##   (Device.connected_devices(): the reached ones, plus dead ones right behind them) that accepts at
-##   least one command of the config's table, with its state from its tags (online, unpowered,
-##   broken) and the commands it accepts. send() is Device.send_command(). Nothing here knows what a
-##   device is: the buttons come from the receptrons each device has.
+## - Devices (ADR 0083): devices() gives every device its cables join it to, up or down (the
+##   physical network, DeviceGraph.component()), the terminal itself first: online when the terminal
+##   reaches it (else offline, whatever the reason: unpowered, broken, a dead switch on the way),
+##   its status words (DeviceStatus), whether it has a view, and, when online, the commands of the
+##   config's table it accepts. cables() gives the links between them. send() is
+##   Device.send_command(). Nothing here knows what a device is: the buttons come from the
+##   receptrons each device has, the status from its components.
 ## - Unpowered or broken (its Device down): it does nothing when used.
 ## EventLog: `terminal.opened {terminal, by}`, `terminal.login {terminal, user, ok}`,
 ## `terminal.logout {terminal}`; commands log as `device.command`. Saveable (`logged_in`).
 
 ## The terminal logged in or out.
 signal session_changed(logged_in: bool)
-
-const ONLINE: String = "online"
-const UNPOWERED: String = "unpowered"
-const BROKEN: String = "broken"
 
 @export var config: TerminalConfig
 ## The id datapads use for this terminal's credentials (`Readable.codes` key).
@@ -39,23 +37,28 @@ var device: Device
 var logged_in: bool = false
 
 
-## One device on the list.
+## One device of the terminal's network.
 class Row:
 	extends RefCounted
 	var device: Device
 	var name: String
-	var state: String
-	var commands: Array[StringName]
+	## The terminal reaches it (or it is the terminal).
+	var online: bool = false
+	## DeviceStatus words: "offline", or "online" then its components' words.
+	var status: PackedStringArray
+	## The table's commands it accepts; empty while offline.
+	var commands: Array[StringName] = []
+	## A component offers a view (DeviceStatus.has_view()).
+	var has_view: bool = false
+	## The terminal's own row.
+	var is_self: bool = false
 
-	func _init(p_device: Device, p_name: String, p_state: String, p_commands: Array[StringName]) -> void:
-		device = p_device
-		name = p_name
-		state = p_state
-		commands = p_commands
-
-	## True when commands can be sent to it (it is up).
 	func is_online() -> bool:
-		return state == ONLINE
+		return online
+
+	## Its entity's world position (zero once freed).
+	func position() -> Vector3:
+		return device.entity.global_position if is_instance_valid(device.entity) else Vector3.ZERO
 
 
 func _init() -> void:
@@ -87,6 +90,11 @@ func target_name() -> String:
 ## Powered and unbroken.
 func is_up() -> bool:
 	return device != null and device.is_up()
+
+
+## Status words for security screens (DeviceStatus): logged in / logged out.
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["logged in" if logged_in else "logged out"])
 
 
 ## A dead terminal (unpowered or broken) offers no prompt.
@@ -146,27 +154,49 @@ func log_out() -> void:
 	session_changed.emit(false)
 
 
-## The devices it can see (reached, or dead right behind a reached one) that accept at least one
-## command of the table, nearest first.
-func listing() -> Array[Row]:
+## Every device on the terminal's physical network (its own row first, then breadth-first: nearest
+## first): see Row. Empty while the terminal is down.
+func devices() -> Array[Row]:
 	var rows: Array[Row] = []
 	if not is_up():
 		return rows
-	for other in device.connected_devices():
-		if not is_instance_valid(other.entity):
+	var graph := Device.graph(get_tree())
+	var own_id := device.get_instance_id()
+	var ids := PackedInt64Array([own_id])
+	ids.append_array(graph.component(own_id))
+	var reached := graph.reachable(own_id)
+	for id in ids:
+		var other := instance_from_id(id) as Device
+		if other == null or not is_instance_valid(other.entity):
 			continue
-		var accepted: Array[StringName] = []
-		for command in config.commands():
-			if other.accepts(command, entity):
-				accepted.append(command)
-		var commands := config.offered(accepted)
-		if commands.is_empty():
-			continue
-		var state := state_name(
-			ActorState.has(other.entity, Device.UNPOWERED), ActorState.has(other.entity, Device.BROKEN)
-		)
-		rows.append(Row.new(other, display_name(other), state, commands))
+		var row := Row.new()
+		row.device = other
+		row.name = display_name(other)
+		row.is_self = id == own_id
+		row.online = row.is_self or reached.has(id)
+		row.status = DeviceStatus.of(other.entity, row.online)
+		row.has_view = DeviceStatus.has_view(other.entity)
+		if row.online and not row.is_self:
+			row.commands = _offered(other)
+		rows.append(row)
 	return rows
+
+
+## The cables between `rows` (devices()), as index pairs into it (lower index first), each once.
+static func cables(rows: Array[Row]) -> Array[Vector2i]:
+	var index_of: Dictionary[Device, int] = {}
+	for i in rows.size():
+		index_of[rows[i].device] = i
+	var pairs: Array[Vector2i] = []
+	for i in rows.size():
+		for other in rows[i].device.linked():
+			if not index_of.has(other):
+				continue
+			var j := index_of[other]
+			var pair := Vector2i(mini(i, j), maxi(i, j))
+			if not pairs.has(pair):
+				pairs.append(pair)
+	return pairs
 
 
 ## Sends `command` to `target` (Device.send_command(): only when this terminal reaches it).
@@ -176,16 +206,18 @@ func send(command: StringName, target: Device) -> bool:
 	return device.send_command(command, target)
 
 
-## online / unpowered / broken (broken wins).
-static func state_name(unpowered: bool, broken: bool) -> String:
-	if broken:
-		return BROKEN
-	return UNPOWERED if unpowered else ONLINE
-
-
-## How the list names a device: its entity's node name in words ("CameraNorth" -> "Camera North").
+## How screens name a device: its entity's node name in words ("CameraNorth" -> "Camera North").
 static func display_name(other: Device) -> String:
 	return String(other.entity.name).capitalize() if is_instance_valid(other.entity) else String(other.name)
+
+
+# The table's commands `other` accepts, in table order.
+func _offered(other: Device) -> Array[StringName]:
+	var accepted: Array[StringName] = []
+	for command in config.commands():
+		if other.accepts(command, entity):
+			accepted.append(command)
+	return config.offered(accepted)
 
 
 func _name() -> String:

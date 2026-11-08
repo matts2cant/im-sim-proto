@@ -176,7 +176,7 @@ Controls ([controls.md](controls.md)):
 
 - E on a computer uses it bare-handed. With the deck in hand (belt), LMB on a wall jack, maintenance port or computer plugs it in; LMB within an access point's range raises it ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses).
 - Esc always steps away from the screen or lowers the deck, also while typing. It never also opens the game menu.
-- E does the same only when no text field has focus.
+- E does not step away: only Esc leaves a computer-like screen ([ADR 0083](../decisions/0083-security-terminal-redesign.md)).
 - The mouse drives the cursor on the screen.
 
 ## Rules

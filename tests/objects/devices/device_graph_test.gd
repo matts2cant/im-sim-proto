@@ -97,3 +97,12 @@ func test_connected_stops_at_a_dead_switch() -> void:
 	assert_array(Array(graph.connected(LONER))).is_empty()
 	graph.add_node(CONTROLLER, false)
 	assert_array(Array(graph.connected(CONTROLLER))).is_empty()
+
+
+func test_component_is_the_physical_network_up_or_down() -> void:
+	# The terminal's network view (ADR 0083): a dead switch still joins its cables.
+	var graph := _network(false)
+	assert_array(Array(graph.component(CONTROLLER))).contains_exactly_in_any_order([SWITCH, DIRECT_SIREN, SIREN])
+	assert_array(Array(graph.component(LONER))).is_empty()
+	assert_array(Array(graph.component(99))).is_empty()
+	assert_array(Array(graph.neighbours(SWITCH))).contains_exactly_in_any_order([CONTROLLER, SIREN])

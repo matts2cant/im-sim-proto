@@ -25,7 +25,7 @@ command_labels = Dictionary[StringName, String]({
 &"command.test": "Test",
 &"command.silence": "Silence"
 })
-refresh_interval = 1.0
+refresh_interval = 0.25
 error_loudness = 4.0
 error_hz = 220.0
 max_use_distance = 3.0
