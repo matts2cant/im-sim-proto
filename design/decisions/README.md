@@ -83,3 +83,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0078](0078-doors-locks-and-door-navigation.md) | Doors, locks as components, and doors on the navmesh | Accepted |
 | [0079](0079-security-cameras-and-turret.md) | Security cameras and the turret: device vision, a detection meter, target presets as data | Accepted |
 | [0080](0080-credentials-terminal.md) | The credentials terminal (M8 placeholder): login from known credentials, commands from receptrons | Accepted |
+| [0082](0082-walkable-downed-bodies.md) | Downed bodies do not block characters (layer 8 `downed`) | Accepted |

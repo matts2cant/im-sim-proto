@@ -21,10 +21,11 @@ Named in `project.godot` `[layer_names]`, constants in `core/physics_layers.gd` 
 | 5 | hitboxes | Body-part hitboxes (M4) | |
 | 6 | triggers | Trigger volumes (M8) | |
 | 7 | static_actors | Characters whose body never moves by script (training dummy, also on 3), added by [ADR 0070](0070-guard-combat-and-loadouts.md) | (static) |
+| 8 | downed | A character body lying down (dead, unconscious) instead of 2 or 3: no character scans it, so characters walk through bodies; added by [ADR 0082](0082-walkable-downed-bodies.md) | world, objects |
 
 - `KitPart` sets `collision_layer = PhysicsLayers.WORLD` explicitly.
 - LINE_OF_SIGHT stimuli are blocked by layer 1 only, so props never shield fire from each other while walls and barricades do.
-- The pick-up and debug look rays use `LOOK_MASK` (world, actors, objects).
+- The pick-up and debug look rays use `LOOK_MASK` (world, actors, objects; downed since [ADR 0082](0082-walkable-downed-bodies.md)).
 - **Debris** from broken objects is on no layer and collides with the world only: it is cosmetic and never blocks the player, who has no step-up ([ADR 0034](0034-ramps-not-stair-stepping.md)).
 - A carried object and the player ignore each other through collision exceptions, not layers. (Superseded by [ADR 0053](0053-ghosted-upright-carry-safe-release.md): a carried object has layer and mask 0 while held.)
 

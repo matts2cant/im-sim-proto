@@ -30,7 +30,7 @@ signal message(text: String)
 const LIMIT_ATTRIBUTE: StringName = &"carry_mass_limit"
 const TOO_HEAVY := "Too heavy"
 ## What a released object must be clear of besides the player (world, objects, actors).
-const RELEASE_MASK: int = PhysicsLayers.WORLD | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS
+const RELEASE_MASK: int = PhysicsLayers.WORLD | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS | PhysicsLayers.DOWNED
 
 var player: Player
 var config: PlayerConfig
