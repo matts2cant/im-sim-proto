@@ -50,9 +50,3 @@ func test_every_command_type_on_device_has_a_label_except_device_traffic() -> vo
 		var value: Variant = constants[constant]
 		if value is StringName and String(value).begins_with("command.") and not omitted.has(value):
 			assert_bool(CONFIG.command_labels.has(value)).override_failure_message(String(value)).is_true()
-
-
-func test_state_names() -> void:
-	assert_str(Terminal.state_name(false, false)).is_equal("online")
-	assert_str(Terminal.state_name(true, false)).is_equal("unpowered")
-	assert_str(Terminal.state_name(true, true)).is_equal("broken")

@@ -10,6 +10,8 @@ const TIME_TAB: PackedScene = preload("res://ui/debug_panel/tabs/time_tab.tscn")
 var stimulus_overlay: StimulusOverlay
 ## Heat / fuel labels above flammables and explosives; also outside the tabs.
 var heat_overlay: HeatOverlay
+## Device labels and cables (ADR 0083); also outside the tabs.
+var network_overlay: NetworkOverlay
 
 var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 
@@ -21,9 +23,12 @@ func _ready() -> void:
 	add_child(stimulus_overlay)
 	heat_overlay = HeatOverlay.new()
 	add_child(heat_overlay)
+	network_overlay = NetworkOverlay.new()
+	add_child(network_overlay)
 	var overlays := OVERLAYS_TAB.instantiate() as OverlaysTab
 	overlays.stimulus_overlay = stimulus_overlay
 	overlays.heat_overlay = heat_overlay
+	overlays.network_overlay = network_overlay
 	register_tab("Overlays", overlays)
 	register_tab("Spawn", SPAWN_TAB.instantiate() as Control)
 	register_tab("Time", TIME_TAB.instantiate() as Control)

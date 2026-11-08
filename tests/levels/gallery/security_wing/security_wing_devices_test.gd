@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## Gallery room 5 (security wing) on its own: the security devices. The terminal reaches the camera,
 ## turret, alarm controller, both sirens, the panic button, the radio base station and the vault door
-## through the network switch; with breaker B (the switch's circuit) off it reaches nothing and lists
-## nothing, and the fail-secure vault door stays locked; breaker A off unlocks the fail-safe D4. The
+## through the network switch; with breaker B (the switch's circuit) off it reaches nothing and shows
+## every device offline, and the fail-secure vault door stays locked; breaker A off unlocks the fail-safe D4. The
 ## closed vault door blocks the turret's line of sight to the corridor and the entry hall. The camera
 ## covers the corridor (within 15 m and its sweep); the corridor centre line is lit (> 0.5) and both
 ## alcoves are dark (< 0.1). Room-local coordinates (origin on the hub wall's outer face, +Z south).
@@ -60,10 +60,21 @@ func _breaker(breaker_name: String) -> CircuitBreaker:
 	return _room.get_node("Devices/" + breaker_name + "/CircuitBreaker") as CircuitBreaker
 
 
+# The online devices the terminal offers commands for (Terminal.devices()).
 func _listed() -> Array[String]:
 	var names: Array[String] = []
-	for row in _terminal().listing():
-		names.append(String(row.device.entity.name))
+	for row in _terminal().devices():
+		if row.online and not row.commands.is_empty():
+			names.append(String(row.device.entity.name))
+	return names
+
+
+# Every device on the terminal's network (its own row left out), online or not.
+func _network() -> Array[String]:
+	var names: Array[String] = []
+	for row in _terminal().devices():
+		if not row.is_self:
+			names.append(String(row.device.entity.name))
 	return names
 
 
@@ -74,6 +85,20 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 	assert_array(_listed()).contains_exactly_in_any_order(
 		["Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "VaultDoor"]
 	)
+	# The network view also shows the switch, the panic button and the base station (ADR 0083).
+	assert_array(_network()).contains_exactly_in_any_order(
+		[
+			"Switch",
+			"Camera",
+			"Turret",
+			"Controller",
+			"SirenHall",
+			"SirenCorridor",
+			"PanicButton",
+			"BaseStation",
+			"VaultDoor"
+		]
+	)
 	# The controller rings both sirens and dispatches through the base station; the camera and the
 	# panic button report to it.
 	var controller := _device("Devices/Controller")
@@ -82,7 +107,7 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 	assert_array(_device("Devices/Camera").reached(Device.INCIDENT)).contains_exactly([controller])
 	assert_array(_device("Devices/PanicButton").reached(Device.INCIDENT)).contains_exactly([controller])
 	# Every row offers its commands: the turret Disable and its presets, the vault door Open.
-	for row in _terminal().listing():
+	for row in _terminal().devices():
 		if row.device.entity.name == &"Turret":
 			assert_array(row.commands).contains([Device.DISABLE, Device.TARGET_GUARDS])
 		if row.device.entity.name == &"VaultDoor":
@@ -101,6 +126,11 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 	for path in NETWORK:
 		assert_bool(terminal.reaches(_room.get_node(path))).override_failure_message(path).is_false()
 	assert_array(_listed()).is_empty()
+	# Still drawn (the cables are intact), every one offline.
+	assert_int(_network().size()).is_equal(NETWORK.size() + 1)
+	for row in _terminal().devices():
+		if not row.is_self:
+			assert_array(Array(row.status)).override_failure_message(row.name).contains_exactly(["offline"])
 	assert_array(_device("Devices/Camera").reached(Device.INCIDENT)).is_empty()
 	# Fail-secure: no power, still locked (and no remote command gets through).
 	var vault := Door.of(_room.get_node("Doors/VaultDoor"))

@@ -7,8 +7,9 @@ extends Resource
 
 ## Command type -> button label, in the order buttons appear.
 @export var command_labels: Dictionary[StringName, String] = {}
-## Seconds between refreshes of the device list while the screen is open.
-@export var refresh_interval: float = 1.0
+## Seconds between refreshes of the device statuses while the screen is open (ADR 0083: a few
+## times a second).
+@export var refresh_interval: float = 0.25
 ## Noise (audible metres, PATH) of the error beep on a wrong password.
 @export var error_loudness: float = 4.0
 @export var error_hz: float = 220.0

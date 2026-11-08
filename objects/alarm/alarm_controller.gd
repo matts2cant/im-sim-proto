@@ -64,6 +64,11 @@ func time_left() -> float:
 	return timer.left
 
 
+## Status words for security screens (DeviceStatus, ADR 0083): armed / disarmed, ringing / silent.
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["armed" if armed else "disarmed", "ringing" if is_ringing() else "silent"])
+
+
 ## Starts (or restarts) ringing at `at`; `by` is logged. `incident`: also broadcast the location.
 ## Ignored while disarmed or down.
 func raise(at: Vector3, by: String = "", incident: bool = false) -> void:

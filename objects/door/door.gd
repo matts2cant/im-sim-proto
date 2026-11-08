@@ -91,6 +91,12 @@ static func of(node: Node) -> Door:
 	return null
 
 
+## Status words for security screens (DeviceStatus, ADR 0083): open / closed (a broken door's
+## device is down: screens show it offline).
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["open" if is_open() else "closed"])
+
+
 ## True when it is open or opening (broken counts as open).
 func is_open() -> bool:
 	return _open or broken

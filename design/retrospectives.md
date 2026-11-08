@@ -32,6 +32,14 @@ Four agents in three waves: M8a devices, cable graph, remote commands and alarm 
 - A remote "open" opens a locked door but leaves it locked; guards leave doors they open open. OK?
 - Turret 15 damage a hit (about 4 s to kill a standing player at 6 m); camera spots a lit player at 4 m in about 1.25 s. Feel right?
 
+### Playtest feedback (2026-11-08/09)
+
+- Walk over bodies: downed characters move to a `downed` layer no character scans (ADR 0082).
+- Arena guards rushing the idle player: latent since M7, not M8. The baton post's glance found the downed guard, its shout (from its post, 4 m from the hub door) sent searchers to the doorway, and one saw the player at spawn (any sighting while Searching alerts). Fixed in level data (post turned 30°) with a hub-start regression test. Open: Searching still alerts on any glimpse through a doorway (question to the user).
+- Terminal too rough: redesigned with Camera and Network tabs, statuses from components, offline instead of broken, Esc only; network debug overlay (ADR 0083). Booth devices labelled.
+- Process: the bug brief's "reproduce the exact situation first, record the EventLog" found the real cause (my guesses, the new base station and DoorOpener, were wrong). Worktrees for three agents were cut from an old M1 commit; each agent noticed and reset to master. Briefs should say "branch from master" and agents should check `git log -1` first (added to CLAUDE.md).
+- Full suite on master after all merges: 1222 tests, 0 failures, 723 s wall with another agent running Godot.
+
 ## M7 — Light and AI (2026-11-07)
 
 Two waves of two agents in parallel worktrees. Wave 1: light level + lamps + breaker + Perception lab (ADR 0065–0066) and guard core: body, vision, hearing, graded awareness, patrols, feedback (ADR 0067–0069). Wave 2: guard combat and loadouts (ADR 0070) and bodies, shouts, radio, level alarm, AI arena, lab guard (ADR 0071–0072; that agent ran its own level sub-agent). Started without the M6 playtest at the user's request (they were travelling). 816 → 1023 tests. ~1.6M sub-agent tokens.

@@ -17,6 +17,7 @@ extends Node
 ##   fires while none is (a wall, a prop or anyone else in the way).
 ## - Remote commands: `command.disable` / `command.enable`, and one command per target preset
 ##   (`command.target_intruders`, `command.target_guards`, ...) that sets its hostile tags.
+## - Security screens (ADR 0083): device_status() and device_view() (its eye) for DeviceStatus.
 ## - Disabled, unpowered or broken (its Device down): idle, laser off.
 ## EventLog: `turret.detected {turret, target, point, controllers}`, `turret.engaged {turret,
 ## target}`, `turret.disengaged {turret, reason}` (lost, disabled, unpowered, broken, retargeted,
@@ -106,6 +107,30 @@ func is_active() -> bool:
 ## The hostile tags it shoots at now.
 func hostile_tags() -> Array[StringName]:
 	return sensor.config.hostile_tags
+
+
+## Status words for security screens (DeviceStatus): enabled / disabled, its target preset
+## ("targets intruders": the preset command's words after `target_`), and idle, tracking (winding
+## up) or firing.
+func device_status() -> PackedStringArray:
+	var parts := PackedStringArray(["disabled" if disabled else "enabled"])
+	var words := String(preset).get_slice(".", 1).trim_prefix("target_").replace("_", " ")
+	if not words.is_empty():
+		parts.append("targets " + words)
+	if not disabled:
+		match model.state:
+			TurretModel.State.WINDUP:
+				parts.append("tracking")
+			TurretModel.State.FIRING:
+				parts.append("firing")
+			_:
+				parts.append("idle")
+	return parts
+
+
+## Where it sees from (its sensor's eye node), or null while idle for good (DeviceStatus).
+func device_view() -> Node3D:
+	return sensor.get_parent() as Node3D if is_active() and sensor != null else null
 
 
 func _physics_process(delta: float) -> void:

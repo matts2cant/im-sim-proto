@@ -17,6 +17,7 @@ extends Node
 ## - Remote commands (receptrons -> DeviceActionEffect -> Device.action_received): `command.disable`
 ##   / `command.enable` (blind, lamp off), `command.stop_sweep`, `command.resume_sweep`,
 ##   `command.pan_left`, `command.pan_right` (one pan step, clamped to the sweep range).
+## - Security screens (ADR 0083): device_status() and device_view() (its eye) for DeviceStatus.
 ## - Unpowered or broken (its Device down): blind, lamp off, the sweep stops where it is.
 ## EventLog: `camera.detected {camera, target, point, controllers}`. Saveable.
 
@@ -94,6 +95,24 @@ func is_watching() -> bool:
 ## Current turn from the rest yaw, degrees (positive: left).
 func yaw() -> float:
 	return model.yaw
+
+
+## Status words for security screens (DeviceStatus): enabled / disabled, sweeping / holding, and
+## suspicious or alert while its meter is up.
+func device_status() -> PackedStringArray:
+	if disabled:
+		return PackedStringArray(["disabled"])
+	var parts := PackedStringArray(["enabled", "sweeping" if model.sweeping else "holding"])
+	if meter.detected:
+		parts.append("alert")
+	elif meter.meter > config.amber_threshold:
+		parts.append("suspicious")
+	return parts
+
+
+## Where it sees from (its sensor's eye node), or null while blind (DeviceStatus).
+func device_view() -> Node3D:
+	return sensor.get_parent() as Node3D if is_watching() and sensor != null else null
 
 
 func _physics_process(delta: float) -> void:
