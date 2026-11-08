@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RadioBaseStationConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/alarm/radio_base_station_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+dispatch_type = &"alert.dispatch"
+dispatch_range = 40.0

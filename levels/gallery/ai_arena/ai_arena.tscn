@@ -10,6 +10,11 @@
 [ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="8_guard"]
 [ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="8_guard_baton"]
 [ext_resource type="Script" path="res://actors/common/behaviour/patrol_route.gd" id="9_route"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="10_controller"]
+[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="11_siren"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="12_switch"]
+[ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="13_panic_button"]
+[ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="14_base_station"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -162,6 +167,38 @@ initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio", &"state.un
 [node name="GuardPistolRadio" parent="Guards" instance=ExtResource("8_guard")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -15, 0, 1.6)
 
+[node name="Alarm" type="Node3D" parent="."]
+
+[node name="Controller" parent="Alarm" instance=ExtResource("10_controller")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.5, 0.01)
+
+[node name="Switch" parent="Alarm" instance=ExtResource("12_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 1.5, 0.01)
+
+[node name="Powered" parent="Alarm/Switch"]
+circuit = &"ai_arena_network"
+
+[node name="Device" parent="Alarm/Switch"]
+links = Array[NodePath]([NodePath("../../Controller"), NodePath("../../SirenEast"), NodePath("../../SirenWest")])
+
+[node name="PanicButton" parent="Alarm" instance=ExtResource("13_panic_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.3, 0.01)
+
+[node name="Device" parent="Alarm/PanicButton"]
+links = Array[NodePath]([NodePath("../../Controller")])
+
+[node name="SirenEast" parent="Alarm" instance=ExtResource("11_siren")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.99, 3.2, 7.5)
+
+[node name="SirenWest" parent="Alarm" instance=ExtResource("11_siren")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.99, 3.2, 13.5)
+
+[node name="BaseStation" parent="Alarm" instance=ExtResource("14_base_station")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.7, 1.2, 0.01)
+
+[node name="Device" parent="Alarm/BaseStation"]
+links = Array[NodePath]([NodePath("../../Controller")])
+
 [node name="AmbientDark" type="ReflectionProbe" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.75, 2, 10.05)
 size = Vector3(24.5, 5, 20.9)
@@ -186,7 +223,9 @@ size = 0
 
 [node name="Alarm" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.6, 0.05)
-text = "Debug panel (` key): raise the alarm"
+text = "Alarm: panic button or debug panel (`)
+Sirens heard 34 m (walking distance)
+Shoot the switch to cut them off"
 size = 0
 
 [node name="Wake" parent="Labels" instance=ExtResource("3_sign")]

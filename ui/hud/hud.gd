@@ -37,7 +37,7 @@ var _item_name_left: float = 0.0
 @onready var overlay_title: Label = $DeathOverlay/Text/Title
 @onready var prompt_label: Label = $Prompt
 @onready var message_label: Label = $Message
-## "ALARM" while the level alarm is raised (ADR 0072).
+## "ALARM" while the player hears a siren (its AlarmHearing, ADR 0077).
 @onready var alarm_label: Label = $Alarm
 @onready var item_name_label: Label = $ItemName
 @onready var belt_bar: BeltBar = $Belt
@@ -106,8 +106,8 @@ func _process(delta: float) -> void:
 		var energy := Energy.of(player)
 		energy_label.text = HudRules.energy_text(energy.current()) if energy != null else ""
 		cloak_tint.visible = ActorState.has(player, ActorState.CLOAKED)
-	var alarm := LevelAlarm.current(get_tree())
-	alarm_label.visible = alarm != null and alarm.is_raised()
+	var hearing := AlarmHearing.of(player)
+	alarm_label.visible = hearing != null and hearing.is_hearing()
 
 
 ## Rebuilds the chips of the augmentations that are on (catalogue order).

@@ -3,8 +3,9 @@ extends GdUnitTestSuite
 ## doorways (hub door, radio room door through the shared wall), both doorways clear for the
 ## player capsule, lamps present and out of range of the dark corner, the guards (named by
 ## loadout) with their routes and posts, the downed guard unconscious beside patrol route A with
-## room to stand next to it, routes clear of the crates, signs, and no coplanar faces with different
-## materials. Room-local coordinates: origin on the hub wall's outer face, +Z away from the hub
+## room to stand next to it, routes clear of the crates, the alarm devices cabled (controller,
+## switch, two sirens, panic button, radio base station: ADR 0077), signs, and no coplanar faces
+## with different materials. Room-local coordinates: origin on the hub wall's outer face, +Z away from the hub
 ## (the room is not turned in the hub: guards turn by their local yaw).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
@@ -179,13 +180,34 @@ func test_routes_and_posts_keep_clear_of_the_crates() -> void:
 			)
 
 
+func test_alarm_devices_are_cabled_through_the_switch() -> void:
+	await KitGeometry.settle(get_tree(), 1)
+	var controller := Device.of(_room.get_node("Alarm/Controller"))
+	var switch_entity := _room.get_node("Alarm/Switch")
+	for siren_name: String in ["SirenEast", "SirenWest"]:
+		(
+			assert_bool(controller.reaches(_room.get_node("Alarm/" + siren_name)))
+			. override_failure_message(siren_name)
+			. is_true()
+		)
+	assert_array(controller.reached(Device.RING)).has_size(2)
+	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
+	assert_array(Device.of(_room.get_node("Alarm/PanicButton")).reached(Device.INCIDENT)).contains_exactly([controller])
+	# The switch carries the sirens: down, they are cut off; the panic button and base station are
+	# cabled straight to the controller.
+	Powered.of(switch_entity).on = false
+	assert_array(controller.reached(Device.RING)).is_empty()
+	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
+	assert_str(String(Powered.of(switch_entity).circuit)).is_equal("ai_arena_network")
+
+
 func test_signs() -> void:
 	var texts := ""
 	for sign: Node in _room.get_node("Labels").get_children():
 		texts += String(sign.get("text")) + "\n"
 
 	for phrase: String in [
-		"6 AI arena", "behind", "dark corner", "wakes it", "E on the body", "Q drops", "17 m", "30 m", "alarm"
+		"6 AI arena", "behind", "dark corner", "wakes it", "E on the body", "Q drops", "17 m", "30 m", "alarm", "34 m"
 	]:
 		assert_str(texts.to_lower()).override_failure_message(phrase).contains(phrase.to_lower())
 

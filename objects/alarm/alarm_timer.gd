@@ -1,7 +1,7 @@
 class_name AlarmTimer
 extends RefCounted
-## Pure timer of the level alarm (ADR 0072): raised for `duration` seconds, raising again restarts
-## it, it ends when the time runs out or when cleared. No scene tree.
+## Pure ringing timer of an alarm controller (ADR 0072, ADR 0077): raised for `duration` seconds,
+## raising again restarts it, it ends when the time runs out or when cleared. No scene tree.
 
 ## Seconds left (0: not raised).
 var left: float = 0.0

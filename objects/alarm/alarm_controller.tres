@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AlarmControllerConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/alarm/alarm_controller_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+duration = 90.0
+ring_refresh = 1.0

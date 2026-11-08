@@ -24,6 +24,7 @@ The player never sees the framework directly. They see consequences: a shot barr
 | `id`, `depth` | set by the system on emit: unique id; chain depth (0 outside processing, parent + 1 for effect emits) |
 | `cause_id` | id of the stimulus that caused this one, across chains; 0 = none. `emit()` fills it with the parent's id when left at 0; components that re-emit on their own tick set it themselves (a burning crate's pulses carry the id of the stimulus that ignited it, [ADR 0046](../decisions/0046-heat-accumulation-fire-model.md)) |
 | `source_label` | the source's name, remembered on emit, so the log still names a source freed before processing (a breaking crate's noise) |
+| `about_point` | (M8) the place the stimulus is about when that is not where it travels from (a radio base station's dispatch spreads from the station and names an incident); `Vector3.INF` = unset; read with `about()` (falls back to `origin`). `AwarenessEffect` SEARCH searches at `about()` ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)) |
 | `scale_attribute`, `scale` | (M6) attribute of the source that multiplies `intensity` once, on emit (`Attributes.read(source, attribute, 1)`; empty: none); `scale` is the factor applied. What an entity puts out depends on its skills and augmentations: weapon damage (`pistol_damage_mult`, `melee_damage_mult`), a medkit's heal (`medical_heal_mult`). `would_affect()` uses the scaled intensity; `stimulus.emitted` logs `scale_attribute` and `scale` ([ADR 0061](../decisions/0061-abilities-model.md)) |
 
 Constructors: `Stimulus.make_radius()`, `make_noise(loudness, origin, source)` (intensity = radius = loudness, PATH), `make_contact()`, `make_ray()`.
@@ -35,6 +36,15 @@ Forces and healing are stimuli too ([ADR 0057](../decisions/0057-forces-item-use
 | `force.blast` | RADIUS, LINE_OF_SIGHT | impulse in N s at the centre, linear falloff to 0 at the radius; direction = origin to the receiving entity | `Explosive` (`ExplosiveConfig.impulse` / `impulse_radius`) | every `PhysicsObject` (`pushed_by_force` receptron, `ApplyImpulseEffect`, lift 0.3) |
 | `force.impact` | RAY | impulse in N s along `stimulus.direction`, at the hit `position` | ranged weapons (`WeaponData.impact_impulse`) | every `PhysicsObject` (same receptron) |
 | `heal` | CONTACT on the user | health restored, split over damaged parts | consumable items (`ItemData.use_stimuli`) | characters (`heal` receptron, `HealEffect`, `include_self`) |
+
+Devices and alarms (M8, [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md); shouts and radio: [perception-and-ai.md](perception-and-ai.md)):
+
+| Type | Shape | Intensity | Emitted by | Reacted to by |
+|---|---|---|---|---|
+| `command.*` (`open`, `close`, `lock`, `unlock`, `ring`, `silence`, `test`, `disarm`, `reset`, `trigger`, `disable`, `enable`, `broadcast`) | CONTACT on the target device's entity; origin = a point (the incident for `broadcast`) or the target | 1 | `Device.send_command()` (only when the sender reaches the target), the debug panel | devices' receptrons (`objects/devices/receptrons/`, blocked on `state.unpowered`, `state.broken`), `DeviceActionEffect` |
+| `device.incident` | CONTACT on an alarm controller; origin = the incident | 1 | `Device.report_incident()` (panic button; cameras later) | alarm controllers (`device_incident` receptron) |
+| `alarm.siren` | RADIUS, PATH | loudness 35 (= radius), every 1 s while a siren sounds | `Siren` | characters (`heard_siren` receptron, margin >= 1, `HeardAlarmEffect` -> `AlarmHearing`) |
+| `alert.dispatch` | RADIUS, STRAIGHT, 40 m from the station; `about_point` = the incident | 1 | `RadioBaseStation` on `command.broadcast` | radios (`heard_dispatch`, requires `equipment.radio`, `AwarenessEffect` SEARCH, reason `radio`) |
 
 ### Falloff ([ADR 0038](../decisions/0038-linear-falloff-noise-metres.md))
 

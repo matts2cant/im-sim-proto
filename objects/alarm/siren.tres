@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SirenConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/alarm/siren_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+sound_type = &"alarm.siren"
+loudness = 35.0
+interval = 1.0
+ring_hold = 2.5
+test_duration = 3.0
+tone_hz = 740.0
+tone_length = 0.7

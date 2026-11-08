@@ -1,10 +1,12 @@
 extends GdUnitTestSuite
-## Integration: the player's HUD (reticle = aim cone, ammo and weapon name, silhouette, damage flash).
+## Integration: the player's HUD (reticle = aim cone, ammo and weapon name, silhouette, damage flash,
+## "ALARM" while the player hears a siren).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const WALL_POINT := Vector3(0, 1.5, -5.8)
+const SIREN_SCENE: PackedScene = preload("res://objects/alarm/siren.tscn")
 
 var _driver: PlayerDriver
 var _weapons: Weapons
@@ -83,6 +85,26 @@ func test_damage_flashes_and_colours_the_silhouette() -> void:
 	assert_object(_hud.silhouette.part_color(&"leg_l")).is_equal(HudRules.DISABLED)
 	await _driver.frames(40)
 	assert_float(_hud.flash_alpha()).is_equal(0.0)
+
+
+func test_alarm_shows_while_the_player_hears_a_siren() -> void:
+	await _load()
+	await _driver.frames(2)
+	assert_bool(_hud.alarm_label.visible).is_false()
+	var siren := SIREN_SCENE.instantiate() as Node3D
+	siren.name = "TestSiren"
+	_player.get_parent().add_child(siren)
+	siren.global_position = _player.global_position + Vector3(0, 2, -3)
+	# Heard through the player's own receiver (`heard_siren`), like any guard.
+	StimulusSystem.emit(Device.command_stimulus(Device.TEST, siren))
+	await _driver.frames(10)
+	assert_bool(AlarmHearing.of(_player).is_hearing()).is_true()
+	assert_bool(_hud.alarm_label.visible).is_true()
+
+	# A test rings 3 s (pulses at 0, 1, 2 s); hearing lasts 1.5 s after the last pulse.
+	await _driver.frames(250)
+	assert_bool(AlarmHearing.of(_player).is_hearing()).is_false()
+	assert_bool(_hud.alarm_label.visible).is_false()
 
 
 func _load() -> void:

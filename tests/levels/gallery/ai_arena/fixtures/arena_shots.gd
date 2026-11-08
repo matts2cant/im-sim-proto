@@ -5,7 +5,8 @@ extends Node3D
 ## (HUD included) and quits. The player loses its `actor.player` tag so the guards keep to their
 ## routine in the shot. Positions are arena-local (origin on the hub wall, +Z into the arena) unless
 ## `space` names the hub or the lab. `tend`: wait (up to 60 s) until a guard has stood by a downed
-## ally for 1.5 s (ADR 0071). `carry`: the player picks up that arena node first.
+## ally for 1.5 s (ADR 0071). `carry`: the player picks up that arena node first. `alarm`: the
+## arena's alarm controller is triggered first, so the sirens sound (ADR 0077).
 
 ## feet / look: points; space: "hub" or "lab" coordinates (default the arena); wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
@@ -22,6 +23,11 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"lab_guard": {"space": "lab", "feet": Vector3(4, 0, -6), "look": Vector3(2.5, 1.2, -16)},
 	"waking": {"feet": Vector3(-4, 0, 8), "look": Vector3(-7.4, 0.6, 9.9), "tend": true},
 	"carry": {"feet": Vector3(-6, 0, 9.9), "look": Vector3(-2, 0.0, 10), "carry": "Guards/GuardBatonDowned"},
+	"alarm_wall": {"feet": Vector3(3.8, 0, 2.4), "look": Vector3(3.8, 1.5, 0), "alarm": true},
+	"alarm_seam": {"feet": Vector3(1.8, 0, 0.9), "look": Vector3(3.4, 1.5, 0)},
+	"siren_east": {"feet": Vector3(3.5, 0, 7.5), "look": Vector3(6, 3.2, 7.5), "alarm": true},
+	"siren_west": {"feet": Vector3(-9.5, 0, 13.5), "look": Vector3(-12, 3.2, 13.5), "alarm": true},
+	"base_station": {"feet": Vector3(-16.8, 0, 2.6), "look": Vector3(-16.7, 1.3, 0)},
 }
 
 ## Review image size (the project's 16:9 default).
@@ -30,6 +36,7 @@ const SHOT_SIZE := Vector2i(1152, 648)
 var _shot: Dictionary = {}
 var _out: String = ""
 var _time: float = 0.0
+var _alarm_sent: bool = false
 
 @onready var _hub: Node3D = $Hub
 @onready var _arena: Node3D = $Hub/AIArena
@@ -67,6 +74,9 @@ func _physics_process(_delta: float) -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	if _shot.is_empty() or _time < float(_shot.get("wait", 1.5)):
+		if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
+			_alarm_sent = true
+			StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _arena.get_node("Alarm/Controller")))
 		return
 	if _shot.has("carry") and not _player.carry.is_carrying():
 		_player.carry.pick_up(_arena.get_node(String(_shot["carry"])) as PhysicsBody3D)

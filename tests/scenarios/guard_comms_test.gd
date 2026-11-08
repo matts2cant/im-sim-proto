@@ -1,10 +1,11 @@
 extends GdUnitTestSuite
-## Scenario (EventLog): shouts, radio and the level alarm (ADR 0072) in the comms yard
+## Scenario (EventLog): shouts and radio (ADR 0072) in the comms yard
 ## (tests/scenarios/fixtures/comms_yard.tscn): a 20 m wall across x -10..10 at z 0. `Caller` at
 ## (0, 0, 3); `Near` 5 m of path behind it (z 8); `BehindWall` (no radio) at z -3, 6 m straight but
 ## about 21 m of path around the wall end; `RadioNear` 25 m straight (z -22, 35 m of path);
 ## `RadioFar` 35 m straight (z -32). Shout: loudness 18, heeded at a margin >= 1 (17 m of path).
-## Radio: 30 m straight, through walls, radios only.
+## Radio: 30 m straight, through walls, radios only. Sirens and the alarm devices (ADR 0077):
+## tests/scenarios/alarm_devices_test.gd.
 
 const Guards := preload("res://tests/actors/guard/guard_helpers.gd")
 const YARD := "res://tests/scenarios/fixtures/comms_yard.tscn"
@@ -96,46 +97,6 @@ func test_a_shout_from_a_non_ally_is_not_heeded() -> void:
 	assert_str(_awareness("Near").state_name()).is_equal("unaware")
 
 
-func test_the_alarm_sends_every_guard_searching_until_it_ends_after_90_s() -> void:
-	var alarm := LevelAlarm.current(_scene.get_tree())
-	StimulusSystem.emit(LevelAlarm.make_raise(Vector3(0, 0, 10)))
-	await _frames(4)
-	assert_bool(alarm.is_raised()).is_true()
-	assert_array(EventLog.find(&"alarm.raised")).has_size(1)
-	for guard_name: String in ["Caller", "Near", "BehindWall", "RadioNear", "RadioFar"]:
-		var awareness := _awareness(guard_name)
-		assert_str(awareness.state_name()).override_failure_message(guard_name).is_equal("searching")
-		assert_bool(awareness.model.is_wary()).override_failure_message(guard_name).is_true()
-
-	# 60 s in (past one 30 s search): still searching, still raised.
-	await _seconds(60.0)
-	assert_bool(alarm.is_raised()).is_true()
-	for guard_name: String in ["Caller", "Near", "BehindWall", "RadioNear", "RadioFar"]:
-		assert_str(_awareness(guard_name).state_name()).override_failure_message(guard_name).is_equal("searching")
-	assert_array(EventLog.find(&"alarm.ended")).is_empty()
-
-	# Over after 90 s.
-	await _seconds(31.0)
-	assert_bool(alarm.is_raised()).is_false()
-	var ended := EventLog.find(&"alarm.ended")
-	assert_array(ended).has_size(1)
-	assert_str(String(ended[0].data["reason"])).is_equal("timeout")
-
-
-func test_the_alarm_survives_save_and_load_and_clears() -> void:
-	var alarm := LevelAlarm.current(_scene.get_tree())
-	alarm.raise(Vector3(1, 0, 2), "Test")
-	await _seconds(10.0)
-	var saved := alarm.save_state()
-	alarm.clear()
-	assert_bool(alarm.is_raised()).is_false()
-	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("cleared")
-	alarm.load_state(saved)
-	assert_bool(alarm.is_raised()).is_true()
-	assert_float(alarm.time_left()).is_equal_approx(80.0, 0.2)
-	assert_vector(alarm.point).is_equal(Vector3(1, 0, 2))
-
-
 func _guard(guard_name: String) -> NavWalker:
 	return _scene.get_node(guard_name) as NavWalker
 
@@ -156,7 +117,3 @@ func _path_length(map: RID, from: Node3D, to: Node3D) -> float:
 func _frames(count: int) -> void:
 	for i in count:
 		await get_tree().physics_frame
-
-
-func _seconds(value: float) -> void:
-	await _frames(roundi(value * 60.0))
