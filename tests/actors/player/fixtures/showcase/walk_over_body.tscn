@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/objects/fixtures/carry_room.tscn" id="1_room"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="2_guard"]
+[ext_resource type="Script" path="res://tests/actors/player/fixtures/showcase/walk_over_body_showcase.gd" id="3_showcase"]
+
+[sub_resource type="Environment" id="Environment_walk"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+
+[node name="WalkOverBody" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_walk")
+
+[node name="Lamp" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 1)
+light_energy = 2.0
+omni_range = 8.0
+shadow_enabled = true
+
+[node name="CarryRoom" parent="." instance=ExtResource("1_room")]
+
+[node name="Guard" parent="." instance=ExtResource("2_guard")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -0.9, 0, 0)
+
+[node name="Showcase" type="Node" parent="."]
+script = ExtResource("3_showcase")
+player_path = NodePath("../CarryRoom/Player")
+body = NodePath("../Guard")
+feet = Vector3(0.2, 0, 2.5)
+pitch_deg = -60.0
+capture_z = 0.15
+capture_path = "res://reports/screenshots/walk_over_body.png"
