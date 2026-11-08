@@ -80,3 +80,20 @@ func test_a_node_linked_before_it_is_added_counts_as_down_until_then() -> void:
 	assert_bool(graph.reaches(CONTROLLER, SIREN)).is_false()
 	graph.add_node(SWITCH, true)
 	assert_bool(graph.reaches(CONTROLLER, SIREN)).is_true()
+
+
+func test_connected_adds_the_dead_devices_right_behind_live_ones() -> void:
+	# The siren dead behind an up switch: not reached, but connected (a terminal shows it as down).
+	var graph := _network()
+	graph.add_node(SIREN, false)
+	assert_array(Array(graph.reachable(CONTROLLER))).contains_exactly_in_any_order([SWITCH, DIRECT_SIREN])
+	assert_array(Array(graph.connected(CONTROLLER))).contains_exactly_in_any_order([SWITCH, SIREN, DIRECT_SIREN])
+
+
+func test_connected_stops_at_a_dead_switch() -> void:
+	# The dead switch shows; what is behind it does not.
+	var graph := _network(false)
+	assert_array(Array(graph.connected(CONTROLLER))).contains_exactly_in_any_order([SWITCH, DIRECT_SIREN])
+	assert_array(Array(graph.connected(LONER))).is_empty()
+	graph.add_node(CONTROLLER, false)
+	assert_array(Array(graph.connected(CONTROLLER))).is_empty()

@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="1_terminal"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="2_switch"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="3_controller"]
+[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="4_siren"]
+[ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="5_camera"]
+[ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="6_turret"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="7_datapad"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="8_player"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.42, 0.42, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.55, 0.57, 0.62, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_desk"]
+albedo_color = Color(0.36, 0.3, 0.24, 1)
+
+[sub_resource type="Environment" id="Environment_fixture"]
+background_mode = 1
+background_color = Color(0.18, 0.2, 0.24, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.35
+
+[node name="SecurityShowcase" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200, 0, 0)
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fixture")
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -0.5, 0)
+use_collision = true
+size = Vector3(36, 1, 24)
+material = SubResource("Material_floor")
+metadata/surface = &"concrete"
+
+[node name="BackWall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.75, -8.15)
+use_collision = true
+size = Vector3(36, 3.5, 0.3)
+material = SubResource("Material_wall")
+
+[node name="Desk" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.4, -7)
+use_collision = true
+size = Vector3(1.2, 0.8, 0.6)
+material = SubResource("Material_desk")
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="TerminalLamp" type="OmniLight3D" parent="Lamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 3.2, -5.5)
+light_energy = 2.5
+omni_range = 8.0
+
+[node name="CameraLamp" type="OmniLight3D" parent="Lamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 3.2, -2)
+light_energy = 4.0
+omni_range = 12.0
+
+[node name="TurretLamp" type="OmniLight3D" parent="Lamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 3.2, -2)
+light_energy = 4.0
+omni_range = 12.0
+
+[node name="Powered" type="Node" parent="Lamps"]
+script = ExtResource("9_powered")
+circuit = &"showcase_lights"
+
+[node name="Terminal" parent="." instance=ExtResource("1_terminal")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.45, -8)
+
+[node name="TerminalUse" parent="Terminal"]
+credentials_id = &"showcase_terminal"
+username = "jmercer"
+password = "falcon7"
+label = "security terminal"
+
+[node name="Switch" parent="." instance=ExtResource("2_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.6, -8)
+
+[node name="Powered" parent="Switch"]
+circuit = &"showcase_net"
+
+[node name="Device" parent="Switch"]
+links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../Siren")])
+
+[node name="Controller" parent="." instance=ExtResource("3_controller")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, -8)
+
+[node name="Siren" parent="." instance=ExtResource("4_siren")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.6, -8)
+
+[node name="Camera" parent="." instance=ExtResource("5_camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2.6, -8)
+
+[node name="Turret" parent="." instance=ExtResource("6_turret")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8, 0, -3)
+
+[node name="Datapad" parent="." instance=ExtResource("7_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.83, -7)
+
+[node name="Readable" parent="Datapad"]
+entry_id = &"showcase_security_login"
+title = "Security login"
+text = "Night shift: the security terminal login is jmercer / falcon7. Do not write it down. -- J."
+codes = Dictionary[StringName, String]({&"showcase_terminal": "jmercer:falcon7"})
+
+[node name="Player" parent="." instance=ExtResource("8_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6.2)

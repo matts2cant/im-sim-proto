@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="TerminalConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/terminal/terminal_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+command_labels = Dictionary[StringName, String]({
+&"command.open": "Open",
+&"command.close": "Close",
+&"command.lock": "Lock",
+&"command.unlock": "Unlock",
+&"command.enable": "Enable",
+&"command.disable": "Disable",
+&"command.stop_sweep": "Stop sweep",
+&"command.resume_sweep": "Resume sweep",
+&"command.pan_left": "Pan left",
+&"command.pan_right": "Pan right",
+&"command.target_intruders": "Target intruders",
+&"command.target_guards": "Target guards",
+&"command.target_everyone": "Target everyone",
+&"command.trigger": "Trigger",
+&"command.reset": "Reset",
+&"command.disarm": "Disarm",
+&"command.ring": "Ring",
+&"command.test": "Test",
+&"command.silence": "Silence"
+})
+refresh_interval = 1.0
+error_loudness = 4.0
+error_hz = 220.0
+max_use_distance = 3.0

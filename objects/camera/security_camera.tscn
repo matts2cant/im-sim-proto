@@ -1,0 +1,142 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/electronics.tres" id="7_electronics"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="Script" path="res://actors/common/perception/perception_sensor.gd" id="12_sensor"]
+[ext_resource type="Resource" path="res://objects/camera/security_camera_perception.tres" id="13_perception"]
+[ext_resource type="Script" path="res://objects/camera/security_camera.gd" id="20_camera"]
+[ext_resource type="Resource" path="res://objects/camera/security_camera.tres" id="21_config"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="30_disable"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="31_enable"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_stop_sweep.tres" id="32_stop_sweep"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_resume_sweep.tres" id="33_resume_sweep"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_pan_left.tres" id="34_pan_left"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_pan_right.tres" id="35_pan_right"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.2, 0.22, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Material_head"]
+albedo_color = Color(0.82, 0.83, 0.8, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Material_lens"]
+albedo_color = Color(0.03, 0.03, 0.04, 1)
+metallic = 0.6
+roughness = 0.15
+
+[sub_resource type="BoxMesh" id="Mesh_plate"]
+material = ExtResource("11_metal_surface")
+size = Vector3(0.16, 0.2, 0.03)
+
+[sub_resource type="BoxMesh" id="Mesh_arm"]
+material = ExtResource("11_metal_surface")
+size = Vector3(0.05, 0.05, 0.22)
+
+[sub_resource type="BoxMesh" id="Mesh_head"]
+material = SubResource("Material_head")
+size = Vector3(0.12, 0.12, 0.26)
+
+[sub_resource type="CylinderMesh" id="Mesh_lens"]
+material = SubResource("Material_lens")
+top_radius = 0.04
+bottom_radius = 0.045
+height = 0.04
+radial_segments = 16
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_lamp"]
+radius = 0.016
+height = 0.032
+radial_segments = 8
+rings = 4
+
+[node name="SecurityCamera" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.2)
+shape = SubResource("Shape_body")
+
+[node name="Plate" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.015)
+cast_shadow = 0
+mesh = SubResource("Mesh_plate")
+
+[node name="Arm" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0.13)
+cast_shadow = 0
+mesh = SubResource("Mesh_arm")
+
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, -0.05, 0.24)
+
+[node name="Tilt" type="Node3D" parent="Pivot"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0)
+
+[node name="Head" type="MeshInstance3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.05)
+cast_shadow = 0
+mesh = SubResource("Mesh_head")
+
+[node name="Lens" type="MeshInstance3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -0.19)
+cast_shadow = 0
+mesh = SubResource("Mesh_lens")
+
+[node name="Lamp" type="MeshInstance3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, 0.065, -0.14)
+cast_shadow = 0
+mesh = SubResource("Mesh_lamp")
+
+[node name="Eye" type="Node3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.24)
+
+[node name="PerceptionSensor" type="Node" parent="Pivot/Tilt/Eye"]
+script = ExtResource("12_sensor")
+config = ExtResource("13_perception")
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0.25)
+unit_size = 6.0
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.camera"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 20.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0.2)
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_disable"), ExtResource("31_enable"), ExtResource("32_stop_sweep"), ExtResource("33_resume_sweep"), ExtResource("34_pan_left"), ExtResource("35_pan_right")])
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0.2)
+script = ExtResource("6_breakable")
+material = ExtResource("7_electronics")
+settings = ExtResource("8_break_settings")
+break_on_depleted = false
+size = 0.3
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("9_powered")
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("10_device")
+broken_hide = Array[NodePath]([NodePath("../Pivot/Tilt/Lens")])
+
+[node name="CameraBehaviour" type="Node" parent="."]
+script = ExtResource("20_camera")
+config = ExtResource("21_config")

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SecurityCameraConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/camera/security_camera_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+sweep_half_angle = 40.0
+sweep_speed = 15.0
+sweep_hold = 2.0
+pan_step = 15.0
+meter_decay = 0.25
+report_cooldown = 10.0
+amber_threshold = 0.3
+beep_loudness = 8.0
+beep_hz = 1320.0
+idle_color = Color(0.2, 1, 0.3, 1)
+suspicious_color = Color(1, 0.65, 0.1, 1)
+detected_color = Color(1, 0.1, 0.08, 1)
