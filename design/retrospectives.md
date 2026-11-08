@@ -39,6 +39,11 @@ Two waves of two agents in parallel worktrees. Wave 1: light level + lamps + bre
 - Shouts, radio and the alarm make guards search, not instantly know where you are. OK?
 - Plus the M6 questions (Combat Strength toggle, skill/energy numbers).
 
+### Playtest feedback (2026-11-08)
+
+- Bug: baton hits knocked the player out (stun 60 after three hits) with no screen and nothing to wake them: stuck. Fixed with a "Knocked out" losing screen driven by `state.unconscious` (ADR 0071 amendment). The pistol only kills (no stun).
+- Why it slipped: the player-is-not-special rule gave the player the NPC knockout, but the HUD only listened to `died`. Tests covered guard knockouts, never the player's. Process change: a brief that lets a new state reach the player (a tag that stops input) also asks for the player-facing UI and a test that the player can always leave it (wake, reload or load).
+
 ## M6 — Abilities and saving (2026-11-07)
 
 Two agents in parallel worktrees (abilities: skills, energy, augmentations, Stats tab, HUD, room 7 station, ADR 0061; saving: F5/F9, JSON quicksave, removed/spawned records, project-wide saveable contract test, ADR 0063), then one agent for the merge, a design amendment and the integration test. 702 → 807 tests. ~870k sub-agent tokens.
