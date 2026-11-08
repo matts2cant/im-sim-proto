@@ -55,8 +55,8 @@ radial_segments = 16
 rings = 1
 
 [sub_resource type="SphereMesh" id="Mesh_lamp"]
-radius = 0.016
-height = 0.032
+radius = 0.022
+height = 0.044
 radial_segments = 8
 rings = 4
 
@@ -94,7 +94,7 @@ cast_shadow = 0
 mesh = SubResource("Mesh_lens")
 
 [node name="Lamp" type="MeshInstance3D" parent="Pivot/Tilt"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, 0.065, -0.14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.062, -0.13)
 cast_shadow = 0
 mesh = SubResource("Mesh_lamp")
 

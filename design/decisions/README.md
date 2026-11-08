@@ -80,3 +80,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted |
 | [0076](0076-computer-skill-multitool-removed.md) | Computer skill replaces Electronics; the multitool is removed | Accepted |
 | [0077](0077-devices-cables-and-remote-commands.md) | Devices, cables and remote commands (M8 alarm devices) | Accepted |
+| [0079](0079-security-cameras-and-turret.md) | Security cameras and the turret: device vision, a detection meter, target presets as data | Accepted |
+| [0080](0080-credentials-terminal.md) | The credentials terminal (M8 placeholder): login from known credentials, commands from receptrons | Accepted |
