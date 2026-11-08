@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0078): the player and a door 1.2 m ahead (tests/objects/fixtures/door_wall_player:
 ## player at z 1.2 facing the panel at z 0). E opens and closes it; each lock opens only by its own
-## method: a keypad by its code on the keypad screen (keys or clicks; Esc leaves while typing; the
+## method: a keypad by its code on the keypad screen (keys or clicks; Esc leaves while typing, E does not; the
 ## reminder shows a code from the log), a keycard reader by a carried card with its key id, a
 ## mechanical lock by holding LMB with a lockpick for pins x 1 s x lockpick_time_mult.
 
@@ -95,12 +95,16 @@ func test_keypad_buttons_can_be_clicked() -> void:
 	assert_bool(keypad.is_locked()).is_false()
 
 
-func test_esc_leaves_the_keypad_while_typing() -> void:
+func test_esc_leaves_the_keypad_while_typing_and_e_does_not() -> void:
 	Helpers.add_keypad(_entity, &"storage_door", "2817")
 	Helpers.lock(_entity)
 	await _driver.frames(2)
 	await _press(&"use")
 	await _type([KEY_2, KEY_8])
+	assert_str(_screen.display_label.text).is_equal("28")
+	# E never leaves a screen (ADR 0083): only Esc does.
+	await _press(&"use")
+	assert_bool(_screen.is_open()).is_true()
 	assert_str(_screen.display_label.text).is_equal("28")
 
 	await _press(&"ui_cancel")

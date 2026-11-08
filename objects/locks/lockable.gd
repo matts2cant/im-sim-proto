@@ -7,6 +7,7 @@ extends Node
 ## (right code, key, pick) also wants it opened: `unlocked_by_user` (a Door opens). On a network
 ## device (a `Device` on the entity) the `command.lock` / `command.unlock` actions lock and unlock it
 ## (the shared device receptrons block them while unpowered or broken).
+## Security screens (ADR 0083): device_status() says locked / unlocked (DeviceStatus).
 ## EventLog `lock.unlocked` / `lock.locked {entity, how}`. Saveable (`locked`).
 
 signal lock_changed(locked: bool)
@@ -34,6 +35,11 @@ static func of(node: Node) -> Lockable:
 		if child is Lockable:
 			return child as Lockable
 	return null
+
+
+## Status words for security screens (DeviceStatus): locked / unlocked.
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["locked" if locked else "unlocked"])
 
 
 ## Unlocks; `how` is logged (`keypad`, `keycard`, `pick`, `power`, `command`). `user_wants_open`: the

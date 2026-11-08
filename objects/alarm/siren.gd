@@ -52,6 +52,11 @@ func is_sounding() -> bool:
 	return ring_left > 0.0
 
 
+## Status words for security screens (DeviceStatus, ADR 0083): ringing / silent.
+func device_status() -> PackedStringArray:
+	return PackedStringArray(["ringing" if is_sounding() else "silent"])
+
+
 ## Sounds for at least `seconds` more; the first pulse goes out on the next tick. `by` is logged.
 func ring(seconds: float, by: String = "") -> void:
 	if device == null or not device.is_up():

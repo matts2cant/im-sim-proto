@@ -6,3 +6,4 @@
 script = ExtResource("1_script")
 dispatch_type = &"alert.dispatch"
 dispatch_range = 40.0
+broadcast_shown = 3.0

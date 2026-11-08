@@ -264,6 +264,39 @@ func test_signs() -> void:
 		assert_str(texts.to_lower()).override_failure_message(phrase).contains(phrase.to_lower())
 
 
+func test_booth_wall_devices_are_named_by_small_signs_above_them() -> void:
+	# The alarm controller and the radio base station share the booth's east wall (ADR 0083).
+	await get_tree().process_frame
+	var booth := _interior(_shell("Booth"))
+	var spans: Array[Vector2] = []
+	for pair: Array in [
+		["BoothController", "Controller", "alarm controller"], ["BoothBaseStation", "BaseStation", "radio base station"]
+	]:
+		var sign := _room.get_node("Labels/" + String(pair[0])) as Sign
+		var device := _room.get_node("Devices/" + String(pair[1])) as Node3D
+		assert_str(sign.text.replace("\n", " ").to_lower()).is_equal(String(pair[2]))
+		assert_int(sign.size).is_equal(Sign.Size.SMALL)
+		# On the same wall, facing into the booth like the device, right above it.
+		assert_float(sign.position.x).is_equal_approx(device.position.x, 0.05)
+		assert_float(sign.position.z).is_equal_approx(device.position.z, 0.01)
+		assert_vector(sign.basis.z).is_equal_approx(device.basis.z, Vector3.ONE * 0.01)
+		var top := 0.0
+		for mesh: Node in device.find_children("*", "MeshInstance3D", true, false):
+			var box := (mesh as MeshInstance3D).get_aabb()
+			top = maxf(top, (mesh as Node3D).position.y + box.end.y)
+		var text_box := sign.get_aabb()
+		assert_float(text_box.size.x).is_greater(0.3)
+		assert_float(sign.position.y + text_box.position.y).is_greater(device.position.y + top + 0.05)
+		assert_float(sign.position.y + text_box.end.y).is_less(_shell("Booth").size.y)
+		# Text width runs along the wall (the sign's x axis is world z).
+		spans.append(Vector2(sign.position.z + text_box.position.x, sign.position.z + text_box.end.x))
+	# Inside the booth wall and apart from each other.
+	for span in spans:
+		assert_float(span.x).is_greater(booth.position.y)
+		assert_float(span.y).is_less(booth.end.y)
+	assert_float(spans[1].x - spans[0].y).is_greater(0.1)
+
+
 func test_no_coplanar_faces_with_different_materials() -> void:
 	await KitGeometry.settle(get_tree())
 

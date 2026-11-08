@@ -23,7 +23,7 @@ ADR 0017 parked hacking behind a placeholder (multitools and credentials) until 
 - **Devices and remote actions**: doors, cameras, turrets, sirens, alarm controllers, computers and keypads expose remote actions ([hacking](../game/hacking.md)). Disabling a camera is loud (dark feed, an operator radios a check); panning it is quiet. No feed loop.
 - **Computers** run a simple desktop (Halcyon OS) with Mail, Files and Security. Reading mail and files adds them to the PersonalLog like datapads ([ADR 0060](0060-datapads-read-in-place-personal-log.md)); "Copy to deck" only for objectives.
 - **NPCs** log in to devices through a "use device" action at patrol waypoints; devices keep logs.
-- **UI**: the computer screen and the deck screen are in the world; a game UI overlay holds known credentials, deck actions, address and access level, toasts, hints, one trace bar per tracer and time estimates. Esc always steps away or lowers the deck; E only when no text field has focus.
+- **UI**: the computer screen and the deck screen are in the world; a game UI overlay holds known credentials, deck actions, address and access level, toasts, hints, one trace bar per tracer and time estimates. Esc always steps away or lowers the deck; E does not ([ADR 0083](0083-security-terminal-redesign.md): Esc only).
 - **Everything is deterministic and saved**: network state, deck contents, crack progress, trace and lockouts.
 - **Milestone**: M11. M8 builds the devices and the alarm devices ([ADR 0075](0075-alarms-as-network-devices.md)); the Computer skill and the multitool's removal are [ADR 0076](0076-computer-skill-multitool-removed.md).
 

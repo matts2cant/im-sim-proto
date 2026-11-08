@@ -1,13 +1,16 @@
 extends GdUnitTestSuite
-## Integration (ADR 0080): the terminal and its screen in the security showcase
+## Integration (ADR 0080, ADR 0083): the terminal in the security showcase
 ## (tests/objects/fixtures/showcase/security_helpers.gd has the layout). The terminal is cabled through
-## the switch to the camera, the turret, the alarm controller and the siren; the datapad on the desk
-## carries its credentials. Camera and turret start disabled so the player is never shot.
+## the switch to the camera, the turret, the alarm controller, the siren and the door; the datapad on
+## the desk carries its credentials. Camera and turret start disabled so the player is never shot.
+## Terminal.devices() is the physical network with each device's status words (DeviceStatus, from
+## its components); the screen's tabs are in tests/ui/terminal/terminal_screen_test.gd.
 
 const Showcase := preload("res://tests/objects/fixtures/showcase/security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 ## 1 m in front of the terminal.
 const AT_TERMINAL := Vector3(-6, 0, -7)
+const NETWORK: Array[String] = ["Terminal", "Switch", "Camera", "Turret", "Controller", "Siren", "Door"]
 
 var _show: Showcase
 var _screen: TerminalScreen
@@ -47,9 +50,7 @@ func test_known_credentials_from_the_datapad_log_in() -> void:
 	_screen.login_button.pressed.emit()
 	assert_bool(_show.terminal().logged_in).is_true()
 	assert_bool(EventLog.find(&"terminal.login")[0].data["ok"]).is_true()
-	assert_array(_screen.listed_names()).contains_exactly_in_any_order(
-		["Camera", "Turret", "Controller", "Siren", "Door"]
-	)
+	assert_array(_screen.graph.node_names()).contains_exactly_in_any_order(NETWORK)
 
 
 func test_without_the_datapad_there_is_no_reminder() -> void:
@@ -72,94 +73,100 @@ func test_a_wrong_password_is_refused_with_a_beep() -> void:
 	assert_float(float(beeps[0].data["intensity"])).is_equal(4.0)
 
 
-func test_buttons_send_commands_to_the_devices() -> void:
-	_log_in()
+func test_devices_are_the_cabled_network_with_views_and_commands() -> void:
+	var rows := _show.terminal().devices()
+	assert_array(_names(rows)).contains_exactly_in_any_order(NETWORK)
+	# Its own row first; every cable once (all on the switch).
+	assert_bool(rows[0].is_self).is_true()
+	assert_str(rows[0].name).is_equal("Terminal")
+	var cables := Terminal.cables(rows)
+	assert_int(cables.size()).is_equal(6)
+	for cable in cables:
+		assert_bool(rows[cable.x].name == "Switch" or rows[cable.y].name == "Switch").is_true()
+	# A view is a property: whatever offers one (the camera's and the turret's eyes).
+	var with_view: Array[String] = []
+	for row in rows:
+		if row.has_view:
+			with_view.append(row.name)
+	assert_array(with_view).contains_exactly_in_any_order(["Camera", "Turret"])
 	# Each device offers the commands its receptrons accept, in the table's order.
-	var camera_labels := _labels("Camera")
-	assert_array(camera_labels).contains_exactly(
+	assert_array(_labels("Camera")).contains_exactly(
 		["Enable", "Disable", "Stop sweep", "Resume sweep", "Pan left", "Pan right"]
 	)
 	assert_array(_labels("Turret")).contains_exactly(
 		["Enable", "Disable", "Target intruders", "Target guards", "Target everyone"]
 	)
 	assert_array(_labels("Siren")).contains_exactly(["Ring", "Test", "Silence"])
-	var before := _show.camera().yaw()
-	_screen.button("Camera", "Pan left").pressed.emit()
-	await _show.frames(3)
-	assert_float(_show.camera().yaw()).is_equal_approx(minf(before + 15.0, 40.0), 0.5)
-	assert_bool(_show.camera().model.sweeping).is_false()
-	_screen.button("Turret", "Target guards").pressed.emit()
-	await _show.frames(3)
-	assert_array(_show.turret().hostile_tags()).contains_exactly([&"actor.guard"])
-	_screen.button("Siren", "Test").pressed.emit()
-	await _show.frames(3)
-	assert_array(EventLog.find(&"siren.started")).has_size(1)
-	var sent := EventLog.find(&"device.command").filter(
-		func(entry: EventLogEntry) -> bool: return entry.data["from"] == "Terminal"
-	)
-	assert_int(sent.size()).is_equal(3)
-	for entry: EventLogEntry in sent:
-		assert_bool(entry.data["sent"]).is_true()
-
-
-func test_a_cabled_door_is_listed_and_opened_with_no_door_code() -> void:
-	# The door's receptrons (command.open/close/lock/unlock) give it its buttons.
-	_log_in()
 	assert_array(_labels("Door")).contains_exactly(["Open", "Close", "Lock", "Unlock"])
+	assert_array(_labels("Switch")).is_empty()
+
+
+func test_statuses_come_from_the_devices_components() -> void:
+	_log_in()
+	assert_array(_status("Terminal")).contains_exactly(["online", "logged in"])
+	assert_array(_status("Switch")).contains_exactly(["online"])
+	assert_array(_status("Camera")).contains_exactly(["online", "disabled"])
+	assert_array(_status("Turret")).contains_exactly(["online", "disabled", "targets intruders"])
+	assert_array(_status("Controller")).contains_exactly(["online", "armed", "silent"])
+	assert_array(_status("Siren")).contains_exactly(["online", "silent"])
+	assert_array(_status("Door")).contains_exactly_in_any_order(["online", "closed", "unlocked"])
+	var terminal := _show.terminal()
+	terminal.send(Device.ENABLE, _show.device("Camera"))
+	terminal.send(Device.TEST, _show.device("Siren"))
+	terminal.send(Device.TARGET_GUARDS, _show.device("Turret"))
+	terminal.send(Device.LOCK, _show.device("Door"))
+	terminal.send(Device.OPEN, _show.device("Door"))
+	terminal.send(Device.DISARM, _show.device("Controller"))
+	await _show.frames(3)
+	assert_array(_status("Camera")).contains_exactly(["online", "enabled", "sweeping"])
+	assert_array(_status("Siren")).contains_exactly(["online", "ringing"])
+	assert_array(_status("Turret")).contains_exactly(["online", "disabled", "targets guards"])
+	assert_array(_status("Door")).contains_exactly_in_any_order(["online", "open", "locked"])
+	assert_array(_status("Controller")).contains_exactly(["online", "disarmed", "silent"])
+	terminal.send(Device.STOP_SWEEP, _show.device("Camera"))
+	await _show.frames(3)
+	assert_array(_status("Camera")).contains_exactly(["online", "enabled", "holding"])
+
+
+func test_a_cut_switch_or_a_broken_device_is_offline_never_broken() -> void:
+	# Broken (shot): offline, no commands; the rest still online.
+	Breakable.of(_show.node("Camera")).take_damage(&"damage.ballistic", 100.0)
+	await _show.frames(2)
+	assert_array(_status("Camera")).contains_exactly(["offline"])
+	assert_array(_row("Camera").commands).is_empty()
+	assert_bool(_row("Siren").online).is_true()
+	# The switch unpowered: everything behind it is offline (still on the network, its cables
+	# intact), the terminal itself still online.
+	Powered.of(_show.node("Switch")).on = false
+	await _show.frames(2)
+	var rows := _show.terminal().devices()
+	assert_array(_names(rows)).contains_exactly_in_any_order(NETWORK)
+	assert_int(Terminal.cables(rows).size()).is_equal(6)
+	for row in rows:
+		if row.is_self:
+			assert_bool(row.online).is_true()
+			continue
+		assert_array(Array(row.status)).override_failure_message(row.name).contains_exactly(["offline"])
+		assert_array(row.commands).override_failure_message(row.name).is_empty()
+	assert_bool(_show.terminal().send(Device.OPEN, _show.device("Door"))).is_false()
+	Powered.of(_show.node("Switch")).on = true
+	await _show.frames(2)
+	assert_bool(_row("Door").online).is_true()
+
+
+func test_a_cabled_door_opens_from_the_terminal_with_no_door_code() -> void:
+	_log_in()
 	var door := Usable.of(_show.node("Door")) as Door
-	assert_bool(door.is_open()).is_false()
-	_screen.button("Door", "Open").pressed.emit()
+	assert_bool(_show.terminal().send(Device.OPEN, _show.device("Door"))).is_true()
 	await _show.seconds(1.0)
 	assert_bool(door.is_open()).is_true()
 	assert_bool(EventLog.find(&"door.command")[0].data["done"]).is_true()
 	# Locked from the terminal, then closed: still openable remotely (an authorised open).
-	_screen.button("Door", "Lock").pressed.emit()
-	_screen.button("Door", "Close").pressed.emit()
+	_show.terminal().send(Device.LOCK, _show.device("Door"))
+	_show.terminal().send(Device.CLOSE, _show.device("Door"))
 	await _show.seconds(1.0)
 	assert_bool(door.is_open()).is_false()
 	assert_bool(door.is_locked()).is_true()
-	# The switch off: the door is no longer listed and cannot be reached.
-	Powered.of(_show.node("Switch")).on = false
-	await _show.seconds(1.2)
-	assert_bool(_screen.listed_names().has("Door")).is_false()
-	assert_bool(_show.terminal().send(Device.OPEN, Device.of(_show.node("Door")))).is_false()
-
-
-func test_unplugging_the_switch_empties_the_list_and_a_dead_device_shows_its_state() -> void:
-	_log_in()
-	# The camera unpowered: still listed (behind a live switch), its buttons off.
-	Powered.of(_show.node("Camera")).on = false
-	await _show.seconds(1.2)
-	assert_str(_state_of("Camera")).is_equal("unpowered")
-	assert_bool(_screen.button("Camera", "Pan left").disabled).is_true()
-	# The switch off: nothing is reached; refreshed within a second.
-	Powered.of(_show.node("Switch")).on = false
-	await _show.seconds(1.2)
-	assert_array(_screen.listed_names()).is_empty()
-	Powered.of(_show.node("Switch")).on = true
-	await _show.seconds(1.2)
-	assert_array(_screen.listed_names()).contains_exactly_in_any_order(
-		["Camera", "Turret", "Controller", "Siren", "Door"]
-	)
-
-
-func test_esc_always_leaves_and_e_leaves_only_when_not_typing() -> void:
-	var runner := _show.runner
-	_show.terminal().use(_show.player)
-	_screen.user_field.grab_focus()
-	runner.simulate_action_pressed(&"use")
-	await _show.frames(2)
-	assert_bool(_screen.is_open()).is_true()
-	runner.simulate_action_pressed(&"ui_cancel")
-	await _show.frames(2)
-	assert_bool(_screen.is_open()).is_false()
-	# Input comes back as it was before (the helper turned it off).
-	assert_bool(_show.player.input_enabled).is_false()
-	_show.terminal().use(_show.player)
-	_screen.user_field.release_focus()
-	runner.simulate_action_pressed(&"use")
-	await _show.frames(2)
-	assert_bool(_screen.is_open()).is_false()
 
 
 func test_it_closes_when_its_user_walks_away_or_the_terminal_dies() -> void:
@@ -173,6 +180,7 @@ func test_it_closes_when_its_user_walks_away_or_the_terminal_dies() -> void:
 	await _show.frames(2)
 	assert_bool(_screen.is_open()).is_false()
 	assert_bool(_show.terminal().use(_show.player)).is_false()
+	assert_array(_show.terminal().devices()).is_empty()
 
 
 func test_a_user_without_a_screen_cannot_use_it() -> void:
@@ -193,18 +201,29 @@ func _log_in() -> void:
 	assert_bool(_show.terminal().logged_in).is_true()
 
 
+func _names(rows: Array[Terminal.Row]) -> Array[String]:
+	var names: Array[String] = []
+	for row in rows:
+		names.append(row.name)
+	return names
+
+
+func _row(device_name: String) -> Terminal.Row:
+	for row in _show.terminal().devices():
+		if row.name == device_name:
+			return row
+	return null
+
+
+func _status(device_name: String) -> Array:
+	var row := _row(device_name)
+	return Array(row.status) if row != null else []
+
+
 func _labels(device_name: String) -> Array[String]:
 	var labels: Array[String] = []
-	for row in _show.terminal().listing():
-		if row.name == device_name:
-			for command in row.commands:
-				labels.append(_show.terminal().config.label_for(command))
+	var row := _row(device_name)
+	if row != null:
+		for command in row.commands:
+			labels.append(_show.terminal().config.label_for(command))
 	return labels
-
-
-func _state_of(device_name: String) -> String:
-	for child in _screen.device_list.get_children():
-		var name_label := child.get_node_or_null(^"Name") as Label
-		if name_label != null and name_label.text == device_name:
-			return (child.get_node(^"State") as Label).text
-	return ""

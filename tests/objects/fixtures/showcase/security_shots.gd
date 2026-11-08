@@ -4,7 +4,9 @@ extends Node
 ## Shots: wall (the devices on the back wall), camera (the camera seeing the player: red lamp),
 ## camera_mount, turret (winding up, laser on the player), turret_base, door (the cabled door),
 ## terminal (the terminal up close), terminal_login (the login screen with the Known line),
-## terminal_devices (the device list).
+## terminal_camera (Camera tab: the camera's live feed), terminal_network (Network tab: camera and
+## turret unpowered, the siren ringing, its menu open), terminal_cut (Network tab: the switch
+## unpowered, everything behind it offline, the camera's menu open).
 
 const SIZE := Vector2i(1152, 648)
 
@@ -63,7 +65,7 @@ func _pose() -> void:
 			_command(Device.DISABLE, "Turret")
 			_place(Vector3(-5.6, 0, -6.9), 0.0, -10.0, 0.349)
 			_capture_at = 1.0
-		"terminal_login", "terminal_devices":
+		"terminal_login", "terminal_camera", "terminal_network", "terminal_cut":
 			_command(Device.DISABLE, "Turret")
 			_place(Vector3(-6, 0, -7), 0.0, -8.0)
 			_capture_at = 1.2
@@ -71,11 +73,27 @@ func _pose() -> void:
 			Usable.of(_show.get_node("Datapad")).use(_player)
 			(_player.get_node("ReadingOverlay") as ReadingOverlay).close()
 			Terminal.of(_show.get_node("Terminal")).use(_player)
-			if _shot == "terminal_devices":
-				var screen := TerminalScreen.of(_player)
-				screen.fill_in()
-				screen.submit_login()
-				screen.press(Device.PAN_LEFT, Device.of(_show.get_node("Camera")))
+			if _shot != "terminal_login":
+				_terminal_session(TerminalScreen.of(_player))
+
+
+func _terminal_session(screen: TerminalScreen) -> void:
+	screen.fill_in()
+	screen.submit_login()
+	match _shot:
+		"terminal_camera":
+			screen.select_camera("Camera")
+		"terminal_network":
+			screen.show_tab(TerminalScreen.Tab.NETWORK)
+			(_show.get_node("Camera/Powered") as Powered).on = false
+			(_show.get_node("Turret/Powered") as Powered).on = false
+			screen.press(Device.TEST, Device.of(_show.get_node("Siren")))
+			screen.graph.select("Siren")
+		"terminal_cut":
+			screen.show_tab(TerminalScreen.Tab.NETWORK)
+			(_show.get_node("Switch/Powered") as Powered).on = false
+			screen.refresh_devices(true)
+			screen.graph.select("Camera")
 
 
 func _place(local: Vector3, yaw: float, pitch_deg: float, extra_yaw: float = 0.0) -> void:

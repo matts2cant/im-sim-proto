@@ -10,7 +10,6 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
 [ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
 [ext_resource type="Script" path="res://objects/alarm/alarm_controller.gd" id="20_controller"]
 [ext_resource type="Resource" path="res://objects/alarm/alarm_controller.tres" id="21_config"]
@@ -29,8 +28,13 @@ size = Vector3(0.5, 0.6, 0.15)
 material = ExtResource("12_led")
 size = Vector3(0.04, 0.04, 0.01)
 
+[sub_resource type="StandardMaterial3D" id="Material_paint"]
+albedo_color = Color(0.42, 0.11, 0.09, 1)
+metallic = 0.3
+roughness = 0.45
+
 [sub_resource type="BoxMesh" id="Mesh_box"]
-material = ExtResource("11_metal_surface")
+material = SubResource("Material_paint")
 size = Vector3(0.5, 0.6, 0.13)
 
 [sub_resource type="BoxMesh" id="Mesh_strip"]
