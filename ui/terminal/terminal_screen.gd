@@ -345,7 +345,7 @@ func _build_devices(column: VBoxContainer) -> void:
 	header.add_child(logout_button)
 	_device_view.add_child(header)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 260)
+	scroll.custom_minimum_size = Vector2(0, 320)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_device_view.add_child(scroll)

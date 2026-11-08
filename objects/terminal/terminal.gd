@@ -89,6 +89,11 @@ func is_up() -> bool:
 	return device != null and device.is_up()
 
 
+## A dead terminal (unpowered or broken) offers no prompt.
+func available(_user: Node) -> bool:
+	return is_up()
+
+
 func use(user: Node) -> bool:
 	if not is_up():
 		return false

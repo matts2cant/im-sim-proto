@@ -2,8 +2,9 @@ extends Node
 ## Screenshot helper (not a test): poses the player in the security showcase for the shot named by
 ## the SHOT environment variable, saves the window's image (UI included) to SHOT_PATH and quits.
 ## Shots: wall (the devices on the back wall), camera (the camera seeing the player: red lamp),
-## camera_mount, turret (winding up, laser on the player), turret_base, terminal (the terminal up
-## close), terminal_login (the login screen with the Known line), terminal_devices (the device list).
+## camera_mount, turret (winding up, laser on the player), turret_base, door (the cabled door),
+## terminal (the terminal up close), terminal_login (the login screen with the Known line),
+## terminal_devices (the device list).
 
 const SIZE := Vector2i(1152, 648)
 
@@ -53,6 +54,10 @@ func _pose() -> void:
 			_command(Device.DISABLE, "Camera")
 			_command(Device.DISABLE, "Turret")
 			_place(Vector3(9.6, 0, -4.4), 0.0, -30.0, 2.29)
+			_capture_at = 1.0
+		"door":
+			_command(Device.DISABLE, "Turret")
+			_place(Vector3(-9.9, 0, -0.8), 0.0, 0.0, 0.26)
 			_capture_at = 1.0
 		"terminal":
 			_command(Device.DISABLE, "Turret")
