@@ -1,0 +1,645 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="4_ledge"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="5_lamp"]
+[ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="6_door"]
+[ext_resource type="PackedScene" path="res://objects/door/breakable_door.tscn" id="7_breakable_door"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="8_keypad"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock_data.gd" id="9_keypad_data"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="10_mechanical"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="11_mechanical_data"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock.gd" id="12_keycard"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock_data.gd" id="13_keycard_data"]
+[ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="14_electronic"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="15_powered"]
+[ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="16_breaker"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="17_switch"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="18_controller"]
+[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="19_siren"]
+[ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="20_panic_button"]
+[ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="21_base_station"]
+[ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="22_camera"]
+[ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="23_turret"]
+[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="24_terminal"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="25_datapad"]
+[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="26_keycard"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="27_lockpick"]
+[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="28_biocell"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="29_medkit"]
+[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="30_pistol_ammo"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="31_barrel"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="32_guard_baton"]
+
+[sub_resource type="Resource" id="Opening_hall_hub"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+offset = -1.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_d1"]
+script = ExtResource("2_opening")
+node_name = &"DoorwayD1"
+wall = 2
+offset = -7.9
+
+[sub_resource type="Resource" id="Opening_hall_d2"]
+script = ExtResource("2_opening")
+node_name = &"DoorwayD2"
+wall = 2
+offset = -4.9
+
+[sub_resource type="Resource" id="Opening_hall_d3"]
+script = ExtResource("2_opening")
+node_name = &"DoorwayD3"
+wall = 2
+offset = -1.9
+
+[sub_resource type="Resource" id="Opening_hall_d4"]
+script = ExtResource("2_opening")
+node_name = &"DoorwayD4"
+wall = 2
+offset = 1.1
+
+[sub_resource type="Resource" id="Opening_hall_d5"]
+script = ExtResource("2_opening")
+node_name = &"DoorwayD5"
+wall = 2
+offset = 4.1
+
+[sub_resource type="Resource" id="Opening_hall_corridor"]
+script = ExtResource("2_opening")
+node_name = &"ToCorridor"
+wall = 2
+offset = 7.5
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_closet"]
+script = ExtResource("2_opening")
+node_name = &"Doorway"
+offset = -0.15
+
+[sub_resource type="Resource" id="Opening_corridor_hall"]
+script = ExtResource("2_opening")
+node_name = &"FromHall"
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_corridor_alcove1"]
+script = ExtResource("2_opening")
+node_name = &"ToAlcove1"
+wall = 3
+offset = -1.95
+width = 1.6
+
+[sub_resource type="Resource" id="Opening_corridor_alcove2"]
+script = ExtResource("2_opening")
+node_name = &"ToAlcove2"
+wall = 3
+offset = 2.65
+width = 1.6
+
+[sub_resource type="Resource" id="Opening_corridor_vault"]
+script = ExtResource("2_opening")
+node_name = &"ToVault"
+wall = 2
+
+[sub_resource type="Resource" id="Opening_alcove"]
+script = ExtResource("2_opening")
+node_name = &"ToCorridor"
+wall = 1
+width = 1.6
+
+[sub_resource type="Resource" id="Opening_vault"]
+script = ExtResource("2_opening")
+node_name = &"FromCorridor"
+offset = 2.25
+
+[sub_resource type="Resource" id="Keypad_data"]
+script = ExtResource("9_keypad_data")
+code_id = &"security_closet"
+code = "5309"
+
+[sub_resource type="Resource" id="Mechanical_data"]
+script = ExtResource("11_mechanical_data")
+pins = Array[StringName]([&"standard", &"standard", &"standard"])
+
+[sub_resource type="Resource" id="Keycard_data"]
+script = ExtResource("13_keycard_data")
+access_id = &"security_booth"
+
+[node name="SecurityWing" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 3)
+size = Vector3(18, 4, 6)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_hub"), SubResource("Opening_hall_d1"), SubResource("Opening_hall_d2"), SubResource("Opening_hall_d3"), SubResource("Opening_hall_d4"), SubResource("Opening_hall_d5"), SubResource("Opening_hall_corridor")])
+
+[node name="ClosetD1" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.25, 0, 7.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="ClosetD2" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 0, 7.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="Booth" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0, 7.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="ClosetD4" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 0, 7.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="ClosetD5" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0, 7.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="Corridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 12.25)
+size = Vector3(3, 3.5, 11.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_hall"), SubResource("Opening_corridor_alcove1"), SubResource("Opening_corridor_alcove2"), SubResource("Opening_corridor_vault")])
+
+[node name="Alcove1" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 0, 10.3)
+size = Vector3(1.5, 2.2, 1.6)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_alcove")])
+
+[node name="Alcove2" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 0, 14.9)
+size = Vector3(1.5, 2.2, 1.6)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_alcove")])
+
+[node name="Vault" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.75, 0, 20.25)
+size = Vector3(7.5, 3, 3.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_vault")])
+
+[node name="Table" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0.71)
+height = 1.0
+width = 1.6
+depth = 0.7
+surface = "wood"
+
+[node name="ShelfD1" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -6.25, 0, 8.49)
+height = 1.0
+width = 1.2
+depth = 0.5
+surface = "wood"
+
+[node name="ShelfD2" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3.25, 0, 8.49)
+height = 1.0
+width = 1.2
+depth = 0.5
+surface = "wood"
+
+[node name="ShelfD4" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.75, 0, 8.49)
+height = 1.0
+width = 1.2
+depth = 0.5
+surface = "wood"
+
+[node name="ShelfD5" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.75, 0, 8.49)
+height = 1.0
+width = 1.2
+depth = 0.5
+surface = "wood"
+
+[node name="VaultTable" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.5, 0, 21.29)
+height = 1.0
+width = 2.0
+depth = 0.7
+surface = "wood"
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="LampHallWest" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 4, 2.5)
+
+[node name="LampHallMiddle" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 4, 2.5)
+
+[node name="LampHallEast" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4, 2.5)
+
+[node name="LampD1" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.25, 3, 7.75)
+
+[node name="Light" parent="Lamps/LampD1"]
+light_energy = 0.8
+
+[node name="LampD2" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 3, 7.75)
+
+[node name="Light" parent="Lamps/LampD2"]
+light_energy = 0.8
+
+[node name="LampBooth" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 3, 7.75)
+
+[node name="Light" parent="Lamps/LampBooth"]
+light_energy = 0.8
+
+[node name="LampD4" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 3, 7.75)
+
+[node name="Light" parent="Lamps/LampD4"]
+light_energy = 0.8
+
+[node name="LampD5" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 3, 7.75)
+
+[node name="Light" parent="Lamps/LampD5"]
+light_energy = 0.8
+
+[node name="LampCorridorNorth" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 3.5, 8)
+
+[node name="Light" parent="Lamps/LampCorridorNorth"]
+light_energy = 1.2
+
+[node name="LampCorridorMiddle" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 3.5, 12.6)
+
+[node name="Light" parent="Lamps/LampCorridorMiddle"]
+light_energy = 1.2
+
+[node name="LampCorridorSouth" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 3.5, 17.2)
+
+[node name="Light" parent="Lamps/LampCorridorSouth"]
+light_energy = 1.2
+
+[node name="LampVault" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.75, 3, 20.25)
+
+[node name="Light" parent="Lamps/LampVault"]
+light_energy = 1.2
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="D1Keypad" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 0, 6.25)
+
+[node name="Lockable" parent="Doors/D1Keypad"]
+locked = true
+
+[node name="Door" parent="Doors/D1Keypad"]
+wall_thickness = 0.5
+
+[node name="KeypadLock" type="Node3D" parent="Doors/D1Keypad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
+script = ExtResource("8_keypad")
+data = SubResource("Keypad_data")
+
+[node name="D2Mechanical" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4, 0, 6.25)
+
+[node name="Lockable" parent="Doors/D2Mechanical"]
+locked = true
+
+[node name="Door" parent="Doors/D2Mechanical"]
+wall_thickness = 0.5
+
+[node name="MechanicalLock" type="Node3D" parent="Doors/D2Mechanical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
+script = ExtResource("10_mechanical")
+data = SubResource("Mechanical_data")
+
+[node name="D3Keycard" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0, 6.25)
+
+[node name="Lockable" parent="Doors/D3Keycard"]
+locked = true
+
+[node name="Door" parent="Doors/D3Keycard"]
+wall_thickness = 0.5
+
+[node name="KeycardLock" type="Node3D" parent="Doors/D3Keycard"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
+script = ExtResource("12_keycard")
+data = SubResource("Keycard_data")
+
+[node name="D4Electronic" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, 6.25)
+
+[node name="Tags" parent="Doors/D4Electronic"]
+initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_safe"])
+
+[node name="Lockable" parent="Doors/D4Electronic"]
+locked = true
+
+[node name="Door" parent="Doors/D4Electronic"]
+wall_thickness = 0.5
+
+[node name="Powered" type="Node" parent="Doors/D4Electronic"]
+script = ExtResource("15_powered")
+circuit = &"security_wing_a"
+
+[node name="ElectronicLock" type="Node3D" parent="Doors/D4Electronic"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
+script = ExtResource("14_electronic")
+
+[node name="D5Breakable" parent="Doors" instance=ExtResource("7_breakable_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0, 6.25)
+
+[node name="Lockable" parent="Doors/D5Breakable"]
+locked = true
+
+[node name="Door" parent="Doors/D5Breakable"]
+wall_thickness = 0.5
+
+[node name="VaultDoor" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 18.25)
+
+[node name="Tags" parent="Doors/VaultDoor"]
+initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_secure"])
+
+[node name="Lockable" parent="Doors/VaultDoor"]
+locked = true
+
+[node name="Door" parent="Doors/VaultDoor"]
+wall_thickness = 0.5
+
+[node name="Powered" type="Node" parent="Doors/VaultDoor"]
+script = ExtResource("15_powered")
+circuit = &"security_wing_b"
+
+[node name="ElectronicLock" type="Node3D" parent="Doors/VaultDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
+script = ExtResource("14_electronic")
+
+[node name="Devices" type="Node3D" parent="."]
+
+[node name="BreakerA" parent="Devices" instance=ExtResource("16_breaker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.3, 0)
+
+[node name="CircuitBreaker" parent="Devices/BreakerA"]
+circuit = &"security_wing_a"
+label = "D4 power"
+
+[node name="Switch" parent="Devices" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.6, 0.01)
+
+[node name="Powered" parent="Devices/Switch"]
+circuit = &"security_wing_b"
+
+[node name="Device" parent="Devices/Switch"]
+links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../SirenHall"), NodePath("../../SirenCorridor"), NodePath("../../PanicButton"), NodePath("../../BaseStation"), NodePath("../../../Doors/VaultDoor")])
+
+[node name="PanicButton" parent="Devices" instance=ExtResource("20_panic_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1.3, 0.01)
+
+[node name="SirenHall" parent="Devices" instance=ExtResource("19_siren")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.2, 3.2, 0.01)
+
+[node name="SirenCorridor" parent="Devices" instance=ExtResource("19_siren")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.49, 3, 12.6)
+
+[node name="Controller" parent="Devices" instance=ExtResource("18_controller")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.99, 1.5, 7.3)
+
+[node name="BaseStation" parent="Devices" instance=ExtResource("21_base_station")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.99, 1.3, 8.35)
+
+[node name="BreakerB" parent="Devices" instance=ExtResource("16_breaker")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.5, 1.3, 7.75)
+
+[node name="CircuitBreaker" parent="Devices/BreakerB"]
+circuit = &"security_wing_b"
+label = "network power"
+
+[node name="Terminal" parent="Devices" instance=ExtResource("24_terminal")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 1.45, 8.99)
+
+[node name="TerminalUse" parent="Devices/Terminal"]
+credentials_id = &"security_wing_terminal"
+username = "rvoss"
+password = "kestrel4"
+label = "security terminal"
+
+[node name="Camera" parent="Devices" instance=ExtResource("22_camera")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 2.6, 17.99)
+
+[node name="Turret" parent="Devices" instance=ExtResource("23_turret")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 0, 21.2)
+
+[node name="Items" type="Node3D" parent="."]
+
+[node name="ClosetCode" parent="Items" instance=ExtResource("25_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.03, 0.36)
+
+[node name="Readable" parent="Items/ClosetCode"]
+entry_id = &"gallery.security_wing.closet_code"
+title = "Closet code"
+text = "Closet D1 keypad is now 5309. The booth keycard stays in D1 until the night shift. - R."
+codes = Dictionary[StringName, String]({&"security_closet": "5309"})
+
+[node name="Lockpick" parent="Items" instance=ExtResource("27_lockpick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 1.01, 0.36)
+
+[node name="ItemPickup" parent="Items/Lockpick"]
+count = 2
+
+[node name="Keycard" parent="Items" instance=ExtResource("26_keycard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.25, 1.02, 8.74)
+
+[node name="ItemPickup" parent="Items/Keycard"]
+state = {"key_id": "security_booth"}
+
+[node name="BoothLogin" parent="Items" instance=ExtResource("25_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 1.03, 8.74)
+
+[node name="Readable" parent="Items/BoothLogin"]
+entry_id = &"gallery.security_wing.booth_login"
+title = "Booth login"
+text = "Security booth terminal: user rvoss, password kestrel4. It runs the camera, the turret and the vault door. - R. Voss"
+codes = Dictionary[StringName, String]({&"security_wing_terminal": "rvoss:kestrel4"})
+
+[node name="BiocellsD4" parent="Items" instance=ExtResource("28_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 1.06, 8.74)
+
+[node name="ItemPickup" parent="Items/BiocellsD4"]
+count = 2
+
+[node name="MedkitD5" parent="Items" instance=ExtResource("29_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 1.045, 8.74)
+
+[node name="VaultBiocells" parent="Items" instance=ExtResource("28_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 1.06, 21.64)
+
+[node name="ItemPickup" parent="Items/VaultBiocells"]
+count = 5
+
+[node name="VaultMedkits" parent="Items" instance=ExtResource("29_medkit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 1.045, 21.64)
+
+[node name="ItemPickup" parent="Items/VaultMedkits"]
+count = 2
+
+[node name="VaultAmmo" parent="Items" instance=ExtResource("30_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.1, 1.03, 21.64)
+
+[node name="ItemPickup" parent="Items/VaultAmmo"]
+count = 40
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="Barrel" parent="Props" instance=ExtResource("31_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.7, 0.45, 5.2)
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="GuardBatonVault" parent="Guards" instance=ExtResource("32_guard_baton")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 0, 16.4)
+
+[node name="AmbientDark" type="ReflectionProbe" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.75, 15.75)
+size = Vector3(6, 4, 13.5)
+intensity = 0.5
+blend_distance = 0.3
+ambient_mode = 2
+ambient_color = Color(0.5, 0.55, 0.65, 1)
+ambient_color_energy = 0.12
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="Room" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1.5, 3.55, 5.95)
+text = "5 Security wing"
+size = 2
+
+[node name="D1" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -6.4, 2.6, 5.95)
+pixel_size = 0.0035
+text = "D1 · Keypad
+code: datapad on the table"
+size = 0
+
+[node name="D2" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3.4, 2.6, 5.95)
+pixel_size = 0.0035
+text = "D2 · Pin lock
+hold LMB with a lockpick"
+size = 0
+
+[node name="D3" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.4, 2.6, 5.95)
+pixel_size = 0.0035
+text = "D3 · Keycard
+the card is behind D1"
+size = 0
+
+[node name="D4" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.6, 2.6, 5.95)
+pixel_size = 0.0035
+text = "D4 · Electronic, fail-safe
+switch breaker A off"
+size = 0
+
+[node name="D5" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.6, 2.6, 5.95)
+pixel_size = 0.0035
+text = "D5 · Reinforced
+only a blast breaks it"
+size = 0
+
+[node name="Corridor" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 3.45, 5.95)
+pixel_size = 0.0035
+text = "Camera corridor
+wait in the dark alcoves
+while it sweeps away"
+size = 0
+
+[node name="Table" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.7, 0.05)
+pixel_size = 0.0035
+text = "Datapads: E to read, codes go to your log (L)
+Lockpicks for D2"
+size = 0
+
+[node name="BreakerA" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 2, 0.05)
+pixel_size = 0.0035
+text = "Breaker A
+D4's power"
+size = 0
+
+[node name="Network" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 2.35, 0.05)
+pixel_size = 0.0035
+text = "Network switch, on breaker B (booth): carries the camera,
+turret, alarm, vault door and terminal. Shoot it or cut B.
+Panic button: rings both sirens"
+size = 0
+
+[node name="Booth" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 2.3, 8.95)
+pixel_size = 0.003
+text = "Security terminal
+login: datapad behind D2
+disable turret, open vault"
+size = 0
+
+[node name="BreakerB" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.45, 2.05, 7.75)
+pixel_size = 0.0035
+text = "Breaker B
+network power"
+size = 0
+
+[node name="Alcove1" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5.55, 1.6, 10.3)
+pixel_size = 0.0035
+text = "Dark: the camera
+cannot see you here"
+size = 0
+
+[node name="GuardPost" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.45, 2.3, 15.6)
+pixel_size = 0.0035
+text = "Guard post
+sirens send it searching"
+size = 0
+
+[node name="VaultDoor" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 3.1, 17.95)
+pixel_size = 0.003
+text = "Vault · fail-secure
+no power, no entry
+open it from the terminal"
+size = 0
+
+[node name="Vault" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.5, 2.4, 21.95)
+pixel_size = 0.0035
+text = "Vault: the terminal disables or retargets the turret"
+size = 0

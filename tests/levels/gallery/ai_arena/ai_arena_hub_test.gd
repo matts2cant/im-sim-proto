@@ -12,7 +12,7 @@ const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HUB := "res://levels/hub/hub.tscn"
 const HUB_SCENE: PackedScene = preload("res://levels/hub/hub.tscn")
 const OTHER_ROOMS: Array[String] = [
-	"MovementCourse", "PerceptionLab", "PhysicsFireRoom", "ShootingRangeRoom", "InventoryBayRoom"
+	"MovementCourse", "PerceptionLab", "PhysicsFireRoom", "ShootingRangeRoom", "InventoryBayRoom", "SecurityWing"
 ]
 const SHOUT_CLEARANCE := 20.0
 const RADIO_REACH := 27.0
