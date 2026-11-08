@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/objects/fixtures/door_wall.tscn" id="1_wall"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="2_guard"]
+
+[node name="DoorWallGuard" type="Node3D"]
+
+[node name="DoorWall" parent="." instance=ExtResource("1_wall")]
+
+[node name="Guard" parent="." instance=ExtResource("2_guard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)

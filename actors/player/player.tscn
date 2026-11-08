@@ -50,6 +50,8 @@
 [ext_resource type="Resource" path="res://actors/common/light/light_exposure.tres" id="48_light_config"]
 [ext_resource type="Script" path="res://actors/common/pusher/body_pusher.gd" id="49_pusher"]
 [ext_resource type="Resource" path="res://actors/player/player_push.tres" id="50_push_config"]
+[ext_resource type="Script" path="res://actors/common/tool_use/tool_use.gd" id="51_tool_use"]
+[ext_resource type="PackedScene" path="res://ui/keypad/keypad_screen.tscn" id="52_keypad_screen"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -125,6 +127,11 @@ script = ExtResource("22_interactor")
 [node name="ReadingOverlay" parent="." instance=ExtResource("24_reading_overlay")]
 
 [node name="LogScreen" parent="." instance=ExtResource("34_log_screen")]
+
+[node name="KeypadScreen" parent="." instance=ExtResource("52_keypad_screen")]
+
+[node name="ToolUse" type="Node" parent="."]
+script = ExtResource("51_tool_use")
 
 [node name="PersonalLog" type="Node" parent="."]
 script = ExtResource("33_personal_log")

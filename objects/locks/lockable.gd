@@ -1,0 +1,94 @@
+class_name Lockable
+extends Node
+## Component: something that can be locked (ADR 0078): a door today, a drawer or a locker later.
+## The Lock components on the same entity (keypad, mechanical, keycard, electronic) are the ways to
+## unlock it; a remote command (or anything else) can lock and unlock it too. An entity with a
+## Lockable and no Lock is locked until something unlocks it. A user who unlocks it on purpose
+## (right code, key, pick) also wants it opened: `unlocked_by_user` (a Door opens).
+## EventLog `lock.unlocked` / `lock.locked {entity, how}`. Saveable (`locked`).
+
+signal lock_changed(locked: bool)
+## A user unlocked it by a lock meant for them, to get through (a Door opens on it).
+signal unlocked_by_user(user: Node)
+
+@export var locked: bool = false
+@export var entity_path: NodePath = ^".."
+
+var entity: Node
+
+
+func _ready() -> void:
+	add_to_group(&"saveable")
+	entity = get_node_or_null(entity_path)
+
+
+static func of(node: Node) -> Lockable:
+	if node == null:
+		return null
+	for child in node.get_children():
+		if child is Lockable:
+			return child as Lockable
+	return null
+
+
+## Unlocks; `how` is logged (`keypad`, `keycard`, `pick`, `power`, `command`). `user_wants_open`: the
+## user who unlocked it wants to get through (`unlocked_by_user`). False when it was not locked.
+func unlock(by: Node = null, how: StringName = &"", user_wants_open: bool = false) -> bool:
+	if not locked:
+		return false
+	locked = false
+	_log(&"lock.unlocked", by, how)
+	lock_changed.emit(false)
+	if user_wants_open:
+		unlocked_by_user.emit(by)
+	return true
+
+
+## Locks; false when it already was.
+func lock(by: Node = null, how: StringName = &"") -> bool:
+	if locked:
+		return false
+	locked = true
+	_log(&"lock.locked", by, how)
+	lock_changed.emit(true)
+	return true
+
+
+## The Lock components on the entity.
+func locks() -> Array[Lock]:
+	return Lock.locks_of(entity)
+
+
+## True when `actor` may pass: unlocked, or a lock lets it through (a keycard it holds).
+func grants_passage(actor: Node) -> bool:
+	if not locked:
+		return true
+	for each in locks():
+		if each.grants_passage(actor):
+			return true
+	return false
+
+
+## Navigation layers that may plan through it while locked (access ids its locks let through).
+func passage_layers() -> int:
+	var layers := 0
+	for each in locks():
+		layers |= each.passage_layers()
+	return layers
+
+
+func save_state() -> Dictionary:
+	return {"locked": locked}
+
+
+func load_state(data: Dictionary) -> void:
+	var value := bool(data.get("locked", locked))
+	if value != locked:
+		locked = value
+		lock_changed.emit(locked)
+
+
+func _log(kind: StringName, by: Node, how: StringName) -> void:
+	var who := String(by.name) if is_instance_valid(by) else ""
+	var target := String(entity.name) if is_instance_valid(entity) else ""
+	EventLog.record(kind, who, target, {"entity": target, "how": how})

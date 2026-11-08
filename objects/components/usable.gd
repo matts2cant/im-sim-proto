@@ -23,6 +23,17 @@ func target_name() -> String:
 	return ""
 
 
+## False when `user` cannot use it now (no prompt, E does nothing else either: a broken door).
+func available(_user: Node) -> bool:
+	return true
+
+
+## The whole prompt for `user` when it is not "E: <verb> <target>" ("Locked: keycard"); "" for the
+## default.
+func prompt(_user: Node) -> String:
+	return ""
+
+
 ## Returns true when the use did something (the player then does not try to pick the object up).
 func use(user: Node) -> bool:
 	used.emit(user)

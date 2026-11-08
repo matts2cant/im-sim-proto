@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DoorSettings" format=3]
+
+[ext_resource type="Script" path="res://objects/door/door_settings.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+open_time = 0.6
+slide_distance = 1.25
+attenuate_below = 0.5
+slide_noise = 3.0
+blocking_mask = 14
