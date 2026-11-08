@@ -180,6 +180,7 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] Carry a crate, save, load: the crate drops in front of you, not inside you, and you are not carrying it.
 - [ ] Read a datapad, save, read another, load: the log (L) has only the first.
 - [ ] Die (fall or a barrel): the death screen says "E: restart level · Esc: menu"; E restarts; Esc opens the menu, Save says "Cannot save while dead", Load loads the save.
+- [ ] Knocked out (AI arena: stand still in front of a baton guard; the third hit): you cannot move, the screen says "Knocked out" and "E: restart level · Esc: menu"; E restarts; Esc opens the menu, Save says "Cannot save while knocked out", Load loads the save. A pistol guard kills instead ("You died").
 - [ ] No save (delete `%APPDATA%/Godot/app_userdata/ImSimProto/saves/quicksave.save`): Load is greyed out and the line under it says "No save".
 - [ ] F5 toggles Combat Strength (chip "F5 Combat Strength"); F9 does nothing.
 - [ ] Save and load restore state (skill tiers, installed and active augmentations, energy included).

@@ -6,9 +6,11 @@ extends CanvasLayer
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
 ## the energy bar beside the silhouette with chips for the augmentations that are on, the light
 ## gauge above them (the player's LightExposure level, ADR 0065), a faint tint
-## while the player is cloaked (`state.cloaked`; ADR 0061), and the death overlay (E resets the
-## level, Esc opens the game menu, whose Load works there; ADR 0064). It only reads the player's
-## components. Layer 10: the debug panel (layer 100) draws over it.
+## while the player is cloaked (`state.cloaked`; ADR 0061), and the losing overlay while the player
+## is dead ("You died") or knocked out ("Knocked out", `state.unconscious` from any source): E resets
+## the level, Esc opens the game menu, whose Load works there (ADR 0064); it goes away if the player
+## is woken (`revive`, ADR 0071). It only reads the player's components and tags. Layer 10: the debug
+## panel (layer 100) draws over it.
 
 ## Peak opacity of the damage flash and how long it fades (s).
 const FLASH_ALPHA: float = 0.35
@@ -31,6 +33,8 @@ var _item_name_left: float = 0.0
 @onready var silhouette: BodySilhouette = $Body
 @onready var damage_flash: ColorRect = $DamageFlash
 @onready var death_overlay: Control = $DeathOverlay
+## "You died" or "Knocked out" (HudRules.overlay_title).
+@onready var overlay_title: Label = $DeathOverlay/Text/Title
 @onready var prompt_label: Label = $Prompt
 @onready var message_label: Label = $Message
 ## "ALARM" while the level alarm is raised (ADR 0072).
@@ -59,7 +63,8 @@ func _ready() -> void:
 		await player.ready
 	silhouette.body = player.body
 	player.body.damaged.connect(_on_damaged)
-	player.body.died.connect(_on_died)
+	player.body.died.connect(refresh_overlay)
+	player.body.knocked_out.connect(refresh_overlay)
 	player.body.changed.connect(_on_body_changed)
 	player.weapons.changed.connect(refresh_weapon)
 	belt_bar.bind(player.inventory)
@@ -95,7 +100,9 @@ func _process(delta: float) -> void:
 	if player != null and player.is_node_ready():
 		_update_reticle()
 		refresh_weapon()
-		prompt_label.text = player.interactor.prompt if not player.is_dead() else ""
+		prompt_label.text = player.interactor.prompt if ActorState.can_act(player) else ""
+		# Every frame: the tags may come from any source (an Effect adding `state.unconscious`).
+		refresh_overlay()
 		var energy := Energy.of(player)
 		energy_label.text = HudRules.energy_text(energy.current()) if energy != null else ""
 		cloak_tint.visible = ActorState.has(player, ActorState.CLOAKED)
@@ -175,7 +182,7 @@ func _update_reticle() -> void:
 			AimModel.reticle_radius(sway.x, camera.fov, height), -AimModel.reticle_radius(sway.y, camera.fov, height)
 		)
 	reticle.show_cone(radius, offset)
-	reticle.visible = not player.is_dead()
+	reticle.visible = ActorState.can_act(player)
 
 
 # The item put in hand: its name above the belt for a moment; empty hands: no name.
@@ -200,10 +207,15 @@ func _on_damaged(_part: StringName, _type: StringName, amount: float) -> void:
 		damage_flash.color.a = FLASH_ALPHA
 
 
-func _on_died() -> void:
-	death_overlay.visible = true
+## Shows the losing overlay while the player is dead or unconscious (its tags), with the matching
+## title; hides it otherwise (woken, or a fresh state after a load).
+func refresh_overlay() -> void:
+	var title := HudRules.overlay_title(ActorState.is_dead(player), ActorState.has(player, ActorState.UNCONSCIOUS))
+	death_overlay.visible = not title.is_empty()
+	if not title.is_empty():
+		overlay_title.text = title
 
 
 func _on_body_changed() -> void:
-	death_overlay.visible = player.is_dead()
+	refresh_overlay()
 	silhouette.queue_redraw()

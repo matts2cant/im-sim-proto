@@ -1,6 +1,6 @@
 class_name HudRules
 extends RefCounted
-## Pure HUD helpers: body-part colours and text formats.
+## Pure HUD helpers: body-part colours, text formats and the losing overlay's title.
 
 const HEALTHY := Color(0.25, 0.85, 0.35)
 const HURT := Color(0.95, 0.85, 0.2)
@@ -10,6 +10,20 @@ const DISABLED := Color(0.04, 0.04, 0.04)
 ## Share of the yellow-to-green ramp a slightly hurt part may keep: pure green is for full health
 ## only, so a graze (90 % health) already reads yellow-green instead of looking untouched.
 const HURT_GREEN_SHARE: float = 0.6
+
+## Titles of the losing overlay (E: restart level, Esc: menu) for a dead or knocked-out player.
+const DIED_TITLE := "You died"
+const KNOCKED_OUT_TITLE := "Knocked out"
+
+
+## The losing overlay's title for a character's state, "" while it can act (no overlay). Dead wins
+## over unconscious (a knocked-out body can still be killed).
+static func overlay_title(dead: bool, unconscious: bool) -> String:
+	if dead:
+		return DIED_TITLE
+	if unconscious:
+		return KNOCKED_OUT_TITLE
+	return ""
 
 
 ## Green at full health only, yellow at half, red near 0, black when the part is disabled (0).

@@ -9,10 +9,10 @@ Every stateful system is saveable from day one so saving and loading never need 
 ## Player-facing behaviour
 
 - **Esc** opens the game menu (pauses, frees the mouse; not over the inventory, log screen or reading overlay, which Esc closes instead; not while the debug panel is open): **Resume**, **Save**, **Load**, **Quit game**. Esc or Resume closes it. One slot.
-- **Save** writes the slot; the menu stays open and says "Saved". Refused while dead ("Cannot save while dead").
+- **Save** writes the slot; the menu stays open and says "Saved". Refused while dead ("Cannot save while dead") or knocked out ("Cannot save while knocked out").
 - **Load** is disabled when there is nothing loadable; the line under it says "Saved 14:32 · Hub" (local time, level) or why not: "No save", "Save is damaged", "Save is from another version", "Saved level not found". Load closes the menu, loads, and the HUD says "Loaded".
 - **Quit game** asks "Quit? Unsaved progress is lost." (Yes / No, No focused; Esc = No); Yes quits.
-- The death screen says "E: restart level · Esc: menu": the menu opens there and its Load works.
+- The death screen ("You died") and the knocked-out screen ("Knocked out") say "E: restart level · Esc: menu": the menu opens there and its Load works.
 - A load puts back the level as it was saved: what was broken, burnt, exploded or picked up stays gone; dropped items, broken-crate contents and debug-spawned objects are back; fires, health, inventory, the item in hand and the personal log are as saved. Something carried at save time lies where it was held (it falls in front of you).
 - Death leads to reset (E) or Load from the game menu (Esc) ([../levels/mission-warehouse.md](../levels/mission-warehouse.md)).
 

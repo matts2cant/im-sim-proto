@@ -12,15 +12,15 @@ extends CharacterBody3D
 ## the stance tags this script sets), FallImpact (`damage.fall` -> the `fall_damage` receptron),
 ## Knockback (`force.*`), BodyParts via the `body_damage` receptron, StepClimber (walks up steps and
 ## down stairs, ADR 0058; the camera eases over its `stepped` height changes).
-## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`
-## (dead: asks for a level reset), `state.legs_disabled` forces a crawl; `move_speed_mult` scales
-## speed. The attributes `jump_apex_height` and `mantle_max_height` (base: config) change the jump
-## and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
+## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`,
+## which asks for a level reset (the HUD's losing overlay), `state.legs_disabled` forces a crawl;
+## `move_speed_mult` scales speed. The attributes `jump_apex_height` and `mantle_max_height` (base:
+## config) change the jump and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
 ## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
 ## Saveable.
 
 signal mantled(height: float)
-## The player pressed `use` while dead (the HUD's death overlay says so).
+## The player pressed `use` while dead or knocked out (the HUD's losing overlay says so).
 signal reset_requested
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
@@ -414,7 +414,7 @@ func _register_debug_tab() -> void:
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
 # medkit; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
 # (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
-# Dead: only `use`, which asks for a level reset.
+# Dead or knocked out: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
 	var can_press: bool = input_enabled and not DebugPanel.is_open()
 	var steps := _belt_steps
@@ -429,7 +429,7 @@ func _handle_actions() -> void:
 		if not pressed:
 			continue
 		if not ActorState.can_act(self):
-			if action == &"use" and is_dead():
+			if action == &"use":
 				request_reset()
 			continue
 		match action:
@@ -455,7 +455,7 @@ func _handle_actions() -> void:
 				inventory.select_slot(BELT_ACTIONS.find(action))
 
 
-## Death overlay: reloads the level (or only signals, for tests).
+## Losing overlay (dead or knocked out): reloads the level (or only signals, for tests).
 func request_reset() -> void:
 	reset_requested.emit()
 	if reload_on_reset:

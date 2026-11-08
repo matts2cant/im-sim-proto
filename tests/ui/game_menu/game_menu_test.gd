@@ -2,7 +2,8 @@ extends GdUnitTestSuite
 ## Integration (ADR 0064): the Esc game menu on a small level made the current scene, with real
 ## key events: Esc opens (paused, mouse free, Resume focused) and closes it; Esc on another pause
 ## screen closes only that screen; Save writes the slot and says "Saved"; Load is disabled without a
-## loadable save and loads it from the death screen; Save is refused while dead; Quit asks first and
+## loadable save and loads it from the death screen; Save is refused while dead; on the knocked-out
+## screen the menu opens, Save is refused and Load works; Quit asks first and
 ## quits only on Yes. F5 is Combat Strength now and F9 does nothing.
 
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
@@ -187,6 +188,32 @@ func test_load_from_the_death_screen() -> void:
 	assert_bool(PauseScreens.any_open(get_tree())).is_false()
 	assert_array(EventLog.find(&"game.loaded")).has_size(1)
 	assert_int(StimulusSystem.pending_count()).is_equal(0)
+
+
+func test_knocked_out_screen_refuses_save_and_loads() -> void:
+	await _place(SPOT)
+	var saved := _player().global_position
+	assert_bool(_menu().save_game()).is_true()
+	_player().body.take_damage(&"damage.stun", 1000.0)
+	await get_tree().physics_frame
+	await get_tree().process_frame
+	var hud := _player().get_node("Hud") as Hud
+	assert_bool(hud.death_overlay.visible).is_true()
+	assert_str(hud.overlay_title.text).is_equal(HudRules.KNOCKED_OUT_TITLE)
+
+	await _press(KEY_ESCAPE)
+	assert_bool(_menu().is_open()).is_true()
+	assert_bool(_menu().save_game()).is_false()
+	assert_str(_menu().status_label.text).is_equal(GameMenu.KNOCKED_OUT)
+	assert_array(EventLog.find(&"game.saved")).has_size(1)
+	_menu().load_button.pressed.emit()
+	var fresh := await Saves.wait_for_load(get_tree(), _level)
+
+	assert_object(fresh).is_not_null()
+	var player := _player(fresh)
+	assert_bool(ActorState.can_act(player)).is_true()
+	assert_vector(player.global_position).is_equal_approx(saved, Vector3.ONE * 0.01)
+	assert_bool((player.get_node("Hud") as Hud).death_overlay.visible).is_false()
 
 
 func test_a_damaged_save_cannot_be_loaded() -> void:

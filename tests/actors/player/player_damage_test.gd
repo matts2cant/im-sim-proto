@@ -1,5 +1,6 @@
 extends GdUnitTestSuite
-## Integration: the player's body parts (hitboxes, leg injuries, explosions, falls, death). The
+## Integration: the player's body parts (hitboxes, leg injuries, explosions, falls, death, knockout
+## and waking). The
 ## medkit (an inventory item since M5) is tested in tests/items/inventory/player_inventory_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -161,6 +162,54 @@ func test_death_disables_input_and_shows_the_overlay() -> void:
 	_player.reset_requested.connect(func() -> void: resets[0] += 1)
 	await _driver.hold(&"use", 2)
 	assert_int(resets[0]).is_equal(1)
+
+
+func test_knockout_shows_the_knocked_out_overlay_until_woken() -> void:
+	await _load()
+	await _driver.place(Vector3.ZERO)
+	var hud := _player.get_node("Hud") as Hud
+
+	# Stun well past the threshold (60, player_body.tres): knocked out, not dead.
+	_player.body.take_damage(&"damage.stun", 80.0)
+	await _driver.frames(2)
+
+	assert_bool(ActorState.has(_player, ActorState.UNCONSCIOUS)).is_true()
+	assert_bool(_player.is_dead()).is_false()
+	assert_bool(hud.death_overlay.visible).is_true()
+	assert_str(hud.overlay_title.text).is_equal(HudRules.KNOCKED_OUT_TITLE)
+	assert_bool(hud.reticle.visible).is_false()
+	await _driver.hold(&"move_forward", 30)
+	assert_float(_player.global_position.distance_to(Vector3.ZERO)).is_less(0.01)
+	_player.reload_on_reset = false
+	var resets: Array[int] = [0]
+	_player.reset_requested.connect(func() -> void: resets[0] += 1)
+	await _driver.hold(&"use", 2)
+	assert_int(resets[0]).is_equal(1)
+
+	# Woken (the `revive` receptron's effect, ADR 0071): the overlay goes, the player moves again.
+	_player.body.revive("test")
+	await _driver.frames(2)
+	assert_bool(hud.death_overlay.visible).is_false()
+	assert_bool(hud.reticle.visible).is_true()
+	await _driver.hold(&"move_forward", 30)
+	assert_float(_player.global_position.distance_to(Vector3.ZERO)).is_greater(0.5)
+
+
+func test_unconscious_tag_from_any_source_shows_the_overlay_and_death_overrides_it() -> void:
+	await _load()
+	await _driver.place(Vector3.ZERO)
+	var hud := _player.get_node("Hud") as Hud
+
+	# A tag added by an Effect (sleep gas), not by BodyParts' stun.
+	ActorState.set_tag(_player, ActorState.UNCONSCIOUS, true)
+	await _driver.frames(2)
+	assert_bool(hud.death_overlay.visible).is_true()
+	assert_str(hud.overlay_title.text).is_equal(HudRules.KNOCKED_OUT_TITLE)
+
+	_player.body.take_damage(&"damage.ballistic", 30.0, &"head")
+	await _driver.frames(2)
+	assert_bool(_player.is_dead()).is_true()
+	assert_str(hud.overlay_title.text).is_equal(HudRules.DIED_TITLE)
 
 
 func _load() -> void:

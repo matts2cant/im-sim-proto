@@ -84,6 +84,10 @@ flowchart LR
 
 - Input is disabled (no movement, look, weapons, carry); what is carried is dropped and the weapon holstered. The HUD shows "You died" and "E: restart level · Esc: menu" (the game menu's Load works there, Save is refused; [ADR 0064](../decisions/0064-game-menu.md)); E reloads the current scene (`LevelReset.reload_level`: clears queued stimuli, logs `level.reset`). The debug Spawn tab has the same "Reset level" button.
 
+### Knockout (player)
+
+- The player is knocked out by the same stun rules as anyone (a guard's baton: 20 stun a hit against the player's threshold 60, so the third hit; `state.unconscious` from any source, e.g. a sleep-gas Effect, counts the same). Input stops as on death. The HUD shows the same losing overlay titled "Knocked out" with "E: restart level · Esc: menu" (Load works, Save says "Cannot save while knocked out"; `HudRules.overlay_title`, dead wins). It reads the tags every frame, so if something wakes the player (the `revive` stimulus, ADR 0071) the overlay hides and input returns. Nothing wakes the player today: stun never decays and guards only tend their allies, so in practice it is a losing screen.
+
 ### Training dummy (`actors/dummy/`)
 
 - Static humanoid graybox figure (`StaticBody3D` on layers 3, actors, and 7, static actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move, so it has no MovementNoise, FallImpact or Knockback; props collide with layer 7, so thrown props bounce off it and its ImpactSensor stays off ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)).

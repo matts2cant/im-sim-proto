@@ -1,9 +1,9 @@
 extends Node
 ## Showcase helper (screenshots only): loads the hub as the current scene, saves to a test slot
 ## (never the player's save), then after `delay` seconds shows the game menu, its quit question or
-## the death screen.
+## the death or knocked-out screen.
 
-enum Mode { MENU, QUIT, DEAD }
+enum Mode { MENU, QUIT, DEAD, KNOCKED_OUT }
 
 const HUB := "res://levels/hub/hub.tscn"
 const SLOT := "user://test_saves/showcase.save"
@@ -40,3 +40,5 @@ func _process(delta: float) -> void:
 			menu.ask_quit()
 		Mode.DEAD:
 			player.body.take_damage(&"damage.blunt", 1000.0, &"head")
+		Mode.KNOCKED_OUT:
+			player.body.take_damage(&"damage.stun", 1000.0)
