@@ -63,6 +63,29 @@ func reachable(from: int) -> PackedInt64Array:
 	return found
 
 
+## Every node joined to `from` by links through up nodes, the last node up or down: reachable()
+## plus the down nodes cabled to `from` or to one of those (seen from `from`, they are there but
+## dead). Breadth-first, `from` excluded; empty when `from` is down.
+func connected(from: int) -> PackedInt64Array:
+	var found := PackedInt64Array()
+	if not is_up(from):
+		return found
+	var seen := {from: true}
+	var queue := PackedInt64Array([from])
+	var index := 0
+	while index < queue.size():
+		var current := queue[index]
+		index += 1
+		for next: int in _links.get(current, PackedInt64Array()):
+			if seen.has(next) or not has_node(next):
+				continue
+			seen[next] = true
+			found.append(next)
+			if is_up(next):
+				queue.append(next)
+	return found
+
+
 func _link_one_way(from: int, to: int) -> void:
 	var neighbours: PackedInt64Array = _links.get(from, PackedInt64Array())
 	if not neighbours.has(to):

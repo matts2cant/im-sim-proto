@@ -44,6 +44,15 @@ const DISABLE: StringName = &"command.disable"
 const ENABLE: StringName = &"command.enable"
 ## Alarm controller -> radio base station: broadcast the incident at the stimulus origin.
 const BROADCAST: StringName = &"command.broadcast"
+## Camera remote actions (ADR 0079): stop / resume its sweep, turn it one pan step left / right.
+const STOP_SWEEP: StringName = &"command.stop_sweep"
+const RESUME_SWEEP: StringName = &"command.resume_sweep"
+const PAN_LEFT: StringName = &"command.pan_left"
+const PAN_RIGHT: StringName = &"command.pan_right"
+## Turret target presets (ADR 0079): each sets the turret's hostile tags from its TurretConfig.
+const TARGET_INTRUDERS: StringName = &"command.target_intruders"
+const TARGET_GUARDS: StringName = &"command.target_guards"
+const TARGET_EVERYONE: StringName = &"command.target_everyone"
 ## send_command() without a point: the stimulus origin is the target's position.
 const NO_POINT: Vector3 = Vector3.INF
 
@@ -154,6 +163,20 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	for id in Device.graph(get_tree()).reachable(get_instance_id()):
 		var device := instance_from_id(id) as Device
 		if device != null and (accepting.is_empty() or device.accepts(accepting, entity)):
+			found.append(device)
+	return found
+
+
+## Every device this one is cabled to through up devices, the last one up or down (DeviceGraph
+## .connected()): reached() without a type, plus the down devices right behind a reached one or
+## cabled to this one (a terminal lists those as unpowered or broken). Nearest first.
+func connected_devices() -> Array[Device]:
+	var found: Array[Device] = []
+	if not is_inside_tree():
+		return found
+	for id in Device.graph(get_tree()).connected(get_instance_id()):
+		var device := instance_from_id(id) as Device
+		if device != null:
 			found.append(device)
 	return found
 

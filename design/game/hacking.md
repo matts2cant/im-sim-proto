@@ -136,8 +136,8 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 | Device | Remote actions | Standalone (link lost) |
 |---|---|---|
 | Door | open, close, lock, unlock, grant access (adds the deck's owner to its access list: it then opens for them like for a keyholder and stays locked for others) | Works locally (key, keycard, keypad); power loss follows its fail-safe or fail-secure tag |
-| Camera | view feed, stop sweep, pan, disable | Keeps watching; its incidents reach no controller |
-| Turret | disable, edit target tags (its hostile tags, [ADR 0069](../decisions/0069-hostile-and-ally-tags.md)) | Keeps its target tags |
+| Camera | view feed, stop sweep, pan, disable (M8 commands: `command.stop_sweep`, `resume_sweep`, `pan_left`, `pan_right`, `disable`, `enable`; [ADR 0079](../decisions/0079-security-cameras-and-turret.md)) | Keeps watching; its incidents reach no controller |
+| Turret | disable, edit target tags (its hostile tags, [ADR 0069](../decisions/0069-hostile-and-ally-tags.md); M8: preset commands `command.target_intruders`, `target_guards`, `target_everyone`) | Keeps its target tags |
 | Siren | silence, test | Cannot be rung |
 | Alarm controller | disarm, reset, trigger | Rings the sirens it still reaches |
 | Computer | mail, files | Its own desktop only |

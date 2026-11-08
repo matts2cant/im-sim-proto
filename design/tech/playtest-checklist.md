@@ -199,13 +199,14 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 ## M8 Security (Security wing)
 
-- [ ] Cameras see a cloaked player.
+- [ ] Cameras ([ADR 0079](../decisions/0079-security-cameras-and-turret.md), security showcase, `tests/objects/fixtures/showcase/security_showcase.tscn`): the camera sweeps ±40° slowly with a pause at each end, green lamp. Step into its view under the lamp about 6 m away: it stops on you, the lamp turns amber, then red with a beep after about 1.3 s; the siren sounds and the HUD shows "ALARM". It does not report again while you stay in view. Cloaked (F1, Cloak): the same. With the lamps' circuit off it never sees you. Shoot it (one pistol round) or hit it with the baton: the lens goes, the lamp goes out.
 - [ ] AI arena (alarm devices, [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)): sneak behind the baton post guard and press the panic button (north wall, right of the hub door; "E: press panic button"): both sirens (east wall, west wall by the radio door) sound with a red beacon and a tone every second, the HUD shows "ALARM", and every guard runs to the panic button (the radio base station dispatched them). The sirens keep sounding for 90 s.
 - [ ] Debug panel "Raise alarm": sirens sound, guards search around where they stand (no dispatch); "Clear alarm" stops the sirens at once and the HUD "ALARM" goes within about 1.5 s.
 - [ ] Shoot the network switch (next to the controller; one pistol shot breaks it, its LEDs go out): "Raise alarm" no longer sounds the sirens; while they sound, shooting it silences them within about 2.5 s. Shoot a siren: it loses its horn and stays silent.
 - [ ] Walk away from a sounding siren: "ALARM" goes once you are about 34 m (walking distance) away; guards that far away do not react.
 - [ ] Quicksave while the sirens sound and quickload: they still sound and the controller's time continues.
-- [ ] Turret engages intruders.
+- [ ] Turret (security showcase, `tests/objects/fixtures/showcase/security_showcase.tscn`): walk into its view about 6 m in front: it turns to you, a beep and a red laser on you for about a second, then bursts of fire with short pauses; standing in the open you are dead in about 4 s. Step behind it or out of view: it stops a second later. A guard (or anything) between you and it: it does not fire. Three pistol rounds break it.
+- [ ] Terminal ([ADR 0080](../decisions/0080-credentials-terminal.md), security showcase, `tests/objects/fixtures/showcase/security_showcase.tscn`): read the datapad on the desk, then "E: use security terminal": the login shows "Known: jmercer from 'Security login'"; Fill in, Log in. A wrong password says "Wrong password." with a low beep. The list shows Camera, Turret, Controller, Siren and Door with their buttons; the game keeps running behind the screen (the camera keeps sweeping). Pan left turns the camera, Disable blinds it (lamp off), Target guards makes the turret ignore you, Open opens the door, Test sounds the siren. Esc leaves even while typing in a field and never opens the game menu; E leaves when no field has focus. Shoot the switch: within a second the list is empty. Walking off (or being knocked back) closes the screen.
 - [ ] Every door and lock type can be opened by its intended methods (door showcase, `tests/objects/fixtures/showcase/door_showcase.tscn`, or the security wing; [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)).
 - [ ] Doors: E on a closed door: "E: open"; it slides into the wall in about 0.6 s with a hiss; look at a control panel beside the open door: "E: close". Standing in the doorway keeps it from closing. No gap or flicker where the closed panel meets the jambs and the lintel, nor where the open panel hides in the wall.
 - [ ] Keypad: "E: enter code" opens the entry screen (game paused); type with the number row, the numpad or clicks; a wrong code beeps and says "Wrong code"; Esc leaves halfway through typing without opening the game menu; after reading the "Storage access" datapad the screen shows "Note: 2817, from 'Storage access'"; 2817 + Enter opens the door.
@@ -214,7 +215,6 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] Electronic (fail-safe): switching its breaker off unlocks it (light turns dark, door stays shut until opened by hand).
 - [ ] Breakable door: pistol shots and baton hits do nothing; an explosive barrel next to it blows the panel away for good.
 - [ ] Guards walk through unlocked doors, opening them as they arrive; they never path through a locked door unless they carry its access.
-- [ ] Terminal unlocks with credentials found in the world.
 
 ## M9 Mission
 

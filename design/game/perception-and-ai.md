@@ -74,6 +74,8 @@ stateDiagram-v2
 | Dark (L 0.05), 6 m / cloaked / behind | 0 | never |
 | Dark, 1.5 m, focus (close override) | 0.63/s | 1.6 s |
 
+Security cameras and turrets see with the same sensor and rules and their own configs (no hidden tags: Cloak does not hide you from them; no peripheral cone), filling a `SightMeter` instead of an awareness model: [security.md](security.md#cameras-and-turrets), [ADR 0079](../decisions/0079-security-cameras-and-turret.md).
+
 ## Combat
 
 [ADR 0070](../decisions/0070-guard-combat-and-loadouts.md). No extra awareness state: a guard fights while it is **Alerted and sees** a hostile target that can act (`CombatBehaviour`, `actors/common/combat/`, tuning `actors/guard/guard_combat.tres`; any NavWalker character with an `Aim/WeaponHolder` fights the same way). Out of sight for 0.5 s it stops; the Alerted flow continues (run to the last known position, Searching after 4 s unseen).

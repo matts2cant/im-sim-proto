@@ -74,6 +74,8 @@ Floors declare their surface with node metadata `surface` on the CSG root that h
 | Light level | ambient only ≈ 0.04; dark < 0.1; fully visible ≥ 0.5 ([ADR 0065](../decisions/0065-light-level-model.md)) | Any area with guards needs real lamps (`objects/light_fixture/`): without them the player is seen only within 2 m. Keep zones meant to read "dim" around 0.2–0.35, away from 0.1 and 0.5 |
 | Guard vision | focus ±30° to 20 m; peripheral ±60° to 10 m (×0.4); lit target at 4 m alerts in ~0.8 s ([ADR 0067](../decisions/0067-vision-and-detection.md)) | Cover must block eyes at 1.6 m above the guard's feet; props (layer 4) block sight |
 | Guard hearing | heard when loudness − path distance ≥ 1 (walking on concrete: ~5 m) | — |
+| Camera vision | mounted about 2.6 m up; focus ±25° to 15 m (horizontal, from the lens), sweep ±40° around its rest yaw; lit target at 6 m detected in ~1.3 s, dim (0.25) at 4 m ~3.3 s, dark never; Cloak does not hide ([ADR 0079](../decisions/0079-security-cameras-and-turret.md)) | Cameras need lamps on the floor they watch; a blind spot is anything beyond 65° of the rest yaw, beyond 15 m, or behind cover at 2.5 m eye height |
+| Turret | head 1.15 m up; focus ±60° to 15 m, turns toward targets; detects a lit target at 6 m in ~0.5 s, fires 1 s later; kills a standing player at 6 m in ~4 s | Give the player cover within a few metres of its field of fire |
 | Shout | loudness 18: allies within ~17 m of navmesh path | — |
 | Radio | 30 m straight line, through walls, guards with `equipment.radio` | A guard meant to be out of contact: > 30 m straight |
 

@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg" id="2_shot_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_001.ogg" id="3_shot_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_002.ogg" id="4_shot_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="5_hit"]
+
+[sub_resource type="AudioStreamRandomizer" id="Shot"]
+random_pitch = 1.1
+streams_count = 3
+stream_0/stream = ExtResource("2_shot_0")
+stream_1/stream = ExtResource("3_shot_1")
+stream_2/stream = ExtResource("4_shot_2")
+
+[resource]
+script = ExtResource("1_script")
+id = &"turret_gun"
+display_name = "Turret gun"
+kind = 0
+damage = Dictionary[StringName, float]({&"damage.ballistic": 15.0})
+cycle_time = 0.25
+max_range = 40.0
+fire_noise = 25.0
+impact_noise = 4.0
+impact_impulse = 2.0
+muzzle_flash_size = 0.1
+fire_sound = SubResource("Shot")
+fire_volume_db = 2.0
+hit_sound = ExtResource("5_hit")
+view_size = Vector3(0.05, 0.05, 0.34)
+view_color = Color(0.1, 0.1, 0.11, 1)
+view_offset = Vector3(0, 0, -0.05)
+view_box_offset = Vector3(0, 0, -0.17)
