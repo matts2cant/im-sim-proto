@@ -201,7 +201,14 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 - [ ] Cameras see a cloaked player; alarm panel triggers level-wide alarm.
 - [ ] Turret engages intruders.
-- [ ] Every door and lock type can be opened by its intended methods.
+- [ ] Every door and lock type can be opened by its intended methods (door showcase, `tests/objects/fixtures/showcase/door_showcase.tscn`, or the security wing; [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)).
+- [ ] Doors: E on a closed door: "E: open"; it slides into the wall in about 0.6 s with a hiss; look at a control panel beside the open door: "E: close". Standing in the doorway keeps it from closing. No gap or flicker where the closed panel meets the jambs and the lintel, nor where the open panel hides in the wall.
+- [ ] Keypad: "E: enter code" opens the entry screen (game paused); type with the number row, the numpad or clicks; a wrong code beeps and says "Wrong code"; Esc leaves halfway through typing without opening the game menu; after reading the "Storage access" datapad the screen shows "Note: 2817, from 'Storage access'"; 2817 + Enter opens the door.
+- [ ] Mechanical lock: "Locked: lockpick"; holding LMB with a lockpick in hand shows "Picking N%" and opens after 3 s (2.25 s with Lockpicking Trained); letting go or looking away starts over; the lockpick count does not change.
+- [ ] Keycard: "Locked: keycard" without the card; with the showcase keycard: "E: open (keycard)" opens it.
+- [ ] Electronic (fail-safe): switching its breaker off unlocks it (light turns dark, door stays shut until opened by hand).
+- [ ] Breakable door: pistol shots and baton hits do nothing; an explosive barrel next to it blows the panel away for good.
+- [ ] Guards walk through unlocked doors, opening them as they arrive; they never path through a locked door unless they carry its access.
 - [ ] Terminal unlocks with credentials found in the world.
 
 ## M9 Mission

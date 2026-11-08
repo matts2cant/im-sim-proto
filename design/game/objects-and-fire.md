@@ -49,6 +49,7 @@ All carry Carryable except the static ones; only objects up to the carry limit (
 | metal | x1.4 | fire x0, blunt x0.5, stun x0 | impactMetal | Hollywood/Metal Glass Destruction |
 | glass | x1.6 | fire x0, stun x0 | impactGlass | impactGlass_heavy |
 | cardboard | x0.4 | fire x1, stun x0 | impactSoft | impactSoft_heavy |
+| reinforced (breakable door, M8) | x1.4 | explosive x1; ballistic, blunt, fire, stun x0 | none | Hollywood/Metal Glass Destruction |
 
 ### Fire: heat, ignition, burning
 
