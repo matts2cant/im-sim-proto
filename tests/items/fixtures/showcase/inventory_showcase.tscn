@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
 [ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://tests/items/fixtures/showcase/inventory_showcase.gd" id="3_showcase"]
-[ext_resource type="PackedScene" path="res://items/multitool/multitool.tscn" id="4_multitool"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="4_lockpick"]
 [ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="5_medkit"]
 [ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="6_ammo"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="7_datapad"]
@@ -36,10 +36,10 @@ shadow_enabled = true
 [node name="Player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.5)
 
-[node name="Multitool" parent="." instance=ExtResource("4_multitool")]
+[node name="Lockpick" parent="." instance=ExtResource("4_lockpick")]
 transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, 0.1, 0.02, 1.55)
 
-[node name="ItemPickup" parent="Multitool"]
+[node name="ItemPickup" parent="Lockpick"]
 count = 3
 
 [node name="Medkit" parent="." instance=ExtResource("5_medkit")]
@@ -63,5 +63,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.01, 0.9)
 [node name="Showcase" type="Node" parent="."]
 script = ExtResource("3_showcase")
 player_path = NodePath("../Player")
-pickup_path = NodePath("../Multitool")
+pickup_path = NodePath("../Lockpick")
 capture_after = 1.2

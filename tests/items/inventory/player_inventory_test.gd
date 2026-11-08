@@ -177,15 +177,15 @@ func test_e_picks_a_medkit_up_instead_of_using_it() -> void:
 
 func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 	await _load()
-	_player.inventory.give(Items.MULTITOOL, 2)
+	_player.inventory.give(Items.LOCKPICK, 2)
 	_player.inventory.give(Items.PISTOL, 1)
 
 	await _press(&"belt_1")
-	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
-	assert_str(_hud.weapon_label.text).is_equal("Multitool")
+	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
+	assert_str(_hud.weapon_label.text).is_equal("Lockpick")
 	await _press(&"fire")
 	assert_array(EventLog.find(&"weapon.fired")).is_empty()
-	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
+	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
 	await _press(&"belt_2")
 	assert_object(_player.inventory.held).is_null()

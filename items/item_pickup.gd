@@ -33,7 +33,7 @@ func stack_state() -> Dictionary:
 	return item.make_state(state)
 
 
-## "Multitool (3)": the count only when more than one.
+## "Lockpick (3)": the count only when more than one.
 func label() -> String:
 	return item.display_name if count <= 1 else "%s (%d)" % [item.display_name, count]
 

@@ -26,20 +26,20 @@ func after_test() -> void:
 
 func test_e_picks_up_a_stack_and_belts_it() -> void:
 	await _load()
-	var body := Items.spawn_pickup(_driver.runner.scene(), Items.MULTITOOL, FLOOR_SPOT, 3)
+	var body := Items.spawn_pickup(_driver.runner.scene(), Items.LOCKPICK, FLOOR_SPOT, 3)
 	await _driver.frames(20)
 	await _look_at(body.global_position)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Multitool (3)")
+	assert_str(_player.interactor.prompt).is_equal("E: pick up Lockpick (3)")
 
 	await _driver.hold(&"use", 2)
 	await _driver.frames(1)
 
 	assert_bool(is_instance_valid(body)).is_false()
-	assert_int(_player.inventory.inventory.count_of(&"multitool")).is_equal(3)
-	assert_object(_player.inventory.belt.stack_in(0).item).is_same(Items.MULTITOOL)
+	assert_int(_player.inventory.inventory.count_of(&"lockpick")).is_equal(3)
+	assert_object(_player.inventory.belt.stack_in(0).item).is_same(Items.LOCKPICK)
 	var picked := EventLog.find(&"item.picked_up")
 	assert_array(picked).has_size(1)
-	assert_dict(picked[0].data).is_equal({"item": "multitool", "count": 3, "left": 0})
+	assert_dict(picked[0].data).is_equal({"item": "lockpick", "count": 3, "left": 0})
 
 
 func test_ammo_and_keycards_are_not_belted() -> void:

@@ -35,7 +35,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door" (doors read `key_id` in M8) | no | `key_id` |
 | Deck (M11) | `deck` | 2 x 1 | 1 | in hand: LMB on a wall jack, maintenance port or computer plugs it in; within an access point's range LMB raises it for wireless ([hacking.md](hacking.md)) | yes | copied files, Icebreaker progress per account |
 
-- The multitool is removed in M8 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): keypads take their code, network locks are hacked with the deck (M11). Until then it is still in the catalogue, the hub's loadout table and the inventory bay.
+- The multitool was removed in M8 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): keypads take their code, network locks are hacked with the deck (M11). It is gone from the catalogue, the hub's loadout table and the inventory bay.
 - The deck is one model with no upgrades. Its contents live in its stack's `state`, so they travel with it when dropped and are saved with the inventory. Credentials and exploits are knowledge, kept in the PersonalLog, not on the deck.
 
 ### World pickups
