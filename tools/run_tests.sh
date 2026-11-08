@@ -12,6 +12,15 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 now_ms() { echo $(($(date +%s%N) / 1000000)); }
 t_start=$(now_ms)
+# stamp FILE: passes stdin through and writes each line, prefixed with its arrival time, to FILE.
+if gawk -l time 'BEGIN { gettimeofday() }' 2> /dev/null; then
+	stamp() { gawk -l time -v out="$1" '{ printf "%.6f %s\n", gettimeofday(), $0 > out; print; fflush() }'; }
+else
+	stamp() {
+		: > "$1"
+		cat
+	}
+fi
 
 export GODOT_BIN="${GODOT_BIN:-/c/Program Files/Godot/Godot_v4.7.2-stable_win64_console.exe}"
 jobs="${TEST_JOBS:-auto}"
@@ -142,13 +151,17 @@ for ((i = 0; i < jobs; i++)); do
 	echo "${shard_suites[i]}" | tr ' ' '\n' | grep -v -e '^-a$' -e '^$' > "$dir/suites.txt"
 	# --remote-debug tcp://127.0.0.1:0 (as addons/gdUnit4/runtest.sh) keeps Godot's interactive CLI
 	# debugger from looping on script parse errors: port 0 is never bound.
+	# The output goes to output.log as is and, with each line's arrival time, to timed.log (read by
+	# tools/test_timing.awk for the timing breakdown).
 	(
-		rc_shard=0
+		set +e
+		now_ms > "$dir/start_ms"
 		# shellcheck disable=SC2086
 		APPDATA="$(cygpath -w "$PWD/$dir/appdata" 2>/dev/null || echo "$PWD/$dir/appdata")" \
 			"$GODOT_BIN" --path . --headless "${fps_args[@]}" -s -d --remote-debug tcp://127.0.0.1:0 \
 			res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -c -rd "res://$dir" ${shard_suites[i]} \
-			> "$dir/output.log" 2>&1 || rc_shard=$?
+			2>&1 | stamp "$dir/timed.log" > "$dir/output.log"
+		rc_shard=${PIPESTATUS[0]}
 		now_ms > "$dir/end_ms"
 		exit "$rc_shard"
 	) &
@@ -231,23 +244,29 @@ if [ -s reports/project_errors.log ]; then
 	[ "$rc" -eq 0 ] && rc=1
 fi
 
-# Where the time went: before the shards (import check, import), the shard processes (Godot
-# startup, GdUnit scan, suites, report, shutdown; the slowest one sets the pace) and after them
-# (result merge, error scan).
+# Where the time went: before the shards (import check, import), the shard processes (the slowest
+# one sets the pace; tools/test_timing.awk splits each into startup, scan, suites, between suites
+# and reports/shutdown) and after them (result merge, error scan).
 t_end=$(now_ms)
+secs() { awk -v ms="$1" 'BEGIN { printf "%.1fs", ms / 1000 }'; }
 slowest=0
 slowest_ms=0
 for ((i = 0; i < jobs; i++)); do
-	end_i="$(cat "$shard_root/$i/end_ms" 2>/dev/null || echo "$t_post")"
+	dir="$shard_root/$i"
+	start_i="$(cat "$dir/start_ms" 2>/dev/null || echo "$t_shards")"
+	end_i="$(cat "$dir/end_ms" 2>/dev/null || echo "$t_post")"
+	gawk -v launch="$start_i" -v end="$end_i" -v ms=1 -f tools/test_timing.awk "$dir/timed.log" \
+		> "$dir/timing.txt" 2> /dev/null || true
 	ms=$((end_i - t_shards))
-	if [ "$ms" -gt "$slowest_ms" ]; then slowest=$i; slowest_ms=$ms; fi
+	if [ "$ms" -gt "$slowest_ms" ]; then
+		slowest=$i
+		slowest_ms=$ms
+	fi
 done
-exec_line="$(strip < "$shard_root/$slowest/output.log" | grep -a 'Total execution time' | tail -n 1 | sed 's/Total execution time: //' || true)"
-secs() { awk -v ms="$1" 'BEGIN { printf "%.1fs", ms / 1000 }'; }
 echo
 echo "Timing: total $(secs $((t_end - t_start))) = before shards $(secs $((t_shards - t_start))) (import: $imported)" \
-	"+ shards $(secs $((t_post - t_shards))) (slowest: shard $slowest, $(secs "$slowest_ms"), GdUnit execution ${exec_line:-?})" \
-	"+ after $(secs $((t_end - t_post)))"
+	"+ shards $(secs $((t_post - t_shards))) + after $(secs $((t_end - t_post)))"
+echo "  slowest shard $slowest ($(secs "$slowest_ms")): $(cat "$shard_root/$slowest/timing.txt" 2> /dev/null)"
 echo "Overall Summary: ${totals[0]} test cases | ${totals[1]} errors | ${totals[2]} failures | ${totals[3]} flaky | ${totals[4]} skipped | ${totals[5]} orphans | $crashed crashed shard(s) | ${#suites[@]} suites in $jobs shard(s), $(secs $((t_end - t_start))) | exit $rc"
-echo "Reports: reports/shards/<n>/report_1/ (index.html, results.xml); full output: $log"
+echo "Reports: reports/shards/<n>/report_1/ (index.html, results.xml), timing.txt; full output: $log"
 exit "$rc"
