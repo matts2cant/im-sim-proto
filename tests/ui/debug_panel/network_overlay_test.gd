@@ -76,8 +76,9 @@ func test_refreshes_on_its_own_while_on() -> void:
 	_set_checkbox(true)
 	assert_int(_overlay.cable_state(Device.of(hub), Device.of(bell))).is_equal(1)
 	Powered.of(hub).on = false
-	for i in 30:
-		await get_tree().process_frame
+	# Wait out one refresh period in game time: a count of process frames covers a different time
+	# depending on the frame rate (30 headless frames were 0.21 to 0.5 s, so this failed at random).
+	await get_tree().create_timer(NetworkOverlay.REFRESH * 1.5).timeout
 	assert_int(_overlay.cable_state(Device.of(hub), Device.of(bell))).is_equal(0)
 	# A device that leaves the level loses its label.
 	var before := _overlay.label_count()
