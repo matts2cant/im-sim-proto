@@ -88,9 +88,9 @@ func test_h_holsters_the_drawn_pistol_and_clears_the_highlight() -> void:
 
 func test_h_puts_a_held_item_away() -> void:
 	await _load()
-	_player.inventory.give(Items.MULTITOOL, 1)
+	_player.inventory.give(Items.LOCKPICK, 1)
 	await _press(&"belt_1")
-	assert_object(_player.inventory.held.item).is_same(Items.MULTITOOL)
+	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
 	await _press(&"holster")
 

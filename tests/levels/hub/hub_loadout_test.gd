@@ -10,7 +10,6 @@ const LOADOUT: Dictionary[StringName, int] = {
 	&"baton": 1,
 	&"pistol_ammo": 60,
 	&"medkit": 2,
-	&"multitool": 3,
 	&"lockpick": 2,
 	&"biocell": 2,
 }

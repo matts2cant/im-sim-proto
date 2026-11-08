@@ -67,18 +67,12 @@ display_name = "Medicine"
 description = "Health restored by the medkits this character uses (on itself or, later, on others)."
 effects = Array[ExtResource("3_effect")]([SubResource("Effect_medical_heal_mult")])
 
-[sub_resource type="Resource" id="Effect_bypass_time_mult"]
-script = ExtResource("3_effect")
-attribute = &"bypass_time_mult"
-op = 1
-tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
-
-[sub_resource type="Resource" id="Skill_electronics"]
+[sub_resource type="Resource" id="Skill_computer"]
 script = ExtResource("2_skill")
-id = &"electronics"
-display_name = "Electronics"
-description = "Multitool bypass time (consumer: M8)."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_bypass_time_mult")])
+id = &"computer"
+display_name = "Computer"
+description = "The deck's tools: crack time, trace gain, Icebreaker strength (consumer: M11)."
+effects = Array[ExtResource("3_effect")]([])
 
 [sub_resource type="Resource" id="Effect_lockpick_time_mult"]
 script = ExtResource("3_effect")
@@ -96,4 +90,4 @@ effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_time_mult
 [resource]
 script = ExtResource("1_table")
 tier_names = Array[String](["Untrained", "Trained", "Advanced", "Master"])
-skills = Array[ExtResource("2_skill")]([SubResource("Skill_pistols"), SubResource("Skill_low_tech"), SubResource("Skill_medicine"), SubResource("Skill_electronics"), SubResource("Skill_lockpicking")])
+skills = Array[ExtResource("2_skill")]([SubResource("Skill_pistols"), SubResource("Skill_low_tech"), SubResource("Skill_medicine"), SubResource("Skill_computer"), SubResource("Skill_lockpicking")])

@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" path="res://items/weapons/baton/baton_pickup.tscn" id="7_baton"]
 [ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="8_pistol_ammo"]
 [ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="9_medkit"]
-[ext_resource type="PackedScene" path="res://items/multitool/multitool.tscn" id="10_multitool"]
 [ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="11_lockpick"]
 [ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="12_biocell"]
 [ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
@@ -73,17 +72,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.03, -8.1)
 [node name="Medkit" parent="ItemTable" instance=ExtResource("9_medkit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.045, -9.15)
 
-[node name="Multitool" parent="ItemTable" instance=ExtResource("10_multitool")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.015, -10.2)
-
 [node name="Lockpick" parent="ItemTable" instance=ExtResource("11_lockpick")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -11.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -10.2)
 
 [node name="Biocell" parent="ItemTable" instance=ExtResource("12_biocell")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -12.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -11.25)
 
 [node name="Keycard" parent="ItemTable" instance=ExtResource("13_keycard")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -13.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -12.3)
 
 [node name="ItemPickup" parent="ItemTable/Keycard"]
 state = {"key_id": "inventory_bay"}
@@ -97,10 +93,10 @@ width = 3
 depth = 0.8
 surface = "wood"
 
-[node name="Multitool" parent="Stacks" instance=ExtResource("10_multitool")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.015, -5.6)
+[node name="Lockpick" parent="Stacks" instance=ExtResource("11_lockpick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.01, -5.6)
 
-[node name="ItemPickup" parent="Stacks/Multitool"]
+[node name="ItemPickup" parent="Stacks/Lockpick"]
 count = 12
 
 [node name="Medkit" parent="Stacks" instance=ExtResource("9_medkit")]
@@ -314,29 +310,22 @@ text = "Medkit
 size = 0
 pixel_size = 0.0025
 
-[node name="Multitool" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -10.2)
-text = "Multitool
-1×1"
-size = 0
-pixel_size = 0.0025
-
 [node name="Lockpick" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -11.25)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -10.2)
 text = "Lockpick
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Biocell" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -12.3)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -11.25)
 text = "Bioelectric cell
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Keycard" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -13.35)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -12.3)
 text = "Keycard
 1×1"
 size = 0
@@ -344,9 +333,9 @@ pixel_size = 0.0025
 
 [node name="StackTags" type="Node3D" parent="Labels"]
 
-[node name="Multitool" parent="Labels/StackTags" instance=ExtResource("3_sign")]
+[node name="Lockpick" parent="Labels/StackTags" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 1.4, -5.6)
-text = "Multitool ×12
+text = "Lockpick ×12
 max 10"
 size = 0
 pixel_size = 0.0025
