@@ -116,10 +116,10 @@ func test_give_item_adds_one_or_a_full_stack() -> void:
 	var inventory := _driver.player.inventory.inventory
 	assert_int(items.get_child_count()).is_equal(ItemCatalog.default().items.size() * 3)
 
-	(items.get_node("GiveMultitool") as Button).pressed.emit()
+	(items.get_node("GiveLockpick") as Button).pressed.emit()
 	(items.get_node("StackPistolAmmo") as Button).pressed.emit()
 
-	assert_int(inventory.count_of(&"multitool")).is_equal(1)
+	assert_int(inventory.count_of(&"lockpick")).is_equal(1)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(100)
 	assert_array(EventLog.find(&"debug.gave_item")).has_size(2)
 	# A 6 x 5 grid holds 30 keycards and no more.

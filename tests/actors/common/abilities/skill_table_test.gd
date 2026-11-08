@@ -40,7 +40,8 @@ func test_low_tech_and_medicine_per_tier() -> void:
 
 
 func test_tool_skills_only_write_attributes() -> void:
-	assert_float(_values(TABLE.find(&"electronics"), 2)[&"bypass_time_mult"]).is_equal_approx(0.5, 0.0001)
+	# Computer has no effects until M11 (ADR 0076).
+	assert_array(TABLE.find(&"computer").effects).is_empty()
 	assert_float(_values(TABLE.find(&"lockpicking"), 1)[&"lockpick_time_mult"]).is_equal_approx(0.75, 0.0001)
 
 

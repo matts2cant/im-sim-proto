@@ -110,7 +110,7 @@ func hold(stack: ItemStack) -> void:
 
 
 ## LMB with a non-weapon item in hand: uses it (a consumable is used one at a time and stays in hand
-## while any are left; a tool does nothing until M8). False when the hand holds a
+## while any are left; a tool is worked by holding LMB instead: ToolUse). False when the hand holds a
 ## weapon (the WeaponHolder fires it) or nothing, or the use was refused.
 func use_held() -> bool:
 	if held == null:
@@ -134,6 +134,13 @@ func use_stack(stack: ItemStack) -> bool:
 			_log_used(stack, "nothing")
 			message.emit(stack.item.use_message)
 	return true
+
+
+## The kind of tool in hand (ItemData.tool_kind of an EQUIP_TOOL item), or &"".
+func held_tool() -> StringName:
+	if held == null or held.item.use_action != ItemData.UseAction.EQUIP_TOOL:
+		return &""
+	return held.item.tool_kind
 
 
 ## The stack in hand (weapon or held item), or null.

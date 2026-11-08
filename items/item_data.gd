@@ -15,7 +15,8 @@ enum UseAction {
 	## Sends `use_stimuli` to the user (CONTACT) and consumes one; refused with `refused_message`
 	## when none of them would do anything to the user (StimulusSystem.would_affect()).
 	CONSUME,
-	## Holds the tool in hand (placeholder until M8: LMB does nothing).
+	## Holds the tool in hand; holding LMB works it on what the user looks at (ToolUse: a lockpick on
+	## a mechanical lock, ADR 0078).
 	EQUIP_TOOL,
 }
 
@@ -41,6 +42,8 @@ enum UseAction {
 @export var use_action: UseAction = UseAction.NONE
 ## EQUIP_WEAPON: the weapon drawn.
 @export var weapon: WeaponData
+## EQUIP_TOOL: the kind of tool (`lockpick`): a Lock accepts the kinds that work it.
+@export var tool_kind: StringName = &""
 ## CONSUME: stimuli sent to the user, type -> intensity (medkit: `heal` 30). The user's receptrons
 ## decide what they do.
 @export var use_stimuli: Dictionary[StringName, float] = {}

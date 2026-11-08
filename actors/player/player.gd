@@ -99,6 +99,7 @@ var _view_offset: float = 0.0
 @onready var attributes: Attributes = $Attributes
 @onready var inventory: PlayerInventory = $Inventory
 @onready var interactor: Interactor = $Interactor
+@onready var tool_use: ToolUse = $ToolUse
 @onready var skills: Skills = $Skills
 @onready var energy: Energy = $Energy
 @onready var augmentations: Augmentations = $Augmentations
@@ -181,6 +182,7 @@ func _physics_process(delta: float) -> void:
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
 	_set_view_offset(StepRules.ease_offset(_view_offset, delta, step.config))
 	interactor.refresh()
+	_step_tool(delta)
 	_handle_actions()
 	carry.physics_step()
 	weapons.physics_step(delta, aim_stance())
@@ -412,7 +414,7 @@ func _register_debug_tab() -> void:
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
-# medkit; a tool does nothing until M8); reload; holster: empty hands; belt keys: the belt slot
+# medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys: the belt slot
 # (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
 # Dead or knocked out: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
@@ -453,6 +455,19 @@ func _handle_actions() -> void:
 				augmentations.toggle_slot(AUG_ACTIONS.find(action) + 1)
 			_:
 				inventory.select_slot(BELT_ACTIONS.find(action))
+
+
+# Holding LMB with a tool in hand works it on what the crosshair is on (ToolUse: a lockpick on a
+# mechanical lock, ADR 0078); letting go, looking away or carrying something stops.
+func _step_tool(delta: float) -> void:
+	var holding: bool = (
+		input_enabled
+		and not DebugPanel.is_open()
+		and ActorState.can_act(self)
+		and not carry.is_carrying()
+		and Input.is_action_pressed(&"fire")
+	)
+	tool_use.step(interactor.looked_at, inventory.held_tool(), holding, delta)
 
 
 ## Losing overlay (dead or knocked out): reloads the level (or only signals, for tests).

@@ -47,7 +47,9 @@ func test_known_credentials_from_the_datapad_log_in() -> void:
 	_screen.login_button.pressed.emit()
 	assert_bool(_show.terminal().logged_in).is_true()
 	assert_bool(EventLog.find(&"terminal.login")[0].data["ok"]).is_true()
-	assert_array(_screen.listed_names()).contains_exactly_in_any_order(["Camera", "Turret", "Controller", "Siren"])
+	assert_array(_screen.listed_names()).contains_exactly_in_any_order(
+		["Camera", "Turret", "Controller", "Siren", "Door"]
+	)
 
 
 func test_without_the_datapad_there_is_no_reminder() -> void:
@@ -100,6 +102,29 @@ func test_buttons_send_commands_to_the_devices() -> void:
 		assert_bool(entry.data["sent"]).is_true()
 
 
+func test_a_cabled_door_is_listed_and_opened_with_no_door_code() -> void:
+	# The door's receptrons (command.open/close/lock/unlock) give it its buttons.
+	_log_in()
+	assert_array(_labels("Door")).contains_exactly(["Open", "Close", "Lock", "Unlock"])
+	var door := Usable.of(_show.node("Door")) as Door
+	assert_bool(door.is_open()).is_false()
+	_screen.button("Door", "Open").pressed.emit()
+	await _show.seconds(1.0)
+	assert_bool(door.is_open()).is_true()
+	assert_bool(EventLog.find(&"door.command")[0].data["done"]).is_true()
+	# Locked from the terminal, then closed: still openable remotely (an authorised open).
+	_screen.button("Door", "Lock").pressed.emit()
+	_screen.button("Door", "Close").pressed.emit()
+	await _show.seconds(1.0)
+	assert_bool(door.is_open()).is_false()
+	assert_bool(door.is_locked()).is_true()
+	# The switch off: the door is no longer listed and cannot be reached.
+	Powered.of(_show.node("Switch")).on = false
+	await _show.seconds(1.2)
+	assert_bool(_screen.listed_names().has("Door")).is_false()
+	assert_bool(_show.terminal().send(Device.OPEN, Device.of(_show.node("Door")))).is_false()
+
+
 func test_unplugging_the_switch_empties_the_list_and_a_dead_device_shows_its_state() -> void:
 	_log_in()
 	# The camera unpowered: still listed (behind a live switch), its buttons off.
@@ -113,7 +138,9 @@ func test_unplugging_the_switch_empties_the_list_and_a_dead_device_shows_its_sta
 	assert_array(_screen.listed_names()).is_empty()
 	Powered.of(_show.node("Switch")).on = true
 	await _show.seconds(1.2)
-	assert_array(_screen.listed_names()).contains_exactly_in_any_order(["Camera", "Turret", "Controller", "Siren"])
+	assert_array(_screen.listed_names()).contains_exactly_in_any_order(
+		["Camera", "Turret", "Controller", "Siren", "Door"]
+	)
 
 
 func test_esc_always_leaves_and_e_leaves_only_when_not_typing() -> void:

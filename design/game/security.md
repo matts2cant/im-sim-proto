@@ -8,11 +8,11 @@ Electronic and mechanical obstacles that offer several ways through.
 
 ## Player-facing behaviour
 
-- **Cameras** see the player even when cloaked. A camera that sees an intruder sends an incident to the alarm controller it reaches.
+- **Cameras** see the player even when cloaked (not in the dark). A camera that sees an intruder sends an incident to the alarm controller it reaches: see [Cameras and turrets](#cameras-and-turrets).
 - **Alarms are devices** ([ADR 0075](../decisions/0075-alarms-as-network-devices.md), replaces the global `LevelAlarm`): see [Alarm devices](#alarm-devices).
-- **Turret** guards an area; Cloak does not hide the player from it.
+- **Turret** guards an area; Cloak does not hide the player from it. Who it shoots is a preset a terminal can change (intruders, guards, everyone).
 - **Breaker panel** cuts lights ([light-and-visibility.md](light-and-visibility.md)). Built in M7 ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)): `objects/breaker_panel/breaker_panel.tscn`, a `CircuitBreaker` (a `Usable`, "E: switch off <label>" / "switch on") that switches every `Powered` on its `circuit` through the circuit's group, clunks (noise 6) and logs `power.switched`. Lamps opt in with their `Powered.circuit`; the breaker names none. The perception lab has one (circuit `perception_lab`).
-- **Terminals** (M8) keep the credentials placeholder: they unlock with credentials found in the world. M11 replaces them with computers (Halcyon OS desktop, Mail, Files, Security) and the deck ([hacking.md](hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)).
+- **Terminals** (M8) keep the credentials placeholder: they unlock with credentials found in the world (a datapad), then list the devices they reach with a button per command: see [Terminal](#terminal-m8-placeholder). M11 replaces them with computers (Halcyon OS desktop, Mail, Files, Security) and the deck ([hacking.md](hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)).
 
 ## Devices
 
@@ -21,7 +21,7 @@ Cameras, turrets, doors, keypads, sirens, alarm controllers, radio base stations
 - **Power and damage**: devices, switches and access points have `Powered` and `Breakable` like any prop. Unpowering or breaking a switch or access point cuts every device behind it.
 - **Standalone behaviour** when a device loses its link: a door still works locally (key, keycard, keypad) but cannot be opened remotely; a camera keeps watching but its incidents reach no controller; a turret keeps its target tags; a siren cannot be rung; a keypad accepts its code.
 - **Doors on power loss**: a tag says fail-safe (unlocks) or fail-secure (stays locked). Breaking a switch can disable security but also stop you opening a door remotely.
-- **Remote command interface** (M8): a command (open, lock, ring, disable, ...) is a stimulus delivered to the target device; the device's receptrons run it, blocked while it is unpowered or broken. Nothing branches on a device's identity.
+- **Remote command interface** (M8): a command (open, lock, ring, disable, ...) is a stimulus delivered to the target device; the device's receptrons run it, blocked while it is unpowered or broken (`state.unpowered`, `state.broken`). Nothing branches on a device's identity. Doors: [Remote commands](#remote-commands).
 - **Reach**: in M8 a device reaches another when every link and node between them is powered and unbroken (a simple physical link graph). M11 adds addresses, subnets and firewall rules on top ([hacking.md](hacking.md)).
 
 ### Built in M8 ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md))
@@ -31,7 +31,8 @@ Cameras, turrets, doors, keypads, sirens, alarm controllers, radio base stations
 - **Reach**: `DeviceGraph` (pure, `objects/devices/device_graph.gd`); `Device.graph(tree)` builds it from the level for each query. `Device.reaches(target)`; `Device.reached(type)`: the reached devices that accept `type` (one of their receivers has a receptron for it), nearest first.
 - **Sending**: `Device.send_command(command, target, at = Device.NO_POINT) -> bool` emits `Stimulus.make_contact(command, 1.0, target_entity, sender_entity)` (origin `at`, or the target's position) through `StimulusSystem.emit()` only when the sender reaches the target, and logs `device.command {command, from, to, sent, point}` either way. `send_to_all(command, at)` sends to every reached device that accepts it; `report_incident(at)` sends `device.incident` (origin = the incident) that way. Senders that are not devices (the debug panel) emit `Device.command_stimulus(command, target, source, at)` themselves.
 - **Receiving**: one receptron per type in `objects/devices/receptrons/` (`command_ring.tres`, ..., `device_incident.tres`), blocked on `state.unpowered` and `state.broken`, runs `DeviceActionEffect`: `Device.receive_action()` emits `action_received(action, stimulus)` for the entity's behaviour components.
-- Command types (constants on `Device`): `command.open`, `command.close`, `command.lock`, `command.unlock`, `command.ring`, `command.silence`, `command.test`, `command.disarm`, `command.reset`, `command.trigger`, `command.disable`, `command.enable`, `command.broadcast` (controller to base station); `device.incident` (sensor to controller).
+- Command types (constants on `Device`): `command.open`, `command.close`, `command.lock`, `command.unlock`, `command.ring`, `command.silence`, `command.test`, `command.disarm`, `command.reset`, `command.trigger`, `command.disable`, `command.enable`, `command.broadcast` (controller to base station); `device.incident` (sensor to controller). Cameras and turrets ([ADR 0079](../decisions/0079-security-cameras-and-turret.md)): `command.stop_sweep`, `command.resume_sweep`, `command.pan_left`, `command.pan_right`, `command.target_intruders`, `command.target_guards`, `command.target_everyone`.
+- `Device.connected_devices()` ([ADR 0080](../decisions/0080-credentials-terminal.md)): the reached devices plus the dead ones right behind a live link (`DeviceGraph.connected()`); a terminal lists those as unpowered or broken.
 - Remote actions per device (open, close, lock, unlock, grant access; view feed, stop sweep, pan, disable; ...): [hacking.md](hacking.md#devices-and-their-remote-actions). M8 builds the interface; who may send which command over the network is M11.
 
 ## Alarm devices
@@ -62,14 +63,62 @@ EventLog: `device.command {command, from, to, sent, point}`, `device.state {devi
 
 In the hub: the AI arena ([hub-and-gallery.md](../levels/hub-and-gallery.md)) has a controller, a switch (circuit `ai_arena_network`, no breaker: shoot it) carrying two sirens, a panic button and a radio base station cabled to the controller.
 
+## Cameras and turrets
+
+[ADR 0079](../decisions/0079-security-cameras-and-turret.md), built in M8. Both see through a `PerceptionSensor` on their turning head with their own `PerceptionConfig`: the guards' light, distance and line-of-sight rules ([ADR 0067](../decisions/0067-vision-and-detection.md)), no hidden tags (Cloak does not hide you), no peripheral cone. A `SightMeter` (pure, `objects/devices/sight_meter.gd`) rises by the sighting's gain per second, falls 0.25/s unseen; at 1.0 the device detects and reports `Device.report_incident(target position)` to the alarm controllers it reaches, then reports nothing more until no target has been seen for 10 s. A device cut off from its controller still detects but tells nobody.
+
+| Scene | Component, tuning | Accepts | Behaviour |
+|---|---|---|---|
+| `objects/camera/security_camera.tscn` (wall or ceiling, origin on the face, +Z out; mount about 2.6 m up) | `SecurityCamera`, `security_camera.tres`; vision `security_camera_perception.tres` | `command.disable`, `enable`, `stop_sweep`, `resume_sweep`, `pan_left`, `pan_right` | Hostile `actor.player`; focus ±25° to 15 m; gain 0.8 (lit at 4 m: 1.25 s; 6 m: 1.3 s; dim at 4 m: 3.3 s; dark: never). Sweeps ±40° around its rest yaw at 15°/s, 2 s hold at each end; waits while it sees a target. Lamp: green, amber above 0.3, red while detected; off while blind. Detection: incident, beep (noise 8). Pan: 15° steps clamped to ±40° (stops the sweep). Disabled, unpowered or broken: blind. Health 20, `material.electronics` (blunt ×4): one pistol round or baton hit breaks it. Saveable |
+| `objects/turret/turret.tscn` (floor-standing, origin on the floor, +Z forward; head 1.15 m up) | `Turret`, `turret.tres`; vision `turret_perception.tres`; weapon `turret_gun.tres`, aim `turret_aim.tres` | `command.disable`, `enable`, `target_intruders`, `target_guards`, `target_everyone` | Hostile tags from its preset (`TurretConfig.presets`: intruders `actor.player`, guards `actor.guard`, everyone both); focus ±60° to 15 m; gain 2.0. Turns toward what it sees (120°/s). Full meter: incident, 1 s wind-up (beep noise 10, red laser), then bursts of 1.5 s / 0.75 s pause through `WeaponHolder.trigger()`: 15 ballistic a hit every 0.25 s, cone 3° + 0.1° per metre beyond 4 m, shot noise 25. Never fires unless the first thing on the line is the target (the guards' line of fire). Stops 1 s after losing sight. Standing lit player at 6 m: dead in about 4 s from stepping into view. Disabled, unpowered or broken: idle. Health 60, metal (three pistol rounds). Saveable |
+
+EventLog: `camera.detected {camera, target, point, controllers}`, `turret.detected {turret, target, point, controllers}`, `turret.engaged {turret, target}`, `turret.disengaged {turret, reason}`, `turret.retargeted {turret, preset, tags}`; shots as `weapon.fired`.
+
+## Terminal (M8 placeholder)
+
+[ADR 0080](../decisions/0080-credentials-terminal.md). `objects/terminal/terminal.tscn` (wall-mounted, origin on the face, +Z out; screen centre about 1.45 m up): a Device with `Powered`, `Breakable` (health 20, electronics) and a `Terminal` (a `Usable`, "E: use <label>"; tuning `terminal.tres`). Per instance: `credentials_id`, `username`, `password`, `label`.
+
+- **Credentials**: a datapad's `Readable.codes[credentials_id] = "user:password"` (split at the first colon). Once read, the login screen shows "Known: <user> from '<datapad title>'" and a Fill in button. User names ignore case, passwords do not. Wrong: "Wrong password." and a beep (noise 4). It stays logged in until someone logs out (saved).
+- **Screen** (`ui/terminal/terminal_screen.tscn`, a child of the Player): the game keeps running; Esc always leaves, E leaves when no text field has focus; it closes when you walk more than 3 m away, cannot act, or the terminal dies.
+- **Devices**: every device it is cabled to through live devices (reached, or dead right behind a live link), that accepts at least one command of the label table (`TerminalConfig.command_labels`, in order: Open, Close, Lock, Unlock, Enable, Disable, Stop sweep, Resume sweep, Pan left, Pan right, Target intruders / guards / everyone, Trigger, Reset, Disarm, Ring, Test, Silence), with its state from its tags (online, unpowered, broken; dead ones' buttons are off). Refreshed every second. No camera feed (M11).
+- EventLog: `terminal.opened {terminal, by}`, `terminal.login {terminal, user, ok}`, `terminal.logout {terminal}`.
+
+Showcase (tests and screenshots, not a gallery room): `tests/objects/fixtures/showcase/security_showcase.tscn`, a terminal cabled through a switch to a camera, a turret, an alarm controller, a siren and a door, with the credentials datapad on a desk.
+
 ## Door and lock types
 
-- Keypad: code found in world notes. The multitool is removed ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): until M11 a keypad accepts only its code; from M11 it is also hackable ("read its code", [hacking.md](hacking.md)).
-  - Datapads are read in place and copied to the player's personal log (not picked up). A datapad can carry codes linked to a keypad (by the keypad's code id). Once the player has read it, the keypad's entry screen shows a reminder with the known code ("Note: 0451, from 'Shift roster'"); the player still types it. A code learned any other way (a conversation, a log entry) feeds the same reminder. Data side (built, [ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)): a datapad's `Readable.codes` maps the keypad's code id to the code; the keypad asks the user's `PersonalLog.known_code(code_id)` ("" when unknown) and `code_source(code_id)` (the entry's title) for the reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`.
-- Mechanical lock: lockpick, a pin-tumbler minigame ([lockpicking.md](lockpicking.md), M10). M8 builds locks as data (pin count and pin types per lock, a `Lock` component) with a pick interaction hook and a placeholder: hold LMB with a lockpick, timer scaled by `lockpick_time_mult`. M10 replaces the placeholder without touching doors.
-- Electronic: the door's lock is a network device: opened remotely (from M11, with access to a machine it trusts or to the door itself), or by power loss when it is fail-safe.
-- Keycard.
-- Breakable: explosives.
+Built in M8 ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). Showcase: `tests/objects/fixtures/showcase/door_showcase.tscn` (one door per lock type).
+
+### Doors
+
+- `objects/door/door.tscn`: a sliding pocket door filling a 1.2 x 2.2 m doorway (origin on the floor at the doorway's centre, panel in the wall's middle plane, X along the wall). The panel slides 1.3 m along +X into the wall in 0.6 s (`door_settings.tres`). Closed, it blocks bodies and sight (world layer) and its `SoundAttenuator` adds 6 m to noise paths through the doorway (while less than half open). It does not close on a body in the doorway (player, guard, prop: `door.blocked`; a closing door that something walks into opens again). Place it where 1.35 m of wall continues on its +X side (the pocket) and 1 m on its -X side (control panels); set `Door.wall_thickness` (default 0.25) so the control panels sit on the wall faces. Rotate it 180 degrees to swap sides.
+- E on the panel or on either control panel: "E: open" / "E: close"; locked: what a lock offers ("E: enter code", "E: open (keycard)"), "Picking 40%" while picking, else "Locked: keycard or lockpick" (the locks' reasons), "Locked" with no lock. The control panels' light is red while locked, green unlocked, dark when broken or unpowered; their label lists the locks.
+- `objects/door/breakable_door.tscn`: the same plus `Breakable` (health 50, material `reinforced`: `damage.explosive` x1; ballistic, blunt, stun and fire x0) with `free_entity` off. A barrel blast (100 / 4 m) breaks it within about 2 m of the door's centre (100 x (1 - 2/4) = 50); pistol rounds (25 ballistic) and baton hits (20 stun + 5 blunt) never do. Broken, the panel is gone for good: passable, no attenuation, `state.broken`.
+- Saveable: `Door` (`open`, `broken`), `Lockable` (`locked`); `Tags` and `Attributes` save themselves.
+- EventLog: `door.opened` / `door.closed` {door, by}, `door.blocked`, `door.refused`, `door.command {door, command, done}`; `lock.unlocked` / `lock.locked` {entity, how}, `lock.code_entered {entity, code_id, correct}`, `lock.pick_started` / `lock.pick_cancelled` / `lock.picked`.
+
+### Locks (components on any entity)
+
+`Lockable` (`objects/locks/lockable.gd`) holds the locked state; each `Lock` component on the same entity is one way to unlock it, with its data in a Resource. A door can have several locks or none. Locks are placed where the device sits (their noises come from there). A user who unlocks on purpose also opens the door; power loss and commands only unlock.
+
+| Component | Data | Opens by | Notes |
+|---|---|---|---|
+| `KeypadLock` | `KeypadLockData`: `code_id`, `code`, `max_digits` 8, `wrong_noise` 4, `accept_noise` 2 | E opens the user's keypad screen; the right code | A wrong code beeps (noise 4) and clears the entry. The screen shows "Note: 2817, from 'Storage access'" when the user's PersonalLog knows the code (`known_code(code_id)`, `code_source(code_id)`); the user still types it. Only the code opens it until M11 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)) |
+| `MechanicalLock` | `MechanicalLockData`: `pins` (one type per pin: `standard`, `spool`, `serrated`), `pin_seed`, `tool` (`lockpick`), `seconds_per_pin` 1.0, `open_noise` 4 | Holding LMB with a lockpick in hand, looking at the door | M8 placeholder: pins x 1 s x the picker's `lockpick_time_mult` (3 pins: 3 s untrained, 2.25 s Trained); letting go or looking away loses the progress; success consumes nothing (picks break only on failure, M10). The hook is the `Lock` tool interface (`accepts_tool`, `tool_hold`, `tool_release`, `tool_progress`) driven by the user's `ToolUse`: M10 replaces `tool_hold` with the minigame |
+| `KeycardLock` | `KeycardLockData`: `access_id`, `accept_noise` 2 | E while carrying a keycard whose `key_id` is the access id | A character tagged `access.<access_id>` has the same access: guards with it path through and open the door while it stays locked |
+| `ElectronicLock` | the entity's tags | Remote unlock or open; power loss when fail-safe | `door.fail_safe` unlocks on power loss (its `Powered` switching off, or `state.unpowered` added); `door.fail_secure` (or no tag) stays as it is |
+
+- Keypad: code found in world notes. Datapads are read in place and copied to the player's personal log ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)); a datapad's `Readable.codes` maps the keypad's code id to the code. A code learned any other way (a conversation, a log entry) feeds the same reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`. From M11 a keypad is also hackable ("read its code", [hacking.md](hacking.md)).
+- Mechanical lock: the pin-tumbler minigame replaces the placeholder in M10 ([lockpicking.md](lockpicking.md)).
+- Electronic: the lock is a network device: opened remotely (from M11 with access to a machine it trusts or to the door itself), or by power loss when it is fail-safe.
+
+### Remote commands
+
+Every door is a network device: `door.tscn` carries a `Device` ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)), standalone until cabled (`Device.links`). `command.open`, `command.close`, `command.lock`, `command.unlock` (`Device.OPEN` ... `Device.UNLOCK`, sent with `Device.send_command(command, door)` by a device that reaches the door) run through the shared receptrons `objects/devices/receptrons/command_*.tres` (blocked while the door carries `state.unpowered` or `state.broken`) and the Device's `action_received`: the `Door` opens / closes, the `Lockable` locks / unlocks (`lock.locked` / `lock.unlocked` with `how: command`). A remote open is an authorised open: it opens a locked door without unlocking it (it is locked again once closed). A door with a `Powered` on a circuit is unpowered while the circuit is off (the Device mirrors it into `state.unpowered`): no commands, and a fail-safe lock unlocks.
+
+### Guards and doors
+
+The doorway is carved out of the navmesh and bridged by the door's `NavigationLink3D`: on navigation layer 1 while the door is passable (unlocked, open or broken), else on layer 2 plus the layer of each access id its locks let through ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). A guard's `DoorOpener` puts its agent on layer 1 plus its `access.<id>` tags' layers and opens a closed door when its next 3.5 m of path cross the doorway. Doors guards open stay open. Noise uses every layer, so it passes locked doors (with the closed door's 6 m).
 
 ```mermaid
 flowchart TD
@@ -91,7 +140,7 @@ flowchart TD
 ## Rules
 
 - Skills: Computer (the deck's tools, M11; replaces Electronics), Lockpicking (tolerances; M8 placeholder: pick time; picks break only on failure): [abilities.md](abilities.md).
-- Closed doors attenuate noise along the path; doors are navigation links for guards ([perception-and-ai.md](perception-and-ai.md), [stimulus-response.md](stimulus-response.md)).
+- Closed doors attenuate noise along the path (+6 m); doors are navigation links for guards, locked ones only for guards with the access ([perception-and-ai.md](perception-and-ai.md), [stimulus-response.md](stimulus-response.md), [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)).
 - From M10 lockpicks break only on failure, success consumes nothing ([inventory.md](inventory.md), [lockpicking.md](lockpicking.md)). There is no multitool.
 - Cameras and turrets use the same perception and receiver framework.
 
@@ -102,5 +151,6 @@ flowchart TD
 
 ## Open questions
 
-- Camera field of view and sweep, turret damage and behaviour, what M8 terminals can do, terminal content: TBD in M8. Siren loudness (35) and radio base station range (40 m): [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md).
+- Settled in M8: camera field of view and sweep, turret damage and behaviour ([ADR 0079](../decisions/0079-security-cameras-and-turret.md)); what M8 terminals do ([ADR 0080](../decisions/0080-credentials-terminal.md)); siren loudness (35) and radio base station range (40 m) ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)).
+- Terminal content beyond the device list (mail, files) is M11. Cameras do not track a moving target beyond holding their sweep; turrets do not lead moving targets.
 - Guards running to panic buttons.

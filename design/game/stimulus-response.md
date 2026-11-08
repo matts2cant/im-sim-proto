@@ -55,11 +55,11 @@ Devices and alarms (M8, [ADR 0077](../decisions/0077-devices-cables-and-remote-c
 ### Propagation and delivery
 
 - **RADIUS / STRAIGHT**: every registered receiver within `radius` of `origin` (straight line, through walls).
-- **RADIUS / PATH** ([ADR 0039](../decisions/0039-path-propagation-sound-attenuators.md)): distance = |origin to its nearest navmesh point| + navmesh path length (`NavigationServer3D.map_get_path` on the receiver's world map, usually the default 3D map) + |path end to receiver|, plus `extra_metres` of every enabled `SoundAttenuator` the straight segments of that polyline cross (each attenuator counted once).
+- **RADIUS / PATH** ([ADR 0039](../decisions/0039-path-propagation-sound-attenuators.md)): distance = |origin to its nearest navmesh point| + navmesh path length (`NavigationServer3D.map_get_path` on the receiver's world map, usually the default 3D map, on every navigation layer: noise crosses a locked door's link, which characters may not path through, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)) + |path end to receiver|, plus `extra_metres` of every enabled `SoundAttenuator` the straight segments of that polyline cross (each attenuator counted once).
   - No navmesh on the map, or no path found: straight-line distance (attenuators on that line still count); the reception is logged with `propagation: "straight_fallback"`.
   - Receivers further than `radius` in a straight line are skipped before any path query (a path is never shorter).
 - **RADIUS / LINE_OF_SIGHT** (M3): straight-line distance, delivered only when a ray from `origin` to the receiver hits nothing on collision layer 1 (world, [ADR 0045](../decisions/0045-collision-layers.md)); the source's and the receiver entity's own bodies are excluded (a barricade on the world layer receives fire aimed at its centre; a brazier emits from inside itself). Physics objects (layer 4) never block. Logged with `propagation: "line_of_sight"`.
-- **SoundAttenuator** (`core/stimulus/sound_attenuator.gd`): an `Area3D` in group `sound_attenuator` with `extra_metres` and `enabled`. Only the volumes of its `CollisionShape3D` children matter (box and sphere exact, other shapes by bounding box); no physics monitoring. M8 closed doors toggle `enabled`.
+- **SoundAttenuator** (`core/stimulus/sound_attenuator.gd`): an `Area3D` in group `sound_attenuator` with `extra_metres` and `enabled`. Only the volumes of its `CollisionShape3D` children matter (box and sphere exact, other shapes by bounding box); no physics monitoring. M8 doors enable it while less than half open (+6 m; [security.md](security.md)).
 - **CONTACT**: the receivers of `target`, or of its nearest ancestor that has receivers (a hitbox delivers to its entity).
 - **RAY**: `intersect_ray` from `origin` along `direction` for `length` on `collision_mask` (default all layers; weapons use `PhysicsLayers.WEAPON_MASK`: world, objects, hitboxes), excluding the source body and the `exclude` RIDs (a shooter's own hitboxes); the receivers of the first collider (same ancestor rule). M4, [ADR 0047](../decisions/0047-hitboxes-layer-5-part-aware-ray.md).
 - **Delivery data** (M4): receivers pass it to their effects (`EffectContext.data`). CONTACT: `distance` 0 and `collider` (the target node). RAY: `distance`, `collider` (the node hit, e.g. a hitbox), `position` and `normal`. RADIUS: `distance`, `propagation`. `ctx.collider()` returns the collider; body-part damage reads the hitbox's `body_part` from it.
@@ -225,7 +225,8 @@ flowchart LR
 - Fire and explosions: [objects-and-fire.md](objects-and-fire.md)
 - Damage types: [damage.md](damage.md)
 - Hearing and reactions: [perception-and-ai.md](perception-and-ai.md)
-- Door attenuation: [security.md](security.md)
+- Door attenuation and door commands: [security.md](security.md)
+- Door commands (`command.open` / `close` / `lock` / `unlock`, table above): the Door and its Lockable act on the Device's `action_received` ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md))
 - Live log and Overlays tab: [debug-panel.md](debug-panel.md)
 - Architecture: [../tech/architecture.md](../tech/architecture.md)
 

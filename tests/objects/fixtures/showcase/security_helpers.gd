@@ -4,7 +4,8 @@ extends RefCounted
 ## in a scene runner. Back wall face at z -8 (x -12..24); on it: Terminal (-6, 1.45), Switch (-4, 1.6,
 ## circuit `showcase_net`), Controller (-2.5, 1.5), Siren (-1, 2.6), Camera (4, 2.6) facing +Z
 ## (lens about 0.47 m out, 2.47 m up). Turret at (8, 0, -3) facing +X (eye 1.21 m up, 0.27 m in
-## front of its pivot). The switch carries terminal, camera, turret, controller and siren. Lamps on
+## front of its pivot). A door (door.tscn) at (-10.5, 0, -3) in a partition wall across x -12..-8.4
+## (it slides +X). The switch carries terminal, camera, turret, controller, siren and door. Lamps on
 ## circuit `showcase_lights` light the camera spot (4, 0, -1.5) (6 m in front of the lens, 0 degrees)
 ## and the turret spot (14.3, 0, -3) (6 m in front of its eye). The datapad on the desk carries the
 ## terminal's credentials (`showcase_terminal`: "jmercer:falcon7").

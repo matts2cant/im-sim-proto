@@ -23,7 +23,7 @@ func after_test() -> void:
 
 
 func test_prompt_texts() -> void:
-	assert_str(Interactor.prompt_for(Interactor.Kind.PICK_UP, "Multitool", 3)).is_equal("E: pick up Multitool (3)")
+	assert_str(Interactor.prompt_for(Interactor.Kind.PICK_UP, "Lockpick", 3)).is_equal("E: pick up Lockpick (3)")
 	assert_str(Interactor.prompt_for(Interactor.Kind.PICK_UP, "Medkit", 1)).is_equal("E: pick up Medkit")
 	assert_str(Interactor.prompt_for(Interactor.Kind.CARRY, "Small crate")).is_equal("E: carry Small crate")
 	assert_str(Interactor.prompt_for(Interactor.Kind.USE, "Training dummy", 1, "reset")).is_equal(
@@ -48,14 +48,14 @@ func test_display_names_come_from_metadata_or_the_node_name() -> void:
 func test_resolves_pickup_carry_and_too_heavy() -> void:
 	await _load()
 	var scene := _driver.runner.scene()
-	var tool := Items.spawn_pickup(scene, Items.MULTITOOL, Vector3(0, 0.05, -0.9), 3)
+	var tool := Items.spawn_pickup(scene, Items.LOCKPICK, Vector3(0, 0.05, -0.9), 3)
 	var crate := Objects.spawn(scene, Objects.SMALL_CRATE, Vector3(1.0, 0.3, -0.6))
 	var heavy := Objects.spawn(scene, Objects.LARGE_CRATE, Vector3(-1.3, 0.6, -0.8))
 	await _driver.frames(20)
 
 	await _look_at(tool.global_position)
 	assert_int(_player.interactor.kind).is_equal(Interactor.Kind.PICK_UP)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Multitool (3)")
+	assert_str(_player.interactor.prompt).is_equal("E: pick up Lockpick (3)")
 	await _look_at(crate.global_position)
 	assert_str(_player.interactor.prompt).is_equal("E: carry Small crate")
 	await _look_at(heavy.global_position)
@@ -93,7 +93,7 @@ func test_hitbox_resolves_to_its_character() -> void:
 
 func test_beyond_two_metres_there_is_no_prompt() -> void:
 	await _load()
-	var tool := Items.spawn_pickup(_driver.runner.scene(), Items.MULTITOOL, Vector3(0, 0.05, -2.6))
+	var tool := Items.spawn_pickup(_driver.runner.scene(), Items.LOCKPICK, Vector3(0, 0.05, -2.6))
 	await _driver.frames(20)
 
 	await _look_at(tool.global_position)

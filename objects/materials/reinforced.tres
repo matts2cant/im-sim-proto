@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialProfile" format=3]
+
+[ext_resource type="Script" path="res://objects/materials/material_profile.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Metal Glass Destruction.wav" id="2_break"]
+
+[resource]
+script = ExtResource("1_script")
+tag = &"material.metal"
+impact_loudness = 1.4
+damage_multipliers = Dictionary[StringName, float]({&"damage.ballistic": 0.0, &"damage.blunt": 0.0, &"damage.fire": 0.0, &"damage.stun": 0.0, &"damage.explosive": 1.0})
+break_impact_speed = 0.0
+break_sound = ExtResource("2_break")
+break_volume_db = -2.0
+debris_color = Color(0.3, 0.34, 0.4, 1)

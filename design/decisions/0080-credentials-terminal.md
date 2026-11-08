@@ -26,7 +26,7 @@ M8 keeps a placeholder terminal: credentials found in the world log you in, and 
 
 ## Consequences
 
-- Doors with `command.open/close/lock/unlock` receptrons appear on terminals that reach them with no terminal change (the labels are already in the table).
+- Doors ([ADR 0078](0078-doors-locks-and-door-navigation.md)) carry `command.open/close/lock/unlock` receptrons and a Device, so a cabled door appears with Open, Close, Lock and Unlock buttons with no door code in the terminal (tested: the showcase door opens from the terminal).
 - A new command type needs a label in `terminal.tres` to be offered (a test checks every `command.*` constant on `Device` has one).
 - M11 replaces the terminal and its screen; `Device.connected_devices()` and the label table can serve its Security app.
 - Tests: `tests/objects/terminal/terminal_rules_test.gd` (credentials, labels), `terminal_test.gd` (login with the datapad's credentials, commands reach devices, unplugging the switch empties the list, Esc / E, walking away).

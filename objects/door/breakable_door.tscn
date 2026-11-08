@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="3_receptron"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_open.tres" id="4_open"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_close.tres" id="5_close"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_lock.tres" id="6_lock"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_unlock.tres" id="7_unlock"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="8_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="9_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/reinforced.tres" id="10_reinforced"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="11_break_settings"]
+
+[node name="BreakableDoor" instance=ExtResource("1_door")]
+
+[node name="StimulusReceiver" parent="."]
+receptrons = Array[ExtResource("3_receptron")]([ExtResource("4_open"), ExtResource("5_close"), ExtResource("6_lock"), ExtResource("7_unlock"), ExtResource("8_take_damage")])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 50.0})
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+script = ExtResource("9_breakable")
+material = ExtResource("10_reinforced")
+settings = ExtResource("11_break_settings")
+free_entity = false
+size = 1.3

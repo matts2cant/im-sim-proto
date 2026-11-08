@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/objects/fixtures/showcase/door_showcase.tscn" id="1_showcase"]
+
+[node name="DoorShowcaseControl" type="Node3D"]
+
+[node name="DoorShowcase" parent="." instance=ExtResource("1_showcase")]
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(0.816968, -0.206942, 0.538274, 0, 0.933396, 0.358849, -0.576683, -0.293168, 0.762554, -5.55, 1.65, 0.95)
+current = true

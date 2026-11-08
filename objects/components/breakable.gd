@@ -3,7 +3,8 @@ extends Node3D
 ## Component: takes damage from `damage.*` stimuli (the `damage` receptron -> DamageEffect ->
 ## take_damage()) scaled by the material's multiplier per type, out of the entity's Attributes
 ## `health`. At 0 it emits `depleted`; unless `break_on_depleted` is off (an Explosive handles it)
-## it breaks: `noise` (PATH), break sound, debris, `contents` spawned in place, entity freed.
+## it breaks: `noise` (PATH), break sound, debris, `contents` spawned in place, entity freed (unless
+## `free_entity` is off: a door keeps its frame).
 ## Place it at the object's centre (noise origin, debris and contents spawn point).
 
 signal depleted(cause: Stimulus)
@@ -17,6 +18,9 @@ const HEALTH: StringName = &"health"
 @export var contents: Array[PackedScene] = []
 ## Off when another component (Explosive) reacts to health 0 instead.
 @export var break_on_depleted: bool = true
+## Off when the entity stays after breaking and reacts to `broken` itself (a door loses its panel
+## but keeps its frame, navigation link and saved state).
+@export var free_entity: bool = true
 ## Debris size reference: the object's largest dimension in metres.
 @export var size: float = 0.6
 @export var entity_path: NodePath = ^".."
@@ -84,7 +88,8 @@ func break_apart(reason: StringName, cause: Stimulus = null) -> void:
 	# Props wake what rested on them when they leave the tree; other bodies (the barricade) here.
 	if entity is CollisionObject3D and not entity is PhysicsObject:
 		SupportWake.wake_touching(entity as CollisionObject3D)
-	entity.queue_free()
+	if free_entity:
+		entity.queue_free()
 
 
 func _spawn_debris(parent: Node, origin: Vector3) -> int:
