@@ -1,7 +1,7 @@
 class_name CommsRules
 extends RefCounted
 ## Pure rules of guard communication (ADR 0072): when a character shouts or radios, and how it
-## answers the level alarm. No scene tree.
+## answers a siren (ADR 0077). No scene tree.
 
 
 ## Shouts on entering Alerted (and on finding a body: BodyDiscovery).
@@ -25,7 +25,7 @@ static func radio_heard(straight_distance: float, radio_range: float) -> bool:
 	return straight_distance <= radio_range
 
 
-## While the level alarm is raised, a character in `state` starts a search (Unaware, Suspicious);
-## Searching and Alerted ones carry on.
+## A character in `state` that hears a siren starts a search (Unaware, Suspicious); Searching and
+## Alerted ones carry on.
 static func alarm_searches(state: AwarenessModel.State) -> bool:
 	return state == AwarenessModel.State.UNAWARE or state == AwarenessModel.State.SUSPICIOUS

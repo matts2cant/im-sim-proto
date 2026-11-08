@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## south wall east of hub x -1 to room 5; the player walks in from the hub; the hub's navmesh holds
 ## every guard and patrol point; the radio guard is beyond shout range of the others (navmesh path
 ## > 20 m: shouts carry 17 m) but within radio range (straight line <= 27 m: radios reach 30 m);
-## the dark corner reads dark and the downed guard lies in the light.
+## every standing guard hears a siren (navmesh path < 30 m: sirens carry 34 m) and is within the
+## radio base station's 40 m; the dark corner reads dark and the downed guard lies in the light.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
@@ -15,6 +16,11 @@ const OTHER_ROOMS: Array[String] = [
 ]
 const SHOUT_CLEARANCE := 20.0
 const RADIO_REACH := 27.0
+## Sirens are heeded up to 34 m of path (loudness 35, margin 1); posts and patrol points stay
+## well inside.
+const SIREN_REACH := 30.0
+## The radio base station dispatches 40 m straight.
+const DISPATCH_REACH := 36.0
 const DARK_CORNER := Vector3(4.5, 0, 18.5)
 
 var _hub: Node3D
@@ -100,6 +106,27 @@ func test_radio_guard_is_out_of_shout_range_but_in_radio_range() -> void:
 		var where := str(_arena.to_local(spot))
 		assert_float(walked).override_failure_message("path to " + where).is_greater(SHOUT_CLEARANCE)
 		assert_float(straight).override_failure_message("straight to " + where).is_less_equal(RADIO_REACH)
+
+
+func test_every_standing_guard_hears_a_siren_and_the_base_station() -> void:
+	var map := await _load_hub()
+	var sirens: Array[Vector3] = []
+	for siren_name: String in ["SirenEast", "SirenWest"]:
+		sirens.append((_arena.get_node("Alarm/" + siren_name) as Node3D).global_position)
+	var station := (_arena.get_node("Alarm/BaseStation") as Node3D).global_position
+	# Where the standing guards are: posts, patrol points and leg middles (the downed one is out).
+	var spots := _alert_spots()
+	spots.append((_arena.get_node("Guards/GuardPistolRadio") as Node3D).global_position)
+	for spot in spots:
+		var nearest := INF
+		for siren in sirens:
+			var points := PackedVector3Array([siren])
+			points.append_array(NavigationServer3D.map_get_path(map, siren, spot, true))
+			points.append(spot)
+			nearest = minf(nearest, StimulusPropagation.polyline_length(points))
+		var where := str(_arena.to_local(spot))
+		assert_float(nearest).override_failure_message("siren path to " + where).is_less(SIREN_REACH)
+		assert_float(station.distance_to(spot)).override_failure_message("station to " + where).is_less(DISPATCH_REACH)
 
 
 func test_dark_corner_is_dark_and_the_downed_guard_lies_in_the_light() -> void:

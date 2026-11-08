@@ -50,6 +50,8 @@
 [ext_resource type="Resource" path="res://actors/common/light/light_exposure.tres" id="48_light_config"]
 [ext_resource type="Script" path="res://actors/common/pusher/body_pusher.gd" id="49_pusher"]
 [ext_resource type="Resource" path="res://actors/player/player_push.tres" id="50_push_config"]
+[ext_resource type="Resource" path="res://actors/common/awareness/receptrons/heard_siren.tres" id="60_heard_siren"]
+[ext_resource type="Script" path="res://actors/common/awareness/alarm_hearing.gd" id="61_alarm_hearing"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -102,7 +104,10 @@ base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_s
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("7_receiver")
-receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron"), ExtResource("35_energy_receptron")])
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron"), ExtResource("35_energy_receptron"), ExtResource("60_heard_siren")])
+
+[node name="AlarmHearing" type="Node" parent="."]
+script = ExtResource("61_alarm_hearing")
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("10_body_parts")

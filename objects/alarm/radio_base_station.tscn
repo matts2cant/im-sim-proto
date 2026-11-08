@@ -1,0 +1,91 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/metal.tres" id="7_metal"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
+[ext_resource type="Script" path="res://objects/alarm/radio_base_station.gd" id="20_station"]
+[ext_resource type="Resource" path="res://objects/alarm/radio_base_station.tres" id="21_config"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_broadcast.tres" id="30_command_broadcast"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.4, 0.45, 0.2)
+
+[sub_resource type="BoxMesh" id="Mesh_led"]
+material = ExtResource("12_led")
+size = Vector3(0.04, 0.04, 0.01)
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+material = ExtResource("11_metal_surface")
+size = Vector3(0.4, 0.45, 0.18)
+
+[sub_resource type="CylinderMesh" id="Mesh_antenna"]
+material = ExtResource("11_metal_surface")
+top_radius = 0.008
+bottom_radius = 0.015
+height = 0.5
+radial_segments = 8
+rings = 1
+
+[node name="RadioBaseStation" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+shape = SubResource("Shape_body")
+
+[node name="Box" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+cast_shadow = 0
+mesh = SubResource("Mesh_box")
+
+[node name="Antenna" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0.47, 0.1)
+cast_shadow = 0
+mesh = SubResource("Mesh_antenna")
+
+[node name="Indicator" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0.17, 0.195)
+cast_shadow = 0
+mesh = SubResource("Mesh_led")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.metal", &"object.device", &"object.radio_base_station"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 30.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_broadcast")])
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+script = ExtResource("6_breakable")
+material = ExtResource("7_metal")
+settings = ExtResource("8_break_settings")
+break_on_depleted = false
+size = 0.4
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("9_powered")
+targets = Array[NodePath]([NodePath("../Indicator")])
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("10_device")
+broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../Antenna")])
+
+[node name="RadioBaseStationBehaviour" type="Node" parent="."]
+script = ExtResource("20_station")
+config = ExtResource("21_config")

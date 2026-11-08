@@ -15,7 +15,7 @@ extends RefCounted
 ## - Searching: visits search_points random points within search_radius of the last known position
 ##   (the first at run pace, then walking), looking around at each; seeing the target: Alerted;
 ##   all visited or search_duration over: Unaware and wary. Also entered by search_at() (an ally's
-##   shout or radio call, the level alarm, being woken: ADR 0072) and discover_body() (ADR 0071):
+##   shout or radio call, a siren, being woken: ADR 0072, ADR 0077) and discover_body() (ADR 0071):
 ##   the first destination is the point itself (run pace), then the random points.
 ## - TEND (Searching): stand by a downed ally found unconscious, facing it, until end_tend() (the
 ##   BodyDiscovery woke it or gave up) or tend_timeout. Calls do not interrupt it; sight does.

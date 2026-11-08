@@ -15,7 +15,7 @@ ADR 0072 made the alarm one `LevelAlarm` node per level: any `alarm.raise` stimu
 - **Radio base station** (a device): if the controller reaches it, it broadcasts the incident location; characters tagged `equipment.radio` within its range search there first.
 - **Panic button**: the old alarm panel. Using it sends an incident to the controller it reaches.
 - **Remote command interface**: a command (ring, open, disable, ...) is a stimulus delivered to the target device; the device's receptrons run the action, blocked while it is unpowered or broken. Any entity with the right receptrons is a device; no command branches on a device's identity.
-- **Milestone split** (proposed; confirm when M8 is planned):
+- **Milestone split** (confirmed when M8 was planned; M8 build: [ADR 0077](0077-devices-cables-and-remote-commands.md)):
   - **M8** builds the alarm controller, sirens and radio base station as devices with the stimulus-based remote command interface, wired by a simple physical link graph: a device reaches another when every link and node between them is powered and unbroken.
   - **M11** replaces plain reachability with the logical network: addresses, subnets and firewall rules ([ADR 0074](0074-network-hacking.md)).
 - The HUD "ALARM" label shows while the player can hear a ringing siren. The debug panel's "Raise alarm" and "Clear alarm" trigger and reset the level's alarm controllers.

@@ -1,7 +1,7 @@
 class_name AlertComms
 extends Node
-## Component (ADR 0072): a character's calls for help and its answer to the level alarm. Sibling
-## of a GradedAwareness (and optionally a BodyDiscovery); tuning `config`.
+## Component (ADR 0072): a character's calls for help and its answer to alarm sirens. Sibling of a
+## GradedAwareness (and optionally a BodyDiscovery and an AlarmHearing); tuning `config`.
 ## - Shout: on entering Alerted (CommsRules) and on finding a body (BodyDiscovery.body_found) it
 ##   emits `alert.shout`, a RADIUS stimulus of `shout_loudness` propagated along the navmesh like
 ##   noise. Allies' `heard_shout` receptron (margin >= 1: 17 m of path) makes them search at the
@@ -9,9 +9,10 @@ extends Node
 ## - Radio: on entering Alerted, with the `radio_tag` tag, it emits `alert.radio`, a STRAIGHT
 ##   RADIUS stimulus of `radio_range` (walls do not matter); allies' `heard_radio` receptron
 ##   (requires the radio tag on the receiver) makes them search at the sender's position.
-## - Level alarm: while the level's LevelAlarm (group `level_alarm`) is raised, the character stays
-##   wary and, when Unaware or Suspicious, starts a search around where it stands (Searching and
-##   Alerted carry on); a finished search starts again while the alarm lasts.
+## - Sirens (ADR 0077): on every siren pulse its AlarmHearing hears (the `heard_siren` receptron,
+##   a margin >= 1: 34 m of path), the character stays wary at least `alarm_wary` seconds and, when
+##   Unaware or Suspicious, starts a search around where it stands (reason `alarm`; Searching and
+##   Alerted carry on); a finished search starts again while the siren is heard.
 ## EventLog: `actor.shout {actor, reason, point}`, `actor.radio {actor, point}`. Searchers do not
 ## shout or radio, so calls do not cascade.
 
@@ -26,12 +27,14 @@ func _ready() -> void:
 	awareness = GradedAwareness.of_node(entity)
 	if awareness == null or config == null:
 		push_warning("AlertComms %s: needs a GradedAwareness sibling and a config" % get_path())
-		set_physics_process(false)
 		return
 	awareness.state_changed.connect(_on_state_changed)
 	var discovery := BodyDiscovery.of(entity)
 	if discovery != null:
 		discovery.body_found.connect(_on_body_found)
+	var hearing := AlarmHearing.of(entity)
+	if hearing != null:
+		hearing.heard.connect(_on_alarm_heard)
 
 
 func has_radio() -> bool:
@@ -56,11 +59,9 @@ func radio() -> void:
 	StimulusSystem.emit(stimulus)
 
 
-func _physics_process(_delta: float) -> void:
+## A siren was heard: wary, and a search around where it stands unless already searching or alerted.
+func answer_alarm() -> void:
 	if not ActorState.can_act(entity):
-		return
-	var alarm := LevelAlarm.current(get_tree())
-	if alarm == null or not alarm.is_raised():
 		return
 	awareness.make_wary(config.alarm_wary)
 	if CommsRules.alarm_searches(awareness.state()):
@@ -78,3 +79,7 @@ func _on_state_changed(from: AwarenessModel.State, to: AwarenessModel.State, _re
 
 func _on_body_found(_body: Node3D) -> void:
 	shout("body")
+
+
+func _on_alarm_heard(_at: Vector3) -> void:
+	answer_alarm()

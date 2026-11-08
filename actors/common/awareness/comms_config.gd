@@ -19,5 +19,5 @@ extends Resource
 @export var radio_tag: StringName = &"equipment.radio"
 
 @export_group("Alarm")
-## While the level alarm is raised the character stays wary at least this long.
+## On every siren pulse it hears (ADR 0077) the character stays wary at least this long.
 @export var alarm_wary: float = 60.0

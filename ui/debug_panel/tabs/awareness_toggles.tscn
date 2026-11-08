@@ -20,12 +20,12 @@ layout_mode = 2
 
 [node name="Raise" type="Button" parent="Alarm"]
 layout_mode = 2
-tooltip_text = "Raise the level alarm (90 s): every guard searches and stays wary"
+tooltip_text = "Trigger every alarm controller (90 s): their sirens ring; guards who hear one search and stay wary"
 text = "Raise alarm"
 
 [node name="Clear" type="Button" parent="Alarm"]
 layout_mode = 2
-tooltip_text = "End the level alarm now"
+tooltip_text = "Reset every alarm controller: the sirens stop"
 text = "Clear alarm"
 
 [node name="State" type="Label" parent="Alarm"]
