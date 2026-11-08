@@ -2,10 +2,11 @@ class_name GameMenu
 extends CanvasLayer
 ## Game menu (child of the Player, ADR 0064): Esc opens it when no other pause screen is open
 ## (PauseScreens: it pauses the game and frees the mouse), Esc or Resume closes it. Save writes the
-## one save slot (QuickSave; refused while dead), Load loads it (disabled, with the reason, when
+## one save slot (QuickSave; refused while dead or knocked out), Load loads it (disabled, with the reason, when
 ## there is nothing loadable; the line under it names the save's time and level), Quit game asks
 ## for confirmation first. Not openable while the debug panel is open, the player's input is
-## disabled or a load is running; it opens on the death screen (Load works there).
+## disabled or a load is running; it opens on the losing screen, dead or knocked out (Load works
+## there).
 ## After a load the new player's menu shows "Loaded" on the HUD (QuickSave.LOADED_GROUP).
 
 ## Yes on the quit confirmation, before the game quits (tests turn the quit off).
@@ -14,6 +15,7 @@ signal quit_requested
 const SAVED := "Saved"
 const LOADED := "Loaded"
 const DEAD := "Cannot save while dead"
+const KNOCKED_OUT := "Cannot save while knocked out"
 const QUIT_QUESTION := "Quit? Unsaved progress is lost."
 const HINT := "Esc: resume"
 const CONFIRM_HINT := "Esc: back"
@@ -107,13 +109,14 @@ func refresh_slot() -> void:
 	slot_label.text = GameMenuRules.slot_line(header, GameMenuRules.system_utc_offset())
 
 
-## Save: writes the slot now and says "Saved" (the menu stays open); false when refused (dead, a
-## load running) or the write failed.
+## Save: writes the slot now and says "Saved" (the menu stays open); false when refused (dead or
+## knocked out: the save could only be loaded onto the losing screen; a load running) or the write
+## failed.
 func save_game() -> bool:
 	if player == null or QuickSave.is_loading():
 		return false
-	if player.is_dead():
-		status_label.text = DEAD
+	if not ActorState.can_act(player):
+		status_label.text = DEAD if player.is_dead() else KNOCKED_OUT
 		return false
 	var status := QuickSave.save_game(get_tree())
 	status_label.text = SAVED if status == SaveFile.Status.OK else GameMenuRules.message(status)

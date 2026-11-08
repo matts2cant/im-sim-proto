@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Unit: HudRules (part colours, ammo text).
+## Unit: HudRules (part colours, ammo text, losing overlay title).
 
 const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
 const BATON: WeaponData = preload("res://items/weapons/baton/baton.tres")
@@ -49,3 +49,10 @@ func test_chip_text_names_the_key_of_toggles_only() -> void:
 
 	assert_str(HudRules.chip_text(toggle)).is_equal("F1 Cloak")
 	assert_str(HudRules.chip_text(passive)).is_equal("Combat Strength")
+
+
+func test_overlay_title_dead_wins_over_knocked_out() -> void:
+	assert_str(HudRules.overlay_title(false, false)).is_empty()
+	assert_str(HudRules.overlay_title(false, true)).is_equal(HudRules.KNOCKED_OUT_TITLE)
+	assert_str(HudRules.overlay_title(true, false)).is_equal(HudRules.DIED_TITLE)
+	assert_str(HudRules.overlay_title(true, true)).is_equal(HudRules.DIED_TITLE)
