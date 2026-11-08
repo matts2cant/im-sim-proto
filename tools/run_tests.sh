@@ -2,7 +2,7 @@
 # Runs the GdUnit4 suite headless; reports go to reports/.
 # Usage: tools/run_tests.sh [-j N] [res://path ...]   (default: res://tests, N: auto)
 #   -j N           run the suites in N parallel Godot processes (shards); -j 1 runs one process.
-#   TEST_JOBS      same as -j (default: auto = min(8, cores / 2), 1 for a single suite file).
+#   TEST_JOBS      same as -j (default: auto = min(12, logical cores / 2), never more than suites).
 #   TEST_IMPORT=1  force the project import even when no file changed since the last one.
 #   TEST_FIXED_FPS frames per second of simulated time (default 144, see below); 0 = real time.
 # Godot binary: $GODOT_BIN, defaulting to the project's standard install path.
@@ -10,6 +10,8 @@
 # Details: design/tech/testing.md ("Running tests", "Writing fast tests"), ADR 0084.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+now_ms() { echo $(($(date +%s%N) / 1000000)); }
+t_start=$(now_ms)
 
 export GODOT_BIN="${GODOT_BIN:-/c/Program Files/Godot/Godot_v4.7.2-stable_win64_console.exe}"
 jobs="${TEST_JOBS:-auto}"
@@ -48,8 +50,10 @@ project_stamp() {
 	} | md5sum | cut -d' ' -f1
 }
 stamp="$(project_stamp)"
+imported=no
 if [ "${TEST_IMPORT:-0}" = "1" ] || [ ! -f "$stamp_file" ] || [ "$(cat "$stamp_file")" != "$stamp" ]; then
 	rm -f "$stamp_file"
+	imported=yes
 	if ! "$GODOT_BIN" --headless --path . --import > reports/import.log 2>&1; then
 		echo "Godot import failed; last 20 lines of reports/import.log:" >&2
 		tail -n 20 reports/import.log >&2
@@ -80,7 +84,7 @@ fi
 if [ "$jobs" = "auto" ]; then
 	cores="$(nproc 2>/dev/null || echo 4)"
 	jobs=$((cores / 2))
-	[ "$jobs" -gt 8 ] && jobs=8
+	[ "$jobs" -gt 12 ] && jobs=12
 fi
 [ "$jobs" -lt 1 ] && jobs=1
 [ "$jobs" -gt ${#suites[@]} ] && jobs=${#suites[@]}
@@ -130,7 +134,7 @@ rm -rf "$shard_root"
 pids=()
 fps_args=()
 [ "$fixed_fps" != "0" ] && fps_args=(--fixed-fps "$fixed_fps")
-start_s=$(date +%s)
+t_shards=$(now_ms)
 for ((i = 0; i < jobs; i++)); do
 	dir="$shard_root/$i"
 	mkdir -p "$dir/appdata"
@@ -138,11 +142,16 @@ for ((i = 0; i < jobs; i++)); do
 	echo "${shard_suites[i]}" | tr ' ' '\n' | grep -v -e '^-a$' -e '^$' > "$dir/suites.txt"
 	# --remote-debug tcp://127.0.0.1:0 (as addons/gdUnit4/runtest.sh) keeps Godot's interactive CLI
 	# debugger from looping on script parse errors: port 0 is never bound.
-	# shellcheck disable=SC2086
-	APPDATA="$(cygpath -w "$PWD/$dir/appdata" 2>/dev/null || echo "$PWD/$dir/appdata")" \
-		"$GODOT_BIN" --path . --headless "${fps_args[@]}" -s -d --remote-debug tcp://127.0.0.1:0 \
-		res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -c -rd "res://$dir" ${shard_suites[i]} \
-		> "$dir/output.log" 2>&1 &
+	(
+		rc_shard=0
+		# shellcheck disable=SC2086
+		APPDATA="$(cygpath -w "$PWD/$dir/appdata" 2>/dev/null || echo "$PWD/$dir/appdata")" \
+			"$GODOT_BIN" --path . --headless "${fps_args[@]}" -s -d --remote-debug tcp://127.0.0.1:0 \
+			res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -c -rd "res://$dir" ${shard_suites[i]} \
+			> "$dir/output.log" 2>&1 || rc_shard=$?
+		now_ms > "$dir/end_ms"
+		exit "$rc_shard"
+	) &
 	pids+=($!)
 done
 trap 'kill "${pids[@]}" 2>/dev/null || true' INT TERM
@@ -159,7 +168,7 @@ for ((i = 0; i < jobs; i++)); do
 	rcs+=("$rc_i")
 done
 trap - INT TERM
-elapsed=$(($(date +%s) - start_s))
+t_post=$(now_ms)
 
 log=reports/test_output.log
 cat "$shard_root"/*/output.log > "$log"
@@ -222,7 +231,23 @@ if [ -s reports/project_errors.log ]; then
 	[ "$rc" -eq 0 ] && rc=1
 fi
 
+# Where the time went: before the shards (import check, import), the shard processes (Godot
+# startup, GdUnit scan, suites, report, shutdown; the slowest one sets the pace) and after them
+# (result merge, error scan).
+t_end=$(now_ms)
+slowest=0
+slowest_ms=0
+for ((i = 0; i < jobs; i++)); do
+	end_i="$(cat "$shard_root/$i/end_ms" 2>/dev/null || echo "$t_post")"
+	ms=$((end_i - t_shards))
+	if [ "$ms" -gt "$slowest_ms" ]; then slowest=$i; slowest_ms=$ms; fi
+done
+exec_line="$(strip < "$shard_root/$slowest/output.log" | grep -a 'Total execution time' | tail -n 1 | sed 's/Total execution time: //' || true)"
+secs() { awk -v ms="$1" 'BEGIN { printf "%.1fs", ms / 1000 }'; }
 echo
-echo "Overall Summary: ${totals[0]} test cases | ${totals[1]} errors | ${totals[2]} failures | ${totals[3]} flaky | ${totals[4]} skipped | ${totals[5]} orphans | $crashed crashed shard(s) | ${#suites[@]} suites in $jobs shard(s), ${elapsed}s | exit $rc"
+echo "Timing: total $(secs $((t_end - t_start))) = before shards $(secs $((t_shards - t_start))) (import: $imported)" \
+	"+ shards $(secs $((t_post - t_shards))) (slowest: shard $slowest, $(secs "$slowest_ms"), GdUnit execution ${exec_line:-?})" \
+	"+ after $(secs $((t_end - t_post)))"
+echo "Overall Summary: ${totals[0]} test cases | ${totals[1]} errors | ${totals[2]} failures | ${totals[3]} flaky | ${totals[4]} skipped | ${totals[5]} orphans | $crashed crashed shard(s) | ${#suites[@]} suites in $jobs shard(s), $(secs $((t_end - t_start))) | exit $rc"
 echo "Reports: reports/shards/<n>/report_1/ (index.html, results.xml); full output: $log"
 exit "$rc"
