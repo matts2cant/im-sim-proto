@@ -24,6 +24,7 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Give tuning targets as measured outcomes (time to kill, time to detect) and ask for a test that measures them; my starting numbers are only a first guess.
 - Briefs tell agents to iterate on a test subset (`tools/run_tests.sh res://tests/<area>`) and run the full suite once at the end, and never to stop a running suite mid-way.
 - Briefs describe behaviour in terms of properties (components, tags, stimuli), not specific objects, and diff reviews check for identity branches (names, scene paths, concrete classes): AGENTS.md "Systemic design".
+- Worktree briefs say: check `git log -1` first; if the worktree is not on current master, reset the branch to master before starting (worktrees have been cut from an old commit).
 - Briefs point sub-agents at AGENTS.md (definition of done) and ask for a short report: files, verification results, deviations, screenshot paths.
 
 ## Playtest gate
