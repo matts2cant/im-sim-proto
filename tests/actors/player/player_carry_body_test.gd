@@ -63,7 +63,8 @@ func test_pick_up_carry_and_drop_a_downed_guard() -> void:
 
 	await _driver.hold(&"drop_throw", 2)
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_int(guard.collision_layer).is_equal(PhysicsLayers.ACTORS)
+	# Still down: back on the downed bodies' layer, which characters walk through (ADR 0082).
+	assert_int(guard.collision_layer).is_equal(PhysicsLayers.DOWNED)
 	assert_bool(guard.is_physics_processing()).is_true()
 	assert_int(Hitboxes.of(guard).boxes()[0].collision_layer).is_equal(PhysicsLayers.HITBOXES)
 	await _driver.frames(90)
@@ -106,8 +107,9 @@ func test_a_body_saved_while_carried_loads_downed_and_lands_on_the_floor() -> vo
 
 	var fresh := await _reload(room)
 	var copy := fresh.get_node("Downed") as NavWalker
-	assert_int(copy.collision_layer).is_equal(PhysicsLayers.ACTORS)
 	await Objects.frames(get_tree(), 90)
+	# The carry's ghosting is not saved: the downed body is on its usual layer.
+	assert_int(copy.collision_layer).is_equal(PhysicsLayers.DOWNED)
 	assert_float(copy.global_position.y).is_equal_approx(0.0, 0.05)
 	assert_float(Vector2(copy.global_position.x - held_at.x, copy.global_position.z - held_at.z).length()).is_less(0.1)
 	assert_bool(ActorState.has(copy, ActorState.UNCONSCIOUS)).is_true()
