@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs the GdUnit4 suite headless; reports go to reports/.
-# Usage: tools/run_tests.sh [-j N] [res://path ...]   (default: res://tests, N: auto)
+# Usage: tools/run_tests.sh [-j N] [--dry-run] [res://path ...]   (default: res://tests, N: auto)
 #   -j N           run the suites in N parallel Godot processes (shards); -j 1 runs one process.
+#   --dry-run      print the shard split (each suite's weight, * = estimated) and exit: no import, no run.
 #   TEST_JOBS      same as -j (default: auto = min(12, logical cores / 2), never more than suites).
 #   TEST_IMPORT=1  force the project import even when no file changed since the last one.
 #   TEST_FIXED_FPS frames per second of simulated time (default 144, see below); 0 = real time.
@@ -25,10 +26,12 @@ stamp_ms t_start
 
 export GODOT_BIN="${GODOT_BIN:-/c/Program Files/Godot/Godot_v4.7.2-stable_win64_console.exe}"
 jobs="${TEST_JOBS:-auto}"
+dry_run=0
 targets=()
 while [ $# -gt 0 ]; do
 	case "$1" in
 	-j) jobs="$2"; shift 2 ;;
+	--dry-run) dry_run=1; shift ;;
 	-j*) jobs="${1#-j}"; shift ;;
 	*) targets+=("$1"); shift ;;
 	esac
@@ -78,7 +81,9 @@ project_stamp() {
 }
 stamp="$(project_stamp)"
 imported=no
-if [ "${TEST_IMPORT:-0}" = "1" ] || [ ! -f "$stamp_file" ] || [ "$(cat "$stamp_file")" != "$stamp" ]; then
+if [ "$dry_run" = "1" ]; then
+	imported=skipped
+elif [ "${TEST_IMPORT:-0}" = "1" ] || [ ! -f "$stamp_file" ] || [ "$(cat "$stamp_file")" != "$stamp" ]; then
 	rm -f "$stamp_file"
 	imported=yes
 	if ! "$GODOT_BIN" --headless --path . "${log_args[@]}" --import > reports/import.log 2>&1; then
@@ -129,8 +134,10 @@ times_file=reports/suite_times.tsv
 scene_suites="$(printf '%s\n' "${suites[@]}" | sed 's|^res://||' | grep '\.gd$' | xargs grep -l 'scene_runner(' 2>/dev/null | sed 's|^|res://|' || true)"
 declare -a shard_suites
 for ((i = 0; i < jobs; i++)); do shard_suites[i]=""; done
-while read -r i s; do
+plan=""
+while read -r i s wt est; do
 	shard_suites[i]+=" -a $s"
+	plan+="$i $wt$est $s"$'\n'
 done < <(
 	printf '%s\n' "${suites[@]}" | awk -v jobs="$jobs" -v times="$times_file" -v scenes="$scene_suites" '
 		BEGIN {
@@ -164,12 +171,20 @@ done < <(
 			shard = 0; load = 0
 			for (k = 1; k <= n; k++) {
 				if (load + w[k] > hi && load > 0 && shard < jobs - 1) { shard++; load = 0 }
-				load += w[k]; print shard, name[k]
+				load += w[k]; print shard, name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
 			}
 		}'
 )
 # Slices are contiguous, so any unused shards are the last ones.
 while [ "$jobs" -gt 1 ] && [ -z "${shard_suites[jobs - 1]}" ]; do jobs=$((jobs - 1)); done
+if [ "$dry_run" = "1" ]; then
+	# One block per shard: its total weight, then each suite's weight in seconds (* = estimated).
+	printf '%s' "$plan" | awk '
+		{ tot[$1] += $2 + 0; line[$1] = line[$1] sprintf("    %7ss  %s\n", $2, $3); if ($1 > last) last = $1 }
+		END { for (i = 0; i <= last; i++) printf "shard %d: %.1fs\n%s", i, tot[i], line[i] }'
+	echo "${#suites[@]} suites in $jobs shard(s), weights from $times_file (* = no recorded time: estimated)"
+	exit 0
+fi
 
 # Each shard is its own Godot process with its own user:// (APPDATA) and report directory, so saves,
 # GdUnit temp files and Godot logs never collide (with each other or with other checkouts' runs).
