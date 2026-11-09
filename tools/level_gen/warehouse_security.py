@@ -45,7 +45,8 @@ FRONT, BACK = 1, 2
 # Doors: doorway name -> spec. yaw: the door's rotation (its +X is the pocket side, +Z its front);
 # wall: wall thickness (control panels on its faces); settings: DoorSettings file; locked; locks
 # (kind, data, side the key is used from, free side); tags; circuit (a Powered on the door); cabled
-# (linked to the security switch).
+# (linked to a security switch); side_walls: (front, back) distance from the doorway's centre to a
+# narrow corridor's side wall on the control panel's side (-X): the panel hangs on that wall (M9e).
 DOORS = {
     "FrontGate": {"yaw": 0, "wall": 0.4, "settings": "vehicle_gate_settings", "locks": [("electronic", None, BACK, 0)], "tags": ["door.fail_secure"], "circuit": YARD, "cabled": True},
     "BoothDoor": {"yaw": 90, "wall": 0.2, "open": True},  # left open: the booth lamp lights G1's post
@@ -55,8 +56,8 @@ DOORS = {
     "RollerDoor2": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
     "AnnexDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, BACK, 0)]},
     "AnnexRoofDoor": {"yaw": -90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "OfficeEntrance": {"yaw": 90, "wall": 0.25},
+    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)], "side_walls": (0.0, 0.75)},
+    "OfficeEntrance": {"yaw": 90, "wall": 0.25, "side_walls": (0.75, 0.0)},
     "BreakRoomHall": {"yaw": 0, "wall": 0.25},
     "BreakRoomCorridor": {"yaw": 0, "wall": 0.25},
     "SecurityDoor": {
@@ -65,19 +66,42 @@ DOORS = {
     },
     "StairsGround": {"yaw": 0, "wall": 0.25},
     "LockerRoom": {"yaw": 0, "wall": 0.25},
-    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, BACK, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True},
+    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, BACK, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True, "side_walls": (0.75, 0.0)},
     "ManagerDoor": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("keypad", MANAGER_CODE, FRONT, BACK)]},
     "VaultDoor": {
         "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_VAULT, FRONT, BACK), ("electronic", None, FRONT, BACK)],
         "tags": ["door.fail_secure"], "circuit": BUILDING, "cabled": True,
     },
     "StairsUpper": {"yaw": 0, "wall": 0.25},
-    "CatwalkStairsDoor": {"yaw": 90, "wall": 0.25},
+    "CatwalkStairsDoor": {"yaw": 90, "wall": 0.25, "side_walls": (0.65, 0.9)},
     "OfficeTwo": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("mechanical", 2, BACK, FRONT)]},
     "BoilerStore": {"yaw": 0, "wall": 0.5},
     "BoilerTunnel": {"yaw": 90, "wall": 0.5},
     "TunnelGate": {"yaw": -90, "wall": 0.3, "locked": True, "locks": [("mechanical", 4, BACK, FRONT)]},
 }
+
+# Signs over doorways (kit Sign): doorway -> [(face, text[, size])], SMALL unless given (corridors are
+# narrow). The office block and its rooms read
+# from the hall and the corridors at night; the objective names the manager's office.
+DOOR_SIGNS = {
+    "OfficeEntrance": [(BACK, "OFFICES", 1)],
+    "BridgeDoor": [(BACK, "OFFICES", 1)],
+    "CatwalkStairsDoor": [(BACK, "STAIRS")],
+    "BreakRoomHall": [(BACK, "BREAK ROOM")],
+    "BreakRoomCorridor": [(FRONT, "BREAK ROOM")],
+    "SecurityDoor": [(FRONT, "SECURITY")],
+    "StairsGround": [(BACK, "STAIRS")],
+    "LockerRoom": [(BACK, "LOCKERS")],
+    "ManagerDoor": [(FRONT, "MANAGER")],
+    "VaultDoor": [(FRONT, "VAULT")],
+    "StairsUpper": [(BACK, "STAIRS")],
+    "OfficeTwo": [(BACK, "OFFICE")],
+    "FireEscapeDoor": [(BACK, "FIRE EXIT")],
+    "BoilerStore": [(FRONT, "BOILER ROOM"), (BACK, "STORE")],
+}
+# Sign centre heights above the doorway's floor (doorways are 2.2 m; upper rooms 2.6 m high).
+SIGN_Y = 2.55
+SIGN_UPPER_Y = 2.4
 
 
 def facing(direction):
@@ -123,10 +147,28 @@ WALL_DEVICES = {
     "RadioBaseStation": ("base_station", (19.74, 1.2, 1.2), -90.0),
     "PanicButtonSecurity": ("panic", (14.01, 1.3, 2.0), 90.0),
     "PanicButtonBooth": ("panic", (-12.49, 1.3, -20.6), 90.0),
+    # The yard's own controller (M9e, ADR 0092): booth east wall inside, south of the door.
+    "AlarmControllerYard": ("controller", (-9.51, 1.5, -20.6), -90.0),
 }
 TURRET = ((16.9, w.OFF_UP, 1.0), 0.0)
 SECURITY_CONSOLE = ((16.05, 1.47, 0.26), 0.0)
+# Two switches (M9e, ADR 0092): the building's in the basement store on breaker B, the yard's in the
+# gate booth on breaker A (booth east wall inside, north of the door: seen through the west window).
+# Cutting the whole network takes both, in two places; an uplink cable joins them.
 SWITCH = ((19.49, w.BASE_Y + 1.6, 6.0), -90.0)
+YARD_SWITCH = ((-9.51, 1.5, -23.4), -90.0)
+# Devices on the yard switch (the rest of the cabled devices hang on the building's).
+YARD_DEVICES = (
+    "Doors/FrontGate",
+    "Devices/CameraGate",
+    "Devices/CameraYard",
+    "Devices/PanicButtonBooth",
+    "Devices/AlarmControllerYard",
+    "Devices/SirenDock",
+    "Devices/SirenEastYard",
+    "Devices/SirenBackStrip",
+    "Devices/SirenWestYard",
+)
 BREAKERS = {
     "BreakerA": ((-25.99, 1.4, 4.0), 90.0, YARD, "yard lights"),
     "BreakerB": ((19.49, w.BASE_Y + 1.4, 3.0), -90.0, BUILDING, "building power"),
@@ -210,6 +252,7 @@ SCENES = {
     "datapad": "res://objects/datapad/datapad.tscn",
     "keycard": "res://items/keycard/keycard.tscn",
     "ledge": "res://levels/kit/ledge.tscn",
+    "sign": "res://levels/kit/sign.tscn",
 }
 SCRIPTS = {
     "keypad": "res://objects/locks/keypad_lock.gd",
@@ -255,6 +298,11 @@ def build():
         if spec.get("locked"):
             s.override(f"{path}/Lockable", {"locked": True})
         door_props = {"wall_thickness": spec["wall"]}
+        front_side, back_side = spec.get("side_walls", (0.0, 0.0))
+        if front_side > 0.0:
+            door_props["front_side_wall"] = front_side
+        if back_side > 0.0:
+            door_props["back_side_wall"] = back_side
         if spec.get("open"):
             door_props["start_open"] = True
         settings_name = spec.get("settings")
@@ -285,6 +333,21 @@ def build():
         if spec.get("cabled"):
             cabled.append(f"Doors/{name}")
 
+    # --- Door signs (M9e: where to go without markers) -------------------------------------------
+    s.add("Signs", ".", "Node3D")
+    for name, faces in DOOR_SIGNS.items():
+        pos, _axis = DOORWAYS[name]
+        spec = DOORS[name]
+        upper = pos[1] >= w.OFF_UP - 0.1
+        for side, text, *size in faces:
+            # Above the doorway on the wall face (upper storey: under its 2.6 m ceiling).
+            depth = (spec["wall"] * 0.5 + 0.02) * (1 if side == FRONT else -1)
+            yaw = spec["yaw"] + (0.0 if side == FRONT else 180.0)
+            radians = math.radians(spec["yaw"])
+            at = (pos[0] + depth * math.sin(radians), pos[1] + (SIGN_UPPER_Y if upper else SIGN_Y), pos[2] + depth * math.cos(radians))
+            label = name + ("Front" if side == FRONT else "Back")
+            s.add(label, "Signs", instance=scene["sign"], props={"transform": Raw(transform(at, yaw_basis(yaw))), "text": text, "size": size[0] if size else 0})
+
     # --- Security network ---------------------------------------------------------------------
     s.add("Devices", ".", "Node3D")
     for name, (pos, yaw, tilt) in CAMERAS.items():
@@ -311,13 +374,22 @@ def build():
     for name, (pos, yaw, circuit, label) in BREAKERS.items():
         s.add(name, "Devices", instance=scene["breaker"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
         s.override(f"Devices/{name}/CircuitBreaker", {"circuit": sname(circuit), "label": label})
-    # The switch every security device hangs on (basement store, on breaker B): breaking or
-    # unpowering it cuts the cameras, panic buttons and console from the controller and the
-    # controller from the sirens (the showcase moment).
+    # Two switches (ADR 0092). The building's (basement store, breaker B) carries the building's
+    # devices and the security room's controller; the yard's (gate booth, breaker A) the yard's
+    # cameras, sirens, panic button, the front gate and the booth's controller. Breaking or
+    # unpowering one cuts its part (its cameras reach no controller, its sirens hear none); the
+    # other part keeps working on its own controller (the showcase moment, twice). The uplink
+    # between them lets either controller ring every siren and the console reach the yard.
+    yard = [p for p in cabled if p in YARD_DEVICES]
+    building = [p for p in cabled if p not in YARD_DEVICES]
     pos, yaw = SWITCH
     s.add("SecuritySwitch", "Devices", instance=scene["switch"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
     s.override("Devices/SecuritySwitch/Powered", {"circuit": sname(BUILDING)})
-    s.override("Devices/SecuritySwitch/Device", {"links": node_paths(["../../../" + p for p in cabled])})
+    s.override("Devices/SecuritySwitch/Device", {"links": node_paths(["../../../" + p for p in building + ["Devices/YardSwitch"]])})
+    pos, yaw = YARD_SWITCH
+    s.add("YardSwitch", "Devices", instance=scene["switch"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
+    s.override("Devices/YardSwitch/Powered", {"circuit": sname(YARD)})
+    s.override("Devices/YardSwitch/Device", {"links": node_paths(["../../../" + p for p in yard])})
 
     # --- M11 hooks (separate networks until M11's gateway joins them) ---------------------------
     s.add("Network", ".", "Node3D")

@@ -15,6 +15,12 @@ extends Resource
 @export var travel: Vector3 = Vector3(1.3, 0.0, 0.0)
 ## Thickness (m) of the panel.
 @export var panel_thickness: float = 0.06
+## Above 0 the panel is a grille, not a sheet: vertical bars this far apart (m, centre to centre)
+## and two rails. Bodies are stopped; sight, shots and light pass between the bars, like the
+## palisade fence (a gate in it). Give a grille `attenuate_below` 0: it does not muffle noise.
+@export var bar_spacing: float = 0.0
+## Width (m) of a grille's bars.
+@export var bar_width: float = 0.05
 ## The panel's offset (m) from the wall's middle plane along the door's Z (a gate that slides past
 ## its posts on one side of the fence).
 @export var panel_offset: float = 0.0

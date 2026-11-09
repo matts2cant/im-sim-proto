@@ -8,9 +8,7 @@ extends GdUnitTestSuite
 ## climb leads. Guards reach their posts through the doors their access tags open. Positions and
 ## routes come from the layout markers (tools/level_gen/warehouse_people.py).
 
-const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
-const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
+const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const PEOPLE := "Population/People"
 const REACH := 0.35
 const LIT := 0.5
@@ -30,10 +28,15 @@ const GUARDS: Dictionary[String, Array] = {
 	"G6BreakRoom": ["baton", [], false],
 	"G7VaultDoor": ["pistol", [&"access.warehouse_vault"], false],
 	"G8OffDuty": ["baton", [], false],
+	"G9BackStrip": ["baton", [], true],
+	"G10CatwalkWest": ["pistol", [], true],
 }
-## Guards whose post stands in light, and the lit points of the rifle guard's catwalk route.
+## Guards whose post stands in light, and the lit points of the catwalk routes (route -> points).
 const LIT_POSTS: Array[String] = ["G1GatePost", "G5SecurityOperator", "G6BreakRoom", "G7VaultDoor", "G8OffDuty"]
-const LIT_ROUTE_POINTS: Array[String] = ["CatwalkA", "CatwalkB", "CatwalkC"]
+const LIT_ROUTE_POINTS: Dictionary[String, Array] = {
+	"G4CatwalkRifleRoute": ["CatwalkA", "CatwalkB"],
+	"G10CatwalkWestRoute": ["CatwalkWestA", "CatwalkWestB"],
+}
 ## Item id -> pickups placed.
 const ITEMS: Dictionary[String, int] = {
 	"silencer": 1,
@@ -58,6 +61,17 @@ var _level: Node3D
 var _map: RID
 
 
+# One level for the suite: its tests only query it (design/tech/testing.md "Writing fast tests").
+func before() -> void:
+	_level = await WarehouseHelpers.load_for_queries(self, true, true)
+	_map = WarehouseHelpers.navigation_map(_level)
+
+
+func after() -> void:
+	if _map.is_valid():
+		NavigationServer3D.map_set_use_async_iterations(_map, true)
+
+
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
@@ -65,12 +79,9 @@ func before_test() -> void:
 
 func after_test() -> void:
 	StimulusSystem.clear()
-	if _map.is_valid():
-		NavigationServer3D.map_set_use_async_iterations(_map, true)
 
 
 func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
-	await _load()
 	var guards := _level.get_node(PEOPLE + "/Guards")
 	assert_int(guards.get_child_count()).is_equal(GUARDS.size())
 	var start := (_level.get_node("ReinforcementSpawn") as Node3D).global_position
@@ -94,6 +105,12 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		var route := (guard.get_node("Behaviour") as AwarenessBehaviour).route
 		assert_bool(route != null).override_failure_message("%s route" % guard_name).is_equal(spec[2])
 		if route != null:
+			# A patrolling guard starts on its first point (the patrol timing test counts laps from there).
+			(
+				assert_float(guard.global_position.distance_to(route.points()[0].global_position))
+				. override_failure_message("%s starts off its first point" % guard_name)
+				. is_less(0.1)
+			)
 			for point in route.points():
 				(
 					assert_bool(_reaches(start, point.global_position, layers))
@@ -103,23 +120,22 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 
 
 func test_posts_and_the_catwalk_stand_in_light() -> void:
-	await _load()
 	var dark: PackedStringArray = []
 	for guard_name in LIT_POSTS:
 		var feet := (_level.get_node(PEOPLE + "/Guards/" + guard_name) as Node3D).global_position
 		var level := _measure(feet)
 		if level < LIT:
 			dark.append("%s: %.2f" % [guard_name, level])
-	var route := _level.get_node(PEOPLE + "/Routes/G4CatwalkRifleRoute")
-	for point_name in LIT_ROUTE_POINTS:
-		var level := _measure((route.get_node(point_name) as Node3D).global_position)
-		if level < LIT:
-			dark.append("%s: %.2f" % [point_name, level])
+	for route_name: String in LIT_ROUTE_POINTS:
+		var route := _level.get_node(PEOPLE + "/Routes/" + route_name)
+		for point_name: String in LIT_ROUTE_POINTS[route_name]:
+			var level := _measure((route.get_node(point_name) as Node3D).global_position)
+			if level < LIT:
+				dark.append("%s: %.2f" % [point_name, level])
 	assert_array(dark).is_empty()
 
 
 func test_patrol_routes_cross_no_doorway() -> void:
-	await _load()
 	var crossed: PackedStringArray = []
 	var doorways := _level.get_node("LayoutMarkers/Doorways").get_children()
 	for route: Node in _level.get_node(PEOPLE + "/Routes").get_children():
@@ -140,7 +156,6 @@ func test_patrol_routes_cross_no_doorway() -> void:
 
 
 func test_every_item_is_placed_and_reachable() -> void:
-	await _load()
 	var start := (_level.get_node("PlayerSpawn") as Node3D).global_position
 	var counts := {}
 	var unreachable: PackedStringArray = []
@@ -241,17 +256,3 @@ func _measure(feet: Vector3) -> float:
 	var level := exposure.update_now()
 	body.free()
 	return level
-
-
-func _load() -> void:
-	await GuardHelpers.let_old_scenes_go(get_tree())
-	_level = auto_free(LEVEL.instantiate())
-	_level.get_node("Mission").free()
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 3)
-	var region := _level.get_node("Navigation") as LevelNavigation
-	_map = region.get_navigation_map()
-	await GuardHelpers.use_sync_iterations(_map, region)
-	GuardHelpers.isolate_region(_map, region)
-	region.bake()
-	assert_bool(await KitGeometry.wait_for_navigation(get_tree(), _map, Vector3(0, 0, 0))).is_true()

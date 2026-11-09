@@ -272,6 +272,14 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] Cameras: the gate, yard, hall and office cameras spot you lit within a couple of seconds and every siren rings; the dark corners (dumpster corner, truck gap, behind the containers) stay unseen. With the switch broken, the cameras still turn red but nothing rings.
   - [ ] Sirens: when the alarm rings, guards in the yard, on the catwalks, in the offices and in the basement react; you can hear a siren from every guard post.
   - [ ] Office PCs (second office, picked door): the sticky note and the shift notes log in; they show only the office network.
+- [ ] Warehouse polish (M9e, [mission-warehouse.md](../levels/mission-warehouse.md#design-review-m9e), [ADR 0092](../decisions/0092-warehouse-polish.md); review shots: `warehouse_shots.tscn` with `-- shots=gate_bars_road,back_gate_bars_out,yard_switch,yard_switch_window,panel_office_entrance,panel_bridge_door,panel_fire_escape_door,panel_catwalk_stairs_in,panel_catwalk_stairs_out,terminal_network,upper_corridor,office_front out=res://reports/screenshots/m9e/after`):
+  - [ ] Patrols: the yard, the back strip and the catwalks feel watched (a guard comes by every 10-40 s at each crossing) but every crossing still leaves a window of several seconds; a careful first ghost run gets spotted at least once and can recover. G9 walks the back strip (weak wall to the east strip by the fire escape), G10 the west catwalk and the bridge, G4 the north catwalk.
+  - [ ] Two alarm networks: shooting the yard switch through the booth's west window (silenced pistol) silences the yard cameras and outdoor sirens while the hall camera still rings the indoor sirens; breaking the store's switch (or cutting breaker B) silences the building while the gate camera still rings the yard's sirens; with both broken nothing rings. Cutting breaker A darkens the yard and silences its alarms.
+  - [ ] The front and back gates are grilles: from the road you see the gate lane, the guard and the dock through the closed gate, and can shoot through it; they still stop you and guards.
+  - [ ] The control panels of the office entrance, the bridge door, the fire escape door and the catwalk stair door hang on the corridor's side wall, readable and usable (E), not half inside a wall.
+  - [ ] Signs over the office doors (OFFICES, MANAGER, VAULT, SECURITY, STAIRS, FIRE EXIT) read at night from the hall and the corridors and lead to the manager's office without markers.
+  - [ ] The security console's Network tab: no label hides another; statuses (the front gate's "unlocked") are readable; the graph does not jump when a status changes.
+  - [ ] Guards chase you out through doors that open freely from their side (the side door into the west yard, the back gate onto the quay); they never follow you in through such a door without its key.
 
 ## Generic character components (ADR 0056)
 

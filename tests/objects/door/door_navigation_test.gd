@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## tests/objects/fixtures/door_wall_guard.tscn (the wall spans the whole floor: the door is the only
 ## way). It paths through a closed unlocked door and opens it on the way; a locked door blocks its
 ## path; a locked door whose keycard lock it has access to (`access.vault`) lets it through, still
-## locked.
+## locked; a locked door whose lock opens freely from the guard's side (Lock.free_side) lets it plan
+## out through it, one way (M9e).
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
@@ -59,6 +60,34 @@ func test_guard_with_access_passes_a_locked_keycard_door() -> void:
 
 	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
 	assert_bool(_door.is_locked()).is_true()
+
+
+func test_guard_plans_out_through_a_locked_door_from_its_free_side() -> void:
+	# The guard starts on the door's front (+Z): the lock opens freely from there, so the one-way
+	# free-side link lets it plan through without the code, and the door opens for it (M9e).
+	var keypad := Helpers.add_keypad(_entity, &"vault", "1234")
+	keypad.free_side = Lock.FRONT
+	Helpers.lock(_entity)
+	await _guards.frames(2)
+
+	await _walk_to_target(9.0)
+
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
+	assert_bool(_door.is_locked()).is_true()
+	assert_array(EventLog.find(&"door.opened")).has_size(1)
+
+
+func test_a_free_side_on_the_far_side_does_not_let_the_guard_in() -> void:
+	# The free side is the back (-Z), the guard's goal: the link runs one way, towards the guard.
+	var keypad := Helpers.add_keypad(_entity, &"vault", "1234")
+	keypad.free_side = Lock.BACK
+	Helpers.lock(_entity)
+	await _guards.frames(2)
+
+	await _walk_to_target(9.0)
+
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_greater(0.3)
+	assert_bool(_door.is_open()).is_false()
 
 
 func _walk_to_target(seconds: float) -> void:

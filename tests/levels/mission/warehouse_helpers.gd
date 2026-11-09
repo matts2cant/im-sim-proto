@@ -5,6 +5,9 @@ extends RefCounted
 ## coordinates: x east, z south, origin at the compound centre; yaw 0 faces north (-Z).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
+const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const LEVEL_SCENE: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const FIXTURE := "res://tests/levels/mission/fixtures/warehouse_player.tscn"
 const LEVEL := "res://levels/mission/warehouse.tscn"
 const NORTH := 0.0
@@ -30,6 +33,53 @@ func setup(runner: GdUnitSceneRunner) -> void:
 	if mission.briefing.is_open():
 		mission.briefing.close()
 	await driver.frames(5)
+
+
+## The player fixture (the level and a Player) for a scene runner, without the navmesh bake at load
+## (nobody walks a path in the tests that use it); with `strip` the wave 2 population is removed
+## before it loads (setup() would remove it after: its guards and props would load for nothing).
+static func fixture(suite: GdUnitTestSuite, strip: bool = true) -> Node3D:
+	var level: Node3D = suite.auto_free((load(FIXTURE) as PackedScene).instantiate())
+	(level.get_node("Navigation") as LevelNavigation).bake_on_ready = false
+	if strip:
+		strip_population(level)
+	return level
+
+
+## Loads the warehouse under `suite` for queries (no Mission: no player spawns, no briefing pauses
+## it) and lets CSG build its collision. Without `population` the wave 2 population is removed (the
+## layout only). The level's own navmesh bake at load is skipped; with `navigation` the navmesh is
+## baked once on a synchronous map isolated from other suites' regions (restore the map's
+## asynchronous iterations in `after()`: `navigation_map()`). Suites whose tests only query the
+## level call this once from `before()` (design/tech/testing.md "Writing fast tests").
+static func load_for_queries(suite: GdUnitTestSuite, population: bool, navigation: bool) -> Node3D:
+	await GuardHelpers.let_old_scenes_go(suite.get_tree())
+	var level: Node3D = suite.auto_free(LEVEL_SCENE.instantiate())
+	level.get_node("Mission").free()
+	if not population:
+		strip_population(level)
+	var region := level.get_node("Navigation") as LevelNavigation
+	region.bake_on_ready = false
+	suite.add_child(level)
+	await KitGeometry.settle(suite.get_tree(), 5)
+	if navigation:
+		var map := region.get_navigation_map()
+		await GuardHelpers.use_sync_iterations(map, region)
+		GuardHelpers.isolate_region(map, region)
+		region.bake()
+		# Wait for the map to hold the region's polygons (a map without any answers closest-point
+		# queries with the origin, so a probe at the origin proves nothing).
+		for i in 120:
+			if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO).is_valid():
+				break
+			await suite.get_tree().physics_frame
+		suite.assert_bool(NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO).is_valid()).is_true()
+	return level
+
+
+## The navigation map of a level loaded by load_for_queries().
+static func navigation_map(level: Node3D) -> RID:
+	return (level.get_node("Navigation") as LevelNavigation).get_navigation_map()
 
 
 ## Removes the level's `Population` (wave 2: guards, doors, devices, props) so a test sees the

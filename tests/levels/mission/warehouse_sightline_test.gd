@@ -6,7 +6,6 @@ extends GdUnitTestSuite
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
-const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 ## Standing at the deck's west railing (x 42). Targets right below the tower (the east yard) are
 ## steeply below the railing; the tests cover the yard beyond them.
 const PERCH_EYE := Vector3(42.45, 21.65, -16.0)
@@ -32,8 +31,13 @@ const SNIPER_LINES: Dictionary[String, Array] = {
 var _level: Node3D
 
 
+# One level for the suite: its tests only query it (design/tech/testing.md "Writing fast tests").
+func before() -> void:
+	# The geometry's lines: guards standing in them (wave 2's population) are what they are for.
+	_level = await Helpers.load_for_queries(self, false, false)
+
+
 func test_water_tower_sees_the_yard() -> void:
-	await _load()
 	var blocked: PackedStringArray = []
 	for target: String in YARD_TARGETS:
 		var hit := KitGeometry.ray(_level.get_world_3d(), PERCH_EYE, YARD_TARGETS[target])
@@ -43,7 +47,6 @@ func test_water_tower_sees_the_yard() -> void:
 
 
 func test_water_tower_sees_into_the_hall_through_skylights() -> void:
-	await _load()
 	var seen: PackedStringArray = []
 	var hall := AABB(Vector3(-20, 0, -10), Vector3(40, 9, 25))
 	for skylight: Node in _level.get_node("Hall/Shell/Hall").get_children():
@@ -62,7 +65,6 @@ func test_water_tower_sees_into_the_hall_through_skylights() -> void:
 
 
 func test_long_sniper_lines_inside_the_hall_are_clear() -> void:
-	await _load()
 	var blocked: PackedStringArray = []
 	for line: String in SNIPER_LINES:
 		var ends: Array = SNIPER_LINES[line]
@@ -70,12 +72,3 @@ func test_long_sniper_lines_inside_the_hall_are_clear() -> void:
 		if not hit.is_empty():
 			blocked.append("%s: %s at %s" % [line, hit["collider"], hit["position"]])
 	assert_array(blocked).is_empty()
-
-
-func _load() -> void:
-	_level = auto_free(LEVEL.instantiate())
-	_level.get_node("Mission").free()
-	# The geometry's lines: guards standing in them (wave 2's population) are what they are for.
-	Helpers.strip_population(_level)
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 5)

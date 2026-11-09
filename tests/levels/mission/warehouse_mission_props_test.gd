@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 ## and components.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
-const FIXTURE := "res://tests/levels/mission/fixtures/warehouse_player.tscn"
+const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const PEOPLE := "Population/People"
 const SHIPMENT_TAG := &"mission.shipment"
 ## The weak wall's doorway centre (layout marker WeakWall) at chest height.
@@ -130,7 +130,7 @@ func test_the_catwalk_rifle_guard_drops_its_assault_rifle() -> void:
 
 
 func _setup() -> void:
-	_driver = PlayerDriver.new(scene_runner(FIXTURE))
+	_driver = PlayerDriver.new(scene_runner(WarehouseHelpers.fixture(self, false)))
 	_driver.player.reload_on_reset = false
 	_level = _driver.runner.scene()
 	_mission = _level.get_node("Mission") as Mission

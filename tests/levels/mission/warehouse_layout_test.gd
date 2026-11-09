@@ -17,6 +17,13 @@ const HALL_CENTRE := Vector3(0, 0, 2.5)
 var _level: Node3D
 
 
+# One level for the suite: its tests only query it (design/tech/testing.md "Writing fast tests").
+func before() -> void:
+	# The Mission would spawn a player and open the briefing: not needed here. Wave 2's population
+	# (guards, doors, the weak wall's panel) closes doorways on purpose: the layout alone is tested.
+	_level = await Helpers.load_for_queries(self, false, false)
+
+
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
@@ -61,7 +68,6 @@ func test_contract_nodes_for_the_mission_systems() -> void:
 
 
 func test_reinforcements_have_room_to_appear_side_by_side() -> void:
-	await _load()
 	var marker := _level.get_node("ReinforcementSpawn") as Marker3D
 	# Two guards 1.5 m apart along the marker's X (and margin): standing capsules fit.
 	for offset: float in [-1.5, -0.75, 0.0, 0.75, 1.5]:
@@ -70,13 +76,10 @@ func test_reinforcements_have_room_to_appear_side_by_side() -> void:
 
 
 func test_no_coplanar_faces_with_different_materials() -> void:
-	await _load()
-
 	assert_array(KitGeometry.coplanar_material_overlaps(_level)).is_empty()
 
 
 func test_every_listed_doorway_is_open() -> void:
-	await _load()
 	var doorways := _level.get_node("LayoutMarkers/Doorways").get_children()
 	assert_int(doorways.size()).is_greater(20)
 	var world := _level.get_world_3d()
@@ -100,16 +103,6 @@ func test_kit_parts_stay_inside_their_metric_bands() -> void:
 			if not warnings.is_empty():
 				warned.append("%s: %s" % [level.get_path_to(node), "; ".join(warnings)])
 	assert_array(warned).is_empty()
-
-
-func _load() -> void:
-	_level = auto_free(LEVEL.instantiate())
-	# The Mission would spawn a player and open the briefing: not needed here. Wave 2's population
-	# (guards, doors, the weak wall's panel) closes doorways on purpose: the layout alone is tested.
-	_level.get_node("Mission").free()
-	Helpers.strip_population(_level)
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 5)
 
 
 func _capsule_clear(feet: Vector3) -> bool:
