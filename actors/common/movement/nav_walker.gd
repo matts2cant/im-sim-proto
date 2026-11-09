@@ -56,7 +56,7 @@ func move_to(point: Vector3, p_speed: float) -> void:
 	if _moving and point.distance_to(_target) < 0.05:
 		return
 	if _arrived and point.distance_to(_target) < 0.05:
-		var there := _flat(point - global_position).length() <= config.arrive_distance
+		var there := _near(point)
 		if there or _arrived_time < config.retry_time:
 			return
 	_target = point
@@ -184,7 +184,7 @@ func _physics_process(delta: float) -> void:
 # The velocity along the path this tick (zero, and arrived, at the end of it or when stuck).
 func _walk_velocity(delta: float) -> Vector3:
 	var to_target := _flat(_target - global_position)
-	if to_target.length() <= config.arrive_distance:
+	if _near(_target):
 		return _arrive()
 	var direction := to_target
 	if agent != null and _has_navmesh():
@@ -199,8 +199,11 @@ func _walk_velocity(delta: float) -> Vector3:
 			var to_next := _flat(next - global_position)
 			if to_next.length() > 0.01:
 				direction = to_next
-			if _flat(agent.get_final_position() - global_position).length() <= config.arrive_distance:
+			if _near(agent.get_final_position()):
 				return _arrive()
+	elif to_target.length() <= config.arrive_distance:
+		# Walking straight (no navmesh): right under or over the target is as close as it gets.
+		return _arrive()
 	var wanted := speed * Attributes.read(self, MOVE_SPEED, 1.0)
 	if _flat(get_real_velocity()).length() < wanted * config.stuck_speed_ratio:
 		_stuck_time += delta
@@ -209,6 +212,12 @@ func _walk_velocity(delta: float) -> Vector3:
 	else:
 		_stuck_time = 0.0
 	return direction.normalized() * wanted
+
+
+# Within arrive_distance horizontally and arrive_height vertically of `point` (ADR 0094).
+func _near(point: Vector3) -> bool:
+	var offset := point - global_position
+	return _flat(offset).length() <= config.arrive_distance and absf(offset.y) <= config.arrive_height
 
 
 func _arrive() -> Vector3:
