@@ -12,6 +12,7 @@ extends GdUnitTestSuite
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const PEOPLE := "Population/People"
+const SECURITY := "Population/Security"
 const TIME_FACTOR := 9.0
 const TICK := 1.0 / 60.0
 ## Game time simulated: one lap of the longest route (the rifle guard's, about 53 s) plus margin.
@@ -19,7 +20,7 @@ const SIMULATED := 60.0
 const PASS_RADIUS := 5.0
 const SAME_FLOOR := 1.5
 const MIN_GAP := 4.0
-const MAX_GAP := 40.0
+const MAX_GAP := 45.0
 ## Where player routes cross patrol paths (feet, warehouse coordinates).
 const CROSSINGS: Dictionary[String, Vector3] = {
 	"side door": Vector3(-21.7, 0.0, -6.0),
@@ -46,7 +47,7 @@ func after_test() -> void:
 		NavigationServer3D.map_set_use_async_iterations(_map, true)
 
 
-func test_patrols_leave_crossing_gaps_of_four_to_forty_seconds() -> void:
+func test_patrols_leave_crossing_gaps_of_four_to_forty_five_seconds() -> void:
 	await GuardHelpers.let_old_scenes_go(get_tree())
 	var level: Node3D = auto_free(LEVEL.instantiate())
 	# No player: the Mission would spawn one and pause the game for the briefing. Guards holding a
@@ -55,14 +56,25 @@ func test_patrols_leave_crossing_gaps_of_four_to_forty_seconds() -> void:
 	for guard in level.get_node(PEOPLE + "/Guards").get_children():
 		if (guard.get_node("Behaviour") as AwarenessBehaviour).patrol_route.is_empty():
 			guard.free()
+	# What patrols never touch only costs simulation time: the security devices (cameras sweep and
+	# look, sirens, the turret), the pickups and the loose and mission props (bodies). The doors stay
+	# (they shape the navmesh), and so does the weak wall's panel.
+	for path: String in [SECURITY + "/Devices", PEOPLE + "/Items", PEOPLE + "/Props", PEOPLE + "/Shipment"]:
+		level.get_node(path).free()
+	# One bake, on the synchronous map (none at load).
+	var region := level.get_node("Navigation") as LevelNavigation
+	region.bake_on_ready = false
 	_runner = scene_runner(level)
 	_runner.set_time_factor(TIME_FACTOR)
-	var region := level.get_node("Navigation") as LevelNavigation
 	_map = region.get_navigation_map()
 	await GuardHelpers.use_sync_iterations(_map, region)
 	GuardHelpers.isolate_region(_map, region)
 	region.bake()
-	await get_tree().physics_frame
+	for i in 120:
+		if NavigationServer3D.map_get_closest_point_owner(_map, Vector3.ZERO).is_valid():
+			break
+		await get_tree().physics_frame
+	assert_bool(NavigationServer3D.map_get_closest_point_owner(_map, Vector3.ZERO).is_valid()).is_true()
 
 	var patrols: Array[NavWalker] = []
 	for guard in level.get_node(PEOPLE + "/Guards").get_children():

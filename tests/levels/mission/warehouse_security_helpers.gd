@@ -38,16 +38,21 @@ func load_level(suite: GdUnitTestSuite, navigation: bool = false, people: bool =
 		guard_spots[String(node.name)] = _level_position(node as Node3D)
 	if not people and level.has_node(PEOPLE + "/Guards"):
 		level.get_node(PEOPLE + "/Guards").free()
+	# No bake at load: with `navigation` the navmesh is baked once, on the synchronous map.
+	var region := level.get_node("Navigation") as LevelNavigation
+	region.bake_on_ready = false
 	suite.add_child(level)
 	await KitGeometry.settle(suite.get_tree(), 5)
 	if navigation:
-		var region := level.get_node("Navigation") as LevelNavigation
 		map = region.get_navigation_map()
 		await GuardHelpers.use_sync_iterations(map, region)
 		GuardHelpers.isolate_region(map, region)
-		# A region switched to synchronous iterations after its bake can lose that update: bake again.
 		region.bake()
-		await KitGeometry.wait_for_navigation(suite.get_tree(), map, Vector3(0, 0, 0))
+		# A map without polygons answers closest-point queries with the origin: wait for an owner.
+		for i in 120:
+			if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO).is_valid():
+				break
+			await suite.get_tree().physics_frame
 	EventLog.clear()
 	return level
 

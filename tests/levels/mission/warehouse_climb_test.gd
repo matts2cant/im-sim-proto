@@ -46,7 +46,7 @@ func after_test() -> void:
 
 
 func test_every_route_climb_is_a_plain_mantle() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	var failures: PackedStringArray = []
 	for climb: String in CLIMBS:
 		var spec: Array = CLIMBS[climb]
@@ -61,7 +61,7 @@ func test_every_route_climb_is_a_plain_mantle() -> void:
 
 
 func test_duct_b_is_climbed_back_from_the_office_floor_in_two_mantles() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	var space := _helpers.player.get_world_3d().direct_space_state
 	var cabinet_top := _floor_below(space, Vector3(11, 6.5, 2.8))
 	var duct_floor := _floor_below(space, Vector3(11, 8.2, 1.9))
@@ -80,7 +80,7 @@ func test_duct_b_is_climbed_back_from_the_office_floor_in_two_mantles() -> void:
 
 
 func test_the_outside_container_jumps_the_fence_onto_the_inside_one() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	var legs := _helpers.leg_health()
 
 	# Standing on the outside container 0.65 m from the 3 m fence (its top 0.5 m above the feet):

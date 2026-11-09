@@ -23,7 +23,7 @@ func after_test() -> void:
 
 
 func test_stairs_and_roof_doors_connect_every_level() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	# name -> [feet, yaw, frames walked, expected feet y, region the feet end in (x0, z0, x1, z1)]
 	var walks: Dictionary[String, Array] = {
 		"annex roof door to the west catwalk":
@@ -53,7 +53,7 @@ func test_stairs_and_roof_doors_connect_every_level() -> void:
 
 
 func test_skylight_drop_lands_on_the_bridge_unhurt() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	var legs := _helpers.leg_health()
 
 	# On the roof north of the rack R2 skylight: walk off its open north edge onto the goods 1.4 m down.
@@ -69,7 +69,7 @@ func test_skylight_drop_lands_on_the_bridge_unhurt() -> void:
 
 
 func test_ducts_connect_roof_catwalk_office_and_basement() -> void:
-	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	await _helpers.setup(scene_runner(Helpers.fixture(self)))
 	var legs := _helpers.leg_health()
 
 	# Duct A: catwalk alcove (mantle 1.1 into the mouth) up to the roof.

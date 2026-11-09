@@ -35,6 +35,17 @@ func setup(runner: GdUnitSceneRunner) -> void:
 	await driver.frames(5)
 
 
+## The player fixture (the level and a Player) for a scene runner, without the navmesh bake at load
+## (nobody walks a path in the tests that use it); with `strip` the wave 2 population is removed
+## before it loads (setup() would remove it after: its guards and props would load for nothing).
+static func fixture(suite: GdUnitTestSuite, strip: bool = true) -> Node3D:
+	var level: Node3D = suite.auto_free((load(FIXTURE) as PackedScene).instantiate())
+	(level.get_node("Navigation") as LevelNavigation).bake_on_ready = false
+	if strip:
+		strip_population(level)
+	return level
+
+
 ## Loads the warehouse under `suite` for queries (no Mission: no player spawns, no briefing pauses
 ## it) and lets CSG build its collision. Without `population` the wave 2 population is removed (the
 ## layout only). The level's own navmesh bake at load is skipped; with `navigation` the navmesh is

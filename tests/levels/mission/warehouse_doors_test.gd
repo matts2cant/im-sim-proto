@@ -91,19 +91,27 @@ const FREE_WAYS: Array[Array] = [
 var _helpers: Helpers
 
 
+# One populated level for the suite (design/tech/testing.md "Writing fast tests"): the tests read it;
+# the back gate test, last, opens and unlocks the back gate.
+func before() -> void:
+	_helpers = Helpers.new()
+	await _helpers.load_level(self, false, true)
+
+
+func after() -> void:
+	_helpers.teardown()
+
+
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
-	_helpers = Helpers.new()
 
 
 func after_test() -> void:
-	_helpers.teardown()
 	StimulusSystem.clear()
 
 
 func test_every_doorway_holds_its_door_and_intended_locks() -> void:
-	await _helpers.load_level(self, false, true)
 	var markers := _helpers.level.get_node("LayoutMarkers/Doorways").get_children()
 	assert_int(markers.size()).is_equal(EXPECTED.size() + CLOSED_BY_PEOPLE.size())
 	var problems: PackedStringArray = []
@@ -152,7 +160,6 @@ func test_every_doorway_holds_its_door_and_intended_locks() -> void:
 
 
 func test_every_key_is_reachable_without_its_own_lock() -> void:
-	await _helpers.load_level(self, false, true)
 	var level := _helpers.level
 	var doors: Dictionary[String, Dictionary] = {}
 	var areas: Dictionary[String, bool] = {}
@@ -185,8 +192,11 @@ func test_every_key_is_reachable_without_its_own_lock() -> void:
 	assert_array(deadlocks).is_empty()
 
 
+func test_the_populated_level_has_no_coplanar_faces_with_different_materials() -> void:
+	assert_array(KitGeometry.coplanar_material_overlaps(_helpers.level)).is_empty()
+
+
 func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void:
-	await _helpers.load_level(self, false, true)
 	var gate := _helpers.door("BackGate")
 	var inside := _helpers.stand_in("Inside", Vector3(7, 0, 23.5))
 	var outside := _helpers.stand_in("Outside", Vector3(7, 0, 26.5))
@@ -209,12 +219,6 @@ func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void
 	assert_bool(unlocked).is_true()
 	assert_bool(gate.is_locked()).is_false()
 	assert_bool(gate.is_open()).is_true()
-
-
-func test_the_populated_level_has_no_coplanar_faces_with_different_materials() -> void:
-	await _helpers.load_level(self, false, true)
-
-	assert_array(KitGeometry.coplanar_material_overlaps(_helpers.level)).is_empty()
 
 
 # --- key graph ---------------------------------------------------------------------------------
