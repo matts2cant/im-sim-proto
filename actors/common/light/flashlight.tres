@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="FlashlightConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/light/flashlight_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+beam_range = 12.0
+half_angle = 20.0
+energy = 0.85
+colour = Color(1, 0.95, 0.85, 1)
+angle_attenuation = 1.0
+shadows = true
+lens_emission = 6.0
+halo_size = 0.45
+on_states = Array[StringName]([&"searching", &"alerted"])
+off_tags = Array[StringName]([&"state.unconscious", &"state.dead"])

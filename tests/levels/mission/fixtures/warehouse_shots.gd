@@ -164,6 +164,32 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"people_silencer_locker": {"feet": Vector3(17.5, 0, 12.2), "look": Vector3(19.45, 1.0, 12.4)},
 	"people_lockpicks": {"feet": Vector3(10, -4, 3.2), "look": Vector3(8.4, -3.1, 3)},
 	"people_boat": {"feet": Vector3(5.5, 0, 34), "look": Vector3(11.6, 0.6, 37.5)},
+	# M9g flashlights (ADR 0095): the west yard patrol held at a point (`guard_face`: held there,
+	# facing that point), its flashlight on while patrolling.
+	"m9g_patrol_light_15m":
+	{
+		"feet": Vector3(-30, 0, -6),
+		"look": Vector3(-26, 1.0, 9),
+		"guard": "G2YardPatrolWest",
+		"guard_at": Vector3(-26, 0, 9),
+		"guard_face": Vector3(-18, 0, 3)
+	},
+	"m9g_patrol_light_side":
+	{
+		"feet": Vector3(-14, 0, -2),
+		"look": Vector3(-24, 0.8, 8),
+		"guard": "G2YardPatrolWest",
+		"guard_at": Vector3(-26, 0, 9),
+		"guard_face": Vector3(-26, 0, -3)
+	},
+	"m9g_caught_in_cone":
+	{
+		"feet": Vector3(-30, 0, -6),
+		"look": Vector3(-30, 1.5, 2),
+		"guard": "G2YardPatrolWest",
+		"guard_at": Vector3(-30, 0, 2),
+		"guard_face": Vector3(-30, 0, -6)
+	},
 }
 
 ## Review image size (the project's 16:9 default).
@@ -233,6 +259,14 @@ func _next() -> void:
 	if _shot.has("guard"):
 		var guard := _level.get_node("Population/People/Guards/" + String(_shot["guard"])) as Node3D
 		guard.global_position = _shot["guard_at"]
+		if _shot.has("guard_face"):
+			# Holds its post there, facing the point.
+			var to: Vector3 = (_shot["guard_face"] as Vector3) - guard.global_position
+			guard.global_rotation.y = atan2(-to.x, -to.z)
+			var behaviour := guard.get_node("Behaviour") as AwarenessBehaviour
+			behaviour.route = null
+			behaviour.post = guard.global_position
+			behaviour.post_yaw = guard.global_rotation.y
 
 
 func _physics_process(_delta: float) -> void:

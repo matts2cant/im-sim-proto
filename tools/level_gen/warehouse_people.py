@@ -60,6 +60,9 @@ GUARD_SPECS = [
     ("G9BackStrip", "guard_baton", [], [("BackStripA", 3.0), ("BackStripB", 3.0)]),
     ("G10CatwalkWest", "guard_pistol", [], [("CatwalkWestA", 3.0), ("CatwalkWestB", 3.0)]),
 ]
+# M9g (ADR 0095): every guard's flashlight (guard.tscn) is on while Searching or Alerted; the yard
+# patrols (routes outside the buildings) also keep it on while patrolling.
+FLASHLIGHT_PATROLS = {"G2YardPatrolWest", "G3YardPatrolEast", "G9BackStrip"}
 
 
 def build_guards(b):
@@ -85,6 +88,8 @@ def build_guards(b):
             s.override(path + "/Behaviour", {"patrol_route": Raw(f'NodePath("../../../{route_path}")')})
         if extra_tags:
             s.override(path + "/Tags", {"initial_tags": tag_list(GUARD_TAGS + extra_tags)})
+        if name in FLASHLIGHT_PATROLS:
+            s.override(path + "/Aim/Flashlight", {"on_while_patrolling": Raw("true")})
 
 
 # --- furniture, items and props -------------------------------------------------------------------
