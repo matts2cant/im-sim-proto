@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="24_sniper_rounds"]
 [ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="25_rifle_rounds"]
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="26_silencer"]
+[ext_resource type="PackedScene" path="res://items/prototype/prototype.tscn" id="27_prototype"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -110,7 +111,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -13.44)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.035, -14.0)
 
 [node name="Silencer" parent="ItemTable" instance=ExtResource("26_silencer")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0555, -14.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0555, -14.44)
+
+[node name="Prototype" parent="ItemTable" instance=ExtResource("27_prototype")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.08, -14.88)
 
 [node name="Stacks" type="Node3D" parent="."]
 
@@ -402,9 +406,16 @@ size = 0
 pixel_size = 0.0025
 
 [node name="Silencer" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -14.56)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -14.44)
 text = "Silencer
 1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Prototype" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -14.88)
+text = "Prototype
+2×1"
 size = 0
 pixel_size = 0.0025
 

@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## doorway open for a standing capsule, and every kit part inside its metric bands (no warnings).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const DATA: MissionData = preload("res://levels/mission/mission_kit/warehouse_mission.tres")
 const AREAS: Array[String] = ["Exterior", "Hall", "Underground", "LayoutMarkers"]
@@ -103,11 +104,10 @@ func test_kit_parts_stay_inside_their_metric_bands() -> void:
 
 func _load() -> void:
 	_level = auto_free(LEVEL.instantiate())
-	# The Mission would spawn a player and open the briefing: not needed here. The layout is the
-	# geometry: the population (doors, devices, furniture) has its own suites
-	# (warehouse_doors_test: coplanar faces of the populated level).
+	# The Mission would spawn a player and open the briefing: not needed here. Wave 2's population
+	# (guards, doors, the weak wall's panel) closes doorways on purpose: the layout alone is tested.
 	_level.get_node("Mission").free()
-	_level.get_node("Population").free()
+	Helpers.strip_population(_level)
 	add_child(_level)
 	await KitGeometry.settle(get_tree(), 5)
 

@@ -102,6 +102,52 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"tunnel": {"feet": Vector3(20.5, -4, -5), "look": Vector3(36, -2, -5)},
 	"tunnel_east": {"feet": Vector3(35.5, -2.4, -5), "look": Vector3(25, -3, -5)},
 	"chamber": {"feet": Vector3(33.4, -2.4, -6.6), "look": Vector3(31, -1, -8)},
+	# Population (wave 2): guards at their posts or moved onto a point of their route (`guard`,
+	# `guard_at`), the equipment, the mission props.
+	"people_g1_gate": {"feet": Vector3(-5, 0, -18.5), "look": Vector3(-8.6, 1.3, -22.2)},
+	"people_g2_side_door":
+	{
+		"feet": Vector3(-28, 0, -1),
+		"look": Vector3(-23, 1.2, -8),
+		"guard": "G2YardPatrolWest",
+		"guard_at": Vector3(-24.5, 0, -8.5)
+	},
+	"people_g3_drain_exit":
+	{
+		"feet": Vector3(24, 0, -15),
+		"look": Vector3(30, 1.2, -7.5),
+		"guard": "G3YardPatrolEast",
+		"guard_at": Vector3(30, 0, -7.5)
+	},
+	"people_g3_back_gate":
+	{
+		"feet": Vector3(7, 0, 28),
+		"look": Vector3(8, 1.2, 20.5),
+		"guard": "G3YardPatrolEast",
+		"guard_at": Vector3(8, 0, 20.5)
+	},
+	"people_g4_catwalk": {"feet": Vector3(-18.5, 4.5, -9.25), "look": Vector3(-10, 5.6, -9.25)},
+	"people_g4_bridge":
+	{
+		"feet": Vector3(-14, 4.5, 6),
+		"look": Vector3(2, 5.6, 6),
+		"guard": "G4CatwalkRifle",
+		"guard_at": Vector3(2, 4.5, 6)
+	},
+	"people_g5_security": {"feet": Vector3(15, 0, 4.5), "look": Vector3(17.6, 1.2, 1.6)},
+	"people_g6_break_room": {"feet": Vector3(11, 0, 6.2), "look": Vector3(11, 1.2, 2.6)},
+	"people_g7_vault_door": {"feet": Vector3(9.5, 4.5, 6), "look": Vector3(16, 5.6, 6)},
+	"people_g8_store": {"feet": Vector3(10, -4, 13.5), "look": Vector3(16.2, -3, 11.5)},
+	"people_perch_rifle": {"feet": Vector3(44.2, 20, -14.8), "look": Vector3(42.6, 20.1, -13.2)},
+	"people_shipment": {"feet": Vector3(-4, 0, -9.6), "look": Vector3(0.3, 1.0, -6.6)},
+	"people_shipment_apron": {"feet": Vector3(4, 0, -15), "look": Vector3(1.5, 1.0, -7)},
+	"people_gas_cylinders": {"feet": Vector3(-8.4, 0, 19.0), "look": Vector3(-10.9, 0.8, 15.6)},
+	"people_vault_prototype": {"feet": Vector3(16.9, 4.5, 4.5), "look": Vector3(19, 5.3, 3.5)},
+	"people_duct_b_cabinet": {"feet": Vector3(11, 4.5, 4.7), "look": Vector3(11, 6.6, 2.4)},
+	"people_duct_b_hatch": {"feet": Vector3(11, 6.1, 3.0), "look": Vector3(11, 7.4, 1.8), "crouch": true},
+	"people_silencer_locker": {"feet": Vector3(17.5, 0, 12.2), "look": Vector3(19.45, 1.0, 12.4)},
+	"people_lockpicks": {"feet": Vector3(10, -4, 3.2), "look": Vector3(8.4, -3.1, 3)},
+	"people_boat": {"feet": Vector3(5.5, 0, 34), "look": Vector3(11.6, 0.6, 37.5)},
 }
 
 ## Review image size (the project's 16:9 default).
@@ -168,6 +214,9 @@ func _next() -> void:
 	_time = 0.0
 	for path: String in _shot.get("hide", []):
 		(_level.get_node(path) as Node3D).visible = false
+	if _shot.has("guard"):
+		var guard := _level.get_node("Population/People/Guards/" + String(_shot["guard"])) as Node3D
+		guard.global_position = _shot["guard_at"]
 
 
 func _physics_process(_delta: float) -> void:

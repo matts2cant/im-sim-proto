@@ -8,6 +8,7 @@ extends GdUnitTestSuite
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
+const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const REACH := 0.35
 
 ## Places guards must reach (warehouse coordinates).
@@ -98,8 +99,9 @@ func _load() -> void:
 	await GuardHelpers.let_old_scenes_go(get_tree())
 	_level = auto_free(LEVEL.instantiate())
 	_level.get_node("Mission").free()
-	# The navmesh of the geometry: locked doors keep guards without the key out (their own suites).
-	_level.get_node("Population").free()
+	# The navmesh of the geometry: locked doors keep guards without the key out (their own suites:
+	# warehouse_door_navigation_test).
+	WarehouseHelpers.strip_population(_level)
 	add_child(_level)
 	await KitGeometry.settle(get_tree(), 3)
 	var region := _level.get_node("Navigation") as LevelNavigation

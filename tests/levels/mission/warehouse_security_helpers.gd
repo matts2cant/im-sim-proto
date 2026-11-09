@@ -9,17 +9,35 @@ const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const SECURITY := "Population/Security"
+const PEOPLE := "Population/People"
 
 var level: Node3D
 var map: RID
+## Where the people population's guards stand and its patrol points lie (name -> world position),
+## read before the guards are removed.
+var guard_spots: Dictionary[String, Vector3] = {}
 
 
 ## Instances the level under `suite` (auto_free), lets CSG build its collision and, with
-## `navigation`, bakes the navmesh on a synchronous map isolated from other suites' regions.
-func load_level(suite: GdUnitTestSuite, navigation: bool = false) -> Node3D:
+## `navigation`, bakes the navmesh on a synchronous map isolated from other suites' regions. Without
+## `people` the people population's guards are removed first (their spots are kept in
+## guard_spots), so they neither move, open doors nor raise alarms during security tests; its props
+## (the weak wall's breach panel, furniture) stay.
+func load_level(suite: GdUnitTestSuite, navigation: bool = false, people: bool = false) -> Node3D:
 	await GuardHelpers.let_old_scenes_go(suite.get_tree())
 	level = suite.auto_free(LEVEL.instantiate())
 	level.get_node("Mission").free()
+	guard_spots.clear()
+	var guards := level.get_node_or_null(PEOPLE + "/Guards")
+	var routes := level.get_node_or_null(PEOPLE + "/Routes")
+	var spots: Array[Node] = guards.get_children() if guards != null else []
+	if routes != null:
+		for route in routes.get_children():
+			spots.append_array(route.get_children())
+	for node in spots:
+		guard_spots[String(node.name)] = _level_position(node as Node3D)
+	if not people and level.has_node(PEOPLE + "/Guards"):
+		level.get_node(PEOPLE + "/Guards").free()
 	suite.add_child(level)
 	await KitGeometry.settle(suite.get_tree(), 5)
 	if navigation:
@@ -32,6 +50,17 @@ func load_level(suite: GdUnitTestSuite, navigation: bool = false) -> Node3D:
 		await KitGeometry.wait_for_navigation(suite.get_tree(), map, Vector3(0, 0, 0))
 	EventLog.clear()
 	return level
+
+
+# A node's position in the level, from its local transforms (the level is not in the tree yet).
+func _level_position(node: Node3D) -> Vector3:
+	var xform := node.transform
+	var parent := node.get_parent()
+	while parent != level and parent != null:
+		if parent is Node3D:
+			xform = (parent as Node3D).transform * xform
+		parent = parent.get_parent()
+	return xform.origin
 
 
 func teardown() -> void:

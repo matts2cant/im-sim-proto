@@ -24,7 +24,6 @@ func after_test() -> void:
 
 func test_stairs_and_roof_doors_connect_every_level() -> void:
 	await _helpers.setup(scene_runner(Helpers.FIXTURE))
-	_helpers.open_every_door()
 	# name -> [feet, yaw, frames walked, expected feet y, region the feet end in (x0, z0, x1, z1)]
 	var walks: Dictionary[String, Array] = {
 		"annex roof door to the west catwalk":

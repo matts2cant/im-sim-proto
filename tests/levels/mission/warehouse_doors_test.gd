@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
-## Warehouse doors, locks and keys (design/levels/mission-warehouse.md "Doors, locks and keys",
-## ADR 0090): every doorway of the layout holds its door with the intended locks; no key is locked
-## behind its own lock (the key graph has no deadlock, with forced entries such as the weak wall
-## left out); the back gate opens from inside without a key and needs a lockpick from the river
-## side; no two CSG roots of the populated level z-fight.
+## Warehouse doors, locks and keys (design/levels/mission-warehouse.md "Doors, locks and keys", ADR
+## 0090): every doorway of the layout holds its door with the intended locks; no key is locked
+## behind its own lock (the key graph has no deadlock; forced entries such as the weak wall's breach
+## panel, placed by the people population, are left out); the back gate opens from inside without a
+## key and needs a lockpick from the river side; no two CSG roots of the populated level z-fight.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
@@ -19,7 +19,6 @@ const EXPECTED: Dictionary[String, Array] = {
 	"RollerDoor2": [false, [], [], Lock.NO_SIDE, false],
 	"AnnexDoor": [true, ["MechanicalLock"], [], Lock.NO_SIDE, false],
 	"AnnexRoofDoor": [true, ["MechanicalLock"], [], Lock.BACK, false],
-	"WeakWall": [true, [], [], Lock.NO_SIDE, true],
 	"FireEscapeDoor": [true, ["MechanicalLock"], [], Lock.BACK, false],
 	"OfficeEntrance": [false, [], [], Lock.NO_SIDE, false],
 	"BreakRoomHall": [false, [], [], Lock.NO_SIDE, false],
@@ -37,6 +36,8 @@ const EXPECTED: Dictionary[String, Array] = {
 	"BoilerTunnel": [false, [], [], Lock.NO_SIDE, false],
 	"TunnelGate": [true, ["MechanicalLock"], [], Lock.FRONT, false],
 }
+## Doorways closed by the people population instead of a door (M9d): doorway -> its closing node.
+const CLOSED_BY_PEOPLE: Dictionary[String, String] = {"WeakWall": "Population/People/WeakWall/BreachPanel"}
 ## Doorways bigger than a 1.2 x 2.2 m door (width, height).
 const BIG: Dictionary[String, Vector2] = {
 	"FrontGate": Vector2(6, 3), "BackGate": Vector2(1.2, 3), "RollerDoor1": Vector2(4, 4), "RollerDoor2": Vector2(4, 4)
@@ -102,12 +103,19 @@ func after_test() -> void:
 
 
 func test_every_doorway_holds_its_door_and_intended_locks() -> void:
-	await _helpers.load_level(self)
+	await _helpers.load_level(self, false, true)
 	var markers := _helpers.level.get_node("LayoutMarkers/Doorways").get_children()
-	assert_int(markers.size()).is_equal(EXPECTED.size())
+	assert_int(markers.size()).is_equal(EXPECTED.size() + CLOSED_BY_PEOPLE.size())
 	var problems: PackedStringArray = []
 	for marker: Marker3D in markers:
 		var key := String(marker.name)
+		if CLOSED_BY_PEOPLE.has(key):
+			var panel := _helpers.level.get_node_or_null(CLOSED_BY_PEOPLE[key]) as Node3D
+			if panel == null or panel.global_position.distance_to(marker.global_position) > 0.01:
+				problems.append("%s: not closed by %s" % [key, CLOSED_BY_PEOPLE[key]])
+			if _helpers.level.has_node("%s/Doors/%s" % [Helpers.SECURITY, key]):
+				problems.append("%s: a door as well" % key)
+			continue
 		var entity := _helpers.level.get_node_or_null("%s/Doors/%s" % [Helpers.SECURITY, key]) as StaticBody3D
 		if entity == null:
 			problems.append("%s: no door" % key)
@@ -144,7 +152,7 @@ func test_every_doorway_holds_its_door_and_intended_locks() -> void:
 
 
 func test_every_key_is_reachable_without_its_own_lock() -> void:
-	await _helpers.load_level(self)
+	await _helpers.load_level(self, false, true)
 	var level := _helpers.level
 	var doors: Dictionary[String, Dictionary] = {}
 	var areas: Dictionary[String, bool] = {}
@@ -178,7 +186,7 @@ func test_every_key_is_reachable_without_its_own_lock() -> void:
 
 
 func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void:
-	await _helpers.load_level(self)
+	await _helpers.load_level(self, false, true)
 	var gate := _helpers.door("BackGate")
 	var inside := _helpers.stand_in("Inside", Vector3(7, 0, 23.5))
 	var outside := _helpers.stand_in("Outside", Vector3(7, 0, 26.5))
@@ -204,7 +212,7 @@ func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void
 
 
 func test_the_populated_level_has_no_coplanar_faces_with_different_materials() -> void:
-	await _helpers.load_level(self)
+	await _helpers.load_level(self, false, true)
 
 	assert_array(KitGeometry.coplanar_material_overlaps(_helpers.level)).is_empty()
 

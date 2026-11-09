@@ -1,10 +1,11 @@
 extends GdUnitTestSuite
-## Warehouse security network (design/levels/mission-warehouse.md "Security network"): the
-## security console reaches every device cabled to the security switch and loses them when the
-## switch is broken or unpowered (breaker B); a camera that sees a lit intruder rings every siren
-## through the alarm controller, and once the switch is broken it tells nobody; every guard post
-## and patrol point of the layout is within earshot of a siren (31 m of path, 3 m inside the 34 m a
-## siren carries); doors and devices keep their state through a save and load.
+## Warehouse security network (design/levels/mission-warehouse.md "Security network"): the security
+## console reaches every device cabled to the security switch and loses them when the switch is
+## broken or unpowered (breaker B); a camera that sees a lit intruder rings every siren through the
+## alarm controller, and once the switch is broken it tells nobody; every guard (as placed by the
+## people population), its patrol points and the layout's markers are within earshot of a siren (31
+## m of path, 3 m inside the 34 m a siren carries); doors and devices keep their state through a
+## save and load.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -123,13 +124,19 @@ func test_a_camera_seeing_an_intruder_rings_the_sirens_until_the_switch_is_cut()
 
 func test_every_guard_post_and_patrol_point_hears_a_siren() -> void:
 	await _helpers.load_level(self, true)
-	var listeners: Dictionary[String, Node3D] = {}
+	# The guards as the people population placed them and their patrol points, and the layout's
+	# markers.
+	var spots: Dictionary[String, Vector3] = _helpers.guard_spots.duplicate()
+	assert_int(spots.size()).is_greater_equal(16)
 	for group: String in ["Guards", "PatrolPoints"]:
 		for marker: Node3D in _helpers.level.get_node("LayoutMarkers/" + group).get_children():
-			var heard := Fixtures.receptron(&"alarm.siren", [Fixtures.add_tag(HEARD)])
-			heard.min_intensity = EARSHOT_MIN_INTENSITY
-			var ear := marker.global_position + Vector3.UP * 1.6
-			listeners[String(marker.name)] = _helpers.stand_in("Ear" + marker.name, ear, [], [heard])
+			spots["Marker" + marker.name] = marker.global_position
+	var listeners: Dictionary[String, Node3D] = {}
+	for spot: String in spots:
+		var heard := Fixtures.receptron(&"alarm.siren", [Fixtures.add_tag(HEARD)])
+		heard.min_intensity = EARSHOT_MIN_INTENSITY
+		var ear := spots[spot] + Vector3.UP * 1.6
+		listeners[spot] = _helpers.stand_in("Ear" + spot, ear, [], [heard])
 
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()

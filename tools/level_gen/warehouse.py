@@ -190,7 +190,11 @@ DUCT_B = {
     ],
 }
 DUCT_B_HOLE = (10.4, 11.6, 2.2, 3.4)  # x0, x1, z0, z1 over the manager office
-CABINET_H = 1.35
+# Cabinet under the hole: its top (6.1) is 1.45 below the duct floor (7.55) and 1.0 below the
+# ceiling (7.1), so the player fits on it crouched. A lip hangs from the hole's north edge down to
+# HATCH_LIP_Y so the mantle's middle probe ray (0.86 m above the feet: 6.96) finds the edge's face.
+CABINET_H = 1.6
+HATCH_LIP_Y = 6.75
 DUCT_C_X = 14.9  # rise centre line (x): housing x 14.1 .. 15.7, clear of the room's west wall
 DUCT_C = {
     # Mouth faces west in the boiler room, turns south, rises into the security room's north wall.
@@ -318,8 +322,15 @@ def build_exterior():
         bd,
         "wood",
         [
-            box((10.4, -1.3, 33.6), (12.9, 0.3, 40.4)),
-            box((10.7, 0.3, 37.4), (12.6, 1.9, 39.6), mat="wall", name="Cabin"),
+            # Hull with a pointed bow downstream (south), an open deck well, a cabin with windows
+            # and an outboard motor at the stern (clear of the quay wall).
+            box((10.4, -1.3, 33.8), (12.9, 0.35, 39.6), name="Hull"),
+            obox((11.65, -0.475, 39.6), (1.768, 1.65, 1.768), yaw_basis(45.0), name="Bow"),
+            box((10.6, 0.05, 34.0), (12.7, 0.4, 39.4), op="subtraction", name="DeckWell"),
+            box((10.75, 0.05, 35.6), (12.55, 1.85, 37.8), mat="wall", name="Cabin"),
+            box((10.7, 1.1, 36.0), (12.6, 1.5, 37.4), mat="wall", op="subtraction", name="Windows"),
+            box((10.65, 1.85, 35.5), (12.65, 1.95, 37.9), mat="metal", name="CabinRoof"),
+            box((11.4, -0.5, 33.45), (11.9, 0.75, 33.8), mat="metal", name="Motor"),
         ],
     )
     del boat
@@ -795,8 +806,10 @@ def build_hall():
     b.railing("RailUpHoleN", of, (UP_X0, UP_BOTTOM_Z - 0.05), (UP_X1, UP_BOTTOM_Z - 0.05), OFF_UP)
     b.railing("RailDownHole", of, (DOWN_X1 + 0.05, DOWN_TOP_Z + 0.3), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)
     b.railing("RailDownHoleS", of, (DOWN_X0, DOWN_HOLE_Z1 + 0.05), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)
-    # Filing cabinet under the duct hole in the manager office (climb into the duct).
+    # Filing cabinet under the duct hole in the manager office (climb into the duct), and the hatch
+    # lip on the hole's north edge: the face the mantle back up into the duct catches.
     b.block("Cabinet", of, hx0, hx1, hz0, hz1, CABINET_H, y0=OFF_UP, surface="metal")
+    b.csg("HatchLip", of, "metal", [box((hx0, HATCH_LIP_Y, hz0 - 0.1), (hx1, OFF_UP + OFF_U_H, hz0))])
 
     # Fire escape on the hall's east wall: landing at the upper corridor door, a flight down to a
     # raised bottom landing (mantled from the ground: keeps guards off it), a flight up to the roof.
@@ -1015,14 +1028,14 @@ DOORWAYS = [
 # Placeholders for wave 2 (Marker3D, yaw in degrees: 0 faces -Z / north).
 POPULATION = {
     "Guards": [
-        ("G1GatePost", (-9.6, 0.0, -23.2), 90.0),
+        ("G1GatePost", (-8.6, 0.0, -22.2), -52.0),
         ("G2YardPatrolWest", (-18.0, 0.0, -18.0), 0.0),
         ("G3YardPatrolEast", (18.0, 0.0, -18.0), 0.0),
         ("G4CatwalkRifle", (-10.0, CW, -9.25), -90.0),
         ("G5SecurityOperator", (17.6, 0.0, 1.6), 0.0),
         ("G6BreakRoom", (11.0, 0.0, 2.6), 180.0),
         ("G7VaultDoor", (16.0, OFF_UP, 6.0), 0.0),
-        ("G8OffDuty", (17.0, BASE_Y, 11.5), 90.0),
+        ("G8OffDuty", (16.2, BASE_Y, 11.5), 90.0),
     ],
     "PatrolPoints": [
         ("YardWestA", (-18.0, 0.0, -18.0), 0.0),
@@ -1032,7 +1045,7 @@ POPULATION = {
         ("YardEastA", (18.0, 0.0, -18.0), 0.0),
         ("YardEastB", (33.0, 0.0, -14.0), 0.0),
         ("YardEastC", (24.0, 0.0, 14.0), 0.0),
-        ("YardEastD", (12.0, 0.0, 20.0), 0.0),
+        ("YardEastD", (8.0, 0.0, 20.5), 0.0),
         ("CatwalkA", (-10.0, CW, -9.25), 0.0),
         ("CatwalkB", (-19.25, CW, 6.0), 0.0),
         ("CatwalkC", (2.0, CW, 6.0), 0.0),
@@ -1077,7 +1090,7 @@ POPULATION = {
     ],
     "Mission": [
         ("Shipment", (0.0, 0.0, -6.5), 0.0),
-        ("GasCylinders", (-12.5, 0.0, 16.3), 0.0),
+        ("GasCylinders", (-11.45, 0.0, 15.9), 0.0),
     ],
 }
 

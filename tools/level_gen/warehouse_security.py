@@ -36,6 +36,8 @@ ACCESS_SECURITY = "warehouse_security"
 ACCESS_VAULT = "warehouse_vault"
 
 DOORWAYS = {name: (pos, axis) for name, pos, axis, _lock in w.DOORWAYS}
+# Doorways the people population closes (M9d: the weak wall's breach panel), no door here.
+CLOSED_BY_PEOPLE = ("WeakWall",)
 
 # Free sides (Lock.free_side): 1 = the door's +Z side, 2 = its -Z side.
 FRONT, BACK = 1, 2
@@ -46,14 +48,13 @@ FRONT, BACK = 1, 2
 # (linked to the security switch).
 DOORS = {
     "FrontGate": {"yaw": 0, "wall": 0.4, "settings": "vehicle_gate_settings", "locks": [("electronic", None, BACK, 0)], "tags": ["door.fail_secure"], "circuit": YARD, "cabled": True},
-    "BoothDoor": {"yaw": 90, "wall": 0.2},
+    "BoothDoor": {"yaw": 90, "wall": 0.2, "open": True},  # left open: the booth lamp lights G1's post
     "BackGate": {"yaw": 0, "wall": 0.3, "settings": "fence_gate_settings", "locked": True, "locks": [("mechanical", 4, FRONT, BACK)]},
     "SideDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("keypad", SIDE_DOOR_CODE, BACK, FRONT)]},
     "RollerDoor1": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
     "RollerDoor2": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
     "AnnexDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, BACK, 0)]},
     "AnnexRoofDoor": {"yaw": -90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "WeakWall": {"yaw": 0, "wall": 0.5, "settings": "wall_panel_settings", "locked": True, "breakable": True},
     "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
     "OfficeEntrance": {"yaw": 90, "wall": 0.25},
     "BreakRoomHall": {"yaw": 0, "wall": 0.25},
@@ -142,7 +143,7 @@ OFFICE_PCS = {
 # height). A Ledge's origin is the bottom centre of its lip (facing +Z), the block runs towards -Z.
 FURNITURE = {
     "ManagerDesk": ((9.2, w.OFF_UP, 1.1), 0.0, 1.6, 0.8, 0.8),
-    "BreakRoomTable": ((13.1, w.OFF_GROUND, 3.3), 0.0, 1.0, 1.6, 0.73),
+    "BreakRoomCounter": ((13.1, w.OFF_GROUND, 3.3), 0.0, 1.0, 1.6, 0.73),
     "LockerBench": ((13.65, w.OFF_GROUND, 11.0), 0.0, 0.6, 2.0, 0.48),
     "SecurityDesk": ((19.3, w.OFF_GROUND, 3.0), 0.0, 0.8, 1.4, 0.78),
     "OfficeDesk1": ((14.5, w.OFF_UP, 13.9), 180.0, 1.4, 0.8, 0.75),
@@ -197,7 +198,6 @@ KEYCARDS = {
 
 SCENES = {
     "door": "res://objects/door/door.tscn",
-    "breakable_door": "res://objects/door/breakable_door.tscn",
     "camera": "res://objects/camera/security_camera.tscn",
     "turret": "res://objects/turret/turret.tscn",
     "terminal": "res://objects/terminal/terminal.tscn",
@@ -241,14 +241,13 @@ def build():
     s = Scene("Security")
     scene = {key: s.ext_res("PackedScene", path) for key, path in SCENES.items()}
     script = {key: s.ext_res("Script", path) for key, path in SCRIPTS.items()}
-    wall_material = s.ext_res("Material", "res://assets/materials/graybox/wall.tres")
     cabled = []
 
     # --- Doors ------------------------------------------------------------------------------
     s.add("Doors", ".", "Node3D")
     for name, spec in DOORS.items():
         pos, _axis = DOORWAYS[name]
-        key = "breakable_door" if spec.get("breakable") else "door"
+        key = "door"
         path = s.add(name, "Doors", instance=scene[key], props={"transform": Raw(transform(pos, yaw_basis(spec["yaw"])))})
         tags = ["object.door", "material.metal"] + spec.get("tags", [])
         if spec.get("tags"):
@@ -256,16 +255,12 @@ def build():
         if spec.get("locked"):
             s.override(f"{path}/Lockable", {"locked": True})
         door_props = {"wall_thickness": spec["wall"]}
+        if spec.get("open"):
+            door_props["start_open"] = True
         settings_name = spec.get("settings")
         if settings_name:
             door_props["settings"] = s.ext_res("Resource", f"res://objects/door/{settings_name}.tres")
         s.override(f"{path}/Door", door_props)
-        if spec.get("breakable"):
-            # A weak wall: the panel looks like the wall, no control panels.
-            s.override(f"{path}/PanelMesh", {"material_override": wall_material})
-            for side in ("ControlFront", "ControlBack"):
-                s.override(f"{path}/{side}", {"visible": False})
-                s.override(f"{path}/{side}Shape", {"disabled": True})
         if spec.get("circuit"):
             s.add("Powered", path, "Node", props={"script": script["powered"], "circuit": sname(spec["circuit"])})
         width = 1.2

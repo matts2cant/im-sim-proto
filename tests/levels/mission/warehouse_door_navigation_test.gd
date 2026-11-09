@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Warehouse doors on the navmesh (ADR 0078, ADR 0090): guards reach every post and patrol point
 ## from the reinforcements' arrival through the doors their keys open (the security operator's
-## post needs `access.warehouse_security`); the large doors (front gate, roller doors) open and
+## post needs `access.warehouse_security`), and every guard the people population placed reaches its
+## post and its patrol points with its own access tags; the large doors (front gate, roller doors) open and
 ## close and keep guards out while locked, and let them through once unlocked or open.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
@@ -43,6 +44,25 @@ func test_guards_reach_their_posts_through_the_doors_their_keys_open() -> void:
 	# The security operator's post is behind the keycard door: without the access, no path.
 	var operator := (_helpers.level.get_node("LayoutMarkers/Guards/G5SecurityOperator") as Node3D).global_position
 	assert_bool(_reaches(start, operator, AccessLayers.WALK)).is_false()
+
+
+func test_every_placed_guard_reaches_its_post_and_route_with_its_own_keys() -> void:
+	await _helpers.load_level(self, true, true)
+	var start := (_helpers.level.get_node("ReinforcementSpawn") as Node3D).global_position
+	var people := _helpers.level.get_node(Helpers.PEOPLE)
+	var missing: PackedStringArray = []
+	for guard: Node in people.get_node("Guards").get_children():
+		var layers := AccessLayers.agent_layers(ActorState.tags_of(guard).container)
+		var post: Vector3 = _helpers.guard_spots[String(guard.name)]
+		if not _reaches(start, post, layers):
+			missing.append("%s: post" % guard.name)
+		var route := people.get_node_or_null("Routes/%sRoute" % guard.name)
+		if route == null:
+			continue
+		for point: Node in route.get_children():
+			if not _reaches(post, _helpers.guard_spots[String(point.name)], layers):
+				missing.append("%s: %s" % [guard.name, point.name])
+	assert_array(missing).is_empty()
 
 
 func test_large_doors_open_close_and_keep_guards_out_while_locked() -> void:
