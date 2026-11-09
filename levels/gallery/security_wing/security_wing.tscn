@@ -32,8 +32,9 @@
 [ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="30_pistol_ammo"]
 [ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="31_barrel"]
 [ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="32_guard_baton"]
-[ext_resource type="PackedScene" path="res://objects/laser/laser_tripwire.tscn" id="33_laser"]
+[ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="33_laser"]
 [ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="34_cardboard_box"]
+[ext_resource type="PackedScene" path="res://objects/laser/laser_beam.tscn" id="35_laser_beam"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -442,7 +443,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.6, 0.01)
 circuit = &"security_wing_b"
 
 [node name="Device" parent="Devices/Switch"]
-links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../SirenHall"), NodePath("../../SirenCorridor"), NodePath("../../PanicButton"), NodePath("../../BaseStation"), NodePath("../../../Doors/VaultDoor"), NodePath("../../LaserLow"), NodePath("../../LaserHigh"), NodePath("../../LaserPairLow"), NodePath("../../LaserPairHigh")])
+links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../SirenHall"), NodePath("../../SirenCorridor"), NodePath("../../PanicButton"), NodePath("../../BaseStation"), NodePath("../../../Doors/VaultDoor"), NodePath("../../LaserLow"), NodePath("../../LaserHigh"), NodePath("../../LaserPair")])
 
 [node name="PanicButton" parent="Devices" instance=ExtResource("20_panic_button")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1.3, 0.01)
@@ -484,26 +485,24 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 0, 21.2)
 [node name="LaserLow" parent="Devices" instance=ExtResource("33_laser")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.49, 0.4, 11.5)
 
-[node name="LaserBehaviour" parent="Devices/LaserLow"]
-beam_length = 2.98
+[node name="Beam1" parent="Devices/LaserLow"]
+length = 2.98
 
 [node name="LaserHigh" parent="Devices" instance=ExtResource("33_laser")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.49, 1.3, 14.5)
 
-[node name="LaserBehaviour" parent="Devices/LaserHigh"]
-beam_length = 2.98
+[node name="Beam1" parent="Devices/LaserHigh"]
+length = 2.98
 
-[node name="LaserPairLow" parent="Devices" instance=ExtResource("33_laser")]
+[node name="LaserPair" parent="Devices" instance=ExtResource("33_laser")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.49, 0.4, 16.4)
 
-[node name="LaserBehaviour" parent="Devices/LaserPairLow"]
-beam_length = 2.98
+[node name="Beam1" parent="Devices/LaserPair"]
+length = 2.98
 
-[node name="LaserPairHigh" parent="Devices" instance=ExtResource("33_laser")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.49, 1.3, 16.4)
-
-[node name="LaserBehaviour" parent="Devices/LaserPairHigh"]
-beam_length = 2.98
+[node name="Beam2" parent="Devices/LaserPair" instance=ExtResource("35_laser_beam")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+length = 2.98
 
 [node name="Items" type="Node3D" parent="."]
 
@@ -732,7 +731,7 @@ size = 0
 [node name="LaserHall" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 2.3, 11)
 pixel_size = 0.003
-text = "Laser tripwires: anything
+text = "Laser arrays: anything
 breaking a beam rings the
 alarm (guards excepted).
 Throw the box through one"
@@ -755,8 +754,8 @@ size = 0
 [node name="LaserPair" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -4.55, 2.3, 16.3)
 pixel_size = 0.003
-text = "Pair: no jump or crouch
-gets past. Disable it at
-the terminal, cut breaker B
-or shoot an emitter"
+text = "Two-beam array: no jump
+or crouch gets past. Disable
+it at the terminal, cut
+breaker B or shoot its emitter"
 size = 0
