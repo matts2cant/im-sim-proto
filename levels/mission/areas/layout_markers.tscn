@@ -309,6 +309,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 20, -16)
 [node name="AnnexRoof" type="Marker3D" parent="DarkSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 4.75, 10)
 
+[node name="RoofDuctBWest" type="Marker3D" parent="DarkSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, 9.5, -3)
+
+[node name="RoofDuctBEast" type="Marker3D" parent="DarkSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 9.5, -4.5)
+
 [node name="LitSpots" type="Node3D" parent="."]
 
 [node name="GateLane" type="Marker3D" parent="LitSpots"]
@@ -340,3 +346,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 23.8)
 
 [node name="Booth" type="Marker3D" parent="LitSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -22)
+
+[node name="RoofDuctB" type="Marker3D" parent="LitSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 9.5, -7.2)

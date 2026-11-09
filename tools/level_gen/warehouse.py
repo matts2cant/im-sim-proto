@@ -137,6 +137,25 @@ AS_X = -21.25
 AS_BOTTOM_Z = 11.4
 AS_N, AS_R, AS_RUN = flight(ROOF - ANNEX_ROOF, 0.29, 0.18)
 AS_TOP_Z = AS_BOTTOM_Z - AS_RUN
+# Roof security (M9g, ADR 0097). The parapet gaps where the annex stair (west) and the fire escape
+# (east) arrive on the roof, 1.2 m wide (z): a high laser beam crosses each, 1.3 m above the roof,
+# between two posts rising from the parapet's ends (the parapet itself is only 1.0 m). A camera on a
+# mast in the roof's north-east corner, under a flood lamp, watches duct B's forecourt. The devices
+# are placed by warehouse_security.py on the yard network; the lamp is on the yard circuit.
+ROOF_GAP_W = (AS_TOP_Z - 1.2, AS_TOP_Z)
+ROOF_GAP_E = (FE_TOP_Z - 1.2, FE_TOP_Z)
+ROOF_BEAM_H = 1.3  # above the roof: crouched under (0.95 m), not jumped (apex 1.0 m)
+LASER_POST_H = 1.6
+LASER_POST_T = 0.2
+ROOF_MAST = (16.85, 17.15, -9.99, -9.69)  # x0, x1, z0, z1: 1 cm off the north parapet's inner face
+ROOF_MAST_H = 3.4
+ROOF_CAMERA_H = 2.8  # camera mount above the roof (metrics: about 2.6 m)
+ROOF_LAMP_H = 3.6
+# The flood lamp's aim point: duct B's forecourt, north of its mouth (x 11, z -5.8).
+ROOF_LAMP_TARGET = (11.0, 9.5, -7.4)
+ROOF_LAMP_ENERGY = 5.0
+ROOF_LAMP_RANGE = 10.0
+ROOF_LAMP_ANGLE = 20.0
 # Office stairwell (ground -> upper), against the stairwell's east wall, rising south.
 UP_X0, UP_X1 = 11.7, 13.0
 UP_BOTTOM_Z = 8.4  # 1.4 m landing in front of the foot (the stairwell door is at z 7.0)
@@ -632,9 +651,10 @@ def build_hall():
 
     # Roof: parapets (gaps where the fire escape and the annex stair arrive), skylight curbs, plant.
     roof = b.group("Roof")
-    fe_gap = (FE_TOP_Z - 1.2, FE_TOP_Z)
-    as_gap = (AS_TOP_Z - 1.2, AS_TOP_Z)
+    fe_gap = ROOF_GAP_E
+    as_gap = ROOF_GAP_W
     p0, p1 = ROOF, ROOF + PARAPET
+    q1, qt = ROOF + LASER_POST_H, LASER_POST_T
     xo0, xo1, zo0, zo1 = HALL_X0 - HALL_T, HALL_X1 + HALL_T, HALL_Z0 - HALL_T, HALL_Z1 + HALL_T
     b.csg(
         "Parapet",
@@ -647,6 +667,11 @@ def build_hall():
             box((xo0, p0, as_gap[1]), (HALL_X0, p1, HALL_Z1), name="West2"),
             box((HALL_X1, p0, HALL_Z0), (xo1, p1, fe_gap[0]), name="East1"),
             box((HALL_X1, p0, fe_gap[1]), (xo1, p1, HALL_Z1), name="East2"),
+            # Laser posts (M9g): the parapet's ends at each gap rise to 1.6 m for the high beams.
+            box((xo0, p1, as_gap[0] - qt), (HALL_X0, q1, as_gap[0]), name="PostWestN"),
+            box((xo0, p1, as_gap[1]), (HALL_X0, q1, as_gap[1] + qt), name="PostWestS"),
+            box((HALL_X1, p1, fe_gap[0] - qt), (xo1, q1, fe_gap[0]), name="PostEastN"),
+            box((HALL_X1, p1, fe_gap[1]), (xo1, q1, fe_gap[1] + qt), name="PostEastS"),
         ],
         default_mat="wall",
     )
@@ -682,6 +707,8 @@ def build_hall():
             box((-4.0, ROOF, 11.6), (-2.0, ROOF + 1.2, 13.0), name="UnitS"),
             box((7.0, ROOF, 9.4), (9.0, ROOF + 1.2, 10.8), name="UnitSE"),
             box((-17.5, ROOF, 9.0), (-16.1, ROOF + 1.6, 11.0), name="UnitSW"),
+            # Camera mast (M9g): the roof camera on its south face, the flood lamp on top.
+            box((ROOF_MAST[0], ROOF, ROOF_MAST[2]), (ROOF_MAST[1], ROOF + ROOF_MAST_H, ROOF_MAST[3]), name="CameraMast"),
         ],
     )
 
@@ -917,6 +944,10 @@ def build_hall():
     b.lamp("ceiling_lamp", "LampCorridorEastG", lg, (17.5, OFF_G_H, 6.0), BUILDING, 1.2, 5.0)
     b.lamp("ceiling_lamp", "LampCorridorEastU", lg, (17.5, OFF_UP + OFF_U_H, 6.0), BUILDING, 1.2, 5.0)
     b.lamp("ceiling_lamp", "LampAnnex", lg, (-23.25, ANNEX_H, 7.0), BUILDING, 0.8, 5.0)
+    # Roof flood lamp (M9g, ADR 0097) on the camera mast, on the yard circuit (breaker A): it lights
+    # duct B's forecourt for the roof camera. Its range stops short of the hall below the skylights.
+    lamp_pos = ((ROOF_MAST[0] + ROOF_MAST[1]) * 0.5, ROOF + ROOF_LAMP_H, (ROOF_MAST[2] + ROOF_MAST[3]) * 0.5)
+    b.flood("FloodRoof", lg, lamp_pos, ROOF_LAMP_TARGET, YARD, ROOF_LAMP_ENERGY, ROOF_LAMP_RANGE, ROOF_LAMP_ANGLE)
     return b
 
 
@@ -1147,6 +1178,9 @@ DARK_SPOTS = [
     ("BoilerCorner", (19.0, BASE_Y, -8.6), False),
     ("TowerDeck", (43.0, TOWER_DECK_Y, -16.0), False),
     ("AnnexRoof", (-24.0, ANNEX_ROOF, 10.0), False),
+    # M9g (ADR 0097): where a careful player waits for the roof camera, either side of duct B.
+    ("RoofDuctBWest", (9.4, ROOF, -3.0), False),
+    ("RoofDuctBEast", (14.5, ROOF, -4.5), False),
 ]
 LIT_SPOTS = [
     ("GateLane", (-6.0, 0.0, -21.0)),
@@ -1159,6 +1193,7 @@ LIT_SPOTS = [
     ("BreakRoom", (11.0, 0.0, 2.5)),
     ("BackGate", (7.0, 0.0, 23.8)),
     ("Booth", (-11.0, 0.0, -22.0)),
+    ("RoofDuctB", (11.0, ROOF, -7.2)),  # M9g: duct B's forecourt under the roof lamp (yard circuit)
 ]
 
 

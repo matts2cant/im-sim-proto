@@ -90,7 +90,7 @@ EventLog: `camera.detected {camera, target, point, controllers}`, `turret.detect
 - Throwing a prop through a beam rings the alarm on purpose (a distraction).
 - EventLog: `laser.tripped {laser, by, point, controllers}`, `laser.toggled {laser, enabled}`.
 
-In the gallery: the security wing's laser hall behind closet D1 has a low beam, a high beam and a pair, cabled to the wing's switch ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)).
+In the gallery: the security wing's laser hall behind closet D1 has a low beam, a high beam and a pair, cabled to the wing's switch ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)). In the warehouse: two high beams across the roof's arrivals, with a camera over duct B's lit forecourt, on the yard network ([mission-warehouse.md](../levels/mission-warehouse.md#roof-security-m9g), [ADR 0097](../decisions/0097-warehouse-roof-security.md)).
 
 ## Terminal (M8 placeholder)
 

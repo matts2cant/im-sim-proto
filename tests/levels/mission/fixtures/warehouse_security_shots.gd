@@ -57,6 +57,19 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"view_camera_hall": {"cam": true, "view": DEVICES + "CameraHall"},
 	"view_camera_office": {"cam": true, "view": DEVICES + "CameraOffice"},
 	"view_vault_turret": {"cam": true, "view": DEVICES + "VaultTurret"},
+	"view_camera_roof": {"cam": true, "view": DEVICES + "CameraRoof"},
+	# M9g roof security (ADR 0097): each gap's high beam from the stair landing where the player
+	# arrives, standing and crouched; the roof camera and duct B's lit forecourt from the east gap
+	# and from the dark beside duct B's housing.
+	"roof_beam_west": {"feet": Vector3(-21.4, 9.5, 3.2), "look": Vector3(-19.0, 10.4, 2.97)},
+	"roof_beam_west_crouch": {"feet": Vector3(-21.4, 9.5, 3.2), "look": Vector3(-19.0, 10.4, 2.97), "crouch": true},
+	"roof_beam_east": {"feet": Vector3(21.4, 9.5, -3.6), "look": Vector3(19.0, 10.4, -3.92)},
+	"roof_beam_east_crouch": {"feet": Vector3(21.4, 9.5, -3.6), "look": Vector3(19.0, 10.4, -3.92), "crouch": true},
+	"roof_camera_east": {"feet": Vector3(19.2, 9.5, -3.9), "look": Vector3(14.5, 10.6, -8.2)},
+	"roof_camera_east_crouch": {"feet": Vector3(19.2, 9.5, -3.9), "look": Vector3(14.5, 10.6, -8.2), "crouch": true},
+	"roof_camera_west": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8)},
+	"roof_camera_west_crouch": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8), "crouch": true},
+	"roof_west_arrival": {"feet": Vector3(-18.5, 9.5, 3.0), "look": Vector3(10, 10.5, -6)},
 	# The security console's Network tab.
 	"terminal_network":
 	{"feet": Vector3(16.05, 0, 1.0), "look": Vector3(16.05, 1.45, 0.25), "terminal": DEVICES + "SecurityConsole"},

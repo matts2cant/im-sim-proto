@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
 ## Warehouse night lighting (light-and-visibility.md, metrics.md "Light and guards"): every listed
-## hiding spot reads dark (< 0.1) and every lit pool where guards stand or patrol reads lit (>= 0.5)
-## for a standing body (the spots are the LayoutMarkers DarkSpots / LitSpots; `crouched` ones are
-## measured crouched). Breaker A's circuit (`warehouse_yard`) carries the outdoor lights and
-## breaker B's (`warehouse_building`) the building's: cutting one darkens its pools only.
+## hiding spot reads dark (< 0.1) and every lit pool where guards stand or patrol (or the roof
+## camera watches, ADR 0097) reads lit (>= 0.5) for a standing body (the spots are the LayoutMarkers
+## DarkSpots / LitSpots; `crouched` ones are measured crouched). Breaker A's circuit
+## (`warehouse_yard`) carries the outdoor lights and breaker B's (`warehouse_building`) the
+## building's: cutting one darkens its pools only.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const YARD := &"warehouse_yard"
@@ -11,7 +12,7 @@ const BUILDING := &"warehouse_building"
 const DARK := 0.1
 const LIT := 0.5
 ## Lit pools on each circuit (LayoutMarkers/LitSpots names).
-const YARD_POOLS: Array[String] = ["GateLane", "DockApronWest", "SideDoor", "BackGate", "Booth"]
+const YARD_POOLS: Array[String] = ["GateLane", "DockApronWest", "SideDoor", "BackGate", "Booth", "RoofDuctB"]
 const BUILDING_POOLS: Array[String] = ["DockInside", "GroundCorridor", "UpperCorridor", "SecurityRoom", "BreakRoom"]
 
 var _level: Node3D

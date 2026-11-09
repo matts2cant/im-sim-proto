@@ -32,6 +32,9 @@ const BUILDING: Array[String] = [
 const YARD: Array[String] = [
 	"CameraGate",
 	"CameraYard",
+	"CameraRoof",
+	"LaserRoofWest",
+	"LaserRoofEast",
 	"PanicButtonBooth",
 	"AlarmControllerYard",
 	"SirenDock",

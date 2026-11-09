@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## extraction count the whole route. The guard waits are conditions on their patrols, not times.
 
 const Route := preload("res://tests/levels/mission/warehouse_route_driver.gd")
+const Roof := preload("res://tests/levels/mission/warehouse_route_roof.gd")
 const MANIFEST := "Population/Security/Items/ManifestDatapad"
 const BACK_GATE := "Population/Security/Doors/BackGate"
 const G2 := "G2YardPatrolWest"
@@ -65,22 +66,20 @@ func test_1_over_the_fence_and_up_the_annex_chain_unseen() -> void:
 func test_2_roof_and_duct_b_to_the_manifest() -> void:
 	var ok := await _route.resume(scene_runner(Route.fixture(self)), _saved)
 	_saved = {}
-	# Annex stair to the roof, east across the roof between the skylights, into duct B's mouth.
+	var roof := _route.raised.size()
+	# Annex stair to the roof; crouched under the high beam across the parapet's gap (ADR 0097).
 	ok = ok and await _route.go([Vector3(-23.5, 4.75, 12.3), Vector3(-21.25, 4.75, 12.3), Vector3(-21.25, 9.5, 3.0)])
-	ok = (
-		ok
-		and await _route.go(
-			[
-				Vector3(-18.5, 9.5, 3.0),
-				Vector3(-16.5, 9.5, 0.5),
-				Vector3(8, 9.5, 0.5),
-				Vector3(10.2, 9.5, -7.6),
-				Vector3(11, 9.5, -7.2)
-			]
-		)
-	)
+	ok = ok and await _route.go([Vector3(-18.5, 9.5, 3.0)], Route.Stance.CROUCH)
+	# East across the dark roof between the skylights to beside duct B's housing, out of the lamp.
+	ok = ok and await _route.go([Vector3(-16.5, 9.5, 0.5), Vector3(8, 9.5, 0.5), Vector3(9.4, 9.5, -3.0)])
+	# The forecourt is lit, in the roof camera's sweep and in G4's sight up through the east
+	# skylight: go once the camera turns east and G4 walks west (warehouse_route_roof.gd).
+	ok = ok and await Roof.wait_for_forecourt(_route)
+	ok = ok and await _route.go([Vector3(10.2, 9.5, -7.6), Vector3(11, 9.5, -7.2)])
 	# Crawl down the duct and through the hatch onto the filing cabinet, then to the desk.
-	ok = ok and await _route.go([Vector3(11, 9.7, -5.0), Vector3(11, 7.6, 2.8)], Route.Stance.CROUCH)
+	ok = ok and await _route.go([Vector3(11, 9.7, -5.0)], Route.Stance.CROUCH)
+	_assert_roof_unseen(roof)
+	ok = ok and await _route.go([Vector3(11, 7.6, 2.8)], Route.Stance.CROUCH)
 	ok = (
 		ok
 		and await _route.wait_until(
@@ -103,14 +102,15 @@ func test_3_back_up_the_duct_down_the_fire_escape_and_out_of_the_back_gate() -> 
 	ok = ok and await _route.climb_from(Vector3(11, 4.5, 4.1), Route.NORTH, 6.1)
 	ok = ok and await _route.go([Vector3(11, 6.1, 2.65)], Route.Stance.CROUCH)
 	ok = ok and await _route.climb(Route.NORTH, 7.55)
-	ok = (
-		ok
-		and await _route.go(
-			[Vector3(11, 7.6, -1.0), Vector3(11, 9.7, -5.6), Vector3(11, 9.5, -7.0)], Route.Stance.CROUCH
-		)
-	)
-	# Across the roof to the fire escape's landing (the east parapet's gap).
-	ok = ok and await _route.go([Vector3(18.5, 9.5, -3.9), Vector3(21.2, 9.5, -3.9)])
+	ok = ok and await _route.go([Vector3(11, 7.6, -1.0), Vector3(11, 9.6, -4.4)], Route.Stance.CROUCH)
+	# Out of the mouth into the lit forecourt once the roof camera and G4 look away, east into the dark,
+	# then across the roof to the fire escape's landing, crouched under the east gap's beam.
+	var roof := _route.raised.size()
+	ok = ok and await Roof.wait_for_forecourt(_route)
+	ok = ok and await _route.go([Vector3(11, 9.5, -7.0)], Route.Stance.CROUCH)
+	ok = ok and await _route.go([Vector3(14.5, 9.5, -4.5), Vector3(18.5, 9.5, -3.9)])
+	ok = ok and await _route.go([Vector3(21.2, 9.5, -3.9)], Route.Stance.CROUCH)
+	_assert_roof_unseen(roof)
 	# G9 turns at the fire escape's foot: go down once it walks back west, past the back gate's east.
 	ok = (
 		ok
@@ -145,3 +145,11 @@ func test_3_back_up_the_duct_down_the_fire_escape_and_out_of_the_back_gate() -> 
 	assert_bool(results["pacifist"]).override_failure_message(_route.report()).is_true()
 	assert_int(results["alarms"]).is_equal(0)
 	assert_int(results["kills"] + results["knockouts"]).is_equal(0)
+
+
+# No guard's awareness rose above Unaware and no alarm rang since `mark` (the size of the driver's
+# `raised` at the start of a roof stretch): the roof crossing went unnoticed.
+func _assert_roof_unseen(mark: int) -> void:
+	var risen := Array(_route.raised.slice(mark))
+	assert_array(risen).override_failure_message("noticed on the roof:\n" + _route.report()).is_empty()
+	assert_int(_route.mission.tally.alarms).override_failure_message(_route.report()).is_equal(0)

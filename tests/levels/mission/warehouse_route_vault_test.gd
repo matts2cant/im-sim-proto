@@ -14,6 +14,7 @@ extends GdUnitTestSuite
 ## (WarehouseRouteDriver.snapshot()).
 
 const Route := preload("res://tests/levels/mission/warehouse_route_driver.gd")
+const Roof := preload("res://tests/levels/mission/warehouse_route_roof.gd")
 const MANIFEST := "Population/Security/Items/ManifestDatapad"
 const AUDIT := "Population/Security/Items/ConsoleAudit"
 const CONSOLE := "Population/Security/Devices/SecurityConsole"
@@ -59,13 +60,13 @@ func test_1_office_down_the_fire_escape_and_the_tunnel_to_the_boiler_room() -> v
 	ok = ok and await _route.climb_from(Vector3(11, 4.5, 4.1), Route.NORTH, 6.1)
 	ok = ok and await _route.go([Vector3(11, 6.1, 2.65)], Route.Stance.CROUCH)
 	ok = ok and await _route.climb(Route.NORTH, 7.55)
-	ok = (
-		ok
-		and await _route.go(
-			[Vector3(11, 7.6, -1.0), Vector3(11, 9.7, -5.6), Vector3(11, 9.5, -7.0)], Route.Stance.CROUCH
-		)
-	)
-	ok = ok and await _route.go([Vector3(18.5, 9.5, -3.9), Vector3(21.2, 9.5, -3.9)])
+	ok = ok and await _route.go([Vector3(11, 7.6, -1.0), Vector3(11, 9.6, -4.4)], Route.Stance.CROUCH)
+	# Out of the mouth once the roof camera and G4 look away from the lit forecourt, east into the dark and
+	# crouched under the east gap's beam onto the fire escape (ADR 0097).
+	ok = ok and await Roof.wait_for_forecourt(_route)
+	ok = ok and await _route.go([Vector3(11, 9.5, -7.0)], Route.Stance.CROUCH)
+	ok = ok and await _route.go([Vector3(14.5, 9.5, -4.5), Vector3(18.5, 9.5, -3.9)])
+	ok = ok and await _route.go([Vector3(21.2, 9.5, -3.9)], Route.Stance.CROUCH)
 	# Down the fire escape once G9 has turned back west, past the back gate.
 	ok = (
 		ok
