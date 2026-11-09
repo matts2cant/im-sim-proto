@@ -142,6 +142,11 @@ func test_cutting_the_switch_greys_the_branch_with_no_commands_never_broken() ->
 	_log_in()
 	_screen.show_tab(TerminalScreen.Tab.NETWORK)
 	var graph := _screen.graph
+	# Shipped devices report disabled through DeviceStatus: red while reachable (ADR 0099 amendment).
+	for device_name: String in ["Camera", "Turret"]:
+		assert_object(graph.node_color(device_name)).is_equal(TerminalStyle.DISABLED_COLOR)
+	for device_name: String in ["Switch", "Controller", "Siren", "Door"]:
+		assert_object(graph.node_color(device_name)).is_equal(TerminalStyle.ONLINE_COLOR)
 	Powered.of(_show.node("Switch")).on = false
 	Breakable.of(_show.node("Siren")).take_damage(&"damage.ballistic", 100.0)
 	await _show.seconds(REFRESH)
@@ -152,6 +157,11 @@ func test_cutting_the_switch_greys_the_branch_with_no_commands_never_broken() ->
 		graph.select(device_name)
 		assert_array(graph.menu_labels()).override_failure_message(device_name).is_empty()
 		assert_str(graph.menu_status.text).is_equal("offline")
+		# Grey, also the disabled ones: out of reach, their state is unknown.
+		graph.close_menu()
+		assert_object(graph.node_color(device_name)).override_failure_message(device_name).is_equal(
+			TerminalStyle.OFFLINE_COLOR
+		)
 	assert_str(graph.node_status("Terminal")).is_equal("logged in")
 	# The Camera tab: still listed, greyed, no signal and no commands.
 	_screen.show_tab(TerminalScreen.Tab.CAMERA)
@@ -166,6 +176,7 @@ func test_cutting_the_switch_greys_the_branch_with_no_commands_never_broken() ->
 	await _show.seconds(REFRESH)
 	assert_str(_screen.status_of("Camera")).is_equal("online · disabled")
 	assert_object(_screen.camera_button("Enable")).is_not_null()
+	assert_object(_screen.camera_status.get_theme_color(&"font_color")).is_equal(TerminalStyle.DISABLED_COLOR)
 
 
 func test_the_network_tab_opens_fitted_and_f_fits_it_again() -> void:

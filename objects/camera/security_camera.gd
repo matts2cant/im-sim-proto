@@ -97,6 +97,11 @@ func yaw() -> float:
 	return model.yaw
 
 
+## Switched off by a command, for security screens (DeviceStatus).
+func device_disabled() -> bool:
+	return disabled
+
+
 ## Status words for security screens (DeviceStatus): enabled / disabled, sweeping / holding, and
 ## suspicious or alert while its meter is up.
 func device_status() -> PackedStringArray:

@@ -1,10 +1,12 @@
 extends GdUnitTestSuite
 ## Unit (ADR 0083): DeviceStatus collects what a security screen shows from any entity's components
 ## (stand-ins here, not shipped devices): offline hides everything, online lists each component's
-## words in tree order without duplicates, a view comes from whichever component offers one.
+## words in tree order without duplicates, a view comes from whichever component offers one, a device
+## is disabled when one of its components says so (ADR 0099 amendment).
 
 const StatusStandIn := preload("res://tests/objects/devices/fixtures/status_stand_in.gd")
 const ViewStandIn := preload("res://tests/objects/devices/fixtures/view_stand_in.gd")
+const DisableStandIn := preload("res://tests/objects/devices/fixtures/disable_stand_in.gd")
 
 
 func _entity(words_per_component: Array[PackedStringArray]) -> Node3D:
@@ -52,3 +54,15 @@ func test_a_view_comes_from_the_component_that_offers_one() -> void:
 	component.set("seeing", false)
 	assert_bool(DeviceStatus.has_view(entity)).is_true()
 	assert_object(DeviceStatus.view_of(entity)).is_null()
+
+
+func test_disabled_when_a_component_says_so() -> void:
+	# Components that cannot be switched off (no device_disabled()) never make it disabled.
+	var entity := _entity([PackedStringArray(["silent"])])
+	assert_bool(DeviceStatus.is_disabled(entity)).is_false()
+	var component: Node = DisableStandIn.new()
+	entity.add_child(component)
+	assert_bool(DeviceStatus.is_disabled(entity)).is_false()
+	component.set("disabled", true)
+	assert_bool(DeviceStatus.is_disabled(entity)).is_true()
+	assert_bool(DeviceStatus.is_disabled(null)).is_false()

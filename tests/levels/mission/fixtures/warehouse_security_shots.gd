@@ -3,7 +3,9 @@ extends RefCounted
 ## warehouse_shots.gd's list: run `warehouse_shots.tscn -- shots=<name>,... out=<folder>`. Keys as
 ## there, plus `view`: a free camera at the eye of a device's view node (a camera's point of view,
 ## HUD hidden), and `terminal`: the player uses that terminal, logged in, on its Network tab (then
-## `zoom`: zoomed by that factor around the map's centre, `select`: that node's menu open).
+## `zoom`: zoomed by that factor around the map's centre, `select`: that node's menu open). Before
+## a shot, `off` turns those circuits off and `disable` sends `command.disable` to those devices
+## (both last for the rest of the run: put such shots last).
 
 const DEVICES := "Population/Security/Devices/"
 
@@ -92,5 +94,25 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"look": Vector3(16.05, 1.45, 0.25),
 		"terminal": DEVICES + "SecurityConsole",
 		"select": "Vault Turret",
+	},
+	# M9h (ADR 0099 amendment): node colours. Breaker A's circuit off (the yard network unreachable:
+	# grey) and the hall camera disabled (red).
+	"terminal_network_states":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"terminal": DEVICES + "SecurityConsole",
+		"off": ["warehouse_yard"],
+		"disable": [DEVICES + "CameraHall"],
+	},
+	"terminal_network_states_menu":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"terminal": DEVICES + "SecurityConsole",
+		"off": ["warehouse_yard"],
+		"disable": [DEVICES + "CameraHall"],
+		"zoom": 1.6,
+		"select": "Camera Hall",
 	},
 }

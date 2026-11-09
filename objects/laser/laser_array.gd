@@ -131,6 +131,11 @@ func beam_end(beam: LaserBeam) -> Vector3:
 	return beam.end_point(config.end_inset)
 
 
+## Switched off by a command, for security screens (DeviceStatus).
+func device_disabled() -> bool:
+	return disabled
+
+
 ## Status words for security screens (DeviceStatus).
 func device_status() -> PackedStringArray:
 	if disabled:

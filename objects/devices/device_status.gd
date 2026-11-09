@@ -7,12 +7,17 @@ extends RefCounted
 ##   device it cannot reach as offline whatever the reason (unpowered, broken, a dead switch).
 ## - `device_view() -> Node3D`: the node it sees from (its -Z is the view direction), or null while
 ##   it sees nothing (disabled). A device has a view when one of its components has the method.
+## - `device_disabled() -> bool`: true while a command has switched it off (`command.disable`, or
+##   `command.disarm`: a blind camera, a dark laser array, a turret or an alarm controller off).
+##   Only components that can be switched off offer it: a device without one is never disabled.
+##   Screens colour a disabled device apart (ADR 0099 amendment); it is still online.
 ## Entities' direct children are asked, in tree order.
 
 const ONLINE: String = "online"
 const OFFLINE: String = "offline"
 const STATUS_METHOD: StringName = &"device_status"
 const VIEW_METHOD: StringName = &"device_view"
+const DISABLED_METHOD: StringName = &"device_disabled"
 
 
 ## The words a screen shows for a device: just "offline" when not `online`, else "online" then
@@ -42,6 +47,16 @@ static func parts_of(entity: Node) -> PackedStringArray:
 ## summarize() of `entity`'s components (not asked when offline).
 static func of(entity: Node, online: bool) -> PackedStringArray:
 	return summarize(online, parts_of(entity) if online else PackedStringArray())
+
+
+## True when a component of `entity` says it is switched off (`device_disabled()`).
+static func is_disabled(entity: Node) -> bool:
+	if entity == null or not is_instance_valid(entity):
+		return false
+	for child in entity.get_children():
+		if child.has_method(DISABLED_METHOD) and bool(child.call(DISABLED_METHOD)):
+			return true
+	return false
 
 
 ## True when a component of `entity` offers a view.

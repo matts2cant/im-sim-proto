@@ -152,12 +152,15 @@ func test_reset_disarm_and_enable() -> void:
 	_command(Device.TRIGGER, _controller)
 	await _frames(4)
 	assert_bool(_behaviour().armed).is_false()
+	# Disarmed shows as disabled on security screens (ADR 0099 amendment).
+	assert_bool(DeviceStatus.is_disabled(_controller)).is_true()
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_array(EventLog.find(&"alarm.ignored")).has_size(2)
 	assert_array(EventLog.find(&"radio.dispatch")).is_empty()
 
 	_command(Device.ENABLE, _controller)
 	await _frames(2)
+	assert_bool(DeviceStatus.is_disabled(_controller)).is_false()
 	_command(Device.TRIGGER, _controller)
 	await _frames(3)
 	assert_bool(_behaviour().is_ringing()).is_true()

@@ -67,7 +67,7 @@ flowchart LR
 - From an entry point the Map shows every device on your own subnet, plus the gateway.
 - A subnet behind a gateway you cannot pass shows as one locked node: its address range and "? devices".
 - Gaining access to it (a firewall rule that lets you through, or a foothold on a machine inside) reveals its devices.
-- Devices once seen stay on the map, greyed out, when you lose access.
+- Devices once seen stay on the map, greyed out, when you lose access. Node colours follow the terminal's rule ([ADR 0099 amendment](../decisions/0099-network-map-layout-pan-zoom.md#amendment-node-colours-m9h)): grey out of reach, red disabled, else green.
 
 ## Credentials and clues
 
