@@ -178,6 +178,7 @@ locked = true
 
 [node name="Door" parent="Doors/FireEscapeDoor"]
 wall_thickness = 0.75
+back_side_wall = 0.75
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/FireEscapeDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.395)
@@ -190,6 +191,7 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.125, 0, 6)
 
 [node name="Door" parent="Doors/OfficeEntrance"]
 wall_thickness = 0.25
+front_side_wall = 0.75
 
 [node name="BreakRoomHall" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 0.125)
@@ -253,6 +255,7 @@ locked = true
 
 [node name="Door" parent="Doors/BridgeDoor"]
 wall_thickness = 0.25
+front_side_wall = 0.75
 
 [node name="Powered" type="Node" parent="Doors/BridgeDoor"]
 script = ExtResource("21_powered")
@@ -316,6 +319,8 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.125, 4.5, 14.1)
 
 [node name="Door" parent="Doors/CatwalkStairsDoor"]
 wall_thickness = 0.25
+front_side_wall = 0.65
+back_side_wall = 0.9
 
 [node name="OfficeTwo" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4.5, 6.875)

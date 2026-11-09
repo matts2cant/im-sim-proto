@@ -30,18 +30,31 @@ const GROUP: StringName = &"doors"
 const LOCKED_COLOUR := Color(0.9, 0.15, 0.1)
 const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
+## How far (m) a control panel on a corridor's side wall sits from the door's wall face (its centre).
+const SIDE_PANEL_DEPTH: float = 0.4
+## Heights of a barred panel's rails, as fractions of its height (the fence's rails: 0.3 and 2.7 m).
+const BAR_RAILS: Array[float] = [0.1, 0.9]
 
 @export var settings: DoorSettings
 ## Open when the level starts.
 @export var start_open: bool = false
 ## Thickness (m) of the wall the door sits in: the control panels go on its faces.
 @export var wall_thickness: float = 0.25
+## When the front (+Z) face opens into a corridor too narrow for its control panel beside the
+## doorway: the distance (m) from the doorway's centre line to the corridor's side wall on the
+## panel's side (-X). The panel then hangs on that side wall, facing across the corridor,
+## SIDE_PANEL_DEPTH m in from the door's wall. 0: beside the doorway (M9e).
+@export var front_side_wall: float = 0.0
+## The same for the back (-Z) face.
+@export var back_side_wall: float = 0.0
 @export var entity_path: NodePath = ^".."
 
 var entity: StaticBody3D
 var lockable: Lockable
 ## 0 closed .. 1 open.
 var openness: float = 0.0
+## The panel's outer size (m): the doorway plus its overlap; a barred panel's bars fill it.
+var panel_size: Vector3 = Vector3.ZERO
 var broken: bool = false
 
 var _open: bool = false
@@ -282,8 +295,8 @@ func _update_link() -> void:
 func _doorway_blocked() -> bool:
 	if not is_inside_tree():
 		return false
-	var box := (_panel.shape as BoxShape3D).duplicate() as BoxShape3D
-	box.size = Vector3(box.size.x - 0.1, box.size.y - 0.05, box.size.z + 0.3)
+	var box := BoxShape3D.new()
+	box.size = Vector3(panel_size.x - 0.1, panel_size.y - 0.05, panel_size.z + 0.3)
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = box
 	query.transform = entity.global_transform * Transform3D(Basis.IDENTITY, Vector3(_closed.x, _closed.y, 0.0))
@@ -301,19 +314,58 @@ func _reasons(user: Node) -> Array[String]:
 	return reasons
 
 
+# A barred panel (settings.bar_spacing > 0): vertical bars across the panel and two rails, one
+# shape (their faces) and one mesh, so bodies are stopped and sight, shots and light pass between the
+# bars, like the palisade fence (M9e).
+func _build_bars(mesh_instance: MeshInstance3D) -> void:
+	var pieces: Array[AABB] = []
+	var bar := settings.bar_width
+	var count := maxi(2, floori((panel_size.x - bar) / settings.bar_spacing) + 1)
+	var step := (panel_size.x - bar) / (count - 1)
+	var half := panel_size * 0.5
+	for i in count:
+		var x := -half.x + bar * 0.5 + i * step
+		pieces.append(AABB(Vector3(x - bar * 0.5, -half.y, -half.z), Vector3(bar, panel_size.y, panel_size.z)))
+	for rail: float in BAR_RAILS:
+		var y := -half.y + rail * panel_size.y
+		pieces.append(AABB(Vector3(-half.x, y - 0.04, -half.z), Vector3(panel_size.x, 0.08, panel_size.z)))
+	var faces := PackedVector3Array()
+	var tool := SurfaceTool.new()
+	for piece in pieces:
+		var box := BoxMesh.new()
+		box.size = piece.size
+		var place := Transform3D(Basis.IDENTITY, piece.get_center())
+		tool.append_from(box, 0, place)
+		for vertex in box.get_faces():
+			faces.append(place * vertex)
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	shape.backface_collision = true
+	_panel.shape = shape
+	if mesh_instance != null:
+		var material := (mesh_instance.mesh as PrimitiveMesh).material if mesh_instance.mesh is PrimitiveMesh else null
+		var mesh := tool.commit()
+		if material != null:
+			mesh.surface_set_material(0, material)
+		mesh_instance.mesh = mesh
+
+
 # Sizes the panel, the doorway's attenuator, navigation carve and link and places the control
 # panels for the settings' doorway (the scene's own shapes are shared: they are copied first).
 func _fit_doorway() -> void:
 	var size := settings.doorway
-	var panel_size := Vector3(size.x + 0.1, size.y + 0.05, settings.panel_thickness)
-	var panel_shape := _panel.shape.duplicate() as BoxShape3D
-	panel_shape.size = panel_size
-	_panel.shape = panel_shape
+	panel_size = Vector3(size.x + 0.1, size.y + 0.05, settings.panel_thickness)
 	var mesh_instance := _panel_mesh as MeshInstance3D
-	if mesh_instance != null and mesh_instance.mesh is BoxMesh:
-		var mesh := mesh_instance.mesh.duplicate() as BoxMesh
-		mesh.size = panel_size
-		mesh_instance.mesh = mesh
+	if settings.bar_spacing > 0.0:
+		_build_bars(mesh_instance)
+	else:
+		var panel_shape := _panel.shape.duplicate() as BoxShape3D
+		panel_shape.size = panel_size
+		_panel.shape = panel_shape
+		if mesh_instance != null and mesh_instance.mesh is BoxMesh:
+			var mesh := mesh_instance.mesh.duplicate() as BoxMesh
+			mesh.size = panel_size
+			mesh_instance.mesh = mesh
 	_closed = Vector3(0.0, panel_size.y * 0.5 + 0.005, settings.panel_offset)
 	if _attenuator != null:
 		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
@@ -339,13 +391,20 @@ func _fit_doorway() -> void:
 func _place_controls() -> void:
 	var face := wall_thickness * 0.5 + 0.02
 	var sides: Dictionary[String, float] = {"ControlFront": 1.0, "ControlBack": -1.0}
+	var side_walls: Dictionary[String, float] = {"ControlFront": front_side_wall, "ControlBack": back_side_wall}
 	for side: String in sides:
 		var visual := entity.get_node_or_null(NodePath(side)) as Node3D
 		var shape := entity.get_node_or_null(NodePath(side + "Shape")) as Node3D
-		if shape != null:
-			shape.position.z = face * sides[side]
+		for node: Node3D in [shape, visual]:
+			if node == null:
+				continue
+			node.position.z = face * sides[side]
+			if side_walls[side] > 0.0:
+				# On the corridor's side wall, its face (+Z) across the corridor (+X).
+				node.basis = Basis(Vector3.UP, PI * 0.5)
+				node.position.x = -side_walls[side] + 0.02
+				node.position.z = (face + SIDE_PANEL_DEPTH) * sides[side]
 		if visual != null:
-			visual.position.z = face * sides[side]
 			var light := visual.get_node_or_null(^"Light") as MeshInstance3D
 			if light != null:
 				if _light_material == null:

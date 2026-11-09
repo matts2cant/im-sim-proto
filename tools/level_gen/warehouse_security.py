@@ -45,7 +45,8 @@ FRONT, BACK = 1, 2
 # Doors: doorway name -> spec. yaw: the door's rotation (its +X is the pocket side, +Z its front);
 # wall: wall thickness (control panels on its faces); settings: DoorSettings file; locked; locks
 # (kind, data, side the key is used from, free side); tags; circuit (a Powered on the door); cabled
-# (linked to the security switch).
+# (linked to a security switch); side_walls: (front, back) distance from the doorway's centre to a
+# narrow corridor's side wall on the control panel's side (-X): the panel hangs on that wall (M9e).
 DOORS = {
     "FrontGate": {"yaw": 0, "wall": 0.4, "settings": "vehicle_gate_settings", "locks": [("electronic", None, BACK, 0)], "tags": ["door.fail_secure"], "circuit": YARD, "cabled": True},
     "BoothDoor": {"yaw": 90, "wall": 0.2, "open": True},  # left open: the booth lamp lights G1's post
@@ -55,8 +56,8 @@ DOORS = {
     "RollerDoor2": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
     "AnnexDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, BACK, 0)]},
     "AnnexRoofDoor": {"yaw": -90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "OfficeEntrance": {"yaw": 90, "wall": 0.25},
+    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)], "side_walls": (0.0, 0.75)},
+    "OfficeEntrance": {"yaw": 90, "wall": 0.25, "side_walls": (0.75, 0.0)},
     "BreakRoomHall": {"yaw": 0, "wall": 0.25},
     "BreakRoomCorridor": {"yaw": 0, "wall": 0.25},
     "SecurityDoor": {
@@ -65,14 +66,14 @@ DOORS = {
     },
     "StairsGround": {"yaw": 0, "wall": 0.25},
     "LockerRoom": {"yaw": 0, "wall": 0.25},
-    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, BACK, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True},
+    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, BACK, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True, "side_walls": (0.75, 0.0)},
     "ManagerDoor": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("keypad", MANAGER_CODE, FRONT, BACK)]},
     "VaultDoor": {
         "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_VAULT, FRONT, BACK), ("electronic", None, FRONT, BACK)],
         "tags": ["door.fail_secure"], "circuit": BUILDING, "cabled": True,
     },
     "StairsUpper": {"yaw": 0, "wall": 0.25},
-    "CatwalkStairsDoor": {"yaw": 90, "wall": 0.25},
+    "CatwalkStairsDoor": {"yaw": 90, "wall": 0.25, "side_walls": (0.65, 0.9)},
     "OfficeTwo": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("mechanical", 2, BACK, FRONT)]},
     "BoilerStore": {"yaw": 0, "wall": 0.5},
     "BoilerTunnel": {"yaw": 90, "wall": 0.5},
@@ -273,6 +274,11 @@ def build():
         if spec.get("locked"):
             s.override(f"{path}/Lockable", {"locked": True})
         door_props = {"wall_thickness": spec["wall"]}
+        front_side, back_side = spec.get("side_walls", (0.0, 0.0))
+        if front_side > 0.0:
+            door_props["front_side_wall"] = front_side
+        if back_side > 0.0:
+            door_props["back_side_wall"] = back_side
         if spec.get("open"):
             door_props["start_open"] = True
         settings_name = spec.get("settings")
