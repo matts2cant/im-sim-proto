@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
 [ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
 [ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
-[ext_resource type="Resource" path="res://objects/materials/metal.tres" id="7_metal"]
+[ext_resource type="Resource" path="res://objects/materials/armoured.tres" id="7_armoured"]
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
@@ -130,7 +130,7 @@ receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), Ex
 [node name="Breakable" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 script = ExtResource("6_breakable")
-material = ExtResource("7_metal")
+material = ExtResource("7_armoured")
 settings = ExtResource("8_break_settings")
 break_on_depleted = false
 size = 0.6

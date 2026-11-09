@@ -51,7 +51,7 @@ Cameras, laser arrays, turrets, doors, keypads, sirens, alarm controllers, radio
 - If every siren is broken, disabled or disconnected, nothing rings.
 - The HUD shows "ALARM" while the player can hear a ringing siren.
 
-Scenes (graybox, wall-mounted: origin on the wall face, +Z out; each has `Tags`, `Attributes` health, `Breakable` (metal, husk kept), `Powered` (a green LED shows while powered), `Device` and a behaviour component with `.tres` tuning):
+Scenes (graybox, wall-mounted: origin on the wall face, +Z out; each has `Tags`, `Attributes` health, `Breakable` (`material.electronics`, husk kept: [Breaking devices](#breaking-devices)), `Powered` (a green LED shows while powered), `Device` and a behaviour component with `.tres` tuning):
 
 | Scene | Component, tuning | Accepts | Behaviour |
 |---|---|---|---|
@@ -72,7 +72,7 @@ In the hub: the AI arena ([hub-and-gallery.md](../levels/hub-and-gallery.md)) ha
 | Scene | Component, tuning | Accepts | Behaviour |
 |---|---|---|---|
 | `objects/camera/security_camera.tscn` (wall or ceiling, origin on the face, +Z out; mount about 2.6 m up) | `SecurityCamera`, `security_camera.tres`; vision `security_camera_perception.tres` | `command.disable`, `enable`, `stop_sweep`, `resume_sweep`, `pan_left`, `pan_right` | Hostile `actor.player`; focus ±25° to 15 m; gain 0.8 (lit at 4 m: 1.25 s; 6 m: 1.3 s; dim at 4 m: 3.3 s; dark: never). Sweeps ±40° around its rest yaw at 15°/s, 2 s hold at each end; waits while it sees a target. Lamp: green, amber above 0.3, red while detected; off while blind. Detection: incident, beep (noise 8). Pan: 15° steps clamped to ±40° (stops the sweep). Disabled, unpowered or broken: blind. Health 20, `material.electronics` (blunt ×4): one pistol round or baton hit breaks it. Saveable |
-| `objects/turret/turret.tscn` (floor-standing, origin on the floor, +Z forward; head 1.15 m up) | `Turret`, `turret.tres`; vision `turret_perception.tres`; weapon `turret_gun.tres`, aim `turret_aim.tres` | `command.disable`, `enable`, `target_intruders`, `target_guards`, `target_everyone` | Hostile tags from its preset (`TurretConfig.presets`: intruders `actor.player`, guards `actor.guard`, everyone both); focus ±60° to 15 m; gain 2.0. Turns toward what it sees (120°/s). Full meter: incident, 1 s wind-up (beep noise 10, red laser), then bursts of 1.5 s / 0.75 s pause through `WeaponHolder.trigger()`: 15 ballistic a hit every 0.25 s, cone 3° + 0.1° per metre beyond 4 m, shot noise 25. Never fires unless the first thing on the line is the target (the guards' line of fire). A target that goes down (unconscious, dead) is dropped and never seen again as a target ([ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)). Stops 1 s after losing sight. Standing lit player at 6 m: dead in about 4 s from stepping into view. Disabled, unpowered or broken: idle. Health 60, metal (three pistol rounds). Saveable |
+| `objects/turret/turret.tscn` (floor-standing, origin on the floor, +Z forward; head 1.15 m up) | `Turret`, `turret.tres`; vision `turret_perception.tres`; weapon `turret_gun.tres`, aim `turret_aim.tres` | `command.disable`, `enable`, `target_intruders`, `target_guards`, `target_everyone` | Hostile tags from its preset (`TurretConfig.presets`: intruders `actor.player`, guards `actor.guard`, everyone both); focus ±60° to 15 m; gain 2.0. Turns toward what it sees (120°/s). Full meter: incident, 1 s wind-up (beep noise 10, red laser), then bursts of 1.5 s / 0.75 s pause through `WeaponHolder.trigger()`: 15 ballistic a hit every 0.25 s, cone 3° + 0.1° per metre beyond 4 m, shot noise 25. Never fires unless the first thing on the line is the target (the guards' line of fire). A target that goes down (unconscious, dead) is dropped and never seen again as a target ([ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)). Stops 1 s after losing sight. Standing lit player at 6 m: dead in about 4 s from stepping into view. Disabled, unpowered or broken: idle. Health 60, `armoured` (blunt ×2: three pistol rounds, six baton hits; [ADR 0104](../decisions/0104-devices-breakable-by-the-baton.md)). Saveable |
 
 In the gallery: the security wing's camera over its vault door watches the lit corridor (two dark alcoves, light level 0.04, where it cannot see you), and its turret faces the inside of the vault door ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)).
 
@@ -106,6 +106,31 @@ In the gallery: the security wing's laser hall behind closet D1 has a low one-be
 Showcase (tests and screenshots, not a gallery room): `tests/objects/fixtures/showcase/security_showcase.tscn`, a terminal cabled through a switch to a camera, a turret, an alarm controller, a siren and a door, with the credentials datapad on a desk.
 
 In the gallery: the security wing (room 5, [hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)) chains every M8 device into one route: a keypad code on a datapad opens a closet with the booth keycard, a lockpicked closet holds the terminal's login datapad, the booth terminal disables or retargets the turret and opens the fail-secure vault door; a camera with a sweep watches the corridor to the vault (two dark alcoves to wait in), a baton guard holds a post by the vault door, and breaker A unlocks a fail-safe door.
+
+## Breaking devices
+
+[ADR 0104](../decisions/0104-devices-breakable-by-the-baton.md). Any damage that gets past a device's material breaks it through its `Breakable`: shots, blasts, thrown props and the baton alike. A broken device keeps its husk (no break noise), goes dark and tags `state.broken`; `device.state` logs it and every terminal shows it (and whatever it cut off) as offline. Wall devices are `material.electronics` (blunt ×4, fire and stun ×0); the turret is `armoured` (blunt ×2); lamps are glass. The baton deals blunt 5 (its stun 20 does nothing to objects): 20 on electronics, 10 on armour. A swing is a 3 m noise, a hit 6 m at the device (a pistol shot 25 m).
+
+| Device | Material | Health | Baton hits | Pistol rounds |
+|---|---|---|---|---|
+| Camera, laser array (emitter, receiver or mast), terminal, siren | electronics | 20 | 1 | 1 |
+| Panic button | electronics | 10 | 1 | 1 |
+| Alarm controller, radio base station | electronics | 30 | 2 | 2 |
+| Network switch (and access points, office wall jacks) | electronics | 40 | 2 | 2 |
+| Turret | armoured | 60 | 6 (from behind or disabled: it sees ±60° ahead) | 3 |
+| Wall, ceiling and flood lamps | glass | 1 | 1 | 1 |
+
+Measured with the player's baton through the real swing (`tests/objects/devices/baton_devices_test.gd`, `baton_reach_test.gd`). Low-Tech and Combat Strength scale the hit like any melee damage.
+
+**Reach**: the swing sweeps a 0.2 m sphere along the view until its front is 1.8 m from the eye (1.65 m up standing). From the floor, standing about 0.6 m from the wall, it reaches a wall device whose underside is up to about 3.4 m high (about 3.2 m from 1.0 m away; pressed against the wall the sphere scrapes the wall above about 3.0 m, so step back); straight up about 3.45 m; a jumping swing at the apex about 4.3 m. In the levels:
+
+| Needs | Devices |
+|---|---|
+| Nothing (from the floor or walkway below) | Every camera but the yard one (the roof camera is 2.6 m above the roof), every siren (hub 3.0 m, warehouse 1.8 m), switches, controllers, base stations, panic buttons, terminals, laser arrays, the turret; wall lamps and the lamps of small rooms, corridors and catwalks (1.8-3.1 m above their floor) |
+| A jump | Hub: the hall ceiling lamps (3.63 m: perception lab, AI arena, security wing hall). Warehouse: the ground-floor office ceiling lamps (3.64 m), the annex lamp (3.88 m), the yard camera (3.83 m), the roof flood lamp (3.4 m above the roof: at the edge standing), the two bridge lamps (4.07 m above the walkway: at the edge of a jump) |
+| Out of reach (shoot it, or stack crates) | Warehouse: the yard flood lamps (5.2-7.2 m), the high-bay lamps (8.45 m), the guest access point (5.9 m above the yard) |
+
+**Door wall boxes** (keypad, card reader, status, control box) have no health of their own: a hit on one reaches the door, which takes no ballistic or blunt damage (a plain door has no damage receptron; the breakable door's `reinforced` only takes explosive). Shooting or clubbing a box does nothing: it never unlocks, opens or breaks the door.
 
 ## Door and lock types
 

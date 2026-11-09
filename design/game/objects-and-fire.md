@@ -49,6 +49,8 @@ All carry Carryable except the static ones; only objects up to the carry limit (
 | metal | x1.4 | fire x0, blunt x0.5, stun x0 | impactMetal | Hollywood/Metal Glass Destruction |
 | glass | x1.6 | fire x0, stun x0 | impactGlass | impactGlass_heavy |
 | cardboard | x0.4 | fire x1, stun x0 | impactSoft | impactSoft_heavy |
+| electronics (security devices, M8; every wall device since [ADR 0104](../decisions/0104-devices-breakable-by-the-baton.md)) | x1.4 | fire x0, blunt x4, stun x0 | impactMetal | Hollywood/Metal Glass Destruction |
+| armoured (turret, [ADR 0104](../decisions/0104-devices-breakable-by-the-baton.md)) | x1.4 | fire x0, blunt x2, stun x0 | impactMetal | Hollywood/Metal Glass Destruction |
 | reinforced (breakable door, M8) | x1.4 | explosive x1; ballistic, blunt, fire, stun x0 | none | Hollywood/Metal Glass Destruction |
 
 ### Fire: heat, ignition, burning
