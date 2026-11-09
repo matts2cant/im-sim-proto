@@ -54,6 +54,10 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"yard_switch_window": {"feet": Vector3(-16, 0, -21), "look": Vector3(-9.5, 1.5, -23.4)},
 	"breaker_a": {"feet": Vector3(-23.5, 0, 5.5), "look": Vector3(-26, 1.4, 4)},
 	"sirens_dock": {"feet": Vector3(0, 0, -16), "look": Vector3(0, 2.0, -10.5)},
+	# M9h: wall devices clear of doorways and signs: the ground corridor's west end (the office
+	# entrance and its siren) and the upper corridor's east end (the FIRE EXIT sign).
+	"siren_office_ground": {"feet": Vector3(11.5, 0, 6.0), "look": Vector3(8.3, 1.6, 6.0)},
+	"fire_exit_sign": {"feet": Vector3(16.5, 4.5, 6.0), "look": Vector3(19.7, 6.2, 6.0)},
 	# Each camera's point of view.
 	"view_camera_gate": {"cam": true, "view": DEVICES + "CameraGate"},
 	"view_camera_yard": {"cam": true, "view": DEVICES + "CameraYard"},

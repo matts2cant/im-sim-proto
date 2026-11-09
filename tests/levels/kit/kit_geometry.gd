@@ -46,12 +46,16 @@ static func ray(world: World3D, from: Vector3, to: Vector3) -> Dictionary:
 
 
 ## Waits until the navigation map has synced a navmesh under `probe` (a point known to be on it).
-## Returns false after `frames` physics frames without one.
-static func wait_for_navigation(tree: SceneTree, map: RID, probe: Vector3, frames: int = 120) -> bool:
-	for i in frames:
+## Returns false after `timeout_ms` of real time without one: an asynchronous map syncs on a worker
+## thread, which takes real time, not frames (a frame cap is a few ms at the runner's fixed fps).
+static func wait_for_navigation(tree: SceneTree, map: RID, probe: Vector3, timeout_ms: int = 5000) -> bool:
+	var deadline := Time.get_ticks_msec() + timeout_ms
+	while true:
 		var synced := NavigationServer3D.map_get_iteration_id(map) > 0
 		if synced and NavigationServer3D.map_get_closest_point(map, probe).distance_to(probe) < 0.2:
 			return true
+		if Time.get_ticks_msec() > deadline:
+			return false
 		await tree.physics_frame
 	return false
 
