@@ -27,3 +27,5 @@ view_box_offset = Vector3(0, 0, -0.3)
 view_rest_deg = Vector3(60, 0, 12)
 view_swing_deg = Vector3(-85, 40, 0)
 view_chop_share = 0.3
+hold_rotation_deg = Vector3(90, 0, 0)
+hold_offset = Vector3(0, -0.18, 0.1)

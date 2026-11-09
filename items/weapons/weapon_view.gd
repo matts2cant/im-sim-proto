@@ -170,11 +170,11 @@ func _animate() -> void:
 		return
 	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
 	if in_hand:
-		var held := Transform3D.IDENTITY
+		var recoil := Transform3D.IDENTITY
 		if not data.is_melee():
-			held.basis = Basis(Vector3.RIGHT, 0.25 * t)
-			held.origin = Vector3(0, 0, 0.04 * t)
-		transform = held
+			recoil.basis = Basis(Vector3.RIGHT, 0.25 * t)
+			recoil.origin = Vector3(0, 0, 0.04 * t)
+		transform = hold_transform(data) * recoil
 		return
 	var pose := Transform3D(_euler_deg(data.view_rest_deg), rest_position(data.view_offset, shift_deg))
 	if data.is_melee():
@@ -192,6 +192,11 @@ func _animate() -> void:
 		pose.basis = Basis(Vector3.RIGHT, 0.25 * t) * pose.basis
 		pose.origin += Vector3(0, 0, 0.04 * t)
 	transform = pose
+
+
+## The grip pivot's pose in a character's hand mount (WeaponData.hold_offset, hold_rotation_deg).
+static func hold_transform(weapon: WeaponData) -> Transform3D:
+	return Transform3D(_euler_deg(weapon.hold_rotation_deg), weapon.hold_offset)
 
 
 ## The grip pivot of a weapon whose data puts it at `offset` (camera frame, -Z ahead), moved on
