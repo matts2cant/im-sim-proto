@@ -144,8 +144,7 @@ func test_2_duct_c_the_operator_knocked_out_and_hidden_and_the_console() -> void
 	# Carry him out of the window's sight, along the room's south wall.
 	ok = ok and await hands.carry(g5)
 	ok = ok and await _route.go([Vector3(14.8, 0, 4.2)])
-	_route.player.rotation.y = Route.EAST
-	ok = ok and await hands.put_down()
+	ok = ok and await hands.put_down(Route.EAST)
 	# The console, with the manager's audit credentials: the turret and the office camera off, the
 	# vault door open.
 	ok = ok and await _route.go([Vector3(16.05, 0, 1.6)])
@@ -220,8 +219,7 @@ func test_3_upstairs_the_vault_guard_knocked_out_and_the_prototype() -> void:
 	# Carry him into the vault (the turret is off) and take the prototype from its pedestal.
 	ok = ok and await hands.carry(g7)
 	ok = ok and await _route.go([Vector3(16.9, 4.5, 5.6), Vector3(16.9, 4.5, 3.4)])
-	_route.player.rotation.y = Route.WEST
-	ok = ok and await hands.put_down()
+	ok = ok and await hands.put_down(Route.WEST)
 	ok = ok and await _route.go([Vector3(17.8, 4.5, 3.5)])
 	ok = ok and await hands.use_node(PROTOTYPE)
 	ok = (

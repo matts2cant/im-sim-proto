@@ -44,6 +44,18 @@ ANNEX_X0, ANNEX_X1, ANNEX_Z0, ANNEX_Z1 = -26.0, -20.5, 1.5, 12.5  # interior; sh
 ANNEX_H = 4.25
 ANNEX_ROOF = ANNEX_H + HALL_T  # 4.75
 ANNEX_DOOR_Z = 10.8  # ground door, annex west wall (south of the container against the wall)
+# M9f (ADR 0093): a high window in the annex's south wall, reached only by stacking two small crates
+# (sill 2.9 m: 0.6 m crate + 2.3 m Speed mantle at most, two crates + a 1.7 m mantle), and a wooden
+# ledge inside under it (1.5 m: drops of 1.4 and 1.5 m in, mantles back out).
+ANNEX_WINDOW_X = -23.0
+ANNEX_WINDOW_SILL = 2.9
+ANNEX_WINDOW_H = 1.1
+ANNEX_WINDOW_LEDGE_H = 1.5
+# M9f (ADR 0093): a cache shed in the back strip's south-west corner, its 1.2 x 1.2 m opening facing
+# north; the people population's large crate (60 kg: Combat Strength) closes it. Outer bounds.
+CACHE_X0, CACHE_X1, CACHE_Z0, CACHE_Z1 = -34.6, -33.0, 23.1, 24.8
+CACHE_H = 1.2  # opening and interior height (the large crate's)
+CACHE_T = 0.2
 ROOF_DOOR_Z = 2.1  # hall west wall at annex-roof level
 
 OFF_T = 0.25
@@ -400,6 +412,20 @@ def build_exterior():
     b.block("YardCrate", aids, -27.6, -26.4, -16.7, -15.5, 1.2, y0=CONTAINER_H)
     b.block("AnnexStep", aids, -30.2, -29.0, 5.4, 6.6, 1.2)
     b.block("AnnexCrate", aids, -27.8, -26.6, 5.4, 6.6, 1.1, y0=CONTAINER_H)
+    # Cache shed (M9f): walls west, east and south, a roof; the north side is the opening.
+    cx0, cx1, cz0, cz1, ct = CACHE_X0, CACHE_X1, CACHE_Z0, CACHE_Z1, CACHE_T
+    b.csg(
+        "CacheShed",
+        ".",
+        "concrete",
+        [
+            box((cx0, 0.0, cz0), (cx0 + ct, CACHE_H, cz1), name="West"),
+            box((cx1 - ct, 0.0, cz0), (cx1, CACHE_H, cz1), name="East"),
+            box((cx0 + ct, 0.0, cz1 - ct), (cx1 - ct, CACHE_H, cz1), name="South"),
+            box((cx0, CACHE_H, cz0), (cx1, CACHE_H + ct, cz1), name="Roof"),
+        ],
+        default_mat="wall",
+    )
     cover = b.group("Cover")
     for index, (x, z, h) in enumerate(
         [(-16.0, -16.0, 1.3), (-14.6, -16.0, 1.0), (12.0, -21.0, 1.3), (16.0, -14.0, 1.2), (-12.0, 19.0, 1.3), (22.5, 19.0, 1.2), (14.0, 20.5, 1.0)]
@@ -596,9 +622,13 @@ def build_hall():
         0.0,
         ANNEX_H,
         HALL_T,
-        openings=[("W", ANNEX_DOOR_Z, 1.2, 2.2, 0.0, "Door")],
+        openings=[
+            ("W", ANNEX_DOOR_Z, 1.2, 2.2, 0.0, "Door"),
+            ("S", ANNEX_WINDOW_X, 1.2, ANNEX_WINDOW_H, ANNEX_WINDOW_SILL, "HighWindow"),
+        ],
         ceiling_material=b.material("concrete"),
     )
+    b.block("AnnexWindowLedge", shell, ANNEX_WINDOW_X - 0.6, ANNEX_WINDOW_X + 0.6, ANNEX_Z1 - 1.0, ANNEX_Z1, ANNEX_WINDOW_LEDGE_H)
 
     # Roof: parapets (gaps where the fire escape and the annex stair arrive), skylight curbs, plant.
     roof = b.group("Roof")

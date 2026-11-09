@@ -252,8 +252,13 @@ func carry(character: Node3D) -> bool:
 	return true
 
 
-## Puts down what the player carries (the drop key).
-func put_down() -> bool:
+## Puts down what the player carries (the drop key), looking level along `yaw` (the held object
+## hangs in front of the view: looking down would set it at the feet).
+func put_down(yaw: float) -> bool:
+	route.player.rotation.y = yaw
+	route.player.pitch = 0.0
+	_head.rotation.x = 0.0
+	await route.frames(10)
 	await press(&"drop_throw")
 	await route.frames(10)
 	if route.player.carry.is_carrying():
