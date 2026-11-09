@@ -259,7 +259,10 @@ func test_signs() -> void:
 		"panic button",
 		"fail-secure",
 		"turret",
-		"sirens"
+		"sirens",
+		"laser",
+		"jump over",
+		"crouch under",
 	]:
 		assert_str(texts.to_lower()).override_failure_message(phrase).contains(phrase.to_lower())
 

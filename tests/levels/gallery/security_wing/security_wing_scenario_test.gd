@@ -74,7 +74,7 @@ func test_code_keycard_login_turret_and_vault() -> void:
 	assert_bool(_door("D1Keypad").is_open()).is_true()
 
 	# The keycard on D1's shelf.
-	await _stand(Vector3(-6.25, 0, 7.6), Vector3(-6.25, 1, 8.74))
+	await _stand(Vector3(-6.25, 0, 7.6), Vector3(-5.26, 1, 7.75))
 	assert_bool(_player.inventory.pick_up(ItemPickup.of(_node("Items/Keycard")))).is_true()
 
 	# D3 opens with it.
