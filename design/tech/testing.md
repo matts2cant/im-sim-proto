@@ -31,6 +31,7 @@ tools/run_tests.sh -j 1 res://tests/ui          # one Godot process, output stre
 tools/run_tests.sh -j 1 $(cat reports/shards/3/suites.txt)   # replay one shard of the last run, in order
 TEST_FIXED_FPS=0 tools/run_tests.sh ...         # real-time frames instead of simulated time (debugging)
 TEST_IMPORT=1 tools/run_tests.sh ...            # force the project import
+tools/run_tests.sh --dry-run                    # print the shard split (suite weights, * = estimated) and exit
 tools/lint.sh                                   # gdformat --check + gdlint
 tools/lint.sh --fix                             # format in place
 ```
@@ -38,10 +39,10 @@ tools/lint.sh --fix                             # format in place
 The runner ([ADR 0084](../decisions/0084-parallel-fixed-fps-test-runner.md)):
 
 - **Imports only when needed**: when a file was added, deleted or renamed, a file other than a script or Markdown changed, or a script's `class_name`/`extends`/`@tool`/`@abstract`/`@icon` line changed (the global class cache). Editing a test body skips the import (saves 7-9 s).
-- **Splits the suites into parallel shards** (`-j N` or `TEST_JOBS`; default min(12, logical cores / 2)): contiguous slices of the sorted suite list, balanced on each suite's measured share of the wall time (`reports/suite_times.tsv`, rewritten after every run). Each shard is its own Godot process with its own `user://` (`reports/shards/<n>/appdata`) and report directory.
+- **Splits the suites into parallel shards** (`-j N` or `TEST_JOBS`; default min(12, logical cores / 2)): contiguous slices of the sorted suite list, balanced on each suite's measured share of the wall time (`reports/suite_times.tsv`, rewritten after every run). A suite with no recorded time counts as the median recorded time of the suites of its kind (scene runner or not) under its own folder, else under the nearest ancestor folder that has one, else of its kind, else 3 s / 0.5 s; and no shard takes more than ceil(unmeasured / shards) unmeasured suites, so a milestone's new suites side by side in one folder are spread over shards instead of sharing one on a guess (M9f: four new 45-60 s route suites in one shard made the first run 165 s). Each shard is its own Godot process with its own `user://` (`reports/shards/<n>/appdata`) and report directory.
 - **Runs simulated time** (`--fixed-fps 144`): frames no longer wait for the wall clock. Physics still steps at 1/60 s, so physics-frame tests behave as before.
 - Writes Godot's output straight to `reports/shards/<n>/output.log` (never through a pipe) and turns Godot's own log file off (`--log-file NUL`, test runs only).
-- Prints the failures with their messages, one `Timing:` line (before shards, shards, after) with the slowest shard's breakdown, then **exactly one `Overall Summary: ... | exit N` line**. It exits non-zero on any failure, error, flaky retry, crashed shard (no summary: its last 30 lines are printed) or script error from project code (`tools/test_error_allowlist.txt` lists the known engine noise).
+- Prints the failures with their messages, one `Timing:` line (before shards, shards, after) with the slowest shard's breakdown, then **exactly one `Overall Summary: ... | exit N` line**. It exits non-zero on any failure, error, flaky retry, crashed shard (no summary: its last 30 lines are printed) or error from project code (`tools/test_error_allowlist.txt` lists the known engine noise). An `ERROR:`/`SCRIPT ERROR:` block counts as project code when its message or `at:` line names a `res://` path outside `res://addons/`, or when its `GDScript backtrace` has a frame there: an engine error such as "Removing a CollisionObject node during a physics callback" names only an engine `.cpp` file in its `at:` line, and the project script shows only in the backtrace. `reports/project_errors.log` lists them, one line per block with the project frames after ` | backtrace: ` (`tools/project_errors.awk`). Warnings (`push_warning`) never fail the run.
 
 The Godot binary comes from `GODOT_BIN`, defaulting to `C:\Program Files\Godot\Godot_v4.7.2-stable_win64_console.exe`.
 

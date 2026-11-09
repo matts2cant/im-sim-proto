@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs the GdUnit4 suite headless; reports go to reports/.
-# Usage: tools/run_tests.sh [-j N] [res://path ...]   (default: res://tests, N: auto)
+# Usage: tools/run_tests.sh [-j N] [--dry-run] [res://path ...]   (default: res://tests, N: auto)
 #   -j N           run the suites in N parallel Godot processes (shards); -j 1 runs one process.
+#   --dry-run      print the shard split (each suite's weight, * = estimated) and exit: no import, no run.
 #   TEST_JOBS      same as -j (default: auto = min(12, logical cores / 2), never more than suites).
 #   TEST_IMPORT=1  force the project import even when no file changed since the last one.
 #   TEST_FIXED_FPS frames per second of simulated time (default 144, see below); 0 = real time.
@@ -25,10 +26,12 @@ stamp_ms t_start
 
 export GODOT_BIN="${GODOT_BIN:-/c/Program Files/Godot/Godot_v4.7.2-stable_win64_console.exe}"
 jobs="${TEST_JOBS:-auto}"
+dry_run=0
 targets=()
 while [ $# -gt 0 ]; do
 	case "$1" in
 	-j) jobs="$2"; shift 2 ;;
+	--dry-run) dry_run=1; shift ;;
 	-j*) jobs="${1#-j}"; shift ;;
 	*) targets+=("$1"); shift ;;
 	esac
@@ -78,7 +81,9 @@ project_stamp() {
 }
 stamp="$(project_stamp)"
 imported=no
-if [ "${TEST_IMPORT:-0}" = "1" ] || [ ! -f "$stamp_file" ] || [ "$(cat "$stamp_file")" != "$stamp" ]; then
+if [ "$dry_run" = "1" ]; then
+	imported=skipped
+elif [ "${TEST_IMPORT:-0}" = "1" ] || [ ! -f "$stamp_file" ] || [ "$(cat "$stamp_file")" != "$stamp" ]; then
 	rm -f "$stamp_file"
 	imported=yes
 	if ! "$GODOT_BIN" --headless --path . "${log_args[@]}" --import > reports/import.log 2>&1; then
@@ -119,8 +124,11 @@ fi
 # Split the suites (in canonical, sorted order) into `jobs` contiguous slices of about equal wall
 # time, using each suite's share of a shard's wall time in earlier runs (reports/suite_times.tsv,
 # updated after every run by tools/test_timing.awk: GdUnit's suite time plus the measured per-suite
-# overhead). A suite with no recorded time counts as the median recorded time of its kind (scene
-# runner or not) in this run, or 3 s / 0.5 s when none is recorded. Contiguous slices keep every
+# overhead). A suite with no recorded time counts as the median recorded time of the suites of its
+# kind (scene runner or not) under its own folder, else under the nearest ancestor folder that has
+# one, else of its kind in this run, else 3 s / 0.5 s; and no shard takes more than its share
+# (ceil(unmeasured / jobs)) of unmeasured suites, so new suites added side by side (a milestone's
+# suites in one folder) never land in one shard on a guess. Contiguous slices keep every
 # shard's suite order a run of the serial order, so a suite only ever follows the suites it follows
 # in a serial run: state a suite leaks into the next one (late-freed nodes, viewport-parented
 # effects) cannot reach suites it never met before.
@@ -129,8 +137,10 @@ times_file=reports/suite_times.tsv
 scene_suites="$(printf '%s\n' "${suites[@]}" | sed 's|^res://||' | grep '\.gd$' | xargs grep -l 'scene_runner(' 2>/dev/null | sed 's|^|res://|' || true)"
 declare -a shard_suites
 for ((i = 0; i < jobs; i++)); do shard_suites[i]=""; done
-while read -r i s; do
+plan=""
+while read -r i s wt est; do
 	shard_suites[i]+=" -a $s"
+	plan+="$i $wt$est $s"$'\n'
 done < <(
 	printf '%s\n' "${suites[@]}" | awk -v jobs="$jobs" -v times="$times_file" -v scenes="$scene_suites" '
 		BEGIN {
@@ -145,9 +155,30 @@ done < <(
 			n++; name[n] = $0; kind[n] = ($0 in is_scene) ? 1 : 0
 			if ($0 in t) { w[n] = t[$0]; known[kind[n], ++cnt[kind[n]]] = t[$0] }
 		}
-		function shards_for(cap,   k, load, used) {
-			used = 1; load = 0
-			for (k = 1; k <= n; k++) { if (load + w[k] > cap && load > 0) { used++; load = 0 } load += w[k] }
+		# Estimate for a suite with no recorded time: the median of the recorded suites of its kind under
+		# its own folder (subfolders included), else under the parent folder and so on up, else of its
+		# kind in this run, else the constant.
+		function estimate(k,   d, j, c, v) {
+			d = name[k]
+			while (sub(/\/[^\/]*$/, "", d) && index(d, "res://") == 1 && d != "res:/") {
+				c = 0
+				for (j = 1; j <= n; j++)
+					if ((name[j] in t) && kind[j] == kind[k] && index(name[j], d "/") == 1) v[++c] = t[name[j]]
+				if (c > 0) return median(v, c)
+			}
+			return fallback[kind[k]]
+		}
+		# A new shard starts before suite k when it would push the load over the cap, or when it is
+		# unmeasured and the shard already holds its share of unmeasured suites (spreads the guesses).
+		function starts_shard(k, load, unk, cap) {
+			return load > 0 && (load + w[k] > cap || (!(name[k] in t) && unk >= max_unk))
+		}
+		function shards_for(cap,   k, load, unk, used) {
+			used = 1; load = 0; unk = 0
+			for (k = 1; k <= n; k++) {
+				if (starts_shard(k, load, unk, cap)) { used++; load = 0; unk = 0 }
+				load += w[k]; if (!(name[k] in t)) unk++
+			}
 			return used
 		}
 		END {
@@ -156,20 +187,30 @@ done < <(
 				if (cnt[kd] > 0) { for (i = 1; i <= cnt[kd]; i++) vals[i] = known[kd, i]; fallback[kd] = median(vals, cnt[kd]) }
 			}
 			for (k = 1; k <= n; k++) {
-				if (!(name[k] in t)) w[k] = fallback[kind[k]]
+				if (!(name[k] in t)) { w[k] = estimate(k); n_unk++ }
 				total += w[k]; if (w[k] > big) big = w[k]
 			}
+			max_unk = n_unk ? int((n_unk + jobs - 1) / jobs) : 1
 			lo = big; hi = total
 			for (it = 0; it < 60; it++) { mid = (lo + hi) / 2; if (shards_for(mid) <= jobs) hi = mid; else lo = mid }
-			shard = 0; load = 0
+			shard = 0; load = 0; unk = 0
 			for (k = 1; k <= n; k++) {
-				if (load + w[k] > hi && load > 0 && shard < jobs - 1) { shard++; load = 0 }
-				load += w[k]; print shard, name[k]
+				if (starts_shard(k, load, unk, hi) && shard < jobs - 1) { shard++; load = 0; unk = 0 }
+				load += w[k]; if (!(name[k] in t)) unk++
+				print shard, name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
 			}
 		}'
 )
 # Slices are contiguous, so any unused shards are the last ones.
 while [ "$jobs" -gt 1 ] && [ -z "${shard_suites[jobs - 1]}" ]; do jobs=$((jobs - 1)); done
+if [ "$dry_run" = "1" ]; then
+	# One block per shard: its total weight, then each suite's weight in seconds (* = estimated).
+	printf '%s' "$plan" | awk '
+		{ tot[$1] += $2 + 0; line[$1] = line[$1] sprintf("    %7ss  %s\n", $2, $3); if ($1 > last) last = $1 }
+		END { for (i = 0; i <= last; i++) printf "shard %d: %.1fs\n%s", i, tot[i], line[i] }'
+	echo "${#suites[@]} suites in $jobs shard(s), weights from $times_file (* = no recorded time: estimated)"
+	exit 0
+fi
 
 # Each shard is its own Godot process with its own user:// (APPDATA) and report directory, so saves,
 # GdUnit temp files and Godot logs never collide (with each other or with other checkouts' runs).
@@ -238,17 +279,14 @@ if [ "$t_flaky" -gt 0 ]; then
 	[ "$rc" -eq 0 ] && rc=1
 fi
 
-# GdUnit4 can pass while Godot prints script errors from project code: fail on those.
-# Offending = SCRIPT ERROR:/ERROR: lines whose block (the line plus its indented "at:" line) mentions
-# a res:// path outside res://addons/, minus tools/test_error_allowlist.txt regexes.
+# GdUnit4 can pass while Godot prints errors caused by project code: fail on those.
+# Offending = SCRIPT ERROR:/ERROR: blocks whose error or "at:" line names a res:// path outside
+# res://addons/ (script errors), or whose GDScript backtrace has a frame there (engine errors raised
+# by project code, e.g. "at: ... (scene/...cpp:123)"), minus tools/test_error_allowlist.txt regexes.
+# One line per block (tools/project_errors.awk): error and "at:" line, then " | backtrace: " frames.
 allow="tools/test_error_allowlist.txt"
 patterns="$(grep -v -e '^[[:space:]]*#' -e '^[[:space:]]*$' "$allow" 2>/dev/null | tr -d '\r' || true)"
-tr -d '\r' < "$log" | awk '
-	/^(SCRIPT )?ERROR:/ { if (blk != "") print blk; blk = $0; next }
-	/^[[:space:]]+at:/ && blk != "" { blk = blk " " $0; next }
-	{ if (blk != "") print blk; blk = "" }
-	END { if (blk != "") print blk }
-' | grep -E 'res://' | grep -vE 'res://addons/' > reports/.project_errors.tmp || true
+tr -d '\r' < "$log" | awk -f tools/project_errors.awk > reports/.project_errors.tmp || true
 if [ -n "$patterns" ]; then
 	grep -vEf <(printf '%s\n' "$patterns") reports/.project_errors.tmp > reports/project_errors.log || true
 else
