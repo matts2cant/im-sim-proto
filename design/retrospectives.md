@@ -77,6 +77,35 @@ Final suite: 1400 tests, 0 failures, 76 s.
   - Lesson: scenario tests on a stealth route also assert that no guard becomes Suspicious where the design says the route is quiet.
   - The reproduction-first bug brief found the real cause again. My guess (cabinet noise) was wrong.
 
+### M9h — playtest batch 2 (2026-11-09/10)
+
+Seven agents, all merged on green full runs:
+- Wave 1, four in parallel:
+  - doors: lock hardware on the leaf and wall boxes, keycards needed every time (ADR 0098);
+  - network map: comb layout, pan, zoom, fit (ADR 0099);
+  - laser arrays, a 45 s alarm, downed hostiles not sightings (ADR 0100);
+  - Rifles and Sniper skills, ammo colours, lower view models (ADR 0101).
+- Wave 2: guard speeds (ADR 0102), plus test and level fixes.
+- Map node colours (an ADR 0099 amendment), asked for mid-batch.
+
+Final suite: 1542 tests, 84 s, 1 skipped. The user chose to leave the headless mouse-mode test skipped.
+
+- **Went well:**
+  - Reproducing the user's exact steps found the turret beep loop's real cause: a downed hostile was still a sighting, so the turret re-engaged every frame. It was fixed in perception for every sensor, not only the turret.
+  - The flaky-test agent did not take "navigation leak" for granted. It reproduced worker-thread starvation instead (a frame-capped wait is only 30 ms at 144 fps) and recorded the rule: waits for worker threads get real-time caps.
+  - A generic wall-device check now catches devices in doorways or over signs.
+  - Splitting files between agents kept conflicts to the ADR index.
+- **Went wrong:**
+  - Asking every running agent to merge master after each merge cost each of them two or three extra full runs. One agent finished before the message arrived and had to be resumed.
+  - I ran `rm -rf` on a worktree still locked by its finished agent. It was harmless, but use `git worktree remove -f -f` once the agent's final notification arrives.
+  - Parallel agents all left the ADR count line to me, which is the right call; briefs now say so.
+- **Changes:** CLAUDE.md:
+  - With parallel agents, only the last one to finish merges master before its final run, unless a merged change touches code it uses.
+  - Parallel briefs leave the ADR count line to the chief engineer.
+- **Open for the user:**
+  - Warehouse crossing gaps are now 4.9-43.8 s, close to the 4-45 s targets; the next slow-down needs a route change.
+  - Alert words on the map are amber now, because red means disabled.
+
 ### M9g — playtest fixes (2026-11-09)
 
 Four agents in two waves, each merged on a green full run:
