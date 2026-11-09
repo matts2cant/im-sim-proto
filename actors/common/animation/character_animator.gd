@@ -4,15 +4,19 @@ extends Node
 ## (nodes driven by the clips of the model's AnimationPlayer) from the character's properties only:
 ## the body's horizontal ground speed, its tags (ActorState: `state.dead`, `state.unconscious`,
 ## `stance.sprint`) and its WeaponHolder (the drawn weapon's WeaponData.grip, the `fired` signal for
-## shots and swings). CharacterAnimModel picks the clips; this adapter samples them into four
-## layers, each cross-fading on a change (CharacterAnimLayer):
-## base (idle / walk / sprint, full body, rate scaled to the ground speed), hold (the grip's pose on
-## its arm parts, so the legs keep walking; the arms follow the aim's pitch), action (a shot or a
-## swing over the hold pose), down (the down clip, full body, held on its last frame, the model lifted
-## so the lying figure rests on the floor).
-## Visual only: the gameplay aim (the eye, shots, the flashlight's beam) never reads the model. The
-## drawn weapon's view hangs from a mount on the hand part (WeaponView.hang_from()), so it
-## follows the arm. Polls every physics tick and shows the state at once (no fade) on its first tick
+## shots and swings) and its off-hand item (a Flashlight: in use while lit). CharacterAnimModel picks
+## the clips; this adapter samples them into five layers, each cross-fading on a change
+## (CharacterAnimLayer): base (idle / walk / sprint, full body, rate scaled to the ground speed),
+## off hand (the off-hand pose while the item is in use, turned by config.off_hand_turn_deg; the arm
+## follows the aim's pitch), hold (the grip's pose on its arm parts, so the legs keep walking; the
+## arms follow the aim's pitch), action (a shot or a swing over the hold pose), down (the down clip,
+## full body, held on its last frame, the model lifted so the lying figure rests on the floor).
+## Visual only: the gameplay aim (the eye, shots, the flashlight's beam direction) never reads the
+## model. The drawn weapon's view hangs from a mount on the hand part (WeaponView.hang_from()), so
+## it follows the arm; the off-hand item hangs from the off hand while in use and from the stowed
+## mount (the belt) otherwise (Flashlight.hang_from(), ADR 0105). An idle clip that never moves
+## (config.idle_clip `static`: the training dummy's mannequin) keeps the character still.
+## Polls every physics tick and shows the state at once (no fade) on its first tick
 ## and after a quickload (QuickSave.LOADED_GROUP), so a loaded downed body is already lying.
 ## The model's own AnimationPlayer is switched off; nothing is saved (the pose follows the state).
 ## The animated parts cast no shadow unless `config.model_casts_shadows` (a moving shadow caster
@@ -29,17 +33,26 @@ const ACTION_FADE: float = 0.05
 @export var holder_path: NodePath = ^"../Aim/WeaponHolder"
 ## Node whose pitch the arms follow while holding (the eye; optional).
 @export var aim_path: NodePath = ^"../Aim"
+## The character's off-hand item, a Flashlight (optional).
+@export var off_hand_path: NodePath = ^"../Aim/Flashlight"
 
 var entity: Node3D
 var model: Node3D
 var holder: WeaponHolder
 var state: CharacterAnimModel
 var base := CharacterAnimLayer.new()
+var off_hand := CharacterAnimLayer.new()
 var hold := CharacterAnimLayer.new()
 var action := CharacterAnimLayer.new()
 var down := CharacterAnimLayer.new()
 ## Where the drawn weapon's view hangs (a child of the hand part), or null.
 var hand_mount: Node3D
+## Where the off-hand item is held while in use (a child of the off-hand part), and where it hangs
+## otherwise (a child of the stowed part), or null.
+var off_hand_mount: Node3D
+var stowed_mount: Node3D
+## The off-hand item, or null.
+var off_hand_item: Flashlight
 
 var _aim: Node3D
 var _animations: Dictionary[StringName, Animation] = {}
@@ -51,6 +64,7 @@ var _tracks: Dictionary[StringName, Dictionary] = {}
 var _lift: Dictionary[StringName, float] = {}
 var _model_rest: Transform3D
 var _pitch_axis: Vector3 = Vector3.RIGHT
+var _off_hand_turn := Quaternion.IDENTITY
 var _snap: bool = true
 var _mount_grip: int = CharacterAnimModel.NO_GRIP
 # The held down pose is shown and nothing moves.
@@ -81,6 +95,15 @@ func _ready() -> void:
 		_place_mount(WeaponData.Grip.ONE_HAND)
 		holder.view_pivot().hang_from(hand_mount)
 		holder.fired.connect(_on_fired)
+	off_hand_item = get_node_or_null(off_hand_path) as Flashlight
+	if off_hand_item != null and _parts.has(config.off_hand_part) and _parts.has(config.stowed_part):
+		off_hand_mount = _add_mount(config.off_hand_part, "OffHandMount", config.off_hand_mount)
+		stowed_mount = _add_mount(config.stowed_part, "StowedMount", config.stowed_mount)
+		off_hand_item.hang_from(off_hand_mount, stowed_mount)
+	var turn := config.off_hand_turn_deg * (PI / 180.0)
+	_off_hand_turn = (
+		Quaternion(Vector3.BACK, turn.z) * Quaternion(Vector3.UP, turn.y) * Quaternion(Vector3.RIGHT, turn.x)
+	)
 	if not config.model_casts_shadows:
 		for geometry: GeometryInstance3D in model.find_children("*", "GeometryInstance3D", true, false):
 			geometry.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -92,7 +115,8 @@ func _physics_process(delta: float) -> void:
 	var sprinting := ActorState.has(entity, ActorState.SPRINTING)
 	var dead := ActorState.is_dead(entity)
 	var unconscious := ActorState.has(entity, ActorState.UNCONSCIOUS)
-	state.update(delta, speed, sprinting, dead, unconscious, _held_grip())
+	var off_hand_busy := off_hand_item != null and off_hand_item.lit
+	state.update(delta, speed, sprinting, dead, unconscious, _held_grip(), off_hand_busy)
 	if _snap:
 		_snap_layers()
 		_snap = false
@@ -138,7 +162,7 @@ func lying_lift(clip: StringName) -> float:
 
 
 func _layers() -> Array[CharacterAnimLayer]:
-	return [base, hold, action, down]
+	return [base, off_hand, hold, action, down]
 
 
 func _ground_speed() -> float:
@@ -171,6 +195,8 @@ func _play_layers() -> void:
 		# Walk <-> sprint: the new clip starts at the same share of its stride.
 		start = base.current.progress() * _length(base_clip)
 	base.play(base_clip, [], _length(base_clip), true, state.playback, config.fade_time, start)
+	var off_clip := state.off_hand_clip()
+	off_hand.play(off_clip, config.off_hand_parts, _length(off_clip), false, 1.0, config.fade_time)
 	var hold_clip := state.hold_clip()
 	hold.play(hold_clip, state.hold_parts(), _length(hold_clip), false, 1.0, config.fade_time)
 	if state.action_clip.is_empty() and not action.current.clip.is_empty():
@@ -184,6 +210,8 @@ func _snap_layers() -> void:
 	var base_clip := state.base_clip()
 	base.snap(base_clip, [], _length(base_clip), true, 0.0)
 	base.current.rate = state.playback
+	var off_clip := state.off_hand_clip()
+	off_hand.snap(off_clip, config.off_hand_parts, _length(off_clip), false, _length(off_clip))
 	var hold_clip := state.hold_clip()
 	hold.snap(hold_clip, state.hold_parts(), _length(hold_clip), false, _length(hold_clip))
 	action.snap(&"", [], 0.0, false, 0.0)
@@ -196,18 +224,30 @@ func _length(clip: StringName) -> float:
 	return animation.length if animation != null else 0.0
 
 
-# Every part: rest, then each layer over the one below (a fade blends the layer's two slots).
+# Every part: rest, then each layer over the one below (a fade blends the layer's two slots). The
+# off-hand parts take the off-hand turn; the held and off-hand parts follow the aim's pitch.
 func _pose() -> void:
-	var pitch := _aim_pitch() * hold.weight_of(state.hold_clip())
+	var aim_pitch := _aim_pitch()
+	var hold_weight := hold.weight_of(state.hold_clip())
+	var off_weight := off_hand.weight_of(config.hold_off_hand_clip)
 	for part_name: StringName in _parts:
 		var rest := _rest[part_name]
 		var rotation := rest.basis.get_rotation_quaternion()
 		var position := rest.origin
-		for layer: CharacterAnimLayer in [base, hold, action]:
+		for layer: CharacterAnimLayer in [base, off_hand]:
 			rotation = _layer_rotation(layer, part_name, rotation)
 			position = _layer_position(layer, part_name, position)
-		if pitch != 0.0 and hold.current.drives(part_name):
-			rotation = Quaternion(_pitch_axis, pitch) * rotation
+		var off_hand_part := off_weight > 0.0 and part_name == config.off_hand_part
+		if off_hand_part:
+			rotation = Quaternion.IDENTITY.slerp(_off_hand_turn, off_weight) * rotation
+		for layer: CharacterAnimLayer in [hold, action]:
+			rotation = _layer_rotation(layer, part_name, rotation)
+			position = _layer_position(layer, part_name, position)
+		var pitch_weight := hold_weight if hold.current.drives(part_name) else 0.0
+		if off_hand_part and not hold.current.drives(part_name):
+			pitch_weight = off_weight
+		if aim_pitch != 0.0 and pitch_weight > 0.0:
+			rotation = Quaternion(_pitch_axis, aim_pitch * pitch_weight) * rotation
 		rotation = _layer_rotation(down, part_name, rotation)
 		position = _layer_position(down, part_name, position)
 		var node := _parts[part_name]
@@ -222,7 +262,9 @@ func _pose() -> void:
 
 # Pitch of the aim above the horizontal (radians), 0 without one.
 func _aim_pitch() -> float:
-	if _aim == null or not config.follow_aim_pitch or state.grip == CharacterAnimModel.NO_GRIP:
+	if _aim == null or not config.follow_aim_pitch:
+		return 0.0
+	if state.grip == CharacterAnimModel.NO_GRIP and off_hand.is_idle():
 		return 0.0
 	var forward := -_aim.global_basis.z.normalized()
 	var up := entity.global_basis.y.normalized()
@@ -302,6 +344,15 @@ func _index_model() -> void:
 			tracks[key] = entry
 		_tracks[clip] = tracks
 		state.clip_lengths[clip] = animation.length
+
+
+# A mount node under `part_name` at `mount` (the part's frame).
+func _add_mount(part_name: StringName, mount_name: String, mount: Transform3D) -> Node3D:
+	var node := Node3D.new()
+	node.name = mount_name
+	node.transform = mount
+	_parts[part_name].add_child(node)
+	return node
 
 
 # Puts the hand mount where `grip` holds the weapon (a two-handed weapon between the hands), the

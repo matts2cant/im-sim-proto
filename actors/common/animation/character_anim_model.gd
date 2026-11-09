@@ -6,6 +6,8 @@ extends RefCounted
 ## - Base (full body): idle below `moving_speed`; sprint with the sprint stance or at `sprint_speed`;
 ##   walk otherwise. Walk and sprint play at ground speed / the clip's own speed (clamped), so the
 ##   feet keep pace with the ground.
+## - Off hand (the off-hand parts): the off-hand pose while the off-hand item is in use (a lit
+##   flashlight, ADR 0105), under the hold layer (a two-handed hold overrides it).
 ## - Hold (upper body, the grip's parts): the grip's hold pose while a weapon is drawn.
 ## - Action (upper body): a shot plays the grip's shoot clip, a melee swing the melee clip, once,
 ##   over the hold pose (shooting overrides holding).
@@ -28,6 +30,8 @@ var playback: float = 1.0
 var down: Down = Down.NONE
 ## WeaponData.Grip of the drawn weapon, or NO_GRIP.
 var grip: int = NO_GRIP
+## The off hand holds an item in use (a lit flashlight); false while down.
+var off_hand: bool = false
 ## The one-shot clip playing over the hold pose (a shot, a swing), or empty.
 var action_clip: StringName = &""
 ## Seconds it still plays.
@@ -40,10 +44,19 @@ func _init(p_config: CharacterAnimConfig) -> void:
 	config = p_config
 
 
-## Every physics tick: the character's state now.
-func update(delta: float, speed: float, sprinting: bool, dead: bool, unconscious: bool, held_grip: int) -> void:
+## Every physics tick: the character's state now (`off_hand_busy`: its off-hand item is in use).
+func update(
+	delta: float,
+	speed: float,
+	sprinting: bool,
+	dead: bool,
+	unconscious: bool,
+	held_grip: int,
+	off_hand_busy: bool = false,
+) -> void:
 	down = Down.DEAD if dead else (Down.UNCONSCIOUS if unconscious else Down.NONE)
 	grip = NO_GRIP if is_down() else held_grip
+	off_hand = off_hand_busy and not is_down()
 	action_left = maxf(action_left - delta, 0.0)
 	if action_left <= 0.0 or is_down():
 		_clear_action()
@@ -88,6 +101,11 @@ func hold_clip() -> StringName:
 	if grip == NO_GRIP:
 		return &""
 	return config.hold_clip(grip)
+
+
+## The off-hand pose now, or empty (nothing in use, or down).
+func off_hand_clip() -> StringName:
+	return config.hold_off_hand_clip if off_hand else &""
 
 
 func hold_parts() -> Array[StringName]:

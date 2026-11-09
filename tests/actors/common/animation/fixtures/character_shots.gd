@@ -5,6 +5,8 @@ extends Node3D
 ## waits, saves `<folder>/<name>.png` and the run quits after the last one. Guards have their AI
 ## switched off and are driven directly (NavWalker.move_to(), WeaponHolder.equip() / trigger()); a
 ## shot or swing is frozen at `freeze` seconds into its clip, with the muzzle flash held.
+## ADR 0105: `weapon` draws that WeaponData instead of the scene's loadout, `light` lights the
+## guard's flashlight, `dark` swaps the daylight for a night (no sun, dim ambient).
 
 const GUARD_PISTOL: PackedScene = preload("res://actors/guard/guard_pistol.tscn")
 const GUARD_RIFLE: PackedScene = preload("res://actors/guard/guard_rifle.tscn")
@@ -39,6 +41,93 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"dead": {"guard": "pistol", "kill": true, "cam": Vector3(3.4, EYE, -2.0), "look": Vector3(0, 0.3, 0.9)},
 	"carried": {"guard": "pistol", "carry": true, "cam": Vector3(3.6, EYE, -1.6), "look": Vector3(0, 1.1, 0)},
 	"dummy": {"dummy": true, "cam": Vector3(2.4, EYE, -3.2)},
+	# ADR 0105: every weapon held one-handed (side three-quarter view of the right arm).
+	"hold_baton":
+	{"guard": "pistol", "weapon": "baton/baton", "draw": true, "cam": Vector3(3.2, EYE, -1.6), "face": 0.6},
+	"hold_pistol":
+	{"guard": "pistol", "weapon": "pistol/pistol", "draw": true, "cam": Vector3(3.2, EYE, -1.6), "face": 0.6},
+	"hold_rifle":
+	{
+		"guard": "pistol",
+		"weapon": "assault_rifle/assault_rifle",
+		"draw": true,
+		"cam": Vector3(3.2, EYE, -1.6),
+		"face": 0.6
+	},
+	"hold_shotgun":
+	{"guard": "pistol", "weapon": "shotgun/shotgun", "draw": true, "cam": Vector3(3.2, EYE, -1.6), "face": 0.6},
+	"hold_sniper":
+	{
+		"guard": "pistol",
+		"weapon": "sniper_rifle/sniper_rifle",
+		"draw": true,
+		"cam": Vector3(3.2, EYE, -1.6),
+		"face": 0.6
+	},
+	"hold_baton_front": {"guard": "pistol", "weapon": "baton/baton", "draw": true, "cam": Vector3(1.0, EYE, -3.4)},
+	"hold_rifle_top":
+	{
+		"guard": "pistol",
+		"weapon": "assault_rifle/assault_rifle",
+		"draw": true,
+		"cam": Vector3(2.0, 3.2, -1.0),
+		"face": 0.3
+	},
+	# The flashlight in the off hand at night: a patrol walking towards the camera from 6 m and 15 m,
+	# aiming with it lit, downed with it, and off (hung at the belt).
+	"patrol_light_6m":
+	{
+		"guard": "pistol",
+		"light": true,
+		"dark": true,
+		"walk": 1.5,
+		"from": Vector3(0, 0, 3.0),
+		"cam": Vector3(0.6, EYE, -6.0),
+		"wait": 1.25
+	},
+	"patrol_light_15m":
+	{
+		"guard": "pistol",
+		"light": true,
+		"dark": true,
+		"walk": 1.5,
+		"from": Vector3(0, 0, 3.0),
+		"cam": Vector3(1.5, EYE, -15.0),
+		"wait": 1.25
+	},
+	"patrol_light_side":
+	{
+		"guard": "pistol",
+		"light": true,
+		"walk": 1.5,
+		"from": Vector3(0, 0, 2.0),
+		"cam": Vector3(4.0, EYE, 0),
+		"wait": 1.25
+	},
+	"aim_light":
+	{
+		"guard": "pistol",
+		"light": true,
+		"draw": true,
+		"fire": true,
+		"freeze": 0.06,
+		"cam": Vector3(3.6, EYE, -1.8),
+		"face": -0.2
+	},
+	"aim_light_dark":
+	{"guard": "rifle", "light": true, "dark": true, "draw": true, "cam": Vector3(2.6, EYE, -3.6), "face": 0.2},
+	"light_pose_front": {"guard": "pistol", "light": true, "draw": true, "cam": Vector3(-1.4, EYE, -3.2), "face": -0.3},
+	"light_pose_top": {"guard": "pistol", "light": true, "draw": true, "cam": Vector3(-1.0, 3.6, -1.4), "face": 0.0},
+	"light_off_belt": {"guard": "pistol", "cam": Vector3(1.6, 1.2, -2.2), "look": Vector3(0, 0.9, 0)},
+	"dead_light":
+	{
+		"guard": "pistol",
+		"light": true,
+		"kill_at": 0.8,
+		"cam": Vector3(-1.6, 2.4, -0.6),
+		"look": Vector3(0, 0.2, 0.8),
+		"wait": 2.2
+	},
 	"dummy_down": {"dummy": true, "kill": true, "cam": Vector3(3.4, EYE, -2.0), "look": Vector3(0, 0.3, 0.9)},
 	"doorway":
 	{
@@ -58,6 +147,8 @@ var _camera: Camera3D
 var _stage: Node3D
 var _guard: NavWalker
 var _subject: Node3D
+var _environment: Environment
+var _sun: DirectionalLight3D
 
 
 func _ready() -> void:
@@ -91,10 +182,11 @@ func _build_world() -> void:
 	var world := WorldEnvironment.new()
 	world.environment = environment
 	add_child(world)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-50, 35, 0)
-	sun.shadow_enabled = true
-	add_child(sun)
+	_environment = environment
+	_sun = DirectionalLight3D.new()
+	_sun.rotation_degrees = Vector3(-50, 35, 0)
+	_sun.shadow_enabled = true
+	add_child(_sun)
 	var floor_body := StaticBody3D.new()
 	floor_body.collision_layer = PhysicsLayers.WORLD
 	var shape := CollisionShape3D.new()
@@ -133,6 +225,10 @@ func _next() -> void:
 	add_child(_stage)
 	_guard = null
 	_subject = null
+	var dark: bool = _shot.get("dark", false)
+	_sun.visible = not dark
+	_environment.background_color = Color(0.02, 0.02, 0.03) if dark else Color(0.32, 0.36, 0.42)
+	_environment.ambient_light_energy = 0.08 if dark else 0.6
 	if _shot.has("guard"):
 		_guard = _spawn_guard(String(_shot["guard"]))
 		_subject = _guard
@@ -171,8 +267,13 @@ func _start() -> void:
 			# (`face`: the sideways share instead, for a side view of the arms).
 			_guard.face_direction(Vector3(float(_shot.get("face", cam.x * 0.35)), 0, -1).normalized())
 		var holder := _guard.get_node("Aim/WeaponHolder") as WeaponHolder
-		if _shot.get("draw", false):
+		if _shot.has("weapon"):
+			var data := load("res://items/weapons/%s.tres" % _shot["weapon"]) as WeaponData
+			holder.equip_state(WeaponState.new(data))
+		elif _shot.get("draw", false):
 			holder.equip(0)
+		if _shot.get("light", false):
+			Flashlight.of(_guard).on_while_patrolling = true
 	if _shot.get("kill", false):
 		BodyParts.of(_subject).take_damage(&"damage.ballistic", 500.0, &"torso")
 	if _shot.get("carry", false):
@@ -195,6 +296,9 @@ func _carry() -> void:
 func _physics_process(_delta: float) -> void:
 	if _shot.is_empty():
 		return
+	if _shot.has("kill_at") and _time > float(_shot["kill_at"]):
+		_shot.erase("kill_at")
+		BodyParts.of(_subject).take_damage(&"damage.ballistic", 500.0, &"torso")
 	if _shot.get("pick_up", false) and _time > 0.8:
 		_shot.erase("pick_up")
 		var player := _subject as Player
