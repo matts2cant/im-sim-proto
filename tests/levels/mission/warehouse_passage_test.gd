@@ -85,7 +85,7 @@ func test_ducts_connect_roof_catwalk_office_and_basement() -> void:
 	var office := AABB(Vector3(8.25, 4.4, 0.25), Vector3(5.5, 2.0, 4.75))
 	assert_bool(office.has_point(feet)).override_failure_message("duct B: %s" % feet).is_true()
 	# Duct C: boiler room mouth facing west (mantle 1.1), right turn, up into the security room.
-	await _helpers.play(Vector3(12.4, -4, -8.3), Helpers.EAST, [Helpers.mantle(6), Helpers.wait(40), Helpers.crawl(40)])
+	await _helpers.play(Vector3(12.7, -4, -8.3), Helpers.EAST, [Helpers.mantle(6), Helpers.wait(40), Helpers.crawl(40)])
 	await _helpers.turn_and_play(Helpers.SOUTH, [Helpers.crawl(330)])
 	feet = _helpers.player.global_position
 	var security := AABB(Vector3(14.0, -0.1, 0.4), Vector3(5.75, 0.5, 4.6))

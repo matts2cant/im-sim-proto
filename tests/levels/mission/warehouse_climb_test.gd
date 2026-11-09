@@ -25,9 +25,9 @@ const CLIMBS: Dictionary[String, Array] = {
 	"chamber step 1.2": [Vector3(32.8, -2.4, -7.6), Helpers.WEST, -1.2],
 	"chamber out 1.2": [Vector3(31.6, -1.2, -7.6), Helpers.WEST, 0.0],
 	"duct A mouth 1.1": [Vector3(14, 4.5, -8.2), Helpers.SOUTH, 5.6],
-	"duct C mouth 1.1": [Vector3(12.4, -4, -8.3), Helpers.EAST, -2.9],
-	"office cabinet 1.5": [Vector3(11, 4.5, 4.1), Helpers.NORTH, 6.0],
-	"duct B hole 1.75": [Vector3(11, 6.0, 2.9), Helpers.SOUTH, 7.75],
+	"duct C mouth 1.1": [Vector3(12.7, -4, -8.3), Helpers.EAST, -2.9],
+	"office cabinet 1.35": [Vector3(11, 4.5, 4.1), Helpers.NORTH, 5.85],
+	"duct B hole 1.7": [Vector3(11, 5.85, 2.9), Helpers.SOUTH, 7.55],
 }
 
 var _helpers: Helpers

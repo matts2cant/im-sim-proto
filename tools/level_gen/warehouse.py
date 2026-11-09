@@ -43,13 +43,14 @@ DECK_T = 0.1
 ANNEX_X0, ANNEX_X1, ANNEX_Z0, ANNEX_Z1 = -26.0, -20.5, 1.5, 12.5  # interior; shares the hall wall
 ANNEX_H = 4.25
 ANNEX_ROOF = ANNEX_H + HALL_T  # 4.75
-ANNEX_DOOR_Z = 7.0  # ground door, annex west wall
+ANNEX_DOOR_Z = 10.8  # ground door, annex west wall (south of the container against the wall)
 ROOF_DOOR_Z = 2.1  # hall west wall at annex-roof level
 
 OFF_T = 0.25
+OFF_GROUND = 0.02  # ground-floor office rooms stand 2 cm proud of the hall floor
 OFF_G_H = 4.0  # ground storey interior
 OFF_UP = 4.5  # upper floor top
-OFF_U_H = 2.8
+OFF_U_H = 2.6
 OFF_ROOF = OFF_UP + OFF_U_H + OFF_T  # 7.55
 CORR_Z0, CORR_Z1 = 5.25, 6.75  # office corridors (both storeys) and the bridge
 
@@ -82,6 +83,7 @@ SKYLIGHTS = [
     ("SkylightDockE", 2.8, -7.4, False),
     ("SkylightAisleW", -10.2, 8.0, False),
     ("SkylightAisleE", -2.2, 8.0, False),
+    ("SkylightEast", 6.2, -9.0, False),
 ]
 # Pallet goods under each drop skylight, 1.4 m below the roof (walking in at 4 m/s carries the
 # player about 1.5 m: they land on the goods; a sprint lands on the rack top 2.9 m down, a light
@@ -154,14 +156,14 @@ DOWN_HOLE_Z1 = hole_end(DOWN_TOP_Z, 1, DOWN_R, DOWN_TREAD, 2.9) + 0.8
 HATCH_HOLE_Z1 = hole_end(HATCH_TOP_Z, 1, HATCH_R, 0.25, 2.9) + 0.8
 
 # Water tower (outside the east fence): deck, stair tower lanes and landings.
-TOWER_DECK_Y = 16.0
-TOWER_DECK = (43.0, 51.0, -20.0, -12.0)
-TOWER_FLIGHTS = 9
+TOWER_DECK_Y = 20.0
+TOWER_DECK = (42.0, 50.0, -20.0, -12.0)
+TOWER_FLIGHTS = 11
 TOWER_RISE = TOWER_DECK_Y / TOWER_FLIGHTS
 TOWER_TREAD = 0.28
 TOWER_N, TOWER_R, TOWER_RUN = flight(TOWER_RISE, TOWER_TREAD, 0.18)
-TOWER_LANE_A = (51.0, 52.2)
-TOWER_LANE_B = (52.2, 53.4)
+TOWER_LANE_A = (50.0, 51.2)
+TOWER_LANE_B = (51.2, 52.4)
 TOWER_NORTH_Z = -13.28  # north landings z -14.48 .. -13.28
 TOWER_SOUTH_Z = TOWER_NORTH_Z + TOWER_RUN
 
@@ -188,8 +190,8 @@ DUCT_B = {
     ],
 }
 DUCT_B_HOLE = (10.4, 11.6, 2.2, 3.4)  # x0, x1, z0, z1 over the manager office
-CABINET_H = 1.5
-DUCT_C_X = 14.8  # rise centre line (x)
+CABINET_H = 1.35
+DUCT_C_X = 14.9  # rise centre line (x): housing x 14.1 .. 15.7, clear of the room's west wall
 DUCT_C = {
     # Mouth faces west in the boiler room, turns south, rises into the security room's north wall.
     "entry": (DUCT_C_X - 1.6, BASE_Y + 1.1, -8.3),
@@ -246,6 +248,8 @@ def build_exterior():
             box((HALL_X0 - HALL_T, t - 0.1, HALL_Z0 - HALL_T), (HALL_X1 + HALL_T, 0.1, HALL_Z1 + HALL_T), op="subtraction", name="HallCut"),
             box((HALL_X1 + HALL_T, t - 0.1, TUNNEL_Z0 - 0.25), (36.7, 0.1, TUNNEL_Z1 + 0.25), op="subtraction", name="TunnelCut"),
             box((CHAMBER[0], t - 0.1, CHAMBER[2]), (CHAMBER[1], 0.1, CHAMBER[3]), op="subtraction", name="ChamberCut"),
+            box((-12.7, t - 0.1, -24.2), (-9.3, 0.1, -19.8), op="subtraction", name="BoothCut"),
+            box((ANNEX_X0 - HALL_T, t - 0.1, ANNEX_Z0 - HALL_T), (HALL_X0 - HALL_T, 0.1, ANNEX_Z1 + HALL_T), op="subtraction", name="AnnexCut"),
         ],
     )
     b.csg(
@@ -458,11 +462,12 @@ def build_exterior():
     )
     # Deck railing (perch: shoot over it standing, eyes 1.65 m) except where the stairs arrive.
     rail_y = TOWER_DECK_Y
-    b.railing("RailWest", tw, (x0, z0 + 0.03), (x0, z1 - 0.03), rail_y, 1.1)
-    b.railing("RailNorth", tw, (x0 + 0.03, z0), (x1 - 0.03, z0), rail_y, 1.1)
-    b.railing("RailSouth", tw, (x0 + 0.03, z1), (x1 - 0.03, z1), rail_y, 1.1)
-    b.railing("RailEastN", tw, (x1, z0 + 0.03), (x1, TOWER_NORTH_Z - 1.2), rail_y, 1.1)
-    b.railing("RailEastS", tw, (x1, TOWER_NORTH_Z), (x1, z1 - 0.03), rail_y, 1.1)
+    # 1.0 m railing: standing at it (eyes 1.65 m), shots down into the yard pass over the top rail.
+    b.railing("RailWest", tw, (x0, z0 + 0.03), (x0, z1 - 0.03), rail_y, 1.0)
+    b.railing("RailNorth", tw, (x0 + 0.03, z0), (x1 - 0.03, z0), rail_y, 1.0)
+    b.railing("RailSouth", tw, (x0 + 0.03, z1), (x1 - 0.03, z1), rail_y, 1.0)
+    b.railing("RailEastN", tw, (x1, z0 + 0.03), (x1, TOWER_NORTH_Z - 1.2), rail_y, 1.0)
+    b.railing("RailEastS", tw, (x1, TOWER_NORTH_Z), (x1, z1 - 0.03), rail_y, 1.0)
     # Stair tower: odd flights rise north on lane A, even flights rise south on lane B.
     for k in range(1, TOWER_FLIGHTS + 1):
         base = (k - 1) * TOWER_RISE
@@ -718,7 +723,7 @@ def build_hall():
     # Office block (south-east corner, two storeys). Ground: break room, security room, corridor,
     # stairwell, locker room. Upper: manager office, vault, corridor, stairwell, second office.
     of = b.group("Offices")
-    gy, uy = 0.0, OFF_UP
+    gy, uy = OFF_GROUND, OFF_UP
     rooms = [
         ("GroundBreak", 8.25, 13.75, 0.25, 5.0, gy, OFF_G_H, [("N", 11.0, 1.2, 2.2, 0.0, "ToHall"), ("S", 11.0, 1.2, 2.2, 0.0, "ToCorridor")], "concrete"),
         (
@@ -729,7 +734,7 @@ def build_hall():
             5.0,
             gy,
             OFF_G_H,
-            [("S", 16.9, 1.2, 2.2, 0.0, "ToCorridor"), ("N", 17.6, 2.4, 1.2, 1.0, "Window"), ("N", DUCT_C_X, 1.2, 1.2, 0.1, "DuctC")],
+            [("S", 16.9, 1.2, 2.2, 0.0, "ToCorridor"), ("N", 17.6, 2.4, 1.2, 1.0, "Window"), ("N", DUCT_C_X, 1.6, 1.46, 0.02, "DuctC")],
             "concrete",
         ),
         (
@@ -778,9 +783,9 @@ def build_hall():
     for name, x0, x1, z0, z1, y, h, openings, floor in rooms:
         paths[name] = b.room(name, of, x0, x1, z0, z1, y, h, OFF_T, openings=openings, floor=floor)
     # Stair holes and the duct holes in the office slabs.
-    b.cut(paths["GroundStairs"], box((UP_X0, OFF_G_H - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_G_H + OFF_T + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
+    b.cut(paths["GroundStairs"], box((UP_X0, OFF_G_H - 0.05, UP_BOTTOM_Z), (UP_X1 - 0.01, OFF_G_H + OFF_T + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
     b.cut(paths["GroundStairs"], box((DOWN_X0, -OFF_T - 0.05, DOWN_TOP_Z), (DOWN_X1, 0.05, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="DownHole"))
-    b.cut(paths["UpperStairs"], box((UP_X0, OFF_UP - OFF_T - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_UP + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
+    b.cut(paths["UpperStairs"], box((UP_X0, OFF_UP - OFF_T - 0.05, UP_BOTTOM_Z), (UP_X1 - 0.01, OFF_UP + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
     b.cut(paths["GroundSecurity"], box((DUCT_C_X - 0.8, -OFF_T - 0.05, 0.2), (DUCT_C_X + 0.8, 0.05, 0.45), mat="concrete", op="subtraction", name="DuctCExit"))
     hx0, hx1, hz0, hz1 = DUCT_B_HOLE
     b.cut(paths["UpperManager"], box((hx0, OFF_UP + OFF_U_H - 0.05, hz0), (hx1, OFF_ROOF + 0.05, hz1), mat="concrete", op="subtraction", name="DuctHole"))
@@ -940,7 +945,7 @@ def build_underground():
         [
             box((cx0 - 0.25, DITCH_Y - 0.25, cz0 - 0.25), (cx1 + 0.25, -0.3, TUNNEL_Z0 - 0.25)),
             box((cx0, DITCH_Y, cz0), (cx1, 0.1, TUNNEL_Z0 - 0.2), op="subtraction", name="Void"),
-            box((cx1 - 0.05, DITCH_Y, CULVERT_Z - 0.6), (cx1 + 0.3, DITCH_Y + 1.1, CULVERT_Z + 0.6), op="subtraction", name="CulvertHole"),
+            box((cx1 - 0.05, DITCH_Y - 0.2, CULVERT_Z - 0.8), (cx1 + 0.3, DITCH_Y + 1.3, CULVERT_Z + 0.8), op="subtraction", name="CulvertHole"),
         ],
     )
     b.kit("ledge", "ChamberStep", tn, (cx0 + 1.2, DITCH_Y, (cz0 + cz1) * 0.5), 90, width=round(cz1 - cz0, 4), depth=1.2, height=1.2)
@@ -953,11 +958,11 @@ def build_underground():
         "concrete",
         [
             box((36.7, DITCH_Y - 0.3, -27.0), (41.3, DITCH_Y, 22.3), name="Floor"),
-            box((36.7, DITCH_Y, -27.0), (37.0, 0.0, 22.0), name="WallWest"),
-            box((41.0, DITCH_Y, -27.0), (41.3, 0.0, 22.0), name="WallEast"),
-            box((36.7, DITCH_Y, 22.0), (41.3, 0.0, 22.3), name="Headwall"),
+            box((36.7, DITCH_Y, -27.0), (37.0, -0.01, 22.0), name="WallWest"),
+            box((41.0, DITCH_Y, -27.0), (41.3, -0.01, 22.0), name="WallEast"),
+            box((36.7, DITCH_Y, 22.0), (41.3, -0.01, 22.3), name="Headwall"),
             box((36.65, DITCH_Y, -5.6), (37.05, DITCH_Y + 2.2, -4.4), op="subtraction", name="TunnelGate"),
-            box((36.65, DITCH_Y, CULVERT_Z - 0.6), (37.05, DITCH_Y + 1.1, CULVERT_Z + 0.6), op="subtraction", name="CulvertMouth"),
+            box((36.65, DITCH_Y - 0.2, CULVERT_Z - 0.8), (37.05, DITCH_Y + 1.3, CULVERT_Z + 0.8), op="subtraction", name="CulvertMouth"),
         ],
     )
     b.kit("ramp", "Ramp", dt, (39.0, DITCH_Y, -21.0), 0, rise=-DITCH_Y, run=6.0, width=4.0)
@@ -1060,7 +1065,7 @@ POPULATION = {
         ("Prototype", (19.0, OFF_UP + 0.8, 3.5), 0.0),
         ("SideDoorCodeNote", (-21.8, 0.35, -9.0), 0.0),
         ("Silencer", (19.4, 0.0, 12.0), 0.0),
-        ("SniperRifle", (43.5, TOWER_DECK_Y, -13.0), 0.0),
+        ("SniperRifle", (42.5, TOWER_DECK_Y, -13.0), 0.0),
         ("Shotgun", (19.4, 0.0, 4.6), 0.0),
         ("Lockpicks", (8.4, BASE_Y + 0.9, 3.0), 0.0),
         ("KeycardVault", (14.5, OFF_UP + 0.8, 4.5), 0.0),
@@ -1087,9 +1092,9 @@ DARK_SPOTS = [
     ("RackDeck", (-13.0, RACK_DECKS[1], 9.5), False),
     ("Roof", (0.0, ROOF, 12.0), False),
     ("Ditch", (39.0, DITCH_Y, 2.0), False),
-    ("DrainChamber", (33.4, DITCH_Y, -7.0), False),
+    ("Culvert", (35.4, DITCH_Y, CULVERT_Z), True),
     ("BoilerCorner", (19.0, BASE_Y, -8.6), False),
-    ("TowerDeck", (44.0, TOWER_DECK_Y, -16.0), False),
+    ("TowerDeck", (43.0, TOWER_DECK_Y, -16.0), False),
     ("AnnexRoof", (-24.0, ANNEX_ROOF, 10.0), False),
 ]
 LIT_SPOTS = [

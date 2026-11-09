@@ -115,6 +115,18 @@ size = Vector3(3, 0.5, 2.75)
 operation = 2
 material = ExtResource("1_concrete")
 
+[node name="BoothCut" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, -0.15, -22)
+size = Vector3(3.4, 0.5, 4.4)
+operation = 2
+material = ExtResource("1_concrete")
+
+[node name="AnnexCut" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.5, -0.15, 7)
+size = Vector3(6, 0.5, 12)
+operation = 2
+material = ExtResource("1_concrete")
+
 [node name="Grass" type="CSGCombiner3D" parent="Ground"]
 use_collision = true
 metadata/surface = &"grass"
@@ -562,23 +574,23 @@ use_collision = true
 metadata/surface = &"metal"
 
 [node name="Leg1" type="CSGBox3D" parent="WaterTower/Legs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 7.85, -19.5)
-size = Vector3(0.4, 15.7, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.5, 9.85, -19.5)
+size = Vector3(0.4, 19.7, 0.4)
 material = ExtResource("8_metal")
 
 [node name="Leg2" type="CSGBox3D" parent="WaterTower/Legs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 7.85, -12.5)
-size = Vector3(0.4, 15.7, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.5, 9.85, -12.5)
+size = Vector3(0.4, 19.7, 0.4)
 material = ExtResource("8_metal")
 
 [node name="Leg3" type="CSGBox3D" parent="WaterTower/Legs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.5, 7.85, -19.5)
-size = Vector3(0.4, 15.7, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.5, 9.85, -19.5)
+size = Vector3(0.4, 19.7, 0.4)
 material = ExtResource("8_metal")
 
 [node name="Leg4" type="CSGBox3D" parent="WaterTower/Legs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.5, 7.85, -12.5)
-size = Vector3(0.4, 15.7, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.5, 9.85, -12.5)
+size = Vector3(0.4, 19.7, 0.4)
 material = ExtResource("8_metal")
 
 [node name="Deck" type="CSGCombiner3D" parent="WaterTower"]
@@ -586,60 +598,60 @@ use_collision = true
 metadata/surface = &"metal"
 
 [node name="Box0" type="CSGBox3D" parent="WaterTower/Deck"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 15.85, -16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 19.85, -16)
 size = Vector3(8, 0.3, 8)
 material = ExtResource("8_metal")
 
 [node name="Tank" type="CSGCylinder3D" parent="WaterTower/Deck"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 18.5, -16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 22.5, -16)
 radius = 2.8
 height = 5
 sides = 20
 material = ExtResource("3_wall")
 
 [node name="RailWest" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 43, 16, -19.97)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 42, 20, -19.97)
 length = 7.94
-height = 1.1
+height = 1
 bar_spacing = 1
 bar_width = 0.05
-rails = PackedFloat32Array(0.5, 1.075)
+rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="RailNorth" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.03, 16, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.03, 20, -20)
 length = 7.94
-height = 1.1
+height = 1
 bar_spacing = 1
 bar_width = 0.05
-rails = PackedFloat32Array(0.5, 1.075)
+rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="RailSouth" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.03, 16, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.03, 20, -12)
 length = 7.94
-height = 1.1
+height = 1
 bar_spacing = 1
 bar_width = 0.05
-rails = PackedFloat32Array(0.5, 1.075)
+rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="RailEastN" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 51, 16, -19.97)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 50, 20, -19.97)
 length = 5.49
-height = 1.1
+height = 1
 bar_spacing = 1
 bar_width = 0.05
-rails = PackedFloat32Array(0.5, 1.075)
+rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="RailEastS" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 51, 16, -13.28)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 50, 20, -13.28)
 length = 1.25
-height = 1.1
+height = 1
 bar_spacing = 1
 bar_width = 0.05
-rails = PackedFloat32Array(0.5, 1.075)
+rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="Flight1" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 0, -10.48)
-rise = 1.7778
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 0, -10.2)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -647,8 +659,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight2" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 1.7778, -13.28)
-rise = 1.7778
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 51.8, 1.8182, -13.28)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -656,8 +668,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight3" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 3.5556, -10.48)
-rise = 1.7778
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 3.6364, -10.2)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -665,8 +677,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight4" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 5.3333, -13.28)
-rise = 1.7778
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 51.8, 5.4545, -13.28)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -674,8 +686,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight5" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 7.1111, -10.48)
-rise = 1.7778
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 7.2727, -10.2)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -683,8 +695,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight6" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 8.8889, -13.28)
-rise = 1.7778
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 51.8, 9.0909, -13.28)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -692,8 +704,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight7" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 10.6667, -10.48)
-rise = 1.7778
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 10.9091, -10.2)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -701,8 +713,8 @@ surface = "metal"
 solid = false
 
 [node name="Flight8" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 12.4444, -13.28)
-rise = 1.7778
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 51.8, 12.7273, -13.28)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -710,8 +722,26 @@ surface = "metal"
 solid = false
 
 [node name="Flight9" parent="WaterTower" instance=ExtResource("11_stairs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 14.2222, -10.48)
-rise = 1.7778
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 14.5455, -10.2)
+rise = 1.8182
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight10" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 51.8, 16.3636, -13.28)
+rise = 1.8182
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight11" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.6, 18.1818, -10.2)
+rise = 1.8182
 width = 1.2
 tread = 0.28
 max_riser = 0.18
@@ -723,93 +753,103 @@ use_collision = true
 metadata/surface = &"metal"
 
 [node name="North1" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 1.6778, -13.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 1.7182, -13.88)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="South2" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 3.4556, -9.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 3.5364, -9.6)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="North3" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 5.2333, -13.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 5.3545, -13.88)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="South4" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 7.0111, -9.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 7.1727, -9.6)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="North5" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 8.7889, -13.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 8.9909, -13.88)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="South6" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 10.5667, -9.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 10.8091, -9.6)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="North7" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 12.3444, -13.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 12.6273, -13.88)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="South8" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 14.1222, -9.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 14.4455, -9.6)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="North9" type="CSGBox3D" parent="WaterTower/Landings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 15.9, -13.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 16.2636, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="South10" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 18.0818, -9.6)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="North11" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 19.9, -13.88)
 size = Vector3(2.4, 0.2, 1.2)
 material = ExtResource("8_metal")
 
 [node name="CageEast" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 53.43, 0, -9.28)
-length = 5.2
-height = 17.1
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 52.43, 0, -9)
+length = 5.48
+height = 21.1
 bar_spacing = 0.3
 bar_width = 0.05
 rails = PackedFloat32Array(0.3)
 
 [node name="CageNorth" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51, 0, -14.51)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, -14.51)
 length = 2.4
-height = 17.1
+height = 21.1
 bar_spacing = 0.3
 bar_width = 0.05
 rails = PackedFloat32Array(0.3)
 
 [node name="CageSouthB" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 0, -9.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.2, 0, -8.97)
 length = 1.2
-height = 17.1
+height = 21.1
 bar_spacing = 0.3
 bar_width = 0.05
 rails = PackedFloat32Array(0.3)
 
 [node name="CageSouthA" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51, 2.4, -9.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 2.4, -8.97)
 length = 1.2
-height = 14.7
+height = 18.7
 bar_spacing = 0.3
 bar_width = 0.05
 rails = PackedFloat32Array(0.1)
 
 [node name="CageWest" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 50.97, 0, -9.28)
-length = 5.2
-height = 15.6
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 49.97, 0, -9)
+length = 5.48
+height = 19.6
 bar_spacing = 0.3
 bar_width = 0.05
 rails = PackedFloat32Array(0.3)
 
 [node name="CageWestTop" parent="WaterTower" instance=ExtResource("5_fence")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 50.97, 16, -9.28)
-length = 4
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 49.97, 20, -9)
+length = 4.28
 height = 1.1
 bar_spacing = 0.3
 bar_width = 0.05

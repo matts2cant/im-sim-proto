@@ -23,7 +23,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -10.25)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -10.25)
 
 [node name="AnnexDoor" type="Marker3D" parent="Doorways"]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -26.25, 0, 7)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -26.25, 0, 10.8)
 
 [node name="AnnexRoofDoor" type="Marker3D" parent="Doorways"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -20.25, 4.75, 2.1)
@@ -220,7 +220,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8, 0.35, -9)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.4, 0, 12)
 
 [node name="SniperRifle" type="Marker3D" parent="Items"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 16, -13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.5, 20, -13)
 
 [node name="Shotgun" type="Marker3D" parent="Items"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.4, 0, 4.6)
@@ -284,14 +284,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.5, 12)
 [node name="Ditch" type="Marker3D" parent="DarkSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -2.4, 2)
 
-[node name="DrainChamber" type="Marker3D" parent="DarkSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.4, -2.4, -7)
+[node name="Culvert" type="Marker3D" parent="DarkSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.4, -2.4, -7.6)
+metadata/crouched = true
 
 [node name="BoilerCorner" type="Marker3D" parent="DarkSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, -4, -8.6)
 
 [node name="TowerDeck" type="Marker3D" parent="DarkSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 16, -16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 20, -16)
 
 [node name="AnnexRoof" type="Marker3D" parent="DarkSpots"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 4.75, 10)

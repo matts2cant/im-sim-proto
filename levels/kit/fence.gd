@@ -11,8 +11,9 @@ extends StaticBody3D
 
 const NAVIGATION_GROUP: StringName = &"navigation_source"
 const MATERIAL_PATH := "res://assets/materials/graybox/metal.tres"
-## Gaps at least this wide would let a crouched capsule (0.7 m) through.
+## Openings at least this wide and this tall would let a crouched capsule (0.7 x 0.95 m) through.
 const MAX_GAP := 0.6
+const MAX_OPENING_HEIGHT := 0.9
 
 @export_range(0.1, 200.0, 0.05, "or_greater", "suffix:m") var length := 4.0:
 	set(value):
@@ -93,9 +94,29 @@ func rebuild() -> void:
 	visual.multimesh = multimesh
 	_add_generated(visual)
 	var positions := bar_positions()
-	if positions.size() > 1 and positions[1] - positions[0] - bar_width >= MAX_GAP:
+	if (
+		positions.size() > 1
+		and positions[1] - positions[0] - bar_width >= MAX_GAP
+		and tallest_opening() >= MAX_OPENING_HEIGHT
+	):
 		_warn("Gaps of %.2f m between bars let a crouched player through." % (positions[1] - positions[0] - bar_width))
 	update_configuration_warnings()
+
+
+## Tallest clear span between the ground, the rails and the top (rails close the gaps between bars).
+func tallest_opening() -> float:
+	var w := clampf(bar_width, 0.01, 0.5)
+	var h := maxf(height, 0.1)
+	var edges: Array[float] = [0.0, h]
+	for rail: float in rails:
+		var y := clampf(rail, w * 0.5, h - w * 0.5)
+		edges.append(y - w * 0.5)
+		edges.append(y + w * 0.5)
+	edges.sort()
+	var tallest := 0.0
+	for i in range(0, edges.size() - 1, 2):
+		tallest = maxf(tallest, edges[i + 1] - edges[i])
+	return tallest
 
 
 func _get_configuration_warnings() -> PackedStringArray:

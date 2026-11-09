@@ -68,7 +68,7 @@ sill = 4.5
 script = ExtResource("2_room_opening")
 node_name = &"Door"
 wall = 3
-offset = 0
+offset = 3.8
 width = 1.2
 height = 2.2
 
@@ -109,10 +109,10 @@ sill = 1
 script = ExtResource("2_room_opening")
 node_name = &"DuctC"
 wall = 0
-offset = -2.075
-width = 1.2
-height = 1.2
-sill = 0.1
+offset = -1.975
+width = 1.6
+height = 1.46
+sill = 0.02
 
 [sub_resource type="Resource" id="Opening_13"]
 script = ExtResource("2_room_opening")
@@ -311,6 +311,12 @@ size = Vector3(2.4, 0.6, 2.4)
 operation = 2
 material = ExtResource("1_concrete")
 
+[node name="SkylightEast" type="CSGBox3D" parent="Shell/Hall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.4, 9.25, -10.3)
+size = Vector3(2.4, 0.6, 2.4)
+operation = 2
+material = ExtResource("1_concrete")
+
 [node name="RiseCut" type="CSGCombiner3D" parent="Shell/Hall"]
 operation = 2
 
@@ -329,13 +335,13 @@ material = ExtResource("1_concrete")
 operation = 2
 
 [node name="Obox0" type="CSGBox3D" parent="Shell/Hall/DropCut"]
-transform = Transform3D(-1, 0, 0, 0, 0.9062, 0.4228, 0, 0.4228, -0.9062, 11, 9.2687, -4.9563)
-size = Vector3(1.6, 1.6, 6.2053)
+transform = Transform3D(-1, 0, 0, 0, 0.9063, 0.4227, 0, 0.4227, -0.9063, 11, 9.1688, -4.7414)
+size = Vector3(1.6, 1.6, 6.6791)
 material = ExtResource("1_concrete")
 
 [node name="Obox1" type="CSGBox3D" parent="Shell/Hall/DropCut"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 9.325, -5.21)
-size = Vector3(2.6, 5.55, 4.18)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 9.225, -4.995)
+size = Vector3(2.6, 5.75, 4.61)
 operation = 1
 material = ExtResource("1_concrete")
 
@@ -343,18 +349,18 @@ material = ExtResource("1_concrete")
 operation = 2
 
 [node name="Obox0" type="CSGBox3D" parent="Shell/Hall/DuctCRiseCut"]
-transform = Transform3D(-1, 0, 0, 0, 0.9062, -0.4228, 0, -0.4228, -0.9062, 14.8, -0.8563, -7.2387)
+transform = Transform3D(-1, 0, 0, 0, 0.9062, -0.4228, 0, -0.4228, -0.9062, 14.9, -0.8563, -7.2387)
 size = Vector3(1.6, 1.6, 8.6884)
 material = ExtResource("1_concrete")
 
 [node name="Obox1" type="CSGBox3D" parent="Shell/Hall/DuctCRiseCut"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.8, -0.8, -6.985)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.9, -0.8, -6.985)
 size = Vector3(2.6, 6.6, 6.43)
 operation = 1
 material = ExtResource("1_concrete")
 
 [node name="DuctCExitCut" type="CSGBox3D" parent="Shell/Hall"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.8, -0.05, -2.96)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, -0.05, -2.96)
 size = Vector3(1.6, 0.2, 1.72)
 operation = 2
 material = ExtResource("1_concrete")
@@ -634,6 +640,38 @@ rails = PackedFloat32Array(0.5, 0.975)
 
 [node name="SkylightAisleEE" parent="Roof/SkylightRails" instance=ExtResource("5_fence")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.3, 9.5, 7.9)
+length = 2.6
+height = 1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 0.975)
+
+[node name="SkylightEastN" parent="Roof/SkylightRails" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.1, 9.5, -9.1)
+length = 2.6
+height = 1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 0.975)
+
+[node name="SkylightEastS" parent="Roof/SkylightRails" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.1, 9.5, -6.5)
+length = 2.6
+height = 1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 0.975)
+
+[node name="SkylightEastW" parent="Roof/SkylightRails" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 6.1, 9.5, -9.1)
+length = 2.6
+height = 1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 0.975)
+
+[node name="SkylightEastE" parent="Roof/SkylightRails" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 8.7, 9.5, -9.1)
 length = 2.6
 height = 1
 bar_spacing = 1
@@ -1393,94 +1431,94 @@ material = ExtResource("8_wood")
 [node name="Offices" type="Node3D" parent="."]
 
 [node name="GroundBreak" parent="Offices" instance=ExtResource("3_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 2.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.02, 2.625)
 size = Vector3(5.5, 4, 4.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_8"), SubResource("Opening_9")])
 
 [node name="GroundSecurity" parent="Offices" instance=ExtResource("3_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 0, 2.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 0.02, 2.625)
 size = Vector3(5.75, 4, 4.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_10"), SubResource("Opening_11"), SubResource("Opening_12")])
 
 [node name="GroundCorridor" parent="Offices" instance=ExtResource("3_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.02, 6)
 size = Vector3(11.5, 4, 1.5)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_13"), SubResource("Opening_14"), SubResource("Opening_15"), SubResource("Opening_16"), SubResource("Opening_17")])
 
 [node name="GroundStairs" parent="Offices" instance=ExtResource("3_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.625, 0, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.625, 0.02, 10.875)
 size = Vector3(4.75, 4, 7.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_18")])
 
 [node name="GroundLockers" parent="Offices" instance=ExtResource("3_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0.02, 10.875)
 size = Vector3(6.5, 4, 7.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_19")])
 
 [node name="UpperManager" parent="Offices" instance=ExtResource("3_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.5, 2.625)
-size = Vector3(5.5, 2.8, 4.75)
+size = Vector3(5.5, 2.6, 4.75)
 wall_thickness = 0.25
 floor_surface = "carpet"
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_20")])
 
 [node name="UpperVault" parent="Offices" instance=ExtResource("3_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 4.5, 2.625)
-size = Vector3(5.75, 2.8, 4.75)
+size = Vector3(5.75, 2.6, 4.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_21")])
 
 [node name="UpperCorridor" parent="Offices" instance=ExtResource("3_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 4.5, 6)
-size = Vector3(11.5, 2.8, 1.5)
+size = Vector3(11.5, 2.6, 1.5)
 wall_thickness = 0.25
 floor_surface = "carpet"
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_22"), SubResource("Opening_23"), SubResource("Opening_24"), SubResource("Opening_25"), SubResource("Opening_26"), SubResource("Opening_27")])
 
 [node name="UpperStairs" parent="Offices" instance=ExtResource("3_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.625, 4.5, 10.875)
-size = Vector3(4.75, 2.8, 7.75)
+size = Vector3(4.75, 2.6, 7.75)
 wall_thickness = 0.25
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_28"), SubResource("Opening_29")])
 
 [node name="UpperOffice" parent="Offices" instance=ExtResource("3_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4.5, 10.875)
-size = Vector3(6.5, 2.8, 7.75)
+size = Vector3(6.5, 2.6, 7.75)
 wall_thickness = 0.25
 floor_surface = "carpet"
 openings = Array[ExtResource("2_room_opening")]([SubResource("Opening_30")])
 
 [node name="UpHole" type="CSGBox3D" parent="Offices/GroundStairs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.725, 4.125, 0.7)
-size = Vector3(1.3, 0.35, 6.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.72, 4.105, 0.7)
+size = Vector3(1.29, 0.35, 6.35)
 operation = 2
 material = ExtResource("1_concrete")
 
 [node name="DownHole" type="CSGBox3D" parent="Offices/GroundStairs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.725, -0.125, -0.195)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.725, -0.145, -0.195)
 size = Vector3(1.3, 0.35, 4.96)
 operation = 2
 material = ExtResource("1_concrete")
 
 [node name="UpHole" type="CSGBox3D" parent="Offices/UpperStairs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.725, -0.125, 0.7)
-size = Vector3(1.3, 0.35, 6.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.72, -0.125, 0.7)
+size = Vector3(1.29, 0.35, 6.35)
 operation = 2
 material = ExtResource("1_concrete")
 
 [node name="DuctCExit" type="CSGBox3D" parent="Offices/GroundSecurity"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.075, -0.125, -2.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.975, -0.145, -2.3)
 size = Vector3(1.6, 0.35, 0.25)
 operation = 2
 material = ExtResource("1_concrete")
 
 [node name="DuctHole" type="CSGBox3D" parent="Offices/UpperManager"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.925, 0.175)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.725, 0.175)
 size = Vector3(1.2, 0.35, 1.2)
 operation = 2
 material = ExtResource("1_concrete")
@@ -1529,7 +1567,7 @@ rails = PackedFloat32Array(0.5, 0.975)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.5, 3.4)
 width = 1.2
 depth = 1.2
-height = 1.5
+height = 1.35
 surface = "metal"
 
 [node name="FireEscape" type="Node3D" parent="."]
@@ -1708,17 +1746,17 @@ interior_height = 1.2
 
 [node name="Drop" parent="Ducts/DuctB" instance=ExtResource("10_vent_segment")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 9.7, -4.8)
-length = 4.18
-drop = 1.95
+length = 4.61
+drop = 2.15
 interior_height = 1.2
 
 [node name="OverOffice" parent="Ducts/DuctB" instance=ExtResource("10_vent_segment")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 7.75, -0.62)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 7.55, -0.19)
 length = 4.4
 interior_height = 1.2
 
 [node name="Hole" type="CSGBox3D" parent="Ducts/DuctB/OverOffice"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.125, -3.42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.125, -2.99)
 size = Vector3(1.2, 0.35, 1.2)
 operation = 2
 material = ExtResource("6_metal")
@@ -1843,7 +1881,7 @@ omni_range = 6
 circuit = &"warehouse_building"
 
 [node name="LampGroundBreak" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4, 2.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.02, 2.625)
 
 [node name="Light" parent="Lights/LampGroundBreak"]
 light_energy = 1
@@ -1853,7 +1891,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampGroundSecurity" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 4, 2.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 4.02, 2.625)
 
 [node name="Light" parent="Lights/LampGroundSecurity"]
 light_energy = 1
@@ -1863,7 +1901,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampGroundCorridor" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 4, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 4.02, 6)
 
 [node name="Light" parent="Lights/LampGroundCorridor"]
 light_energy = 1.2
@@ -1873,7 +1911,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampGroundStairs" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.025, 4, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.025, 4.02, 10.875)
 
 [node name="Light" parent="Lights/LampGroundStairs"]
 light_energy = 1
@@ -1883,7 +1921,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampGroundLockers" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4.02, 10.875)
 
 [node name="Light" parent="Lights/LampGroundLockers"]
 light_energy = 1
@@ -1893,7 +1931,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampUpperManager" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.6, 7.3, 1.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.6, 7.1, 1.6)
 
 [node name="Light" parent="Lights/LampUpperManager"]
 light_energy = 1
@@ -1903,7 +1941,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampUpperVault" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 7.3, 2.625)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.875, 7.1, 2.625)
 
 [node name="Light" parent="Lights/LampUpperVault"]
 light_energy = 1
@@ -1913,7 +1951,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampUpperCorridor" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 7.3, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 7.1, 6)
 
 [node name="Light" parent="Lights/LampUpperCorridor"]
 light_energy = 1.2
@@ -1923,7 +1961,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampUpperStairs" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.025, 7.3, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.025, 7.1, 10.875)
 
 [node name="Light" parent="Lights/LampUpperStairs"]
 light_energy = 1
@@ -1933,7 +1971,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampUpperOffice" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 7.3, 10.875)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 7.1, 10.875)
 
 [node name="Light" parent="Lights/LampUpperOffice"]
 light_energy = 1
@@ -1953,7 +1991,7 @@ omni_range = 5
 circuit = &"warehouse_building"
 
 [node name="LampCorridorEastU" parent="Lights" instance=ExtResource("13_ceiling_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 7.3, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 7.1, 6)
 
 [node name="Light" parent="Lights/LampCorridorEastU"]
 light_energy = 1.2

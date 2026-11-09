@@ -67,12 +67,12 @@ material = ExtResource("3_concrete")
 operation = 2
 
 [node name="Obox0" type="CSGBox3D" parent="Basement/BoilerRoom/RiseCut"]
-transform = Transform3D(-1, 0, 0, 0, 0.9062, -0.4228, 0, -0.4228, -0.9062, 1.05, 3.1437, 0.0113)
+transform = Transform3D(-1, 0, 0, 0, 0.9062, -0.4228, 0, -0.4228, -0.9062, 1.15, 3.1437, 0.0113)
 size = Vector3(1.6, 1.6, 8.6884)
 material = ExtResource("3_concrete")
 
 [node name="Obox1" type="CSGBox3D" parent="Basement/BoilerRoom/RiseCut"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1.05, 3.2, 0.265)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1.15, 3.2, 0.265)
 size = Vector3(2.6, 6.6, 6.43)
 operation = 1
 material = ExtResource("3_concrete")
@@ -113,24 +113,24 @@ material = ExtResource("5_metal")
 [node name="DuctC" type="Node3D" parent="Basement"]
 
 [node name="Mouth" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 13.2, -2.9, -8.3)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 13.3, -2.9, -8.3)
 length = 1
 fill_below = 1.1
 interior_height = 1.2
 
 [node name="Turn" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.2, -2.9, -8.3)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.3, -2.9, -8.3)
 kind = 2
 interior_height = 1.2
 
 [node name="Rise" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.8, -2.9, -7.7)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.9, -2.9, -7.7)
 length = 6.43
 drop = -3
 interior_height = 1.2
 
 [node name="Exit" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.8, 0.1, -1.27)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.9, 0.1, -1.27)
 length = 1.62
 interior_height = 1.2
 
@@ -175,7 +175,7 @@ material = ExtResource("3_concrete")
 
 [node name="CulvertHole" type="CSGBox3D" parent="Tunnel/DrainChamber"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.125, -1.85, -7.6)
-size = Vector3(0.35, 1.1, 1.2)
+size = Vector3(0.35, 1.5, 1.6)
 operation = 2
 material = ExtResource("3_concrete")
 
@@ -197,18 +197,18 @@ size = Vector3(4.6, 0.3, 49.3)
 material = ExtResource("3_concrete")
 
 [node name="WallWest" type="CSGBox3D" parent="Ditch/Channel"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.2, -2.5)
-size = Vector3(0.3, 2.4, 49)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.205, -2.5)
+size = Vector3(0.3, 2.39, 49)
 material = ExtResource("3_concrete")
 
 [node name="WallEast" type="CSGBox3D" parent="Ditch/Channel"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.15, -1.2, -2.5)
-size = Vector3(0.3, 2.4, 49)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.15, -1.205, -2.5)
+size = Vector3(0.3, 2.39, 49)
 material = ExtResource("3_concrete")
 
 [node name="Headwall" type="CSGBox3D" parent="Ditch/Channel"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -1.2, 22.15)
-size = Vector3(4.6, 2.4, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -1.205, 22.15)
+size = Vector3(4.6, 2.39, 0.3)
 material = ExtResource("3_concrete")
 
 [node name="TunnelGate" type="CSGBox3D" parent="Ditch/Channel"]
@@ -219,7 +219,7 @@ material = ExtResource("3_concrete")
 
 [node name="CulvertMouth" type="CSGBox3D" parent="Ditch/Channel"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.85, -7.6)
-size = Vector3(0.4, 1.1, 1.2)
+size = Vector3(0.4, 1.5, 1.6)
 operation = 2
 material = ExtResource("3_concrete")
 

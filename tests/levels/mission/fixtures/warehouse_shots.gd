@@ -53,9 +53,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"ditch_floor": {"feet": Vector3(39, -2.4, -9), "look": Vector3(36.5, -1.4, -6)},
 	"ditch_south": {"feet": Vector3(39, -2.4, 17), "look": Vector3(39, -1, 23)},
 	"culvert_in": {"feet": Vector3(35.6, -2.4, -7.6), "look": Vector3(31, -1.8, -7.6), "crouch": true},
-	"tower_base": {"feet": Vector3(51.6, 0, -6.5), "look": Vector3(52, 5, -12)},
-	"tower_perch": {"feet": Vector3(43.8, 16, -16), "look": Vector3(0, 6, -10)},
-	"tower_skylights": {"feet": Vector3(43.8, 16, -16), "look": Vector3(-4, 8.5, 3)},
+	"tower_base": {"feet": Vector3(50.6, 0, -6.5), "look": Vector3(51, 5, -12)},
+	"tower_perch": {"feet": Vector3(42.8, 20, -16), "look": Vector3(0, 6, -10)},
+	"tower_skylights": {"feet": Vector3(42.8, 20, -16), "look": Vector3(-4, 8.5, 3)},
 	# Roof.
 	"roof_arrival": {"feet": Vector3(19.5, 9.5, -3.9), "look": Vector3(0, 9, 4)},
 	"roof_skylight": {"feet": Vector3(-5, 9.5, 0.6), "look": Vector3(-5, 7.5, 3.8)},
