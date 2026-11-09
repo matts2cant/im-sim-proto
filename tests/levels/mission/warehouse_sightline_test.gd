@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## bridge, aisle) are clear. Rays use the world layer (geometry and the palisade fence's bars).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 ## Standing at the deck's west railing (x 42). Targets right below the tower (the east yard) are
 ## steeply below the railing; the tests cover the yard beyond them.
@@ -74,5 +75,7 @@ func test_long_sniper_lines_inside_the_hall_are_clear() -> void:
 func _load() -> void:
 	_level = auto_free(LEVEL.instantiate())
 	_level.get_node("Mission").free()
+	# The geometry's lines: guards standing in them (wave 2's population) are what they are for.
+	Helpers.strip_population(_level)
 	add_child(_level)
 	await KitGeometry.settle(get_tree(), 5)

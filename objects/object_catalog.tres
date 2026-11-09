@@ -11,7 +11,8 @@
 [ext_resource type="PackedScene" path="res://objects/brazier/brazier.tscn" id="9_brazier"]
 [ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="10_medkit"]
 [ext_resource type="PackedScene" path="res://actors/dummy/training_dummy.tscn" id="11_training_dummy"]
+[ext_resource type="PackedScene" path="res://objects/gas_cylinder/gas_cylinder.tscn" id="12_gas_cylinder"]
 
 [resource]
 script = ExtResource("1_script")
-scenes = Array[PackedScene]([ExtResource("2_small_crate"), ExtResource("3_large_crate"), ExtResource("4_metal_crate"), ExtResource("5_cardboard_box"), ExtResource("6_explosive_barrel"), ExtResource("7_glass_bottle"), ExtResource("8_wooden_barricade"), ExtResource("9_brazier"), ExtResource("10_medkit"), ExtResource("11_training_dummy")])
+scenes = Array[PackedScene]([ExtResource("2_small_crate"), ExtResource("3_large_crate"), ExtResource("4_metal_crate"), ExtResource("5_cardboard_box"), ExtResource("6_explosive_barrel"), ExtResource("7_glass_bottle"), ExtResource("8_wooden_barricade"), ExtResource("9_brazier"), ExtResource("10_medkit"), ExtResource("11_training_dummy"), ExtResource("12_gas_cylinder")])

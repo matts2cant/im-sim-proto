@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"prototype"
+display_name = "Prototype"
+short_name = "PROTO"
+description = "A sealed case with a glowing core: the device the company is shipping out. Someone will pay well for it."
+footprint = Vector2i(2, 1)
+max_stack = 1
+colour = Color(0.2, 0.85, 0.95, 1)
+world_scene = "res://items/prototype/prototype.tscn"
+auto_belt = false
+default_state = {}
+use_action = 0
+use_message = "Better not open it here"
