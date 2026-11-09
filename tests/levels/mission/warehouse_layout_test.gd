@@ -103,8 +103,11 @@ func test_kit_parts_stay_inside_their_metric_bands() -> void:
 
 func _load() -> void:
 	_level = auto_free(LEVEL.instantiate())
-	# The Mission would spawn a player and open the briefing: not needed here.
+	# The Mission would spawn a player and open the briefing: not needed here. The layout is the
+	# geometry: the population (doors, devices, furniture) has its own suites
+	# (warehouse_doors_test: coplanar faces of the populated level).
 	_level.get_node("Mission").free()
+	_level.get_node("Population").free()
 	add_child(_level)
 	await KitGeometry.settle(get_tree(), 5)
 

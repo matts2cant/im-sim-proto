@@ -30,6 +30,15 @@ func setup(runner: GdUnitSceneRunner) -> void:
 	await driver.frames(5)
 
 
+## Opens every door of the level at once (routes through doorways, not the locks: those have their
+## own suites).
+func open_every_door() -> void:
+	for node in level.get_tree().get_nodes_in_group(Door.GROUP):
+		var door := node as Door
+		if level.is_ancestor_of(door):
+			door.load_state({"open": true})
+
+
 ## Places the player at rest (standing) and plays `steps`: each step holds its actions
 ## (input action names) together for `frames` physics frames.
 func play(feet: Vector3, yaw: float, steps: Array[Dictionary]) -> void:

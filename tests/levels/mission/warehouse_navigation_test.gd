@@ -98,6 +98,8 @@ func _load() -> void:
 	await GuardHelpers.let_old_scenes_go(get_tree())
 	_level = auto_free(LEVEL.instantiate())
 	_level.get_node("Mission").free()
+	# The navmesh of the geometry: locked doors keep guards without the key out (their own suites).
+	_level.get_node("Population").free()
 	add_child(_level)
 	await KitGeometry.settle(get_tree(), 3)
 	var region := _level.get_node("Navigation") as LevelNavigation

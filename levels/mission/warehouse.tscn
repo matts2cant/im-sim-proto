@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://levels/mission/mission_kit/mission.tscn" id="6_mission"]
 [ext_resource type="Resource" path="res://levels/mission/mission_kit/warehouse_mission.tres" id="7_warehouse_mission"]
 [ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="8_level_navigation"]
+[ext_resource type="PackedScene" path="res://levels/mission/population/security.tscn" id="9_security"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -52,6 +53,10 @@ size = Vector3(5.6, 3, 4.6)
 
 [node name="Mission" parent="." instance=ExtResource("6_mission")]
 data = ExtResource("7_warehouse_mission")
+
+[node name="Population" type="Node3D" parent="."]
+
+[node name="Security" parent="Population" instance=ExtResource("9_security")]
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
 script = ExtResource("8_level_navigation")
