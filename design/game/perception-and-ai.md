@@ -24,7 +24,7 @@ stateDiagram-v2
     Suspicious --> Alerted : meter 1.0, hostile harm, alert_at()
     Suspicious --> Unaware : nothing found (wary)
     Alerted --> Searching : target unseen 4 s
-    Searching --> Alerted : target seen, harm, alert_at()
+    Searching --> Alerted : target seen (meter 0.2), harm, alert_at()
     Searching --> Unaware : search over (wary)
     Unaware --> Searching : body found, ally's shout or radio, siren, dispatch, woken
     Suspicious --> Searching : body found, ally's shout or radio, siren, dispatch
@@ -37,7 +37,7 @@ stateDiagram-v2
 | Unaware | none | Patrol its route (`PatrolRoute`, waits per point); without one hold the post (spawn position and facing), glancing ±45° for 1.5 s every 6 s |
 | Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (5 m/s) |
 | Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Armed and seeing the target: fight it ([Combat](#combat)). Unseen 4 s: Searching |
-| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most) |
+| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most). Sight alerts once the meter reaches 0.2 (`search_alert_meter`, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): a lit target within a fraction of a second, a target moving in the dark after about a second of sight |
 
 ## Bodies ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md))
 

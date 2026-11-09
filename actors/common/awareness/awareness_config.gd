@@ -38,6 +38,10 @@ extends Resource
 @export var search_duration: float = 30.0
 ## Look around at each point for this long.
 @export var search_look_time: float = 3.0
+## While Searching, sight alerts once the meter reaches this (0: the first glimpse alerts). A
+## searcher's meter rises with the wary gain, so a lit target alerts it within a fraction of a
+## second, a target moving in the dark (the moving floor, ADR 0095) only after about a second.
+@export var search_alert_meter: float = 0.0
 
 @export_group("Bodies")
 ## A downed ally (ADR 0071) is found once this much discovery has built up (the vision gain per

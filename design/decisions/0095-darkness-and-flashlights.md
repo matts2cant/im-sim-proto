@@ -18,6 +18,11 @@ M8 playtest: "Guards are basically unable to spot you when you're in shadow." In
 - Tuning in `PerceptionConfig` (`moving_light`, `moving_speed`; `guard_perception.tres`). Cameras and turrets keep 0 (their configs do not set it): a camera is a fixed eye whose tuning (ADR 0079) already assumes no dark floor.
 - 0.14 centres the targets of the brief at a held 4.5 m (gain 1.25 x 0.14 = 0.175/s walking, x 0.7 = 0.1225/s crouched): Suspicious at 0.3 after 1.7 / 2.5 s, Alerted after 5.7 / 8.2 s. When the guard walks to the point after its 2 s look it closes in under 2 m (the close override, 0.5) and the alert comes sooner (measured 5.1 s walking, 6.4 s crouch-walking if the target keeps pacing on the spot).
 
+### Searching guards need a meter of 0.2 to alert
+
+- Until now a Searching guard went Alerted on the first frame it saw the target with any gain above 0 ([ADR 0068](0068-awareness-states-and-guard-behaviour.md)): safe while darkness meant a gain of 0. With the moving floor, any step in the dark within a searcher's 20 m focus cone alerted it at once (the loud route: walking along the main roof 11 m from searchers on the fire escape landing below, light 0.04, was an instant alert, and their flashlights then lit the player for everyone).
+- Now sight alerts a searcher once the meter reaches `search_alert_meter` (0.2, `guard_awareness.tres`; the meter rises with the wary gain and decays 0.25/s unseen; 0 keeps the old rule). A lit target 4 m away still alerts in about 0.1 s; a target moving in the dark 10 m away after about 1 s of sight; right after losing a target the meter is still high, so a glimpse re-alerts at once.
+
 ### Flashlights
 
 - **`Flashlight`** (`actors/common/light/flashlight.gd`, scene `flashlight.tscn`, tuning `FlashlightConfig` in `flashlight.tres`): a component any character carries where it holds it. It builds a `SpotLight3D` (range 12 m, half-angle 20 degrees, energy 0.85, warm white), a small emissive lens and a camera-facing additive halo (0.7 m), all hidden while off.

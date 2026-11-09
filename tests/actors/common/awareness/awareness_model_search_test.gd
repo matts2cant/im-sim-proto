@@ -64,6 +64,27 @@ func test_a_noise_while_searching_sends_it_there() -> void:
 	assert_vector(_model.destination).is_equal(Vector3(-3, 0, 2))
 
 
+func test_a_searcher_needs_the_meter_at_0_2_to_alert() -> void:
+	# ADR 0095: a glimpse of a target moving in the dark (about 0.2/s with the wary gain) is not
+	# enough at once; a lit one (about 1.9/s) still alerts within a fraction of a second.
+	var model := AwarenessModel.new(CONFIG, 5)
+	model.search_at(LAST_KNOWN, "alarm")
+	assert_float(model.meter).is_equal(0.0)
+	for i in 30:
+		model.step(TICK, true, 0.2, LAST_KNOWN)
+	assert_int(model.state).is_equal(AwarenessModel.State.SEARCHING)
+	for i in 42:
+		model.step(TICK, true, 0.2, LAST_KNOWN)
+	assert_int(model.state).is_equal(AwarenessModel.State.ALERTED)
+	assert_str(model.reason).is_equal("sight")
+
+	var lit := AwarenessModel.new(CONFIG, 6)
+	lit.search_at(LAST_KNOWN, "alarm")
+	for i in 9:
+		lit.step(TICK, true, 1.9, LAST_KNOWN)
+	assert_int(lit.state).is_equal(AwarenessModel.State.ALERTED)
+
+
 func _assert_near_last_known(point: Vector3) -> void:
 	assert_float(Vector2(point.x - LAST_KNOWN.x, point.z - LAST_KNOWN.z).length()).is_less_equal(CONFIG.search_radius)
 

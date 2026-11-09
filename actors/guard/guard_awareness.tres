@@ -18,6 +18,7 @@ search_points = 4
 search_radius = 8.0
 search_duration = 30.0
 search_look_time = 3.0
+search_alert_meter = 0.2
 body_discovery_threshold = 1.0
 body_discovery_decay = 0.5
 body_wary_duration = 180.0

@@ -328,12 +328,36 @@ func _on_entry(entry: EventLogEntry) -> void:
 					entry.data.get("reason", ""),
 				]
 			)
+			if entry.data.get("reason", "") == "sight":
+				line += _sight_note(String(entry.data.get("actor", entry.source)))
 		&"alarm.raised", &"actor.body_found", &"actor.knocked_out", &"actor.died", &"mission.reinforcements":
 			line = "%s %s -> %s %s" % [entry.kind, entry.source, entry.target, entry.data]
 		&"mission.objective_completed", &"mission.completed", &"mission.extraction_refused":
 			line = "%s %s" % [entry.kind, entry.data]
 	if not line.is_empty():
 		notes.append("%.1f s: %s (player at %s)" % [mission.time, line, _rounded(player.global_position)])
+
+
+# Where the guard that saw the player stands, the player's light level and speed, and whether the
+# guard's flashlight is lit (ADR 0095).
+func _sight_note(guard_name: String) -> String:
+	var watcher: Node3D = null
+	for node in guards():
+		if node.name == guard_name:
+			watcher = node as Node3D
+	if watcher == null:
+		return ""
+	var light := Flashlight.of(watcher)
+	return (
+		" [from %s, %.1f m, player light %.2f, speed %.1f, flashlight %s]"
+		% [
+			_rounded(watcher.global_position),
+			(watcher.global_position - player.global_position).length(),
+			PerceptionSensor.light_level_of(player),
+			PerceptionSensor.horizontal_speed_of(player),
+			light != null and light.lit,
+		]
+	)
 
 
 static func _flat(v: Vector3) -> Vector2:
