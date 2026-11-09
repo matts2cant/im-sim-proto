@@ -48,9 +48,19 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if ActorState.can_act(entity) or holder.states.is_empty():
+	if ActorState.can_act(entity) or holder.states.is_empty() or _leaving():
 		return
 	drop_all()
+
+
+# The character or the level it is in is on its way out (freed with its level): nothing to drop.
+func _leaving() -> bool:
+	var node: Node = entity
+	while node != null:
+		if node.is_queued_for_deletion():
+			return true
+		node = node.get_parent()
+	return false
 
 
 ## Drops every fixed-loadout weapon that has an item; returns the pickups' bodies.
