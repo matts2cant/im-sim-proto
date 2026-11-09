@@ -206,7 +206,9 @@ func test_routes_and_posts_keep_clear_of_the_crates() -> void:
 
 
 func test_alarm_devices_are_cabled_through_the_switch() -> void:
-	await KitGeometry.settle(get_tree(), 1)
+	# Two frames: on the first the downed guard drops its baton (ADR 0088), whose ImpactNoise adds
+	# its audio player deferred; ending the test before that flushes reports it as an orphan.
+	await KitGeometry.settle(get_tree(), 2)
 	var controller := Device.of(_room.get_node("Alarm/Controller"))
 	var switch_entity := _room.get_node("Alarm/Switch")
 	for siren_name: String in ["SirenEast", "SirenWest"]:

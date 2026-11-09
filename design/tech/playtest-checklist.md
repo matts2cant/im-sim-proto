@@ -231,8 +231,18 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
 ## M9 Mission
 
 - [ ] All four routes are completable.
-- [ ] Death leads to reload/restart; extraction shows the summary (time, alarms, kills/knockouts, route).
+- [ ] Death leads to reload/restart; extraction shows the summary (time, alarms, kills, knockouts, optional objectives, badges).
 - [ ] Mission is playable start to finish without debug tools.
+- [ ] Systems ([ADR 0087](../decisions/0087-mission-systems.md), [ADR 0088](../decisions/0088-weapon-drops-and-bursts.md)); until the warehouse is built, `tests/levels/mission/mission_kit/fixtures/mission_fixture.tscn` (run it with F6, or point the hub's `MissionExit` at it) plays the same systems:
+  - [ ] Hub: walking into the west wall's north doorway ("Mission") loads the mission; nothing you carried in the hub comes along.
+  - [ ] The briefing shows at the start with the objectives and pauses the game; E, Enter and Esc each close it, and E does not also pick up or use something.
+  - [ ] Start kit: baton, pistol with 10 rounds, 10 spare rounds, 1 medkit; energy at 50; F-keys toggle Cloak, Speed Enhancement and Combat Strength only. The objectives are in the log (L).
+  - [ ] Reaching the extraction before the manifest shows "Read the manifest first"; completing an objective shows a toast at the top; extraction after the manifest opens the summary (paused, mouse free; Esc does nothing; Restart mission and Return to hub work, the hub starts at its spawn with an empty inventory).
+  - [ ] Badges: sneak through unseen (Suspicious is fine) -> Ghost; a guard reaching Alerted, an alarm or a found body loses it. Knock guards out -> Pacifist kept; kill one (also with a barrel you shot, a fire you started or the turret you retargeted at guards) -> Pacifist lost.
+  - [ ] A knocked-out or killed guard's weapon lies beside the body with the rounds it had; pick it up. Wake the guard (another guard tends it): it searches but never attacks. You keep your own weapons when knocked out.
+  - [ ] The catwalk rifle guard fires bursts of 3-5 rounds with short pauses, and is survivable at 15 m behind partial cover for a few seconds.
+  - [ ] About 30 s after the first alarm, two guards come in at the front gate and search where the alarm was raised; a second alarm brings nobody else.
+  - [ ] Quicksave in the mission, return to the hub, Load: you are back in the mission where you saved, objectives, timer and badges as they were, no briefing.
 
 ## Generic character components (ADR 0056)
 

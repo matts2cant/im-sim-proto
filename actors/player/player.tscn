@@ -55,6 +55,7 @@
 [ext_resource type="Script" path="res://actors/common/tool_use/tool_use.gd" id="51_tool_use"]
 [ext_resource type="PackedScene" path="res://ui/keypad/keypad_screen.tscn" id="52_keypad_screen"]
 [ext_resource type="PackedScene" path="res://ui/terminal/terminal_screen.tscn" id="62_terminal_screen"]
+[ext_resource type="Script" path="res://actors/common/weapon_drop/weapon_drop.gd" id="63_weapon_drop"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -174,5 +175,9 @@ installed_at_start = Array[StringName]([&"cloak", &"run_silent", &"speed_enhance
 [node name="LightExposure" type="Node" parent="."]
 script = ExtResource("47_light_exposure")
 config = ExtResource("48_light_config")
+
+[node name="WeaponDrop" type="Node" parent="."]
+script = ExtResource("63_weapon_drop")
+holder_path = NodePath("../Head/Camera/WeaponHolder")
 
 [node name="GameMenu" parent="." instance=ExtResource("46_game_menu")]

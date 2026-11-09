@@ -102,6 +102,13 @@ Security cameras and turrets see with the same sensor and rules and their own co
 
 Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 head hits), time from the first shot to death: standing in the open at 4 m 2.25 s, at 10 m 4.4 s; hit chance per shot: standing 10 m 76 %, crouched and still at 15 m 26 %, running at 6 m 82 % (details in ADR 0070).
 
+| Rifle guard (M9, `guard_rifle.tscn`, [ADR 0088](../decisions/0088-weapon-drops-and-bursts.md)) | |
+|---|---|
+| Fire | the pistol guard's rules, but in **bursts**: the trigger held for 3-5 shots (`burst_shots_min` / `max` in `guard_combat.tres`) at the rifle's 0.1 s cycle, then the 0.6-0.9 s interval; a burst ends early when the line closes, the guard must move or the magazine runs dry |
+| Ammo | the assault rifle's: magazine 30, 90 spare, 2.2 s reload; 14 a hit |
+
+- **Weapon drops** (M9, [ADR 0088](../decisions/0088-weapon-drops-and-bursts.md)): a guard that goes down (knocked out or dead) drops its weapon beside the body as a pickup, with the rounds in its magazine (`WeaponDrop`). Woken, it is unarmed: CombatBehaviour never engages without a loadout (the awareness flow still runs: it searches, gets Alerted, chases to the last known position, but does not attack).
+- **Reinforcements** (M9 missions, [ADR 0087](../decisions/0087-mission-systems.md)): 30 s of mission time after the first alarm rings in a mission level, the Mission spawns its reinforcements (data: two pistol guards) once at the level's `ReinforcementSpawn`; they search where that alarm was raised (`GradedAwareness.search_at`, reason `alarm`), then hold the spawn point as their post.
 - Guards hurt each other only by accident (a shot inside the cone after a clear check); a guard hit by an ally is not alerted (harm counts only from a hostile tag).
 - EventLog: `actor.engaged {actor, target}`, `actor.disengaged {actor, reason}` (lost, calm, incapacitated, unarmed, target_down).
 

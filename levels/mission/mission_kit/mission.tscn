@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/mission/mission_kit/mission.gd" id="1_mission"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://ui/mission/briefing_screen.gd" id="3_briefing"]
+[ext_resource type="Script" path="res://ui/mission/summary_screen.gd" id="4_summary"]
+[ext_resource type="Script" path="res://ui/mission/mission_toast.gd" id="5_toast"]
+
+[node name="Mission" type="Node"]
+script = ExtResource("1_mission")
+player_scene = ExtResource("2_player")
+
+[node name="Reinforcements" type="Node3D" parent="."]
+
+[node name="Toast" type="CanvasLayer" parent="."]
+script = ExtResource("5_toast")
+
+[node name="Briefing" type="CanvasLayer" parent="."]
+script = ExtResource("3_briefing")
+
+[node name="Summary" type="CanvasLayer" parent="."]
+script = ExtResource("4_summary")

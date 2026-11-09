@@ -4,7 +4,8 @@ extends RefCounted
 ## it whether the target is in sight and how fast it moves, and asks when it may attack, how wide
 ## its aim cone is and which way to move to keep its preferred range.
 ## - Reaction: `seen_time` (sight of the target during this engagement) must reach reaction_time.
-## - Rate: after each shot a random pause in [shot_interval_min, shot_interval_max].
+## - Rate: after each shot a random pause in [shot_interval_min, shot_interval_max]; an automatic
+##   weapon fires a burst of burst_length() shots first.
 ## - Lost: out of sight for lose_grace ends the engagement.
 ## - Accuracy (cone half-angle, degrees): spread_deg().
 
@@ -67,9 +68,16 @@ func ready_to_fire() -> bool:
 	return reacted() and shot_wait <= 0.0
 
 
-## A shot went off: the next waits a random interval.
+## A shot (or a burst) went off: the next waits a random interval.
 func fired() -> void:
 	shot_wait = rng.randf_range(config.shot_interval_min, config.shot_interval_max)
+
+
+## Shots in the next burst of an automatic weapon: random in [burst_shots_min, burst_shots_max],
+## at least 1.
+func burst_length() -> int:
+	var low := maxi(config.burst_shots_min, 1)
+	return rng.randi_range(low, maxi(config.burst_shots_max, low))
 
 
 ## Out of sight long enough to give up the engagement.

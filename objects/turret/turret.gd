@@ -16,13 +16,15 @@ extends Node
 ##   target's hitboxes (torso, head, limbs) whose first hit on the weapon line is the target, and never
 ##   fires while none is (a wall, a prop or anyone else in the way).
 ## - Remote commands: `command.disable` / `command.enable`, and one command per target preset
-##   (`command.target_intruders`, `command.target_guards`, ...) that sets its hostile tags.
+##   (`command.target_intruders`, `command.target_guards`, ...) that sets its hostile tags. The last
+##   preset or enable command it obeyed becomes the cause of its shots (WeaponHolder.cause_id), so a
+##   kill traces back to whoever sent it (ADR 0087).
 ## - Security screens (ADR 0083): device_status() and device_view() (its eye) for DeviceStatus.
 ## - Disabled, unpowered or broken (its Device down): idle, laser off.
 ## EventLog: `turret.detected {turret, target, point, controllers}`, `turret.engaged {turret,
 ## target}`, `turret.disengaged {turret, reason}` (lost, disabled, unpowered, broken, retargeted,
 ## target_down), `turret.retargeted {turret, preset, tags}`; shots log as `weapon.fired`. Saveable
-## (disabled, preset, meter).
+## (disabled, preset, meter, the shots' cause).
 
 @export var config: TurretConfig
 ## The node turned toward targets (yaw about its local Y; its -Z is the turret's facing).
@@ -278,7 +280,11 @@ func _set_preset(command: StringName) -> void:
 	)
 
 
-func _on_action(action: StringName, _stimulus: Stimulus) -> void:
+func _on_action(action: StringName, stimulus: Stimulus) -> void:
+	# The last command it obeyed is the cause of its shots (ADR 0087): whoever retargeted or enabled
+	# it is behind what it kills.
+	if stimulus != null and (config.has_preset(action) or action == Device.ENABLE):
+		holder.cause_id = stimulus.id
 	if config.has_preset(action):
 		if action != preset:
 			_disengage("retargeted")
@@ -309,11 +315,12 @@ func _stand_down(reason: String) -> void:
 
 
 func save_state() -> Dictionary:
-	return {"disabled": disabled, "preset": String(preset), "meter": meter.to_dict()}
+	return {"disabled": disabled, "preset": String(preset), "meter": meter.to_dict(), "cause_id": holder.cause_id}
 
 
 func load_state(data: Dictionary) -> void:
 	disabled = bool(data.get("disabled", disabled))
+	holder.cause_id = int(data.get("cause_id", holder.cause_id))
 	var wanted := StringName(String(data.get("preset", String(preset))))
 	if wanted != preset:
 		_set_preset(wanted)

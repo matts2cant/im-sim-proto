@@ -29,16 +29,23 @@ func _ready() -> void:
 
 ## The owner read `entry` (from the entity named `from`). Returns true when it was new.
 func read(entry: LogEntry, from: String = "") -> bool:
-	var added := book.add(entry)
-	if added:
-		var code_ids: Array[String] = []
-		for code_id: StringName in entry.codes:
-			code_ids.append(String(code_id))
-		var data := {"entry_id": String(entry.id), "title": entry.title, "codes": code_ids}
-		EventLog.record(&"log.entry_added", _who(), from, data)
-		entry_added.emit(entry)
+	var added := add(entry, from)
 	entry_read.emit(entry)
 	return added
+
+
+## Adds `entry` without it being read (nothing opens): a mission's objectives (ADR 0087). Logged
+## and signalled like a new read. Returns true when it was new.
+func add(entry: LogEntry, from: String = "") -> bool:
+	if not book.add(entry):
+		return false
+	var code_ids: Array[String] = []
+	for code_id: StringName in entry.codes:
+		code_ids.append(String(code_id))
+	var data := {"entry_id": String(entry.id), "title": entry.title, "codes": code_ids}
+	EventLog.record(&"log.entry_added", _who(), from, data)
+	entry_added.emit(entry)
+	return true
 
 
 func has(entry_id: StringName) -> bool:
