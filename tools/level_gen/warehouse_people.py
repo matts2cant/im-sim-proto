@@ -58,7 +58,7 @@ GUARD_SPECS = [
     ("G7VaultDoor", "guard_pistol", ["access.warehouse_vault"], None),
     ("G8OffDuty", "guard_baton", [], None),
     ("G9BackStrip", "guard_baton", [], [("BackStripA", 3.0), ("BackStripB", 3.0)]),
-    ("G10CatwalkWest", "guard_pistol", [], [("CatwalkWestA", 3.0), ("CatwalkWestB", 3.0)]),
+    ("G10CatwalkWest", "guard_pistol", [], [("CatwalkWestA", 1.0), ("CatwalkWestB", 3.0)]),
 ]
 # M9g (ADR 0095): every guard's flashlight (guard.tscn) is on while Searching or Alerted; the yard
 # patrols (routes outside the buildings) also keep it on while patrolling.

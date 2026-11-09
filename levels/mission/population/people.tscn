@@ -154,7 +154,7 @@ script = ExtResource("2_patrol_route")
 
 [node name="CatwalkWestA" type="Marker3D" parent="Routes/G10CatwalkWestRoute"]
 transform = Transform3D(-0.4435, 0, -0.8963, 0, 1, 0, 0.8963, 0, -0.4435, -19.25, 4.5, -6)
-metadata/wait = 3
+metadata/wait = 1
 
 [node name="CatwalkWestB" type="Marker3D" parent="Routes/G10CatwalkWestRoute"]
 transform = Transform3D(0.4435, 0, 0.8963, 0, 1, 0, -0.8963, 0, 0.4435, 5, 4.5, 6)

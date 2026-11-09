@@ -35,7 +35,7 @@ stateDiagram-v2
 | State | Icon | Behaviour (timings in `actors/guard/guard_awareness.tres`) |
 |---|---|---|
 | Unaware | none | Patrol its route (`PatrolRoute`, waits per point); without one hold the post (spawn position and facing), glancing ±45° for 1.5 s every 6 s |
-| Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (5 m/s) |
+| Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (4 m/s) |
 | Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Armed and seeing the target: fight it ([Combat](#combat)). Unseen 4 s: Searching |
 | Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most). Sight alerts once the meter reaches 0.2 (`search_alert_meter`, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): a lit target within a fraction of a second, a target moving in the dark after about a second of sight |
 
@@ -96,14 +96,14 @@ Security cameras and turrets see with the same sensor and rules and their own co
 |---|---|
 | First shot | 0.5 s of sight after engaging |
 | Rate | a random 0.6-0.9 s between shots; standing (< 0.3 m/s) and facing the target within 15° |
-| Range | keeps 6-12 m: beyond 12 advances to 11 (2.5 m/s), under 6 backs off to 7 (1.8 m/s) still facing the target; cornered, stands |
+| Range | keeps 6-12 m: beyond 12 advances to 11 (2.5 m/s), under 6 backs off to 7 (1.5 m/s) still facing the target; cornered, stands |
 | Ammo | magazine 10, reloads when empty (1.6 s), 30 spare; tops up when not fighting |
 | Line of fire | aims at the first of the target's hitboxes (torso, head, arms, legs) whose line from the eye is clear; never fires when the first thing on every line is an ally, a wall or a prop; blocked 1 s: steps 1.5 m aside |
 | Cone (half-angle) | 2.0° + 0.15° per metre beyond 4 m, +2° on a target faster than 3 m/s, x1 -> x0.75 over 2 s on a still target; +3° while walking; arm injuries as the player's |
 
 | Baton guard | |
 |---|---|
-| Approach | runs in (5 m/s) to 1.2 m |
+| Approach | runs in (4 m/s) to 1.2 m |
 | Swing | within the baton's reach (1.8 m from the eye) minus 0.3, facing within 15°, after 0.5 s of sight; every 0.6 s (the baton's cycle) |
 | Stun | 20 a hit on the player (no `Awareness`: always aware, never the sneak x10): knocked out on the 3rd |
 
@@ -129,10 +129,19 @@ Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 h
 
 - Perception is a receiver on the stimulus framework ([stimulus-response.md](stimulus-response.md)); hearing uses navmesh path distance with door attenuation. A noise whose path stops short (made on a cabinet top, a navmesh island) reaches a guard only by a way open to the air: it does not pass through walls or floors ([ADR 0094](../decisions/0094-noise-reach-on-partial-paths.md)).
 - Investigating, searching and patrolling guards arrive within 0.4 m horizontally and 1 m vertically of the point (`NavWalker`, `arrive_height`): a point on another floor is reached by walking the navmesh path, not by standing under it (ADR 0094).
-- Guards are built from the same character components as the player ([ADR 0056](../decisions/0056-generic-character-components.md)): `MovementNoise` (their footsteps and landings are `noise` other guards ignore as allies'; the controller sets `stance.sprint` from 4 m/s; guard loudness walk 5, run 12), `FallImpact` + the `fall_damage` receptron, `Knockback` + the `knockback` receptron, BodyParts + `body_damage`, `StepClimber` (walks up steps and stairs of up to 0.35 m; the navmesh climbs 0.3 m; [ADR 0058](../decisions/0058-step-climbing.md)), `BodyPusher` (pushes props with bounded force, ADR 0054), `ImpactSensor` (props pass through guards and their hits deal `damage.blunt`). Whether a guard can act comes from its `state.*` tags (`ActorState`); unconscious or dead it lies down (`DownedPose`), sees and hears nothing and keeps no awareness state.
+- Guards are built from the same character components as the player ([ADR 0056](../decisions/0056-generic-character-components.md)): `MovementNoise` (their footsteps and landings are `noise` other guards ignore as allies'; the controller sets `stance.sprint` when asked for 3 m/s or more, so running is sprinting and walking or investigating is not; guard loudness walk 5, run 12), `FallImpact` + the `fall_damage` receptron, `Knockback` + the `knockback` receptron, BodyParts + `body_damage`, `StepClimber` (walks up steps and stairs of up to 0.35 m; the navmesh climbs 0.3 m; [ADR 0058](../decisions/0058-step-climbing.md)), `BodyPusher` (pushes props with bounded force, ADR 0054), `ImpactSensor` (props pass through guards and their hits deal `damage.blunt`). Whether a guard can act comes from its `state.*` tags (`ActorState`); unconscious or dead it lies down (`DownedPose`), sees and hears nothing and keeps no awareness state.
 - Vision depends on light level ([light-and-visibility.md](light-and-visibility.md)) and Cloak ([abilities.md](abilities.md)).
 - Components (`actors/common/`): `CombatBehaviour` + `CombatModel` + `CombatConfig` (combat/), `PerceptionSensor` + `VisionRules` (perception/), `GradedAwareness` + `AwarenessModel` + `AwarenessEffect` + `AwarenessIndicator` + `BarkLines` + `BodyDiscovery` + `BodyDiscoveryModel` + `AlertComms` + `CommsRules` + `CommsConfig` + `AlarmHearing` + `HeardAlarmEffect` (awareness/), `AwarenessBehaviour` + `PatrolRoute` (behaviour/), `NavWalker` (movement/), `DoorOpener` (door_opener/), `BodyPusher` (pusher/), `DownedPose` + `ReviveEffect` (body/), `Carryable` (objects/components/). The alarm devices live in `objects/alarm/` and `objects/devices/` ([security.md](security.md#alarm-devices)). The guard (`actors/guard/guard.tscn`) is a scene of these plus `.tres` tuning; it has no script of its own.
-- Navigation via NavigationServer3D (`NavWalker` follows its NavigationAgent3D; walk 1.8, investigate 2.5, run 5.0 m/s, turn 240°/s); doors are navigation links ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)): a locked door's link is off the guards' layer unless a guard has its access (`access.<id>` tag); a guard's `DoorOpener` opens a closed door its path crosses within 3.5 m, and leaves it open.
+- Navigation via NavigationServer3D (`NavWalker` follows its NavigationAgent3D at the speeds below, turn 240°/s); doors are navigation links ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)): a locked door's link is off the guards' layer unless a guard has its access (`access.<id>` tag); a guard's `DoorOpener` opens a closed door its path crosses within 3.5 m, and leaves it open.
+- **Speeds** (`actors/guard/guard_walker.tres`, [ADR 0102](../decisions/0102-guard-speeds.md); x `move_speed_mult`, so a leg injury slows every pace). For scale, the player walks at 4, sprints at 6 and crouch-walks at 2 m/s: a sprinting player outruns a running guard, a walking player does not.
+
+  | Pace | m/s | Used for | Sprint stance |
+  |---|---|---|---|
+  | Walk (`walk_speed`) | 1.5 (measured 1.50) | Patrols, going back to a post, Searching after its first point, the combat sidestep and backing off | no |
+  | Investigate (`investigate_speed`) | 2.5 | Suspicious: walking to the point; combat: advancing to range | no |
+  | Run (`run_speed`) | 4.0 (measured 4.00) | Alerted (chase), a loud noise (perceived >= 10), the first search point (a call, a body, the alarm, reinforcements), the baton's approach | yes (`sprint_tag_speed` 3.0) |
+
+  Measured over a straight 5-6 m stretch of flat navmesh by `tests/actors/guard/guard_speed_test.gd` (1.5 and 4.0 m/s, within 5 %).
 - Barks: a text line above the head for 2 s on each state change with a generated beep (lines in `actors/guard/guard_barks.tres`); a search entered for a body ("Man down!"), a call, a dispatch or a siren ("On my way!") or after being woken ("My head...") has its own lines.
 - Icons, state labels and barks: [debug-panel.md](debug-panel.md) Overlays tab toggles.
 - EventLog: `actor.awareness {actor, from, to, reason, meter, point}` (reasons: sight, noise, harm, alert, nothing_found, lost, search_over, reset, body, shout, radio, alarm, woken), `actor.heard {actor, perceived, point}`, `actor.bark {actor, line, from, to}`.
