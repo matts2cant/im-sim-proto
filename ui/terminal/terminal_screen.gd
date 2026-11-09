@@ -178,7 +178,7 @@ func press(command: StringName, target: Device) -> void:
 		return
 	var label := terminal.config.label_for(command)
 	var target_name := Terminal.display_name(target)
-	if terminal.send(command, target):
+	if terminal.send(command, target, player):
 		status_label.text = "%s: %s sent." % [target_name, label]
 	else:
 		status_label.text = "%s: no connection." % target_name

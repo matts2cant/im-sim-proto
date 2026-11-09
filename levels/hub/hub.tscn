@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://levels/gallery/ai_arena/ai_arena.tscn" id="19_ai_arena"]
 [ext_resource type="PackedScene" path="res://levels/gallery/security_wing/security_wing.tscn" id="20_security_wing"]
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="21_silencer"]
+[ext_resource type="PackedScene" path="res://levels/kit/level_exit.tscn" id="22_level_exit"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -245,6 +246,10 @@ size = 0
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="MissionExit" parent="." instance=ExtResource("22_level_exit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.7, 0, -7.5)
+scene_path = "res://levels/mission/warehouse.tscn"
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
 script = ExtResource("6_navigation")

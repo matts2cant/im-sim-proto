@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/mission/mission_kit/extraction_zone.gd" id="1_zone"]
+
+[node name="Extraction" type="Area3D"]
+script = ExtResource("1_zone")

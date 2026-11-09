@@ -14,6 +14,9 @@ extends Node
 ##   the first thing on the line to an aim point (a hitbox of the target: torso, head, then limbs)
 ##   belongs to the target, never through an ally or a wall; blocked for sidestep_time, it steps
 ##   aside. Its cone: CombatModel.spread_deg() through the holder (WeaponHolder.physics_step).
+##   An automatic weapon fires bursts (ADR 0087): it keeps the holder's trigger held for
+##   CombatModel.burst_length() shots at the weapon's cycle, letting go early when the line of fire
+##   closes, it has to move or the magazine runs dry; the shot interval follows each burst.
 ## - Melee weapon: runs in to melee_stop_distance and swings within the weapon's reach; the swing
 ##   rate is the weapon's cycle.
 ## - Shots and swings are WeaponHolder.trigger(): the same stimuli, noise and EventLog as the player.
@@ -55,6 +58,9 @@ var _blocked_time: float = 0.0
 var _sidestep_side: float = 1.0
 var _sidestepping: bool = false
 var _sidestep_point: Vector3 = Vector3.ZERO
+## Automatic fire: shots left to fire in the current burst counted from the magazine (0: none).
+var _burst_length: int = 0
+var _burst_start_magazine: int = 0
 
 
 func _ready() -> void:
@@ -145,6 +151,7 @@ func _engage(new_target: Node3D) -> void:
 
 
 func _disengage(reason: String) -> void:
+	_end_burst()
 	if target == null:
 		return
 	target = null
@@ -202,6 +209,8 @@ func _fight_ranged(delta: float) -> void:
 	_blocked_time = 0.0 if line_clear else _blocked_time + delta
 	if move == CombatModel.Move.HOLD and _blocked_time >= config.sidestep_time and not _sidestepping:
 		_start_sidestep()
+	if is_bursting():
+		_continue_burst(weapon_state)
 	if _sidestepping:
 		body.move_to(_sidestep_point, body.config.walk_speed)
 		# The whole step, not just until a line opens: a line that only grazes the ally invites an
@@ -226,9 +235,47 @@ func _fight_ranged(delta: float) -> void:
 				body.move_to(point, body.config.walk_speed)
 				return
 	body.stop()
+	if is_bursting():
+		return
 	if _may_attack() and body.horizontal_speed() < config.fire_max_speed and model.ready_to_fire():
-		if holder.trigger() == WeaponState.Result.FIRED:
+		var magazine := weapon_state.magazine
+		if holder.trigger() != WeaponState.Result.FIRED:
+			return
+		if weapon_state.data.automatic:
+			_burst_length = model.burst_length()
+			_burst_start_magazine = magazine
+			holder.trigger_held = true
+			_continue_burst(weapon_state)
+		else:
 			model.fired()
+
+
+## True while an automatic weapon's burst is under way (the holder's trigger held).
+func is_bursting() -> bool:
+	return _burst_length > 0
+
+
+# Ends the burst once it fired its shots, or early: no clear line, facing away, on the move, dry or
+# reloading. The holder fires the shots itself while its trigger is held (WeaponHolder.trigger_held).
+func _continue_burst(weapon_state: WeaponState) -> void:
+	var fired := _burst_start_magazine - weapon_state.magazine
+	var keep := (
+		fired < _burst_length
+		and _may_attack()
+		and move == CombatModel.Move.HOLD
+		and not _sidestepping
+		and weapon_state.magazine > 0
+		and not weapon_state.is_reloading()
+	)
+	if not keep:
+		_end_burst()
+		model.fired()
+
+
+func _end_burst() -> void:
+	if _burst_length > 0 and holder != null:
+		holder.trigger_held = false
+	_burst_length = 0
 
 
 func _fight_melee(data: WeaponData) -> void:

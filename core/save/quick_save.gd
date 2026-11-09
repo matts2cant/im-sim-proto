@@ -4,13 +4,16 @@ extends RefCounted
 ## to `path`; `load_game()` reloads the saved level and restores the snapshot onto it.
 ## Static, no autoload: the load outlives the scene it was started from (it awaits
 ## SceneTree.scene_changed in a static coroutine).
+## The save records the level it was made in: loading it from any level (the hub, a mission) loads
+## that level first.
 ## Load order: read and check the file (nothing changes on failure) -> reset Engine.time_scale ->
 ## change to the saved level (LevelReset.load_level, which drops queued stimuli; pause screens
 ## close as the old level leaves the tree) -> on scene_changed pause the tree (physics holds) ->
-## LevelSnapshot.apply (free removed, recreate spawned, load_state in tree order) -> wait
-## SETTLE_FRAMES physics frames (kit CSG collision builds deferred) -> if level geometry was removed,
-## `bake()` every node in REBAKE_GROUP (LevelNavigation) -> clear stimuli -> unpause -> log
-## `game.loaded` -> `on_quickloaded()` on every node in LOADED_GROUP (the player's HUD message).
+## reserve the saved stimulus ids (STIMULUS_IDS) -> LevelSnapshot.apply (free removed, recreate
+## spawned, load_state in tree order) -> wait SETTLE_FRAMES physics frames (kit CSG collision
+## builds deferred) -> if level geometry was removed, `bake()` every node in REBAKE_GROUP
+## (LevelNavigation) -> clear stimuli -> unpause -> log `game.loaded` -> `on_quickloaded()` on
+## every node in LOADED_GROUP (the player's HUD message).
 
 const DEFAULT_PATH: String = "user://saves/quicksave.save"
 ## Nodes rebuilt from level geometry; they implement `bake()`, called after a load removed geometry.
@@ -19,6 +22,10 @@ const REBAKE_GROUP: StringName = &"rebake_after_load"
 const LOADED_GROUP: StringName = &"quickload_listener"
 ## Physics frames the restored level is held paused before play resumes.
 const SETTLE_FRAMES: int = 3
+## Save key: the last stimulus id of the session that saved (StimulusSystem.last_id()). A load
+## reserves the ids up to it, so ids kept in saved state (a fire's ignition, mission tallies) never
+## name a stimulus of the new session.
+const STIMULUS_IDS: String = "stimulus_ids"
 
 ## The slot file; tests point it elsewhere so they never touch the player's quicksave.
 static var path: String = DEFAULT_PATH
@@ -38,6 +45,7 @@ static func save_game(tree: SceneTree) -> SaveFile.Status:
 	if level == null or level.scene_file_path.is_empty():
 		return SaveFile.Status.NO_LEVEL
 	var snapshot := LevelSnapshot.capture(level)
+	snapshot[STIMULUS_IDS] = StimulusSystem.last_id()
 	var status := SaveFile.write(path, level.scene_file_path, snapshot)
 	if status == SaveFile.Status.OK:
 		EventLog.record(&"game.saved", "", "", _summary(level.scene_file_path, snapshot))
@@ -81,6 +89,7 @@ static func load_game(tree: SceneTree) -> SaveFile.Status:
 		push_warning("QuickSave: the level changed during the load; save not applied")
 		return SaveFile.Status.NO_LEVEL
 	tree.paused = true
+	StimulusSystem.reserve_ids(int(data.get(STIMULUS_IDS, 0)))
 	var report := LevelSnapshot.apply(level, data)
 	for i in SETTLE_FRAMES:
 		await tree.physics_frame
