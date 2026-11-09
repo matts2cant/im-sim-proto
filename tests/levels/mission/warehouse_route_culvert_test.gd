@@ -10,6 +10,7 @@ extends GdUnitTestSuite
 ## (WarehouseRouteDriver.snapshot()), so the badges at the extraction count the whole route.
 
 const Route := preload("res://tests/levels/mission/warehouse_route_driver.gd")
+const Roof := preload("res://tests/levels/mission/warehouse_route_roof.gd")
 const MANIFEST := "Population/Security/Items/ManifestDatapad"
 const BACK_GATE := "Population/Security/Doors/BackGate"
 const G2 := "G2YardPatrolWest"
@@ -89,9 +90,17 @@ func test_1_ditch_culvert_and_fire_escape_to_the_roof() -> void:
 func test_2_duct_b_to_the_manifest_and_back_to_the_annex_roof() -> void:
 	var ok := await _route.resume(scene_runner(Route.fixture(self)), _saved)
 	_saved = {}
-	# Across the roof to duct B's mouth, down onto the cabinet and to the desk.
-	ok = ok and await _route.go([Vector3(18.5, 9.5, -3.9), Vector3(12.5, 9.5, -7.6), Vector3(11, 9.5, -7.2)])
-	ok = ok and await _route.go([Vector3(11, 9.7, -5.0), Vector3(11, 7.6, 2.8)], Route.Stance.CROUCH)
+	var roof := _route.raised.size()
+	# Crouched under the high beam across the east parapet's gap (ADR 0097), into the dark east of
+	# duct B's housing; across the lit forecourt once the roof camera and G4 look away from it.
+	ok = ok and await _route.go([Vector3(18.5, 9.5, -3.9)], Route.Stance.CROUCH)
+	ok = ok and await _route.go([Vector3(14.5, 9.5, -4.5)])
+	ok = ok and await Roof.wait_for_forecourt(_route)
+	ok = ok and await _route.go([Vector3(12.5, 9.5, -7.6), Vector3(11, 9.5, -7.2)])
+	# Down the duct onto the cabinet and to the desk.
+	ok = ok and await _route.go([Vector3(11, 9.7, -5.0)], Route.Stance.CROUCH)
+	_assert_roof_unseen(roof)
+	ok = ok and await _route.go([Vector3(11, 7.6, 2.8)], Route.Stance.CROUCH)
 	ok = (
 		ok
 		and await _route.wait_until(
@@ -104,18 +113,20 @@ func test_2_duct_b_to_the_manifest_and_back_to_the_annex_roof() -> void:
 	ok = ok and await _route.climb_from(Vector3(11, 4.5, 4.1), Route.NORTH, 6.1)
 	ok = ok and await _route.go([Vector3(11, 6.1, 2.65)], Route.Stance.CROUCH)
 	ok = ok and await _route.climb(Route.NORTH, 7.55)
+	ok = ok and await _route.go([Vector3(11, 7.6, -1.0), Vector3(11, 9.6, -4.4)], Route.Stance.CROUCH)
+	# Out into the forecourt once the camera and G4 look away, west round the duct's housing into the dark,
+	# across the roof and crouched under the west gap's beam onto the annex stair's landing.
+	roof = _route.raised.size()
+	ok = ok and await Roof.wait_for_forecourt(_route)
+	ok = ok and await _route.go([Vector3(11, 9.5, -7.0), Vector3(9.6, 9.5, -6.6)], Route.Stance.CROUCH)
 	ok = (
 		ok
 		and await _route.go(
-			[Vector3(11, 7.6, -1.0), Vector3(11, 9.7, -5.6), Vector3(11, 9.5, -7.0)], Route.Stance.CROUCH
+			[Vector3(9.4, 9.5, -3.0), Vector3(8, 9.5, 0.5), Vector3(-16.5, 9.5, 0.5), Vector3(-18.5, 9.5, 3.0)]
 		)
 	)
-	ok = (
-		ok
-		and await _route.go(
-			[Vector3(8, 9.5, 0.5), Vector3(-16.5, 9.5, 0.5), Vector3(-18.5, 9.5, 3.0), Vector3(-21.25, 9.5, 3.0)]
-		)
-	)
+	ok = ok and await _route.go([Vector3(-21.25, 9.5, 3.0)], Route.Stance.CROUCH)
+	_assert_roof_unseen(roof)
 	ok = ok and await _route.go([Vector3(-21.25, 4.75, 12.3), Vector3(-23.5, 4.75, 12.3), Vector3(-23.5, 4.75, 7)])
 
 	assert_bool(ok).override_failure_message(_route.report()).is_true()
@@ -164,3 +175,11 @@ func test_3_down_the_annex_chain_round_the_back_strip_and_out_of_the_back_gate()
 	assert_bool(results["pacifist"]).override_failure_message(_route.report()).is_true()
 	assert_int(results["alarms"]).is_equal(0)
 	assert_int(results["kills"] + results["knockouts"]).is_equal(0)
+
+
+# No guard's awareness rose above Unaware and no alarm rang since `mark` (the size of the driver's
+# `raised` at the start of a roof stretch): the roof crossing went unnoticed.
+func _assert_roof_unseen(mark: int) -> void:
+	var risen := Array(_route.raised.slice(mark))
+	assert_array(risen).override_failure_message("noticed on the roof:\n" + _route.report()).is_empty()
+	assert_int(_route.mission.tally.alarms).override_failure_message(_route.report()).is_equal(0)

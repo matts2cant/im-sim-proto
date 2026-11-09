@@ -37,7 +37,7 @@ Night. Built in M9 wave 1 (layout, [ADR 0089](../decisions/0089-warehouse-layout
 |---|---|---|
 | `WorldEnvironment`, `Moon` | | Night sky, ambient 0.12 (blue), light fog; a dim shadowed moon (DirectionalLight3D: visual only, the light model ignores it) |
 | `Exterior` | `levels/mission/areas/exterior.tscn` | Ground slabs, palisade fence and gates, gate booth, containers and climbing aids, cover pallets, truck, dumpster, forklift, van, water tower, river and boundaries, outdoor lights (breaker A) |
-| `Hall` | `levels/mission/areas/hall.tscn` | Hall shell (doorways, skylight holes, floor holes), annex, roof (parapets, skylight rails, plant), catwalks, racks, office block, fire escape, annex roof stair, ducts A and B, building lights (breaker B) |
+| `Hall` | `levels/mission/areas/hall.tscn` | Hall shell (doorways, skylight holes, floor holes), annex, roof (parapets, laser posts at the two arrivals, skylight rails, plant, the camera mast and its flood lamp on breaker A: M9g), catwalks, racks, office block, fire escape, annex roof stair, ducts A and B, building lights (breaker B) |
 | `Underground` | `levels/mission/areas/underground.tscn` | Basement (boiler room, store), service stair, hatch stair, duct C, service tunnel, drain chamber, ditch and culvert, basement lights |
 | `LayoutMarkers` | `levels/mission/areas/layout_markers.tscn` | Marker3D placeholders: `Doorways/` (every doorway, with its intended door below), `Guards/`, `PatrolPoints/`, `Devices/`, `Items/`, `Mission/`, `DarkSpots/`, `LitSpots/` (read by the tests). Wave 2 replaces the placeholders it fills |
 | `PlayerSpawn`, `ReinforcementSpawn`, `Extraction`, `Mission` | | The mission contract (below, "Systems") |
@@ -106,10 +106,10 @@ Metrics used ([metrics.md](metrics.md)): mantle 1.0-1.9 m (kept at 1.1-1.44 m on
 | Loading dock | Yard -> roller door 1 (x -8) or 2 (x 4, behind the truck) 4 x 4 m openings: lit, the shipment inside |
 | Side door | West yard -> keypad door (hall west wall, z -6), lit by its lamp; the dumpster with the code 3 m north |
 | Annex roof | West yard -> pallets (mantle 1.2) -> container (mantle 1.3) -> crate on it (mantle 1.1) -> annex roof (mantle 1.15) -> roof door at z 2.1 (hall west wall, catwalk level: 0.25 m step down onto the west catwalk) |
-| Main roof | Annex roof -> steel stair along the hall wall (27 x 0.176 m risers, caged) -> roof landing. Or the fire escape: east yard -> bottom landing (mantle 1.44; no stair to the ground, so guards cannot use it) -> flight up to the door landing (4.5) -> flight up to the roof (9.5) |
+| Main roof | Annex roof -> steel stair along the hall wall (27 x 0.176 m risers, caged) -> roof landing. Or the fire escape: east yard -> bottom landing (mantle 1.44; no stair to the ground, so guards cannot use it) -> flight up to the door landing (4.5) -> flight up to the roof (9.5). M9g: a high laser beam (1.3 m) crosses the parapet's gap where each arrives: crouch under it ([Roof security](#roof-security-m9g)) |
 | Skylight drop | Roof -> walk off the open north edge of a rack skylight (railings on the other three sides) -> goods 1.4 m down -> rack top (drop 1.5) -> rack end -> bridge (drop 2.1). Harmless when walking or crouching; a sprint overshoots the goods onto the rack top (2.9 m: about 5 leg damage) |
 | Duct A | Roof mouth (x 14, z 3.8; mouth floor 0.2 above the roof) -> crawl down 8.8 m at 25 degrees -> catwalk alcove off the north catwalk (x 13..15): the mouth sits on a 1.1 m pedestal (drop out 1.1; mantle in 1.1) |
-| Duct B | Roof mouth (x 11, z -5.8) -> crawl down over the office block roof -> hole above the manager office -> filing cabinet (drop 1.45, then 1.6 to the floor). Back up: cabinet (mantle 1.6 facing north, ends crouched 1.0 m under the ceiling) -> walk on under the hole -> mantle 1.45 into the duct (a 0.35 m hatch lip on the hole's north edge gives the mantle's 0.86 m probe ray a face to catch, [ADR 0091](../decisions/0091-warehouse-population.md)). The duct's far end opens onto the office block roof (7.35: a dark hiding place) |
+| Duct B | Roof mouth (x 11, z -5.8; M9g: its forecourt is lit and in the roof camera's sweep, [Roof security](#roof-security-m9g)) -> crawl down over the office block roof -> hole above the manager office -> filing cabinet (drop 1.45, then 1.6 to the floor). Back up: cabinet (mantle 1.6 facing north, ends crouched 1.0 m under the ceiling) -> walk on under the hole -> mantle 1.45 into the duct (a 0.35 m hatch lip on the hole's north edge gives the mantle's 0.86 m probe ray a face to catch, [ADR 0091](../decisions/0091-warehouse-population.md)). The duct's far end opens onto the office block roof (7.35: a dark hiding place) |
 | Duct C | Boiler room mouth (x 13.3, facing west, on a 1.1 m pedestal; mantle 1.1) -> right turn -> crawl up 6.4 m at 25 degrees -> security room north wall at floor level |
 | Underground | Tunnel from the ditch (gate at the ditch: locked from outside) -> ramp -> boiler room -> (a) hatch stair (steep: 0.2 m risers, 39 degrees) up through a 1.2 x 4.5 m railed hole into the hall's north-east, or (b) store -> service stair (22 x 0.182 m) up into the office stairwell |
 | Weak wall | Back strip -> breakable panel in the hall's south wall at x -10 (gas cylinders outside) |
@@ -125,17 +125,18 @@ Ambient only reads 0.04. Two circuits, both on breakers wave 2 places:
 
 | Circuit | Breaker | Lamps |
 |---|---|---|
-| `warehouse_yard` (breaker A) | `Population/Security/Devices/BreakerA` ("yard lights"), inside the annex (generator room), west yard; also the front gate and the guest access point | Floodlights (`objects/light_fixture/flood_lamp.tscn`): gate pole, dock west and east (on the hall's north wall), east yard pole (lights the drain chamber exit), back gate pole; side door wall lamp; booth lamp |
+| `warehouse_yard` (breaker A) | `Population/Security/Devices/BreakerA` ("yard lights"), inside the annex (generator room), west yard; also the front gate and the guest access point | Floodlights (`objects/light_fixture/flood_lamp.tscn`): gate pole, dock west and east (on the hall's north wall), east yard pole (lights the drain chamber exit), back gate pole; side door wall lamp; booth lamp; the roof's flood lamp on the camera mast over duct B's forecourt (M9g; with the roof's laser beams) |
 | `warehouse_building` (breaker B) | `Population/Security/Devices/BreakerB` ("building power"), basement store (east wall); also the security switch and the security, bridge and vault doors | Seven high-bay spots under the roof (dock, aisles, hatch, south-east), four catwalk wall lamps, a ceiling lamp in every office room (two in each corridor), annex, basement (4), tunnel |
 
 The pontoon lamp (extraction) is on no circuit. Shadows are on for every lamp; measured frame cost about 0.8 ms per frame at 1152 x 648 (about 1200 fps with vsync off on this machine, from the yard, the catwalks, the perch and the corridor).
 
-Measured light levels (standing; `warehouse_light_test.gd` asserts < 0.1 and >= 0.5): lit pools gate lane 0.78, dock apron 0.88, side door 0.76, dock inside 0.72, ground corridor 0.79, upper corridor 0.98, security room 0.70, break room 0.70, back gate 0.75, booth 0.92. Hiding spots 0.04 (under the trailer, crouched, 0.05): behind the inside container (-29, -20.6), west yard corner (-31, -4), behind the fire-escape container (30.5, 9), back strip (-28, 23), hall south-west corner (-18, 13), rack deck at 4.4 (-13, 9.5), the roof, the ditch, the culvert, behind the boiler, the tower deck, the annex roof. Cutting breaker A darkens every yard pool and leaves the building's lit; cutting B the reverse.
+Measured light levels (standing; `warehouse_light_test.gd` asserts < 0.1 and >= 0.5): lit pools gate lane 0.78, dock apron 0.88, side door 0.76, dock inside 0.72, ground corridor 0.79, upper corridor 0.98, security room 0.70, break room 0.70, back gate 0.75, booth 0.92, duct B's forecourt on the roof 0.6-0.9 (M9g). Hiding spots 0.04 (under the trailer, crouched, 0.05): behind the inside container (-29, -20.6), west yard corner (-31, -4), behind the fire-escape container (30.5, 9), back strip (-28, 23), hall south-west corner (-18, 13), rack deck at 4.4 (-13, 9.5), the roof (outside the forecourt's pool: beside duct B's housing (9.4, -3) and (14.5, -4.5), M9g), the ditch, the culvert, behind the boiler, the tower deck, the annex roof. Cutting breaker A darkens every yard pool and leaves the building's lit; cutting B the reverse.
 
 ### Sightlines
 
 - **Water tower perch** (deck 20 m, x 42..50, z -20..-12; eyes 21.65): clear lines over the fence to the gate, the west yard, the forklift, dock door 2's east side, the north-east yard and the fire escape; down through at least three skylights to guards on the catwalks or the floor (`warehouse_sightline_test.gd`). The east yard right under the tower is hidden by the deck's railing.
 - **Inside the hall**: the north catwalk (36 m), the bridge (25 m), the aisles between racks (22 m) are clear lines for the rifle guard and for a sniper. The racks' open bays let partial sight through.
+- **Roof from below** (M9g): the north catwalk's west half (x -10 to 1) sees up through the roof's east skylight (x 6.2..8.6, z -9..-6.6) onto duct B's lit forecourt: G4, walking east there, notices a player standing in the lamp's pool 15 m away. The player can look down through the same skylight to see where G4 is.
 - **Fence**: the palisade blocks bodies but not sight, shots or light (bars only): guards and cameras see through it and the player can scout the yard from the road. Its two gates are grilles too (M9e): the front gate shows the gate lane and the dock apron from the road, the back gate the back strip from the quay.
 - **Blind spots for cameras**: the dumpster corner north of the side door, the gap between the truck and the hall wall, the containers' far sides.
 
@@ -381,7 +382,7 @@ Static `Ledge`s (wood) under the items, in `Population/Security/Furniture`: Mana
 Two network switches, joined by an uplink cable (M9e, [ADR 0092](../decisions/0092-warehouse-polish.md)):
 
 - **`SecuritySwitch`** (the building's): basement store, east wall (19.49, -2.4, 6), next to breaker B and on its circuit (`warehouse_building`). It carries the building's devices: CameraHall, CameraOffice, the vault turret, the console, the security room's `AlarmController`, the radio base station, the security panic button, the five indoor sirens and the cabled office doors (SecurityDoor, BridgeDoor, VaultDoor).
-- **`YardSwitch`** (the yard's): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. It carries the yard's devices: CameraGate, CameraYard, the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
+- **`YardSwitch`** (the yard's): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. It carries the yard's devices: CameraGate, CameraYard, the roof's CameraRoof, LaserRoofWest and LaserRoofEast (M9g), the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
 
 With both up, a camera's incident reaches both controllers and each rings every siren; the console reaches every device. Breaking a switch (a pistol round) or cutting its breaker cuts only its part: its cameras and panic button tell no controller and its sirens hear none, while the other part keeps working on its own controller. Cutting breaker B or breaking the store's switch silences the building and leaves the console with nothing online; the yard still rings. Breaking the booth's switch (or cutting breaker A, which also darkens the yard) silences the yard. Silencing everything takes both, in two places (the showcase moment, twice: the store on the underground route, the booth at G1's post). The devices themselves are on no circuit (they stay powered when a breaker is cut), except the doors (the fail-secure doors stay locked, the bridge door unlocks).
 
@@ -391,6 +392,8 @@ With both up, a camera's incident reaches both controllers and each rings every 
 | CameraYard | Hall's north-east corner (20.42, 4.0, -10.62) | Looks west-north-west along the dock apron; the gap between the truck and the hall wall is beyond its 15 m |
 | CameraHall | Hall north wall inside (-1, 6.5, -9.98), tilted 30 degrees down | Looks south down the R2-R3 aisle |
 | CameraOffice | Upper corridor east wall above the fire escape door (19.74, 6.88, 6) | Looks west along the corridor (vault and manager doors) |
+| CameraRoof | Roof, the mast's south face in the north-east corner (17, 12.3, -9.69), rest yaw -20 | Sweeps over duct B's lit forecourt at the west end of its sweep (M9g, [Roof security](#roof-security-m9g)) |
+| LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | High beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
 | VaultTurret | Vault (16.9, 4.5, 1.0) | Faces the vault door (intruders) |
 | SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Terminal "security console", credentials `warehouse_security_console`; M11's SEC-SERVER |
 | AlarmController, RadioBaseStation | Security room east wall, over the desk | The building's controller |
@@ -412,7 +415,33 @@ Sirens are heard up to 34 m of path. A PATH stimulus starts at the navmesh point
 | SirenOfficeGround | Ground corridor west end (8.27, 2, 6) | G6 break room 21, G5 security room 28 (through the closed door) |
 | SirenBasement | Store north wall (14, -2.2, 0.02) | G8 off duty 15 |
 
-Blind spots and dark routes kept: the dumpster corner north of the side door, the gap between the truck and the hall wall and the containers' far sides are out of every camera's view; the culvert, the tunnel, the basement, the roof and the second office have no camera.
+Blind spots and dark routes kept: the dumpster corner north of the side door, the gap between the truck and the hall wall and the containers' far sides are out of every camera's view; the culvert, the tunnel, the basement and the second office have no camera; on the roof (M9g) the camera sees only duct B's lit forecourt, the rest of the roof is dark.
+
+### Roof security (M9g)
+
+[ADR 0097](../decisions/0097-warehouse-roof-security.md). Playtest: the roof was a safe layer, and the fastest way to the manifest (over the north-west fence, up the annex chain and the annex stair, across the roof into duct B) met nothing. Now:
+
+```text
+ roof x -20..20, z -10..15 (top 9.5); north up
+ z -10    ======== north parapet ==================================== M: mast x 17 (camera C 2.8 m up, lamp L on top)
+ z -9..-6.6            SkylightEast x 6.2..8.6     F F F F   F: lit forecourt x 9.5..12.5, z -10..-6
+ z -5.8                                              [mouth]  duct B, x 10.2..11.8
+ z -4.5                                     w (9.4, -3)  |housing|  e (14.5, -4.5)       B2 | fire escape landing
+ z -3.9                                                                     (18.5, -3.9) ...B2 gap z -4.52..-3.32
+ z  0.5   (-16.5, 0.5) ---------------- route ------------- (8, 0.5)
+ z  3.0   annex stair landing | B1 gap z 2.37..3.57
+```
+
+- **High beams at both arrivals** (B1 `LaserRoofWest`, B2 `LaserRoofEast`): 1.3 m over the roof, across the parapet's 1.2 m gaps where the annex stair and the fire escape arrive, between two 1.6 m posts (the parapet's ends raised). Crouch under (0.35 m to spare); a jump does not clear them. Duct A, from the north catwalk's alcove, reaches the roof behind them.
+- **The roof camera** (`CameraRoof`, on a mast in the north-east corner) and **a flood lamp** on the mast's top light and watch duct B's forecourt (0.6-0.9 standing; dark at the waits w and e beside the duct's housing and at both arrivals). The forecourt sits at the west end of the camera's sweep: in focus 3-5 s per 14.7 s cycle, out of focus 8.5 s in a row. Lit, the forecourt is also seen from the north catwalk through the roof's east skylight (G4 walking east along the catwalk's west half: Sightlines).
+- **On the yard network**: cabled to the yard switch (gate booth); beams and lamp on breaker A's circuit, the camera on none (like the other cameras).
+
+| Obstacle | Answers |
+|---|---|
+| A beam | Crouch under it (no tools); the other arrival or duct A (another way round); breaker A (the annex, through the high window from two stacked crates: no tools); the console (disable); shoot an emitter (noise); break the yard switch (the beam beeps but rings nothing) |
+| The lit forecourt | Wait in the dark beside the housing until the camera turns east (and G4 walks west), then 3 s to the mouth (no tools); breaker A (lamp off: the camera is blind and cut off); the console (disable); shoot the camera or the lamp (noise); break the yard switch |
+
+A rush (sprinting over the fence and up the annex chain, upright through B1) rings both controllers 15 s after the start ([routes covered by tests](#routes-covered-by-tests-m9f)).
 
 ### M11 hooks
 
@@ -468,7 +497,7 @@ A fresh-eyes pass over the finished level before the route scenario tests, again
 
 **Main routes, start to manifest to boat.** Every one works with the starting kit and no key:
 
-- *Ghost*: over the fence (north-west containers) or the culvert -> the annex chain or the fire escape -> the roof -> duct B -> the manager office (the manifest) -> duct B back (two mantles) -> roof -> fire escape down -> back strip -> the back gate (opens freely from inside) -> quay -> boat. The roof is the level's safe layer: no guard, no camera.
+- *Ghost*: over the fence (north-west containers) or the culvert -> the annex chain or the fire escape -> the roof -> duct B -> the manager office (the manifest) -> duct B back (two mantles) -> roof -> fire escape down -> back strip -> the back gate (opens freely from inside) -> quay -> boat. The roof is the level's safe layer: no guard, no camera (changed in M9g: high beams at both arrivals and a camera over duct B's lit forecourt, [Roof security](#roof-security-m9g)).
 - *Pacifist*: the same, or in through the side door (code in the dumpster beside it) and the hall, knocking out the guards met on the floor and the catwalks; G6's break room gives the manager code (night shift notes), the manager door then opens from the corridor.
 - *Loud*: through the front gate (unlocked; G1, the gate camera and the alarm), the dock and the hall stairs to the upper corridor; the weapon drops (G1's pistol, G4's assault rifle) and the security room's shotgun refill a 20-round start against ten guards and two reinforcements. Tight, as intended; the medkit in the boiler room is on the underground way.
 
@@ -492,12 +521,21 @@ Scenario tests drive the real player through the populated level with every guar
 
 | Suite | Route | Outcome | Segments (tests) |
 |---|---|---|---|
-| `warehouse_route_fence_test.gd` | Road -> over the north-west fence -> west strip (once G2 leaves for A) -> annex chain -> annex roof -> roof -> duct B -> manifest -> duct B up -> fire escape down (once G9 turns west) -> back strip -> back gate -> boat | Ghost, Pacifist, no alarm | 3 |
-| `warehouse_route_culvert_test.gd` | Road -> ditch -> culvert -> drain chamber (out once G3 leaves for A) -> east strip -> fire escape up (G9 west) -> roof -> duct B -> manifest -> roof -> annex stair -> annex chain down (G2 north) -> west strip -> back strip behind G9 -> back gate -> boat | Ghost, Pacifist, no alarm | 3 |
-| `warehouse_route_vault_test.gd` | (Starts in the manager office) manifest and console audit -> duct B -> roof -> fire escape -> drain chamber -> tunnel -> boiler room -> duct C -> G5 knocked out from behind between two glances, carried out of the window's sight -> console: vault turret and office camera disabled, vault door opened -> security door (free side) -> office stair -> G7 knocked out from behind as he glances away, carried into the vault -> prototype -> fire escape door (free side) -> back gate -> boat | Ghost, Pacifist, 2 knockouts (bodies not found), prototype (optional A), the console chain | 4 |
+| `warehouse_route_fence_test.gd` | Road -> over the north-west fence -> west strip (once G2 leaves for A) -> annex chain -> annex roof -> roof (crouched under the west beam) -> duct B (across its forecourt once the roof camera turns east and G4 walks west) -> manifest -> duct B up (out of the mouth at the same moment) -> fire escape down (crouched under the east beam; once G9 turns west) -> back strip -> back gate -> boat | Ghost, Pacifist, no alarm, no guard above Unaware on the roof | 3 |
+| `warehouse_route_culvert_test.gd` | Road -> ditch -> culvert -> drain chamber (out once G3 leaves for A) -> east strip -> fire escape up (G9 west) -> roof (crouched under the east beam) -> duct B (forecourt: camera and G4) -> manifest -> roof (the same) -> annex stair (crouched under the west beam) -> annex chain down (G2 north) -> west strip -> back strip behind G9 -> back gate -> boat | Ghost, Pacifist, no alarm, no guard above Unaware on the roof | 3 |
+| `warehouse_route_vault_test.gd` | (Starts in the manager office) manifest and console audit -> duct B -> roof (forecourt: camera and G4; crouched under the east beam) -> fire escape -> drain chamber -> tunnel -> boiler room -> duct C -> G5 knocked out from behind between two glances, carried out of the window's sight -> console: vault turret and office camera disabled, vault door opened -> security door (free side) -> office stair -> G7 knocked out from behind as he glances away, carried into the vault -> prototype -> fire escape door (free side) -> back gate -> boat | Ghost, Pacifist, 2 knockouts (bodies not found), prototype (optional A), the console chain | 4 |
 | `warehouse_route_loud_test.gd` | Road -> G1 shot through the gate's bars -> gate opened, into the gate camera's view (both controllers ring) -> back west, up the outside containers (out of reach), shooting the guards that come near while the sirens ring and the reinforcements arrive -> over the fence, annex chain, roof -> the shipment's fuel drum shot through the dock's west skylight (optional B) -> duct B -> manifest -> fire escape once no guard is near the back strip -> back gate -> boat | 2 alarms (both controllers), reinforcements, 4 kills, shipment (optional B), no Ghost, no Pacifist | 3 |
 
 Plus `warehouse_additions_test.gd`: the annex window from two stacked crates (not from the ground with Speed Enhancement, not from one crate) and the cache crate carried only with Combat Strength.
+
+M9g ([ADR 0097](../decisions/0097-warehouse-roof-security.md)): the routes' roof stretches wait for duct B's forecourt with `warehouse_route_roof.gd` (the roof camera turning east past its rest yaw, G4 walking west or east of the catwalk's west half). Two more suites:
+
+| Suite | Route | Outcome | Segments (tests) |
+|---|---|---|---|
+| `warehouse_route_rush_test.gd` | The playtest's rush: sprint from PlayerSpawn over the north-west fence, down the west strip, up the annex chain and the annex stair, upright through the west beam and across the roof into duct B | The west beam trips at 15 s, both controllers ring (alarm); in duct B at 23 s; the camera did not see the sprint | 1 |
+| `warehouse_route_roof_power_test.gd` | (Guards removed; starts on the back strip with the window crates stacked) in through the annex's high window -> breaker A off -> out -> annex chain -> annex stair -> upright through the west gap, the dark forecourt (a whole sweep in the camera's view) and into duct B | No beam trip, no camera detection, no alarm | 1 |
+
+`warehouse_roof_security_test.gd` checks the placement: each beam spans post face to post face with no world geometry across it, 1.3 m over the gap's floor; the forecourt is lit and the waits beside it dark; the camera has line of sight to the forecourt, keeps it in focus 3.3-4.9 s per cycle and out of focus 8.5 s in a row; a lit intruder there and an upright body in a beam ring both controllers, a crouched body passes; breaker A and the console switch the roof off.
 
 Found and fixed by the tests: the office stair's top was impassable (the hole railing left 0.65 m to the wall; the capsule is 0.7 m). Found in playtest and fixed: the drop out of duct B onto the cabinet was heard through the office wall and floor (G5, G6, G7, sometimes G10); a careful entry is now heard by no guard outside the office, a Speed-Enhanced drop by G7 only ([ADR 0094](../decisions/0094-noise-reach-on-partial-paths.md), `warehouse_duct_b_entry_test.gd`). Found and left as design (Open questions): the north-east stair is in G5's view through the security window (going from the catwalks to the hatch is seen); loud play cannot hold the gate lane (every guard converges by radio; the test player was knocked out with 20 rounds). Only the vault route starts arranged (in the manager office: its ways in are the other routes'); the side door, the hatch and duct A are on no tested route.
 
@@ -513,3 +551,5 @@ Found and fixed by the tests: the office stair's top was impassable (the hole ra
 - Whether the two M9f optional spots (the annex window, the cache shed) are found without a hint, and whether their loot is worth the detour.
 - Loud with the starting kit cannot hold ground against the compound (route tests, M9f): every guard converges on an alarm within seconds. Whether that is the intended "tight" or too hard.
 - Whether the upper corridor (camera, G7, a 1.5 m lit corridor) is too tense on a first visit (review finding 8).
+- Roof security (M9g, [ADR 0097](../decisions/0097-warehouse-roof-security.md)): whether the high beams read as "crouch" from the stair landing at night, and whether crossing duct B's forecourt (the camera's sweep and G4 below the east skylight, two watchers at once) is learnable on a first visit or too fiddly; the lamp's pool could shrink or the camera's rest yaw turn further east if it is. The rush is caught by the west beam, not the camera (the sprint crosses the lit forecourt in about a second).
+- Whether Speed Enhancement's 1.6 m jump clears a high beam from the stair landing (untested; it would be a fair augmented answer).

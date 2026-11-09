@@ -436,6 +436,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10, 5.84)
 size = Vector3(0.5, 1, 18.32)
 material = ExtResource("5_wall")
 
+[node name="PostWestN" type="CSGBox3D" parent="Roof/Parapet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.25, 10.8, 2.27)
+size = Vector3(0.5, 0.6, 0.2)
+material = ExtResource("5_wall")
+
+[node name="PostWestS" type="CSGBox3D" parent="Roof/Parapet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.25, 10.8, 3.67)
+size = Vector3(0.5, 0.6, 0.2)
+material = ExtResource("5_wall")
+
+[node name="PostEastN" type="CSGBox3D" parent="Roof/Parapet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10.8, -4.62)
+size = Vector3(0.5, 0.6, 0.2)
+material = ExtResource("5_wall")
+
+[node name="PostEastS" type="CSGBox3D" parent="Roof/Parapet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10.8, -3.22)
+size = Vector3(0.5, 0.6, 0.2)
+material = ExtResource("5_wall")
+
 [node name="AnnexParapet" type="CSGCombiner3D" parent="Roof"]
 use_collision = true
 metadata/surface = &"concrete"
@@ -716,6 +736,11 @@ material = ExtResource("7_metal")
 [node name="UnitSW" type="CSGBox3D" parent="Roof/Plant"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.8, 10.3, 10)
 size = Vector3(1.4, 1.6, 2)
+material = ExtResource("7_metal")
+
+[node name="CameraMast" type="CSGBox3D" parent="Roof/Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 11.2, -9.84)
+size = Vector3(0.3, 3.4, 0.3)
 material = ExtResource("7_metal")
 
 [node name="Catwalks" type="Node3D" parent="."]
@@ -2034,3 +2059,14 @@ omni_range = 5
 
 [node name="Powered" parent="Lights/LampAnnex"]
 circuit = &"warehouse_building"
+
+[node name="FloodRoof" parent="Lights" instance=ExtResource("11_flood_lamp")]
+transform = Transform3D(-0.3767, -0.45, 0.8097, 0, 0.8741, 0.4858, -0.9263, 0.183, -0.3293, 17, 13.1, -9.84)
+
+[node name="Light" parent="Lights/FloodRoof"]
+light_energy = 5
+spot_range = 10
+spot_angle = 20
+
+[node name="Powered" parent="Lights/FloodRoof"]
+circuit = &"warehouse_yard"

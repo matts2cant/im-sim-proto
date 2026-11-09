@@ -16,6 +16,7 @@ const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const Hands := preload("res://tests/levels/mission/warehouse_route_hands.gd")
 const FIXTURE := "res://tests/levels/mission/fixtures/warehouse_player.tscn"
 const GUARDS := "Population/People/Guards"
+const DEVICES := "Population/Security/Devices"
 const TIME_FACTOR := 9.0
 const TICK := 1.0 / 60.0
 ## Horizontal distance (centre to centre) at which a waypoint counts as reached.
@@ -36,6 +37,9 @@ var map: RID
 var notes: PackedStringArray = []
 ## Interactions (look, use, read, doors, weapons, carrying).
 var hands: Hands
+## Every rise of a guard's awareness above Unaware since setup ("G4CatwalkRifle unaware ->
+## suspicious (sight)"), in order: a test marks its size before a stretch and checks what was added.
+var raised: PackedStringArray = []
 
 var _tree: SceneTree
 
@@ -330,6 +334,8 @@ func _on_entry(entry: EventLogEntry) -> void:
 			)
 			if entry.data.get("reason", "") == "sight":
 				line += _sight_note(String(entry.data.get("actor", entry.source)))
+			if String(entry.data.get("to", "")) != "unaware":
+				raised.append(line)
 		&"alarm.raised", &"actor.body_found", &"actor.knocked_out", &"actor.died", &"mission.reinforcements":
 			line = "%s %s -> %s %s" % [entry.kind, entry.source, entry.target, entry.data]
 		&"mission.objective_completed", &"mission.completed", &"mission.extraction_refused":

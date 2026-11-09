@@ -2,70 +2,71 @@
 
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="2_security_camera"]
-[ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="3_turret"]
-[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="4_terminal"]
-[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="5_alarm_controller"]
-[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="6_siren"]
-[ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="7_panic_button"]
-[ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="8_radio_base_station"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="9_network_switch"]
-[ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="10_breaker_panel"]
-[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="11_datapad"]
-[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="12_keycard"]
-[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="13_ledge"]
-[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="14_sign"]
-[ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="15_keypad_lock"]
-[ext_resource type="Script" path="res://objects/locks/keypad_lock_data.gd" id="16_keypad_lock_data"]
-[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="17_mechanical_lock"]
-[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="18_mechanical_lock_data"]
-[ext_resource type="Script" path="res://objects/locks/keycard_lock.gd" id="19_keycard_lock"]
-[ext_resource type="Script" path="res://objects/locks/keycard_lock_data.gd" id="20_keycard_lock_data"]
-[ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="21_electronic_lock"]
-[ext_resource type="Script" path="res://objects/components/powered.gd" id="22_powered"]
-[ext_resource type="Resource" path="res://objects/door/vehicle_gate_settings.tres" id="23_vehicle_gate_settings"]
-[ext_resource type="Resource" path="res://objects/door/fence_gate_settings.tres" id="24_fence_gate_settings"]
-[ext_resource type="Resource" path="res://objects/door/roller_door_settings.tres" id="25_roller_door_settings"]
+[ext_resource type="PackedScene" path="res://objects/laser/laser_tripwire.tscn" id="3_laser_tripwire"]
+[ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="4_turret"]
+[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="5_terminal"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="6_alarm_controller"]
+[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="7_siren"]
+[ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="8_panic_button"]
+[ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="9_radio_base_station"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="10_network_switch"]
+[ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="11_breaker_panel"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="12_datapad"]
+[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="14_ledge"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="15_sign"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="16_keypad_lock"]
+[ext_resource type="Script" path="res://objects/locks/keypad_lock_data.gd" id="17_keypad_lock_data"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="18_mechanical_lock"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="19_mechanical_lock_data"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock.gd" id="20_keycard_lock"]
+[ext_resource type="Script" path="res://objects/locks/keycard_lock_data.gd" id="21_keycard_lock_data"]
+[ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="22_electronic_lock"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="23_powered"]
+[ext_resource type="Resource" path="res://objects/door/vehicle_gate_settings.tres" id="24_vehicle_gate_settings"]
+[ext_resource type="Resource" path="res://objects/door/fence_gate_settings.tres" id="25_fence_gate_settings"]
+[ext_resource type="Resource" path="res://objects/door/roller_door_settings.tres" id="26_roller_door_settings"]
 
 [sub_resource type="Resource" id="Pins_1"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard", &"standard"])
 
 [sub_resource type="Resource" id="Keypad_2"]
-script = ExtResource("16_keypad_lock_data")
+script = ExtResource("17_keypad_lock_data")
 code_id = &"warehouse_side_door"
 code = "2390"
 
 [sub_resource type="Resource" id="Pins_3"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard"])
 
 [sub_resource type="Resource" id="Pins_4"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard"])
 
 [sub_resource type="Resource" id="Pins_5"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard"])
 
 [sub_resource type="Resource" id="Keycard_6"]
-script = ExtResource("20_keycard_lock_data")
+script = ExtResource("21_keycard_lock_data")
 access_id = &"warehouse_security"
 
 [sub_resource type="Resource" id="Keypad_7"]
-script = ExtResource("16_keypad_lock_data")
+script = ExtResource("17_keypad_lock_data")
 code_id = &"warehouse_manager_office"
 code = "4471"
 
 [sub_resource type="Resource" id="Keycard_8"]
-script = ExtResource("20_keycard_lock_data")
+script = ExtResource("21_keycard_lock_data")
 access_id = &"warehouse_vault"
 
 [sub_resource type="Resource" id="Pins_9"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard"])
 
 [sub_resource type="Resource" id="Pins_10"]
-script = ExtResource("18_mechanical_lock_data")
+script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard", &"standard"])
 
 [node name="Security" type="Node3D"]
@@ -80,15 +81,15 @@ initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail
 
 [node name="Door" parent="Doors/FrontGate"]
 wall_thickness = 0.4
-settings = ExtResource("23_vehicle_gate_settings")
+settings = ExtResource("24_vehicle_gate_settings")
 
 [node name="Powered" type="Node" parent="Doors/FrontGate"]
-script = ExtResource("22_powered")
+script = ExtResource("23_powered")
 circuit = &"warehouse_yard"
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/FrontGate"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.3, 1.25, -0.22)
-script = ExtResource("21_electronic_lock")
+script = ExtResource("22_electronic_lock")
 
 [node name="BoothDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -9.4, 0, -22)
@@ -105,11 +106,11 @@ locked = true
 
 [node name="Door" parent="Doors/BackGate"]
 wall_thickness = 0.3
-settings = ExtResource("24_fence_gate_settings")
+settings = ExtResource("25_fence_gate_settings")
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/BackGate"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.17)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_1")
 free_side = 2
 
@@ -124,7 +125,7 @@ wall_thickness = 0.5
 
 [node name="KeypadLock" type="Node3D" parent="Doors/SideDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.27)
-script = ExtResource("15_keypad_lock")
+script = ExtResource("16_keypad_lock")
 data = SubResource("Keypad_2")
 free_side = 1
 
@@ -133,14 +134,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -10.25)
 
 [node name="Door" parent="Doors/RollerDoor1"]
 wall_thickness = 0.5
-settings = ExtResource("25_roller_door_settings")
+settings = ExtResource("26_roller_door_settings")
 
 [node name="RollerDoor2" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -10.25)
 
 [node name="Door" parent="Doors/RollerDoor2"]
 wall_thickness = 0.5
-settings = ExtResource("25_roller_door_settings")
+settings = ExtResource("26_roller_door_settings")
 
 [node name="AnnexDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -26.25, 0, 10.8)
@@ -153,7 +154,7 @@ wall_thickness = 0.5
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/AnnexDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.27)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_3")
 
 [node name="AnnexRoofDoor" parent="Doors" instance=ExtResource("1_door")]
@@ -167,7 +168,7 @@ wall_thickness = 0.5
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/AnnexRoofDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_4")
 free_side = 2
 
@@ -183,7 +184,7 @@ back_side_wall = 0.75
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/FireEscapeDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.395)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_5")
 free_side = 2
 
@@ -219,18 +220,18 @@ locked = true
 wall_thickness = 0.25
 
 [node name="Powered" type="Node" parent="Doors/SecurityDoor"]
-script = ExtResource("22_powered")
+script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
 [node name="KeycardLock" type="Node3D" parent="Doors/SecurityDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.145)
-script = ExtResource("19_keycard_lock")
+script = ExtResource("20_keycard_lock")
 data = SubResource("Keycard_6")
 free_side = 2
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/SecurityDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.145)
-script = ExtResource("21_electronic_lock")
+script = ExtResource("22_electronic_lock")
 free_side = 2
 
 [node name="StairsGround" parent="Doors" instance=ExtResource("1_door")]
@@ -259,12 +260,12 @@ wall_thickness = 0.25
 front_side_wall = 0.75
 
 [node name="Powered" type="Node" parent="Doors/BridgeDoor"]
-script = ExtResource("22_powered")
+script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/BridgeDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.145)
-script = ExtResource("21_electronic_lock")
+script = ExtResource("22_electronic_lock")
 free_side = 1
 
 [node name="ManagerDoor" parent="Doors" instance=ExtResource("1_door")]
@@ -278,7 +279,7 @@ wall_thickness = 0.25
 
 [node name="KeypadLock" type="Node3D" parent="Doors/ManagerDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.145)
-script = ExtResource("15_keypad_lock")
+script = ExtResource("16_keypad_lock")
 data = SubResource("Keypad_7")
 free_side = 2
 
@@ -295,18 +296,18 @@ locked = true
 wall_thickness = 0.25
 
 [node name="Powered" type="Node" parent="Doors/VaultDoor"]
-script = ExtResource("22_powered")
+script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
 [node name="KeycardLock" type="Node3D" parent="Doors/VaultDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.145)
-script = ExtResource("19_keycard_lock")
+script = ExtResource("20_keycard_lock")
 data = SubResource("Keycard_8")
 free_side = 2
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/VaultDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.145)
-script = ExtResource("21_electronic_lock")
+script = ExtResource("22_electronic_lock")
 free_side = 2
 
 [node name="StairsUpper" parent="Doors" instance=ExtResource("1_door")]
@@ -334,7 +335,7 @@ wall_thickness = 0.25
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/OfficeTwo"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.145)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_9")
 free_side = 1
 
@@ -361,83 +362,83 @@ wall_thickness = 0.3
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/TunnelGate"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.17)
-script = ExtResource("17_mechanical_lock")
+script = ExtResource("18_mechanical_lock")
 data = SubResource("Pins_10")
 free_side = 1
 
 [node name="Signs" type="Node3D" parent="."]
 
-[node name="OfficeEntranceBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="OfficeEntranceBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 7.98, 2.55, 6)
 text = "OFFICES"
 size = 1
 
-[node name="BridgeDoorBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="BridgeDoorBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 7.98, 6.9, 6)
 text = "OFFICES"
 size = 1
 
-[node name="CatwalkStairsDoorBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="CatwalkStairsDoorBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 7.98, 6.9, 14.1)
 text = "STAIRS"
 size = 0
 
-[node name="BreakRoomHallBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="BreakRoomHallBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 2.55, -0.02)
 text = "BREAK ROOM"
 size = 0
 
-[node name="BreakRoomCorridorFront" parent="Signs" instance=ExtResource("14_sign")]
+[node name="BreakRoomCorridorFront" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 2.55, 5.27)
 text = "BREAK ROOM"
 size = 0
 
-[node name="SecurityDoorFront" parent="Signs" instance=ExtResource("14_sign")]
+[node name="SecurityDoorFront" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 2.55, 5.27)
 text = "SECURITY"
 size = 0
 
-[node name="StairsGroundBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="StairsGroundBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10.65, 2.55, 6.73)
 text = "STAIRS"
 size = 0
 
-[node name="LockerRoomBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="LockerRoomBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.5, 2.55, 6.73)
 text = "LOCKERS"
 size = 0
 
-[node name="ManagerDoorFront" parent="Signs" instance=ExtResource("14_sign")]
+[node name="ManagerDoorFront" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 6.9, 5.27)
 text = "MANAGER"
 size = 0
 
-[node name="VaultDoorFront" parent="Signs" instance=ExtResource("14_sign")]
+[node name="VaultDoorFront" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 6.9, 5.27)
 text = "VAULT"
 size = 0
 
-[node name="StairsUpperBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="StairsUpperBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10.65, 6.9, 6.73)
 text = "STAIRS"
 size = 0
 
-[node name="OfficeTwoBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="OfficeTwoBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.5, 6.9, 6.73)
 text = "OFFICE"
 size = 0
 
-[node name="FireEscapeDoorBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="FireEscapeDoorBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.705, 6.9, 6)
 text = "FIRE EXIT"
 size = 0
 
-[node name="BoilerStoreFront" parent="Signs" instance=ExtResource("14_sign")]
+[node name="BoilerStoreFront" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, -1.45, 0.02)
 text = "BOILER ROOM"
 size = 0
 
-[node name="BoilerStoreBack" parent="Signs" instance=ExtResource("14_sign")]
+[node name="BoilerStoreBack" parent="Signs" instance=ExtResource("15_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12, -1.45, -0.52)
 text = "STORE"
 size = 0
@@ -459,10 +460,31 @@ transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 0, 0)
 [node name="CameraOffice" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 6.88, 6)
 
-[node name="VaultTurret" parent="Devices" instance=ExtResource("3_turret")]
+[node name="CameraRoof" parent="Devices" instance=ExtResource("2_security_camera")]
+transform = Transform3D(0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, 0.9397, 17, 12.3, -9.69)
+
+[node name="LaserRoofWest" parent="Devices" instance=ExtResource("3_laser_tripwire")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.25, 10.8, 2.37)
+
+[node name="LaserBehaviour" parent="Devices/LaserRoofWest"]
+beam_length = 1.2
+
+[node name="Powered" parent="Devices/LaserRoofWest"]
+circuit = &"warehouse_yard"
+
+[node name="LaserRoofEast" parent="Devices" instance=ExtResource("3_laser_tripwire")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10.8, -4.52)
+
+[node name="LaserBehaviour" parent="Devices/LaserRoofEast"]
+beam_length = 1.2
+
+[node name="Powered" parent="Devices/LaserRoofEast"]
+circuit = &"warehouse_yard"
+
+[node name="VaultTurret" parent="Devices" instance=ExtResource("4_turret")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 4.5, 1)
 
-[node name="SecurityConsole" parent="Devices" instance=ExtResource("4_terminal")]
+[node name="SecurityConsole" parent="Devices" instance=ExtResource("5_terminal")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.05, 1.47, 0.26)
 
 [node name="TerminalUse" parent="Devices/SecurityConsole"]
@@ -471,63 +493,63 @@ username = "dmarsh"
 password = "harbor77"
 label = "security console"
 
-[node name="AlarmController" parent="Devices" instance=ExtResource("5_alarm_controller")]
+[node name="AlarmController" parent="Devices" instance=ExtResource("6_alarm_controller")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 1.5, 3)
 
-[node name="RadioBaseStation" parent="Devices" instance=ExtResource("8_radio_base_station")]
+[node name="RadioBaseStation" parent="Devices" instance=ExtResource("9_radio_base_station")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 1.2, 1.2)
 
-[node name="PanicButtonSecurity" parent="Devices" instance=ExtResource("7_panic_button")]
+[node name="PanicButtonSecurity" parent="Devices" instance=ExtResource("8_panic_button")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 1.3, 2)
 
-[node name="PanicButtonBooth" parent="Devices" instance=ExtResource("7_panic_button")]
+[node name="PanicButtonBooth" parent="Devices" instance=ExtResource("8_panic_button")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -12.49, 1.3, -20.6)
 
-[node name="AlarmControllerYard" parent="Devices" instance=ExtResource("5_alarm_controller")]
+[node name="AlarmControllerYard" parent="Devices" instance=ExtResource("6_alarm_controller")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.51, 1.5, -20.6)
 
-[node name="SirenDock" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenDock" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 2, -10.52)
 
-[node name="SirenEastYard" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenEastYard" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 20.52, 2, -6)
 
-[node name="SirenBackStrip" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenBackStrip" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 15.52)
 
-[node name="SirenWestYard" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenWestYard" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -26.52, 2, 12.2)
 
-[node name="SirenHallNorth" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenHallNorth" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.5, -9.98)
 
-[node name="SirenHallWest" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenHallWest" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -19.98, 6.5, -4)
 
-[node name="SirenOfficeGround" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenOfficeGround" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.27, 2, 6)
 
-[node name="SirenOfficeUpper" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenOfficeUpper" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 5.7, 5.27)
 
-[node name="SirenBasement" parent="Devices" instance=ExtResource("6_siren")]
+[node name="SirenBasement" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, -2.2, 0.02)
 
-[node name="BreakerA" parent="Devices" instance=ExtResource("10_breaker_panel")]
+[node name="BreakerA" parent="Devices" instance=ExtResource("11_breaker_panel")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -25.99, 1.4, 4)
 
 [node name="CircuitBreaker" parent="Devices/BreakerA"]
 circuit = &"warehouse_yard"
 label = "yard lights"
 
-[node name="BreakerB" parent="Devices" instance=ExtResource("10_breaker_panel")]
+[node name="BreakerB" parent="Devices" instance=ExtResource("11_breaker_panel")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.6, 3)
 
 [node name="CircuitBreaker" parent="Devices/BreakerB"]
 circuit = &"warehouse_building"
 label = "building power"
 
-[node name="SecuritySwitch" parent="Devices" instance=ExtResource("9_network_switch")]
+[node name="SecuritySwitch" parent="Devices" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 6)
 
 [node name="Powered" parent="Devices/SecuritySwitch"]
@@ -536,30 +558,30 @@ circuit = &"warehouse_building"
 [node name="Device" parent="Devices/SecuritySwitch"]
 links = Array[NodePath]([NodePath("../../../Doors/SecurityDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/VaultTurret"), NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenOfficeUpper"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/YardSwitch")])
 
-[node name="YardSwitch" parent="Devices" instance=ExtResource("9_network_switch")]
+[node name="YardSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.51, 1.5, -23.4)
 
 [node name="Powered" parent="Devices/YardSwitch"]
 circuit = &"warehouse_yard"
 
 [node name="Device" parent="Devices/YardSwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
+links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/CameraRoof"), NodePath("../../../Devices/LaserRoofWest"), NodePath("../../../Devices/LaserRoofEast"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
 
 [node name="Network" type="Node3D" parent="."]
 
-[node name="AccessPointGuest" parent="Network" instance=ExtResource("9_network_switch")]
+[node name="AccessPointGuest" parent="Network" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -20.52, 6, -2)
 
 [node name="Powered" parent="Network/AccessPointGuest"]
 circuit = &"warehouse_yard"
 
-[node name="OfficeWallJack" parent="Network" instance=ExtResource("9_network_switch")]
+[node name="OfficeWallJack" parent="Network" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 4.9, 10)
 
 [node name="Device" parent="Network/OfficeWallJack"]
 links = Array[NodePath]([NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
 
-[node name="OfficePc1" parent="Network" instance=ExtResource("4_terminal")]
+[node name="OfficePc1" parent="Network" instance=ExtResource("5_terminal")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 5.95, 14.74)
 
 [node name="TerminalUse" parent="Network/OfficePc1"]
@@ -568,7 +590,7 @@ username = "lpetrova"
 password = "tulip24"
 label = "office PC"
 
-[node name="OfficePc2" parent="Network" instance=ExtResource("4_terminal")]
+[node name="OfficePc2" parent="Network" instance=ExtResource("5_terminal")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 5.95, 14.74)
 
 [node name="TerminalUse" parent="Network/OfficePc2"]
@@ -579,42 +601,42 @@ label = "office PC"
 
 [node name="Furniture" type="Node3D" parent="."]
 
-[node name="ManagerDesk" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="ManagerDesk" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.2, 4.5, 1.1)
 height = 0.8
 width = 1.6
 depth = 0.8
 surface = "wood"
 
-[node name="BreakRoomCounter" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="BreakRoomCounter" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 0.02, 3.3)
 height = 0.73
 width = 1
 depth = 1.6
 surface = "wood"
 
-[node name="LockerBench" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="LockerBench" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.02, 11)
 height = 0.48
 width = 0.6
 depth = 2
 surface = "wood"
 
-[node name="SecurityDesk" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="SecurityDesk" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.3, 0.02, 3)
 height = 0.78
 width = 0.8
 depth = 1.4
 surface = "wood"
 
-[node name="OfficeDesk1" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="OfficeDesk1" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 4.5, 13.9)
 height = 0.75
 width = 1.4
 depth = 0.8
 surface = "wood"
 
-[node name="OfficeDesk2" parent="Furniture" instance=ExtResource("13_ledge")]
+[node name="OfficeDesk2" parent="Furniture" instance=ExtResource("14_ledge")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 4.5, 13.9)
 height = 0.75
 width = 1.4
@@ -623,7 +645,7 @@ surface = "wood"
 
 [node name="Items" type="Node3D" parent="."]
 
-[node name="SideDoorCodeNote" parent="Items" instance=ExtResource("11_datapad")]
+[node name="SideDoorCodeNote" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8, 0.36, -9)
 
 [node name="Readable" parent="Items/SideDoorCodeNote"]
@@ -632,7 +654,7 @@ title = "Crumpled note"
 text = "Side door code changed again: 2390. Stop propping it open with a pallet. - Facilities"
 codes = Dictionary[StringName, String]({&"warehouse_side_door": "2390"})
 
-[node name="ShiftNotes" parent="Items" instance=ExtResource("11_datapad")]
+[node name="ShiftNotes" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.78, 2.4)
 
 [node name="Readable" parent="Items/ShiftNotes"]
@@ -641,7 +663,7 @@ title = "Night shift notes"
 text = "Hale wants his office kept shut: the door code is 4471, don't leave it open. Klaus, your office PC login is kbrandt / ferry19, write it somewhere better than the break room."
 codes = Dictionary[StringName, String]({&"warehouse_manager_office": "4471", &"warehouse_office_pc2": "kbrandt:ferry19"})
 
-[node name="ManifestDatapad" parent="Items" instance=ExtResource("11_datapad")]
+[node name="ManifestDatapad" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, 5.33, 0.7)
 
 [node name="Readable" parent="Items/ManifestDatapad"]
@@ -649,7 +671,7 @@ entry_id = &"warehouse.manifest"
 title = "Shipment manifest"
 text = "Outgoing, dock 1, tonight: 14 crates marked 'agricultural pumps'. Actual contents per the client: see the vault inventory. Boat pick-up at the river pontoon before dawn. Do not log it in the system. - E. Hale"
 
-[node name="ConsoleAudit" parent="Items" instance=ExtResource("11_datapad")]
+[node name="ConsoleAudit" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.6, 5.33, 0.7)
 
 [node name="Readable" parent="Items/ConsoleAudit"]
@@ -658,7 +680,7 @@ title = "Console audit"
 text = "Security console in the ground-floor security room: user dmarsh, password harbor77. It runs the cameras, the vault door and the vault turret. Change it after the audit. - E. Hale"
 codes = Dictionary[StringName, String]({&"warehouse_security_console": "dmarsh:harbor77"})
 
-[node name="Pc1Note" parent="Items" instance=ExtResource("11_datapad")]
+[node name="Pc1Note" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.1, 5.28, 14.3)
 
 [node name="Readable" parent="Items/Pc1Note"]
@@ -667,13 +689,13 @@ title = "Sticky note"
 text = "PC login: lpetrova / tulip24"
 codes = Dictionary[StringName, String]({&"warehouse_office_pc1": "lpetrova:tulip24"})
 
-[node name="KeycardSecurity" parent="Items" instance=ExtResource("12_keycard")]
+[node name="KeycardSecurity" parent="Items" instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.53, 10.2)
 
 [node name="ItemPickup" parent="Items/KeycardSecurity"]
 state = {"key_id": "warehouse_security"}
 
-[node name="KeycardVault" parent="Items" instance=ExtResource("12_keycard")]
+[node name="KeycardVault" parent="Items" instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.35, 0.83, 2.4)
 
 [node name="ItemPickup" parent="Items/KeycardVault"]
