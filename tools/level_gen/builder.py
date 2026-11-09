@@ -20,10 +20,30 @@ def obox(center, size, basis, mat=None, op="union", name=None):
     return {"kind": "obox", "center": center, "size": size, "basis": basis, "mat": mat, "op": op, "name": name}
 
 
+def shifted(item, offset):
+    """`item` (world coordinates) moved by -offset: into the frame of an unrotated part."""
+    item = dict(item)
+    if item["kind"] == "box":
+        item["lo"] = tuple(item["lo"][i] - offset[i] for i in range(3))
+        item["hi"] = tuple(item["hi"][i] - offset[i] for i in range(3))
+    elif item["kind"] == "obox":
+        item["center"] = tuple(item["center"][i] - offset[i] for i in range(3))
+    elif item["kind"] == "combiner":
+        item["children"] = [shifted(child, offset) for child in item["children"]]
+    else:
+        raise ValueError(item["kind"])
+    return item
+
+
 class Builder:
     def __init__(self, root_name):
         self.scene = Scene(root_name)
         self._names = {}
+        self.origins = {}
+
+    def cut(self, part_path, item, default_mat="concrete"):
+        """Adds `item` (world coordinates; usually a subtraction) under an unrotated kit part."""
+        return self.csg_child(part_path, shifted(item, self.origins.get(part_path, (0.0, 0.0, 0.0))), 0, default_mat)
 
     def unique(self, base):
         count = self._names.get(base, 0) + 1
@@ -101,7 +121,9 @@ class Builder:
             elif isinstance(val, tuple) and len(val) == 2:
                 val = Raw(vec2(val))
             all_props[key] = val
-        return self.scene.add(name, parent, instance=inst, props=all_props)
+        path = self.scene.add(name, parent, instance=inst, props=all_props)
+        self.origins[path] = origin
+        return path
 
     def block(self, name, parent, x0, x1, z0, z1, height, y0=0.0, surface="wood"):
         """A solid Ledge block over [x0, x1] x [z0, z1] from y0 up `height` (lip on the +Z side)."""

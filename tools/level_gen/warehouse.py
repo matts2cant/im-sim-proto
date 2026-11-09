@@ -69,19 +69,31 @@ RACKS = {
 RACK_N = (-3.5, 5.2)
 RACK_S = (6.8, 11.0)
 
-SKYLIGHT = 2.4
-# Skylights: (name, x0, z0, landing) - landing: goods on the rack top below (drop route).
+SKYLIGHT = 2.4  # width (x)
+SKYLIGHT_DROP_DEPTH = 3.0  # z length of the drop skylights (other skylights are 2.4 x 2.4)
+# Skylights: (name, x0, z0, landing) - landing: goods on the rack top below (drop route). Each hole
+# has a 1 m railing round it (thin bars: sightlines stay open); drop skylights leave the north
+# side open: walk off the roof edge there.
 SKYLIGHTS = [
-    ("SkylightR1", -14.2, 2.6, True),
-    ("SkylightR2", -6.2, 2.6, True),
-    ("SkylightR3", 1.8, 2.6, True),
+    ("SkylightR1", -14.2, 2.2, True),
+    ("SkylightR2", -6.2, 2.2, True),
+    ("SkylightR3", 1.8, 2.2, True),
     ("SkylightDockW", -9.2, -7.4, False),
     ("SkylightDockE", 2.8, -7.4, False),
     ("SkylightAisleW", -10.2, 8.0, False),
     ("SkylightAisleE", -2.2, 8.0, False),
 ]
-CURB_H = 0.5
-GOODS_H = 1.4
+# Pallet goods under each drop skylight, 1.4 m below the roof (walking in at 4 m/s carries the
+# player about 1.5 m: they land on the goods; a sprint lands on the rack top 2.9 m down, a light
+# hurt). The goods stop 1.2 m short of the hole's south edge, so a standing player walks off them
+# (1.5 m down to the rack top) before the roof edge meets its head; the rack's end is 2.1 m above
+# the bridge.
+GOODS_H = 1.5
+GOODS_DEPTH = 1.6
+
+
+def skylight_depth(landing):
+    return SKYLIGHT_DROP_DEPTH if landing else SKYLIGHT
 
 # Stairs (computed from the Stairs kit part rules: n = ceil(rise / max_riser), run = n * tread).
 
@@ -113,12 +125,14 @@ AS_N, AS_R, AS_RUN = flight(ROOF - ANNEX_ROOF, 0.29, 0.18)
 AS_TOP_Z = AS_BOTTOM_Z - AS_RUN
 # Office stairwell (ground -> upper), against the stairwell's east wall, rising south.
 UP_X0, UP_X1 = 11.7, 13.0
-UP_BOTTOM_Z = 7.5
-UP_N, UP_R, UP_RUN = flight(OFF_UP, 0.29, 0.18)
+UP_BOTTOM_Z = 8.4  # 1.4 m landing in front of the foot (the stairwell door is at z 7.0)
+UP_TREAD = 0.25
+UP_N, UP_R, UP_RUN = flight(OFF_UP, UP_TREAD, 0.18)
 # Service stair (ground -> basement), against the stairwell's west wall, rising north.
 DOWN_X0, DOWN_X1 = 8.25, 9.55
-DOWN_TOP_Z = 8.4
-DOWN_N, DOWN_R, DOWN_RUN = flight(-BASE_Y, 0.28, 0.182)
+DOWN_TOP_Z = 8.2
+DOWN_TREAD = 0.26
+DOWN_N, DOWN_R, DOWN_RUN = flight(-BASE_Y, DOWN_TREAD, 0.182)
 DOWN_BOTTOM_Z = DOWN_TOP_Z + DOWN_RUN
 # Hall floor hatch: steep stair from the boiler room up into the hall's north-east.
 HATCH_X0, HATCH_X1 = 10.5, 11.7
@@ -133,9 +147,11 @@ def hole_end(top_z, direction, riser, tread, depth_needed):
     return top_z + direction * steps * tread
 
 
-# Ceiling under the hall floor is -1.0; standing headroom 1.8 plus margin: treads below -2.9.
-DOWN_HOLE_Z1 = hole_end(DOWN_TOP_Z, 1, DOWN_R, 0.28, 2.9) + 0.1
-HATCH_HOLE_Z1 = hole_end(HATCH_TOP_Z, 1, HATCH_R, 0.25, 2.9) + 0.1
+# Ceiling under the hall floor is -1.0; standing headroom 1.8 plus margin: treads below -2.9, and
+# the hole runs on a capsule diameter further (the player's front edge passes under the hole's end
+# while its axis still stands on a higher tread).
+DOWN_HOLE_Z1 = hole_end(DOWN_TOP_Z, 1, DOWN_R, DOWN_TREAD, 2.9) + 0.8
+HATCH_HOLE_Z1 = hole_end(HATCH_TOP_Z, 1, HATCH_R, 0.25, 2.9) + 0.8
 
 # Water tower (outside the east fence): deck, stair tower lanes and landings.
 TOWER_DECK_Y = 16.0
@@ -149,38 +165,48 @@ TOWER_LANE_B = (52.2, 53.4)
 TOWER_NORTH_Z = -13.28  # north landings z -14.48 .. -13.28
 TOWER_SOUTH_Z = TOWER_NORTH_Z + TOWER_RUN
 
-# Ducts (VentSegment chains): entry floor point, yaw (0 = heading -Z), segments.
+# Ducts (VentSegment chains): entry floor point, yaw (0 = heading -Z), segments. Interiors are
+# 1.2 m and slopes about 25 degrees: steeper slopes pinch a crouched capsule at the kinks.
+DUCT_H = 1.2
+DUCT_SLOPE = math.tan(math.radians(25.0))
 DUCT_A = {
     "entry": (14.0, CW + 1.1, -7.5),
     "yaw": 180.0,
     "segments": [
         {"name": "Mouth", "length": 1.0, "fill_below": 1.1},
-        {"name": "Rise", "length": 5.0, "drop": -(ROOF + 0.2 - (CW + 1.1))},
+        {"name": "Rise", "length": round((ROOF + 0.2 - (CW + 1.1)) / DUCT_SLOPE, 2), "drop": -(ROOF + 0.2 - (CW + 1.1))},
         {"name": "RoofMouth", "length": 1.5},
     ],
 }
 DUCT_B = {
-    "entry": (11.0, ROOF + 0.2, -4.0),
+    "entry": (11.0, ROOF + 0.2, -5.8),
     "yaw": 180.0,
     "segments": [
         {"name": "RoofMouth", "length": 1.0},
-        {"name": "Drop", "length": 2.6, "drop": ROOF + 0.2 - (OFF_ROOF + 0.2)},
+        {"name": "Drop", "length": round((ROOF - OFF_ROOF) / DUCT_SLOPE, 2), "drop": ROOF + 0.2 - (OFF_ROOF + 0.2)},
         {"name": "OverOffice", "length": 4.4},
     ],
 }
 DUCT_B_HOLE = (10.4, 11.6, 2.2, 3.4)  # x0, x1, z0, z1 over the manager office
 CABINET_H = 1.5
+DUCT_C_X = 14.8  # rise centre line (x)
 DUCT_C = {
-    "entry": (15.0, BASE_Y + 1.1, -5.4),
-    "yaw": 180.0,
+    # Mouth faces west in the boiler room, turns south, rises into the security room's north wall.
+    "entry": (DUCT_C_X - 1.6, BASE_Y + 1.1, -8.3),
+    "yaw": -90.0,
     "segments": [
         {"name": "Mouth", "length": 1.0, "fill_below": 1.1},
-        {"name": "Rise", "length": 3.6, "drop": -(0.1 - (BASE_Y + 1.1))},
-        {"name": "Exit", "length": 1.15},
+        {"name": "Turn", "kind": "right"},
+        {"name": "Rise", "length": round((0.1 - (BASE_Y + 1.1)) / DUCT_SLOPE, 2), "drop": -(0.1 - (BASE_Y + 1.1))},
+        {"name": "Exit", "length": 0.0},
     ],
 }
 
 # Drain chamber in the east yard (open top, culvert from the ditch, doorway to the tunnel).
+DUCT_C_RISE_Z0 = DUCT_C["entry"][2] + 0.6
+DUCT_C_EXIT_Z0 = DUCT_C_RISE_Z0 + DUCT_C["segments"][2]["length"]
+DUCT_C["segments"][3]["length"] = round(0.35 - DUCT_C_EXIT_Z0, 2)
+
 CHAMBER = (31.0, 34.0, -9.0, -6.25)
 CULVERT_Z = -7.6
 
@@ -406,9 +432,9 @@ def build_exterior():
         ".",
         "metal",
         [
-            box((-38.5, 0.3, -33.4), (-33.5, 2.4, -31.4)),
-            box((-38.3, 0, -33.3), (-37.5, 0.3, -31.5), name="WheelsRear"),
-            box((-34.5, 0, -33.3), (-33.7, 0.3, -31.5), name="WheelsFront"),
+            box((-25.0, 0.3, -34.4), (-20.0, 2.4, -32.4)),
+            box((-24.8, 0, -34.3), (-24.0, 0.3, -32.5), name="WheelsRear"),
+            box((-21.0, 0, -34.3), (-20.2, 0.3, -32.5), name="WheelsFront"),
         ],
         default_mat="wall",
     )
@@ -496,8 +522,9 @@ def build_exterior():
 
 def skylight_cuts():
     cuts = []
-    for name, x0, z0, _landing in SKYLIGHTS:
-        cuts.append(box((x0, HALL_H - 0.05, z0), (x0 + SKYLIGHT, ROOF + 0.05, z0 + SKYLIGHT), mat="concrete", op="subtraction", name=name))
+    for name, x0, z0, landing in SKYLIGHTS:
+        z1 = z0 + skylight_depth(landing)
+        cuts.append(box((x0, HALL_H - 0.05, z0), (x0 + SKYLIGHT, ROOF + 0.05, z1), mat="concrete", op="subtraction", name=name))
     return cuts
 
 
@@ -530,17 +557,17 @@ def build_hall():
     del cx, cz
     # Own CSG children of the hall Room: skylights, duct crossings, floor holes.
     for cut in skylight_cuts():
-        b.csg_child(hall, cut, 0, "concrete")
+        b.cut(hall, cut)
     for spec, index in ((DUCT_A, 1), (DUCT_B, 1)):
         xform, segment = duct_xforms(spec)[index]
-        b.csg_child(hall, housing_cut(xform, segment), 0, "concrete")
-    xform, segment = duct_xforms(DUCT_C)[1]
-    cut = housing_cut(xform, segment)
+        b.cut(hall, housing_cut(xform, segment, DUCT_H))
+    xform, segment = duct_xforms(DUCT_C)[2]
+    cut = housing_cut(xform, segment, DUCT_H)
     cut["name"] = "DuctCRiseCut"
-    b.csg_child(hall, cut, 0, "concrete")
-    b.csg_child(hall, box((14.2, -0.15, -0.85), (15.8, 0.05, 0.4), mat="concrete", op="subtraction", name="DuctCExitCut"), 0, "concrete")
-    b.csg_child(hall, box((HATCH_X0, -0.6, HATCH_TOP_Z), (HATCH_X1, 0.05, HATCH_HOLE_Z1), mat="concrete", op="subtraction", name="HatchHole"), 0, "concrete")
-    b.csg_child(hall, box((DOWN_X0, -0.6, DOWN_TOP_Z), (DOWN_X1, 0.05, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="ServiceStairHole"), 0, "concrete")
+    b.cut(hall, cut)
+    b.cut(hall, box((DUCT_C_X - 0.8, -0.15, DUCT_C_EXIT_Z0 - 0.05), (DUCT_C_X + 0.8, 0.05, 0.4), mat="concrete", op="subtraction", name="DuctCExitCut"))
+    b.cut(hall, box((HATCH_X0, -0.6, HATCH_TOP_Z), (HATCH_X1, 0.05, HATCH_HOLE_Z1), mat="concrete", op="subtraction", name="HatchHole"))
+    b.cut(hall, box((DOWN_X0, -0.6, DOWN_TOP_Z), (DOWN_X1, 0.05, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="ServiceStairHole"))
 
     # Annex (generator room) against the hall's west wall; its roof is reached from the containers.
     b.room(
@@ -592,16 +619,14 @@ def build_hall():
         ],
         default_mat="wall",
     )
-    curbs = []
-    for name, x0, z0, _landing in SKYLIGHTS:
-        x1, z1, w = x0 + SKYLIGHT, z0 + SKYLIGHT, 0.15
-        curbs += [
-            box((x0 - w, ROOF, z0 - w), (x1 + w, ROOF + CURB_H, z0), name=f"{name}N"),
-            box((x0 - w, ROOF, z1), (x1 + w, ROOF + CURB_H, z1 + w), name=f"{name}S"),
-            box((x0 - w, ROOF, z0), (x0, ROOF + CURB_H, z1), name=f"{name}W"),
-            box((x1, ROOF, z0), (x1 + w, ROOF + CURB_H, z1), name=f"{name}E"),
-        ]
-    b.csg("SkylightCurbs", roof, "metal", curbs)
+    sk = b.group("SkylightRails", roof)
+    for name, x0, z0, landing in SKYLIGHTS:
+        x1, z1, m = x0 + SKYLIGHT, z0 + skylight_depth(landing), 0.1
+        if not landing:
+            b.railing(f"{name}N", sk, (x0 - m, z0 - m), (x1 + m, z0 - m), ROOF)
+        b.railing(f"{name}S", sk, (x0 - m, z1 + m), (x1 + m, z1 + m), ROOF)
+        b.railing(f"{name}W", sk, (x0 - m, z0 - m), (x0 - m, z1 + m), ROOF)
+        b.railing(f"{name}E", sk, (x1 + m, z0 - m), (x1 + m, z1 + m), ROOF)
     b.csg(
         "Plant",
         roof,
@@ -687,7 +712,7 @@ def build_hall():
     landing = []
     for name, x0, z0, has_landing in SKYLIGHTS:
         if has_landing:
-            landing.append(box((x0 + 0.2, RACK_DECKS[-1], z0 + 0.2), (x0 + SKYLIGHT - 0.2, RACK_DECKS[-1] + GOODS_H, z0 + SKYLIGHT - 0.2), name=name))
+            landing.append(box((x0 + 0.2, RACK_DECKS[-1], z0 + 0.2), (x0 + SKYLIGHT - 0.2, RACK_DECKS[-1] + GOODS_H, z0 + 0.2 + GOODS_DEPTH), name=name))
     b.csg("SkylightLandings", rk, "wood", landing)
 
     # Office block (south-east corner, two storeys). Ground: break room, security room, corridor,
@@ -704,7 +729,7 @@ def build_hall():
             5.0,
             gy,
             OFF_G_H,
-            [("S", 16.9, 1.2, 2.2, 0.0, "ToCorridor"), ("N", 17.6, 2.4, 1.2, 1.0, "Window"), ("N", 15.0, 1.2, 1.1, 0.1, "DuctC")],
+            [("S", 16.9, 1.2, 2.2, 0.0, "ToCorridor"), ("N", 17.6, 2.4, 1.2, 1.0, "Window"), ("N", DUCT_C_X, 1.2, 1.2, 0.1, "DuctC")],
             "concrete",
         ),
         (
@@ -753,13 +778,13 @@ def build_hall():
     for name, x0, x1, z0, z1, y, h, openings, floor in rooms:
         paths[name] = b.room(name, of, x0, x1, z0, z1, y, h, OFF_T, openings=openings, floor=floor)
     # Stair holes and the duct holes in the office slabs.
-    b.csg_child(paths["GroundStairs"], box((UP_X0, OFF_G_H - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_G_H + OFF_T + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"), 0, "concrete")
-    b.csg_child(paths["GroundStairs"], box((DOWN_X0, -OFF_T - 0.05, DOWN_TOP_Z), (DOWN_X1, 0.05, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="DownHole"), 0, "concrete")
-    b.csg_child(paths["UpperStairs"], box((UP_X0, OFF_UP - OFF_T - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_UP + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"), 0, "concrete")
-    b.csg_child(paths["GroundSecurity"], box((14.2, -OFF_T - 0.05, 0.2), (15.8, 0.05, 0.45), mat="concrete", op="subtraction", name="DuctCExit"), 0, "concrete")
+    b.cut(paths["GroundStairs"], box((UP_X0, OFF_G_H - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_G_H + OFF_T + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
+    b.cut(paths["GroundStairs"], box((DOWN_X0, -OFF_T - 0.05, DOWN_TOP_Z), (DOWN_X1, 0.05, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="DownHole"))
+    b.cut(paths["UpperStairs"], box((UP_X0, OFF_UP - OFF_T - 0.05, UP_BOTTOM_Z), (UP_X1, OFF_UP + 0.05, HALL_Z1 - OFF_T), mat="concrete", op="subtraction", name="UpHole"))
+    b.cut(paths["GroundSecurity"], box((DUCT_C_X - 0.8, -OFF_T - 0.05, 0.2), (DUCT_C_X + 0.8, 0.05, 0.45), mat="concrete", op="subtraction", name="DuctCExit"))
     hx0, hx1, hz0, hz1 = DUCT_B_HOLE
-    b.csg_child(paths["UpperManager"], box((hx0, OFF_UP + OFF_U_H - 0.05, hz0), (hx1, OFF_ROOF + 0.05, hz1), mat="concrete", op="subtraction", name="DuctHole"), 0, "concrete")
-    b.stairs("StairUp", of, ((UP_X0 + UP_X1) * 0.5, 0.0, UP_BOTTOM_Z), 180, OFF_UP, UP_X1 - UP_X0, 0.29, 0.18)
+    b.cut(paths["UpperManager"], box((hx0, OFF_UP + OFF_U_H - 0.05, hz0), (hx1, OFF_ROOF + 0.05, hz1), mat="concrete", op="subtraction", name="DuctHole"))
+    b.stairs("StairUp", of, ((UP_X0 + UP_X1) * 0.5, 0.0, UP_BOTTOM_Z), 180, OFF_UP, UP_X1 - UP_X0, UP_TREAD, 0.18)
     # Railings round the stair holes.
     b.railing("RailUpHole", of, (UP_X0 - 0.05, UP_BOTTOM_Z), (UP_X0 - 0.05, HALL_Z1 - 0.9), OFF_UP)
     b.railing("RailUpHoleN", of, (UP_X0, UP_BOTTOM_Z - 0.05), (UP_X1, UP_BOTTOM_Z - 0.05), OFF_UP)
@@ -790,6 +815,7 @@ def build_hall():
     # Bars along the outer side (no falls), see-through.
     b.fence("CageUp", fe, (FE_X + 0.65, CW, FE_LAND_Z0), 90, FE_LAND_Z0 - (FE_TOP_Z - 1.2), ROOF + 1.1 - CW, 0.3, (0.5,))
     b.fence("CageDown", fe, (FE_X + 0.65, FE_LOW_BOTTOM, low_origin_z + 1.2), 90, low_origin_z + 1.2 - FE_LAND_Z1, CW + 1.1 - FE_LOW_BOTTOM, 0.3, (0.5,))
+    b.railing("RailRoofN", fe, (HALL_X1 + HALL_T, FE_TOP_Z - 1.15), (FE_X + 0.65, FE_TOP_Z - 1.15), ROOF, 1.1)
     b.railing("RailDoor", fe, (HALL_X1 + HALL_T + 2.35, FE_LAND_Z0), (HALL_X1 + HALL_T + 2.35, FE_LAND_Z1), CW)
     b.railing("RailDoorS", fe, (FE_X + 0.65, FE_LAND_Z1 - 0.05), (HALL_X1 + HALL_T + 2.4, FE_LAND_Z1 - 0.05), CW)
     b.railing("RailDoorN", fe, (FE_X + 0.65, FE_LAND_Z0 + 0.05), (HALL_X1 + HALL_T + 2.4, FE_LAND_Z0 + 0.05), CW)
@@ -800,13 +826,17 @@ def build_hall():
     b.csg("Landing", an, "metal", [box((AS_X - 0.65, ROOF - 0.2, AS_TOP_Z - 1.2), (HALL_X0 - HALL_T, ROOF, AS_TOP_Z))])
     b.fence("Cage", an, (AS_X - 0.7, ANNEX_ROOF, AS_BOTTOM_Z), 90, AS_BOTTOM_Z - AS_TOP_Z, ROOF + 1.1 - ANNEX_ROOF, 0.3, (0.5,))
     b.railing("RailLanding", an, (AS_X - 0.7, AS_TOP_Z), (AS_X - 0.7, AS_TOP_Z - 1.2), ROOF, 1.1)
+    b.railing("RailLandingN", an, (AS_X - 0.7, AS_TOP_Z - 1.15), (HALL_X0 - HALL_T, AS_TOP_Z - 1.15), ROOF, 1.1)
 
     # Ducts A (roof <-> catwalk alcove) and B (roof <-> manager office ceiling).
     dg = b.group("Ducts")
-    duct(b, "DuctA", dg, DUCT_A["entry"], DUCT_A["yaw"], DUCT_A["segments"])
-    placed = duct(b, "DuctB", dg, DUCT_B["entry"], DUCT_B["yaw"], DUCT_B["segments"])
+    duct(b, "DuctA", dg, DUCT_A["entry"], DUCT_A["yaw"], DUCT_A["segments"], DUCT_H)
+    placed = duct(b, "DuctB", dg, DUCT_B["entry"], DUCT_B["yaw"], DUCT_B["segments"], DUCT_H)
     over_path = placed[2][0]
-    b.csg_child(over_path, box((hx0 - DUCT_B["entry"][0], -0.3, -(hz1 - (DUCT_B["entry"][2] + 1.0 + 2.6))), (hx1 - DUCT_B["entry"][0], 0.05, -(hz0 - (DUCT_B["entry"][2] + 1.0 + 2.6))), mat="metal", op="subtraction", name="Hole"), 0, "metal")
+    over_z = DUCT_B["entry"][2] + DUCT_B["segments"][0]["length"] + DUCT_B["segments"][1]["length"]
+    # Local frame of the segment (turned 180 degrees): local x = 11 - x, local z = over_z - z.
+    hole = box((hx0 - DUCT_B["entry"][0], -0.3, over_z - hz1), (hx1 - DUCT_B["entry"][0], 0.05, over_z - hz0), mat="metal", op="subtraction", name="Hole")
+    b.csg_child(over_path, hole, 0, "metal")
 
     # Lights (breaker B). High-bay spots under the roof, catwalk wall lamps, office ceiling lamps.
     lg = b.group("Lights")
@@ -817,7 +847,7 @@ def build_hall():
         ("HighBayAisleW", (-9.0, 8.6, 1.0)),
         ("HighBayAisleE", (-1.0, 8.6, 1.0)),
         ("HighBayEast", (6.0, 8.6, 9.5)),
-        ("HighBayHatch", (12.0, 8.6, -3.0)),
+        ("HighBayHatch", (12.5, 8.6, -3.0)),
     ]
     for name, pos in hb:
         b.flood(name, lg, pos, (pos[0], 0.0, pos[2] + 0.01), BUILDING, 2.5, 14.0, 55.0)
@@ -828,6 +858,8 @@ def build_hall():
     for name, x0, x1, z0, z1, y, h, _openings, _floor in rooms:
         if name in ("GroundStairs", "UpperStairs"):
             pos = ((x0 + x1) * 0.5 - 0.6, y + h, (z0 + z1) * 0.5)
+        elif name == "UpperManager":
+            pos = (9.6, y + h, 1.6)  # clear of the cabinet and the duct hole
         else:
             pos = ((x0 + x1) * 0.5, y + h, (z0 + z1) * 0.5)
         energy = 1.0 if "Corridor" not in name else 1.2
@@ -859,11 +891,11 @@ def build_underground():
         openings=[("E", -5.0, 1.2, 2.2, 0.0, "ToTunnel"), ("S", 12.0, 1.2, 2.2, 0.0, "ToStore")],
     )
     store = b.room("Store", bs, 8.0, 19.5, 0.0, 14.75, BASE_Y, BASE_H, 0.5, openings=[("N", 12.0, 1.2, 2.2, 0.0, "ToBoiler")])
-    b.csg_child(boiler, box((HATCH_X0, -1.05, HATCH_TOP_Z), (HATCH_X1, -0.45, HATCH_HOLE_Z1), mat="concrete", op="subtraction", name="HatchHole"), 0, "concrete")
-    b.csg_child(store, box((DOWN_X0, -1.05, DOWN_TOP_Z), (DOWN_X1, -0.45, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="StairHole"), 0, "concrete")
-    xform, segment = duct_xforms(DUCT_C)[1]
-    b.csg_child(boiler, housing_cut(xform, segment), 0, "concrete")
-    b.stairs("ServiceStair", bs, ((DOWN_X0 + DOWN_X1) * 0.5, BASE_Y, DOWN_BOTTOM_Z), 0, -BASE_Y, DOWN_X1 - DOWN_X0, 0.28, 0.182)
+    b.cut(boiler, box((HATCH_X0, -1.05, HATCH_TOP_Z), (HATCH_X1, -0.45, HATCH_HOLE_Z1), mat="concrete", op="subtraction", name="HatchHole"))
+    b.cut(store, box((DOWN_X0, -1.05, DOWN_TOP_Z), (DOWN_X1, -0.45, DOWN_HOLE_Z1), mat="concrete", op="subtraction", name="StairHole"))
+    xform, segment = duct_xforms(DUCT_C)[2]
+    b.cut(boiler, housing_cut(xform, segment, DUCT_H))
+    b.stairs("ServiceStair", bs, ((DOWN_X0 + DOWN_X1) * 0.5, BASE_Y, DOWN_BOTTOM_Z), 0, -BASE_Y, DOWN_X1 - DOWN_X0, DOWN_TREAD, 0.182)
     b.stairs("HatchStair", bs, ((HATCH_X0 + HATCH_X1) * 0.5, BASE_Y, HATCH_BOTTOM_Z), 0, -BASE_Y, HATCH_X1 - HATCH_X0, 0.25, 0.2, solid=False, surface="metal")
     b.csg(
         "Boiler",
@@ -874,7 +906,7 @@ def build_underground():
             {"kind": "cylinder", "center": (17.5, BASE_Y + 2.7, -7.6), "radius": 0.25, "height": 0.6, "sides": 10, "op": "union", "name": "Flue"},
         ],
     )
-    duct(b, "DuctC", bs, DUCT_C["entry"], DUCT_C["yaw"], DUCT_C["segments"])
+    duct(b, "DuctC", bs, DUCT_C["entry"], DUCT_C["yaw"], DUCT_C["segments"], DUCT_H)
 
     # Service tunnel: boiler room (floor -4.0) east under the yard to the ditch (floor -2.4).
     tn = b.group("Tunnel")
@@ -1099,10 +1131,12 @@ def build_markers():
 # Root scene (first build only)
 # ================================================================================================
 
-PLAYER_SPAWN = (-30.0, 0.0, -30.0)
-PLAYER_SPAWN_LOOK = (-6.0, 0.0, -18.0)
+PLAYER_SPAWN = (-19.0, 0.0, -31.2)
+PLAYER_SPAWN_LOOK = (-4.0, 0.0, -16.0)
 REINFORCEMENT_SPAWN = (-5.0, 0.0, -31.0)
-EXTRACTION = (7.0, 0.0, 36.0)
+EXTRACTION = (7.0, 0.0, 35.6)
+# The pontoon by the boat (x 4..10, z 33..38): the zone stands on it, inside the invisible walls.
+EXTRACTION_SIZE = (5.6, 3.0, 4.6)
 
 
 def build_root():
@@ -1145,9 +1179,11 @@ def build_root():
     spawn_yaw = math.degrees(math.atan2(-dx, -dz))
     s.add("PlayerSpawn", ".", "Marker3D", props={"transform": Raw(transform(PLAYER_SPAWN, yaw_basis(spawn_yaw)))})
     s.add("ReinforcementSpawn", ".", "Marker3D", props={"transform": Raw(transform(REINFORCEMENT_SPAWN, yaw_basis(180.0)))})
-    s.add("Extraction", ".", "Marker3D", props={"transform": Raw(transform(EXTRACTION, yaw_basis(180.0)))})
-    player = s.ext_res("PackedScene", "res://actors/player/player.tscn")
-    s.add("Player", ".", instance=player, props={"transform": Raw(transform(PLAYER_SPAWN, yaw_basis(spawn_yaw)))})
+    zone = s.ext_res("PackedScene", "res://levels/mission/mission_kit/extraction_zone.tscn")
+    s.add("Extraction", ".", instance=zone, props={"transform": Raw(transform(EXTRACTION)), "size": Raw(vec3(EXTRACTION_SIZE))})
+    mission = s.ext_res("PackedScene", "res://levels/mission/mission_kit/mission.tscn")
+    data = s.ext_res("Resource", "res://levels/mission/mission_kit/warehouse_mission.tres")
+    s.add("Mission", ".", instance=mission, props={"data": data})
     nav = s.ext_res("Script", "res://levels/kit/level_navigation.gd")
     s.add("Navigation", ".", "NavigationRegion3D", props={"script": nav})
     return s

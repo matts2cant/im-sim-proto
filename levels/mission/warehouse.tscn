@@ -4,8 +4,10 @@
 [ext_resource type="PackedScene" path="res://levels/mission/areas/hall.tscn" id="2_hall"]
 [ext_resource type="PackedScene" path="res://levels/mission/areas/underground.tscn" id="3_underground"]
 [ext_resource type="PackedScene" path="res://levels/mission/areas/layout_markers.tscn" id="4_layout_markers"]
-[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="5_player"]
-[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="6_level_navigation"]
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/extraction_zone.tscn" id="5_extraction_zone"]
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/mission.tscn" id="6_mission"]
+[ext_resource type="Resource" path="res://levels/mission/mission_kit/warehouse_mission.tres" id="7_warehouse_mission"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="8_level_navigation"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -39,16 +41,17 @@ directional_shadow_max_distance = 90
 [node name="LayoutMarkers" parent="." instance=ExtResource("4_layout_markers")]
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
-transform = Transform3D(-0.4472, 0, -0.8944, 0, 1, 0, 0.8944, 0, -0.4472, -30, 0, -30)
+transform = Transform3D(-0.7118, 0, -0.7024, 0, 1, 0, 0.7024, 0, -0.7118, -19, 0, -31.2)
 
 [node name="ReinforcementSpawn" type="Marker3D" parent="."]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5, 0, -31)
 
-[node name="Extraction" type="Marker3D" parent="."]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7, 0, 36)
+[node name="Extraction" parent="." instance=ExtResource("5_extraction_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 35.6)
+size = Vector3(5.6, 3, 4.6)
 
-[node name="Player" parent="." instance=ExtResource("5_player")]
-transform = Transform3D(-0.4472, 0, -0.8944, 0, 1, 0, 0.8944, 0, -0.4472, -30, 0, -30)
+[node name="Mission" parent="." instance=ExtResource("6_mission")]
+data = ExtResource("7_warehouse_mission")
 
 [node name="Navigation" type="NavigationRegion3D" parent="."]
-script = ExtResource("6_level_navigation")
+script = ExtResource("8_level_navigation")

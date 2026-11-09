@@ -19,8 +19,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"basement_cutaway":
 	{"cam": true, "eye": Vector3(4, 10, -20), "look": Vector3(16, -4, 0), "hide": ["Hall", "Exterior/Ground"]},
 	# Start and the approach.
-	"start": {"feet": Vector3(-30, 0, -30), "look": Vector3(-6, 1.5, -18)},
-	"start_east": {"feet": Vector3(-30, 0, -30), "look": Vector3(40, 8, -20)},
+	"start": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(-4, 1.5, -16)},
+	"start_east": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(40, 8, -20)},
 	"gate_road": {"feet": Vector3(-5, 0, -31), "look": Vector3(-5, 1.4, -15)},
 	"gate_inside": {"feet": Vector3(-5, 0, -19), "look": Vector3(-5, 1.4, -26)},
 	"booth": {"feet": Vector3(-8.6, 0, -22), "look": Vector3(-11, 1.4, -22)},
@@ -111,9 +111,12 @@ var _camera: Camera3D
 
 @onready var _level: Node3D = $Warehouse
 @onready var _player: Player = $Warehouse/Player
+@onready var _mission: Mission = $Warehouse/Mission
 
 
 func _ready() -> void:
+	# Keeps running while the mission briefing pauses the tree, and closes it.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	var args := {}
 	for arg in OS.get_cmdline_user_args():
 		var parts := arg.split("=", true, 1)
@@ -170,7 +173,9 @@ func _physics_process(_delta: float) -> void:
 
 
 func _process(delta: float) -> void:
-	if _shot.is_empty():
+	if _mission.briefing.is_open():
+		_mission.briefing.close()
+	if _shot.is_empty() or get_tree().paused:
 		return
 	_time += delta
 	if _time < WAIT:
