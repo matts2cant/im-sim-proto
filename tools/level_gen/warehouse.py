@@ -1021,14 +1021,14 @@ DOORWAYS = [
 # Placeholders for wave 2 (Marker3D, yaw in degrees: 0 faces -Z / north).
 POPULATION = {
     "Guards": [
-        ("G1GatePost", (-9.6, 0.0, -23.2), 90.0),
+        ("G1GatePost", (-8.6, 0.0, -22.2), -52.0),
         ("G2YardPatrolWest", (-18.0, 0.0, -18.0), 0.0),
         ("G3YardPatrolEast", (18.0, 0.0, -18.0), 0.0),
         ("G4CatwalkRifle", (-10.0, CW, -9.25), -90.0),
         ("G5SecurityOperator", (17.6, 0.0, 1.6), 0.0),
         ("G6BreakRoom", (11.0, 0.0, 2.6), 180.0),
         ("G7VaultDoor", (16.0, OFF_UP, 6.0), 0.0),
-        ("G8OffDuty", (17.0, BASE_Y, 11.5), 90.0),
+        ("G8OffDuty", (16.2, BASE_Y, 11.5), 90.0),
     ],
     "PatrolPoints": [
         ("YardWestA", (-18.0, 0.0, -18.0), 0.0),
@@ -1038,7 +1038,7 @@ POPULATION = {
         ("YardEastA", (18.0, 0.0, -18.0), 0.0),
         ("YardEastB", (33.0, 0.0, -14.0), 0.0),
         ("YardEastC", (24.0, 0.0, 14.0), 0.0),
-        ("YardEastD", (12.0, 0.0, 20.0), 0.0),
+        ("YardEastD", (8.0, 0.0, 20.5), 0.0),
         ("CatwalkA", (-10.0, CW, -9.25), 0.0),
         ("CatwalkB", (-19.25, CW, 6.0), 0.0),
         ("CatwalkC", (2.0, CW, 6.0), 0.0),
@@ -1083,7 +1083,7 @@ POPULATION = {
     ],
     "Mission": [
         ("Shipment", (0.0, 0.0, -6.5), 0.0),
-        ("GasCylinders", (-12.5, 0.0, 16.3), 0.0),
+        ("GasCylinders", (-11.45, 0.0, 15.9), 0.0),
     ],
 }
 

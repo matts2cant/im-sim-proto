@@ -17,17 +17,27 @@ var player: Player
 var level: Node
 
 
-## Loads the fixture in `runner`, closes the briefing and lets CSG build its collision.
+## Loads the fixture in `runner`, closes the briefing and lets CSG build its collision. Traversal
+## tests drive the layout: wave 2's population (guards who would stop the player, doors) is removed.
 func setup(runner: GdUnitSceneRunner) -> void:
 	driver = PlayerDriver.new(runner)
 	player = driver.player
 	player.reload_on_reset = false
 	level = runner.scene()
+	strip_population(level)
 	await driver.frames(3)
 	var mission := level.get_node("Mission") as Mission
 	if mission.briefing.is_open():
 		mission.briefing.close()
 	await driver.frames(5)
+
+
+## Removes the level's `Population` (wave 2: guards, doors, devices, props) so a test sees the
+## layout only.
+static func strip_population(level: Node) -> void:
+	var population := level.get_node_or_null("Population")
+	if population != null:
+		population.free()
 
 
 ## Places the player at rest (standing) and plays `steps`: each step holds its actions
