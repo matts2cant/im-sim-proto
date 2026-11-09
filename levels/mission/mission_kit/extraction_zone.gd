@@ -30,12 +30,21 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 
-## True while an entity with `required_tag` that can act (ActorState.can_act) is inside.
+## True while an entity with `required_tag` that can act (ActorState.can_act) stands inside: among
+## the overlapping bodies, with its origin (the feet) inside the box now (the overlap list is a
+## physics step old).
 func holds_required() -> bool:
 	for body in get_overlapping_bodies():
-		if ActorState.has(body, required_tag) and ActorState.can_act(body):
+		if ActorState.has(body, required_tag) and ActorState.can_act(body) and contains(body.global_position):
 			return true
 	return false
+
+
+## True when `point` (world) is inside the box.
+func contains(point: Vector3) -> bool:
+	var local := global_transform.affine_inverse() * point
+	var half := size * 0.5
+	return absf(local.x) <= half.x and absf(local.z) <= half.z and local.y >= -0.1 and local.y <= size.y
 
 
 func _on_body_entered(body: Node3D) -> void:
