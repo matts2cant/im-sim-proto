@@ -4,6 +4,61 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M9 — Warehouse mission (2026-11-09, autonomous night)
+
+Six agents in four waves, from the grilled design (3 rounds, ADR 0086, design/levels/mission-warehouse.md):
+- M9a: mission systems (level change, briefing, objectives, summary and badges, weapon drops, rifle guard, reinforcements; ADR 0087, 0088).
+- M9b: layout, night lighting, routes, navigation, built from a Python generator (`tools/level_gen/`; ADR 0089).
+- M9c and M9d in parallel: doors, locks, keys and the security network with generic door sizes and free-side locks (ADR 0090), and guards, patrols, items and mission props (ADR 0091).
+- M9e: a design review from screenshots, with polish (ADR 0092).
+- M9f: end-to-end route tests, the two missing system uses, and the level-change warning (ADR 0093).
+
+Final suite: 1400 tests, 0 failures, 76 s.
+
+**What went well**
+- Shared contract names in the wave briefs (`PlayerSpawn`, `ReinforcementSpawn`, `Extraction`, `Mission`, `Population/People`, `Population/Security`) let layout, people and security be built in parallel. Merging the first finisher and messaging the other worked again.
+- **Generated level.** Every area and population scene comes from `tools/level_gen/*.py`, so moving a railing, adding a window or two patrols is a one-line change, regenerated and diffable.
+- **The fresh-eyes review (M9e)** walked each route at eye height with the starting kit. It found 11 issues that no test would have:
+  - one switch silenced every device;
+  - long unwatched gaps in the patrols;
+  - the manager office was unreadable at night;
+  - guards could not follow through one-sided doors;
+  - a solid gate hid the yard.
+- **The route tests (M9f)** drive the real player through the populated level and assert the summary. They found a real blocker: the office stair's top was 0.65 m wide for a 0.7 m capsule. Saving a snapshot between segments keeps each test under 15 s while the badges count the whole route.
+- **Systemic fixes stayed generic:**
+  - free-side navigation links and door sizes work on every door;
+  - the deferred level change applies to every trigger;
+  - the perception scan is shared by every sensor.
+  No identity branches in any diff.
+- **Suite time held** despite four heavy level suites per wave. M9e loads each level once per suite and bakes the navmesh once (`LevelNavigation.bake_on_ready`): 144 s back to 54 s. M9f's routes added about 22 s.
+
+**What went wrong**
+- **Suite time.** The warehouse suites tripled it (45 s to 144 s) before anyone looked; the briefs gave no time budget for new suites.
+- **The office stair's top was impassable** through four waves. The passage tests climbed every stair to its top step but never stepped off onto the destination floor.
+- **An engine ERROR went unnoticed until M9f** ("Removing a CollisionObject node during a physics callback", on the hub-to-warehouse change). The runner's error scan only matched project files in the error's own location line. The project code was in the GDScript backtrace below it.
+- **The first full run after merging M9f took 165 s.** The four new route suites had no recorded time, got the global median estimate, and, being adjacent alphabetically, all landed in one contiguous shard. The next run took 76 s.
+- **Ten guards cost 7.1 ms per physics frame:** each guard scanned every tagged node twice per frame. It surfaced only because route tests were slow. No level brief asked for a frame-cost measurement.
+- **Loud play can't be completed as the design describes** ("hold the gate lane"). Every guard converges by radio in seconds. The test had to take a hold-on-the-containers route instead. That is a balance question for the playtest.
+- **The M9f worktree was cut from an old commit again.** The agent noticed and reset (the CLAUDE.md rule worked).
+- **My slip:** I deleted a `worktree-agent-*` base branch while its agent was still running (harmless, the agent worked on its own branch).
+
+**Changes made**
+- Runner (agent `runner-gaps`): an engine ERROR whose GDScript backtrace has a project frame (outside `addons/`) fails the run. An unmeasured suite is estimated from the median of its own directory before the global median.
+- CLAUDE.md:
+  - Level briefs ask passage tests to step off every climb onto the destination floor.
+  - Briefs that add suites give a time budget and ask for the suite's wall time in the report.
+  - Briefs that populate a level ask for the physics-frame cost measured with every actor active.
+  - Judge suite time on the second full run after merging new suites.
+
+**Open questions for the user** (also in mission-warehouse.md):
+- Is a first ghost run fair with ten guards (gaps 6-39 s)? Is the upper corridor (camera, G7, a lit 1.5 m corridor) too tense on a first visit?
+- Loud with the starting kit can't hold ground: intended "tight", or too hard?
+- Should duct B's roof mouth be marked, or found by exploring?
+- Guards now follow the player out through free-side doors everywhere in the game. Intended?
+- Are the annex window (two stacked crates) and the cache shed (Combat Strength) found without a hint, and worth the detour?
+- Dropping out of duct B onto the cabinet makes four guards suspicious. Should it be quieter?
+- Still open from M8: keypad pauses but terminal does not; Searching guards alert on any glimpse (suspicion meter instead?); a remote "open" leaves a locked door locked.
+
 ## M8 — Security (2026-11-08)
 
 Four agents in three waves: M8a devices, cable graph, remote commands and alarm devices (ADR 0077, replacing the global LevelAlarm per ADR 0075); M8b doors, locks, keypads, multitool removal, Computer skill (ADR 0078, 0076); M8c cameras, turret, terminal (ADR 0079, 0080); M8d the security wing (gallery room 5). A Sonnet agent fixed a flaky HUD test before the last merge. Final suite: 1188 tests, 0 failures.

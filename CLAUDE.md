@@ -15,7 +15,10 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Only name events, classes, methods and input actions (project.godot) in a brief after grepping for them; otherwise describe the behaviour and let the agent find the API. Keep test points away from boundary values (radius edges, thresholds).
 - Parallel briefs list the features another agent owns as "do not build" (and don't mention them in passing as if they will exist), and assign each agent its ADR number(s) up front. When parallel agents share a contract (stimulus names, an API), the merge step adds an integration test across it.
 - Parallel agents sharing a contract: merge whichever finishes first, then message the other to merge master, switch to the real API and write the cross-feature integration test itself (worked well in M7).
-- Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (the hub tests list them); do not guess.
+- Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (from the layout docs or the scenes, not the hub tests, which do not list them); do not guess.
+- Level briefs ask passage tests to step off every climb (stair, ladder, mantle) onto the destination floor, not only reach its top, and to walk the main routes end to end with the guards active (M9: a stair top 0.65 m wide for a 0.7 m capsule went unnoticed for four waves).
+- Briefs that add test suites give a wall-time budget per suite and ask for each new suite's time in the report; briefs that populate a level ask for the physics-frame cost with every actor active.
+- Judge full-suite time on the second full run after merging new suites (the first run has no recorded times for them).
 - After merging, run `git worktree list` and remove every agent worktree and branch, including ones an agent spawned for its own sub-agents.
 - Bug-fix briefs ask the agent to reproduce the user's exact actions (what they did in the level, with real in-game values) before testing hypotheses; my guessed scenarios may already pass.
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.
