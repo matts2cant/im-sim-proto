@@ -1,0 +1,286 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="1_room_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="2_room"]
+[ext_resource type="Material" path="res://assets/materials/graybox/concrete.tres" id="3_concrete"]
+[ext_resource type="PackedScene" path="res://levels/kit/stairs.tscn" id="4_stairs"]
+[ext_resource type="Material" path="res://assets/materials/graybox/metal.tres" id="5_metal"]
+[ext_resource type="PackedScene" path="res://levels/kit/vent_segment.tscn" id="6_vent_segment"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="7_ledge"]
+[ext_resource type="PackedScene" path="res://levels/kit/ramp.tscn" id="8_ramp"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="9_ceiling_lamp"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="10_wall_lamp"]
+
+[sub_resource type="Resource" id="Opening_1"]
+script = ExtResource("1_room_opening")
+node_name = &"ToTunnel"
+wall = 1
+offset = -0.25
+width = 1.2
+height = 2.2
+
+[sub_resource type="Resource" id="Opening_2"]
+script = ExtResource("1_room_opening")
+node_name = &"ToStore"
+wall = 2
+offset = -1.75
+width = 1.2
+height = 2.2
+
+[sub_resource type="Resource" id="Opening_3"]
+script = ExtResource("1_room_opening")
+node_name = &"ToBoiler"
+wall = 0
+offset = -1.75
+width = 1.2
+height = 2.2
+
+[node name="Underground" type="Node3D"]
+
+[node name="Basement" type="Node3D" parent="."]
+
+[node name="BoilerRoom" parent="Basement" instance=ExtResource("2_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.75, -4, -4.75)
+size = Vector3(11.5, 3, 8.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("1_room_opening")]([SubResource("Opening_1"), SubResource("Opening_2")])
+
+[node name="Store" parent="Basement" instance=ExtResource("2_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.75, -4, 7.375)
+size = Vector3(11.5, 3, 14.75)
+wall_thickness = 0.5
+openings = Array[ExtResource("1_room_opening")]([SubResource("Opening_3")])
+
+[node name="HatchHole" type="CSGBox3D" parent="Basement/BoilerRoom"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.1, -0.75, -4.575)
+size = Vector3(1.2, 0.6, 3.85)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="StairHole" type="CSGBox3D" parent="Basement/Store"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, -0.75, 10.69)
+size = Vector3(1.3, 0.6, 4.58)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="RiseCut" type="CSGCombiner3D" parent="Basement/BoilerRoom"]
+operation = 2
+
+[node name="Obox0" type="CSGBox3D" parent="Basement/BoilerRoom/RiseCut"]
+transform = Transform3D(-1, 0, 0, 0, 0.7682, -0.6402, 0, -0.6402, -0.7682, 15, -0.9775, -2.9521)
+size = Vector3(1.6, 1.5, 7.2861)
+material = ExtResource("3_concrete")
+
+[node name="Obox1" type="CSGBox3D" parent="Basement/BoilerRoom/RiseCut"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, -0.85, -2.6)
+size = Vector3(2.6, 6.5, 3.6)
+operation = 1
+material = ExtResource("3_concrete")
+
+[node name="ServiceStair" parent="Basement" instance=ExtResource("4_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, -4, 14.56)
+rise = 4
+width = 1.3
+tread = 0.28
+max_riser = 0.182
+surface = "concrete"
+
+[node name="HatchStair" parent="Basement" instance=ExtResource("4_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.1, -4, -1.5)
+rise = 4
+width = 1.2
+tread = 0.25
+max_riser = 0.2
+surface = "metal"
+solid = false
+
+[node name="Boiler" type="CSGCombiner3D" parent="Basement"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Body" type="CSGBox3D" parent="Basement/Boiler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, -2.8, -7.6)
+size = Vector3(3, 2.4, 2)
+material = ExtResource("5_metal")
+
+[node name="Flue" type="CSGCylinder3D" parent="Basement/Boiler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, -1.3, -7.6)
+radius = 0.25
+height = 0.6
+sides = 10
+material = ExtResource("5_metal")
+
+[node name="DuctC" type="Node3D" parent="Basement"]
+
+[node name="Mouth" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, -2.9, -5.4)
+length = 1
+fill_below = 1.1
+
+[node name="Rise" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, -2.9, -4.4)
+length = 3.6
+drop = -3
+
+[node name="Exit" parent="Basement/DuctC" instance=ExtResource("6_vent_segment")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15, 0.1, -0.8)
+length = 1.15
+
+[node name="Tunnel" type="Node3D" parent="."]
+
+[node name="Tube" type="CSGCombiner3D" parent="Tunnel"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Tunnel/Tube"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.35, -2.125, -5)
+size = Vector3(16.7, 4.25, 2.5)
+material = ExtResource("3_concrete")
+
+[node name="Void" type="CSGPolygon3D" parent="Tunnel/Tube"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+polygon = PackedVector2Array(19.9, -4, 24, -4, 30, -2.4, 36.75, -2.4, 36.75, -0.2, 30, -0.2, 24, -1.8, 19.9, -1.8)
+depth = 2
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="ChamberDoor" type="CSGBox3D" parent="Tunnel/Tube"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.2, -1.3, -6.125)
+size = Vector3(1.2, 2.2, 0.35)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="DrainChamber" type="CSGCombiner3D" parent="Tunnel"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Tunnel/DrainChamber"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, -1.475, -7.75)
+size = Vector3(3.5, 2.35, 3)
+material = ExtResource("3_concrete")
+
+[node name="Void" type="CSGBox3D" parent="Tunnel/DrainChamber"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, -1.15, -7.6)
+size = Vector3(3, 2.5, 2.8)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="CulvertHole" type="CSGBox3D" parent="Tunnel/DrainChamber"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.125, -1.85, -7.6)
+size = Vector3(0.35, 1.1, 1.2)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="ChamberStep" parent="Tunnel" instance=ExtResource("7_ledge")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 32.2, -2.4, -7.625)
+width = 2.75
+depth = 1.2
+height = 1.2
+
+[node name="Ditch" type="Node3D" parent="."]
+
+[node name="Channel" type="CSGCombiner3D" parent="Ditch"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Floor" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -2.55, -2.35)
+size = Vector3(4.6, 0.3, 49.3)
+material = ExtResource("3_concrete")
+
+[node name="WallWest" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.2, -2.5)
+size = Vector3(0.3, 2.4, 49)
+material = ExtResource("3_concrete")
+
+[node name="WallEast" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.15, -1.2, -2.5)
+size = Vector3(0.3, 2.4, 49)
+material = ExtResource("3_concrete")
+
+[node name="Headwall" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -1.2, 22.15)
+size = Vector3(4.6, 2.4, 0.3)
+material = ExtResource("3_concrete")
+
+[node name="TunnelGate" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.3, -5)
+size = Vector3(0.4, 2.2, 1.2)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="CulvertMouth" type="CSGBox3D" parent="Ditch/Channel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85, -1.85, -7.6)
+size = Vector3(0.4, 1.1, 1.2)
+operation = 2
+material = ExtResource("3_concrete")
+
+[node name="Ramp" parent="Ditch" instance=ExtResource("8_ramp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -2.4, -21)
+rise = 2.4
+run = 6
+width = 4
+
+[node name="StepOut" parent="Ditch" instance=ExtResource("7_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 39, -2.4, 21)
+width = 4
+depth = 1
+height = 1.2
+
+[node name="Culvert" type="Node3D" parent="Ditch"]
+
+[node name="Pipe" parent="Ditch/Culvert" instance=ExtResource("6_vent_segment")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 37.05, -2.4, -7.6)
+length = 3.1
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="LampBoiler" parent="Lights" instance=ExtResource("9_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, -1, -4)
+
+[node name="Light" parent="Lights/LampBoiler"]
+light_energy = 1
+omni_range = 5
+
+[node name="Powered" parent="Lights/LampBoiler"]
+circuit = &"warehouse_building"
+
+[node name="LampBoilerEast" parent="Lights" instance=ExtResource("9_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, -1, -3)
+
+[node name="Light" parent="Lights/LampBoilerEast"]
+light_energy = 0.8
+omni_range = 5
+
+[node name="Powered" parent="Lights/LampBoilerEast"]
+circuit = &"warehouse_building"
+
+[node name="LampStoreNorth" parent="Lights" instance=ExtResource("9_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, -1, 3.5)
+
+[node name="Light" parent="Lights/LampStoreNorth"]
+light_energy = 1
+omni_range = 5
+
+[node name="Powered" parent="Lights/LampStoreNorth"]
+circuit = &"warehouse_building"
+
+[node name="LampStoreSouth" parent="Lights" instance=ExtResource("9_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, -1, 11)
+
+[node name="Light" parent="Lights/LampStoreSouth"]
+light_energy = 1
+omni_range = 5
+
+[node name="Powered" parent="Lights/LampStoreSouth"]
+circuit = &"warehouse_building"
+
+[node name="LampTunnel" parent="Lights" instance=ExtResource("10_wall_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.5, -2.1, -5.98)
+
+[node name="Light" parent="Lights/LampTunnel"]
+light_energy = 0.6
+omni_range = 4
+
+[node name="Powered" parent="Lights/LampTunnel"]
+circuit = &"warehouse_building"

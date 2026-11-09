@@ -1,0 +1,924 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/graybox/concrete.tres" id="1_concrete"]
+[ext_resource type="Material" path="res://assets/materials/graybox/grass.tres" id="2_grass"]
+[ext_resource type="Material" path="res://assets/materials/graybox/wall.tres" id="3_wall"]
+[ext_resource type="Material" path="res://assets/materials/graybox/wood.tres" id="4_wood"]
+[ext_resource type="PackedScene" path="res://levels/kit/fence.tscn" id="5_fence"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="6_room_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="7_room"]
+[ext_resource type="Material" path="res://assets/materials/graybox/metal.tres" id="8_metal"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="9_ledge"]
+[ext_resource type="Material" path="res://assets/materials/graybox/hazard.tres" id="10_hazard"]
+[ext_resource type="PackedScene" path="res://levels/kit/stairs.tscn" id="11_stairs"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/flood_lamp.tscn" id="12_flood_lamp"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="13_wall_lamp"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="14_ceiling_lamp"]
+
+[sub_resource type="BoxShape3D" id="Wall_1"]
+size = Vector3(49, 6, 0.3)
+
+[sub_resource type="BoxShape3D" id="Wall_2"]
+size = Vector3(50, 6, 0.3)
+
+[sub_resource type="BoxShape3D" id="Wall_3"]
+size = Vector3(0.3, 6, 5.3)
+
+[sub_resource type="BoxShape3D" id="Wall_4"]
+size = Vector3(0.3, 6, 5)
+
+[sub_resource type="BoxShape3D" id="Wall_5"]
+size = Vector3(6.6, 6, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Water_6"]
+albedo_color = Color(0.02, 0.035, 0.06, 1)
+metallic = 0.4
+roughness = 0.08
+
+[sub_resource type="PlaneMesh" id="Water_7"]
+material = SubResource("Water_6")
+size = Vector2(105, 19)
+
+[sub_resource type="Resource" id="Opening_8"]
+script = ExtResource("6_room_opening")
+node_name = &"Door"
+wall = 1
+offset = 0
+width = 1.2
+height = 2.2
+
+[sub_resource type="Resource" id="Opening_9"]
+script = ExtResource("6_room_opening")
+node_name = &"WindowRoad"
+wall = 0
+offset = 0
+width = 2
+height = 1
+sill = 1
+
+[sub_resource type="Resource" id="Opening_10"]
+script = ExtResource("6_room_opening")
+node_name = &"WindowYard"
+wall = 2
+offset = 0
+width = 2
+height = 1
+sill = 1
+
+[sub_resource type="Resource" id="Opening_11"]
+script = ExtResource("6_room_opening")
+node_name = &"WindowWest"
+wall = 3
+offset = 0
+width = 2
+height = 1
+sill = 1
+
+[node name="Exterior" type="Node3D"]
+
+[node name="Ground" type="Node3D" parent="."]
+
+[node name="Concrete" type="CSGCombiner3D" parent="Ground"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+size = Vector3(70, 0.3, 50)
+material = ExtResource("1_concrete")
+
+[node name="Box1" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, -0.15, -31.5)
+size = Vector3(103, 0.3, 9)
+material = ExtResource("1_concrete")
+
+[node name="Box2" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, -0.15, 29)
+size = Vector3(93, 0.3, 8)
+material = ExtResource("1_concrete")
+
+[node name="HallCut" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 2.5)
+size = Vector3(41, 0.5, 26)
+operation = 2
+material = ExtResource("1_concrete")
+
+[node name="TunnelCut" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.6, -0.15, -5)
+size = Vector3(16.2, 0.5, 2.5)
+operation = 2
+material = ExtResource("1_concrete")
+
+[node name="ChamberCut" type="CSGBox3D" parent="Ground/Concrete"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, -0.15, -7.625)
+size = Vector3(3, 0.5, 2.75)
+operation = 2
+material = ExtResource("1_concrete")
+
+[node name="Grass" type="CSGCombiner3D" parent="Ground"]
+use_collision = true
+metadata/surface = &"grass"
+
+[node name="Box0" type="CSGBox3D" parent="Ground/Grass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, -0.15, -37)
+size = Vector3(107, 0.3, 2)
+material = ExtResource("2_grass")
+
+[node name="Box1" type="CSGBox3D" parent="Ground/Grass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -26)
+size = Vector3(70, 0.3, 2)
+material = ExtResource("2_grass")
+
+[node name="Box2" type="CSGBox3D" parent="Ground/Grass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.5, -0.15, -1)
+size = Vector3(23, 0.3, 52)
+material = ExtResource("2_grass")
+
+[node name="DitchCut" type="CSGBox3D" parent="Ground/Grass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, -0.15, -2.4)
+size = Vector3(4.6, 0.5, 49.4)
+operation = 2
+material = ExtResource("2_grass")
+
+[node name="TunnelCut" type="CSGBox3D" parent="Ground/Grass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.8, -0.15, -5)
+size = Vector3(1.8, 0.5, 2.5)
+operation = 2
+material = ExtResource("2_grass")
+
+[node name="Boundary" type="Node3D" parent="."]
+
+[node name="Buildings" type="CSGCombiner3D" parent="Boundary"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Boundary/Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 4, -40)
+size = Vector3(107, 8, 4)
+material = ExtResource("3_wall")
+
+[node name="Box1" type="CSGBox3D" parent="Boundary/Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 4, -32.5)
+size = Vector3(2, 8, 11)
+material = ExtResource("3_wall")
+
+[node name="Box2" type="CSGBox3D" parent="Boundary/Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 4, 3)
+size = Vector3(10, 8, 60)
+material = ExtResource("3_wall")
+
+[node name="Box3" type="CSGBox3D" parent="Boundary/Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59, 3, -2.5)
+size = Vector3(2, 6, 71)
+material = ExtResource("3_wall")
+
+[node name="QuayEdge" type="CSGCombiner3D" parent="Boundary"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.5, 0.3, 32.85)
+size = Vector3(39, 0.6, 0.3)
+material = ExtResource("1_concrete")
+
+[node name="Box1" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, 0.3, 32.85)
+size = Vector3(48, 0.6, 0.3)
+material = ExtResource("1_concrete")
+
+[node name="QuayWall" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1.5, 33.15)
+size = Vector3(105, 3, 0.3)
+material = ExtResource("1_concrete")
+
+[node name="FarBank" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -0.25, 53)
+size = Vector3(105, 5.5, 2)
+material = ExtResource("1_concrete")
+
+[node name="RiverBed" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -2.5, 42.65)
+size = Vector3(105, 1, 18.7)
+material = ExtResource("1_concrete")
+
+[node name="Pontoon" type="CSGBox3D" parent="Boundary/QuayEdge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -0.2, 35.5)
+size = Vector3(6, 0.4, 5)
+material = ExtResource("4_wood")
+
+[node name="InvisibleWalls" type="StaticBody3D" parent="Boundary"]
+collision_mask = 0
+
+[node name="Wall1" type="CollisionShape3D" parent="Boundary/InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.5, 3, 33.15)
+shape = SubResource("Wall_1")
+
+[node name="Wall2" type="CollisionShape3D" parent="Boundary/InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 3, 33.15)
+shape = SubResource("Wall_2")
+
+[node name="Wall3" type="CollisionShape3D" parent="Boundary/InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.85, 3, 35.65)
+shape = SubResource("Wall_3")
+
+[node name="Wall4" type="CollisionShape3D" parent="Boundary/InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.15, 3, 35.8)
+shape = SubResource("Wall_4")
+
+[node name="Wall5" type="CollisionShape3D" parent="Boundary/InvisibleWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 3, 38.15)
+shape = SubResource("Wall_5")
+
+[node name="Water" type="MeshInstance3D" parent="Boundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1, 42.65)
+mesh = SubResource("Water_7")
+
+[node name="Boat" type="CSGCombiner3D" parent="Boundary"]
+use_collision = true
+metadata/surface = &"wood"
+
+[node name="Box0" type="CSGBox3D" parent="Boundary/Boat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.65, -0.5, 37)
+size = Vector3(2.5, 1.6, 6.8)
+material = ExtResource("4_wood")
+
+[node name="Cabin" type="CSGBox3D" parent="Boundary/Boat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.65, 1.1, 38.5)
+size = Vector3(1.9, 1.6, 2.2)
+material = ExtResource("3_wall")
+
+[node name="Fence" type="Node3D" parent="."]
+
+[node name="North1" parent="Fence" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0, -25)
+length = 27
+height = 3
+bar_spacing = 0.22
+bar_width = 0.05
+rails = PackedFloat32Array(0.3, 2.7)
+
+[node name="North2" parent="Fence" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -25)
+length = 37
+height = 3
+bar_spacing = 0.22
+bar_width = 0.05
+rails = PackedFloat32Array(0.3, 2.7)
+
+[node name="East" parent="Fence" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 35, 0, -25)
+length = 50
+height = 3
+bar_spacing = 0.22
+bar_width = 0.05
+rails = PackedFloat32Array(0.3, 2.7)
+
+[node name="South1" parent="Fence" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0, 25)
+length = 41.4
+height = 3
+bar_spacing = 0.22
+bar_width = 0.05
+rails = PackedFloat32Array(0.3, 2.7)
+
+[node name="South2" parent="Fence" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.6, 0, 25)
+length = 27.4
+height = 3
+bar_spacing = 0.22
+bar_width = 0.05
+rails = PackedFloat32Array(0.3, 2.7)
+
+[node name="GatePosts" type="CSGCombiner3D" parent="Fence"]
+use_collision = true
+metadata/surface = &"concrete"
+
+[node name="Box0" type="CSGBox3D" parent="Fence/GatePosts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.2, 1.7, -25)
+size = Vector3(0.4, 3.4, 0.4)
+material = ExtResource("1_concrete")
+
+[node name="Box1" type="CSGBox3D" parent="Fence/GatePosts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 1.7, -25)
+size = Vector3(0.4, 3.4, 0.4)
+material = ExtResource("1_concrete")
+
+[node name="Box2" type="CSGBox3D" parent="Fence/GatePosts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 1.6, 25)
+size = Vector3(0.3, 3.2, 0.3)
+material = ExtResource("1_concrete")
+
+[node name="Box3" type="CSGBox3D" parent="Fence/GatePosts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.75, 1.6, 25)
+size = Vector3(0.3, 3.2, 0.3)
+material = ExtResource("1_concrete")
+
+[node name="GateBooth" parent="." instance=ExtResource("7_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -22)
+size = Vector3(3, 2.6, 4)
+wall_thickness = 0.2
+openings = Array[ExtResource("6_room_opening")]([SubResource("Opening_8"), SubResource("Opening_9"), SubResource("Opening_10"), SubResource("Opening_11")])
+
+[node name="Containers" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Outside1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 1.25, -26.35)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="Inside1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 1.25, -23.65)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="YardLow1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.25, -16.75)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="YardHigh1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.25, -14.15)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="YardHigh2" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 3.75, -14.15)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="Annex1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.775, 1.25, 6)
+size = Vector3(2.45, 2.5, 6)
+material = ExtResource("8_metal")
+
+[node name="EastHigh1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 1.25, -18.75)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="EastHigh2" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 3.75, -18.75)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="EastLow1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 1.25, -16.15)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="FireEscape1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.25, 1.25, 9)
+size = Vector3(2.5, 2.5, 6)
+material = ExtResource("8_metal")
+
+[node name="Back1" type="CSGBox3D" parent="Containers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.25, 20.25)
+size = Vector3(6, 2.5, 2.5)
+material = ExtResource("8_metal")
+
+[node name="ClimbAids" type="Node3D" parent="."]
+
+[node name="OutsideStep" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 0, -27.6)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="InsideStep" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 0, -21.2)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="YardStep" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.6, 0, -16.2)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="YardCrate" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 2.5, -15.5)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="AnnexStep" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6, 0, 6.6)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="AnnexCrate" parent="ClimbAids" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.2, 2.5, 6.6)
+width = 1.2
+depth = 1.2
+height = 1.1
+surface = "wood"
+
+[node name="Cover" type="Node3D" parent="."]
+
+[node name="Pallets1" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -15.4)
+width = 1.2
+depth = 1.2
+height = 1.3
+surface = "wood"
+
+[node name="Pallets2" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.6, 0, -15.4)
+width = 1.2
+depth = 1.2
+height = 1
+surface = "wood"
+
+[node name="Pallets3" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -20.4)
+width = 1.2
+depth = 1.2
+height = 1.3
+surface = "wood"
+
+[node name="Pallets4" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -13.4)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="Pallets5" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 19.6)
+width = 1.2
+depth = 1.2
+height = 1.3
+surface = "wood"
+
+[node name="Pallets6" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 19.6)
+width = 1.2
+depth = 1.2
+height = 1.2
+surface = "wood"
+
+[node name="Pallets7" parent="Cover" instance=ExtResource("9_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 21.1)
+width = 1.2
+depth = 1.2
+height = 1
+surface = "wood"
+
+[node name="Truck" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Trailer" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2.625, -16.5)
+size = Vector3(2.5, 2.75, 8)
+material = ExtResource("8_metal")
+
+[node name="WheelRL" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.05, 0.625, -13.7)
+size = Vector3(0.4, 1.25, 1)
+material = ExtResource("8_metal")
+
+[node name="WheelRR" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.95, 0.625, -13.7)
+size = Vector3(0.4, 1.25, 1)
+material = ExtResource("8_metal")
+
+[node name="WheelFL" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.05, 0.625, -19.1)
+size = Vector3(0.4, 1.25, 1)
+material = ExtResource("8_metal")
+
+[node name="WheelFR" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.95, 0.625, -19.1)
+size = Vector3(0.4, 1.25, 1)
+material = ExtResource("8_metal")
+
+[node name="Cab" type="CSGBox3D" parent="Truck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.65, -22.1)
+size = Vector3(2.5, 2.7, 2.8)
+material = ExtResource("8_metal")
+
+[node name="Dumpster" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Box0" type="CSGBox3D" parent="Dumpster"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8, 0.65, -9)
+size = Vector3(1.6, 1.3, 2)
+material = ExtResource("8_metal")
+
+[node name="Inside" type="CSGBox3D" parent="Dumpster"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8, 0.85, -9)
+size = Vector3(1.4, 1.1, 1.8)
+operation = 2
+material = ExtResource("8_metal")
+
+[node name="Forklift" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Body" type="CSGBox3D" parent="Forklift"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0.7, -13.9)
+size = Vector3(1.2, 1.4, 2.2)
+material = ExtResource("10_hazard")
+
+[node name="Mast" type="CSGBox3D" parent="Forklift"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.3, -15.15)
+size = Vector3(1.2, 2.6, 0.3)
+material = ExtResource("10_hazard")
+
+[node name="Van" type="CSGCombiner3D" parent="."]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Box0" type="CSGBox3D" parent="Van"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.35, -32.4)
+size = Vector3(5, 2.1, 2)
+material = ExtResource("3_wall")
+
+[node name="WheelsRear" type="CSGBox3D" parent="Van"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.9, 0.15, -32.4)
+size = Vector3(0.8, 0.3, 1.8)
+material = ExtResource("3_wall")
+
+[node name="WheelsFront" type="CSGBox3D" parent="Van"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.1, 0.15, -32.4)
+size = Vector3(0.8, 0.3, 1.8)
+material = ExtResource("3_wall")
+
+[node name="WaterTower" type="Node3D" parent="."]
+
+[node name="Legs" type="CSGCombiner3D" parent="WaterTower"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Leg1" type="CSGBox3D" parent="WaterTower/Legs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 7.85, -19.5)
+size = Vector3(0.4, 15.7, 0.4)
+material = ExtResource("8_metal")
+
+[node name="Leg2" type="CSGBox3D" parent="WaterTower/Legs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 7.85, -12.5)
+size = Vector3(0.4, 15.7, 0.4)
+material = ExtResource("8_metal")
+
+[node name="Leg3" type="CSGBox3D" parent="WaterTower/Legs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.5, 7.85, -19.5)
+size = Vector3(0.4, 15.7, 0.4)
+material = ExtResource("8_metal")
+
+[node name="Leg4" type="CSGBox3D" parent="WaterTower/Legs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.5, 7.85, -12.5)
+size = Vector3(0.4, 15.7, 0.4)
+material = ExtResource("8_metal")
+
+[node name="Deck" type="CSGCombiner3D" parent="WaterTower"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Box0" type="CSGBox3D" parent="WaterTower/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 15.85, -16)
+size = Vector3(8, 0.3, 8)
+material = ExtResource("8_metal")
+
+[node name="Tank" type="CSGCylinder3D" parent="WaterTower/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 18.5, -16)
+radius = 2.8
+height = 5
+sides = 20
+material = ExtResource("3_wall")
+
+[node name="RailWest" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 43, 16, -19.97)
+length = 7.94
+height = 1.1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 1.075)
+
+[node name="RailNorth" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.03, 16, -20)
+length = 7.94
+height = 1.1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 1.075)
+
+[node name="RailSouth" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.03, 16, -12)
+length = 7.94
+height = 1.1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 1.075)
+
+[node name="RailEastN" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 51, 16, -19.97)
+length = 5.49
+height = 1.1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 1.075)
+
+[node name="RailEastS" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 51, 16, -13.28)
+length = 1.25
+height = 1.1
+bar_spacing = 1
+bar_width = 0.05
+rails = PackedFloat32Array(0.5, 1.075)
+
+[node name="Flight1" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 0, -10.48)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight2" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 1.7778, -13.28)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight3" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 3.5556, -10.48)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight4" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 5.3333, -13.28)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight5" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 7.1111, -10.48)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight6" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 8.8889, -13.28)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight7" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 10.6667, -10.48)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight8" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 52.8, 12.4444, -13.28)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Flight9" parent="WaterTower" instance=ExtResource("11_stairs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 14.2222, -10.48)
+rise = 1.7778
+width = 1.2
+tread = 0.28
+max_riser = 0.18
+surface = "metal"
+solid = false
+
+[node name="Landings" type="CSGCombiner3D" parent="WaterTower"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="North1" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 1.6778, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="South2" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 3.4556, -9.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="North3" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 5.2333, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="South4" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 7.0111, -9.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="North5" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 8.7889, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="South6" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 10.5667, -9.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="North7" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 12.3444, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="South8" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 14.1222, -9.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="North9" type="CSGBox3D" parent="WaterTower/Landings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 15.9, -13.88)
+size = Vector3(2.4, 0.2, 1.2)
+material = ExtResource("8_metal")
+
+[node name="CageEast" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 53.43, 0, -9.28)
+length = 5.2
+height = 17.1
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.3)
+
+[node name="CageNorth" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51, 0, -14.51)
+length = 2.4
+height = 17.1
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.3)
+
+[node name="CageSouthB" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.2, 0, -9.25)
+length = 1.2
+height = 17.1
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.3)
+
+[node name="CageSouthA" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51, 2.4, -9.25)
+length = 1.2
+height = 14.7
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.1)
+
+[node name="CageWest" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 50.97, 0, -9.28)
+length = 5.2
+height = 15.6
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.3)
+
+[node name="CageWestTop" parent="WaterTower" instance=ExtResource("5_fence")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 50.97, 16, -9.28)
+length = 4
+height = 1.1
+bar_spacing = 0.3
+bar_width = 0.05
+rails = PackedFloat32Array(0.55)
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="Poles" type="CSGCombiner3D" parent="Lights"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="PoleGate" type="CSGBox3D" parent="Lights/Poles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 3.6, -17.5)
+size = Vector3(0.3, 7.2, 0.3)
+material = ExtResource("8_metal")
+
+[node name="PoleEast" type="CSGBox3D" parent="Lights/Poles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.6, -9)
+size = Vector3(0.3, 7.2, 0.3)
+material = ExtResource("8_metal")
+
+[node name="PoleBack" type="CSGBox3D" parent="Lights/Poles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 2.6, 23.5)
+size = Vector3(0.3, 5.2, 0.3)
+material = ExtResource("8_metal")
+
+[node name="PolePontoon" type="CSGBox3D" parent="Lights/Poles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 1.6, 32.5)
+size = Vector3(0.3, 3.2, 0.3)
+material = ExtResource("8_metal")
+
+[node name="FloodGate" parent="Lights" instance=ExtResource("12_flood_lamp")]
+transform = Transform3D(0.4258, 0.5599, -0.7108, 0, 0.7856, 0.6188, 0.9048, -0.2635, 0.3345, -14.5, 7.4, -17)
+
+[node name="Light" parent="Lights/FloodGate"]
+light_energy = 3
+spot_range = 22
+spot_angle = 42
+
+[node name="Powered" parent="Lights/FloodGate"]
+circuit = &"warehouse_yard"
+
+[node name="FloodDockW" parent="Lights" instance=ExtResource("12_flood_lamp")]
+transform = Transform3D(1, 0, 0, 0, 0.656, 0.7547, 0, -0.7547, 0.656, -8, 6.5, -10.85)
+
+[node name="Light" parent="Lights/FloodDockW"]
+light_energy = 3
+spot_range = 20
+spot_angle = 45
+
+[node name="Powered" parent="Lights/FloodDockW"]
+circuit = &"warehouse_yard"
+
+[node name="FloodDockE" parent="Lights" instance=ExtResource("12_flood_lamp")]
+transform = Transform3D(0.9847, 0.1307, -0.1153, 0, 0.6618, 0.7497, 0.1743, -0.7382, 0.6517, 8, 6.5, -10.85)
+
+[node name="Light" parent="Lights/FloodDockE"]
+light_energy = 3
+spot_range = 20
+spot_angle = 45
+
+[node name="Powered" parent="Lights/FloodDockE"]
+circuit = &"warehouse_yard"
+
+[node name="FloodEast" parent="Lights" instance=ExtResource("12_flood_lamp")]
+transform = Transform3D(0.2873, 0.7827, -0.5521, 0, 0.5764, 0.8171, 0.9578, -0.2348, 0.1656, 24, 7.4, -9.5)
+
+[node name="Light" parent="Lights/FloodEast"]
+light_energy = 3
+spot_range = 22
+spot_angle = 42
+
+[node name="Powered" parent="Lights/FloodEast"]
+circuit = &"warehouse_yard"
+
+[node name="FloodBack" parent="Lights" instance=ExtResource("12_flood_lamp")]
+transform = Transform3D(0.5145, -0.7545, 0.4074, 0, 0.4751, 0.8799, -0.8575, -0.4527, 0.2444, 9, 5.4, 23.5)
+
+[node name="Light" parent="Lights/FloodBack"]
+light_energy = 2
+spot_range = 14
+spot_angle = 50
+
+[node name="Powered" parent="Lights/FloodBack"]
+circuit = &"warehouse_yard"
+
+[node name="LampSideDoor" parent="Lights" instance=ExtResource("13_wall_lamp")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -20.5, 3, -7.2)
+
+[node name="Light" parent="Lights/LampSideDoor"]
+light_energy = 1
+omni_range = 6
+
+[node name="Powered" parent="Lights/LampSideDoor"]
+circuit = &"warehouse_yard"
+
+[node name="LampBooth" parent="Lights" instance=ExtResource("14_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 2.6, -22)
+
+[node name="Light" parent="Lights/LampBooth"]
+light_energy = 0.8
+omni_range = 5
+
+[node name="Powered" parent="Lights/LampBooth"]
+circuit = &"warehouse_yard"
+
+[node name="LampPontoon" parent="Lights" instance=ExtResource("13_wall_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3, 32.66)
+
+[node name="Light" parent="Lights/LampPontoon"]
+light_energy = 0.8
+omni_range = 6
