@@ -1,8 +1,11 @@
 class_name Lock
 extends Node3D
-## Base of the lock components (ADR 0078): one way to unlock the entity's Lockable. Place it where
-## the lock is (keypad, card slot, keyhole): its sounds and noises come from there. A subclass
-## overrides the hooks it needs; the entity (a Door) asks every Lock on it:
+## Base of the lock components (ADR 0078): one way to unlock the entity's Lockable. Its sounds and
+## noises come from where it sits; a Door places it on its hardware (ADR 0098). A subclass overrides
+## the hooks it needs; the entity (a Door) asks every Lock on it:
+## - mount() / hardware(): where its hardware goes and what it looks like (ADR 0098): a fitting on the
+##   door leaf (a keyhole), its own box on the wall beside the frame (keypad, card reader), or only a
+##   light on any wall box (an electronic lock: its own status box when there is no other);
 ## - use_prompt() / use_locked(): what E does to the locked entity (enter a code, swipe a card);
 ## - locked_reason(): why it stays shut ("keycard", "lockpick"), for "Locked: ..." prompts;
 ## - grants_passage() / passage_layers(): characters it lets through while locked (navigation);
@@ -11,6 +14,11 @@ extends Node3D
 ## Any lock can have a free side (ADR 0090): from that side of the entity (its +Z: FRONT, -Z: BACK)
 ## it opens without the key, like an exit handle or a push bar (opens_freely_for(); the Door opens
 ## without unlocking it, Lockable.grants_passage() lets characters there through).
+
+## Where a lock's hardware goes (ADR 0098): LEAF on the door leaf, on both faces (moves with it);
+## WALL its own box on the wall beside the frame, on both faces; INDICATOR only the lock light on
+## the wall boxes (its own box, hardware(), when the entity has no other).
+enum Mount { LEAF, WALL, INDICATOR }
 
 ## Free sides of the entity: none, FRONT (its +Z side), BACK (its -Z side).
 const NO_SIDE := 0
@@ -39,6 +47,17 @@ static func locks_of(node: Node) -> Array[Lock]:
 	return result
 
 
+## Where its hardware goes (Mount).
+func mount() -> int:
+	return Mount.INDICATOR
+
+
+## The scene of its hardware (a wall box: StaticBody3D with a `Shape` CollisionShape3D box, origin on
+## the back face, +Z out, a `Light` mesh; a leaf fitting: a Node3D on the leaf's face, +Z out), or null.
+func hardware() -> PackedScene:
+	return null
+
+
 func lockable() -> Lockable:
 	return Lockable.of(entity)
 
@@ -52,6 +71,13 @@ func is_locked() -> bool:
 func unlock_for(user: Node, how: StringName) -> bool:
 	var target := lockable()
 	return target != null and target.unlock(user, how, true)
+
+
+## Opens the locked entity for `user` without unlocking it (a card swipe: it is locked again once
+## closed). False when it was not locked.
+func grant_for(user: Node, how: StringName) -> bool:
+	var target := lockable()
+	return target != null and target.grant(user, how)
 
 
 ## Prompt for E on the locked entity when this lock can be dealt with that way ("E: enter code"),

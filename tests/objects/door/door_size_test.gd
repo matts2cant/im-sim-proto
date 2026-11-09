@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0090): door size is data. The same `door.tscn` with other DoorSettings fills a
-## bigger doorway: its panel, noise attenuator, navigation carve and control panels follow the
+## bigger doorway: its panel, noise attenuator, navigation carve and wall boxes (ADR 0098) follow the
 ## settings' doorway, and it opens by the settings' travel (a roller door rises, a gate slides past
 ## its posts on one side of the fence). Doors with different settings never share their shapes.
 
@@ -35,7 +35,12 @@ func test_a_roller_door_fills_4_by_4_m_and_rises_into_the_wall_above() -> void:
 	assert_float(carve.height).is_equal_approx(4.0, 0.001)
 	var doorway := entity.get_node("SoundAttenuator/Doorway") as CollisionShape3D
 	assert_bool((doorway.shape as BoxShape3D).size.is_equal_approx(Vector3(4, 4, 0.6))).is_true()
-	assert_float((entity.get_node("ControlFront") as Node3D).position.x).is_equal_approx(-2.3, 0.001)
+	# Its leaf rises out of reach: a plain control box on each wall face beside the frame (ADR 0098).
+	for front: bool in [true, false]:
+		var boxes := door.hardware.controls(front)
+		assert_int(boxes.size()).is_equal(1)
+		assert_float(boxes[0].position.x).is_equal_approx(-2.0 - DoorLayout.BOX_COLUMN, 0.001)
+		assert_object((Usable.of(boxes[0]) as DoorControl).lock).is_null()
 
 	# Closed, it blocks sight 3.5 m up (above any 1.2 x 2.2 m door); open, the doorway is clear.
 	var space := entity.get_world_3d().direct_space_state
@@ -115,29 +120,28 @@ func test_doors_with_other_settings_do_not_share_shapes() -> void:
 	assert_float(small_carve.vertices[1].x).is_equal_approx(0.7, 0.001)
 
 
-func test_a_control_panel_in_a_narrow_corridor_hangs_on_its_side_wall() -> void:
-	# A 1.2 m door at the end of a 1.5 m corridor on its front: the side wall is 0.75 m from the
-	# doorway's centre line, where the panel beside the doorway (0.9 m) would sit inside the wall.
+func test_wall_boxes_in_a_narrow_corridor_hang_on_its_side_wall() -> void:
+	# A 1.2 m keypad door at the end of a 1.5 m corridor on its front: the side wall is 0.75 m from the
+	# doorway's centre line, where a box beside the doorway (0.77 m) would sit inside the wall.
 	var entity := DOOR.instantiate() as StaticBody3D
 	var door := entity.get_node("Door") as Door
 	door.settings = PLAIN
 	door.front_side_wall = 0.75
+	var keypad := KeypadLock.new()
+	keypad.name = "KeypadLock"
+	entity.add_child(keypad)
 	_root.add_child(entity)
-	var face := door.wall_thickness * 0.5 + 0.02
-	for node_name: String in ["ControlFront", "ControlFrontShape"]:
-		var node := entity.get_node(node_name) as Node3D
-		# On the side wall's face (the 4 cm deep box's back against it), its face across the corridor
-		# (+X), inside the corridor and in from the door's wall.
-		assert_float(node.position.x).override_failure_message(node_name).is_equal_approx(-0.73, 0.001)
-		assert_float(node.position.z).override_failure_message(node_name).is_equal_approx(
-			face + Door.SIDE_PANEL_DEPTH, 0.001
-		)
-		assert_bool(node.basis.z.is_equal_approx(Vector3.RIGHT)).override_failure_message(node_name).is_true()
-	# The back face (no corridor) keeps its panel beside the doorway, facing back.
-	var back := entity.get_node("ControlBack") as Node3D
-	assert_float(back.position.x).is_equal_approx(-0.9, 0.001)
+	var face := door.wall_thickness * 0.5
+	var front := door.hardware.controls(true)[0]
+	# Its back face against the side wall, its face across the corridor (+X), in from the door's wall.
+	assert_float(front.position.x).is_equal_approx(-0.75, 0.001)
+	assert_float(front.position.z).is_equal_approx(face + DoorLayout.SIDE_DEPTH, 0.001)
+	assert_bool(front.basis.z.is_equal_approx(Vector3.RIGHT)).is_true()
+	# The back face (no corridor) keeps its box beside the doorway, facing back.
+	var back := door.hardware.controls(false)[0]
+	assert_float(back.position.x).is_equal_approx(-0.6 - DoorLayout.BOX_COLUMN, 0.001)
 	assert_float(back.position.z).is_equal_approx(-face, 0.001)
-	assert_bool(back.basis.z.is_equal_approx(Vector3.BACK * -1.0)).is_true()
+	assert_bool(back.basis.z.is_equal_approx(Vector3.FORWARD)).is_true()
 
 
 func _door(settings: DoorSettings, at: Vector3) -> StaticBody3D:

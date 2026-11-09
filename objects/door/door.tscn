@@ -1,6 +1,5 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/graybox/interactive.tres" id="1_interactive"]
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
 [ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
 [ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
@@ -13,6 +12,7 @@
 [ext_resource type="Script" path="res://objects/door/door.gd" id="11_door"]
 [ext_resource type="Resource" path="res://objects/door/door_settings.tres" id="12_settings"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="13_device"]
+[ext_resource type="Script" path="res://objects/door/door_hardware.gd" id="14_hardware"]
 
 [sub_resource type="BoxShape3D" id="Shape_panel"]
 size = Vector3(1.3, 2.25, 0.06)
@@ -26,15 +26,17 @@ roughness = 0.5
 material = SubResource("Material_panel")
 size = Vector3(1.3, 2.25, 0.06)
 
-[sub_resource type="BoxShape3D" id="Shape_control"]
-size = Vector3(0.2, 0.3, 0.04)
+[sub_resource type="BoxShape3D" id="Shape_handle"]
+size = Vector3(0.32, 0.36, 0.11)
 
-[sub_resource type="BoxMesh" id="Mesh_control"]
-material = ExtResource("1_interactive")
-size = Vector3(0.2, 0.3, 0.04)
+[sub_resource type="StandardMaterial3D" id="Material_handle"]
+albedo_color = Color(0.16, 0.17, 0.19, 1)
+metallic = 0.5
+roughness = 0.4
 
-[sub_resource type="BoxMesh" id="Mesh_light"]
-size = Vector3(0.06, 0.04, 0.012)
+[sub_resource type="BoxMesh" id="Mesh_handle"]
+material = SubResource("Material_handle")
+size = Vector3(0.32, 0.36, 0.11)
 
 [sub_resource type="BoxShape3D" id="Shape_doorway"]
 size = Vector3(1.2, 2.2, 0.6)
@@ -50,49 +52,16 @@ shape = SubResource("Shape_panel")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.13, 0)
 mesh = SubResource("Mesh_panel")
 
-[node name="ControlFrontShape" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.146)
-shape = SubResource("Shape_control")
+[node name="Handle" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.59, 1, 0)
+shape = SubResource("Shape_handle")
 
-[node name="ControlBackShape" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.146)
-shape = SubResource("Shape_control")
+[node name="HandleMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.59, 1, 0)
+mesh = SubResource("Mesh_handle")
 
-[node name="ControlFront" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.146)
-
-[node name="Box" type="MeshInstance3D" parent="ControlFront"]
-mesh = SubResource("Mesh_control")
-
-[node name="Light" type="MeshInstance3D" parent="ControlFront"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0.025)
-mesh = SubResource("Mesh_light")
-
-[node name="Label" type="Label3D" parent="ControlFront"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.022)
-pixel_size = 0.0012
-modulate = Color(0.08, 0.08, 0.08, 1)
-outline_size = 0
-font_size = 26
-double_sided = false
-
-[node name="ControlBack" type="Node3D" parent="."]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.9, 1.25, -0.146)
-
-[node name="Box" type="MeshInstance3D" parent="ControlBack"]
-mesh = SubResource("Mesh_control")
-
-[node name="Light" type="MeshInstance3D" parent="ControlBack"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0.025)
-mesh = SubResource("Mesh_light")
-
-[node name="Label" type="Label3D" parent="ControlBack"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.022)
-pixel_size = 0.0012
-modulate = Color(0.08, 0.08, 0.08, 1)
-outline_size = 0
-font_size = 26
-double_sided = false
+[node name="Hardware" type="Node3D" parent="."]
+script = ExtResource("14_hardware")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("2_tags")

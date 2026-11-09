@@ -12,4 +12,5 @@ panel_thickness = 0.08
 panel_offset = 0.0
 attenuate_below = 0.5
 slide_noise = 15.0
+wall_control = true
 blocking_mask = 142

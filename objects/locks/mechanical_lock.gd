@@ -1,6 +1,7 @@
 class_name MechanicalLock
 extends Lock
-## Lock component: a pin-tumbler lock (ADR 0078). Its pins are data (`MechanicalLockData`, for
+## Lock component: a pin-tumbler lock (ADR 0078), a keyhole on the door leaf's handle on both faces
+## (ADR 0098: it is picked by looking at the leaf). Its pins are data (`MechanicalLockData`, for
 ## M10's minigame). The pick hook is the Lock tool interface: a user holding a tool of kind
 ## `data.tool` (a lockpick) works it through ToolUse. The M8 placeholder: hold LMB for
 ## pins x `seconds_per_pin` x the picker's `lockpick_time_mult`; letting go (or looking away) loses
@@ -10,11 +11,20 @@ extends Lock
 
 const TIME_ATTRIBUTE: StringName = &"lockpick_time_mult"
 const OPEN_TONE_HZ := 660.0
+const HARDWARE: PackedScene = preload("res://objects/locks/hardware/keyhole.tscn")
 
 @export var data: MechanicalLockData
 
 var _progress: PickProgress = null
 var _picker: Node = null
+
+
+func mount() -> int:
+	return Mount.LEAF
+
+
+func hardware() -> PackedScene:
+	return HARDWARE
 
 
 func pin_count() -> int:

@@ -5,9 +5,12 @@ extends Lock
 ## when the entity is tagged `door.fail_safe`; a `door.fail_secure` entity (or one with neither tag)
 ## stays as it was. Power loss is the entity's Powered switching off, or the entity gaining
 ## `state.unpowered` (its Device mirrors its Powered into that tag; anything else may set it too).
+## Hardware (ADR 0098): the lock light on the entity's wall boxes; a status box of its own when no
+## other lock puts a box on the wall.
 
 const FAIL_SAFE: StringName = &"door.fail_safe"
 const FAIL_SECURE: StringName = &"door.fail_secure"
+const HARDWARE: PackedScene = preload("res://objects/locks/hardware/status_box.tscn")
 
 var _tags: Tags
 var _powered: Powered
@@ -21,6 +24,14 @@ func _ready() -> void:
 	_powered = Powered.of(entity)
 	if _powered != null:
 		_powered.power_changed.connect(_on_power_changed)
+
+
+func mount() -> int:
+	return Mount.INDICATOR
+
+
+func hardware() -> PackedScene:
+	return HARDWARE
 
 
 func locked_reason(_user: Node) -> String:
