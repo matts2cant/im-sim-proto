@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="1_player"]
+
+[node name="BatonWall" type="Node3D"]
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(40, 1, 40)
+
+[node name="Wall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -2.2)
+use_collision = true
+size = Vector3(40, 4, 0.4)
+
+[node name="Devices" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+reload_on_reset = false
