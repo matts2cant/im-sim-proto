@@ -17,7 +17,7 @@ extends Resource
 @export_group("Glow")
 ## The lens, a bright dot on the carrier while lit, and the halo around it (seen from far away).
 @export var lens_emission: float = 6.0
-@export var halo_size: float = 0.45
+@export var halo_size: float = 0.7
 
 @export_group("When")
 ## Awareness states (AwarenessModel.STATE_NAMES) of the carrier that switch it on.

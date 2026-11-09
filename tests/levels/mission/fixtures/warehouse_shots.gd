@@ -5,7 +5,8 @@ extends Node3D
 ## overview camera), waits, saves `<folder>/<name>.png` and quits after the last one. Positions are
 ## warehouse coordinates (x east, z south, origin at the compound centre). `crouch`: crouched eye
 ## height. `cam`: a free camera at `eye` instead of the player (HUD hidden). User args: `dark=1`
-## turns breakers A and B off; `perf=1` prints frames per second (vsync off); `lit=1` raises the
+## turns breakers A and B off; `perf=1` prints frames per second (vsync off) and the physics-process
+## time; `flashlights=0|1` (and `flashlight_shadows=0`) sets every guard's flashlight; `lit=1` raises the
 ## ambient light and clears the fog (layout review only: it is not what the player sees).
 ## The doors and security devices' shots (M9c) live in warehouse_security_shots.gd: `view` puts the
 ## free camera at a device's view node (a camera's eye), `terminal` opens that terminal logged in on
@@ -168,27 +169,27 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# facing that point), its flashlight on while patrolling.
 	"m9g_patrol_light_15m":
 	{
-		"feet": Vector3(-30, 0, -6),
-		"look": Vector3(-26, 1.0, 9),
+		"feet": Vector3(-33, 0, -11),
+		"look": Vector3(-32, 1.0, 4),
 		"guard": "G2YardPatrolWest",
-		"guard_at": Vector3(-26, 0, 9),
-		"guard_face": Vector3(-18, 0, 3)
+		"guard_at": Vector3(-32, 0, 4),
+		"guard_face": Vector3(-24, 0, -4)
 	},
-	"m9g_patrol_light_side":
+	"m9g_patrol_light_facing":
 	{
-		"feet": Vector3(-14, 0, -2),
-		"look": Vector3(-24, 0.8, 8),
+		"feet": Vector3(-33, 0, -11),
+		"look": Vector3(-32, 1.0, 4),
 		"guard": "G2YardPatrolWest",
-		"guard_at": Vector3(-26, 0, 9),
-		"guard_face": Vector3(-26, 0, -3)
+		"guard_at": Vector3(-32, 0, 4),
+		"guard_face": Vector3(-33, 0, -11)
 	},
 	"m9g_caught_in_cone":
 	{
-		"feet": Vector3(-30, 0, -6),
-		"look": Vector3(-30, 1.5, 2),
+		"feet": Vector3(-28, 0, -11.5),
+		"look": Vector3(-24, 1.5, -3),
 		"guard": "G2YardPatrolWest",
-		"guard_at": Vector3(-30, 0, 2),
-		"guard_face": Vector3(-30, 0, -6)
+		"guard_at": Vector3(-24, 0, -3),
+		"guard_face": Vector3(-28, 0, -11.5)
 	},
 }
 
@@ -205,6 +206,8 @@ var _camera: Camera3D
 ## `perf=1`: vsync off, and each shot prints the frames per second while it waits.
 var _perf := false
 var _frames := 0
+## `perf=1`: summed physics-process time (ms) over the frames counted.
+var _physics_ms := 0.0
 
 @onready var _level: Node3D = $Warehouse
 @onready var _player: Player = $Warehouse/Player
@@ -240,6 +243,8 @@ func _ready() -> void:
 	if args.get("perf", "") == "1":
 		_perf = true
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	if args.has("flashlights"):
+		_set_flashlights(args["flashlights"] == "1", args.get("flashlight_shadows", "1") == "1")
 	if args.get("dark", "") == "1":
 		Powered.set_circuit(get_tree(), &"warehouse_yard", false)
 		Powered.set_circuit(get_tree(), &"warehouse_building", false)
@@ -263,6 +268,7 @@ func _next() -> void:
 			# Holds its post there, facing the point.
 			var to: Vector3 = (_shot["guard_face"] as Vector3) - guard.global_position
 			guard.global_rotation.y = atan2(-to.x, -to.z)
+			(guard as NavWalker).face_towards(_shot["guard_face"])
 			var behaviour := guard.get_node("Behaviour") as AwarenessBehaviour
 			behaviour.route = null
 			behaviour.post = guard.global_position
@@ -312,14 +318,17 @@ func _process(delta: float) -> void:
 	_time += delta
 	if _time > 0.5:
 		_frames += 1
+		_physics_ms += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	if _time < WAIT:
 		return
 	if _perf:
-		print("%s: %.0f fps" % [_shot["name"], _frames / (_time - 0.5)])
+		var physics := _physics_ms / maxf(_frames, 1)
+		print("%s: %.0f fps, physics process %.2f ms" % [_shot["name"], _frames / (_time - 0.5), physics])
 	_frames = 0
+	_physics_ms = 0.0
 	var path := "%s/%s.png" % [_out, _shot["name"]]
 	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(path))
-	print("Saved ", path)
+	print("Saved ", path, " (player light level %.2f)" % LightExposure.of(_player).level)
 	var screen := TerminalScreen.of(_player)
 	if screen != null and screen.is_open():
 		screen.close()
@@ -327,6 +336,16 @@ func _process(delta: float) -> void:
 		(_level.get_node(hidden) as Node3D).visible = true
 	_shot = {}
 	_next()
+
+
+# `flashlights=1`: every guard's flashlight on (on while patrolling); `0`: only on its awareness
+# states. `flashlight_shadows=0`: the beams cast no shadows (cost comparison).
+func _set_flashlights(on: bool, shadows: bool) -> void:
+	for node in _level.find_children("*", "Node3D", true, false):
+		var light := node as Flashlight
+		if light != null:
+			light.on_while_patrolling = on
+			light.beam.shadow_enabled = shadows
 
 
 func _place_player() -> void:

@@ -11,6 +11,6 @@ colour = Color(1, 0.95, 0.85, 1)
 angle_attenuation = 1.0
 shadows = true
 lens_emission = 6.0
-halo_size = 0.45
+halo_size = 0.7
 on_states = Array[StringName]([&"searching", &"alerted"])
 off_tags = Array[StringName]([&"state.unconscious", &"state.dead"])
