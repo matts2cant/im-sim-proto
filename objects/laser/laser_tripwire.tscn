@@ -1,0 +1,120 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/electronics.tres" id="7_electronics"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="Script" path="res://objects/laser/laser_tripwire.gd" id="20_laser"]
+[ext_resource type="Resource" path="res://objects/laser/laser_tripwire.tres" id="21_config"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="30_disable"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="31_enable"]
+
+[sub_resource type="BoxShape3D" id="Shape_box"]
+size = Vector3(0.12, 0.12, 0.08)
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+material = ExtResource("11_metal_surface")
+size = Vector3(0.12, 0.12, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="Material_lens"]
+shading_mode = 0
+albedo_color = Color(0.9, 0.05, 0.04, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_glass"]
+albedo_color = Color(0.08, 0.02, 0.02, 1)
+metallic = 0.6
+roughness = 0.15
+
+[sub_resource type="CylinderMesh" id="Mesh_lens"]
+material = SubResource("Material_lens")
+top_radius = 0.022
+bottom_radius = 0.022
+height = 0.012
+radial_segments = 12
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_glass"]
+material = SubResource("Material_glass")
+top_radius = 0.03
+bottom_radius = 0.03
+height = 0.01
+radial_segments = 12
+rings = 1
+
+[node name="LaserTripwire" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="EmitterShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
+shape = SubResource("Shape_box")
+
+[node name="ReceiverShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.04)
+shape = SubResource("Shape_box")
+
+[node name="Emitter" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
+mesh = SubResource("Mesh_box")
+
+[node name="Lens" type="MeshInstance3D" parent="Emitter"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.044)
+cast_shadow = 0
+mesh = SubResource("Mesh_lens")
+
+[node name="Receiver" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 3)
+
+[node name="Box" type="MeshInstance3D" parent="Receiver"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
+mesh = SubResource("Mesh_box")
+
+[node name="Window" type="MeshInstance3D" parent="Receiver/Box"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.043)
+cast_shadow = 0
+mesh = SubResource("Mesh_glass")
+
+[node name="Beam" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+unit_size = 6.0
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.laser"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 20.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_disable"), ExtResource("31_enable")])
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+script = ExtResource("6_breakable")
+material = ExtResource("7_electronics")
+settings = ExtResource("8_break_settings")
+break_on_depleted = false
+size = 0.15
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("9_powered")
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("10_device")
+broken_hide = Array[NodePath]([NodePath("../Emitter/Lens")])
+
+[node name="LaserBehaviour" type="Node" parent="."]
+script = ExtResource("20_laser")
+config = ExtResource("21_config")

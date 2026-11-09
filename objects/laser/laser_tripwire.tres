@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LaserTripwireConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/laser/laser_tripwire_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+detect_mask = 206
+ignored_tags = Array[StringName]([&"actor.guard"])
+trip_anyway_tags = Array[StringName]([&"state.unconscious", &"state.dead"])
+beam_width = 0.03
+end_inset = 0.08
+beam_color = Color(1, 0.08, 0.05, 1)
+rearm_delay = 1.0
+beep_loudness = 8.0
+beep_hz = 1760.0
