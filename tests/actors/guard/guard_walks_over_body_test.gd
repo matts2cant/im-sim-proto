@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 ## dead character (character_fixtures, no ally tag, so no body discovery) lies along +X from its feet
 ## at (-0.9, 0, -3), across the straight path from the guard's post (origin) to (0, 0, -5.5); the
 ## lying capsule is 0.71 m high, above the guard's 0.35 m step. The guard (controlled by the test)
-## walks there at 1.8 m/s: 5.5 m in about 3.1 s. Standing, the same character blocks it.
+## walks there at 1.5 m/s: 5.5 m in about 3.7 s. Standing, the same character blocks it.
 
 const Guards := preload("res://tests/actors/guard/guard_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
