@@ -2,6 +2,6 @@
 
 [resource]
 resource_name = "lock_hardware_body"
-albedo_color = Color(0.17, 0.18, 0.2, 1)
+albedo_color = Color(0.26, 0.27, 0.3, 1)
 metallic = 0.45
 roughness = 0.4

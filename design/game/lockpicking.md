@@ -8,7 +8,7 @@ A mechanical-lock minigame true to real pin-tumbler locks and their vocabulary. 
 
 ## Player-facing behaviour
 
-- **Start**: lockpick selected on the belt, left-click a lock within reach ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses). The view locks onto the lock.
+- **Start**: lockpick selected on the belt, left-click a lock within reach (a door's pin lock: its leaf, where the keyhole sits on the handle, from either face, [ADR 0098](../decisions/0098-door-lock-hardware-and-keycard-relock.md)) ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses). The view locks onto the lock.
 - **Leave**: E or Esc, or taking damage. Leaving releases tension and loses all progress.
 - **Real time**: the world keeps running; guards can walk up on you.
 - **View**: outside only: keyway, tension wrench and pick tip. No HUD meters, no X-ray. The player reads the lock through sound and tool motion.
