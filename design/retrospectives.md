@@ -77,6 +77,28 @@ Final suite: 1400 tests, 0 failures, 76 s.
   - Lesson: scenario tests on a stealth route also assert that no guard becomes Suspicious where the design says the route is quiet.
   - The reproduction-first bug brief found the real cause again. My guess (cabinet noise) was wrong.
 
+### M9g — playtest fixes (2026-11-09)
+
+Four agents in two waves, each merged on a green full run:
+- Noise reach on partial paths and investigation arrival (ADR 0094).
+- Darkness floor for moving targets, flashlights, and a searcher meter threshold (ADR 0095).
+- The laser tripwire device and the gallery laser hall (ADR 0096).
+- Roof security: high beams at both stair arrivals and a camera mast with a flood lamp over duct B's forecourt, on the yard network (ADR 0097).
+
+Final suite: 1461 tests, 80 s.
+
+- **Went well:**
+  - The bug agent, resumed with its own context, fixed the defect it had found.
+  - Merging the first finisher and messaging the others to merge master worked across three parallel agents. Only the ADR index conflicted.
+  - No game-code change was needed for the roof: two new devices composed into the level.
+- **Went wrong:**
+  - My roof brief left out "commit in small steps", so the work came back uncommitted. CLAUDE.md's worktree line now asks for it.
+  - The darkness agent added a rule I had not briefed (searchers need meter 0.2). It was justified, but it is a behaviour change the user must confirm.
+- **Open for the user:**
+  - Is the searcher threshold right?
+  - The lit forecourt is visible from the north catwalk through the east skylight: keep it as design?
+  - A Speed Enhancement jump over a 1.3 m beam is untested.
+
 ## M8 — Security (2026-11-08)
 
 Four agents in three waves: M8a devices, cable graph, remote commands and alarm devices (ADR 0077, replacing the global LevelAlarm per ADR 0075); M8b doors, locks, keypads, multitool removal, Computer skill (ADR 0078, 0076); M8c cameras, turret, terminal (ADR 0079, 0080); M8d the security wing (gallery room 5). A Sonnet agent fixed a flaky HUD test before the last merge. Final suite: 1188 tests, 0 failures.
