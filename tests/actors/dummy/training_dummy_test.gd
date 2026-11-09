@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Integration: the player's pistol and baton against a training dummy (hit location, headshots,
-## floating numbers, knockout from behind and from the front, reset).
+## floating numbers, knockout from behind and from the front, reset; a standing dummy holds still).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
@@ -156,6 +156,19 @@ func test_reset_restores_health_consciousness_and_pose() -> void:
 	assert_float(animator.weight_of(animator.config.unconscious_clip)).is_equal(0.0)
 	assert_bool((_dummy.get_node("Tags") as Tags).has(&"state.unconscious")).is_false()
 	assert_array(EventLog.find(&"actor.reset")).has_size(1)
+
+
+func test_a_standing_dummy_stands_still() -> void:
+	await _load()
+	# A mannequin (ADR 0105): its animator's idle clip is `static`, so no part moves.
+	var animator := _dummy.get_node("Animator") as CharacterAnimator
+	var start: Dictionary[StringName, Transform3D] = {}
+	for part_name: StringName in [&"torso", &"head", &"arm-left", &"arm-right", &"leg-left", &"leg-right"]:
+		start[part_name] = animator.part(part_name).transform
+	await _driver.frames(120)
+	assert_float(animator.weight_of(&"static")).is_equal(1.0)
+	for part_name: StringName in start:
+		assert_bool(animator.part(part_name).transform.is_equal_approx(start[part_name])).is_true()
 
 
 func _load() -> void:

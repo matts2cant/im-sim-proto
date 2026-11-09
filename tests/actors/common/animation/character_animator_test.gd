@@ -4,13 +4,19 @@ extends GdUnitTestSuite
 ## plays walk at a rate scaled to the ground speed, running sprints, a shot plays the grip's shoot
 ## clip over the hold pose with the weapon in the hand, a downed character plays the down clip and
 ## holds it lying on the floor, waking returns to idle, and a loaded save shows the downed pose at
-## once.
+## once. ADR 0105: every shipped weapon is held one-handed, each at its WeaponData hold turn (the
+## baton upright across the fist, the guns along the forearm); a stand-in two-handed weapon still
+## holds with both arms; a character whose idle clip is `static` (the dummy's config) stands still.
 
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const MODEL: PackedScene = preload("res://assets/models/kenney_blocky_characters/character-j.glb")
 const CONFIG: CharacterAnimConfig = preload("res://actors/common/animation/blocky_character_anim.tres")
 const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol_unsilenced.tres")
 const RIFLE: WeaponData = preload("res://items/weapons/assault_rifle/assault_rifle.tres")
+const MANNEQUIN: CharacterAnimConfig = preload("res://actors/common/animation/blocky_mannequin_anim.tres")
+const HELD: Array[String] = [
+	"baton/baton", "pistol/pistol", "assault_rifle/assault_rifle", "shotgun/shotgun", "sniper_rifle/sniper_rifle"
+]
 const ORIGIN := Vector3(-260, 0, 260)
 const MODEL_SCALE: float = 0.66
 
@@ -74,12 +80,52 @@ func test_a_shot_plays_the_shoot_clip_with_the_weapon_in_hand() -> void:
 	await _physics(30)
 	assert_str(String(animator.action.current.clip)).is_empty()
 	assert_float(animator.weight_of(CONFIG.hold_one_hand_clip)).is_equal(1.0)
-	# A two-handed weapon holds with both arms and sits between the hands.
+	# A two-handed weapon (a stand-in: none ships) holds with both arms and sits between the hands.
 	holder.equip(1)
 	await _physics(20)
 	assert_float(animator.weight_of(CONFIG.hold_two_hand_clip)).is_equal(1.0)
 	var centre := view.global_position - body.global_position
 	assert_float(absf(centre.x)).is_less(0.1)
+
+
+func test_every_weapon_is_held_one_handed_at_its_hold_turn() -> void:
+	var body := await _character("Holder")
+	var animator := _animator(body)
+	var holder := body.get_node("Aim/WeaponHolder") as WeaponHolder
+	var view := holder.view_pivot()
+	for weapon_path in HELD:
+		var data := load("res://items/weapons/%s.tres" % weapon_path) as WeaponData
+		holder.equip_state(WeaponState.new(data))
+		await _physics(20)
+		assert_float(animator.weight_of(CONFIG.hold_one_hand_clip)).override_failure_message(weapon_path).is_equal(1.0)
+		assert_float(animator.weight_of(CONFIG.hold_two_hand_clip)).is_equal(0.0)
+		assert_bool(view.transform.is_equal_approx(WeaponView.hold_transform(data))).is_true()
+		# The forearm points ahead in the hold pose; the weapon's -Z (its barrel, the baton's length).
+		var forearm := -animator.hand_mount.global_basis.z.normalized()
+		var along := -view.global_basis.z.normalized()
+		assert_float(forearm.dot(-body.global_basis.z)).is_greater(0.95)
+		if data.is_melee():
+			# Upright across the fist, like a baton held in a fist.
+			assert_float(absf(along.dot(forearm))).override_failure_message(weapon_path).is_less(0.1)
+			assert_float(along.dot(Vector3.UP)).is_greater(0.95)
+		else:
+			assert_float(along.dot(forearm)).override_failure_message(weapon_path).is_greater(0.99)
+
+
+func test_a_static_idle_clip_stands_still() -> void:
+	var body := await _character("Mannequin", false)
+	var animator := CharacterAnimator.new()
+	animator.name = "Animator"
+	animator.config = MANNEQUIN
+	body.add_child(animator)
+	await _physics(3)
+	var start: Dictionary[StringName, Transform3D] = {}
+	for part_name: StringName in [&"torso", &"head", &"arm-left", &"arm-right", &"leg-left", &"leg-right"]:
+		start[part_name] = animator.part(part_name).transform
+	await _physics(120)
+	assert_float(animator.weight_of(MANNEQUIN.idle_clip)).is_equal(1.0)
+	for part_name: StringName in start:
+		assert_bool(animator.part(part_name).transform.is_equal_approx(start[part_name])).is_true()
 
 
 func test_a_downed_character_lies_on_the_floor_then_wakes_to_idle() -> void:
@@ -175,7 +221,9 @@ func _character(character_name: String, settle: bool = true) -> CharacterBody3D:
 	var holder := WeaponHolder.new()
 	holder.name = "WeaponHolder"
 	holder.aim_config = AimConfig.new()
-	holder.weapons = [PISTOL, RIFLE] as Array[WeaponData]
+	var two_handed := RIFLE.duplicate() as WeaponData
+	two_handed.grip = WeaponData.Grip.TWO_HAND
+	holder.weapons = [PISTOL, two_handed] as Array[WeaponData]
 	eye.add_child(holder)
 	holder.setup(body, eye)
 	if settle:
