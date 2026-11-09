@@ -4,7 +4,7 @@
 [ext_resource type="Resource" path="res://actors/guard/guard_walker.tres" id="2_walker_config"]
 [ext_resource type="Script" path="res://actors/common/movement/step_climber.gd" id="3_step"]
 [ext_resource type="Resource" path="res://actors/guard/guard_step.tres" id="4_step_config"]
-[ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="5_hitboxes"]
+[ext_resource type="PackedScene" path="res://actors/common/body/blocky_hitboxes.tscn" id="5_hitboxes"]
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="6_tags"]
 [ext_resource type="Script" path="res://core/attributes/attributes.gd" id="7_attributes"]
 [ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="8_receiver"]
@@ -53,43 +53,14 @@
 [ext_resource type="Script" path="res://actors/common/door_opener/door_opener.gd" id="48_door_opener"]
 [ext_resource type="Script" path="res://actors/common/weapon_drop/weapon_drop.gd" id="51_weapon_drop"]
 [ext_resource type="PackedScene" path="res://actors/common/light/flashlight.tscn" id="52_flashlight"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_blocky_characters/character-j.glb" id="53_model"]
+[ext_resource type="Script" path="res://actors/common/animation/character_animator.gd" id="54_animator"]
+[ext_resource type="Resource" path="res://actors/common/animation/blocky_character_anim.tres" id="55_anim_config"]
+[ext_resource type="PackedScene" path="res://actors/common/animation/blocky_shadow_proxy.tscn" id="56_shadow"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
 height = 1.8
-
-[sub_resource type="StandardMaterial3D" id="Material_uniform"]
-albedo_color = Color(0.27, 0.33, 0.45, 1)
-roughness = 0.8
-
-[sub_resource type="StandardMaterial3D" id="Material_skin"]
-albedo_color = Color(0.78, 0.66, 0.55, 1)
-roughness = 0.8
-
-[sub_resource type="StandardMaterial3D" id="Material_visor"]
-albedo_color = Color(0.1, 0.1, 0.12, 1)
-roughness = 0.3
-
-[sub_resource type="SphereMesh" id="Mesh_head"]
-material = SubResource("Material_skin")
-radius = 0.14
-height = 0.28
-
-[sub_resource type="BoxMesh" id="Mesh_visor"]
-material = SubResource("Material_visor")
-size = Vector3(0.2, 0.06, 0.06)
-
-[sub_resource type="BoxMesh" id="Mesh_torso"]
-material = SubResource("Material_uniform")
-size = Vector3(0.44, 0.62, 0.26)
-
-[sub_resource type="BoxMesh" id="Mesh_arm"]
-material = SubResource("Material_uniform")
-size = Vector3(0.13, 0.66, 0.16)
-
-[sub_resource type="BoxMesh" id="Mesh_leg"]
-material = SubResource("Material_uniform")
-size = Vector3(0.17, 0.9, 0.2)
 
 [node name="Guard" type="CharacterBody3D"]
 collision_layer = 4
@@ -105,35 +76,10 @@ config = ExtResource("4_step_config")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("Shape_body")
 
-[node name="Pose" type="Node3D" parent="."]
+[node name="Pose" parent="." instance=ExtResource("56_shadow")]
 
-[node name="Head" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0)
-mesh = SubResource("Mesh_head")
-
-[node name="Visor" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.67, -0.115)
-mesh = SubResource("Mesh_visor")
-
-[node name="Torso" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.21, 0)
-mesh = SubResource("Mesh_torso")
-
-[node name="ArmL" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 1.18, 0)
-mesh = SubResource("Mesh_arm")
-
-[node name="ArmR" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.18, 0)
-mesh = SubResource("Mesh_arm")
-
-[node name="LegL" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.45, 0)
-mesh = SubResource("Mesh_leg")
-
-[node name="LegR" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.45, 0)
-mesh = SubResource("Mesh_leg")
+[node name="Model" parent="." instance=ExtResource("53_model")]
+transform = Transform3D(-0.66, 0, 0, 0, 0.66, 0, 0, 0, -0.66, 0, 0, 0)
 
 [node name="Hitboxes" parent="." instance=ExtResource("5_hitboxes")]
 
@@ -242,3 +188,7 @@ script = ExtResource("48_door_opener")
 
 [node name="WeaponDrop" type="Node" parent="."]
 script = ExtResource("51_weapon_drop")
+
+[node name="Animator" type="Node" parent="."]
+script = ExtResource("54_animator")
+config = ExtResource("55_anim_config")

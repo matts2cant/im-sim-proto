@@ -191,6 +191,16 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"guard_at": Vector3(-24, 0, -3),
 		"guard_face": Vector3(-28, 0, -11.5)
 	},
+	# Character models (ADR 0103): the west yard patrol's model and flashlight from 4 m, eye height.
+	"characters_patrol_light":
+	{
+		"cam": true,
+		"eye": Vector3(-29.2, 1.65, 1.2),
+		"look": Vector3(-32, 1.0, 4),
+		"guard": "G2YardPatrolWest",
+		"guard_at": Vector3(-32, 0, 4),
+		"guard_face": Vector3(-27, 0, -2)
+	},
 }
 
 ## Review image size (the project's 16:9 default).

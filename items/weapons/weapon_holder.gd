@@ -29,8 +29,12 @@ extends Node3D
 ## dropped weapon, WeaponDrop, ADR 0087); the save lists the ones left.
 ## `cause_id` (ADR 0087): when set, every stimulus the holder emits names it as its cause, so what
 ## the weapon does traces back to whoever made it fire (a turret's last command).
+## A character with a model hangs the view from its hand (WeaponView.hang_from(), CharacterAnimator,
+## ADR 0103): the weapon follows the arm; shots still leave the eye.
 
 signal changed
+## A shot or a swing of `weapon` happened (the trigger fired it): animation, effects.
+signal fired(weapon: WeaponData)
 
 const ATTRIBUTE_SPREAD: StringName = &"aim_spread_add"
 const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
@@ -242,6 +246,7 @@ func trigger() -> int:
 				_swing(data)
 			else:
 				_shoot(data)
+			fired.emit(data)
 			changed.emit()
 		WeaponState.Result.DRY:
 			_play(data.dry_fire_sound, 0.0)

@@ -94,7 +94,10 @@ func test_baton_from_behind_on_unaware_dummy_knocks_out_in_one_hit() -> void:
 	assert_str(blunt[0].data["part"]).is_equal("torso")
 	await _driver.frames(40)
 	assert_bool(_dummy.is_down).is_true()
-	assert_float(_dummy.pose.rotation.x).is_equal_approx(PI / 2.0, 0.01)
+	assert_float(_dummy.hitboxes.rotation.x).is_equal_approx(PI / 2.0, 0.01)
+	# The model plays its down clip (ADR 0103).
+	var animator := _dummy.get_node("Animator") as CharacterAnimator
+	assert_float(animator.weight_of(animator.config.unconscious_clip)).is_equal(1.0)
 
 
 func test_baton_from_the_front_takes_three_hits() -> void:
@@ -144,7 +147,13 @@ func test_reset_restores_health_consciousness_and_pose() -> void:
 	assert_float(_dummy.body.stun).is_equal(0.0)
 	assert_float(_dummy.body.health(&"torso")).is_equal(80.0)
 	assert_bool(_dummy.is_down).is_false()
-	assert_float(_dummy.pose.rotation.x).is_equal_approx(0.0, 0.001)
+	assert_float(_dummy.hitboxes.rotation.x).is_equal_approx(0.0, 0.001)
+	# The model stands up again (ADR 0103).
+	var animator := _dummy.get_node("Animator") as CharacterAnimator
+	assert_str(String(animator.state.down_clip())).is_empty()
+	await _driver.frames(40)
+	assert_float(animator.weight_of(animator.config.idle_clip)).is_equal(1.0)
+	assert_float(animator.weight_of(animator.config.unconscious_clip)).is_equal(0.0)
 	assert_bool((_dummy.get_node("Tags") as Tags).has(&"state.unconscious")).is_false()
 	assert_array(EventLog.find(&"actor.reset")).has_size(1)
 

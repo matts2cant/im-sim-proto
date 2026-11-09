@@ -36,7 +36,7 @@ A HUD body silhouette shows each part's health (pure green only at full health, 
 
 ### Hit location ([ADR 0047](../decisions/0047-hitboxes-layer-5-part-aware-ray.md))
 
-- Characters carry `actors/common/body/hitboxes.tscn`: six `AnimatableBody3D` boxes/spheres on collision layer 5 (hitboxes) with no mask and metadata `body_part`, sized for a 1.8 m humanoid (origin at the feet, facing -Z). The player's hitboxes move down with crouching.
+- Characters carry `actors/common/body/hitboxes.tscn`: six `AnimatableBody3D` boxes/spheres on collision layer 5 (hitboxes) with no mask and metadata `body_part`, sized for a 1.8 m humanoid (origin at the feet, facing -Z). The player's hitboxes move down with crouching. Guards and training dummies carry `blocky_hitboxes.tscn`: the same shapes moved to their blocky model's parts at rest (head sphere centre 1.52 m, torso box 0.96 m, arms at ±0.4 m; legs unchanged; [ADR 0103](../decisions/0103-character-models-and-animation.md)). They do not animate; the model's 0.53 m head is bigger than the 0.28 m head sphere, so a shot at its outer part misses it.
 - Weapon rays and melee sweeps query `PhysicsLayers.WEAPON_MASK` (world, objects, hitboxes), never the character bodies (layers 2/3), and exclude the shooter's own body and hitboxes.
 - StimulusSystem passes the hit `collider` to the receivers' effects (`EffectContext.data`, also for CONTACT: the node touched). The `body_damage` receptron (`actors/common/body/receptrons/body_damage.tres`, `BodyDamageEffect`) reads the part from the collider's metadata.
 - **Without a part** (RADIUS, or CONTACT to the entity itself) damage is shared out by the profile's `area_weights_by_type` (type -> part shares, the most specific type wins; data in the `.tres`, ADR 0056): `damage.explosive` torso 40 %, each other part 12 %; `damage.fire` evenly over all six; `damage.blunt` torso; `damage.fall` both legs 50/50; any type without an entry to `default_part` (torso).
@@ -91,9 +91,9 @@ flowchart LR
 
 ### Training dummy (`actors/dummy/`)
 
-- Static humanoid graybox figure (`StaticBody3D` on layers 3, actors, and 7, static actors) with BodyParts (dummy profile), Hitboxes, `Awareness` (exported `aware`, default false) and a facing (-Z, marked by its visor). It does not move, so it has no MovementNoise, FallImpact or Knockback; props collide with layer 7, so thrown props bounce off it and its ImpactSensor stays off ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)).
+- Static humanoid (`StaticBody3D` on layers 3, actors, and 7, static actors) with BodyParts (dummy profile), Hitboxes (`blocky_hitboxes.tscn`), `Awareness` (exported `aware`, default false) and a facing (-Z). It looks like the Kenney blocky crash-test character `character-d` on a round base, idling (`CharacterAnimator`, [ADR 0103](../decisions/0103-character-models-and-animation.md)). It does not move, so it has no MovementNoise, FallImpact or Knockback; props collide with layer 7, so thrown props bounce off it and its ImpactSensor stays off ([ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)).
 - Every hit shows a floating number (`Label3D`, part and amount; stun points in blue, `KO` in yellow) that rises and fades over 1.2 s.
-- Knocked out or dead it tips over backwards (figure, hitboxes and collision together). `use` (E) on it, or `reset()`, restores health, stun, consciousness and pose (`actor.reset`).
+- Knocked out or dead it tips over backwards (hitboxes, collision and the shadow proxy together) and its model plays `die`, lying on the floor; a reset stands it up again (the model eases back to idle). `use` (E) on it, or `reset()`, restores health, stun, consciousness and pose (`actor.reset`).
 
 ## Interactions
 
@@ -103,4 +103,4 @@ flowchart LR
 
 - Damage to an already disabled limb is lost (DX1 passes it to the torso); revisit if limbs feel like damage sponges.
 - Stun points never decay; M7 decides whether guards recover or only wake when another guard finds them.
-- Guards (M7) use the dummy's numbers (`actors/guard/guard_body.tres`) and the same hitboxes; their capsule and hitboxes need a crouch pose if guards ever crouch.
+- Guards (M7) use the dummy's numbers (`actors/guard/guard_body.tres`) and the same hitboxes (`blocky_hitboxes.tscn`, ADR 0103); their capsule and hitboxes need a crouch pose if guards ever crouch.

@@ -13,7 +13,7 @@ Pillars (v0): stealth/perception, physics objects, security/electronics, fire. W
 In:
 
 - A hub, a test gallery (one room per system) and one small warehouse mission.
-- Player movement incl. mantle and vents; body-part damage; pistol, shotgun, sniper rifle, assault rifle (Kenney Blaster Kit models), a silencer attachment and the stun baton; grid inventory.
+- Player movement incl. mantle and vents; body-part damage; pistol, shotgun, sniper rifle, assault rifle (Kenney Blaster Kit models), a silencer attachment and the stun baton; grid inventory. Guards and training dummies are animated Kenney Blocky Characters ([ADR 0103](decisions/0103-character-models-and-animation.md)).
 - Skills (4 tiers) and augmentations with energy; no leveling.
 - Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm devices (controller, sirens, radio base station), locks, keypads, terminals.
 - Network hacking: subnets, firewalls, a deck, computers with desktop apps, tracers ([game/hacking.md](game/hacking.md)).
@@ -107,6 +107,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (100 decisions, 0001–0102; 0062 and 0081 unused).
+- [decisions/README.md](decisions/README.md): ADR index (102 decisions, 0001–0104; 0062 and 0081 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

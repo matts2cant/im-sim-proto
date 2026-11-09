@@ -43,7 +43,9 @@ func test_1_front_gate_alarm_and_reinforcements() -> void:
 	var ok := await hands.draw(&"pistol")
 	ok = ok and await _route.go([Vector3(-12, 0, -30), _clear_spot(g1)])
 	ok = ok and await hands.shoot_down(g1)
-	ok = ok and await hands.use_door(FRONT_GATE)
+	# The guard may have opened the gate itself, going to look at the first missed shots.
+	if not hands.door(FRONT_GATE).is_open():
+		ok = ok and await hands.use_door(FRONT_GATE)
 	ok = (
 		ok
 		and await _route.wait_until(

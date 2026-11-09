@@ -129,7 +129,10 @@ func test_baton_from_behind_knocks_an_unaware_guard_out_and_it_lies_down_deaf_an
 	assert_bool(pose.is_down).is_true()
 	var collision := _g.guard.get_node("Collision") as CollisionShape3D
 	assert_float(collision.position.y).is_less(0.5)
-	assert_float((_g.guard.get_node("Pose") as Node3D).rotation.x).is_equal_approx(PI * 0.5, 0.01)
+	assert_float((_g.guard.get_node("Hitboxes") as Node3D).rotation.x).is_equal_approx(PI * 0.5, 0.01)
+	# The model plays its down clip and holds it (ADR 0103).
+	var animator := _g.guard.get_node("Animator") as CharacterAnimator
+	assert_float(animator.weight_of(animator.config.unconscious_clip)).is_equal(1.0)
 	# Sees and hears nothing.
 	attacker.global_position = Vector3(0, 0, -3)
 	assert_object(PerceptionSensor.of(_g.guard).look()).is_null()

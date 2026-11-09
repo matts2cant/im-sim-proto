@@ -7,6 +7,9 @@ extends Node3D
 ## a placeholder box ("ViewModel", WeaponData.view_size and view_color), both at view_box_offset. The
 ## MuzzleFlash sits at the model's muzzle or the box's front. While the user is cloaked the view is
 ## translucent. Visual only: shots, sweeps and timings live in the holder.
+## In a character's hand (`in_hand`, hang_from(), ADR 0103) the pivot sits at its
+## mount instead of the camera offset, the arm's animation carries the swing (only the recoil stays)
+## (it casts no shadow, like the animated arm holding it).
 
 ## Recoil time of a shot; a swing animates over half its cycle.
 const KICK_TIME: float = 0.12
@@ -27,7 +30,12 @@ var data: WeaponData
 ## Its model, or null (the box, or nothing shown).
 var model: WeaponModel
 
+## Held in a character's hand (third person) rather than in front of a camera.
+var in_hand: bool = false
+
 var _box: MeshInstance3D
+# The holder this view belongs to (its parent before it hung from a hand).
+var _home: Node
 var _box_material: StandardMaterial3D
 var _cloaked: bool = false
 var _kick: float = 0.0
@@ -80,6 +88,19 @@ func show_weapon(weapon_state: WeaponState) -> void:
 	flash.transform = Transform3D.IDENTITY
 	flash.clear()
 	visible = true
+	_animate()
+
+
+## Hangs the view from `mount` (a character's hand: the grip pivot sits there and the model's
+## animation moves it), or back under its holder in first person when null. Visual
+## only: shots still leave the holder's eye.
+func hang_from(mount: Node3D) -> void:
+	if _home == null:
+		_home = get_parent()
+	var parent: Node = mount if mount != null else _home
+	if get_parent() != parent:
+		reparent(parent, false)
+	in_hand = mount != null
 	_animate()
 
 
@@ -142,11 +163,19 @@ func _set_cloaked(cloaked: bool) -> void:
 			geometry.transparency = 1.0 - CLOAKED_ALPHA if cloaked else 0.0
 
 
-# Recoil (ranged) or a chop about the grip (melee) while the kick timer runs.
+# Recoil (ranged) or a chop about the grip (melee) while the kick timer runs. In a hand the pivot
+# rests at the mount and only the recoil moves it (the arm swings a melee weapon).
 func _animate() -> void:
 	if data == null:
 		return
 	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
+	if in_hand:
+		var held := Transform3D.IDENTITY
+		if not data.is_melee():
+			held.basis = Basis(Vector3.RIGHT, 0.25 * t)
+			held.origin = Vector3(0, 0, 0.04 * t)
+		transform = held
+		return
 	var pose := Transform3D(_euler_deg(data.view_rest_deg), rest_position(data.view_offset, shift_deg))
 	if data.is_melee():
 		# Fast chop to the bottom of the swing, slower return to the ready pose.

@@ -339,6 +339,21 @@ No gallery room yet: open `tests/scenarios/fixtures/guard_post_player.tscn` and 
 - [ ] It pushes small crates out of its way gently (at most 2 m/s), cannot shove the large crate, and never flings props.
 - [ ] Guard icons toggle off and on in the Overlays tab; barks are readable at a distance and disappear after about 2 s.
 
+## Character models and animation ([ADR 0103](../decisions/0103-character-models-and-animation.md))
+
+Guards are the Kenney blocky police officer, training dummies the crash-test figure. Review shots: run `tests/actors/common/animation/fixtures/character_shots.tscn` with `-- shots=all` (PNGs in `reports/screenshots/characters/`). Tuning lives in `actors/common/animation/blocky_character_anim.tres`.
+
+- [ ] A patrolling guard's legs keep pace with the ground (no obvious skating or moonwalking at 1.5 m/s; `walk_clip_speed` 2.6); an investigating guard (2.5 m/s) walks faster, an alerted one sprints (4 m/s) without its feet sliding.
+- [ ] Switching between idle, walk and sprint blends (about 0.2 s) without pops; turning on the spot does not look broken.
+- [ ] A drawn pistol or baton raises the right arm, a rifle both arms; walking with a gun drawn, the legs walk while the arms hold. The weapon sits in the hand (pistol at the fist, rifle between the fists) and points where the guard aims, also up or down a stair.
+- [ ] Every shot kicks the arms and torso; the muzzle flash shows at the gun in the hand. A baton swing raises the arm overhead and chops. Shots still come from the guard's eyes (cover that hides its hand but not its head does not stop its shots, as before).
+- [ ] Knocked out or killed, the guard falls backwards and lies flat on the floor (nothing sinks into it or floats); you can walk over it and pick it up; carried, it stays in its lying pose (translucent). A revived guard gets up smoothly (about 0.5 s) and idles.
+- [ ] Quicksave with a guard lying down, quickload: it is already lying (no fall replayed).
+- [ ] Headshots: aim at the middle of the big head (the hit zone is the old 0.28 m head; its edges and top miss). Report whether this feels unfair.
+- [ ] Training dummies idle on their base, fall over when knocked out or killed, and stand up again on E (reset).
+- [ ] Guards cast a blocky shadow under lamps (a static proxy: it does not swing its limbs); performance with the whole warehouse populated feels unchanged.
+- [ ] A guard fits through the levels' 1.2 m doors without its arms visibly passing through the frame.
+
 ## M7 Bodies, shouts, radio, alarm ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md), [ADR 0072](../decisions/0072-shouts-radio-level-alarm.md))
 
 In the hub: AI arena (doorway "6 AI Arena", south wall) and the Perception lab. Debug panel Overlays: "Guard state" shows state, meter and wary time; Event Log: `actor.body_found`, `actor.wake`, `actor.revived`, `actor.shout`, `actor.radio`, `actor.heard_call`, `alarm.raised`, `alarm.ended`.
