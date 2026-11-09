@@ -22,14 +22,26 @@ Every stimulus emit and receptron firing is written to the `EventLog` (tick, kin
 
 Determinism comes from the fixed `_physics_process` tick and the next-tick queue ([architecture.md](architecture.md)).
 
-## Commands
+## Running tests
 
 ```sh
-tools/run_tests.sh                       # all tests, headless
-tools/run_tests.sh res://tests/core      # a subset
-tools/lint.sh                            # gdformat --check + gdlint
-tools/lint.sh --fix                      # format in place
+tools/run_tests.sh                              # all tests: ~40 s on this machine (12 parallel shards)
+tools/run_tests.sh res://tests/core             # a subset (folders and/or suite files)
+tools/run_tests.sh -j 1 res://tests/ui          # one Godot process, output streamed as it runs
+tools/run_tests.sh -j 1 $(cat reports/shards/3/suites.txt)   # replay one shard of the last run, in order
+TEST_FIXED_FPS=0 tools/run_tests.sh ...         # real-time frames instead of simulated time (debugging)
+TEST_IMPORT=1 tools/run_tests.sh ...            # force the project import
+tools/lint.sh                                   # gdformat --check + gdlint
+tools/lint.sh --fix                             # format in place
 ```
+
+The runner ([ADR 0084](../decisions/0084-parallel-fixed-fps-test-runner.md)):
+
+- **Imports only when needed**: when a file was added, deleted or renamed, a file other than a script or Markdown changed, or a script's `class_name`/`extends`/`@tool`/`@abstract`/`@icon` line changed (the global class cache). Editing a test body skips the import (saves 7-9 s).
+- **Splits the suites into parallel shards** (`-j N` or `TEST_JOBS`; default min(12, logical cores / 2)): contiguous slices of the sorted suite list, balanced on each suite's measured share of the wall time (`reports/suite_times.tsv`, rewritten after every run). Each shard is its own Godot process with its own `user://` (`reports/shards/<n>/appdata`) and report directory.
+- **Runs simulated time** (`--fixed-fps 144`): frames no longer wait for the wall clock. Physics still steps at 1/60 s, so physics-frame tests behave as before.
+- Writes Godot's output straight to `reports/shards/<n>/output.log` (never through a pipe) and turns Godot's own log file off (`--log-file NUL`, test runs only).
+- Prints the failures with their messages, one `Timing:` line (before shards, shards, after) with the slowest shard's breakdown, then **exactly one `Overall Summary: ... | exit N` line**. It exits non-zero on any failure, error, flaky retry, crashed shard (no summary: its last 30 lines are printed) or script error from project code (`tools/test_error_allowlist.txt` lists the known engine noise).
 
 The Godot binary comes from `GODOT_BIN`, defaulting to `C:\Program Files\Godot\Godot_v4.7.2-stable_win64_console.exe`.
 
@@ -37,9 +49,27 @@ A pre-commit hook (`tools/hooks`, installed by `tools/install_hooks.sh`) runs fo
 
 See [../decisions/0011-testing-strategy.md](../decisions/0011-testing-strategy.md).
 
+## Writing fast tests
+
+The full suite went from a 705 s median to ~40 s (1282 tests, [test-speed-kaizen.md](test-speed-kaizen.md)). These rules keep it there. Numbers were measured on this machine (24 logical cores, Godot 4.7.2).
+
+**Where the time goes.** The slowest shard sets the pace, and the slowest shards are the ones holding the biggest suites: `movement_course_test` (14 tests, each loading the hub: 35 s) and `hub_start_guards_test` (one test simulating 60 s of the hub: 34 s). A shard costs ~3.5 s to start (engine, autoloads, GdUnit scanning its suites) plus ~0.07 s per suite. A pure-logic test costs ~9 ms in total.
+
+1. **Wait for game time or a condition, never for a count of process frames.** With `--fixed-fps 144` a process frame is 1/144 s of game time (times the time factor), so a time factor `n` gives 2.4 process frames per physics frame at `n` = 1 and 0.27 at `n` = 9. Waiting "30 process frames" for a 0.25 s refresh was 0.21-0.5 s of game time in real-time runs (a coin flip) and is always too short at a fixed 144 fps (`network_overlay_test`). Await physics frames (`await get_tree().physics_frame`), a game-time duration (frames x 1/60 s), or poll a condition with a frame cap (`SaveHelpers.wait_for_load`). Label text refreshed in `_process` lags physics frames: call the component's refresh before asserting.
+2. **Time factors are safe**: `runner.set_time_factor(n)` keeps the physics delta at 1/60 s and only runs more physics steps per frame. Prefer them for long simulations over shortening the simulated time.
+3. **Every frame of simulation costs CPU, even with fixed fps.** An idle hub physics frame costs ~5 ms, ~9 ms with its guards at work: 60 s of hub simulation took 34 s of wall time (`hub_start_guards_test`). Simulate only as long as the behaviour needs, and use a small fixture scene instead of the hub unless the test is about the hub.
+4. **Heavy scenes cost per load**: loading the hub with `scene_runner` takes 0.9-1.4 s, then ~5 ms per physics frame. A scene that is still in the tree keeps simulating: with three hubs alive, 60 physics frames took 2.5 s instead of 0.3 s. Let the runner free scenes between tests (do not keep extra references); new heavy suites should keep their test count small or split by concern into several suites (shards can run them in parallel; one suite always runs in one process).
+5. **Prints are cheap now, but do not log per frame.** With stdout on a pipe each flushed `print()` stalled Godot (a pure-logic test took 30-90 ms instead of 9 ms); the runner writes to a file, but thousands of prints still fill the shard logs.
+6. **Navigation**: bake a `duplicate()` of a fixture's NavigationMesh; switch the map to synchronous iterations only through `GuardHelpers.use_sync_iterations(map, region)` (switching while an asynchronous iteration runs wedges a Godot 4.7.2 map for good: path queries then use a stale map, see `tests/actors/guard/guard_helpers_test.gd`), and `GuardHelpers.isolate_region()` against late-freed floors of earlier suites. Place navigation fixtures far from the origin and from other suites' fixtures.
+7. **Do not assert on log entries that can happen while a helper clears the log.** `PlayerDriver.place()` clears the EventLog after the 5 frames it waits; an event during those frames (a guard that sees the player at once) is lost. Collect such events from `EventLog.entry_added` before calling the helper (`guard_body_combat_test`).
+8. **Parallel safety**: shards are separate processes, so autoload state and node positions never leak between shards, but within a shard suites still run one after another in one process. Write files only under `user://` (each shard has its own; never into `res://`, which all shards share), reset autoload state (`EventLog.clear()`, `StimulusSystem.clear()`, `DebugPanel.set_open(false)`) in `before_test`, restore engine-wide settings you change (map async iterations, `Engine.time_scale`, `Input.mouse_mode`) in `after_test`, and never open fixed network ports. Shards are contiguous slices of the serial order, so a suite only follows suites it also follows in a serial run.
+9. **Iterate on a subset** (`tools/run_tests.sh res://tests/<area>` or the suite files you touched, 4-15 s) and run the full suite once at the end. Never stop a running suite mid-way; it leaves Godot processes and half-written reports.
+10. **A test that fails only in a full run** is order-dependent: replay its shard in order (`tools/run_tests.sh -j 1 $(cat reports/shards/<n>/suites.txt)`), then bisect that list. Fix the leak or the race at its source (it was a wedged navigation map or a frame-exact race every time so far), never with retries: GdUnit's flaky retry must stay off and the runner fails a run that reports flaky tests.
+11. **Check a timing-sensitive test under both clocks** when it waits on process frames, UI refreshes or timers: `TEST_FIXED_FPS=0 tools/run_tests.sh <suite>` as well as the default.
+
 ## Deterministic physics tests
 
-- Drive physics with a fixed number of physics frames (`await get_tree().physics_frame`), never wall-clock time. `runner.set_time_factor(n)` is safe (delta stays 1/60).
+- Drive physics with a fixed number of physics frames (`await get_tree().physics_frame`), never wall-clock time. `runner.set_time_factor(n)` is safe (delta stays 1/60). The runner simulates time (`--fixed-fps 144`): see "Writing fast tests".
 - Reset suite member fields in `before_test`; call `EventLog.clear()` before asserting on the log.
 - Fixture scenes live next to the tests (`tests/<area>/fixtures/`). Wait a few frames after loading CSG before relying on its collision.
 - Reuse drivers: `tests/actors/player/player_driver.gd` presses actions and steps frames for the player.
