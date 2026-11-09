@@ -17,6 +17,9 @@ extends CharacterBody3D
 ## `move_speed_mult` scales speed. The attributes `jump_apex_height` and `mantle_max_height` (base:
 ## config) change the jump and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
 ## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
+## Weapons (ADR 0085): LMB held sets the WeaponHolder's `trigger_held` (automatic weapons), RMB
+## (`alt_fire`) toggles a weapon's scope; the camera follows the holder's scope FOV and mouse look
+## scales with it.
 ## Saveable.
 
 signal mantled(height: float)

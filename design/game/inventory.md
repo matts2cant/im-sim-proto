@@ -14,6 +14,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - Q with something in hand (and nothing carried) drops it in front of you; it falls, makes an impact noise and can be picked up again with the same magazine or key.
 - Datapads are not items: they are read in place (E) and what they say goes to the personal log (L), see [Datapads and the personal log](#datapads-and-the-personal-log).
 - I opens the inventory screen and pauses the game: drag items around the grid, onto belt slots, or out of the panel to drop them; right-click for Use / Drop / Split stack / Assign to belt slot; hover for a tooltip.
+- Drag a silencer and every weapon it fits lights up (grid and belt); drop it on one to fit it for good ([Attachments](#attachments), [ADR 0085](../decisions/0085-weapons-and-attachments.md)).
 
 ## Rules
 
@@ -21,14 +22,21 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 - `ItemData` Resource per item (`items/<item>/<item>.tres`; the weapons' in `items/weapons/<weapon>/<weapon>_item.tres`): id, display and short name, description, footprint (w x h cells), max stack, graybox icon colour, world scene (a path, to avoid a load cycle with the scene's ItemPickup), `auto_belt`, `default_state`, use action (`NONE`, `EQUIP_WEAPON`, `CONSUME`, `EQUIP_TOOL`) and its parameters (weapon; `tool_kind` for tools (M8: `lockpick`; a Lock accepts the kinds that work it); `use_stimuli`, `use_scale_attribute` and `refused_message` for consumables; the `NONE` message). `use_scale_attribute` (M6) names an attribute of the user that scales every use stimulus on emit (`Stimulus.scale_attribute`, [ADR 0061](../decisions/0061-abilities-model.md)): the medkit's `medical_heal_mult` is the Medicine skill.
 - `items/item_catalog.tres` (`ItemCatalog`) lists every item; saves store ids and look them up there; the debug panel's "Give item" lists it.
-- Instance state lives on the stack (`state` Dictionary): `magazine` (pistol), `key_id` (keycard). Items with state have max stack 1 and never merge.
+- Instance state lives on the stack (`state` Dictionary): `magazine` (weapons), `key_id` (keycard), `attachments` (weapons, {slot: item id}). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
 
 | Item | id | Footprint | Stack | Use (LMB in hand, or Use) | Auto-belt | Instance state |
 |---|---|---|---|---|---|---|
-| Silenced pistol | `pistol` | 2 x 1 | 1 | equip / holster | yes | `magazine` (10 when new) |
+| Pistol | `pistol` | 2 x 1 | 1 | equip / holster | yes | `magazine` (10 when new), `attachments` |
 | Stun baton | `baton` | 1 x 3 | 1 | equip / holster | yes | |
 | Pistol ammo | `pistol_ammo` | 1 x 1 | 100 | none ("Nothing happens") | no | |
+| Shotgun (ADR 0085) | `shotgun` | 3 x 1 | 1 | equip / holster | yes | `magazine` (6) |
+| Sniper rifle | `sniper_rifle` | 4 x 1 | 1 | equip / holster | yes | `magazine` (5), `attachments` |
+| Assault rifle | `assault_rifle` | 2 x 2 | 1 | equip / holster | yes | `magazine` (30), `attachments` |
+| Shotgun shells | `shotgun_shells` | 1 x 1 | 48 | none | no | |
+| Sniper rounds | `sniper_rounds` | 1 x 1 | 30 | none | no | |
+| Rifle rounds | `rifle_rounds` | 1 x 1 | 150 | none | no | |
+| Silencer | `silencer` | 1 x 1 | 1 | none ("Drag it onto a weapon in the inventory (I) to fit it"); dragged onto a weapon whose slots take it in the inventory screen: fitted and used up | no | |
 | Medkit | `medkit` | 1 x 1 | 15 | heal 30 x the user's `medical_heal_mult` (Medicine), consumes one; refused when unhurt | yes | |
 | Lockpick | `lockpick` | 1 x 1 | 10 | in hand, `tool_kind` `lockpick`: hold LMB on a mechanical lock (M8 hold-to-pick placeholder, consumes nothing; M10: [lockpicking minigame](lockpicking.md), breaks only on failure, success consumes nothing; loadout economy to retune) | yes | |
 | Bioelectric cell | `biocell` | 1 x 1 | 20 | `energy` 25 to the user, consumes one; refused ("Energy full") at full energy ([abilities.md](abilities.md)) | yes | |
@@ -36,11 +44,12 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Deck (M11) | `deck` | 2 x 1 | 1 | in hand: LMB on a wall jack, maintenance port or computer plugs it in; within an access point's range LMB raises it for wireless ([hacking.md](hacking.md)) | yes | copied files, Icebreaker progress per account |
 
 - The multitool was removed in M8 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): keypads take their code, network locks are hacked with the deck (M11). It is gone from the catalogue, the hub's loadout table and the inventory bay.
+- Footprints of the ADR 0085 weapons were chosen so the hub's starting kit (pistol, silencer, baton, ammo, medkits, lockpicks, biocells: 10 cells) and the whole shooting range rack (shotgun 3, sniper rifle 4, assault rifle 4, three ammo boxes, the second silencer: 15 cells) fit the 6 x 5 grid together in pickup order (`tests/levels/gallery/shooting_range/shooting_range_rack_test.gd`).
 - The deck is one model with no upgrades. Its contents live in its stack's `state`, so they travel with it when dropped and are saved with the inventory. Credentials and exploits are knowledge, kept in the PersonalLog, not on the deck.
 
 ### World pickups
 
-- Each item has a world scene: a `PhysicsObject` RigidBody3D on layer 4 (objects) with `continuous_cd`, a graybox mesh at roughly real size, `ImpactNoise` (metal, or cardboard for ammo boxes and keycards), Tags `object.item`, `object.<id>`, `material.*`, and an `ItemPickup` component (item, count, state overrides). `ItemPickup` is saveable (count, state). Level designers set `count` and `state` (e.g. `{"key_id": "office"}`) on placed pickups.
+- Each item has a world scene: a `PhysicsObject` RigidBody3D on layer 4 (objects) with `continuous_cd`, a graybox mesh at roughly real size (weapons: their `WeaponModel` from the Kenney Blaster Kit lying on its side, which shows fitted attachments; the silencer: the kit's small crate), `ImpactNoise` (metal, or cardboard for ammo boxes and keycards), Tags `object.item`, `object.<id>`, `material.*`, and an `ItemPickup` component (item, count, state overrides). `ItemPickup` is saveable (count, state). Level designers set `count` and `state` (e.g. `{"key_id": "office"}`) on placed pickups.
 - The M4 world medkit (`objects/medkit/`, E healed on the spot) is gone: `items/medkit/medkit.tscn` is a pickup and E picks it up.
 
 ### Grid ([ADR 0050](../decisions/0050-inventory-model-and-belt-references.md))
@@ -83,9 +92,18 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 - `ui/inventory/inventory_screen.tscn` (child of the Player). `inventory` (I) toggles, Esc closes. Opens only when the player can act (alive, conscious, input enabled, debug panel closed). While open the SceneTree is paused (the screen runs with `PROCESS_MODE_ALWAYS`) and the mouse is free; closing restores the previous mouse mode.
 - Dark panel, 64 px cells with thin grid lines, items as coloured rects with short name and count; the belt row (56 px slots) under the grid.
-- Left-drag: the item follows the mouse; over the grid a green (fits) or red (blocked or out of bounds) footprint shows where it lands; release on the grid moves it, on a belt slot assigns it, outside the panel drops it. Dragging an item out of a belt slot and releasing it anywhere but another slot clears that slot.
-- Right-click: Use (Equip / Put away / Use) / Drop / Split stack (half, only for counts above 1) / Assign to belt slot 1-0. Hover: tooltip (name, description, count, magazine, key). Hover + a belt key assigns the item to that slot.
+- Left-drag: the item follows the mouse; over the grid a green (fits) or red (blocked or out of bounds) footprint shows where it lands; release on the grid moves it, on a belt slot assigns it, outside the panel drops it. Dragging an item out of a belt slot and releasing it anywhere but another slot clears that slot. Dragging an attachment highlights the weapons it fits; releasing it on one fits it ([Attachments](#attachments)).
+- Right-click: Use (Equip / Put away / Use) / Drop / Split stack (half, only for counts above 1) / Assign to belt slot 1-0. Hover: tooltip (name with fitted attachments, description, count, magazine, key, "Fitted: ..."; an attachment adds "Drag onto a weapon to fit it (for good)."). Hover + a belt key assigns the item to that slot.
 - `PauseScreens` (`ui/inventory/pause_screens.gd`) tracks every open pause screen (inventory, log screen, reading overlay); the pause ends when the last closes. Closing resyncs the player's held keys so the closing key is not also an in-game press.
+
+### Attachments
+
+[ADR 0085](../decisions/0085-weapons-and-attachments.md). An attachment is an item with an `AttachmentData` (`ItemData.attachment`): the slot it takes (`muzzle`), `Modifier`s on the weapon's stats, a label ("silenced", "SIL" on the icon), a model and its length. The silencer is the only one in v0.
+
+- Compatibility is data: a weapon item's `WeaponData.attachment_slots` lists the slots it takes (pistol, sniper rifle, assault rifle: `muzzle`; shotgun: none), one attachment per slot (`Attachments.can_attach`, pure).
+- In the inventory screen, while an attachment is dragged, every stack it fits is highlighted in blue, on the grid and on the belt (`InventoryView.attach_targets()`). Dropping it on one (grid cell or belt slot) calls `PlayerInventory.attach(attachment, weapon)`: the weapon's state records it (`attachments: {"muzzle": "silencer"}`), its `WeaponState` applies the modifiers, one attachment is used up, `item.attached {item, weapon}` is logged and "Silencer fitted: Pistol (silenced)" shows. Dropped anywhere else (an incompatible item, an empty cell, a belt slot of a weapon it does not fit, outside the panel) it behaves as a normal move, belt assignment or drop.
+- **It never comes off.** It stays through save/load (the state is saved with the inventory) and drop/pick-up (the pickup keeps the state and shows the silencer on its model).
+- Names say it: the tooltip title, the HUD's weapon and item names and the pickup prompt read "Pistol (silenced)"; the tooltip adds "Fitted: silenced"; the icon shows "SIL" top right.
 
 ### Datapads and the personal log
 
@@ -110,7 +128,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 
 ### EventLog
 
-`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}` (`equip` for every item put in hand, `consume` + `stimuli`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`; reading: `log.entry_added {entry_id, title, codes}`.
+`item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.attached {item, weapon}`, `item.used {item, action}` (`equip` for every item put in hand, `consume` + `stimuli`, `nothing`), `item.use_refused {item, reason}`, `debug.gave_item {item, count}`; reading: `log.entry_added {entry_id, title, codes}`.
 
 ```mermaid
 flowchart TD
@@ -152,4 +170,5 @@ flowchart TD
 - Rotation stays parked ([../backlog.md](../backlog.md)).
 - Dropping part of a stack takes a Split first; DX1 drops one at a time. Revisit after playtests.
 - Picking up a second pistol makes a second 2 x 1 stack (no ammo is stripped from it as DX1 does).
+- Attachments cannot be removed (user decision, ADR 0085); revisit if more attachment kinds arrive.
 - Keycards may move to a keyring (no grid space) now that M8 doors use them.

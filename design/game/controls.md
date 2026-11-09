@@ -26,12 +26,12 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | ` (QuoteLeft) | Debug panel |
 | Mouse look | Look (captured mouse) |
 | Esc | Close the inventory screen, log screen or reading overlay (only that, never also the menu); otherwise open the game menu (pauses, frees the mouse): Resume, Save, Load, Quit game ([ADR 0064](../decisions/0064-game-menu.md)). In the menu: Esc closes it (on the quit question: No); Up/Down/Tab move between buttons, Enter/Space press. Also on the death and knocked-out screens |
-| LMB | Use the item in hand: fire / swing a weapon, use one medkit, a biocell's message (a tool: hold LMB on what you look at; a lockpick on a mechanical lock opens it after pins x 1 s x `lockpick_time_mult`, letting go or looking away loses the progress (M8 placeholder, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)); the lockpick minigame from M10; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
+| LMB | Use the item in hand: fire / swing a weapon (an automatic weapon, the assault rifle, keeps firing while LMB is **held** and stops when released; [ADR 0085](../decisions/0085-weapons-and-attachments.md)), use one medkit, a biocell's message (a tool: hold LMB on what you look at; a lockpick on a mechanical lock opens it after pins x 1 s x `lockpick_time_mult`, letting go or looking away loses the progress (M8 placeholder, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)); the lockpick minigame from M10; empty hands: nothing); while carrying: throw along the view. Inventory screen: drag items |
 | At a terminal (M8, [ADR 0080](../decisions/0080-credentials-terminal.md), [ADR 0083](../decisions/0083-security-terminal-redesign.md)) | E on a terminal within reach opens its screen; the game keeps running (not a pause screen) and the mouse is free. Click a field and type the user and password, Enter in the user field moves to the password, Enter there logs in; Fill in copies credentials you have read. After login: Camera tab (click a camera or turret in the list: its live view, status and command buttons) or Network tab (click a node: a menu with its status and commands; click the background to close it); Log out. Esc: leave, every time, also while typing (never also opens the game menu). E does not leave. Walking more than 3 m away (pushed, knocked out) closes it |
 | At a keypad (M8, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)) | E on a locked door with a keypad opens its entry screen (the game pauses). 0-9 (number row or numpad) or click the buttons: type; Backspace: delete; C: clear; Enter or OK: submit (a wrong code beeps, noise 4, and clears; the right one closes the screen and opens the door). Esc: leave, always, also halfway through typing (never also opens the game menu). E does not leave |
 | While lockpicking (M10, [lockpicking.md](lockpicking.md)) | Lockpick on the belt + LMB on a lock within reach starts it; the view locks on the lock. W / S: raise / lower tension (holds, no leak). A / D: move the pick between pins. Mouse Y: lift. S while lifting: ease tension (counter-rotation). E or Esc: leave (releases tension, loses progress; Esc leaves picking first and never also opens the game menu). Tier 3 skill: hold LMB ~2 s to auto-rake a Simple lock |
 | At a computer or with the deck (M11, [hacking.md](hacking.md)) | E on a computer within reach: use its screen bare-handed. Deck on the belt + LMB on a wall jack, maintenance port or computer: plug it in (tethered); LMB within an access point's range: raise the deck (wireless). The view locks on the screen; the mouse drives its cursor, the keyboard types into its text fields. Esc: step away or lower the deck, every time, also while typing (never also opens the game menu); E does not ([ADR 0083](../decisions/0083-security-terminal-redesign.md)). Wireless tools keep running with the deck lowered while you stay in range; walking away from a jack, port or computer unplugs the deck and stops its tools. The world keeps running |
-| RMB | Alt. Inventory screen: item context menu |
+| RMB | `alt_fire`: with a scoped weapon in hand (sniper rifle) **toggles** the scope: press to zoom in (view 15 degrees, scope overlay, slower mouse look), press again to zoom out; it also comes off on reload, switching or putting the weapon away and when you cannot act. Nothing with other items. The game keeps running ([ADR 0085](../decisions/0085-weapons-and-attachments.md)). Inventory screen: item context menu |
 
 ## Rules
 
@@ -44,7 +44,8 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 - Inventory, belt, pickup prompts and drop (M5): see [inventory.md](inventory.md). The inventory screen, the log screen and the reading overlay pause the game and free the mouse; only one is open at a time ([ADR 0052](../decisions/0052-inventory-pauses-the-game.md)); a key still held when they close does not count as a new press in game.
 - The terminal screen (M8) and computer and deck screens (M11) do not pause the game: while one is open the player's input is off.
 - Dead (M4): every input is ignored except E, which reloads the level ([damage.md](damage.md)).
-- Mouse sensitivity (0.0025 rad per pixel) and the ±89° pitch clamp are in `actors/player/player_config.tres`.
+- Mouse sensitivity (0.0025 rad per pixel) and the ±89° pitch clamp are in `actors/player/player_config.tres`. Through a scope the sensitivity (and the look bloom of the aim cone) is multiplied by the camera's FOV / 80 (15 / 80 fully zoomed), so the crosshair moves as far on screen per pixel as at the hip.
+- Inventory screen: dragging a silencer onto a weapon fits it ([inventory.md](inventory.md#attachments)).
 
 ## Interactions
 
@@ -52,4 +53,4 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 
 ## Open questions
 
-- Behaviour of RMB per item in game: still unbound (M6 may use it for augmentation targets).
+- RMB with items other than a scoped weapon: still unbound.
