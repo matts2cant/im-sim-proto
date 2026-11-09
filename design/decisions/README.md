@@ -80,7 +80,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted, amended by 0100 |
 | [0076](0076-computer-skill-multitool-removed.md) | Computer skill replaces Electronics; the multitool is removed | Accepted |
 | [0077](0077-devices-cables-and-remote-commands.md) | Devices, cables and remote commands (M8 alarm devices) | Accepted |
-| [0078](0078-doors-locks-and-door-navigation.md) | Doors, locks as components, and doors on the navmesh | Accepted |
+| [0078](0078-doors-locks-and-door-navigation.md) | Doors, locks as components, and doors on the navmesh | Accepted, amended by 0098 |
 | [0079](0079-security-cameras-and-turret.md) | Security cameras and the turret: device vision, a detection meter, target presets as data | Accepted |
 | [0080](0080-credentials-terminal.md) | The credentials terminal (M8 placeholder): login from known credentials, commands from receptrons | Accepted (screen amended by 0083) |
 | [0082](0082-walkable-downed-bodies.md) | Downed bodies do not block characters (layer 8 `downed`) | Accepted |
@@ -91,14 +91,15 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0087](0087-mission-systems.md) | Mission systems: a Mission node with data, objectives and tallies from events, death attribution by cause chain, level exits | Accepted |
 | [0088](0088-weapon-drops-and-bursts.md) | Weapon drops from a holder's own loadout; AI bursts with automatic weapons; the rifle guard | Accepted |
 | [0089](0089-warehouse-layout.md) | Warehouse layout: generated area scenes, see-through palisade Fence and Stairs kit parts, floodlights, breaker B in the basement | Accepted |
-| [0090](0090-door-size-free-side-locks-warehouse-security.md) | Door size as data (doorway, travel), a free side for any lock, the warehouse security population as a generated scene | Accepted |
+| [0090](0090-door-size-free-side-locks-warehouse-security.md) | Door size as data (doorway, travel), a free side for any lock, the warehouse security population as a generated scene | Accepted, amended by 0098 |
 | [0091](0091-warehouse-population.md) | Warehouse population: generated from the layout markers, crossing gaps measured by simulation, breach panel and gas cylinders, duct B hatch lip | Accepted |
-| [0092](0092-warehouse-polish.md) | Warehouse polish: tighter patrols, two security switches, barred gates, side-wall door panels, free-side navigation links, door signs, label boxes in the network graph | Accepted |
+| [0092](0092-warehouse-polish.md) | Warehouse polish: tighter patrols, two security switches, barred gates, side-wall door panels, free-side navigation links, door signs, label boxes in the network graph | Accepted, amended by 0098 |
 | [0093](0093-warehouse-route-tests.md) | Warehouse route scenario tests (chained segments, condition waits), the annex's high window and the cache shed, one shared sensor scan per frame, deferred level changes | Accepted |
 | [0094](0094-noise-reach-on-partial-paths.md) | Noise reach on partial navmesh paths (gaps only through open air, else searched backwards, else not heard); investigation arrival needs height too | Accepted |
 | [0095](0095-darkness-and-flashlights.md) | Darkness and flashlights: a light floor for moving targets in the dark (a step at 0.5 m/s), flashlights as carried spot lights lit by awareness state or a patrol flag | Accepted |
 | [0096](0096-laser-tripwires.md) | Laser tripwires: a beam device on the security network (shape query, carried ghosts, ignored tags unless downed), re-arm on a clear beam, low / high / pair heights, the security wing's laser hall | Accepted, amended by 0100 |
 | [0097](0097-warehouse-roof-security.md) | Warehouse roof security: high beams at the two roof arrivals, a camera over duct B's lit forecourt (with a sweep window), on the yard network (breaker A, the booth switch) | Accepted |
+| [0098](0098-door-lock-hardware-and-keycard-relock.md) | Door lock hardware: a handle and keyhole on the leaf, keypad / card reader / status boxes on the wall beside the frame (placed from the door's settings), E on what you look at; a keycard grants an opening and the door is locked again once closed | Accepted |
 | [0099](0099-network-map-layout-pan-zoom.md) | Network map: devices grouped by hub (3+ cables) in combs, routes that never cross, lanes between groups; pan, zoom around the cursor and fit (button, F) | Accepted |
 | [0100](0100-laser-arrays-alarm-time-downed-targets.md) | Laser arrays (one device feeding 1 to 4 authored beams, one emitter body, one incident per crossing), the alarm rings 45 s, a downed hostile is no sighting (the turret beep loop) | Accepted |
 | [0101](0101-rifles-and-sniper-skills.md) | Rifles and Sniper skills (`rifle_*`, `sniper_*` class attributes; pellet cone and sway scale with the class), ammo boxes in their weapon's colour, one screen-angle shift that lowers the player's view models | Accepted |

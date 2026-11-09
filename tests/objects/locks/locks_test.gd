@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0078): every lock component on a minimal entity (Node3D + Tags + Attributes +
-## StimulusReceiver + Lockable, no Door): each opens only by its own method, and remote lock / unlock
+## StimulusReceiver + Lockable, no Door): each opens only by its own method (a keycard grants an
+## opening without unlocking, ADR 0098), and remote lock / unlock
 ## commands reach a bare Lockable on a Device, blocked by `state.unpowered` / `state.broken`.
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -116,8 +117,14 @@ func test_keycard_reader_opens_for_its_access_only() -> void:
 	assert_bool(Lockable.of(box).grants_passage(holder)).is_true()
 	assert_int(Lockable.of(box).passage_layers()).is_equal(AccessLayers.access_layer(&"vault"))
 
+	# A swipe grants one opening and leaves it locked (ADR 0098): the card is needed every time.
+	var granted: Array[Node] = []
+	Lockable.of(box).access_granted.connect(func(user: Node) -> void: granted.append(user))
 	assert_bool(reader.use_locked(holder)).is_true()
-	assert_bool(Lockable.of(box).locked).is_false()
+	assert_bool(Lockable.of(box).locked).is_true()
+	assert_array(granted).contains_exactly([holder])
+	assert_array(EventLog.find(&"lock.unlocked")).is_empty()
+	assert_str(String(EventLog.find(&"lock.granted")[0].data["how"])).is_equal("keycard")
 
 
 func test_fail_safe_lock_unlocks_on_power_loss_and_fail_secure_stays() -> void:

@@ -3,8 +3,8 @@ extends GdUnitTestSuite
 ## tests/objects/fixtures/door_wall_guard.tscn (the wall spans the whole floor: the door is the only
 ## way). It paths through a closed unlocked door and opens it on the way; a locked door blocks its
 ## path; a locked door whose keycard lock it has access to (`access.vault`) lets it through, still
-## locked; a locked door whose lock opens freely from the guard's side (Lock.free_side) lets it plan
-## out through it, one way (M9e).
+## locked, and locked again once closed (ADR 0098); a locked door whose lock opens freely from the
+## guard's side (Lock.free_side) lets it plan out through it, one way (M9e).
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
@@ -59,6 +59,35 @@ func test_guard_with_access_passes_a_locked_keycard_door() -> void:
 	await _walk_to_target(9.0)
 
 	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
+	assert_bool(_door.is_locked()).is_true()
+
+
+func test_a_keycard_door_a_guard_opened_locks_again_once_closed() -> void:
+	# ADR 0098: the guard's access opens it without unlocking it; it stays open (doors guards open
+	# stay open) until someone closes it, and then it is locked: the guard needs its access again.
+	Helpers.add_keycard(_entity, &"vault")
+	Helpers.lock(_entity)
+	ActorState.set_tag(_guards.guard, &"access.vault", true)
+	var opened: Array[bool] = []
+	_door.state_changed.connect(func(open: bool) -> void: opened.append(open))
+	await _guards.frames(2)
+	await _walk_to_target(9.0)
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_less(-3.0)
+	assert_bool(_door.is_open()).is_true()
+	assert_bool(_door.is_locked()).is_true()
+
+	assert_bool(_door.close()).is_true()
+	await _guards.seconds(1.0)
+	assert_bool(_door.is_open()).is_false()
+	assert_bool(_door.is_locked()).is_true()
+	var link := _entity.get_node("NavigationLink3D") as NavigationLink3D
+	assert_int(link.navigation_layers & AccessLayers.WALK).is_equal(0)
+
+	# Back the other way: its access opens it again, still locked.
+	_guards.guard.move_to(Helpers.ORIGIN + Vector3(0, 0, 4), 1.8)
+	await _guards.seconds(9.0)
+	assert_float(_guards.guard.global_position.z - Helpers.ORIGIN.z).is_greater(3.0)
+	assert_array(opened).is_equal([true, false, true])
 	assert_bool(_door.is_locked()).is_true()
 
 

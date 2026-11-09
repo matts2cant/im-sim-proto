@@ -52,6 +52,11 @@ func _read(path: String) -> void:
 	await _driver.frames(1)
 
 
+# The wall box of the lock-row door `door_name` on the hall's side (its back face).
+func _control(door_name: String) -> DoorControl:
+	return Usable.of(_door(door_name).hardware.controls(false)[0]) as DoorControl
+
+
 func _wait_open(door: Door) -> void:
 	for i in 90:
 		if door.is_open() and not door.is_moving():
@@ -66,9 +71,11 @@ func test_code_keycard_login_turret_and_vault() -> void:
 	var keypad := _node("Doors/D1Keypad").get_node("KeypadLock") as KeypadLock
 	assert_str(keypad.reminder(_player)).contains("5309")
 
-	# D1: the keypad takes the code the log reminds the player of (the keypad screen submits it).
+	# D1: the keypad takes the code the log reminds the player of (the keypad screen submits it). The
+	# hall is the doors' back (-Z) side: the keypad box on that face (ADR 0098).
 	await _stand(Vector3(-6.4, 0, 5.0), Vector3(-6.4, 1.2, 6.25))
-	assert_str(_door("D1Keypad").prompt(_player)).is_equal("E: enter code")
+	assert_str(_door("D1Keypad").prompt(_player)).is_equal("Locked: keypad")
+	assert_str(_control("D1Keypad").prompt(_player)).is_equal("E: enter code")
 	assert_bool(keypad.submit(PersonalLog.of(_player).known_code(keypad.code_id()), _player)).is_true()
 	await _wait_open(_door("D1Keypad"))
 	assert_bool(_door("D1Keypad").is_open()).is_true()
@@ -77,10 +84,10 @@ func test_code_keycard_login_turret_and_vault() -> void:
 	await _stand(Vector3(-6.25, 0, 7.6), Vector3(-5.26, 1, 7.75))
 	assert_bool(_player.inventory.pick_up(ItemPickup.of(_node("Items/Keycard")))).is_true()
 
-	# D3 opens with it.
+	# D3's reader opens it with the card (it stays locked: locked again once closed).
 	await _stand(Vector3(-0.4, 0, 5.0), Vector3(-0.4, 1.2, 6.25))
-	assert_str(_door("D3Keycard").prompt(_player)).is_equal("E: open (keycard)")
-	assert_bool(_door("D3Keycard").use(_player)).is_true()
+	assert_str(_control("D3Keycard").prompt(_player)).is_equal("E: open (keycard)")
+	assert_bool(_control("D3Keycard").use(_player)).is_true()
 	await _wait_open(_door("D3Keycard"))
 	assert_bool(_door("D3Keycard").is_open()).is_true()
 

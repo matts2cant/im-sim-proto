@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
-## Integration (ADR 0078): the player and a door 1.2 m ahead (tests/objects/fixtures/door_wall_player:
-## player at z 1.2 facing the panel at z 0). E opens and closes it; each lock opens only by its own
-## method: a keypad by its code on the keypad screen (keys or clicks; Esc leaves while typing, E does not; the
-## reminder shows a code from the log), a keycard reader by a carried card with its key id, a
-## mechanical lock by holding LMB with a lockpick for pins x 1 s x lockpick_time_mult.
+## Integration (ADR 0078, 0098): the player and a door 1.2 m ahead (tests/objects/fixtures/door_wall_player:
+## player at z 1.2 facing the panel at z 0). E on the leaf opens it and E on its handle (standing out
+## of the jamb) closes it; each lock opens only by its own method, on its own hardware: a keypad box
+## by its code on the keypad screen (keys or clicks; Esc leaves while typing, E does not; the reminder
+## shows a code from the log), a card reader box by a carried card with its key id, a mechanical lock
+## (keyhole on the leaf) by holding LMB with a lockpick on the leaf for pins x 1 s x lockpick_time_mult.
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -12,7 +13,6 @@ const Items := preload("res://tests/items/item_test_helpers.gd")
 ## Relative to the fixture (Helpers.ORIGIN).
 const FEET := Vector3(0, 0, 1.2)
 const PANEL := Vector3(0, 1.4, 0)
-const CONTROL := Vector3(-0.9, 1.25, 0.15)
 
 var _driver: PlayerDriver
 var _player: Player
@@ -48,7 +48,9 @@ func test_e_opens_and_closes_the_door() -> void:
 	assert_bool(_door.is_open()).is_true()
 	assert_float(_door.openness).is_equal(1.0)
 
-	await _aim(CONTROL)
+	# Open, the leaf is in the wall: its handle stands out of the jamb.
+	await _aim_world(_door.hardware.handle_point(true))
+	assert_object(_player.interactor.target).is_same(_entity)
 	assert_str(_player.interactor.prompt).is_equal("E: close")
 	await _press(&"use")
 	await _driver.frames(45)
@@ -59,6 +61,9 @@ func test_keypad_opens_with_its_code_typed_on_the_screen() -> void:
 	Helpers.add_keypad(_entity, &"storage_door", "2817")
 	Helpers.lock(_entity)
 	await _driver.frames(2)
+	# The leaf names the keypad; the keypad box beside the frame takes the code.
+	assert_str(_player.interactor.prompt).is_equal("Locked: keypad")
+	await _aim_world(Helpers.box_point(_door))
 	assert_str(_player.interactor.prompt).is_equal("E: enter code")
 
 	await _press(&"use")
@@ -85,6 +90,7 @@ func test_keypad_buttons_can_be_clicked() -> void:
 	var keypad := Helpers.add_keypad(_entity, &"storage_door", "2817")
 	Helpers.lock(_entity)
 	await _driver.frames(2)
+	await _aim_world(Helpers.box_point(_door))
 	await _press(&"use")
 
 	for key: String in ["2", "8", "1", "7", "OK"]:
@@ -99,6 +105,7 @@ func test_esc_leaves_the_keypad_while_typing_and_e_does_not() -> void:
 	Helpers.add_keypad(_entity, &"storage_door", "2817")
 	Helpers.lock(_entity)
 	await _driver.frames(2)
+	await _aim_world(Helpers.box_point(_door))
 	await _press(&"use")
 	await _type([KEY_2, KEY_8])
 	assert_str(_screen.display_label.text).is_equal("28")
@@ -127,6 +134,7 @@ func test_keypad_shows_the_reminder_of_a_code_read_earlier() -> void:
 	(_player.get_node("ReadingOverlay") as ReadingOverlay).close()
 	await _driver.frames(2)
 	assert_bool(_screen.is_open()).is_false()
+	await _aim_world(Helpers.box_point(_door))
 
 	await _press(&"use")
 
@@ -143,6 +151,7 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	Helpers.lock(_entity)
 	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "office"})
 	await _driver.frames(2)
+	await _aim_world(Helpers.box_point(_door))
 	assert_str(_player.interactor.prompt).is_equal("Locked: keycard")
 	await _press(&"use")
 	assert_bool(_door.is_locked()).is_true()
@@ -155,7 +164,8 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	assert_str(_player.interactor.prompt).is_equal("E: open (keycard)")
 	await _press(&"use")
 
-	assert_bool(_door.is_locked()).is_false()
+	# The card opens it without unlocking it (ADR 0098): it is locked again once closed.
+	assert_bool(_door.is_locked()).is_true()
 	await _driver.frames(45)
 	assert_bool(_door.is_open()).is_true()
 
@@ -216,7 +226,12 @@ func _hold_pick(seconds: float) -> void:
 
 
 func _aim(target: Vector3) -> void:
-	_player.load_state(Objects.aiming_state(_player, Helpers.ORIGIN + FEET, Helpers.ORIGIN + target))
+	await _aim_world(Helpers.ORIGIN + target)
+
+
+# Looks at `target` (world) from FEET.
+func _aim_world(target: Vector3) -> void:
+	_player.load_state(Objects.aiming_state(_player, Helpers.ORIGIN + FEET, target))
 	await _driver.frames(3)
 
 

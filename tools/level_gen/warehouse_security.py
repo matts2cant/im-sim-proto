@@ -43,41 +43,43 @@ CLOSED_BY_PEOPLE = ("WeakWall",)
 FRONT, BACK = 1, 2
 
 # Doors: doorway name -> spec. yaw: the door's rotation (its +X is the pocket side, +Z its front);
-# wall: wall thickness (control panels on its faces); settings: DoorSettings file; locked; locks
-# (kind, data, side the key is used from, free side); tags; circuit (a Powered on the door); cabled
-# (linked to a security switch); side_walls: (front, back) distance from the doorway's centre to a
-# narrow corridor's side wall on the control panel's side (-X): the panel hangs on that wall (M9e).
+# wall: wall thickness (the wall boxes go on its faces); settings: DoorSettings file; locked; locks
+# (kind, data, free side); tags; circuit (a Powered on the door); cabled (linked to a security
+# switch); side_walls: (front, back) distance from the doorway's centre to a narrow corridor's side
+# wall on the wall boxes' side (-X): the boxes hang on that wall (M9e). The door places its lock
+# hardware itself (ADR 0098): keyholes on the leaf, keypads and card readers as boxes on both wall
+# faces beside the frame.
 DOORS = {
-    "FrontGate": {"yaw": 0, "wall": 0.4, "settings": "vehicle_gate_settings", "locks": [("electronic", None, BACK, 0)], "tags": ["door.fail_secure"], "circuit": YARD, "cabled": True},
+    "FrontGate": {"yaw": 0, "wall": 0.4, "settings": "vehicle_gate_settings", "locks": [("electronic", None, 0)], "tags": ["door.fail_secure"], "circuit": YARD, "cabled": True},
     "BoothDoor": {"yaw": 90, "wall": 0.2, "open": True},  # left open: the booth lamp lights G1's post
-    "BackGate": {"yaw": 0, "wall": 0.3, "settings": "fence_gate_settings", "locked": True, "locks": [("mechanical", 4, FRONT, BACK)]},
-    "SideDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("keypad", SIDE_DOOR_CODE, BACK, FRONT)]},
+    "BackGate": {"yaw": 0, "wall": 0.3, "settings": "fence_gate_settings", "locked": True, "locks": [("mechanical", 4, BACK)]},
+    "SideDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("keypad", SIDE_DOOR_CODE, FRONT)]},
     "RollerDoor1": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
     "RollerDoor2": {"yaw": 0, "wall": 0.5, "settings": "roller_door_settings"},
-    "AnnexDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, BACK, 0)]},
-    "AnnexRoofDoor": {"yaw": -90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)]},
-    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, FRONT, BACK)], "side_walls": (0.0, 0.75)},
+    "AnnexDoor": {"yaw": 90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, 0)]},
+    "AnnexRoofDoor": {"yaw": -90, "wall": 0.5, "locked": True, "locks": [("mechanical", 3, BACK)]},
+    "FireEscapeDoor": {"yaw": 90, "wall": 0.75, "locked": True, "locks": [("mechanical", 3, BACK)], "side_walls": (0.0, 0.75)},
     "OfficeEntrance": {"yaw": 90, "wall": 0.25, "side_walls": (0.75, 0.0)},
     "BreakRoomHall": {"yaw": 0, "wall": 0.25},
     "BreakRoomCorridor": {"yaw": 0, "wall": 0.25},
     "SecurityDoor": {
-        "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_SECURITY, FRONT, BACK), ("electronic", None, FRONT, BACK)],
+        "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_SECURITY, BACK), ("electronic", None, BACK)],
         "tags": ["door.fail_secure"], "circuit": BUILDING, "cabled": True,
     },
     "StairsGround": {"yaw": 0, "wall": 0.25},
     "LockerRoom": {"yaw": 0, "wall": 0.25},
-    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, BACK, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True, "side_walls": (0.75, 0.0)},
-    "ManagerDoor": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("keypad", MANAGER_CODE, FRONT, BACK)]},
+    "BridgeDoor": {"yaw": 90, "wall": 0.25, "locked": True, "locks": [("electronic", None, FRONT)], "tags": ["door.fail_safe"], "circuit": BUILDING, "cabled": True, "side_walls": (0.75, 0.0)},
+    "ManagerDoor": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("keypad", MANAGER_CODE, BACK)]},
     "VaultDoor": {
-        "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_VAULT, FRONT, BACK), ("electronic", None, FRONT, BACK)],
+        "yaw": 0, "wall": 0.25, "locked": True, "locks": [("keycard", ACCESS_VAULT, BACK), ("electronic", None, BACK)],
         "tags": ["door.fail_secure"], "circuit": BUILDING, "cabled": True,
     },
     "StairsUpper": {"yaw": 0, "wall": 0.25},
     "CatwalkStairsDoor": {"yaw": 90, "wall": 0.25, "side_walls": (0.65, 0.9)},
-    "OfficeTwo": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("mechanical", 2, BACK, FRONT)]},
+    "OfficeTwo": {"yaw": 0, "wall": 0.25, "locked": True, "locks": [("mechanical", 2, FRONT)]},
     "BoilerStore": {"yaw": 0, "wall": 0.5},
     "BoilerTunnel": {"yaw": 90, "wall": 0.5},
-    "TunnelGate": {"yaw": -90, "wall": 0.3, "locked": True, "locks": [("mechanical", 4, BACK, FRONT)]},
+    "TunnelGate": {"yaw": -90, "wall": 0.3, "locked": True, "locks": [("mechanical", 4, FRONT)]},
 }
 
 # Signs over doorways (kit Sign): doorway -> [(face, text[, size])], SMALL unless given (corridors are
@@ -329,14 +331,8 @@ def build():
         s.override(f"{path}/Door", door_props)
         if spec.get("circuit"):
             s.add("Powered", path, "Node", props={"script": script["powered"], "circuit": sname(spec["circuit"])})
-        width = 1.2
-        if settings_name == "vehicle_gate_settings":
-            width = 6.0
-        elif settings_name == "roller_door_settings":
-            width = 4.0
-        for kind, data, key_side, free in spec.get("locks", []):
-            face = (spec["wall"] * 0.5 + 0.02) * (1 if key_side == FRONT else -1)
-            props = {"transform": Raw(transform((-(width * 0.5 + 0.3), 1.25, face))), "script": script[kind]}
+        for kind, data, free in spec.get("locks", []):
+            props = {"script": script[kind]}
             if kind == "keypad":
                 props["data"] = s.sub_res("Resource", {"script": script["keypad_data"], "code_id": sname(data[0]), "code": data[1]}, prefix="Keypad")
             elif kind == "mechanical":

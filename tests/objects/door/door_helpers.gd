@@ -81,3 +81,17 @@ static func lock(entity: Node) -> void:
 static func frames(tree: SceneTree, count: int) -> void:
 	for i in count:
 		await tree.physics_frame
+
+
+## The middle of the front face of the door's wall box `index` (top first) on its front (+Z) or back
+## face (world): where to look to use it (ADR 0098).
+static func box_point(door: Door, front: bool = true, index: int = 0) -> Vector3:
+	var box := door.hardware.controls(front)[index]
+	var shape := box.get_node("Shape") as CollisionShape3D
+	var depth := (shape.shape as BoxShape3D).size.z
+	return box.global_transform * Vector3(0.0, 0.0, depth)
+
+
+## The DoorControl of the door's wall box `index` on its front or back face.
+static func control(door: Door, front: bool = true, index: int = 0) -> DoorControl:
+	return Usable.of(door.hardware.controls(front)[index]) as DoorControl

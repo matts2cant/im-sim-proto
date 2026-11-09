@@ -7,12 +7,16 @@ extends Node
 ## (right code, key, pick) also wants it opened: `unlocked_by_user` (a Door opens). On a network
 ## device (a `Device` on the entity) the `command.lock` / `command.unlock` actions lock and unlock it
 ## (the shared device receptrons block them while unpowered or broken).
+## A lock may also grant a user one opening without unlocking it (a keycard, ADR 0098: grant()); the
+## entity stays locked, so a door is locked again once closed.
 ## Security screens (ADR 0083): device_status() says locked / unlocked (DeviceStatus).
-## EventLog `lock.unlocked` / `lock.locked {entity, how}`. Saveable (`locked`).
+## EventLog `lock.unlocked` / `lock.locked` / `lock.granted {entity, how}`. Saveable (`locked`).
 
 signal lock_changed(locked: bool)
 ## A user unlocked it by a lock meant for them, to get through (a Door opens on it).
 signal unlocked_by_user(user: Node)
+## A lock let a user open it while it stays locked (a keycard swipe: a Door opens on it).
+signal access_granted(user: Node)
 
 @export var locked: bool = false
 @export var entity_path: NodePath = ^".."
@@ -52,6 +56,16 @@ func unlock(by: Node = null, how: StringName = &"", user_wants_open: bool = fals
 	lock_changed.emit(false)
 	if user_wants_open:
 		unlocked_by_user.emit(by)
+	return true
+
+
+## A lock lets `by` open it once without unlocking it (`how`: `keycard`); false when it is not
+## locked (nothing to grant: the user opens it like any unlocked one).
+func grant(by: Node = null, how: StringName = &"") -> bool:
+	if not locked:
+		return false
+	_log(&"lock.granted", by, how)
+	access_granted.emit(by)
 	return true
 
 

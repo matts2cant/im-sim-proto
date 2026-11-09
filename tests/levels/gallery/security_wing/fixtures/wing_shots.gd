@@ -22,6 +22,16 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"d3": {"feet": Vector3(-0.4, 0, 3.8), "look": Vector3(-0.4, 1.5, 6.25)},
 	"d4": {"feet": Vector3(2.6, 0, 3.8), "look": Vector3(2.6, 1.5, 6.25)},
 	"d5": {"feet": Vector3(5.6, 0, 3.8), "look": Vector3(5.6, 1.5, 6.25)},
+	# M9h door hardware (ADR 0098): boxes beside the frames, the pin lock's handle and keyhole on both
+	# faces, the handle out of the jamb when open, the vault's status box.
+	"hw_d1_keypad": {"feet": Vector3(-6.7, 0, 5.0), "look": Vector3(-7.17, 1.3, 6.0)},
+	"hw_d2_hall": {"feet": Vector3(-3.0, 0, 5.0), "look": Vector3(-3.9, 1.0, 6.2)},
+	"hw_d2_closet": {"feet": Vector3(-3.0, 0, 7.8), "look": Vector3(-3.9, 1.0, 6.3)},
+	"hw_d3_reader": {"feet": Vector3(-0.7, 0, 5.0), "look": Vector3(-1.17, 1.3, 6.0)},
+	"hw_d3_open": {"feet": Vector3(-0.6, 0, 5.0), "look": Vector3(0.1, 1.0, 6.25), "open": ["D3Keycard"]},
+	"hw_d4": {"feet": Vector3(2.3, 0, 5.0), "look": Vector3(1.83, 1.3, 6.0)},
+	"hw_vault": {"feet": Vector3(8.4, 0, 16.6), "look": Vector3(8.23, 1.3, 18.0)},
+	"hw_vault_inside": {"feet": Vector3(8.6, 0, 19.8), "look": Vector3(8.23, 1.2, 18.5)},
 	"d1_open": {"feet": Vector3(-6.4, 0, 4.6), "look": Vector3(-6.25, 1.0, 8.7), "open": ["D1Keypad"]},
 	"closet_inside": {"feet": Vector3(-5.6, 0, 8.5), "look": Vector3(-6.5, 1.4, 6.25), "open": ["D1Keypad"]},
 	"booth": {"feet": Vector3(0.4, 0, 6.8), "look": Vector3(-0.6, 1.3, 9), "open": ["D3Keycard"]},

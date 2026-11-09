@@ -3,15 +3,22 @@ extends Usable
 ## Component of a sliding door (ADR 0078; `objects/door/door.tscn`). The entity is a StaticBody3D
 ## on the world layer whose `Panel` shape fills the settings' `doorway` (1.2 x 2.2 m by default) and
 ## moves by `travel` (1.3 m along +X into the wall; a roller door rises) in `open_time` s. The
-## panel, the doorway's attenuator, navigation carve and the control panels are sized from the
-## settings at `_ready` (ADR 0090). While closed the panel blocks bodies and sight and the
+## panel, the doorway's attenuator and navigation carve are sized from the settings at `_ready`
+## (ADR 0090). While closed the panel blocks bodies and sight and the
 ## `SoundAttenuator` adds its metres to noise paths through the doorway (enabled while less than
-## `attenuate_below` is open). E: open / close, or what the locks offer ("E: enter code"), else
-## "Locked: <what opens it>". Control panels on both wall faces carry the prompt target, a red /
-## green lock light and the names of the locks.
+## `attenuate_below` is open).
+## Hardware (ADR 0098): its DoorHardware (the `Hardware` node) builds the leaf's handle, the leaf
+## locks' keyholes and the wall boxes beside the frame (keypad, card reader, status, plain control)
+## from the settings, never per level. Every wall box carries the lock light: red while closed and
+## locked, green while unlocked or open, dark while broken or unpowered. E on the leaf: open /
+## close, the leaf locks' offers ("Picking 40%"), else "Locked: <what opens it>"; E on a box
+## (DoorControl): open / close, its lock's offer ("E: enter code", "E: open (keycard)"), else the
+## same "Locked: ...".
 ## Locks: the entity's Lockable and Lock components (objects/locks/); a user who unlocks it through
-## one opens it. A lock with a free side (Lock.free_side, ADR 0090) lets a user on that side open
-## the locked door without its key: an authorised open that leaves it locked once closed.
+## one opens it, a lock that grants an opening (Lockable.grant(): a keycard) opens it and leaves it
+## locked, so it is locked again once closed. A lock with a free side (Lock.free_side, ADR 0090)
+## lets a user on that side open the locked door without its key: an authorised open that leaves it
+## locked once closed.
 ## Remote commands: the door is a network device (its `Device`, ADR 0077): the shared receptrons
 ## `objects/devices/receptrons/command_*.tres` (blocked by `state.unpowered` and `state.broken`) run
 ## DeviceActionEffect, and the Device's `action_received` brings `command.open`
@@ -30,20 +37,18 @@ const GROUP: StringName = &"doors"
 const LOCKED_COLOUR := Color(0.9, 0.15, 0.1)
 const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
-## How far (m) a control panel on a corridor's side wall sits from the door's wall face (its centre).
-const SIDE_PANEL_DEPTH: float = 0.4
 ## Heights of a barred panel's rails, as fractions of its height (the fence's rails: 0.3 and 2.7 m).
 const BAR_RAILS: Array[float] = [0.1, 0.9]
 
 @export var settings: DoorSettings
 ## Open when the level starts.
 @export var start_open: bool = false
-## Thickness (m) of the wall the door sits in: the control panels go on its faces.
+## Thickness (m) of the wall the door sits in: the wall boxes go on its faces.
 @export var wall_thickness: float = 0.25
-## When the front (+Z) face opens into a corridor too narrow for its control panel beside the
-## doorway: the distance (m) from the doorway's centre line to the corridor's side wall on the
-## panel's side (-X). The panel then hangs on that side wall, facing across the corridor,
-## SIDE_PANEL_DEPTH m in from the door's wall. 0: beside the doorway (M9e).
+## When the front (+Z) face opens into a corridor too narrow for its wall boxes beside the doorway:
+## the distance (m) from the doorway's centre line to the corridor's side wall on the boxes' side
+## (-X for a leaf sliding to +X). The boxes then hang on that side wall, facing across the corridor,
+## DoorLayout.SIDE_DEPTH m in from the door's wall face. 0: beside the doorway (M9e).
 @export var front_side_wall: float = 0.0
 ## The same for the back (-Z) face.
 @export var back_side_wall: float = 0.0
@@ -56,6 +61,8 @@ var openness: float = 0.0
 ## The panel's outer size (m): the doorway plus its overlap; a barred panel's bars fill it.
 var panel_size: Vector3 = Vector3.ZERO
 var broken: bool = false
+## The lock hardware (handle, keyholes, wall boxes), or null.
+var hardware: DoorHardware
 
 var _open: bool = false
 var _panel: CollisionShape3D
@@ -65,8 +72,6 @@ var _attenuator: SoundAttenuator
 var _link: NavigationLink3D
 # One-way link from a lock's free side (FreeSideLink), enabled while locked.
 var _free_link: NavigationLink3D
-var _light_material: StandardMaterial3D
-var _labels: Array[Label3D] = []
 
 
 func _init() -> void:
@@ -87,6 +92,7 @@ func _ready() -> void:
 	if lockable != null:
 		lockable.lock_changed.connect(_on_lock_changed)
 		lockable.unlocked_by_user.connect(_on_unlocked_by_user)
+		lockable.access_granted.connect(_on_unlocked_by_user)
 	var tags := ActorState.tags_of(entity)
 	if tags != null:
 		tags.container.changed.connect(_on_tag_changed)
@@ -96,7 +102,9 @@ func _ready() -> void:
 	var device := Device.of(entity)
 	if device != null:
 		device.action_received.connect(_on_action)
-	_place_controls()
+	hardware = DoorHardware.of(entity)
+	if hardware != null:
+		hardware.build(self)
 	_open = start_open
 	openness = 1.0 if start_open else 0.0
 	_apply()
@@ -198,16 +206,29 @@ func available(_user: Node) -> bool:
 	return not broken
 
 
+## The leaf's prompt (the handle and keyhole are on it): prompt_via() with its leaf locks.
 func prompt(user: Node) -> String:
+	return prompt_via(user, _leaf_locks())
+
+
+## E on the leaf: use_via() with its leaf locks.
+func use(user: Node) -> bool:
+	return use_via(user, _leaf_locks())
+
+
+## The prompt for `user` working the door through `locks` (the leaf's, or a wall box's lock): "E:
+## close" / "E: open" (unlocked, or from a free side), a lock's progress or offer, else "Locked:
+## <what opens it>" (every lock's reason) or "Locked".
+func prompt_via(user: Node, locks: Array[Lock]) -> String:
 	if _open:
 		return "E: close"
 	if not is_locked() or opens_freely_for(user):
 		return "E: open"
-	for each in Lock.locks_of(entity):
+	for each in locks:
 		var progress := each.tool_progress()
 		if progress >= 0.0:
 			return "Picking %d%%" % roundi(progress * 100.0)
-	for each in Lock.locks_of(entity):
+	for each in locks:
 		var text := each.use_prompt(user)
 		if not text.is_empty():
 			return text
@@ -215,7 +236,9 @@ func prompt(user: Node) -> String:
 	return "Locked" if reasons.is_empty() else "Locked: %s" % " or ".join(reasons)
 
 
-func use(user: Node) -> bool:
+## E by `user` through `locks`: closes it while open, opens it while unlocked or from a free side,
+## else lets one of `locks` deal with it (a keypad screen, a card swipe). True when something happened.
+func use_via(user: Node, locks: Array[Lock]) -> bool:
 	if broken:
 		return false
 	if _open:
@@ -230,7 +253,7 @@ func use(user: Node) -> bool:
 		_log(&"door.opened_freely", user)
 		used.emit(user)
 		return true
-	for each in Lock.locks_of(entity):
+	for each in locks:
 		if each.use_locked(user):
 			used.emit(user)
 			return true
@@ -279,6 +302,8 @@ func _apply() -> void:
 	_panel_mesh.position = offset
 	_panel.disabled = broken
 	_panel_mesh.visible = not broken
+	if hardware != null:
+		hardware.follow(offset, broken)
 	if _attenuator != null:
 		_attenuator.enabled = not broken and openness < settings.attenuate_below
 	_update_link()
@@ -327,6 +352,15 @@ func _doorway_blocked() -> bool:
 	return not entity.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
 
 
+# The locks whose hardware is on the leaf (Lock.Mount.LEAF: a keyhole).
+func _leaf_locks() -> Array[Lock]:
+	var result: Array[Lock] = []
+	for each in Lock.locks_of(entity):
+		if each.mount() == Lock.Mount.LEAF:
+			result.append(each)
+	return result
+
+
 func _reasons(user: Node) -> Array[String]:
 	var reasons: Array[String] = []
 	for each in Lock.locks_of(entity):
@@ -372,11 +406,11 @@ func _build_bars(mesh_instance: MeshInstance3D) -> void:
 		mesh_instance.mesh = mesh
 
 
-# Sizes the panel, the doorway's attenuator, navigation carve and link and places the control
-# panels for the settings' doorway (the scene's own shapes are shared: they are copied first).
+# Sizes the panel, the doorway's attenuator and navigation carve for the settings'
+# doorway (the scene's own shapes are shared: they are copied first).
 func _fit_doorway() -> void:
 	var size := settings.doorway
-	panel_size = Vector3(size.x + 0.1, size.y + 0.05, settings.panel_thickness)
+	panel_size = DoorLayout.panel_size(settings)
 	var mesh_instance := _panel_mesh as MeshInstance3D
 	if settings.bar_spacing > 0.0:
 		_build_bars(mesh_instance)
@@ -388,7 +422,7 @@ func _fit_doorway() -> void:
 			var mesh := mesh_instance.mesh.duplicate() as BoxMesh
 			mesh.size = panel_size
 			mesh_instance.mesh = mesh
-	_closed = Vector3(0.0, panel_size.y * 0.5 + 0.005, settings.panel_offset)
+	_closed = DoorLayout.closed_centre(settings)
 	if _attenuator != null:
 		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
 		if doorway != null and doorway.shape is BoxShape3D:
@@ -403,51 +437,15 @@ func _fit_doorway() -> void:
 		carve.vertices = PackedVector3Array(
 			[Vector3(-half, 0, -0.4), Vector3(half, 0, -0.4), Vector3(half, 0, 0.4), Vector3(-half, 0, 0.4)]
 		)
-	var control_x := -(size.x * 0.5 + 0.3)
-	for side: String in ["ControlFront", "ControlBack", "ControlFrontShape", "ControlBackShape"]:
-		var node := entity.get_node_or_null(NodePath(side)) as Node3D
-		if node != null:
-			node.position.x = control_x
-
-
-func _place_controls() -> void:
-	var face := wall_thickness * 0.5 + 0.02
-	var sides: Dictionary[String, float] = {"ControlFront": 1.0, "ControlBack": -1.0}
-	var side_walls: Dictionary[String, float] = {"ControlFront": front_side_wall, "ControlBack": back_side_wall}
-	for side: String in sides:
-		var visual := entity.get_node_or_null(NodePath(side)) as Node3D
-		var shape := entity.get_node_or_null(NodePath(side + "Shape")) as Node3D
-		for node: Node3D in [shape, visual]:
-			if node == null:
-				continue
-			node.position.z = face * sides[side]
-			if side_walls[side] > 0.0:
-				# On the corridor's side wall, its face (+Z) across the corridor (+X).
-				node.basis = Basis(Vector3.UP, PI * 0.5)
-				node.position.x = -side_walls[side] + 0.02
-				node.position.z = (face + SIDE_PANEL_DEPTH) * sides[side]
-		if visual != null:
-			var light := visual.get_node_or_null(^"Light") as MeshInstance3D
-			if light != null:
-				if _light_material == null:
-					_light_material = StandardMaterial3D.new()
-				light.material_override = _light_material
-			var label := visual.get_node_or_null(^"Label") as Label3D
-			if label != null:
-				_labels.append(label)
 
 
 func _update_controls() -> void:
-	if _light_material != null:
-		var colour := LOCKED_COLOUR if is_locked() else UNLOCKED_COLOUR
-		if broken or ActorState.has(entity, Device.UNPOWERED):
-			colour = DEAD_COLOUR
-		_light_material.albedo_color = colour
-		_light_material.emission_enabled = colour != DEAD_COLOUR
-		_light_material.emission = colour
-	var text := "\n".join(_reasons(null)).to_upper()
-	for label in _labels:
-		label.text = text
+	if hardware == null:
+		return
+	var colour := LOCKED_COLOUR if is_locked() and not _open else UNLOCKED_COLOUR
+	if broken or ActorState.has(entity, Device.UNPOWERED):
+		colour = DEAD_COLOUR
+	hardware.show_light(colour, colour != DEAD_COLOUR)
 
 
 func _on_lock_changed(_locked: bool) -> void:

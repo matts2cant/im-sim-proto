@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_brass"]
+albedo_color = Color(0.62, 0.5, 0.22, 1)
+metallic = 0.8
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="Mesh_rose"]
+material = SubResource("Material_brass")
+top_radius = 0.019
+bottom_radius = 0.019
+height = 0.004
+radial_segments = 16
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_keyway"]
+albedo_color = Color(0.02, 0.02, 0.02, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_keyway"]
+material = SubResource("Material_keyway")
+size = Vector3(0.006, 0.02, 0.002)
+
+[node name="Keyhole" type="Node3D"]
+
+[node name="Rose" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.002)
+cast_shadow = 0
+mesh = SubResource("Mesh_rose")
+
+[node name="Keyway" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0045)
+cast_shadow = 0
+mesh = SubResource("Mesh_keyway")
