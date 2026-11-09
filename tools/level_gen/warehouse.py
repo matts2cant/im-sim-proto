@@ -190,7 +190,11 @@ DUCT_B = {
     ],
 }
 DUCT_B_HOLE = (10.4, 11.6, 2.2, 3.4)  # x0, x1, z0, z1 over the manager office
-CABINET_H = 1.35
+# Cabinet under the hole: its top (6.1) is 1.45 below the duct floor (7.55) and 1.0 below the
+# ceiling (7.1), so the player fits on it crouched. A lip hangs from the hole's north edge down to
+# HATCH_LIP_Y so the mantle's middle probe ray (0.86 m above the feet: 6.96) finds the edge's face.
+CABINET_H = 1.6
+HATCH_LIP_Y = 6.75
 DUCT_C_X = 14.9  # rise centre line (x): housing x 14.1 .. 15.7, clear of the room's west wall
 DUCT_C = {
     # Mouth faces west in the boiler room, turns south, rises into the security room's north wall.
@@ -795,8 +799,10 @@ def build_hall():
     b.railing("RailUpHoleN", of, (UP_X0, UP_BOTTOM_Z - 0.05), (UP_X1, UP_BOTTOM_Z - 0.05), OFF_UP)
     b.railing("RailDownHole", of, (DOWN_X1 + 0.05, DOWN_TOP_Z + 0.3), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)
     b.railing("RailDownHoleS", of, (DOWN_X0, DOWN_HOLE_Z1 + 0.05), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)
-    # Filing cabinet under the duct hole in the manager office (climb into the duct).
+    # Filing cabinet under the duct hole in the manager office (climb into the duct), and the hatch
+    # lip on the hole's north edge: the face the mantle back up into the duct catches.
     b.block("Cabinet", of, hx0, hx1, hz0, hz1, CABINET_H, y0=OFF_UP, surface="metal")
+    b.csg("HatchLip", of, "metal", [box((hx0, HATCH_LIP_Y, hz0 - 0.1), (hx1, OFF_UP + OFF_U_H, hz0))])
 
     # Fire escape on the hall's east wall: landing at the upper corridor door, a flight down to a
     # raised bottom landing (mantled from the ground: keeps guards off it), a flight up to the roof.

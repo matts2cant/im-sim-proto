@@ -26,8 +26,8 @@ const CLIMBS: Dictionary[String, Array] = {
 	"chamber out 1.2": [Vector3(31.6, -1.2, -7.6), Helpers.WEST, 0.0],
 	"duct A mouth 1.1": [Vector3(14, 4.5, -8.2), Helpers.SOUTH, 5.6],
 	"duct C mouth 1.1": [Vector3(12.7, -4, -8.3), Helpers.EAST, -2.9],
-	"office cabinet 1.35": [Vector3(11, 4.5, 4.1), Helpers.NORTH, 5.85],
-	"duct B hole 1.7": [Vector3(11, 5.85, 2.9), Helpers.SOUTH, 7.55],
+	"office cabinet 1.6": [Vector3(11, 4.5, 4.1), Helpers.NORTH, 6.1],
+	"duct B hatch 1.45": [Vector3(11, 6.1, 2.65), Helpers.NORTH, 7.55],
 }
 
 var _helpers: Helpers
@@ -60,6 +60,25 @@ func test_every_route_climb_is_a_plain_mantle() -> void:
 	assert_array(failures).is_empty()
 
 
+func test_duct_b_is_climbed_back_from_the_office_floor_in_two_mantles() -> void:
+	await _helpers.setup(scene_runner(Helpers.FIXTURE))
+	var space := _helpers.player.get_world_3d().direct_space_state
+	var cabinet_top := _floor_below(space, Vector3(11, 6.5, 2.8))
+	var duct_floor := _floor_below(space, Vector3(11, 8.2, 1.9))
+	assert_float(cabinet_top).is_equal_approx(6.1, 0.02)
+	assert_float(duct_floor - cabinet_top).is_less_equal(1.5)
+
+	# Office floor south of the cabinet, facing it: mantle onto it (ends crouched under the
+	# ceiling), keep walking north under the hatch and mantle again into the duct.
+	await _helpers.play(Vector3(11, 4.5, 4.1), Helpers.NORTH, [Helpers.mantle(6), Helpers.wait(50)])
+	assert_float(_helpers.player.global_position.y).is_equal_approx(6.1, 0.1)
+	await _helpers.moves([Helpers.walk(8), Helpers.mantle(6), Helpers.wait(60)])
+
+	var feet := _helpers.player.global_position
+	assert_float(feet.y).override_failure_message("duct B: %s" % feet).is_equal_approx(7.55, 0.1)
+	assert_float(feet.z).override_failure_message("duct B: %s" % feet).is_less(2.2)
+
+
 func test_the_outside_container_jumps_the_fence_onto_the_inside_one() -> void:
 	await _helpers.setup(scene_runner(Helpers.FIXTURE))
 	var legs := _helpers.leg_health()
@@ -72,3 +91,10 @@ func test_the_outside_container_jumps_the_fence_onto_the_inside_one() -> void:
 	assert_float(feet.y).is_equal_approx(2.5, 0.1)
 	assert_float(feet.z).is_between(-24.9, -22.4)
 	assert_float(_helpers.leg_health()).is_equal(legs)
+
+
+# Height of the first world surface straight below `from`.
+func _floor_below(space: PhysicsDirectSpaceState3D, from: Vector3) -> float:
+	var query := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 5.0, PhysicsLayers.WORLD)
+	var hit := space.intersect_ray(query)
+	return (hit["position"] as Vector3).y if not hit.is_empty() else -INF

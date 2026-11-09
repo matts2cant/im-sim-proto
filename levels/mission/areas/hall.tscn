@@ -1567,8 +1567,17 @@ rails = PackedFloat32Array(0.5, 0.975)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.5, 3.4)
 width = 1.2
 depth = 1.2
-height = 1.35
+height = 1.6
 surface = "metal"
+
+[node name="HatchLip" type="CSGCombiner3D" parent="Offices"]
+use_collision = true
+metadata/surface = &"metal"
+
+[node name="Box0" type="CSGBox3D" parent="Offices/HatchLip"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 6.925, 2.15)
+size = Vector3(1.2, 0.35, 0.1)
+material = ExtResource("6_metal")
 
 [node name="FireEscape" type="Node3D" parent="."]
 
