@@ -126,6 +126,12 @@ avoidance_enabled = false
 start_position = Vector3(0, 0, -0.8)
 end_position = Vector3(0, 0, 0.8)
 
+[node name="FreeSideLink" type="NavigationLink3D" parent="."]
+enabled = false
+bidirectional = false
+start_position = Vector3(0, 0, 0.8)
+end_position = Vector3(0, 0, -0.8)
+
 [node name="Device" type="Node" parent="."]
 script = ExtResource("13_device")
 

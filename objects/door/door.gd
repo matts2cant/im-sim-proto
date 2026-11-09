@@ -63,6 +63,8 @@ var _panel_mesh: Node3D
 var _closed := Vector3.ZERO
 var _attenuator: SoundAttenuator
 var _link: NavigationLink3D
+# One-way link from a lock's free side (FreeSideLink), enabled while locked.
+var _free_link: NavigationLink3D
 var _light_material: StandardMaterial3D
 var _labels: Array[Label3D] = []
 
@@ -79,6 +81,7 @@ func _ready() -> void:
 	_panel_mesh = entity.get_node(^"PanelMesh") as Node3D
 	_attenuator = entity.get_node_or_null(^"SoundAttenuator") as SoundAttenuator
 	_link = entity.get_node_or_null(^"NavigationLink3D") as NavigationLink3D
+	_free_link = entity.get_node_or_null(^"FreeSideLink") as NavigationLink3D
 	_fit_doorway()
 	lockable = Lockable.of(entity)
 	if lockable != null:
@@ -289,6 +292,25 @@ func _update_link() -> void:
 		_link.navigation_layers = AccessLayers.WALK
 	else:
 		_link.navigation_layers = AccessLayers.LOCKED | lockable.passage_layers()
+	if _free_link == null:
+		return
+	# Locked with a free side: anyone may plan through it from that side (one way, M9e).
+	var side := _free_side()
+	_free_link.enabled = side != Lock.NO_SIDE and not is_passable()
+	if side != Lock.NO_SIDE:
+		var reach := absf(_link.end_position.z)
+		var out := reach if side == Lock.FRONT else -reach
+		_free_link.start_position = Vector3(0.0, 0.0, out)
+		_free_link.end_position = Vector3(0.0, 0.0, -out)
+		_free_link.navigation_layers = AccessLayers.WALK
+
+
+# The free side of the first lock that has one (Lock.FRONT, Lock.BACK), else Lock.NO_SIDE.
+func _free_side() -> int:
+	for each in Lock.locks_of(entity):
+		if each.free_side != Lock.NO_SIDE:
+			return each.free_side
+	return Lock.NO_SIDE
 
 
 # True when a body on the blocking layers overlaps the doorway the closed panel fills.
