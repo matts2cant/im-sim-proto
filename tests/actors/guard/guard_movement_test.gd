@@ -20,7 +20,7 @@ func test_patrols_the_route_in_order_and_loops() -> void:
 	await _setup(true)
 	var route := _g.behaviour.route
 	var order: Array[int] = []
-	# A (2 m away, wait 2 s), B (6.4 m), C (10 m), back to A (6.4 m): about 18 s at 1.8 m/s.
+	# A (2 m away, wait 2 s), B (6.4 m), C (10 m), back to A (6.4 m): about 21 s at 1.5 m/s.
 	for tick in 60 * 24:
 		await _g.frames(1)
 		for index in route.size():
@@ -63,7 +63,7 @@ func test_runs_when_alerted_with_the_sprint_tag() -> void:
 	assert_float(_g.guard.horizontal_speed()).is_equal_approx(WALKER.run_speed, 0.2)
 	assert_bool(ActorState.has(_g.guard, ActorState.SPRINTING)).is_true()
 	await _g.seconds(2.0)
-	# Arrived at the last known position (9 m at 5 m/s) and stands there.
+	# Arrived at the last known position (9 m at 4 m/s) and stands there.
 	assert_float(VisionRules.flat_distance(_g.guard.global_position, Vector3(0, 0, 9))).is_less(0.6)
 	assert_bool(ActorState.has(_g.guard, ActorState.SPRINTING)).is_false()
 
@@ -116,7 +116,7 @@ func test_pushes_a_small_crate_with_bounded_force() -> void:
 		peak = maxf(peak, Vector2(crate.linear_velocity.x, crate.linear_velocity.z).length())
 
 	assert_float(crate.global_position.distance_to(start)).is_greater(0.3)
-	# Running at 5 m/s, the guard still pushes at most at push_max_speed (2 m/s).
+	# Running at 4 m/s, the guard still pushes at most at push_max_speed (2 m/s).
 	assert_float(peak).is_less(2.3)
 
 

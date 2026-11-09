@@ -253,36 +253,36 @@ Every main route works without any of them; each find opens an option.
 
 ### Guards
 
-Ten guards (`Population/People/Guards`), on their layout markers. Routes loop through their PatrolPoints and wait at each point (seconds in brackets); walking pace 1.8 m/s; a patrolling guard starts on its first point. Laps and gaps are measured by `warehouse_patrol_timing_test.gd` (60 s of simulated patrols). Lit: light level of a standing body at the post (or at the route points), >= 0.5 checked by `warehouse_people_test.gd`. Tightened in M9e ([ADR 0092](../decisions/0092-warehouse-polish.md)): two more patrols (G9, G10) and shorter loops, so every crossing is watched at least every 39 s.
+Ten guards (`Population/People/Guards`), on their layout markers. Routes loop through their PatrolPoints and wait at each point (seconds in brackets); walking pace 1.5 m/s ([ADR 0102](../decisions/0102-guard-speeds.md), was 1.8 until M9h); a patrolling guard starts on its first point. Laps and gaps are measured by `warehouse_patrol_timing_test.gd` (70 s of simulated patrols). Lit: light level of a standing body at the post (or at the route points), >= 0.5 checked by `warehouse_people_test.gd`. Tightened in M9e ([ADR 0092](../decisions/0092-warehouse-polish.md)): two more patrols (G9, G10) and shorter loops, so every crossing is watched at least every 39 s; at the M9h walking pace, at least every 44 s.
 
 | Guard | Scene (weapon) | Tags beyond `actor.guard`, `equipment.radio` | Post or route | Lap (measured) | Light |
 |---|---|---|---|---|---|
 | G1 gate | `guard_pistol` | | Post outside the booth door (-8.6, 0, -22.2), facing the gate lane (yaw -52), glancing 45 degrees either side | | 0.76 |
-| G2 west yard | `guard_baton` | | A (-18, -17) [2] > B (-23, -4) [2], south of the side door > C (-27, 14) [3], south of the annex > D (-24, -8) [2], by the dumpster: the side door twice a lap | 48.7 s | dark points; crosses the side door pool |
-| G3 east yard | `guard_pistol` | | A (18, -18) [2] > B (32, -11.5) [2], north of the drain chamber > C (25, 0) [3], the east strip > D (27.5, -6.5) [2]: the drain chamber exit twice a lap | 36.9 s | dark; crosses the east flood |
-| G4 catwalk | `guard_rifle` (assault rifle, bursts) | | A (19.25, 4.5, -3), the east catwalk's end [3] > B (-17, 4.5, -9.25), the north catwalk's west end [3]: the north catwalk out and back, past the duct A alcove | 52.2 s | A and B lit (east catwalk wall lamp, north-west lamp) |
+| G2 west yard | `guard_baton` | | A (-18, -17) [2] > B (-23, -4) [2], south of the side door > C (-27, 14) [3], south of the annex > D (-24, -8) [2], by the dumpster: the side door twice a lap | 56.5 s | dark points; crosses the side door pool |
+| G3 east yard | `guard_pistol` | | A (18, -18) [2] > B (32, -11.5) [2], north of the drain chamber > C (25, 0) [3], the east strip > D (27.5, -6.5) [2]: the drain chamber exit twice a lap | 42.3 s | dark; crosses the east flood |
+| G4 catwalk | `guard_rifle` (assault rifle, bursts) | | A (19.25, 4.5, -3), the east catwalk's end [3] > B (-17, 4.5, -9.25), the north catwalk's west end [3]: the north catwalk out and back, past the duct A alcove | 61.3 s | A and B lit (east catwalk wall lamp, north-west lamp) |
 | G5 security operator | `guard_pistol` | `access.warehouse_security` | Post at the console (17.6, 0, 1.6), facing the security window | | 0.64 |
 | G6 break room | `guard_baton` | | Post (11, 0, 2.6), facing south (the table, the corridor door) | | 0.71 |
 | G7 vault door | `guard_pistol` | `access.warehouse_vault` | Post in the upper corridor (16, 4.5, 6), facing the vault door | | 0.98 |
 | G8 off duty | `guard_baton` | | Post by his cot in the basement store (16.2, -4, 11.5), facing west (the service stair foot) | | 0.68 |
-| G9 back strip | `guard_baton` | | A (-9, 21), by the weak wall [3] > B (25, 6), the east strip beside the fire escape [3]: the back gate twice a lap | 51.3 s | dark; crosses the back gate flood |
-| G10 west catwalk | `guard_pistol` | | A (-19.25, 4.5, -6), the west catwalk [3] > B (5, 4.5, 6), the bridge's east end [3]: past the annex roof door twice a lap | 45.2 s | A and B lit (north-west lamp, bridge lamps) |
+| G9 back strip | `guard_baton` | | A (-9, 21), by the weak wall [3] > B (25, 6), the east strip beside the fire escape [3]: the back gate twice a lap | 60.3 s | dark; crosses the back gate flood |
+| G10 west catwalk | `guard_pistol` | | A (-19.25, 4.5, -6), the west catwalk [1] > B (5, 4.5, 6), the bridge's east end [3]: past the annex roof door twice a lap | 51.0 s | A and B lit (north-west lamp, bridge lamps) |
 
 No route crosses a doorway (`warehouse_people_test.gd`): the doors there are locked to guards (keypad, mechanical) or loud (roller doors). Lamps for the catwalk routes (building circuit, `Population/People/Lamps`): a wall lamp on the north catwalk at x -10 and one on the east catwalk at z -3, ceiling lamps over the bridge at x 1 and 5.5. The yard patrols walk dark ground and cross the lit pools.
 
 **Flashlights** (M9g, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): every guard carries one (`guard.tscn`, on its Aim node) and lights it while Searching or Alerted. The yard patrols (G2, G3, G9: their routes run outside the buildings) keep it on while patrolling (`on_while_patrolling`, set by `warehouse_people.py`): their halo and the pool on the ground show where they are from across the yard, and a player caught in the beam at 8 m reads about 0.2 (dim) and is Alerted in about 2.6 s. Cost with all ten lit (shadowed spot lights): render within the frame-to-frame noise (hall 492 to 468 fps, west yard unchanged at about 685 fps, 1152x648, vsync off), physics process about +0.5 ms per frame (5.4-7.3 ms without, 6.0-7.5 ms with; `warehouse_shots.gd` `perf=1 flashlights=1`).
 
-**Crossing points** (a player route crosses a patrol path). A guard passes while within 5 m (horizontal, same floor); the gap is the time between passes, round the lap for a point one guard passes. Target: at least 4 s (a window to cross) and at most 45 s (the compound feels watched); measured 6-39 s.
+**Crossing points** (a player route crosses a patrol path). A guard passes while within 5 m (horizontal, same floor); the gap is the time between passes, round the lap for a point one guard passes. Target: at least 4 s (a window to cross) and at most 45 s (the compound feels watched); measured 4.9-43.8 s (6-39 s before the M9h walking pace). A gap at a patrol's turn is the time it spends outside the 5 m: only the far end of its loop (the walk and the wait there) sets it, so G10 waits 1 s at its west end (3 s before M9h) to keep the bridge end under 45 s.
 
 | Crossing | Position | Passed by | Gaps (measured, smallest .. largest) |
 |---|---|---|---|
-| Side door (keypad, west yard) | (-21.7, 0, -6) | G2 (twice a lap) | 10.1 .. 24.3 s |
-| Drain chamber exit (culvert route) | (30.6, 0, -7.6) | G3 (twice a lap) | 7.9 .. 16.5 s |
-| Fire escape foot | (21.2, 0, 13.6) | G9 (at its turn) | 6.7 .. 32.3 s |
-| Back gate, inside | (7, 0, 23) | G9 (twice a lap) | 18.2 .. 29.5 s |
-| Annex roof door, west catwalk | (-19.25, 4.5, 2.1) | G10 (twice a lap) | 6.3 .. 25.9 s |
-| Bridge, east end (bridge door) | (6.5, 4.5, 6) | G10 (at its turn) | 38.6 s |
-| Duct A alcove, north catwalk | (14, 4.5, -8.2) | G4 (twice a lap) | 8.1 .. 31.7 s |
+| Side door (keypad, west yard) | (-21.7, 0, -6) | G2 (twice a lap) | 11.7 .. 28.4 s |
+| Drain chamber exit (culvert route) | (30.6, 0, -7.6) | G3 (twice a lap) | 8.8 .. 19.4 s |
+| Fire escape foot | (21.2, 0, 13.6) | G9 (at its turn) | 7.3 .. 38.2 s |
+| Back gate, inside | (7, 0, 23) | G9 (twice a lap) | 21.2 .. 34.7 s |
+| Annex roof door, west catwalk | (-19.25, 4.5, 2.1) | G10 (twice a lap) | 4.9 .. 30.4 s |
+| Bridge, east end (bridge door) | (6.5, 4.5, 6) | G10 (at its turn) | 43.8 s |
+| Duct A alcove, north catwalk | (14, 4.5, -8.2) | G4 (twice a lap) | 9.1 .. 37.4 s |
 
 No two patrols share a crossing (two guards with different laps drift in and out of phase, so shared gaps are not periodic and can close): they overlap between crossings instead. G3 and G9 both reach the east strip (z 0 and 6), G4 and G10 both the north-west catwalk corner.
 
@@ -310,7 +310,7 @@ Light and breakers, floor noise (metal catwalks, containers and ducts are loud, 
 - Ghost run 10-15 min, loud about 5 min.
 - A careful first-time player gets spotted at least once but can recover.
 - No route needs a precise jump or tight timing.
-- Hiding spots read below 0.1 light; patrols leave crossing gaps of at least 4 s and at most 45 s (measured: 6-39 s, "Guards").
+- Hiding spots read below 0.1 light; patrols leave crossing gaps of at least 4 s and at most 45 s (measured: 4.9-43.8 s, "Guards").
 - Tests measure these (time to detect, run times); the numbers above are first guesses.
 
 ## Systems (M9 wave 1)
@@ -545,7 +545,7 @@ Found and fixed by the tests: the office stair's top was impassable (the hole ra
 
 ## Open questions
 
-- Patrols (M9e): ten guards, gaps 6-39 s. Playtests decide whether the compound now feels watched without making a first ghost run frustrating (a careful first-time player should be spotted at least once but recover).
+- Patrols (M9e): ten guards, gaps 6-39 s; 4.9-43.8 s at the M9h walking pace (1.5 m/s, ADR 0102). Playtests decide whether the compound now feels watched without making a first ghost run frustrating (a careful first-time player should be spotted at least once but recover).
 - The yard patrols walk mostly in the dark and see the player only in the lit pools or within 2 m; guard flashlights would change that ([backlog](../backlog.md)).
 - The `KeycardInVault` marker is not used (the vault keycard is in the security room; the vault holds the prototype).
 - Whether the climb back into duct B (1.6 m onto the cabinet, then 1.45 m catching the hatch lip) reads clearly in play.
