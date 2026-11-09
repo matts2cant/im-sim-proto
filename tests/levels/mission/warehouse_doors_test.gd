@@ -3,11 +3,13 @@ extends GdUnitTestSuite
 ## 0090): every doorway of the layout holds its door with the intended locks; no key is locked
 ## behind its own lock (the key graph has no deadlock; forced entries such as the weak wall's breach
 ## panel, placed by the people population, are left out); the back gate opens from inside without a
-## key and needs a lockpick from the river side; no two CSG roots of the populated level z-fight.
+## key and needs a lockpick from the river side; no two CSG roots of the populated level z-fight;
+## wall devices and door wall boxes keep clear of doorways, door sweeps and signs (M9h).
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HardwareChecks := preload("res://tests/objects/door/door_hardware_checks.gd")
+const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
 
 ## Doorway -> [locked at the start, lock components, extra tags, free side (Lock.NO_SIDE / FRONT /
 ## BACK), breakable]. The intended locks of the layout's doorway table.
@@ -238,6 +240,19 @@ func test_door_hardware_sits_flush_on_the_walls_beside_every_frame() -> void:
 	# Keypads (side door, manager), readers (security, vault), status boxes (front gate, bridge door)
 	# and the two roller doors' control boxes.
 	assert_int(boxes).is_equal(8)
+
+
+func test_wall_devices_keep_clear_of_doorways_door_sweeps_and_signs() -> void:
+	# M9h: SirenOfficeGround hung in front of the office entrance (a red disc over the door leaf)
+	# and CameraOffice over the upper corridor's FIRE EXIT sign.
+	var level := _helpers.level
+	assert_array(WallDeviceChecks.problems(level)).is_empty()
+	# The check sees the security population: its devices, doors and signs.
+	var devices := level.find_children("*", "", true, false).filter(func(node: Node) -> bool: return node is Device)
+	assert_int(devices.size()).is_greater(30)
+	# FIRE EXIT runs along z on the fire escape door's west face, 1 m long.
+	var sign := level.get_node("%s/Signs/FireEscapeDoorBack" % Helpers.SECURITY) as Sign
+	assert_float(WallDeviceChecks.sign_box(sign).size.z).is_greater(0.8)
 
 
 func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void:

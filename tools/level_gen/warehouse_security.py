@@ -120,7 +120,9 @@ def towards(origin, target):
 CAMERA_GATE = (-9.29, 2.35, -23.7)
 CAMERA_YARD = (20.42, 4.0, -10.62)
 CAMERA_HALL = (-1.0, 6.5, -9.98)
-CAMERA_OFFICE = (19.74, 6.88, 6.0)
+# Upper corridor (M9h): on the north wall near the east end, its head turned to look west along the
+# corridor (the end wall is the fire escape doorway with its FIRE EXIT sign above it: no room).
+CAMERA_OFFICE = (18.9, w.OFF_UP + 2.4, 5.27)
 # Roof camera (M9g, ADR 0097): on the mast's south face in the roof's north-east corner, 2.8 m up.
 # Its rest yaw points south-south-west, so duct B's lit forecourt (about -75 to -58 degrees seen
 # from the camera) sits at the west end of its sweep (rest +-40, focus +-25).
@@ -130,9 +132,14 @@ CAMERAS = {
     "CameraGate": (CAMERA_GATE, towards(CAMERA_GATE, (-5.0, 0.0, -22.5)), 20.0),
     "CameraYard": (CAMERA_YARD, towards(CAMERA_YARD, (8.0, 0.0, -14.0)), 20.0),
     "CameraHall": (CAMERA_HALL, 0.0, 30.0),
-    "CameraOffice": (CAMERA_OFFICE, -90.0, 20.0),
+    "CameraOffice": (CAMERA_OFFICE, 0.0, 20.0),
     "CameraRoof": (CAMERA_ROOF, CAMERA_ROOF_YAW, 20.0),
 }
+# Rest pan of a camera's head from its mount's facing (degrees, positive: left), for a camera on a
+# side wall that looks along it: CameraOffice faces south off the north wall and looks west.
+CAMERA_PAN = {"CameraOffice": -90.0}
+# The camera scene's Pivot (the node its sweep turns): at rest it turns 180 degrees to face +Z.
+CAMERA_PIVOT = (0.0, -0.05, 0.24)
 # Roof laser arrays (M9g, ADR 0097; one-beam arrays since ADR 0100): high beams (1.3 m: crouched
 # under) across the parapet gaps where the annex stair and the fire escape arrive. Origin on the
 # north post's south face (the beam's emitter face), +Z across the 1.2 m gap to the south post. On
@@ -153,7 +160,7 @@ SIRENS = {
     "SirenWestYard": ((-26.52, 2.0, 12.2), -90.0),  # annex west wall, outside (south of its door)
     "SirenHallNorth": ((6.0, 6.5, -9.98), 0.0),  # hall north wall, inside, over the north catwalk
     "SirenHallWest": ((-19.98, 6.5, -4.0), 90.0),  # hall west wall, inside, over the west catwalk
-    "SirenOfficeGround": ((8.27, 2.0, 6.0), 90.0),  # ground corridor, west end
+    "SirenOfficeGround": ((9.3, 2.0, 5.27), 0.0),  # ground corridor, west end: north wall, clear of the entrance
     "SirenOfficeUpper": ((14.0, w.OFF_UP + 1.2, 5.27), 0.0),  # upper corridor, between the manager and vault doors
     "SirenBasement": ((14.0, w.BASE_Y + 1.8, 0.02), 0.0),  # basement store, north wall
 }
@@ -368,6 +375,9 @@ def build():
         s.add(name, "Devices", instance=scene["camera"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
         if tilt != 20.0:
             s.override(f"Devices/{name}/Pivot/Tilt", {"transform": Raw(transform((0, 0, 0), pitch_basis(-tilt)))})
+        if name in CAMERA_PAN:
+            pivot = transform(CAMERA_PIVOT, yaw_basis(180.0 + CAMERA_PAN[name]))
+            s.override(f"Devices/{name}/Pivot", {"transform": Raw(pivot)})
         cabled.append(f"Devices/{name}")
     for name, (pos, length) in ROOF_LASERS.items():
         s.add(name, "Devices", instance=scene["laser"], props={"transform": Raw(transform(pos))})

@@ -10,6 +10,7 @@ extends GdUnitTestSuite
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HardwareChecks := preload("res://tests/objects/door/door_hardware_checks.gd")
+const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const CAPSULE_RADIUS := 0.35
 const CAPSULE_HEIGHT := 1.8
@@ -317,6 +318,12 @@ func test_booth_wall_devices_are_named_by_small_signs_above_them() -> void:
 		assert_float(span.x).is_greater(booth.position.y)
 		assert_float(span.y).is_less(booth.end.y)
 	assert_float(spans[1].x - spans[0].y).is_greater(0.1)
+
+
+func test_wall_devices_keep_clear_of_doorways_door_sweeps_and_signs() -> void:
+	# The text of signs is laid out on the first frame.
+	await get_tree().process_frame
+	assert_array(WallDeviceChecks.problems(_room)).is_empty()
 
 
 func test_no_coplanar_faces_with_different_materials() -> void:

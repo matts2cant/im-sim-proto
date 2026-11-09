@@ -377,3 +377,6 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
   - [ ] An open pocket door: its handle stands out of the jamb and E there closes it; it is easy enough to aim at.
   - [ ] Keycard doors (D3, the warehouse's security and vault doors): open with the card, walk through, close it: it is locked again and needs the card again. They never close by themselves. A guard with the card opens them; from a free side they open without a card. Keypad doors stay unlocked once the code is in.
   - [ ] Save with a keycard door open, load, close it: it is locked.
+- [ ] Warehouse wall devices clear of doors and signs (M9h; review shots: `warehouse_shots.tscn` with `-- shots=siren_office_ground,fire_exit_sign,view_camera_office out=res://reports/screenshots/m9h_after`):
+  - [ ] Ground corridor west end: the siren hangs on the north wall east of the office entrance, not over the door leaf; the alarm is still heard in the break room and the security room.
+  - [ ] Upper corridor east end: FIRE EXIT reads in full; the office camera hangs on the north wall and still sweeps the corridor from the vault door to the manager's door.

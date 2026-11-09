@@ -393,7 +393,7 @@ With both up, a camera's incident reaches both controllers and each rings every 
 | CameraGate | Booth's east wall (-9.29, 2.35, -23.7) | Looks at the gate lane (-5, -22.5); sweeps from the gate to the yard |
 | CameraYard | Hall's north-east corner (20.42, 4.0, -10.62) | Looks west-north-west along the dock apron; the gap between the truck and the hall wall is beyond its 15 m |
 | CameraHall | Hall north wall inside (-1, 6.5, -9.98), tilted 30 degrees down | Looks south down the R2-R3 aisle |
-| CameraOffice | Upper corridor east wall above the fire escape door (19.74, 6.88, 6) | Looks west along the corridor (vault and manager doors) |
+| CameraOffice | Upper corridor north wall near the east end (18.9, 6.9, 5.27), head turned west (M9h: the end wall is the fire escape doorway and its FIRE EXIT sign) | Looks west along the corridor (vault and manager doors) |
 | CameraRoof | Roof, the mast's south face in the north-east corner (17, 12.3, -9.69), rest yaw -20 | Sweeps over duct B's lit forecourt at the west end of its sweep (M9g, [Roof security](#roof-security-m9g)) |
 | LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | One-beam laser arrays (`laser_array.tscn`, `Beam1.length` 1.2; [ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)): high beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
 | VaultTurret | Vault (16.9, 4.5, 1.0) | Faces the vault door (intruders) |
@@ -414,8 +414,10 @@ Sirens are heard up to 34 m of path. A PATH stimulus starts at the navmesh point
 | SirenHallNorth | Hall north wall inside, over the north catwalk (6, 6.5, -9.98) | CatwalkD 9 |
 | SirenHallWest | Hall west wall inside, over the west catwalk (-19.98, 6.5, -4) | G4 / CatwalkA 17, CatwalkB 13 |
 | SirenOfficeUpper | Upper corridor north wall (14, 5.7, 5.27) | G7 vault door 5, CatwalkC (bridge) 21 |
-| SirenOfficeGround | Ground corridor west end (8.27, 2, 6) | G6 break room 21, G5 security room 28 (through the closed door) |
+| SirenOfficeGround | Ground corridor west end, north wall (9.3, 2, 5.27): clear of the office entrance (M9h) | G6 break room 4, G5 security room 22 (through the closed door) |
 | SirenBasement | Store north wall (14, -2.2, 0.02) | G8 off duty 15 |
+
+Wall devices (sirens, cameras, laser arrays, wall boxes) keep clear of every doorway opening, door leaf sweep and sign (`warehouse_doors_test.gd`, `tests/levels/wall_device_checks.gd`).
 
 Blind spots and dark routes kept: the dumpster corner north of the side door, the gap between the truck and the hall wall and the containers' far sides are out of every camera's view; the culvert, the tunnel, the basement and the second office have no camera; on the roof (M9g) the camera sees only duct B's lit forecourt, the rest of the roof is dark.
 
