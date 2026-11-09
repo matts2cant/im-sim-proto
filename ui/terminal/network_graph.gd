@@ -34,8 +34,10 @@ const CABLE_WIDTH: float = 2.0
 const DASH: float = 7.0
 const DASH_GAP: float = 5.0
 const BACKGROUND: Color = Color(0.02, 0.05, 0.05)
-## A node box's fill, and the selected node's (with a white outline).
+## A node box's fill, a disabled node's (tinted red: a second cue beside the outline), and the
+## selected node's (with a white outline).
 const NODE_FILL: Color = Color(0.04, 0.1, 0.1, 1.0)
+const DISABLED_FILL: Color = Color(0.22, 0.08, 0.08, 1.0)
 const SELECTED_FILL: Color = Color(0.13, 0.22, 0.22, 1.0)
 const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
 
@@ -520,15 +522,15 @@ func _update_menu() -> void:
 	_place_menu()
 
 
-# Node outlines: the terminal thick blue, the others their row colour; the selected one white and
-# lighter inside (readable on every colour).
+# Node outlines: the terminal thick blue, the others their row colour (a disabled one red-tinted
+# inside); the selected one white and lighter inside (readable on every colour).
 func _restyle(selected_index: int) -> void:
 	for i in mini(_styles.size(), rows.size()):
 		var style := _styles[i]
 		var row := rows[i]
 		style.border_color = TerminalStyle.SELF_COLOR if row.is_self else TerminalStyle.row_color(row)
 		style.set_border_width_all(3 if row.is_self else 1)
-		style.bg_color = NODE_FILL
+		style.bg_color = DISABLED_FILL if row.disabled else NODE_FILL
 		if i == selected_index:
 			style.border_color = Color.WHITE
 			style.set_border_width_all(3 if row.is_self else 2)

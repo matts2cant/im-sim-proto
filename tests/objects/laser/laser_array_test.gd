@@ -173,6 +173,7 @@ func test_broken_it_does_not_trip() -> void:
 
 func test_status_words() -> void:
 	assert_array(Array(DeviceStatus.of(_laser_entity, true))).contains_exactly(["online", "enabled", "clear"])
+	assert_bool(DeviceStatus.is_disabled(_laser_entity)).is_false()
 	var body := _box("Intruder", ON_BEAM, PhysicsLayers.PLAYER, [&"actor.player"])
 	await _frames(3)
 	assert_array(Array(DeviceStatus.of(_laser_entity, true))).contains_exactly(["online", "enabled", "tripped"])
@@ -182,6 +183,7 @@ func test_status_words() -> void:
 	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _laser_entity))
 	await _frames(3)
 	assert_array(Array(DeviceStatus.of(_laser_entity, true))).contains_exactly(["online", "disabled"])
+	assert_bool(DeviceStatus.is_disabled(_laser_entity)).is_true()
 	assert_bool(DeviceStatus.has_view(_laser_entity)).is_false()
 
 

@@ -7,6 +7,8 @@ extends Node3D
 ## (paths under Doors/) opened first. `alarm`: the wing's alarm controller is triggered first.
 ## `network`: the debug panel's network overlay on (ADR 0083). `crouched`: at the crouched eye height
 ## (0.9 m). `terminal`: the booth terminal's Network tab, logged in, with that device's menu open.
+## `disable`: `command.disable` sent to those devices (under Devices/) first; `break`: those devices
+## broken first.
 
 ## feet / look: points; space: "hub" (default the wing); wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
@@ -66,6 +68,16 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"terminal": "LaserPair",
 		"wait": 2.5,
 	},
+	# M9h (ADR 0099 amendment): node colours: disabled red, broken grey, the rest green.
+	"terminal_states":
+	{
+		"feet": Vector3(-0.25, 0, 8.1),
+		"look": Vector3(-0.25, 1.45, 9),
+		"terminal": "Controller",
+		"disable": ["Camera", "Turret", "LaserHigh"],
+		"break": ["SirenCorridor"],
+		"wait": 2.5,
+	},
 }
 
 ## Review image size (the project's 16:9 default).
@@ -116,6 +128,10 @@ func _process(delta: float) -> void:
 		_opened = true
 		for door_name: String in _shot.get("open", []):
 			Door.of(_wing.get_node("Doors/" + door_name)).open()
+		for device_name: String in _shot.get("disable", []):
+			StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _wing.get_node("Devices/" + device_name)))
+		for device_name: String in _shot.get("break", []):
+			Device.of(_wing.get_node("Devices/" + device_name)).load_state({"broken": true})
 		DebugPanel.network_overlay.enabled = bool(_shot.get("network", false))
 	if _shot.has("terminal") and _time > 0.6 and not _terminal_open:
 		_terminal_open = true

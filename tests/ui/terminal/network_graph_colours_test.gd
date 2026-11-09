@@ -72,6 +72,10 @@ func test_each_node_takes_its_devices_colour() -> void:
 	assert_str(_graph.node_status("Disabled")).is_equal("disabled")
 	assert_str(_graph.node_status("Hidden")).is_equal("offline")
 	assert_str(_graph.node_status("Broken")).is_equal("offline")
+	# A disabled node's box is tinted too; a grey one (even disabled out of reach) is not.
+	assert_object(_fill("Disabled")).is_equal(NetworkGraph.DISABLED_FILL)
+	assert_object(_fill("Hidden")).is_equal(NetworkGraph.NODE_FILL)
+	assert_object(_fill("Enabled")).is_equal(NetworkGraph.NODE_FILL)
 	# The terminal keeps its own outline.
 	assert_object(_graph.node_color("Console")).is_equal(TerminalStyle.SELF_COLOR)
 
@@ -130,6 +134,10 @@ func _hang(hub: Node3D, device_name: String, at: Vector3, disabled: bool) -> Nod
 	entity.add_child(component)
 	Devices.link(hub, entity)
 	return entity
+
+
+func _fill(device_name: String) -> Color:
+	return (_graph.node_button(device_name).get_theme_stylebox(&"normal") as StyleBoxFlat).bg_color
 
 
 func _reversed(cable: String) -> String:

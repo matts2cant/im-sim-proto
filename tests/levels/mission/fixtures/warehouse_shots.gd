@@ -261,6 +261,11 @@ func _next() -> void:
 	_time = 0.0
 	for path: String in _shot.get("hide", []):
 		(_level.get_node(path) as Node3D).visible = false
+	# Device states for terminal shots (they last for the rest of the run).
+	for circuit: String in _shot.get("off", []):
+		Powered.set_circuit(get_tree(), StringName(circuit), false)
+	for path: String in _shot.get("disable", []):
+		StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _level.get_node(path)))
 	if _shot.has("guard"):
 		var guard := _level.get_node("Population/People/Guards/" + String(_shot["guard"])) as Node3D
 		guard.global_position = _shot["guard_at"]
