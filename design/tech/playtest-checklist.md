@@ -227,6 +227,9 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
 - [ ] AI arena (room 6, alarm devices on their own): its panic button rings both sirens and every guard runs to the button (base station dispatch); shooting its switch silences the sirens within about 2.5 s.
 - [ ] Debug panel "Raise alarm" / "Clear alarm" ring and stop the sirens in rooms 5 and 6; the HUD "ALARM" goes within about 1.5 s of the last siren pulse you can hear (about 34 m of walking distance).
 - [ ] Doors anywhere: a door does not close on you standing in the doorway; no gap or flicker where the closed panel meets the jambs and the lintel or where the open panel hides in the wall; guards walk through unlocked doors and never through locked ones they have no access for.
+- [ ] Laser hall ([ADR 0096](../decisions/0096-laser-tripwires.md), behind D1): the beams read as thin red lines from the doorway, standing and crouched. Walking into the low beam (0.4 m) beeps and rings both sirens; a walking jump from about a step and a half before it clears it without a beep. Crouching under the high beam (1.3 m) never trips it; walking under it upright does. Standing in a beam gives one beep, not a beep per second. The pair stops both a jump and a crouch.
+- [ ] Throwing the box through a beam rings the alarm; the vault guard comes looking (base station). A knocked-out guard dropped into a beam trips it; an awake guard walking through does not.
+- [ ] From the booth terminal's Network tab the four lasers read enabled / clear (tripped right after a break); Disable turns a beam off (no line, no trip) and Enable brings it back. Breaker B off: every laser goes dark and reads offline. One pistol round at either box breaks the laser for good (its beam goes, the terminal says offline). Quicksave and load keep a disabled or broken laser.
 
 ## M9 Mission
 
