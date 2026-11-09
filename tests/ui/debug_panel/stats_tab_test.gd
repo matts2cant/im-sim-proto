@@ -26,7 +26,7 @@ func before_test() -> void:
 
 
 func test_builds_a_tier_picker_per_skill_and_controls_per_augmentation() -> void:
-	for skill: StringName in [&"pistols", &"low_tech", &"medicine", &"computer", &"lockpicking"]:
+	for skill: StringName in [&"pistols", &"rifles", &"sniper", &"low_tech", &"medicine", &"computer", &"lockpicking"]:
 		var picker := _tab.find_child("Tier_%s" % skill, true, false) as OptionButton
 		assert_object(picker).is_not_null()
 		assert_int(picker.item_count).is_equal(4)
@@ -44,6 +44,16 @@ func test_picking_a_tier_applies_it_live() -> void:
 
 	assert_int(Skills.of(_entity).tier(&"pistols")).is_equal(3)
 	assert_float(Attributes.read(_entity, &"pistol_spread_mult", 1.0)).is_equal_approx(0.4, 0.0001)
+
+
+func test_rifles_and_sniper_pickers_apply_their_tiers_live() -> void:
+	for skill: StringName in [&"rifles", &"sniper"]:
+		var picker := _tab.find_child("Tier_%s" % skill, true, false) as OptionButton
+		picker.select(2)
+		picker.item_selected.emit(2)
+		assert_int(Skills.of(_entity).tier(skill)).is_equal(2)
+	assert_float(Attributes.read(_entity, &"rifle_spread_mult", 1.0)).is_equal_approx(0.6, 0.0001)
+	assert_float(Attributes.read(_entity, &"sniper_sway_mult", 1.0)).is_equal_approx(0.5, 0.0001)
 
 
 func test_install_and_active_controls_apply_and_follow_changes() -> void:

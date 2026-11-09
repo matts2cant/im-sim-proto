@@ -12,7 +12,8 @@ extends Resource
 ## Crouched and still: the base floor times this.
 @export var crouch_still_factor: float = 0.8
 ## Time constant (s) of the exponential settle toward the floor. The shooter's `<class>_settle_time`
-## attribute changes it (Pistols: Untrained 0.8 ... Master 0.2 s; ADR 0061).
+## attribute changes it (Pistols: Untrained 0.8 ... Master 0.2 s; ADR 0061; Sniper x1.0 ... x0.4,
+## ADR 0101).
 @export var settle_time: float = 0.8
 ## While the shooter is crouched (still or moving: the `stance.crouch` tag) the settle time is
 ## multiplied by this (0.8 s -> 0.48 s; Master 0.2 s -> 0.12 s).
@@ -26,7 +27,8 @@ extends Resource
 ## may still be wider. 0: up to `max_spread_deg`.
 @export var shot_bloom_cap_deg: float = 0.0
 @export var max_spread_deg: float = 10.0
-## Aim sway: amplitude (degrees) of a slow figure-of-eight drift of the aim point, x `aim_sway_mult`.
+## Aim sway: amplitude (degrees) of a slow figure-of-eight drift of the aim point, x `aim_sway_mult`
+## (injuries) x `<class>_sway_mult` (Sniper skill, ADR 0101).
 @export var sway_deg: float = 0.15
 ## Sway cycles per second.
 @export var sway_frequency: float = 0.35

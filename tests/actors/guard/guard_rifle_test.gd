@@ -63,6 +63,18 @@ func test_the_rifle_guard_fires_bursts() -> void:
 			roundi(CONFIG.shot_interval_min * 60.0)
 		)
 	assert_bool(_c.holder.trigger_held and not _c.combat.is_bursting()).is_false()
+	# ADR 0101: the assault rifle is in the `rifle` class now, but a guard has no Skills, so its
+	# shots, cone and sway read the rifle's own numbers (no accidental change to guards).
+	assert_object(Skills.of(_c.guard)).is_null()
+	for stat: String in ["spread_mult", "reload_mult", "damage_mult", "settle_time", "sway_mult"]:
+		assert_float(Attributes.read(_c.guard, StringName("rifle_" + stat), 1.0)).is_equal(1.0)
+	var shots := EventLog.find(&"stimulus.emitted").filter(
+		func(entry: EventLogEntry) -> bool:
+			return entry.data["type"] == &"damage.ballistic" and entry.source == String(_c.guard.name)
+	)
+	assert_array(shots).is_not_empty()
+	for entry: EventLogEntry in shots:
+		assert_float(float(entry.data["intensity"]) * float(entry.data["scale"])).is_equal(14.0)
 
 
 func test_a_knocked_out_rifle_guard_drops_the_rifle() -> void:

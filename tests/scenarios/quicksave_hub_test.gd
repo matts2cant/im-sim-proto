@@ -27,6 +27,9 @@ const ABILITY_ATTRIBUTES: Array[StringName] = [
 	&"pistol_settle_time",
 	&"pistol_reload_mult",
 	&"pistol_damage_mult",
+	&"rifle_spread_mult",
+	&"sniper_settle_time",
+	&"sniper_sway_mult",
 	&"medical_heal_mult",
 	&"move_speed_mult",
 	&"jump_apex_height",
@@ -231,6 +234,8 @@ func test_abilities_round_trip_without_duplicate_modifiers() -> void:
 	var player := _player(hub)
 	player.skills.set_tier(&"pistols", 3)
 	player.skills.set_tier(&"medicine", 2)
+	player.skills.set_tier(&"rifles", 2)
+	player.skills.set_tier(&"sniper", 3)
 	player.augmentations.set_installed(&"run_silent", false)
 	assert_bool(player.augmentations.activate(&"cloak")).is_true()
 	assert_bool(player.augmentations.activate(&"speed_enhancement")).is_true()
@@ -244,6 +249,8 @@ func test_abilities_round_trip_without_duplicate_modifiers() -> void:
 	# Change all of it.
 	player.skills.set_tier(&"pistols", 0)
 	player.skills.set_tier(&"medicine", 3)
+	player.skills.set_tier(&"rifles", 0)
+	player.skills.set_tier(&"sniper", 1)
 	player.augmentations.set_installed(&"run_silent", true)
 	player.augmentations.activate(&"run_silent")
 	player.augmentations.deactivate(&"cloak")
@@ -259,6 +266,8 @@ func test_abilities_round_trip_without_duplicate_modifiers() -> void:
 	assert_object(restored).is_not_same(player)
 	assert_int(restored.skills.tier(&"pistols")).is_equal(3)
 	assert_int(restored.skills.tier(&"medicine")).is_equal(2)
+	assert_int(restored.skills.tier(&"rifles")).is_equal(2)
+	assert_int(restored.skills.tier(&"sniper")).is_equal(3)
 	# The load keeps the tree paused while it settles, so nothing drains before this read; the
 	# tolerance (0.5) is far above any tick of drain (cloak + speed: 0.1 per tick).
 	assert_float(restored.energy.current()).is_equal_approx(63.0, 0.5)

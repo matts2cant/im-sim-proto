@@ -31,6 +31,7 @@ kind = 0
 damage = Dictionary[StringName, float]({&"damage.ballistic": 90.0})
 cycle_time = 1.4
 max_range = 150.0
+attribute_class = &"sniper"
 aim_config = ExtResource("9_hip")
 scope_fov = 15.0
 scope_time = 0.15

@@ -24,6 +24,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - `items/item_catalog.tres` (`ItemCatalog`) lists every item; saves store ids and look them up there; the debug panel's "Give item" lists it.
 - Instance state lives on the stack (`state` Dictionary): `magazine` (weapons), `key_id` (keycard), `attachments` (weapons, {slot: item id}). Items with state have max stack 1 and never merge.
 - Icons are generated: a rect of the item's colour, its short name, the count of a stackable or a weapon's rounds. No image assets.
+- Ammo boxes are their weapon's colour, in the world (the box material) and on the icon (`ItemData.colour`, [ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)): pistol ammo red, shotgun shells yellow, rifle rounds green, sniper rounds purple.
 
 | Item | id | Footprint | Stack | Use (LMB in hand, or Use) | Auto-belt | Instance state |
 |---|---|---|---|---|---|---|
