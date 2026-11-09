@@ -46,15 +46,20 @@ const ITEMS: Dictionary[String, int] = {
 	"shotgun_shells": 1,
 	"lockpick": 1,
 	"biocell": 2,
-	"pistol_ammo": 2,
+	"pistol_ammo": 3,
 	"rifle_rounds": 1,
-	"medkit": 1,
+	"medkit": 2,
 	"prototype": 1,
 }
 ## Pickups off the navmesh -> [a navmesh point the player walks from, the stand spot it walks to]:
-## the 4.4 m rack deck is a step down off the bridge between two rack posts (the railing has a gap).
+## the 4.4 m rack deck is a step down off the bridge between two rack posts (the railing has a gap);
+## the cache shed's opening is behind a large crate (props are not in the walk check).
 const WALK_INS: Dictionary[String, Array] = {
 	"PistolAmmoRack": [Vector3(-13.0, 4.5, 6.0), Vector3(-13.0, 4.4, 8.4)],
+	# M9f: inside the cache shed, once the large crate in its opening is carried away (Combat
+	# Strength, warehouse_additions_test.gd): from the open ground north of it to the opening.
+	"CacheMedkit": [Vector3(-33.8, 0.0, 20.3), Vector3(-33.8, 0.0, 22.7)],
+	"CacheAmmo": [Vector3(-33.8, 0.0, 20.3), Vector3(-33.8, 0.0, 22.7)],
 }
 
 var _level: Node3D

@@ -146,6 +146,9 @@ ITEM_SPECS = [
     ("PistolAmmoBreakRoom", "pistol_ammo", (9.6, wh.OFF_GROUND + 0.75, 3.7), 15.0, 6),
     ("Medkit2", "medkit", (18.5, wh.BASE_Y, -0.9), 0.0, None),
     ("Prototype", "prototype", (19.0, wh.OFF_UP + 0.8, 3.5), 90.0, None),
+    # M9f: the cache shed behind the large crate (Combat Strength), back strip, south-west corner.
+    ("CacheMedkit", "medkit", (-33.95, 0.0, 23.45), 0.0, None),
+    ("CacheAmmo", "pistol_ammo", (-33.6, 0.0, 23.4), 20.0, 10),
 ]
 
 # The outgoing shipment on the dock (between the roller doors, around the Shipment marker).
@@ -172,6 +175,11 @@ LOOSE_PROPS = [
     ("BackStripCrate2", "small_crate", (-14.8, 0.0, 17.3), 10.0),
     ("BreakRoomBottle1", "glass_bottle", (9.2, wh.OFF_GROUND + 0.75, 3.65), 0.0),
     ("BreakRoomBottle2", "glass_bottle", (9.3, wh.OFF_GROUND + 0.75, 3.95), 0.0),
+    # M9f (ADR 0093): the large crate (60 kg) closing the cache shed's opening: carried away only with
+    # Combat Strength (70 kg limit); two small crates to stack under the annex's high window.
+    ("CacheCrate", "large_crate", (-33.8, 0.0, 22.5), 0.0),
+    ("WindowCrate1", "small_crate", (-21.7, 0.0, 14.1), 0.0),
+    ("WindowCrate2", "small_crate", (-21.1, 0.0, 14.9), 15.0),
 ]
 # Extra lamps (building circuit) for guard posts that need light: the rifle guard's catwalk.
 LAMPS = [

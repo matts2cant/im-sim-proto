@@ -16,13 +16,17 @@ static func reload_level(tree: SceneTree, event: StringName = &"level.reset") ->
 	return tree.reload_current_scene()
 
 
-## Replaces the current scene with a fresh instance of `scene_path` (the same level or another one)
-## at the end of the frame; SceneTree.scene_changed follows. Drops queued stimuli; logs `event`
-## unless it is empty. ERR_FILE_NOT_FOUND, doing nothing, when the scene does not exist.
+## Replaces the current scene with a fresh instance of `scene_path` (the same level or another one);
+## SceneTree.scene_changed follows. The change is deferred (call_deferred): triggers call this from a
+## physics callback (Area3D.body_entered), where the old scene's collision objects must not leave
+## the tree, so the current scene stays until the deferred calls run, then leaves and is replaced at
+## the end of that frame. Drops queued stimuli; logs `event` unless it is empty.
+## ERR_FILE_NOT_FOUND, doing nothing, when the scene does not exist.
 static func load_level(tree: SceneTree, scene_path: String, event: StringName = &"") -> Error:
 	if not ResourceLoader.exists(scene_path, "PackedScene"):
 		return ERR_FILE_NOT_FOUND
 	if event != &"":
 		EventLog.record(event, "", "", {"scene": scene_path})
 	StimulusSystem.clear()
-	return tree.change_scene_to_file(scene_path)
+	tree.change_scene_to_file.call_deferred(scene_path)
+	return OK

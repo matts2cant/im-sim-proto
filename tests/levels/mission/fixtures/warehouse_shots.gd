@@ -93,6 +93,22 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"manager_office": {"feet": Vector3(9, 4.5, 4.4), "look": Vector3(12, 5.5, 1)},
 	"cabinet": {"feet": Vector3(11, 4.5, 4.5), "look": Vector3(11, 6.5, 2.8)},
 	"vault": {"feet": Vector3(16.9, 4.5, 4.5), "look": Vector3(17, 5.3, 0.5)},
+	# M9f additions and route moments (ADR 0093).
+	"m9f_window_out": {"feet": Vector3(-22.4, 0, 16.5), "look": Vector3(-23, 3.0, 13)},
+	"m9f_window_in": {"feet": Vector3(-24.5, 0, 9.5), "look": Vector3(-23, 3.2, 12.8)},
+	"m9f_window_sill": {"feet": Vector3(-23, 2.9, 12.75), "look": Vector3(-23, 1.5, 10), "crouch": true},
+	"m9f_cache": {"feet": Vector3(-33.0, 0, 19.8), "look": Vector3(-33.8, 0.6, 23.3)},
+	"m9f_cache_open":
+	{
+		"feet": Vector3(-33.8, 0, 22.4),
+		"look": Vector3(-33.8, 0.1, 23.6),
+		"crouch": true,
+		"hide": ["Population/People/Props/CacheCrate"]
+	},
+	"m9f_office_stair_top": {"feet": Vector3(12.35, 4.5, 14.3), "look": Vector3(8.5, 5.2, 13.8)},
+	"m9f_drum_skylight": {"feet": Vector3(-9.75, 9.5, -7.0), "look": Vector3(2.5, 0.5, -7.3)},
+	"m9f_duct_c_exit": {"feet": Vector3(14.9, 0, 0.9), "look": Vector3(17.6, 1.2, 1.6), "crouch": true},
+	"m9f_corridor_g7": {"feet": Vector3(10.65, 4.5, 6.35), "look": Vector3(16, 5.5, 6)},
 	# Underground.
 	"service_stair": {"feet": Vector3(8.9, 0, 7.6), "look": Vector3(8.9, -2, 12)},
 	"basement_store": {"feet": Vector3(10, -4, 14), "look": Vector3(16, -2.5, 2)},

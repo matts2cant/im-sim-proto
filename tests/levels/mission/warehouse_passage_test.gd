@@ -37,6 +37,9 @@ func test_stairs_and_roof_doors_connect_every_level() -> void:
 		"north-east hall stair": [Vector3(17.8, 0, -0.9), Helpers.NORTH, 240, 4.5, Rect2(-20, -10, 40, 1.6)],
 		"south-west hall stair": [Vector3(-10.8, 0, 12.8), Helpers.WEST, 240, 4.5, Rect2(-20, -10, 1.6, 25)],
 		"office stair": [Vector3(12.35, 0, 7.8), Helpers.SOUTH, 240, 4.5, Rect2(11.7, 13.8, 1.3, 1.0)],
+		# Off the office stair's top west onto the upper floor, past the hole railing's end (M9f).
+		"office stair top to the upper floor":
+		[Vector3(12.35, 4.5, 14.3), Helpers.WEST, 40, 4.5, Rect2(8.25, 13.6, 3.2, 1.2)],
 		"service stair down": [Vector3(8.9, 0, 7.6), Helpers.SOUTH, 300, -4.0, Rect2(8, 13, 2, 1.8)],
 		"hatch stair up": [Vector3(11.1, -4, -0.9), Helpers.NORTH, 300, 0.0, Rect2(10, -10, 2.5, 3.6)],
 		"tunnel to the boiler room": [Vector3(36.0, -2.4, -5), Helpers.WEST, 330, -4.0, Rect2(8, -9, 11.6, 8.5)],
