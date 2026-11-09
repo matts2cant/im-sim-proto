@@ -1,14 +1,15 @@
 extends GdUnitTestSuite
-## Integration (ADR 0096): the laser tripwire behaviour is generic. A minimal entity built in code
-## (Tags, receiver with the disable / enable receptrons, Powered, Device, a LaserTripwire with the
-## shipped config and no visuals) watches a 4 m beam along its +Z, 0.4 m above a floor, and reports
+## Integration (ADR 0096, ADR 0100): the laser array behaviour is generic. A minimal one-beam array
+## built in code (Tags, receiver with the disable / enable receptrons, Powered, Device, one LaserBeam
+## and a LaserArray with the shipped config, no visuals and no body) watches a 4 m beam along its +Z,
+## 0.4 m above a floor, and reports
 ## to a minimal "controller" device cabled to it (it accepts `device.incident`). Stand-ins are boxes
 ## and walkers moved into the beam. Built at (-500, 0, 300), away from other suites' leftovers.
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
-const CONFIG: LaserTripwireConfig = preload("res://objects/laser/laser_tripwire.tres")
+const CONFIG: LaserArrayConfig = preload("res://objects/laser/laser_array.tres")
 const BEAM_HEIGHT := 0.4
 const BEAM_LENGTH := 4.0
 ## A stand-in's spot in the beam (2 m along it) and one 1.5 m to the side of it.
@@ -17,7 +18,7 @@ const OFF_BEAM := Vector3(1.5, 0, 2)
 
 var _root: Node3D
 var _laser_entity: Node3D
-var _laser: LaserTripwire
+var _laser: LaserArray
 var _incidents: Array[Vector3] = []
 
 
@@ -33,12 +34,12 @@ func before_test() -> void:
 		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
 	]
 	_laser_entity = Devices.device(_root, "Tripwire", Vector3(0, BEAM_HEIGHT, 0), receptrons, true)
-	_laser = LaserTripwire.new()
+	var beam := LaserBeam.new()
+	beam.name = "Beam1"
+	beam.length = BEAM_LENGTH
+	_laser_entity.add_child(beam)
+	_laser = LaserArray.new()
 	_laser.config = CONFIG
-	_laser.beam_length = BEAM_LENGTH
-	_laser.beam_path = ^""
-	_laser.receiver_path = ^""
-	_laser.receiver_shape_path = ^""
 	_laser.sound_path = ^""
 	_laser_entity.add_child(_laser)
 	var incident: Array[Receptron] = [Devices.action_receptron(Device.INCIDENT)]
@@ -60,6 +61,7 @@ func test_a_body_in_the_beam_reports_one_incident_at_the_break_point() -> void:
 	var tripped := EventLog.find(&"laser.tripped")
 	assert_array(tripped).has_size(1)
 	assert_str(String(tripped[0].data["by"])).is_equal("Intruder")
+	assert_str(String(tripped[0].data["beam"])).is_equal("Beam1")
 	assert_int(int(tripped[0].data["controllers"])).is_equal(1)
 	var expected := _root.to_global(Vector3(0, BEAM_HEIGHT, 2))
 	assert_float((tripped[0].data["point"] as Vector3).distance_to(expected)).is_less(0.01)

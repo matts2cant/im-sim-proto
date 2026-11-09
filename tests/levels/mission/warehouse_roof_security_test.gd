@@ -1,13 +1,13 @@
 extends GdUnitTestSuite
 ## Warehouse roof security (design/levels/mission-warehouse.md "Roof security", ADR 0097): two high
-## laser beams (1.3 m) cross the parapet gaps where the annex stair (west) and the fire escape (east)
-## arrive, post to post with no world geometry across them; a camera on a mast in the roof's
-## north-east corner watches duct B's forecourt, lit by a flood lamp, and its sweep leaves a window
-## to cross it. Everything is on the yard network: a lit intruder in the forecourt or an upright body
-## in a beam rings both controllers; a crouched body passes under a beam; breaker A switches the
-## beams and the lamp off and cuts the camera from its controller; the console disables them.
-## Coordinates are warehouse (world) coordinates; the forecourt lies north of duct B's mouth
-## (x 11, z -5.8).
+## laser beams (1.3 m; each a one-beam laser array, ADR 0100) cross the parapet gaps where the annex
+## stair (west) and the fire escape (east) arrive, post to post with no world geometry across them;
+## a camera on a mast in the roof's north-east corner watches duct B's forecourt, lit by a flood
+## lamp, and its sweep leaves a window to cross it. Everything is on the yard network: a lit
+## intruder in the forecourt or an upright body in a beam rings both controllers; a crouched body
+## passes under a beam; breaker A switches the beams and the lamp off and cuts the camera from its
+## controller; the console disables them. Coordinates are warehouse (world) coordinates; the
+## forecourt lies north of duct B's mouth (x 11, z -5.8).
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const LASERS: Array[String] = ["LaserRoofWest", "LaserRoofEast"]
@@ -50,18 +50,22 @@ func test_beams_cross_the_gaps_post_to_post_at_crouch_height() -> void:
 	var space := _helpers.level.get_world_3d().direct_space_state
 	for laser_name: String in LASERS:
 		var entity := _helpers.device_entity(laser_name)
-		var laser := LaserTripwire.of(entity)
+		var laser := LaserArray.of(entity)
+		# A one-beam array (ADR 0100): its beam starts at the array's origin.
+		assert_int(laser.beams.size()).override_failure_message(laser_name).is_equal(1)
+		var beam := laser.beams[0]
+		assert_vector(beam.global_position).is_equal_approx(entity.global_position, Vector3.ONE * 0.0001)
 		var own: Array[RID] = [(entity as CollisionObject3D).get_rid()]
-		# The origin is on the emitter's mount face; the receiver's face is beam_length along +Z.
-		var start := entity.global_position
-		var axis := entity.global_basis.z.normalized()
-		var length := laser.beam_length
+		# The origin is on the emitter's mount face; the receiver's face is the beam's length along +Z.
+		var start := beam.global_position
+		var axis := beam.global_basis.z.normalized()
+		var length := beam.length
 		var end := start + axis * length
 		# Nothing of the world crosses the beam between its boxes.
 		var inside := _ray(space, start + axis * 0.09, end - axis * 0.09, own)
 		assert_dict(inside).override_failure_message("%s: %s across the beam" % [laser_name, inside]).is_empty()
 		# Each end sits on a post's face: the first world hit beyond the receiver is the far post at
-		# beam_length, and behind the emitter the near post.
+		# the beam's length, and behind the emitter the near post.
 		var beyond := _ray(space, start + axis * 0.09, start + axis * (length + 0.3), own)
 		assert_bool(beyond.is_empty()).override_failure_message(laser_name + ": no far post").is_false()
 		var far := (beyond["position"] as Vector3).distance_to(start)
@@ -159,8 +163,8 @@ func test_a_lit_intruder_in_the_forecourt_and_an_upright_body_in_a_beam_ring_bot
 
 	# A crouched body (0.95 m) under each beam passes; an upright one (1.8 m) trips it.
 	for laser_name: String in LASERS:
-		var laser := LaserTripwire.of(_helpers.device_entity(laser_name))
-		var middle := (laser.beam_start() + laser.beam_end()) * 0.5
+		var laser := LaserArray.of(_helpers.device_entity(laser_name))
+		var middle := (laser.beam_start(laser.beams[0]) + laser.beam_end(laser.beams[0])) * 0.5
 		var feet := Vector3(middle.x, ROOF, middle.z)
 		EventLog.clear()
 		var crouched := _body(feet, 0.95, [&"actor.player"])
@@ -184,9 +188,9 @@ func test_breaker_a_switches_the_roof_off_and_the_console_disables_it() -> void:
 	breaker.use(null)
 	await _helpers.frames(2)
 	for laser_name: String in LASERS:
-		var laser := LaserTripwire.of(_helpers.device_entity(laser_name))
+		var laser := LaserArray.of(_helpers.device_entity(laser_name))
 		assert_bool(laser.is_watching()).override_failure_message(laser_name + " still on").is_false()
-		assert_bool((laser.entity.get_node("Beam") as Node3D).visible).is_false()
+		assert_bool(laser.beams[0].ray_visible()).is_false()
 	assert_bool(Powered.of(lamp).on).is_false()
 	assert_float(_measure(FORECOURT[1])).is_less(DARK)
 	var rows := {}
@@ -208,7 +212,7 @@ func test_breaker_a_switches_the_roof_off_and_the_console_disables_it() -> void:
 		)
 	await _helpers.frames(3)
 	for laser_name: String in LASERS:
-		assert_bool(LaserTripwire.of(_helpers.device_entity(laser_name)).is_watching()).is_false()
+		assert_bool(LaserArray.of(_helpers.device_entity(laser_name)).is_watching()).is_false()
 	assert_bool(SecurityCamera.of(_helpers.device_entity(CAMERA)).is_watching()).is_false()
 
 

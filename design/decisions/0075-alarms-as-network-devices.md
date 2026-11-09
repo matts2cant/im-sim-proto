@@ -1,6 +1,6 @@
 # 75. Alarms as network devices
 
-Status: Accepted (supersedes the level alarm part of [ADR 0072](0072-shouts-radio-level-alarm.md); shouts and radio stay)
+Status: Accepted (supersedes the level alarm part of [ADR 0072](0072-shouts-radio-level-alarm.md); shouts and radio stay). Amended by [ADR 0100](0100-laser-arrays-alarm-time-downed-targets.md): the controller rings for 45 s, not 90 s
 
 Date: 2026-11-08
 

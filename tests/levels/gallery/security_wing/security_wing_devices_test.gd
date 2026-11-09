@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Gallery room 5 (security wing) on its own: the security devices. The terminal reaches the camera,
 ## turret, alarm controller, both sirens, the panic button, the radio base station, the vault door
-## and the laser hall's four tripwires through the network switch; with breaker B (the switch's
+## and the laser hall's three laser arrays (the two-beam one is a single device, ADR 0100) through
+## the network switch; with breaker B (the switch's
 ## circuit) off it reaches nothing and shows every device offline, and the fail-secure vault door
 ## stays locked; breaker A off unlocks the fail-safe D4. The closed vault door blocks the turret's
 ## line of sight to the corridor and the entry hall. The camera covers the corridor (within 15 m and
@@ -21,10 +22,9 @@ const NETWORK: Array[String] = [
 	"Doors/VaultDoor",
 	"Devices/LaserLow",
 	"Devices/LaserHigh",
-	"Devices/LaserPairLow",
-	"Devices/LaserPairHigh",
+	"Devices/LaserPair",
 ]
-const LASERS: Array[String] = ["LaserLow", "LaserHigh", "LaserPairLow", "LaserPairHigh"]
+const LASERS: Array[String] = ["LaserLow", "LaserHigh", "LaserPair"]
 ## Corridor centre line (x 9), from the hall end to the guard post, and between the alcoves.
 const CORRIDOR_LINE: Array[Vector3] = [
 	Vector3(9, 0, 7.5), Vector3(9, 0, 10.3), Vector3(9, 0, 12.6), Vector3(9, 0, 14.9), Vector3(9, 0, 16.4)

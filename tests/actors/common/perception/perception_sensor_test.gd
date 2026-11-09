@@ -129,6 +129,18 @@ func test_a_watcher_that_cannot_act_sees_nothing() -> void:
 	assert_object(_sensor.look()).is_null()
 
 
+func test_a_downed_hostile_is_not_seen_and_does_not_hide_one_behind() -> void:
+	# The downed one is nearer (higher gain): it would win if it counted.
+	var downed := _target(Vector3(0, 0, -4), [&"actor.player", ActorState.DEAD])
+	var standing := _target(Vector3(1, 0, -12), [&"actor.player"])
+	await _frames(2)
+	assert_object(_sensor.look().target).is_same(standing)
+	(standing.get_node("Tags") as Tags).add(ActorState.UNCONSCIOUS)
+	assert_object(_sensor.look()).is_null()
+	(downed.get_node("Tags") as Tags).remove(ActorState.DEAD)
+	assert_object(_sensor.look().target).is_same(downed)
+
+
 func test_hostile_and_ally_follow_the_tags() -> void:
 	var player := _target(Vector3(0, 0, -4), [&"actor.player"])
 	var guard := _target(Vector3(2, 0, -4), [&"actor.guard"])

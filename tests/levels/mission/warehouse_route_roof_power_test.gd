@@ -112,6 +112,6 @@ func test_breaker_a_off_the_roof_is_walked_upright_unseen() -> void:
 # True while any roof laser watches its beam.
 func _lasers_on() -> bool:
 	for laser_name: String in LASERS:
-		if LaserTripwire.of(_route.level.get_node(Route.DEVICES + "/" + laser_name)).is_watching():
+		if LaserArray.of(_route.level.get_node(Route.DEVICES + "/" + laser_name)).is_watching():
 			return true
 	return false
