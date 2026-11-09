@@ -15,8 +15,8 @@ const PEOPLE := "Population/People"
 const SECURITY := "Population/Security"
 const TIME_FACTOR := 9.0
 const TICK := 1.0 / 60.0
-## Game time simulated: one lap of the longest route (the rifle guard's, about 53 s) plus margin.
-const SIMULATED := 60.0
+## Game time simulated: one lap of the longest route (the rifle guard's, about 62 s) plus margin.
+const SIMULATED := 70.0
 const PASS_RADIUS := 5.0
 const SAME_FLOOR := 1.5
 const MIN_GAP := 4.0
