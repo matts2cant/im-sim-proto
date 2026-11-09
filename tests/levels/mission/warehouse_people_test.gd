@@ -8,9 +8,7 @@ extends GdUnitTestSuite
 ## climb leads. Guards reach their posts through the doors their access tags open. Positions and
 ## routes come from the layout markers (tools/level_gen/warehouse_people.py).
 
-const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
-const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
+const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const PEOPLE := "Population/People"
 const REACH := 0.35
 const LIT := 0.5
@@ -63,6 +61,17 @@ var _level: Node3D
 var _map: RID
 
 
+# One level for the suite: its tests only query it (design/tech/testing.md "Writing fast tests").
+func before() -> void:
+	_level = await WarehouseHelpers.load_for_queries(self, true, true)
+	_map = WarehouseHelpers.navigation_map(_level)
+
+
+func after() -> void:
+	if _map.is_valid():
+		NavigationServer3D.map_set_use_async_iterations(_map, true)
+
+
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
@@ -70,12 +79,9 @@ func before_test() -> void:
 
 func after_test() -> void:
 	StimulusSystem.clear()
-	if _map.is_valid():
-		NavigationServer3D.map_set_use_async_iterations(_map, true)
 
 
 func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
-	await _load()
 	var guards := _level.get_node(PEOPLE + "/Guards")
 	assert_int(guards.get_child_count()).is_equal(GUARDS.size())
 	var start := (_level.get_node("ReinforcementSpawn") as Node3D).global_position
@@ -114,7 +120,6 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 
 
 func test_posts_and_the_catwalk_stand_in_light() -> void:
-	await _load()
 	var dark: PackedStringArray = []
 	for guard_name in LIT_POSTS:
 		var feet := (_level.get_node(PEOPLE + "/Guards/" + guard_name) as Node3D).global_position
@@ -131,7 +136,6 @@ func test_posts_and_the_catwalk_stand_in_light() -> void:
 
 
 func test_patrol_routes_cross_no_doorway() -> void:
-	await _load()
 	var crossed: PackedStringArray = []
 	var doorways := _level.get_node("LayoutMarkers/Doorways").get_children()
 	for route: Node in _level.get_node(PEOPLE + "/Routes").get_children():
@@ -152,7 +156,6 @@ func test_patrol_routes_cross_no_doorway() -> void:
 
 
 func test_every_item_is_placed_and_reachable() -> void:
-	await _load()
 	var start := (_level.get_node("PlayerSpawn") as Node3D).global_position
 	var counts := {}
 	var unreachable: PackedStringArray = []
@@ -253,17 +256,3 @@ func _measure(feet: Vector3) -> float:
 	var level := exposure.update_now()
 	body.free()
 	return level
-
-
-func _load() -> void:
-	await GuardHelpers.let_old_scenes_go(get_tree())
-	_level = auto_free(LEVEL.instantiate())
-	_level.get_node("Mission").free()
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 3)
-	var region := _level.get_node("Navigation") as LevelNavigation
-	_map = region.get_navigation_map()
-	await GuardHelpers.use_sync_iterations(_map, region)
-	GuardHelpers.isolate_region(_map, region)
-	region.bake()
-	assert_bool(await KitGeometry.wait_for_navigation(get_tree(), _map, Vector3(0, 0, 0))).is_true()

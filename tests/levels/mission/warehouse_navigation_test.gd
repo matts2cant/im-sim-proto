@@ -5,9 +5,6 @@ extends GdUnitTestSuite
 ## tower). Player-only spots (container tops, rack tops, the office block roof, duct interiors, the
 ## skylight landings) are off it.
 
-const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
-const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const REACH := 0.35
 
@@ -48,6 +45,19 @@ var _level: Node3D
 var _map: RID
 
 
+# One level for the suite: its tests only query the navmesh.
+func before() -> void:
+	# The navmesh of the geometry: locked doors keep guards without the key out (their own suites:
+	# warehouse_door_navigation_test).
+	_level = await WarehouseHelpers.load_for_queries(self, false, true)
+	_map = WarehouseHelpers.navigation_map(_level)
+
+
+func after() -> void:
+	if _map.is_valid():
+		NavigationServer3D.map_set_use_async_iterations(_map, true)
+
+
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
@@ -55,12 +65,9 @@ func before_test() -> void:
 
 func after_test() -> void:
 	StimulusSystem.clear()
-	if _map.is_valid():
-		NavigationServer3D.map_set_use_async_iterations(_map, true)
 
 
 func test_guard_posts_and_patrol_points_connect_to_the_road() -> void:
-	await _load()
 	var start := (_level.get_node("ReinforcementSpawn") as Node3D).global_position
 	var missing: PackedStringArray = []
 	for group: String in ["Guards", "PatrolPoints"]:
@@ -71,7 +78,6 @@ func test_guard_posts_and_patrol_points_connect_to_the_road() -> void:
 
 
 func test_guards_can_search_every_area() -> void:
-	await _load()
 	var start := (_level.get_node("ReinforcementSpawn") as Node3D).global_position
 	var missing: PackedStringArray = []
 	for spot: String in GUARD_SPOTS:
@@ -81,7 +87,6 @@ func test_guards_can_search_every_area() -> void:
 
 
 func test_climbing_spots_stay_off_the_navmesh() -> void:
-	await _load()
 	var start := (_level.get_node("ReinforcementSpawn") as Node3D).global_position
 	var reached: PackedStringArray = []
 	for spot: String in PLAYER_ONLY:
@@ -93,21 +98,3 @@ func test_climbing_spots_stay_off_the_navmesh() -> void:
 func _reaches(from: Vector3, to: Vector3) -> bool:
 	var path := NavigationServer3D.map_get_path(_map, from, to, true)
 	return not path.is_empty() and path[-1].distance_to(to) < REACH
-
-
-func _load() -> void:
-	await GuardHelpers.let_old_scenes_go(get_tree())
-	_level = auto_free(LEVEL.instantiate())
-	_level.get_node("Mission").free()
-	# The navmesh of the geometry: locked doors keep guards without the key out (their own suites:
-	# warehouse_door_navigation_test).
-	WarehouseHelpers.strip_population(_level)
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 3)
-	var region := _level.get_node("Navigation") as LevelNavigation
-	_map = region.get_navigation_map()
-	await GuardHelpers.use_sync_iterations(_map, region)
-	GuardHelpers.isolate_region(_map, region)
-	# A region switched to synchronous iterations after its bake can lose that update: bake again.
-	region.bake()
-	assert_bool(await KitGeometry.wait_for_navigation(get_tree(), _map, Vector3(0, 0, 0))).is_true()

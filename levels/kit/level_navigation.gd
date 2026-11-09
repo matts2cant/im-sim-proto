@@ -21,11 +21,16 @@ const SOURCE_GROUP: StringName = &"navigation_source"
 ## Voxel size (a divisor of the agent radius keeps it exact); the navigation map is set to match.
 @export_range(0.05, 1.0, 0.05, "suffix:m") var cell_size := 0.05
 @export_range(0.05, 1.0, 0.05, "suffix:m") var cell_height := 0.05
+## Bake when the level loads. Tests that need no navmesh, or bake once on a synchronous map they set
+## up first, turn it off before adding the level to the tree (a bake costs about 1 s in the
+## warehouse).
+@export var bake_on_ready := true
 
 
 func _ready() -> void:
 	add_to_group(QuickSave.REBAKE_GROUP)
-	bake()
+	if bake_on_ready:
+		bake()
 
 
 ## Collects the source geometry and bakes the navigation mesh on the calling thread.

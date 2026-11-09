@@ -5,8 +5,7 @@ extends GdUnitTestSuite
 ## measured crouched). Breaker A's circuit (`warehouse_yard`) carries the outdoor lights and
 ## breaker B's (`warehouse_building`) the building's: cutting one darkens its pools only.
 
-const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
+const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const YARD := &"warehouse_yard"
 const BUILDING := &"warehouse_building"
 const DARK := 0.1
@@ -16,6 +15,11 @@ const YARD_POOLS: Array[String] = ["GateLane", "DockApronWest", "SideDoor", "Bac
 const BUILDING_POOLS: Array[String] = ["DockInside", "GroundCorridor", "UpperCorridor", "SecurityRoom", "BreakRoom"]
 
 var _level: Node3D
+
+
+# One level for the suite: its tests only query it (design/tech/testing.md "Writing fast tests").
+func before() -> void:
+	_level = await Helpers.load_for_queries(self, true, false)
 
 
 func before_test() -> void:
@@ -28,7 +32,6 @@ func after_test() -> void:
 
 
 func test_hiding_spots_are_dark_and_pools_are_lit() -> void:
-	await _load()
 	var wrong: PackedStringArray = []
 	for marker: Node3D in _level.get_node("LayoutMarkers/DarkSpots").get_children():
 		var level := _measure(marker.global_position, marker.get_meta(&"crouched", false))
@@ -42,7 +45,6 @@ func test_hiding_spots_are_dark_and_pools_are_lit() -> void:
 
 
 func test_each_breaker_circuit_darkens_its_own_pools() -> void:
-	await _load()
 	var spots := _level.get_node("LayoutMarkers/LitSpots")
 	assert_int(Powered.set_circuit(get_tree(), YARD, false)).is_greater(5)
 	for pool: String in YARD_POOLS:
@@ -59,16 +61,10 @@ func test_each_breaker_circuit_darkens_its_own_pools() -> void:
 	for pool: String in YARD_POOLS:
 		var level := _measure((spots.get_node(pool) as Node3D).global_position, false)
 		assert_float(level).override_failure_message("building off, %s: %.2f" % [pool, level]).is_greater_equal(LIT)
+	# The suite's level is shared: building power back on.
+	Powered.set_circuit(get_tree(), BUILDING, true)
 
 
-func _load() -> void:
-	_level = auto_free(LEVEL.instantiate())
-	_level.get_node("Mission").free()
-	add_child(_level)
-	await KitGeometry.settle(get_tree(), 5)
-
-
-# Light level of a stand-in body (standing 1.8 m capsule, or crouched with `stance.crouch`).
 func _measure(feet: Vector3, crouched: bool) -> float:
 	var body := StaticBody3D.new()
 	body.collision_layer = PhysicsLayers.ACTORS
