@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Integration: the shipped alarm device scenes (ADR 0077), wired in code without a level: alarm
 ## controller - network switch - siren, a radio base station and a panic button cabled to the
 ## controller. No guards here (tests/scenarios/alarm_devices_test.gd has them). The controller's
-## ringing time is shortened to RING_TIME for speed (a duplicated config); the 90 s default is
+## ringing time is shortened to RING_TIME for speed (a duplicated config); the 45 s default is
 ## checked in the scenario test.
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")

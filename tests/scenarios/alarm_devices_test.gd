@@ -104,22 +104,24 @@ func test_the_base_station_sends_radio_guards_to_the_incident() -> void:
 	assert_str(_awareness("Far").state_name()).is_equal("unaware")
 
 
-func test_a_trigger_keeps_hearers_searching_for_90_s_then_the_sirens_stop() -> void:
+func test_a_trigger_keeps_hearers_searching_for_45_s_then_the_sirens_stop() -> void:
 	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
 	await _frames(12)
 	assert_str(_awareness("Near").state_name()).is_equal("searching")
 	assert_bool(_awareness("Near").model.is_wary()).is_true()
 	assert_array(EventLog.find(&"radio.dispatch")).is_empty()
 
-	# 60 s in (past one 30 s search): still searching, still ringing.
-	await _seconds(60.0)
+	# The shipped controller rings for 45 s (ADR 0100).
+	assert_float(_controller().config.duration).is_equal(45.0)
+	# 35 s in (past one 30 s search): still searching, still ringing.
+	await _seconds(35.0)
 	assert_bool(_controller().is_ringing()).is_true()
 	assert_str(_awareness("Near").state_name()).is_equal("searching")
 	assert_str(_awareness("Far").state_name()).is_equal("unaware")
 	assert_array(EventLog.find(&"alarm.ended")).is_empty()
 
-	# Over after 90 s; the siren is silenced.
-	await _seconds(31.0)
+	# Over after 45 s (checked at 46 s); the siren is silenced.
+	await _seconds(11.0)
 	assert_bool(_controller().is_ringing()).is_false()
 	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("timeout")
 	assert_bool(_siren().is_sounding()).is_false()
