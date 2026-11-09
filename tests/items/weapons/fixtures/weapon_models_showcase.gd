@@ -1,7 +1,7 @@
 extends Node3D
 ## Screenshot helper for reviews (not a test): the weapon model scenes side on, -Z (the muzzle) to the
-## left, each with its muzzle marker as a small red cube, a silencer fitted where the weapon takes
-## one and the world pickups' collision boxes in wireframe. `-- raw=1` shows the bare Kenney GLBs
+## right, each with its muzzle marker as a small red cube, a silencer fitted where the weapon takes
+## one. `-- raw=1` shows the bare Kenney GLBs
 ## instead. Saves the window to `out=` and quits.
 
 const MODELS: Array[String] = [
