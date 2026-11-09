@@ -25,6 +25,7 @@ Hard numbers every level must respect. Source of truth for the values is `actors
 | Mantle height | 1.0–1.9 m above the last ground stood on (and above the feet); the maximum also applies to the feet | Ledges below 1.0 m are jumped onto; 2.0–2.2 m are a deliberate "no"; ≥ 2.3 m is out of reach unaugmented (Speed Enhancement mantles up to 2.5 m: see Augmented) |
 | Mantle reach | 0.8 m horizontal from the capsule | Ledge lips must be within reach of a standable spot |
 | Mantle clearance | standing clearance on top, or crouched clearance (ends crouched) | A vent mouth on a ledge needs ≥ 1.0 m height above the ledge |
+| Mantle probe | the ledge face is searched by three horizontal rays at 0.16, 0.86 and 1.62 m above the feet (0.08, 0.45, 0.85 of 1.9 m), up to 0.8 m ahead | A ledge's face must cross one of them: solid ledges always do. A hole's edge overhead (a ceiling hatch) only does when the slab is thick enough: the warehouse's duct hole has its edge 1.7 m above the stand spot and a 0.45 m face (1.25-1.7 m), caught by the 1.62 m ray. Stand fully under the hole, facing its nearest edge |
 
 ## Augmented (M6)
 
@@ -66,6 +67,16 @@ Fire reaches 1.0-2.0 m from a burning object's centre and does not pass walls (l
 | Object impacts | clamp(speed × √mass × 0.8, 2, 30) × material (wood 1.0, metal 1.4, glass 1.6, cardboard 0.4), from 2.5 m/s; burning crackle 4; break 15; explosion 60 |
 
 Floors declare their surface with node metadata `surface` on the CSG root that has collision ([ADR 0033](../decisions/README.md)); kit parts set it from their `surface` property.
+
+## Fences, railings and drops (M9)
+
+| Metric | Value | Level rule |
+|---|---|---|
+| Fall damage | from 10 m/s, a 2.55 m fall ((v - 10) x 8 per leg) | Route drops ≤ 2.5 m; a walking player carries about 4 m/s x fall time forward (1.5 m over a 1.4 m drop): landing spots extend that far past an edge |
+| Palisade fence | 3.0 m, bars 0.05 m every 0.22 m (`Fence`) | Out of reach even with Speed (jump apex 1.6, mantle 2.5); crossed only from something about 2.5 m tall beside it (a container: a hop over a top 0.5 m above it) |
+| Railings | 1.0 m, posts every 1 m, rails at 0.5 and 1.0 m | Not jumped (apex 1.0) nor mantled (thin top); leave a gap wherever a route steps or drops through |
+| Vents on slopes | interior 1.2 m, slopes ≤ 25° | Steeper slopes (40°) pinch a crouched capsule at the kinks |
+| Stair holes in floors | the hole runs until the treads are 1.9 m below the slab underside, plus a capsule diameter (0.7 m) | Otherwise the player's front edge meets the slab while its axis stands on a higher tread |
 
 ## Light and guards (M7)
 

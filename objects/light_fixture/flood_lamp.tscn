@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="1_metal_surface"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="3_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="4_stimulus_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="5_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="6_take_damage"]
+[ext_resource type="Resource" path="res://objects/materials/glass.tres" id="7_glass"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="8_breakable"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="9_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="10_powered"]
+[ext_resource type="Material" path="res://objects/light_fixture/bulb.tres" id="11_bulb"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.5, 0.36, 0.3)
+
+[sub_resource type="BoxMesh" id="Mesh_housing"]
+material = ExtResource("1_metal_surface")
+size = Vector3(0.5, 0.36, 0.24)
+
+[sub_resource type="BoxMesh" id="Mesh_lens"]
+material = ExtResource("11_bulb")
+size = Vector3(0.42, 0.28, 0.04)
+
+[node name="FloodLamp" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
+cast_shadow = 0
+mesh = SubResource("Mesh_housing")
+
+[node name="Lens" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.11)
+cast_shadow = 0
+mesh = SubResource("Mesh_lens")
+
+[node name="Light" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.25)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 3.0
+shadow_enabled = true
+spot_range = 20.0
+spot_angle = 40.0
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("2_tags")
+initial_tags = Array[StringName]([&"material.glass", &"object.lamp"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("3_attributes")
+base_values = Dictionary[StringName, float]({&"health": 1.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+script = ExtResource("4_stimulus_receiver")
+receptrons = Array[ExtResource("5_receptron")]([ExtResource("6_take_damage")])
+
+[node name="Breakable" type="Node3D" parent="."]
+script = ExtResource("8_breakable")
+material = ExtResource("7_glass")
+settings = ExtResource("9_break_settings")
+size = 0.4
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("10_powered")
+targets = Array[NodePath]([NodePath("../Light"), NodePath("../Lens")])

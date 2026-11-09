@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/mission/areas/exterior.tscn" id="1_exterior"]
+[ext_resource type="PackedScene" path="res://levels/mission/areas/hall.tscn" id="2_hall"]
+[ext_resource type="PackedScene" path="res://levels/mission/areas/underground.tscn" id="3_underground"]
+[ext_resource type="PackedScene" path="res://levels/mission/areas/layout_markers.tscn" id="4_layout_markers"]
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/extraction_zone.tscn" id="5_extraction_zone"]
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/mission.tscn" id="6_mission"]
+[ext_resource type="Resource" path="res://levels/mission/mission_kit/warehouse_mission.tres" id="7_warehouse_mission"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="8_level_navigation"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.012, 0.016, 0.03, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.52, 0.7, 1)
+ambient_light_energy = 0.12
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.05, 0.06, 0.09, 1)
+fog_density = 0.006
+
+[node name="Warehouse" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Moon" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.7894, -0.5334, 0.3041, 0, 0.4953, 0.8687, -0.6139, 0.6857, -0.3909, 0, 30, 0)
+light_color = Color(0.55, 0.65, 0.9, 1)
+light_energy = 0.12
+shadow_enabled = true
+directional_shadow_max_distance = 90
+
+[node name="Exterior" parent="." instance=ExtResource("1_exterior")]
+
+[node name="Hall" parent="." instance=ExtResource("2_hall")]
+
+[node name="Underground" parent="." instance=ExtResource("3_underground")]
+
+[node name="LayoutMarkers" parent="." instance=ExtResource("4_layout_markers")]
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(-0.7118, 0, -0.7024, 0, 1, 0, 0.7024, 0, -0.7118, -19, 0, -31.2)
+
+[node name="ReinforcementSpawn" type="Marker3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5, 0, -31)
+
+[node name="Extraction" parent="." instance=ExtResource("5_extraction_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 35.6)
+size = Vector3(5.6, 3, 4.6)
+
+[node name="Mission" parent="." instance=ExtResource("6_mission")]
+data = ExtResource("7_warehouse_mission")
+
+[node name="Navigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("8_level_navigation")

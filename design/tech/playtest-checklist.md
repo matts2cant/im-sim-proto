@@ -243,6 +243,16 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] The catwalk rifle guard fires bursts of 3-5 rounds with short pauses, and is survivable at 15 m behind partial cover for a few seconds.
   - [ ] About 30 s after the first alarm, two guards come in at the front gate and search where the alarm was raised; a second alarm brings nobody else.
   - [ ] Quicksave in the mission, return to the hub, Load: you are back in the mission where you saved, objectives, timer and badges as they were, no briefing.
+- [ ] Warehouse layout (M9 wave 1, [mission-warehouse.md](../levels/mission-warehouse.md#level); review shots: run `tests/levels/mission/fixtures/warehouse_shots.tscn` with `-- shots=all out=res://reports/screenshots/warehouse`, `lit=1` for a bright layout review, `dark=1` with both breakers off):
+  - [ ] Start at the van: the fence, the lit gate and booth, the dock floodlights, the hall and the water tower on the skyline read as a place you can study before choosing a way in; the yard is visible through the palisade fence.
+  - [ ] Over the fence: pallets, container, a walking jump over the fence onto the inside container, then down the pallets; no damage.
+  - [ ] West yard: the container chain (pallets, container, crate) to the annex roof; the roof door onto the west catwalk; the caged stair up to the main roof. Nothing needs a precise jump.
+  - [ ] Roof: walk off the open side of a rack skylight onto the goods, down to the rack top and the bridge without damage; a sprint into it lands harder (a little leg damage). Duct A from the roof down to the catwalk alcove and back up; duct B down onto the manager office's cabinet, and back up into the duct from the cabinet (stand under the hole, face its nearest edge, jump).
+  - [ ] Fire escape: mantle onto the raised bottom landing, up to the office door and on to the roof; the cages and railings stop every fall.
+  - [ ] Underground: ditch ramp, culvert crawl to the drain chamber, out into the east yard under its floodlight or through the tunnel to the boiler room; hatch stair up into the hall; duct C up into the security room; service stair up into the office stairwell.
+  - [ ] Water tower: the stair tower up to the 20 m deck; from the west railing the yard and, through the skylights, the catwalks are in view.
+  - [ ] Night: hiding spots (behind the containers, under the trailer crouched, the hall's south-west corner, rack decks, the roof, the ditch) look dark and the HUD gem reads dark; lit pools (gate, dock apron, side door, corridors) look lit. Breaker circuits: `warehouse_yard` (outdoor) and `warehouse_building` (hall, offices, basement) each darken only their own lamps (debug panel or a breaker once wave 2 places them).
+  - [ ] Footsteps: metal on containers, catwalks, ducts and stairs (loud), carpet in the manager office and upper corridor (quiet).
 
 ## Generic character components (ADR 0056)
 
