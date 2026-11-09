@@ -20,6 +20,9 @@ extends Resource
 ## A move counts as arrived within this horizontal distance (m) of its target (or of the closest
 ## point the navmesh reaches).
 @export var arrive_distance: float = 0.4
+## ...and within this height (m) of it: a target a storey above or below (a noise on a cabinet over
+## the room it stands in) is reached by walking the navmesh path, not by standing under it.
+@export var arrive_height: float = 1.0
 ## Moving slower than `stuck_speed_ratio` x the requested speed for this long (s) also counts as
 ## arrived: the way is blocked (a prop, another character).
 @export var stuck_time: float = 1.5

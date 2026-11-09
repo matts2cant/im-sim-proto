@@ -17,6 +17,7 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Parallel agents sharing a contract: merge whichever finishes first, then message the other to merge master, switch to the real API and write the cross-feature integration test itself (worked well in M7).
 - Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (from the layout docs or the scenes, not the hub tests, which do not list them); do not guess.
 - Level briefs ask passage tests to step off every climb (stair, ladder, mantle) onto the destination floor, not only reach its top, and to walk the main routes end to end with the guards active (M9: a stair top 0.65 m wide for a 0.7 m capsule went unnoticed for four waves).
+- Stealth route tests also assert that no guard becomes Suspicious on the stretches the design calls quiet, not only the Ghost badge (M9: three guards heard every duct B entry through walls and the tests stayed green).
 - Briefs that add test suites give a wall-time budget per suite and ask for each new suite's time in the report; briefs that populate a level ask for the physics-frame cost with every actor active.
 - Judge full-suite time on the second full run after merging new suites: the first run only estimates them (spread over shards, but heavier shards). `tools/run_tests.sh --dry-run` shows the split.
 - After merging, run `git worktree list` and remove every agent worktree and branch, including ones an agent spawned for its own sub-agents.

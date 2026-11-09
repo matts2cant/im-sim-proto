@@ -12,6 +12,14 @@ const MAX_DEPTH: int = 16
 ## PATH stimuli (noise) follow the navmesh on every navigation layer: they pass doorways characters
 ## may not path through (a locked door's link is off their layer, ADR 0078).
 const PATH_NAVIGATION_LAYERS: int = 0xFFFFFFFF
+## A gap this short between a PATH stimulus's end and the navmesh path is taken as open air (a point
+## beside its polygon, at most the bake's agent radius and height offset away); longer gaps are
+## checked with rays (ADR 0094).
+const PATH_GAP_FREE: float = 0.6
+## Gap rays run this far above both ends, clear of the surface each rests on...
+const PATH_GAP_LIFT: float = 0.25
+## ...and stop this short of each end, clear of a wall a noise was made on.
+const PATH_GAP_SKIN: float = 0.1
 
 var _queue: Array[Stimulus] = []
 # Registration order is delivery order (deterministic).
@@ -233,7 +241,7 @@ func _deliverable(receiver: StimulusReceiver) -> bool:
 
 
 ## How far the stimulus travels to the receiver, or null when it cannot reach it (line of sight
-## blocked by world geometry).
+## blocked by world geometry; a PATH whose navmesh path stops short behind walls both ways).
 func _reach(stimulus: Stimulus, receiver: StimulusReceiver) -> Reach:
 	var to := receiver.global_position
 	var straight := PackedVector3Array([stimulus.origin, to])
@@ -250,22 +258,91 @@ func _reach(stimulus: Stimulus, receiver: StimulusReceiver) -> Reach:
 	if nav.is_empty():
 		var fallback := stimulus.origin.distance_to(to) + _attenuation(straight)
 		return Reach.new(fallback, straight, "straight_fallback")
-	var points := PackedVector3Array([stimulus.origin])
-	points.append_array(nav)
-	points.append(to)
+	var points := _path_points(stimulus, receiver, map, nav)
+	if points.is_empty():
+		return null
 	return Reach.new(StimulusPropagation.polyline_length(points) + _attenuation(points), points, "path")
 
 
-## True when a ray from the origin to the receiver hits nothing on the world layer. The source's and
-## the receiver entity's own bodies never block (a barricade on the world layer still gets the fire
-## aimed at its centre); physics objects (layer 4) are not on the mask.
-func _line_of_sight(stimulus: Stimulus, receiver: StimulusReceiver) -> bool:
+## The polyline from the origin along the navmesh to the receiver, or empty when it cannot get there.
+## A path from a navmesh island (a cabinet top) or to an unreachable listener stops short: its open
+## ends are bridged in a straight line only through open air (_bridged()). Otherwise the way is
+## searched from the listener back towards the source; when both are blocked it is not heard
+## (ADR 0094).
+func _path_points(
+	stimulus: Stimulus, receiver: StimulusReceiver, map: RID, nav: PackedVector3Array
+) -> PackedVector3Array:
+	var to := receiver.global_position
+	var space := receiver.get_world_3d().direct_space_state
+	var exclude := _bodies_of(stimulus, receiver)
+	var points := _bridged(space, stimulus.origin, nav, to, exclude)
+	if not points.is_empty():
+		return points
+	var back := NavigationServer3D.map_get_path(map, to, stimulus.origin, true, PATH_NAVIGATION_LAYERS)
+	if back.is_empty():
+		return back
+	points = _bridged(space, to, back, stimulus.origin, exclude)
+	points.reverse()
+	return points
+
+
+## `from`, the navmesh path `nav` and `to` as one polyline, or empty when a gap at either end (the
+## straight line between a point and the path) is longer than PATH_GAP_FREE and blocked by world
+## geometry both straight and around one corner (_open_air()).
+func _bridged(
+	space: PhysicsDirectSpaceState3D, from: Vector3, nav: PackedVector3Array, to: Vector3, exclude: Array[RID]
+) -> PackedVector3Array:
+	if not _open_air(space, from, nav[0], exclude) or not _open_air(space, nav[nav.size() - 1], to, exclude):
+		return PackedVector3Array()
+	var points := PackedVector3Array([from])
+	points.append_array(nav)
+	points.append(to)
+	return points
+
+
+## True when sound crosses the gap from `a` to `b` through open air: the gap is at most
+## PATH_GAP_FREE (a point beside its navmesh polygon), or, with both ends PATH_GAP_LIFT above the
+## surfaces they rest on, the straight line or one of the two L-shaped routes (level first, or
+## vertical first) between them hits no world geometry (over a cabinet's edge, off a table top).
+func _open_air(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, exclude: Array[RID]) -> bool:
+	if a.distance_to(b) <= PATH_GAP_FREE:
+		return true
+	var from := a + Vector3.UP * PATH_GAP_LIFT
+	var to := b + Vector3.UP * PATH_GAP_LIFT
+	if _segment_open(space, from, to, exclude):
+		return true
+	for corner: Vector3 in [Vector3(from.x, to.y, from.z), Vector3(to.x, from.y, to.z)]:
+		if _segment_open(space, from, corner, exclude) and _segment_open(space, corner, to, exclude):
+			return true
+	return false
+
+
+# True when the segment, less PATH_GAP_SKIN at each end, hits no world geometry: a noise made on a
+# surface (a bullet's impact on a wall) is not blocked by that surface.
+func _segment_open(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, exclude: Array[RID]) -> bool:
+	var length := a.distance_to(b)
+	if length <= 2.0 * PATH_GAP_SKIN:
+		return true
+	var step := (b - a) / length * PATH_GAP_SKIN
+	return PhysicsLayers.segment_clear(space, a + step, b - step, PhysicsLayers.WORLD, exclude)
+
+
+## The source's and the receiver entity's own bodies: they never block a stimulus aimed at them.
+func _bodies_of(stimulus: Stimulus, receiver: StimulusReceiver) -> Array[RID]:
 	var exclude: Array[RID] = []
 	# The source is often freed by now (an exploded barrel): check before touching it.
 	if is_instance_valid(stimulus.source) and stimulus.source is CollisionObject3D:
 		exclude.append((stimulus.source as CollisionObject3D).get_rid())
 	if is_instance_valid(receiver.entity) and receiver.entity is CollisionObject3D:
 		exclude.append((receiver.entity as CollisionObject3D).get_rid())
+	return exclude
+
+
+## True when a ray from the origin to the receiver hits nothing on the world layer. The source's and
+## the receiver entity's own bodies never block (a barricade on the world layer still gets the fire
+## aimed at its centre); physics objects (layer 4) are not on the mask.
+func _line_of_sight(stimulus: Stimulus, receiver: StimulusReceiver) -> bool:
+	var exclude := _bodies_of(stimulus, receiver)
 	var space := receiver.get_world_3d().direct_space_state
 	return PhysicsLayers.segment_clear(space, stimulus.origin, receiver.global_position, PhysicsLayers.WORLD, exclude)
 

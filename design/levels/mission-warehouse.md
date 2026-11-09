@@ -499,7 +499,7 @@ Scenario tests drive the real player through the populated level with every guar
 
 Plus `warehouse_additions_test.gd`: the annex window from two stacked crates (not from the ground with Speed Enhancement, not from one crate) and the cache crate carried only with Combat Strength.
 
-Found and fixed by the tests: the office stair's top was impassable (the hole railing left 0.65 m to the wall; the capsule is 0.7 m). Found and left as design (Open questions): the north-east stair is in G5's view through the security window (going from the catwalks to the hatch is seen); dropping out of duct B onto the cabinet makes four guards suspicious; loud play cannot hold the gate lane (every guard converges by radio; the test player was knocked out with 20 rounds). Only the vault route starts arranged (in the manager office: its ways in are the other routes'); the side door, the hatch and duct A are on no tested route.
+Found and fixed by the tests: the office stair's top was impassable (the hole railing left 0.65 m to the wall; the capsule is 0.7 m). Found in playtest and fixed: the drop out of duct B onto the cabinet was heard through the office wall and floor (G5, G6, G7, sometimes G10); a careful entry is now heard by no guard outside the office, a Speed-Enhanced drop by G7 only ([ADR 0094](../decisions/0094-noise-reach-on-partial-paths.md), `warehouse_duct_b_entry_test.gd`). Found and left as design (Open questions): the north-east stair is in G5's view through the security window (going from the catwalks to the hatch is seen); loud play cannot hold the gate lane (every guard converges by radio; the test player was knocked out with 20 rounds). Only the vault route starts arranged (in the manager office: its ways in are the other routes'); the side door, the hatch and duct A are on no tested route.
 
 ## Open questions
 
@@ -512,5 +512,4 @@ Found and fixed by the tests: the office stair's top was impassable (the hole ra
 - Network layout and which guards use devices on patrol: M11.
 - Whether the two M9f optional spots (the annex window, the cache shed) are found without a hint, and whether their loot is worth the detour.
 - Loud with the starting kit cannot hold ground against the compound (route tests, M9f): every guard converges on an alarm within seconds. Whether that is the intended "tight" or too hard.
-- Dropping out of duct B onto the cabinet makes four guards suspicious (G5, G6, G7, G10); they find nothing and calm down. Intended noise, or should the cabinet be quieter?
 - Whether the upper corridor (camera, G7, a 1.5 m lit corridor) is too tense on a first visit (review finding 8).

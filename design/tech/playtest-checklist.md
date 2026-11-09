@@ -295,6 +295,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] Office stair: off the stair's top west onto the upper floor without snagging on the hole railing's end.
   - [ ] Loud: after the gate camera's alarm, the containers north-west of the gate are a place to hold (guards cannot climb them) and shoot from; the compound converging within seconds feels tight, not hopeless. The fuel drum can be shot from the roof through the dock's west skylight.
   - [ ] Vault without a fight: duct C into the security room behind G5 between two of his glances, the console (credentials from the manager's audit note) disables the turret and the office camera and opens the vault; G7 can be knocked out from behind as he glances east.
+- [ ] Noise through walls ([ADR 0094](../decisions/0094-noise-reach-on-partial-paths.md)): crawl down duct B and drop onto the manager office's cabinet: no guard's `?` appears (debug panel Overlays: icons), then open the office door: G7 stands at his post, not at the door. With Speed Enhancement on, the same drop brings G7 to the door (`?`). Shots and impacts in the open (the loud route) still bring guards as before; a noise on a crate top or a container is still heard across the open yard.
 
 ## Generic character components (ADR 0056)
 
