@@ -85,13 +85,13 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 36.85, -2.4, -5)
 transform = Transform3D(0.6157, 0, -0.788, 0, 1, 0, 0.788, 0, 0.6157, -8.6, 0, -22.2)
 
 [node name="G2YardPatrolWest" type="Marker3D" parent="Guards"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -17)
 
 [node name="G3YardPatrolEast" type="Marker3D" parent="Guards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, -18)
 
 [node name="G4CatwalkRifle" type="Marker3D" parent="Guards"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -10, 4.5, -9.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.25, 4.5, -3)
 
 [node name="G5SecurityOperator" type="Marker3D" parent="Guards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.6, 0, 1.6)
@@ -105,43 +105,55 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 4.5, 6)
 [node name="G8OffDuty" type="Marker3D" parent="Guards"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 16.2, -4, 11.5)
 
+[node name="G9BackStrip" type="Marker3D" parent="Guards"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 21)
+
+[node name="G10CatwalkWest" type="Marker3D" parent="Guards"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.25, 4.5, -6)
+
 [node name="PatrolPoints" type="Node3D" parent="."]
 
 [node name="YardWestA" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -17)
 
 [node name="YardWestB" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0, -9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23, 0, -4)
 
 [node name="YardWestC" type="Marker3D" parent="PatrolPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0, 14)
 
 [node name="YardWestD" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -8)
 
 [node name="YardEastA" type="Marker3D" parent="PatrolPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, -18)
 
 [node name="YardEastB" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0, -14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, -11.5)
 
 [node name="YardEastC" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 0)
 
 [node name="YardEastD" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 20.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 0, -6.5)
+
+[node name="BackStripA" type="Marker3D" parent="PatrolPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 21)
+
+[node name="BackStripB" type="Marker3D" parent="PatrolPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 6)
 
 [node name="CatwalkA" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4.5, -9.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.25, 4.5, -3)
 
 [node name="CatwalkB" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.25, 4.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 4.5, -9.25)
 
-[node name="CatwalkC" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4.5, 6)
+[node name="CatwalkWestA" type="Marker3D" parent="PatrolPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.25, 4.5, -6)
 
-[node name="CatwalkD" type="Marker3D" parent="PatrolPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, -9.25)
+[node name="CatwalkWestB" type="Marker3D" parent="PatrolPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 4.5, 6)
 
 [node name="Devices" type="Node3D" parent="."]
 

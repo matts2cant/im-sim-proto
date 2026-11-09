@@ -30,10 +30,15 @@ const GUARDS: Dictionary[String, Array] = {
 	"G6BreakRoom": ["baton", [], false],
 	"G7VaultDoor": ["pistol", [&"access.warehouse_vault"], false],
 	"G8OffDuty": ["baton", [], false],
+	"G9BackStrip": ["baton", [], true],
+	"G10CatwalkWest": ["pistol", [], true],
 }
-## Guards whose post stands in light, and the lit points of the rifle guard's catwalk route.
+## Guards whose post stands in light, and the lit points of the catwalk routes (route -> points).
 const LIT_POSTS: Array[String] = ["G1GatePost", "G5SecurityOperator", "G6BreakRoom", "G7VaultDoor", "G8OffDuty"]
-const LIT_ROUTE_POINTS: Array[String] = ["CatwalkA", "CatwalkB", "CatwalkC"]
+const LIT_ROUTE_POINTS: Dictionary[String, Array] = {
+	"G4CatwalkRifleRoute": ["CatwalkA", "CatwalkB"],
+	"G10CatwalkWestRoute": ["CatwalkWestA", "CatwalkWestB"],
+}
 ## Item id -> pickups placed.
 const ITEMS: Dictionary[String, int] = {
 	"silencer": 1,
@@ -94,6 +99,12 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		var route := (guard.get_node("Behaviour") as AwarenessBehaviour).route
 		assert_bool(route != null).override_failure_message("%s route" % guard_name).is_equal(spec[2])
 		if route != null:
+			# A patrolling guard starts on its first point (the patrol timing test counts laps from there).
+			(
+				assert_float(guard.global_position.distance_to(route.points()[0].global_position))
+				. override_failure_message("%s starts off its first point" % guard_name)
+				. is_less(0.1)
+			)
 			for point in route.points():
 				(
 					assert_bool(_reaches(start, point.global_position, layers))
@@ -110,11 +121,12 @@ func test_posts_and_the_catwalk_stand_in_light() -> void:
 		var level := _measure(feet)
 		if level < LIT:
 			dark.append("%s: %.2f" % [guard_name, level])
-	var route := _level.get_node(PEOPLE + "/Routes/G4CatwalkRifleRoute")
-	for point_name in LIT_ROUTE_POINTS:
-		var level := _measure((route.get_node(point_name) as Node3D).global_position)
-		if level < LIT:
-			dark.append("%s: %.2f" % [point_name, level])
+	for route_name: String in LIT_ROUTE_POINTS:
+		var route := _level.get_node(PEOPLE + "/Routes/" + route_name)
+		for point_name: String in LIT_ROUTE_POINTS[route_name]:
+			var level := _measure((route.get_node(point_name) as Node3D).global_position)
+			if level < LIT:
+				dark.append("%s: %.2f" % [point_name, level])
 	assert_array(dark).is_empty()
 
 

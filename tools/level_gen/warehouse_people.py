@@ -50,13 +50,15 @@ GUARD_TAGS = ["actor.guard", "equipment.radio"]
 # name, scene, extra tags, route (PatrolPoints names with the wait in seconds at each), or None.
 GUARD_SPECS = [
     ("G1GatePost", "guard_pistol", [], None),
-    ("G2YardPatrolWest", "guard_baton", [], [("YardWestA", 2.0), ("YardWestB", 3.0), ("YardWestC", 4.0), ("YardWestD", 2.0)]),
-    ("G3YardPatrolEast", "guard_pistol", [], [("YardEastA", 2.0), ("YardEastB", 3.0), ("YardEastC", 3.0), ("YardEastD", 4.0)]),
-    ("G4CatwalkRifle", "guard_rifle", [], [("CatwalkA", 3.0), ("CatwalkB", 3.0), ("CatwalkC", 4.0), ("CatwalkD", 3.0)]),
+    ("G2YardPatrolWest", "guard_baton", [], [("YardWestA", 2.0), ("YardWestB", 2.0), ("YardWestC", 3.0), ("YardWestD", 2.0)]),
+    ("G3YardPatrolEast", "guard_pistol", [], [("YardEastA", 2.0), ("YardEastB", 2.0), ("YardEastC", 3.0), ("YardEastD", 2.0)]),
+    ("G4CatwalkRifle", "guard_rifle", [], [("CatwalkA", 3.0), ("CatwalkB", 3.0)]),
     ("G5SecurityOperator", "guard_pistol", ["access.warehouse_security"], None),
     ("G6BreakRoom", "guard_baton", [], None),
     ("G7VaultDoor", "guard_pistol", ["access.warehouse_vault"], None),
     ("G8OffDuty", "guard_baton", [], None),
+    ("G9BackStrip", "guard_baton", [], [("BackStripA", 3.0), ("BackStripB", 3.0)]),
+    ("G10CatwalkWest", "guard_pistol", [], [("CatwalkWestA", 3.0), ("CatwalkWestB", 3.0)]),
 ]
 
 
@@ -175,6 +177,9 @@ LOOSE_PROPS = [
 LAMPS = [
     ("wall_lamp", "CatwalkNorthMid", (-10.0, wh.CW + 2.0, wh.HALL_Z0 + 0.02), 0.0, 1.0, 6.0),
     ("ceiling_lamp", "BridgeLamp", (1.0, wh.HALL_H - 0.05, 6.0), 0.0, 1.2, 6.0),
+    # M9e: the second catwalk patrol turns at the bridge's east end, the rifle guard at the east catwalk.
+    ("ceiling_lamp", "BridgeEastLamp", (5.5, wh.HALL_H - 0.05, 6.0), 0.0, 1.2, 6.0),
+    ("wall_lamp", "CatwalkEast", (wh.HALL_X1 - 0.02, wh.CW + 2.0, -3.0), -90.0, 1.0, 6.0),
 ]
 
 

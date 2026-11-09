@@ -6,19 +6,20 @@ extends GdUnitTestSuite
 ## The gap is the time between one pass ending and the next starting; a point passed by a single
 ## guard repeats with that guard's lap (measured: the time between two arrivals at its first
 ## point), so its gaps are taken round one lap. Every crossing point must be passed (it really is
-## on a route) and every gap must be at least MIN_GAP. The measured laps and gaps are printed for
-## the doc's guards table.
+## on a route), every gap must be at least MIN_GAP (a window to cross) and at most MAX_GAP (the
+## compound feels watched). The measured laps and gaps are printed for the doc's guards table.
 
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const PEOPLE := "Population/People"
 const TIME_FACTOR := 9.0
 const TICK := 1.0 / 60.0
-## Game time simulated: one lap of the longest route (the rifle guard's, about 87 s) plus margin.
-const SIMULATED := 92.0
+## Game time simulated: one lap of the longest route (the rifle guard's, about 53 s) plus margin.
+const SIMULATED := 60.0
 const PASS_RADIUS := 5.0
 const SAME_FLOOR := 1.5
 const MIN_GAP := 4.0
+const MAX_GAP := 40.0
 ## Where player routes cross patrol paths (feet, warehouse coordinates).
 const CROSSINGS: Dictionary[String, Vector3] = {
 	"side door": Vector3(-21.7, 0.0, -6.0),
@@ -45,7 +46,7 @@ func after_test() -> void:
 		NavigationServer3D.map_set_use_async_iterations(_map, true)
 
 
-func test_patrols_leave_crossing_gaps_of_at_least_four_seconds() -> void:
+func test_patrols_leave_crossing_gaps_of_four_to_forty_seconds() -> void:
 	await GuardHelpers.let_old_scenes_go(get_tree())
 	var level: Node3D = auto_free(LEVEL.instantiate())
 	# No player: the Mission would spawn one and pause the game for the briefing. Guards holding a
@@ -67,7 +68,7 @@ func test_patrols_leave_crossing_gaps_of_at_least_four_seconds() -> void:
 	for guard in level.get_node(PEOPLE + "/Guards").get_children():
 		if (guard.get_node("Behaviour") as AwarenessBehaviour).route != null:
 			patrols.append(guard as NavWalker)
-	assert_int(patrols.size()).is_equal(3)
+	assert_int(patrols.size()).is_equal(5)
 
 	# Crossing -> guard -> [[start, end], ...] pass intervals; guard -> arrival times at point 0.
 	var passes: Dictionary = {}
@@ -110,9 +111,12 @@ func test_patrols_leave_crossing_gaps_of_at_least_four_seconds() -> void:
 			continue
 		var gaps := _gaps(by_guard, laps)
 		var smallest: float = gaps.min() if not gaps.is_empty() else INF
-		report.append("%s: passed by %s, smallest gap %.1f s" % [crossing, ", ".join(by_guard.keys()), smallest])
-		if smallest < MIN_GAP:
-			failures.append("%s: gap %.1f s" % [crossing, smallest])
+		var largest: float = gaps.max() if not gaps.is_empty() else INF
+		report.append(
+			"%s: passed by %s, gaps %.1f .. %.1f s" % [crossing, ", ".join(by_guard.keys()), smallest, largest]
+		)
+		if smallest < MIN_GAP or largest > MAX_GAP:
+			failures.append("%s: gaps %.1f .. %.1f s" % [crossing, smallest, largest])
 	print("Patrol timing: " + "; ".join(report))
 	assert_array(failures).is_empty()
 

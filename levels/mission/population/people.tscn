@@ -42,23 +42,23 @@ transform = Transform3D(0.6157, 0, -0.788, 0, 1, 0, 0.788, 0, 0.6157, -8.6, 0, -
 script = ExtResource("2_patrol_route")
 
 [node name="YardWestA" type="Marker3D" parent="Routes/G2YardPatrolWestRoute"]
-transform = Transform3D(-0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, -0.7071, -18, 0, -18)
+transform = Transform3D(-0.9333, 0, 0.359, 0, 1, 0, -0.359, 0, -0.9333, -18, 0, -17)
 metadata/wait = 2
 
 [node name="YardWestB" type="Marker3D" parent="Routes/G2YardPatrolWestRoute"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -27, 0, -9)
-metadata/wait = 3
+transform = Transform3D(-0.9762, 0, 0.2169, 0, 1, 0, -0.2169, 0, -0.9762, -23, 0, -4)
+metadata/wait = 2
 
 [node name="YardWestC" type="Marker3D" parent="Routes/G2YardPatrolWestRoute"]
-transform = Transform3D(0.901, 0, -0.4338, 0, 1, 0, 0.4338, 0, 0.901, -27, 0, 14)
-metadata/wait = 4
+transform = Transform3D(0.9908, 0, -0.1351, 0, 1, 0, 0.1351, 0, 0.9908, -27, 0, 14)
+metadata/wait = 3
 
 [node name="YardWestD" type="Marker3D" parent="Routes/G2YardPatrolWestRoute"]
-transform = Transform3D(0.7809, 0, 0.6247, 0, 1, 0, -0.6247, 0, 0.7809, -14, 0, -13)
+transform = Transform3D(0.8321, 0, -0.5547, 0, 1, 0, 0.5547, 0, 0.8321, -24, 0, -8)
 metadata/wait = 2
 
 [node name="G2YardPatrolWest" parent="Guards" instance=ExtResource("3_guard_baton")]
-transform = Transform3D(-0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, -0.7071, -18, 0, -18)
+transform = Transform3D(-0.9333, 0, 0.359, 0, 1, 0, -0.359, 0, -0.9333, -18, 0, -17)
 
 [node name="Behaviour" parent="Guards/G2YardPatrolWest"]
 patrol_route = NodePath("../../../Routes/G2YardPatrolWestRoute")
@@ -67,23 +67,23 @@ patrol_route = NodePath("../../../Routes/G2YardPatrolWestRoute")
 script = ExtResource("2_patrol_route")
 
 [node name="YardEastA" type="Marker3D" parent="Routes/G3YardPatrolEastRoute"]
-transform = Transform3D(-0.2577, 0, -0.9662, 0, 1, 0, 0.9662, 0, -0.2577, 18, 0, -18)
+transform = Transform3D(-0.4211, 0, -0.907, 0, 1, 0, 0.907, 0, -0.4211, 18, 0, -18)
 metadata/wait = 2
 
 [node name="YardEastB" type="Marker3D" parent="Routes/G3YardPatrolEastRoute"]
-transform = Transform3D(-0.952, 0, 0.306, 0, 1, 0, -0.306, 0, -0.952, 33, 0, -14)
-metadata/wait = 3
+transform = Transform3D(-0.8542, 0, 0.5199, 0, 1, 0, -0.5199, 0, -0.8542, 32, 0, -11.5)
+metadata/wait = 2
 
 [node name="YardEastC" type="Marker3D" parent="Routes/G3YardPatrolEastRoute"]
-transform = Transform3D(-0.3764, 0, 0.9265, 0, 1, 0, -0.9265, 0, -0.3764, 24, 0, 14)
+transform = Transform3D(0.9333, 0, -0.359, 0, 1, 0, 0.359, 0, 0.9333, 25, 0, 0)
 metadata/wait = 3
 
 [node name="YardEastD" type="Marker3D" parent="Routes/G3YardPatrolEastRoute"]
-transform = Transform3D(0.9679, 0, -0.2514, 0, 1, 0, 0.2514, 0, 0.9679, 8, 0, 20.5)
-metadata/wait = 4
+transform = Transform3D(0.771, 0, 0.6369, 0, 1, 0, -0.6369, 0, 0.771, 27.5, 0, -6.5)
+metadata/wait = 2
 
 [node name="G3YardPatrolEast" parent="Guards" instance=ExtResource("1_guard_pistol")]
-transform = Transform3D(-0.2577, 0, -0.9662, 0, 1, 0, 0.9662, 0, -0.2577, 18, 0, -18)
+transform = Transform3D(-0.4211, 0, -0.907, 0, 1, 0, 0.907, 0, -0.4211, 18, 0, -18)
 
 [node name="Behaviour" parent="Guards/G3YardPatrolEast"]
 patrol_route = NodePath("../../../Routes/G3YardPatrolEastRoute")
@@ -92,23 +92,15 @@ patrol_route = NodePath("../../../Routes/G3YardPatrolEastRoute")
 script = ExtResource("2_patrol_route")
 
 [node name="CatwalkA" type="Marker3D" parent="Routes/G4CatwalkRifleRoute"]
-transform = Transform3D(-0.855, 0, 0.5186, 0, 1, 0, -0.5186, 0, -0.855, -10, 4.5, -9.25)
+transform = Transform3D(0.1699, 0, 0.9855, 0, 1, 0, -0.9855, 0, 0.1699, 19.25, 4.5, -3)
 metadata/wait = 3
 
 [node name="CatwalkB" type="Marker3D" parent="Routes/G4CatwalkRifleRoute"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -19.25, 4.5, 6)
-metadata/wait = 3
-
-[node name="CatwalkC" type="Marker3D" parent="Routes/G4CatwalkRifleRoute"]
-transform = Transform3D(0.8362, 0, -0.5484, 0, 1, 0, 0.5484, 0, 0.8362, 2, 4.5, 6)
-metadata/wait = 4
-
-[node name="CatwalkD" type="Marker3D" parent="Routes/G4CatwalkRifleRoute"]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12, 4.5, -9.25)
+transform = Transform3D(-0.1699, 0, -0.9855, 0, 1, 0, 0.9855, 0, -0.1699, -17, 4.5, -9.25)
 metadata/wait = 3
 
 [node name="G4CatwalkRifle" parent="Guards" instance=ExtResource("4_guard_rifle")]
-transform = Transform3D(-0.855, 0, 0.5186, 0, 1, 0, -0.5186, 0, -0.855, -10, 4.5, -9.25)
+transform = Transform3D(0.1699, 0, 0.9855, 0, 1, 0, -0.9855, 0, 0.1699, 19.25, 4.5, -3)
 
 [node name="Behaviour" parent="Guards/G4CatwalkRifle"]
 patrol_route = NodePath("../../../Routes/G4CatwalkRifleRoute")
@@ -130,6 +122,40 @@ initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio", &"access.w
 
 [node name="G8OffDuty" parent="Guards" instance=ExtResource("3_guard_baton")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 16.2, -4, 11.5)
+
+[node name="G9BackStripRoute" type="Node3D" parent="Routes"]
+script = ExtResource("2_patrol_route")
+
+[node name="BackStripA" type="Marker3D" parent="Routes/G9BackStripRoute"]
+transform = Transform3D(0.4036, 0, -0.9149, 0, 1, 0, 0.9149, 0, 0.4036, -9, 0, 21)
+metadata/wait = 3
+
+[node name="BackStripB" type="Marker3D" parent="Routes/G9BackStripRoute"]
+transform = Transform3D(-0.4036, 0, 0.9149, 0, 1, 0, -0.9149, 0, -0.4036, 25, 0, 6)
+metadata/wait = 3
+
+[node name="G9BackStrip" parent="Guards" instance=ExtResource("3_guard_baton")]
+transform = Transform3D(0.4036, 0, -0.9149, 0, 1, 0, 0.9149, 0, 0.4036, -9, 0, 21)
+
+[node name="Behaviour" parent="Guards/G9BackStrip"]
+patrol_route = NodePath("../../../Routes/G9BackStripRoute")
+
+[node name="G10CatwalkWestRoute" type="Node3D" parent="Routes"]
+script = ExtResource("2_patrol_route")
+
+[node name="CatwalkWestA" type="Marker3D" parent="Routes/G10CatwalkWestRoute"]
+transform = Transform3D(-0.4435, 0, -0.8963, 0, 1, 0, 0.8963, 0, -0.4435, -19.25, 4.5, -6)
+metadata/wait = 3
+
+[node name="CatwalkWestB" type="Marker3D" parent="Routes/G10CatwalkWestRoute"]
+transform = Transform3D(0.4435, 0, 0.8963, 0, 1, 0, -0.8963, 0, 0.4435, 5, 4.5, 6)
+metadata/wait = 3
+
+[node name="G10CatwalkWest" parent="Guards" instance=ExtResource("1_guard_pistol")]
+transform = Transform3D(-0.4435, 0, -0.8963, 0, 1, 0, 0.8963, 0, -0.4435, -19.25, 4.5, -6)
+
+[node name="Behaviour" parent="Guards/G10CatwalkWest"]
+patrol_route = NodePath("../../../Routes/G10CatwalkWestRoute")
 
 [node name="Furniture" type="Node3D" parent="."]
 
@@ -364,4 +390,24 @@ light_energy = 1.2
 omni_range = 6
 
 [node name="Powered" parent="Lamps/BridgeLamp"]
+circuit = &"warehouse_building"
+
+[node name="BridgeEastLamp" parent="Lamps" instance=ExtResource("28_ceiling_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 8.95, 6)
+
+[node name="Light" parent="Lamps/BridgeEastLamp"]
+light_energy = 1.2
+omni_range = 6
+
+[node name="Powered" parent="Lamps/BridgeEastLamp"]
+circuit = &"warehouse_building"
+
+[node name="CatwalkEast" parent="Lamps" instance=ExtResource("27_wall_lamp")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.98, 6.5, -3)
+
+[node name="Light" parent="Lamps/CatwalkEast"]
+light_energy = 1
+omni_range = 6
+
+[node name="Powered" parent="Lamps/CatwalkEast"]
 circuit = &"warehouse_building"
