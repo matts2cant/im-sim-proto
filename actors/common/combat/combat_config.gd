@@ -28,6 +28,10 @@ extends Resource
 ## With no clear line of fire for this long, it steps `sidestep_distance` sideways (alternating).
 @export var sidestep_time: float = 1.0
 @export var sidestep_distance: float = 1.5
+## Automatic weapons (WeaponData.automatic) fire bursts: the trigger stays held for a random number
+## of shots in this range (at the weapon's cycle), then the usual shot interval follows (ADR 0087).
+@export var burst_shots_min: int = 3
+@export var burst_shots_max: int = 5
 
 @export_group("Melee")
 ## Runs in until this close (plus its braking distance).

@@ -209,16 +209,22 @@ static func command_stimulus(
 ## Sends `command` to `target` (an entity or its Device) when this device reaches it: a CONTACT
 ## stimulus at the target's entity, origin `at` (NO_POINT: the target's position), emitted through
 ## StimulusSystem (delivered on the next tick). Logged either way. True when sent.
-func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT) -> bool:
+## `by`: who operated this device to send it (a terminal's user), logged with the stimulus id as
+## `by` and `stimulus` so what the command starts traces back to them (mission tallies, ADR 0087).
+func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by: Node = null) -> bool:
 	var other := Device.of(target)
 	var sent := other != null and reaches(other)
 	var target_name := String(other.entity.name) if other != null and is_instance_valid(other.entity) else ""
 	var data := {"command": command, "from": _entity_name(), "to": target_name, "sent": sent}
 	if at != NO_POINT:
 		data["point"] = at
-	EventLog.record(&"device.command", _entity_name(), target_name, data)
 	if sent:
-		StimulusSystem.emit(Device.command_stimulus(command, other, entity, at))
+		var stimulus := Device.command_stimulus(command, other, entity, at)
+		StimulusSystem.emit(stimulus)
+		data["stimulus"] = stimulus.id
+	if is_instance_valid(by):
+		data["by"] = String(by.name)
+	EventLog.record(&"device.command", _entity_name(), target_name, data)
 	return sent
 
 

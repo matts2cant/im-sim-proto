@@ -88,6 +88,18 @@ func clear() -> void:
 	_queue.clear()
 
 
+## The id the last emitted stimulus got (0: none yet). Saves record it (QuickSave).
+func last_id() -> int:
+	return _next_id - 1
+
+
+## New stimuli get ids above `id` from now on (a loaded save whose components and mission tallies
+## keep stimulus ids from the session it was saved in: a burning fire's ignition, a turret's
+## command): an old id never names a new stimulus. Never lowers the next id.
+func reserve_ids(id: int) -> void:
+	_next_id = maxi(_next_id, id + 1)
+
+
 func pending_count() -> int:
 	return _queue.size()
 

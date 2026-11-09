@@ -1,0 +1,91 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/mission.tscn" id="1_mission"]
+[ext_resource type="Resource" path="res://tests/levels/mission/mission_kit/fixtures/mission_fixture.tres" id="2_data"]
+[ext_resource type="PackedScene" path="res://levels/mission/mission_kit/extraction_zone.tscn" id="3_extraction"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="4_datapad"]
+[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="5_keycard"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="6_crate"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="7_controller"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="8_nav"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.42, 0.42, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.55, 0.57, 0.62, 1)
+
+[sub_resource type="Environment" id="Environment_fixture"]
+background_mode = 1
+background_color = Color(0.16, 0.18, 0.24, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.6
+
+[node name="MissionFixture" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -300, 0, 600)
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fixture")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 8, 0)
+shadow_enabled = true
+
+[node name="LampNorth" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -6)
+light_energy = 4.0
+omni_range = 16.0
+
+[node name="LampSouth" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 6)
+light_energy = 4.0
+omni_range = 16.0
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(40, 1, 40)
+material = SubResource("Material_floor")
+metadata/surface = &"concrete"
+
+[node name="WallWest" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 1.5, 0)
+use_collision = true
+size = Vector3(0.4, 3, 12)
+material = SubResource("Material_wall")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="ReinforcementSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
+
+[node name="Manifest" parent="." instance=ExtResource("4_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.02, 6)
+
+[node name="Readable" parent="Manifest"]
+entry_id = &"fixture.manifest"
+title = "Test manifest"
+text = "Shipment 7: not what the papers say."
+
+[node name="Keycard" parent="." instance=ExtResource("5_keycard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.03, 6)
+
+[node name="Shipment" parent="." instance=ExtResource("6_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.3, 0)
+
+[node name="Tags" parent="Shipment"]
+initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
+
+[node name="AlarmController" parent="." instance=ExtResource("7_controller")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -11.79, 1.5, 0)
+
+[node name="Extraction" parent="." instance=ExtResource("3_extraction")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="Mission" parent="." instance=ExtResource("1_mission")]
+data = ExtResource("2_data")
+
+[node name="LevelNavigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("8_nav")

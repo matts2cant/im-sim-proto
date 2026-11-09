@@ -15,12 +15,13 @@ Every stateful system is saveable from day one so saving and loading never need 
 - The death screen ("You died") and the knocked-out screen ("Knocked out") say "E: restart level · Esc: menu": the menu opens there and its Load works.
 - A load puts back the level as it was saved: what was broken, burnt, exploded or picked up stays gone; dropped items, broken-crate contents and debug-spawned objects are back; fires, health, inventory, the item in hand and the personal log are as saved. Something carried at save time lies where it was held (it falls in front of you).
 - Death leads to reset (E) or Load from the game menu (Esc) ([../levels/mission-warehouse.md](../levels/mission-warehouse.md)).
+- **Levels** (M9, [ADR 0087](../decisions/0087-mission-systems.md)): the slot is shared by every level and records the one it was saved in ("Saved 14:32 · Warehouse"). Loading it from anywhere (the hub, a mission, a losing screen) loads that level, then restores it: in the mission, the timer, objectives done, tallies and badges so far, the first alarm and whether the reinforcements came are back; the briefing does not open again. Saving is not possible on the briefing or the summary (the game menu does not open over them).
 
 ## Rules
 
 - Nodes in group `saveable` implement `save_state() -> Dictionary` and `load_state(data: Dictionary) -> void`.
 - Save code lives in `core/save/`: `SaveFile` (format), `LevelSnapshot` (capture / apply), `QuickSave` (slot, save and load flow; static, no autoload). The player's `GameMenu` (`ui/game_menu/`, texts in `GameMenuRules`) calls it.
-- File: `user://saves/quicksave.save`, JSON of `JSON.from_native()` (Godot types kept, objects never read back), header `{version, level, saved_at}`.
+- File: `user://saves/quicksave.save`, JSON of `JSON.from_native()` (Godot types kept, objects never read back), header `{version, level, saved_at}`, plus `stimulus_ids`: the last stimulus id of the saving session (M9). A load reserves the ids up to it (`StimulusSystem.reserve_ids()`) before restoring, so stimulus ids kept in saved state (a fire's ignition, a turret's cause, the mission's attributed ids) never name a stimulus of the new session.
 - A save holds, by node path relative to the level root: `states` of every saveable under the current scene; `removed` level-placed entities (from the level's packed scene) that are gone; `spawned` entity roots not in the packed scene, with their scene file.
 - Load: change to the saved level, pause, free removed, recreate spawned, `load_state()` in tree pre-order (parents before children), wait 3 physics frames (CSG collision), rebake the navmesh if level geometry was removed, clear stimuli, unpause. Paths that no longer exist are skipped with a warning.
 - Logged: `game.saved` and `game.loaded` (`{level, saveables, removed, spawned}`, plus `skipped` on load).
@@ -32,10 +33,11 @@ Every stateful system is saveable from day one so saving and loading never need 
   - the deck's contents (copied files, Icebreaker progress per account): in its stack's `state`, saved with the inventory;
   - tracers: trace per tracer, lockouts (time left), whether the app runs;
   - alarm devices (M8): the controller's ringing time left and incident point, disarmed state, silenced sirens.
+- Missions (M9, [ADR 0087](../decisions/0087-mission-systems.md)): the `Mission` node saves time, objectives done, tallies (with the player's attributed stimulus ids), briefing seen, first alarm time and point, reinforcements sent, finished; reinforcements and dropped weapons are spawned entities; a guard's `WeaponHolder` saves the loadout it has left (`weapons`), so a guard that dropped its weapon stays unarmed; a turret saves its shots' cause.
 - Not saved: the in-flight stimulus queue (`StimulusSystem.clear()` on load, M2), debris, fire / explosion effects and sounds, the EventLog, debug panel state.
 - Contract tests are written with each feature; `tests/core/save/saveable_contract_test.gd` checks every scene's saveables round-trip.
 
 ## Open questions
 
 - More slots, named saves, autosave on level change: not in v0.
-- Saving across level transitions (carrying the player's state into another level) waits for M9.
+- Carrying the player's state into another level: not in v0. M9 levels start fresh (the mission's fixed kit, [ADR 0087](../decisions/0087-mission-systems.md)).

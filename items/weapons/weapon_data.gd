@@ -10,6 +10,10 @@ enum Kind { RANGED, MELEE }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
+## The inventory item this weapon is (ItemCatalog id): what a character's fixed-loadout weapon
+## becomes when it is dropped (WeaponDrop, ADR 0087). An id, not the ItemData: the item references
+## this resource. Empty: it cannot be dropped (a turret's gun).
+@export var item_id: StringName = &""
 @export var kind: Kind = Kind.RANGED
 ## Damage stimuli per hit, emitted in this order: type -> intensity (`damage.ballistic`: 25).
 @export var damage: Dictionary[StringName, float] = {}

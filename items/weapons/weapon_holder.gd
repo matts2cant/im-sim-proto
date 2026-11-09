@@ -24,7 +24,10 @@ extends Node3D
 ## WeaponView child "ViewPivot" (view_pivot()); on a guard it is the box it holds. Two ways to arm it:
 ## a fixed loadout (`weapons`, equip(index); guards' loadouts) that the holder saves itself, or
 ## equip_state() with a WeaponState owned elsewhere (the player's inventory weapon stacks, saved by
-## PlayerInventory; ADR 0050).
+## PlayerInventory; ADR 0050). Fixed-loadout weapons can be taken out (remove_from_loadout(): a
+## dropped weapon, WeaponDrop, ADR 0087); the save lists the ones left.
+## `cause_id` (ADR 0087): when set, every stimulus the holder emits names it as its cause, so what
+## the weapon does traces back to whoever made it fire (a turret's last command).
 
 signal changed
 
@@ -54,6 +57,9 @@ var scope := ScopeState.new()
 ## The trigger is held now (the user's input or AI sets it every tick): an automatic weapon fires
 ## again each cycle while it is (ADR 0085); false stops it.
 var trigger_held: bool = false
+## Stimulus id every shot, swing and noise names as its cause (Stimulus.cause_id); 0: none (the
+## stimulus system fills in the stimulus being delivered, if any).
+var cause_id: int = 0
 
 var _equipped: WeaponState = null
 var _look_pixels: float = 0.0
@@ -66,6 +72,8 @@ var _audio: AudioStreamPlayer3D
 func _ready() -> void:
 	if not weapons.is_empty():
 		add_to_group(&"saveable")
+	# Its own copy: instances of one scene may share the exported array, and a drop removes from it.
+	weapons = weapons.duplicate()
 	aim = AimModel.new(aim_config, rng_seed)
 	for data in weapons:
 		states.append(WeaponState.new(data))
@@ -98,14 +106,6 @@ func state() -> WeaponState:
 
 func is_armed() -> bool:
 	return _equipped != null
-
-
-## Fixed loadout: equips slot `index`, or holsters when it is already equipped.
-func toggle(index: int) -> void:
-	if index == current:
-		holster()
-	else:
-		equip(index)
 
 
 ## Fixed loadout: equips `weapons[index]`.
@@ -257,15 +257,36 @@ func aim_transform() -> Transform3D:
 	return Transform3D(AimModel.swayed(eye_transform.basis, _sway), eye_transform.origin)
 
 
-## Fixed loadout only (the holder is saveable when `weapons` is not empty).
+## Takes `weapon_state` out of the fixed loadout (its weapon was dropped): holstered first when it is
+## drawn. False when it is not part of the loadout (a weapon armed through equip_state()).
+func remove_from_loadout(weapon_state: WeaponState) -> bool:
+	var index := states.find(weapon_state)
+	if index < 0:
+		return false
+	if _equipped == weapon_state:
+		holster()
+	states.remove_at(index)
+	weapons.remove_at(index)
+	current = states.find(_equipped) if _equipped != null else -1
+	_log(&"weapon.removed", {"weapon": weapon_state.data.id})
+	changed.emit()
+	return true
+
+
+## Fixed loadout only (the holder is saveable when `weapons` is not empty): the weapons left (ids, in
+## order), the equipped one and each one's ammo.
 func save_state() -> Dictionary:
 	var ammo: Array[Dictionary] = []
+	var ids: Array[String] = []
 	for weapon_state in states:
 		ammo.append(weapon_state.to_dict())
-	return {"current": current, "ammo": ammo}
+		ids.append(String(weapon_state.data.id))
+	return {"current": current, "ammo": ammo, "weapons": ids}
 
 
 func load_state(data: Dictionary) -> void:
+	if data.get("weapons") is Array:
+		_keep_loadout(data["weapons"] as Array)
 	var ammo: Array = data.get("ammo", [])
 	for i in mini(ammo.size(), states.size()):
 		states[i].from_dict(ammo[i] as Dictionary)
@@ -275,6 +296,28 @@ func load_state(data: Dictionary) -> void:
 	else:
 		equip(wanted)
 	changed.emit()
+
+
+# Keeps the loadout entries named in `ids` (in that order, each entry used once): the weapons a save
+# still had; the others were dropped.
+func _keep_loadout(ids: Array) -> void:
+	var kept_weapons: Array[WeaponData] = []
+	var kept_states: Array[WeaponState] = []
+	var used: Array[int] = []
+	for id: Variant in ids:
+		for i in states.size():
+			if not used.has(i) and String(states[i].data.id) == str(id):
+				used.append(i)
+				kept_weapons.append(weapons[i])
+				kept_states.append(states[i])
+				break
+	if kept_states.size() == states.size():
+		return
+	if _equipped != null and not kept_states.has(_equipped):
+		holster()
+	weapons = kept_weapons
+	states = kept_states
+	current = states.find(_equipped) if _equipped != null else -1
 
 
 func _shoot(data: WeaponData) -> void:
@@ -303,8 +346,8 @@ func _shoot(data: WeaponData) -> void:
 			ray.exclude = exclude
 			if data.damage.has(type):
 				ray.scale_attribute = data.class_attribute("damage_mult")
-			StimulusSystem.emit(ray)
-	StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), _muzzle(), user))
+			_emit(ray)
+	_emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), _muzzle(), user))
 	last_hit = {}
 	var hit_name := ""
 	if not hits.is_empty():
@@ -313,7 +356,7 @@ func _shoot(data: WeaponData) -> void:
 		var collider := hits[0]["collider"] as Node
 		hit_name = String(collider.name)
 		last_hit = {"collider": collider, "position": point}
-		StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
+		_emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
 		_play_at(data.hit_sound, point)
 	aim.add_shot(_class_value("spread_mult", 1.0))
 	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
@@ -386,7 +429,7 @@ func _swing(data: WeaponData) -> void:
 	params.motion = forward * maxf(data.max_range - data.sweep_radius, 0.0)
 	var space := get_world_3d().direct_space_state
 	var fractions := space.cast_motion(params)
-	StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), from.origin, user))
+	_emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), from.origin, user))
 	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
 	last_hit = {}
 	var hit_name := ""
@@ -404,10 +447,17 @@ func _swing(data: WeaponData) -> void:
 			for type: StringName in data.damage:
 				var hit_stimulus := Stimulus.make_contact(type, data.damage[type], collider, user)
 				hit_stimulus.scale_attribute = data.class_attribute("damage_mult")
-				StimulusSystem.emit(hit_stimulus)
-			StimulusSystem.emit(Stimulus.make_noise(data.impact_noise, point, user))
+				_emit(hit_stimulus)
+			_emit(Stimulus.make_noise(data.impact_noise, point, user))
 			_play_at(data.hit_sound, point)
 	_log(&"weapon.swung", {"weapon": data.id, "hit": hit_name})
+
+
+# Emits `stimulus` with the holder's cause (cause_id) when one is set.
+func _emit(stimulus: Stimulus) -> void:
+	if cause_id != 0:
+		stimulus.cause_id = cause_id
+	StimulusSystem.emit(stimulus)
 
 
 func _own_rids() -> Array[RID]:

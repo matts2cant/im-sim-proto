@@ -199,11 +199,12 @@ static func cables(rows: Array[Row]) -> Array[Vector2i]:
 	return pairs
 
 
-## Sends `command` to `target` (Device.send_command(): only when this terminal reaches it).
-func send(command: StringName, target: Device) -> bool:
+## Sends `command` to `target` (Device.send_command(): only when this terminal reaches it); `by` is
+## the user at the keyboard (logged as the command's operator).
+func send(command: StringName, target: Device, by: Node = null) -> bool:
 	if not is_up() or not logged_in:
 		return false
-	return device.send_command(command, target)
+	return device.send_command(command, target, Device.NO_POINT, by)
 
 
 ## How screens name a device: its entity's node name in words ("CameraNorth" -> "Camera North").

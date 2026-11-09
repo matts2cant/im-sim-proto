@@ -86,6 +86,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 ### Drop
 
 - From the inventory screen (Drop in the context menu, or drag out of the panel) or with Q when something is in hand and nothing is carried (Q while carrying keeps its M3 meaning: let go). Drops the whole stack (split first to drop part).
+- **Weapon drops** (M9, [ADR 0088](../decisions/0088-weapon-drops-and-bursts.md)): a character that goes down (knocked out or killed: `state.unconscious` / `state.dead`, any source) drops the weapons its WeaponHolder owns (a guard's fixed loadout) as pickups of their items (`WeaponData.item_id`; the guards' pistol is a `pistol`) 0.6 m to the body's right at 0.4 m height (left, or at its feet, when a wall is in the way), each with the rounds left in its magazine (`state.magazine`). The character no longer has them, also once woken. The player's weapons belong to its inventory, not to its holder: a knocked-out or dead player keeps them. Dropped weapons are saved as spawned pickups. EventLog `weapon.dropped {actor, weapon, item, magazine}`.
 - Spawns the item's world scene 0.8 m ahead (horizontal view direction) at chest height (1.3 m above the feet) with 1.0 m/s forward; if a wall or object is between the eyes and that point, it appears 0.15 m before the hit. It lands with an `object.impact` noise like any physics object.
 
 ### Inventory screen ([ADR 0052](../decisions/0052-inventory-pauses-the-game.md))

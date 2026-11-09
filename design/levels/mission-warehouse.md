@@ -105,6 +105,24 @@ Every main route works without any of them; each find opens an option.
 - Hiding spots read below 0.1 light; patrols leave crossing gaps of at least 4 s.
 - Tests measure these (time to detect, run times); the numbers above are first guesses.
 
+## Systems (M9 wave 1)
+
+How the level uses the mission systems ([ADR 0087](../decisions/0087-mission-systems.md), [ADR 0088](../decisions/0088-weapon-drops-and-bursts.md)). Everything lives in `levels/mission/mission_kit/` (scenes, scripts, data) and `ui/mission/` (screens); the level only places nodes:
+
+| Node in `warehouse.tscn` | What | Notes |
+|---|---|---|
+| `PlayerSpawn` | Marker3D | The player starts here facing the marker's -Z (the van on the north road). The level does **not** place a Player: the Mission spawns `actors/player/player.tscn` there (a placed player tagged `actor.player` would be used instead). |
+| `ReinforcementSpawn` | Marker3D | Outside the front gate; the two reinforcements appear here, 1.5 m apart along the marker's X, facing its -Z. Keep 1 m of free navmesh on both sides. |
+| `Extraction` | instance of `mission_kit/extraction_zone.tscn` | Invisible box standing on the node's origin, `size` 4 x 3 x 4 m by default (set it to the boat's jetty). Ends the mission once the main objective is done; before that it shows "Read the manifest first". |
+| `Mission` | instance of `mission_kit/mission.tscn` | `data` = `mission_kit/warehouse_mission.tres`. One per level. |
+
+- **Data** (`warehouse_mission.tres`, a `MissionData`): briefing text; objectives: main `manifest` (`ReadEntryObjective`, entry id `warehouse.manifest`), optional `prototype` (`PickUpObjective`, item id `prototype`), optional `shipment` (`SabotageObjective`, tag `mission.shipment`); kit: baton, pistol (10 in the magazine), 10 pistol ammo, 1 medkit; energy 50%; augmentations Cloak, Speed Enhancement, Combat Strength; reinforcements: two `guard_pistol.tscn`, 30 s after the first alarm.
+- **What wave 2 must match**: the manifest datapad's `Readable.entry_id` is `warehouse.manifest`; the prototype is an item with id `prototype` (a new `ItemData` in the catalogue, placed as a pickup in the vault); every part of the shipment carries the tag `mission.shipment` (add it to the props' `Tags.initial_tags`; any one of them broken, exploded or burning completes the objective).
+- **Guards**: `guard_baton.tscn`, `guard_pistol.tscn`, and `guard_rifle.tscn` for the catwalk guard (G4; bursts of 3-5 rounds). Every guard drops its weapon as a pickup beside the body when knocked out or killed, so the assault rifle is found on G4.
+- **Alarms**: any alarm controller's first ring starts the reinforcement timer; the reinforcements search where that alarm was raised.
+- **Flow**: hub west north doorway (`MissionExit`, a `LevelExit`) -> warehouse (briefing, paused) -> extraction -> summary -> "Restart mission" or "Return to hub". The summary shows time, alarms raised, kills, knockouts, optional objectives done and the Ghost and Pacifist badges.
+- **Test fixture**: `tests/levels/mission/mission_kit/fixtures/mission_fixture.tscn` is a small mission level with the same contract (see `mission_helpers.gd`); screens can be reviewed with `fixtures/mission_shots.tscn` (`-- shot=briefing|toast|summary|weapon_drop out=<png>`).
+
 ## Network (M11)
 
 A sketch, not a layout ([../game/hacking.md](../game/hacking.md)). M9 places the hooks as M8 devices: a wireless access point spot covering the yard, an office wall jack, two office computers (credentials-placeholder terminals), the security console. Three subnets behind one gateway, FW-01, which runs the "Sentry" tracer watching Guest and Office:

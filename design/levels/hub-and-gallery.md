@@ -32,7 +32,7 @@ graph TD
 | 7 | Inventory and abilities bay | Items of every footprint, stats menu | M5, M6 | [inventory](../game/inventory.md), [abilities](../game/abilities.md) |
 | 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M11 | [hacking](../game/hacking.md) |
 
-The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described in [mission-warehouse.md](mission-warehouse.md). The hub's west wall north doorway loads it when the player walks through; the mission offers a way back to the hub after extraction ([ADR 0086](../decisions/0086-warehouse-mission.md)). Nothing the player carries in the hub comes along.
+The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described in [mission-warehouse.md](mission-warehouse.md). The hub's west wall north doorway loads it when the player walks through: `MissionExit`, a kit `LevelExit` (1 x 3 x 2 m box at (-15.7, 0, -7.5), from x -16.2 to -15.2, so the player triggers it once its capsule (radius 0.35) reaches 0.2 m into the doorway, its centre 0.15 m short of the wall's inner face at x -15; [ADR 0087](../decisions/0087-mission-systems.md)); the mission offers a way back to the hub after extraction ([ADR 0086](../decisions/0086-warehouse-mission.md)). Nothing the player carries in the hub comes along. Tests: `tests/levels/mission/mission_kit/mission_level_change_test.gd`.
 
 ## Hub
 

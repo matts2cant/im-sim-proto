@@ -26,6 +26,7 @@ stream_2/stream = ExtResource("5_shot_2")
 [resource]
 script = ExtResource("1_script")
 id = &"assault_rifle"
+item_id = &"assault_rifle"
 display_name = "Assault rifle"
 kind = 0
 damage = Dictionary[StringName, float]({&"damage.ballistic": 14.0})

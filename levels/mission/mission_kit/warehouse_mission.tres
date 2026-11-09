@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://levels/mission/mission_kit/mission_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://levels/mission/mission_kit/objectives/mission_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://levels/mission/mission_kit/objectives/read_entry_objective.gd" id="3_read"]
+[ext_resource type="Script" path="res://levels/mission/mission_kit/objectives/pick_up_objective.gd" id="4_pick_up"]
+[ext_resource type="Script" path="res://levels/mission/mission_kit/objectives/sabotage_objective.gd" id="5_sabotage"]
+[ext_resource type="Script" path="res://levels/mission/mission_kit/starting_item.gd" id="6_starting_item"]
+[ext_resource type="Resource" path="res://items/weapons/baton/baton_item.tres" id="7_baton"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol_item.tres" id="8_pistol"]
+[ext_resource type="Resource" path="res://items/pistol_ammo/pistol_ammo.tres" id="9_ammo"]
+[ext_resource type="Resource" path="res://items/medkit/medkit.tres" id="10_medkit"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="11_guard_pistol"]
+
+[sub_resource type="Resource" id="Objective_manifest"]
+script = ExtResource("3_read")
+entry_id = &"warehouse.manifest"
+id = &"manifest"
+title = "Read the shipment manifest"
+description = "The shipment manifest is on a datapad in the manager's office, on the upper floor of the office block. Read it, then get out by the boat on the riverside behind the back gate."
+extraction_hint = "Read the manifest first"
+
+[sub_resource type="Resource" id="Objective_prototype"]
+script = ExtResource("4_pick_up")
+item_id = &"prototype"
+id = &"prototype"
+title = "Take the prototype from the vault"
+description = "The prototype is kept in the vault next to the manager's office. A turret guards it: find a keycard or use the security terminal."
+optional = true
+
+[sub_resource type="Resource" id="Objective_shipment"]
+script = ExtResource("5_sabotage")
+tag = &"mission.shipment"
+id = &"shipment"
+title = "Sabotage the outgoing shipment"
+description = "The outgoing shipment waits on the loading dock. Blow it up or set it on fire."
+optional = true
+
+[sub_resource type="Resource" id="Item_baton"]
+script = ExtResource("6_starting_item")
+item = ExtResource("7_baton")
+
+[sub_resource type="Resource" id="Item_pistol"]
+script = ExtResource("6_starting_item")
+item = ExtResource("8_pistol")
+state = {"magazine": 10}
+
+[sub_resource type="Resource" id="Item_ammo"]
+script = ExtResource("6_starting_item")
+item = ExtResource("9_ammo")
+count = 10
+
+[sub_resource type="Resource" id="Item_medkit"]
+script = ExtResource("6_starting_item")
+item = ExtResource("10_medkit")
+
+[resource]
+script = ExtResource("1_data")
+id = &"warehouse"
+title = "Warehouse"
+briefing = "Night. A logistics company's warehouse by the river. Its outgoing shipment is not what the papers say: get the manifest that proves it. You have a baton, a pistol with one spare magazine and a medkit; what else you need is inside. Guards, cameras and an alarm network: stay unseen if you can."
+objectives = Array[ExtResource("2_objective")]([SubResource("Objective_manifest"), SubResource("Objective_prototype"), SubResource("Objective_shipment")])
+extraction_hint = "Finish the main objective first"
+starting_items = Array[ExtResource("6_starting_item")]([SubResource("Item_baton"), SubResource("Item_pistol"), SubResource("Item_ammo"), SubResource("Item_medkit")])
+energy_fraction = 0.5
+augmentations = Array[StringName]([&"cloak", &"speed_enhancement", &"combat_strength"])
+reinforcement_scenes = Array[PackedScene]([ExtResource("11_guard_pistol"), ExtResource("11_guard_pistol")])
+reinforcement_delay = 30.0

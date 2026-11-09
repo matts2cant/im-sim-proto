@@ -7,6 +7,7 @@
 [resource]
 script = ExtResource("1_script")
 id = &"baton"
+item_id = &"baton"
 display_name = "Stun baton"
 kind = 1
 damage = Dictionary[StringName, float]({&"damage.stun": 20.0, &"damage.blunt": 5.0})

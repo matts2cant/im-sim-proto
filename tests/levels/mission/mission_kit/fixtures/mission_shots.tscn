@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/levels/mission/mission_kit/fixtures/mission_shots.gd" id="1_shots"]
+[ext_resource type="PackedScene" path="res://tests/levels/mission/mission_kit/fixtures/mission_fixture.tscn" id="2_fixture"]
+
+[node name="MissionShots" type="Node"]
+script = ExtResource("1_shots")
+
+[node name="MissionFixture" parent="." instance=ExtResource("2_fixture")]
