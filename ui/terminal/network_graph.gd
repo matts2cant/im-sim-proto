@@ -2,9 +2,10 @@ class_name NetworkGraph
 extends Control
 ## The terminal screen's Network tab (ADR 0083, map redesigned by ADR 0099): one node per device of
 ## the terminal's physical network (Terminal.devices()), grouped by the hub it hangs on and placed by
-## NetworkLayout, the cables along the layout's routes (solid between two online devices, dashed
-## otherwise), the terminal itself outlined. Each node shows its name and its status words (offline
-## grey, alert words red).
+## NetworkLayout, the cables along the layout's routes (solid green between two online devices, also
+## when one is disabled: the link works; dashed grey otherwise), the terminal itself outlined. Each
+## node shows its name and its status words; its outline and status line take the device's colour
+## (TerminalStyle.row_color(): offline grey, disabled red, alert words amber, else green).
 ## The map pans and zooms (NetworkView): drag with the left or middle mouse button to move it, the
 ## wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
 ## network; it opens fitted (request_fit()). The nodes, their labels and the cables live in
@@ -33,6 +34,10 @@ const CABLE_WIDTH: float = 2.0
 const DASH: float = 7.0
 const DASH_GAP: float = 5.0
 const BACKGROUND: Color = Color(0.02, 0.05, 0.05)
+## A node box's fill, and the selected node's (with a white outline).
+const NODE_FILL: Color = Color(0.04, 0.1, 0.1, 1.0)
+const SELECTED_FILL: Color = Color(0.13, 0.22, 0.22, 1.0)
+const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
 
 var config: TerminalConfig
 var rows: Array[Terminal.Row] = []
@@ -188,6 +193,20 @@ func node_status(device_name: String) -> String:
 	return (_nodes[index].get_node(^"Status") as Label).text if index >= 0 else ""
 
 
+## The outline colour of the node of `device_name` as drawn (white while selected), or black.
+func node_color(device_name: String) -> Color:
+	var index := _index_by_name(device_name)
+	return _styles[index].border_color if index >= 0 else Color.BLACK
+
+
+## The colour of the status line under the node of `device_name`, or black.
+func node_status_color(device_name: String) -> Color:
+	var index := _index_by_name(device_name)
+	if index < 0:
+		return Color.BLACK
+	return (_nodes[index].get_node(^"Status") as Label).get_theme_color(&"font_color")
+
+
 ## The open menu's command button `label`, or null.
 func menu_button(label: String) -> Button:
 	if not menu.visible:
@@ -308,17 +327,30 @@ func _draw_cables() -> void:
 			var cable := cables[k]
 			if cable.x >= rows.size() or cable.y >= rows.size():
 				continue
-			var live := rows[cable.x].online and rows[cable.y].online
+			var live := cable_live(k)
 			if live != pass_live:
 				continue
 			var route := layout.routes[k]
 			if route.size() < 2:
 				continue
 			if live:
-				content.draw_polyline(route, TerminalStyle.ONLINE_COLOR.darkened(0.25), CABLE_WIDTH, true)
+				content.draw_polyline(route, cable_color(k), CABLE_WIDTH, true)
 				continue
 			for dash in dashes(route, DASH, DASH_GAP):
-				content.draw_line(dash[0], dash[1], TerminalStyle.OFFLINE_COLOR.darkened(0.1), CABLE_WIDTH, true)
+				content.draw_line(dash[0], dash[1], cable_color(k), CABLE_WIDTH, true)
+
+
+## True when cable `k` joins two online devices (drawn solid; else dashed). A disabled end does not
+## matter: the link works (commands reach the device, the player can enable it again).
+func cable_live(k: int) -> bool:
+	if k < 0 or k >= cables.size() or cables[k].x >= rows.size() or cables[k].y >= rows.size():
+		return false
+	return rows[cables[k].x].online and rows[cables[k].y].online
+
+
+## The colour cable `k` is drawn in: green while live, the offline grey otherwise.
+func cable_color(k: int) -> Color:
+	return LIVE_CABLE_COLOR if cable_live(k) else TerminalStyle.OFFLINE_COLOR
 
 
 ## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs.
@@ -417,9 +449,9 @@ func _node(row: Terminal.Row) -> Control:
 	node_button.name = "Button"
 	# Pass: a drag that starts on a node moves the map, the wheel over a node zooms.
 	node_button.mouse_filter = Control.MOUSE_FILTER_PASS
-	var color := TerminalStyle.status_color(row.status)
+	var color := TerminalStyle.row_color(row)
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.1, 0.1, 1.0)
+	style.bg_color = NODE_FILL
 	style.set_corner_radius_all(4)
 	style.content_margin_left = 6.0
 	style.content_margin_right = 6.0
@@ -475,7 +507,7 @@ func _update_menu() -> void:
 	var row := rows[index]
 	menu_title.text = row.name
 	menu_status.text = TerminalStyle.status_text(row.status)
-	menu_status.add_theme_color_override(&"font_color", TerminalStyle.status_color(row.status))
+	menu_status.add_theme_color_override(&"font_color", TerminalStyle.row_color(row))
 	for child in _menu_buttons.get_children():
 		TerminalStyle.discard(child)
 	for command in row.commands:
@@ -488,16 +520,19 @@ func _update_menu() -> void:
 	_place_menu()
 
 
-# Node outlines: the terminal thick blue, the others their status colour; the selected one white.
+# Node outlines: the terminal thick blue, the others their row colour; the selected one white and
+# lighter inside (readable on every colour).
 func _restyle(selected_index: int) -> void:
 	for i in mini(_styles.size(), rows.size()):
 		var style := _styles[i]
 		var row := rows[i]
-		style.border_color = TerminalStyle.SELF_COLOR if row.is_self else TerminalStyle.status_color(row.status)
+		style.border_color = TerminalStyle.SELF_COLOR if row.is_self else TerminalStyle.row_color(row)
 		style.set_border_width_all(3 if row.is_self else 1)
+		style.bg_color = NODE_FILL
 		if i == selected_index:
 			style.border_color = Color.WHITE
 			style.set_border_width_all(3 if row.is_self else 2)
+			style.bg_color = SELECTED_FILL
 
 
 # Beside the selected node as shown, inside the panel; it follows the node when the view moves.

@@ -10,9 +10,9 @@ extends Usable
 ## - Devices (ADR 0083): devices() gives every device its cables join it to, up or down (the
 ##   physical network, DeviceGraph.component()), the terminal itself first: online when the terminal
 ##   reaches it (else offline, whatever the reason: unpowered, broken, a dead switch on the way),
-##   its status words (DeviceStatus), whether it has a view, and, when online, the commands of the
-##   config's table it accepts. cables() gives the links between them. send() is
-##   Device.send_command(). Nothing here knows what a device is: the buttons come from the
+##   its status words (DeviceStatus), whether it is disabled (online only), whether it has a view,
+##   and, when online, the commands of the config's table it accepts. cables() gives the links
+##   between them. send() is Device.send_command(). Nothing here knows what a device is: the buttons come from the
 ##   receptrons each device has, the status from its components.
 ## - Unpowered or broken (its Device down): it does nothing when used.
 ## EventLog: `terminal.opened {terminal, by}`, `terminal.login {terminal, user, ok}`,
@@ -46,6 +46,9 @@ class Row:
 	var online: bool = false
 	## DeviceStatus words: "offline", or "online" then its components' words.
 	var status: PackedStringArray
+	## Online and switched off by a command (DeviceStatus.is_disabled()); never while offline (the
+	## terminal cannot see it).
+	var disabled: bool = false
 	## The table's commands it accepts; empty while offline.
 	var commands: Array[StringName] = []
 	## A component offers a view (DeviceStatus.has_view()).
@@ -175,6 +178,7 @@ func devices() -> Array[Row]:
 		row.is_self = id == own_id
 		row.online = row.is_self or reached.has(id)
 		row.status = DeviceStatus.of(other.entity, row.online)
+		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
 		if row.online and not row.is_self:
 			row.commands = _offered(other)

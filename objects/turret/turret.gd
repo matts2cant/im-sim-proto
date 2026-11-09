@@ -111,6 +111,11 @@ func hostile_tags() -> Array[StringName]:
 	return sensor.config.hostile_tags
 
 
+## Switched off by a command, for security screens (DeviceStatus).
+func device_disabled() -> bool:
+	return disabled
+
+
 ## Status words for security screens (DeviceStatus): enabled / disabled, its target preset
 ## ("targets intruders": the preset command's words after `target_`), and idle, tracking (winding
 ## up) or firing.

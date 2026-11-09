@@ -64,6 +64,11 @@ func time_left() -> float:
 	return timer.left
 
 
+## Disarmed (`command.disarm` or `command.disable`), for security screens (DeviceStatus).
+func device_disabled() -> bool:
+	return not armed
+
+
 ## Status words for security screens (DeviceStatus, ADR 0083): armed / disarmed, ringing / silent.
 func device_status() -> PackedStringArray:
 	return PackedStringArray(["armed" if armed else "disarmed", "ringing" if is_ringing() else "silent"])

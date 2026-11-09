@@ -395,9 +395,7 @@ func _rebuild_camera_list() -> void:
 		entry_button.add_theme_stylebox_override(&"hover_pressed", chosen)
 		entry_button.pressed.connect(select_camera.bind(row.name))
 		entry.add_child(entry_button)
-		var status := TerminalStyle.label(
-			TerminalStyle.status_text(row.status), TerminalStyle.status_color(row.status), 12
-		)
+		var status := TerminalStyle.label(TerminalStyle.status_text(row.status), TerminalStyle.row_color(row), 12)
 		status.name = "Status"
 		status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		entry.add_child(status)
@@ -413,7 +411,7 @@ func _rebuild_camera_panel() -> void:
 	camera_title.text = row.name if row != null else ""
 	camera_status.text = TerminalStyle.status_text(row.status) if row != null else ""
 	camera_status.add_theme_color_override(
-		&"font_color", TerminalStyle.status_color(row.status) if row != null else TerminalStyle.DIM_COLOR
+		&"font_color", TerminalStyle.row_color(row) if row != null else TerminalStyle.DIM_COLOR
 	)
 	if row == null:
 		return
