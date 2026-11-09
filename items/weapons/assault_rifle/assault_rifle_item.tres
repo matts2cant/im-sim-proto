@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"assault_rifle"
+display_name = "Assault rifle"
+short_name = "RIFLE"
+description = "Automatic rifle: hold LMB to keep firing; the spread grows with every shot and recovers when you stop. Holds 30 rounds; reloads from rifle rounds. Takes a silencer."
+footprint = Vector2i(2, 2)
+max_stack = 1
+colour = Color(0.3, 0.55, 0.45, 1)
+world_scene = "res://items/weapons/assault_rifle/assault_rifle_pickup.tscn"
+auto_belt = true
+default_state = {"magazine": 30}
+use_action = 1
+weapon = ExtResource("2_weapon")

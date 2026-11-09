@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_rifle.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"sniper_rifle"
+display_name = "Sniper rifle"
+short_name = "SNIPER"
+description = "Bolt-action rifle: one torso shot kills. Wild from the hip; RMB toggles the scope, near-perfect when still. Holds 5 rounds; reloads from sniper rounds. Takes a silencer."
+footprint = Vector2i(4, 1)
+max_stack = 1
+colour = Color(0.42, 0.34, 0.6, 1)
+world_scene = "res://items/weapons/sniper_rifle/sniper_rifle_pickup.tscn"
+auto_belt = true
+default_state = {"magazine": 5}
+use_action = 1
+weapon = ExtResource("2_weapon")

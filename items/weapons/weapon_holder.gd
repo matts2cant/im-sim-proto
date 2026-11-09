@@ -12,10 +12,16 @@ extends Node3D
 ## carries its part).
 ## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
 ## (through Stimulus.scale_attribute), cycle, reload, cone floors and bloom, settle time; crouching
-## (`stance.crouch`) settles faster (AimConfig.crouch_settle_factor). While the user is cloaked
-## (`state.cloaked`) the view model is translucent.
-## The view model is a placeholder box (on a guard: the box it holds); a ranged weapon with
-## `muzzle_flash_size` shows a MuzzleFlash at the front of the box on each shot. Two ways to arm it:
+## (`stance.crouch`) settles faster (AimConfig.crouch_settle_factor).
+## Per weapon (ADR 0085): several projectiles per shot spread inside a cone (WeaponData.pellets,
+## PelletPattern), automatic fire while `trigger_held`, the weapon's own aim cone
+## (WeaponData.aim_config) and a scope (toggle_scope(); `scope`, a ScopeState: the scope's cone, the
+## view model hidden; it comes off when the weapon is switched or put away, a reload starts or the
+## user cannot use its arms; whoever owns the camera reads scope.view_fov()). Fitted attachments
+## change the weapon's stats (WeaponState.stat(): fire noise, flash, volume, `suppressed` shot sound)
+## and show on its model.
+## The first-person view (model or placeholder box, recoil and swing, muzzle flash, cloak) is the
+## WeaponView child "ViewPivot" (view_pivot()); on a guard it is the box it holds. Two ways to arm it:
 ## a fixed loadout (`weapons`, equip(index); guards' loadouts) that the holder saves itself, or
 ## equip_state() with a WeaponState owned elsewhere (the player's inventory weapon stacks, saved by
 ## PlayerInventory; ADR 0050).
@@ -24,10 +30,6 @@ signal changed
 
 const ATTRIBUTE_SPREAD: StringName = &"aim_spread_add"
 const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
-## Recoil time of a shot; a swing animates over half its cycle.
-const KICK_TIME: float = 0.12
-## Opacity of the view model while the user is cloaked.
-const CLOAKED_ALPHA: float = 0.3
 
 ## Fixed loadout (optional): one WeaponState each in `states`, saved by the holder.
 @export var weapons: Array[WeaponData] = []
@@ -45,18 +47,19 @@ var current: int = -1
 var aim: AimModel
 ## Last hit of the equipped weapon, for tests and the debug panel: {collider, position} or {}.
 var last_hit: Dictionary = {}
-## The muzzle flash at the front of the view model (MuzzleFlash.hold() freezes it for screenshots).
+## The muzzle flash of the view (MuzzleFlash.hold() freezes it for screenshots).
 var flash: MuzzleFlash
+## Scope of the equipped weapon (ADR 0085).
+var scope := ScopeState.new()
+## The trigger is held now (the user's input or AI sets it every tick): an automatic weapon fires
+## again each cycle while it is (ADR 0085); false stops it.
+var trigger_held: bool = false
 
 var _equipped: WeaponState = null
 var _look_pixels: float = 0.0
 var _floor: float = 0.0
-var _kick: float = 0.0
-var _kick_length: float = KICK_TIME
 var _sway: Vector2 = Vector2.ZERO
-var _pivot: Node3D
-var _view: MeshInstance3D
-var _view_material: StandardMaterial3D
+var _view: WeaponView
 var _audio: AudioStreamPlayer3D
 
 
@@ -66,18 +69,9 @@ func _ready() -> void:
 	aim = AimModel.new(aim_config, rng_seed)
 	for data in weapons:
 		states.append(WeaponState.new(data))
-	# The pivot sits at the grip: swings and kicks turn it, the box hangs off it.
-	_pivot = Node3D.new()
-	_pivot.name = "ViewPivot"
-	_pivot.visible = false
-	add_child(_pivot)
-	_view = MeshInstance3D.new()
-	_view.name = "ViewModel"
-	_view.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_pivot.add_child(_view)
-	flash = MuzzleFlash.new()
-	flash.name = "MuzzleFlash"
-	_view.add_child(flash)
+	_view = WeaponView.new()
+	add_child(_view)
+	flash = _view.flash
 	_audio = AudioStreamPlayer3D.new()
 	_audio.name = "Audio"
 	_audio.max_polyphony = 3
@@ -126,9 +120,14 @@ func equip_state(weapon_state: WeaponState) -> void:
 		return
 	if _equipped != null:
 		_equipped.cancel_reload()
+		_equipped.attached.disconnect(_on_attached)
 	_equipped = weapon_state
+	_equipped.attached.connect(_on_attached)
 	current = states.find(weapon_state)
-	_build_view(weapon_state.data)
+	scope.reset()
+	scope.zoom_time = weapon_state.data.scope_time
+	trigger_held = false
+	_view.show_weapon(weapon_state)
 	_log(&"weapon.equipped", {"weapon": weapon_state.data.id})
 	changed.emit()
 
@@ -138,10 +137,12 @@ func holster() -> void:
 		return
 	var data := _equipped.data
 	_equipped.cancel_reload()
+	_equipped.attached.disconnect(_on_attached)
 	_equipped = null
 	current = -1
-	_pivot.visible = false
-	flash.clear()
+	scope.reset()
+	trigger_held = false
+	_view.hide_weapon()
 	_log(&"weapon.holstered", {"weapon": data.id})
 	changed.emit()
 
@@ -154,6 +155,7 @@ func add_look(pixels: float) -> void:
 ## Called by the user every physics tick with its movement stance. `floor_add` (degrees) widens the
 ## cone floor on top of the stance (a combat component's range and target-motion terms).
 func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0) -> void:
+	aim.config = _aim_config()
 	var spread_mult := _class_value("spread_mult", 1.0)
 	if _look_pixels > 0.0:
 		aim.add_look(_look_pixels, spread_mult)
@@ -162,6 +164,8 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 	_floor = minf(stance_floor + floor_add, aim.config.max_spread_deg)
 	aim.step(delta, _floor, _settle_time())
 	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0))
+	# Automatic fire before the cooldowns tick: one shot every cycle_time while held.
+	_auto_fire()
 	var stepped := states.duplicate()
 	if _equipped != null and not stepped.has(_equipped):
 		stepped.append(_equipped)
@@ -171,10 +175,9 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 		if was_reloading and not weapon_state.is_reloading():
 			_log(&"weapon.reloaded", {"weapon": weapon_state.data.id, "magazine": weapon_state.magazine})
 			changed.emit()
-	_kick = maxf(_kick - delta, 0.0)
-	_animate_view()
-	_update_cloak()
-	flash.step(delta)
+	if scope.step(delta, _can_scope()):
+		_on_scope_changed("auto")
+	_view.step(delta, ActorState.has(user, ActorState.CLOAKED))
 
 
 # Settle time constant of the cone now: AimConfig.settle_time through the user's
@@ -188,12 +191,22 @@ func _settle_time() -> float:
 
 ## Snaps the cone to the floor of the last step (tests; a level start).
 func settle() -> void:
+	aim.config = _aim_config()
 	aim.spread = maxf(_floor, 0.0) if _floor > 0.0 else aim.config.base_min_deg
 
 
 ## Current aim sway in degrees (HUD: the reticle moves with it).
 func sway() -> Vector2:
 	return _sway
+
+
+## RMB: scopes in or out (a weapon with a scope, the user able to use its arms, not reloading).
+## Returns true when the scope changed.
+func toggle_scope() -> bool:
+	if not scope.toggle(_can_scope()):
+		return false
+	_on_scope_changed("toggle")
+	return true
 
 
 ## Fire / swing the equipped weapon (press edge). Returns the WeaponState result, or -1 when
@@ -209,11 +222,11 @@ func trigger() -> int:
 			{"weapon": data.id, "reason": "arms_disabled" if ActorState.can_act(user) else "incapacitated"}
 		)
 		return -1
+	aim.config = _aim_config()
 	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0))
 	match result:
 		WeaponState.Result.FIRED:
-			_kick_length = data.cycle_time * 0.5 if data.is_melee() else KICK_TIME
-			_kick = _kick_length
+			_view.kick()
 			if data.is_melee():
 				_swing(data)
 			else:
@@ -232,6 +245,8 @@ func reload() -> bool:
 		return false
 	_play(weapon_state.data.reload_sound, -8.0)
 	_log(&"weapon.reload_started", {"weapon": weapon_state.data.id, "time": weapon_state.reload_left})
+	if scope.step(0.0, false):
+		_on_scope_changed("reload")
 	changed.emit()
 	return true
 
@@ -264,44 +279,97 @@ func load_state(data: Dictionary) -> void:
 
 func _shoot(data: WeaponData) -> void:
 	var from := aim_transform()
-	var direction := aim.sample_direction(from.basis)
+	var centre := aim.sample_direction(from.basis)
 	var spread := aim.spread
+	var directions := PelletPattern.spread(centre, from.basis.y, data.pellets, data.pellet_spread_deg, aim.rng)
 	var exclude := _own_rids()
-	var query := PhysicsRayQueryParameters3D.create(
-		from.origin, from.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
-	)
-	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	var space := get_world_3d().direct_space_state
 	var rays: Dictionary[StringName, float] = data.damage.duplicate()
 	if data.impact_impulse > 0.0:
 		rays[&"force.impact"] = data.impact_impulse
-	for type: StringName in rays:
-		var ray := Stimulus.make_ray(
-			type, rays[type], from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
+	var hits: Array[Dictionary] = []
+	# Each projectile: one ray per damage entry and the push, along its own direction.
+	for direction in directions:
+		var query := PhysicsRayQueryParameters3D.create(
+			from.origin, from.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
 		)
-		ray.exclude = exclude
-		if data.damage.has(type):
-			ray.scale_attribute = data.class_attribute("damage_mult")
-		StimulusSystem.emit(ray)
-	StimulusSystem.emit(Stimulus.make_noise(data.fire_noise, _muzzle(), user))
+		var hit := space.intersect_ray(query)
+		if not hit.is_empty():
+			hits.append(hit)
+		for type: StringName in rays:
+			var ray := Stimulus.make_ray(
+				type, rays[type], from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
+			)
+			ray.exclude = exclude
+			if data.damage.has(type):
+				ray.scale_attribute = data.class_attribute("damage_mult")
+			StimulusSystem.emit(ray)
+	StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), _muzzle(), user))
 	last_hit = {}
 	var hit_name := ""
-	if not hit.is_empty():
-		var point: Vector3 = hit["position"]
-		var collider := hit["collider"] as Node
+	if not hits.is_empty():
+		# One impact noise and sound per shot, where the first projectile struck.
+		var point: Vector3 = hits[0]["position"]
+		var collider := hits[0]["collider"] as Node
 		hit_name = String(collider.name)
 		last_hit = {"collider": collider, "position": point}
-		StimulusSystem.emit(Stimulus.make_noise(data.impact_noise, point, user))
+		StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
 		_play_at(data.hit_sound, point)
 	aim.add_shot(_class_value("spread_mult", 1.0))
-	_play(data.fire_sound, data.fire_volume_db)
-	flash.fire(data)
+	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
+	flash.fire(data, _equipped.stat(&"muzzle_flash_size"))
 	var logged := {
 		"weapon": data.id,
 		"magazine": _equipped.magazine,
 		"spread": spread,
 		"hit": hit_name,
+		"projectiles": directions.size(),
+		"hits": hits.size(),
+		"noise": _equipped.stat(&"fire_noise"),
 	}
 	_log(&"weapon.fired", logged)
+
+
+# The shot sound: the suppressed one while an attachment makes the weapon `suppressed`.
+func _fire_sound(data: WeaponData) -> AudioStream:
+	if _equipped.stat(&"suppressed") > 0.0 and data.suppressed_fire_sound != null:
+		return data.suppressed_fire_sound
+	return data.fire_sound
+
+
+# One automatic shot when the trigger is held and the cycle allows it (never a dry click: an empty
+# magazine stops the burst).
+func _auto_fire() -> void:
+	var data := weapon()
+	if not trigger_held or data == null or not data.automatic or not ActorState.can_use_arms(user):
+		return
+	if _equipped.is_reloading() or _equipped.cooldown > WeaponState.EPSILON:
+		return
+	if data.uses_ammo() and _equipped.magazine <= 0:
+		return
+	trigger()
+
+
+# The aim cone in use: the equipped weapon's own (scoped or hip), else the holder's.
+func _aim_config() -> AimConfig:
+	var data := weapon()
+	if data == null:
+		return aim_config
+	return data.aim_for(scope.scoped, aim_config)
+
+
+# Scoping is possible: a weapon with a scope, arms usable, not reloading.
+func _can_scope() -> bool:
+	var data := weapon()
+	return data != null and data.has_scope() and ActorState.can_use_arms(user) and not _equipped.is_reloading()
+
+
+func _on_scope_changed(reason: String) -> void:
+	_view.set_shown(not scope.scoped)
+	var data := weapon()
+	var weapon_id := data.id if data != null else &""
+	_log(&"weapon.scoped", {"weapon": weapon_id, "scoped": scope.scoped, "reason": reason})
+	changed.emit()
 
 
 func _swing(data: WeaponData) -> void:
@@ -318,8 +386,8 @@ func _swing(data: WeaponData) -> void:
 	params.motion = forward * maxf(data.max_range - data.sweep_radius, 0.0)
 	var space := get_world_3d().direct_space_state
 	var fractions := space.cast_motion(params)
-	StimulusSystem.emit(Stimulus.make_noise(data.fire_noise, from.origin, user))
-	_play(data.fire_sound, data.fire_volume_db)
+	StimulusSystem.emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), from.origin, user))
+	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
 	last_hit = {}
 	var hit_name := ""
 	if fractions.size() == 2 and fractions[1] < 1.0:
@@ -351,9 +419,16 @@ func _own_rids() -> Array[RID]:
 
 
 func _muzzle() -> Vector3:
-	if _pivot != null and _pivot.visible:
-		return _view.global_position
+	if _view.visible:
+		return _view.muzzle_position()
 	return eye.global_position
+
+
+# An attachment was fitted to the equipped weapon: show it.
+func _on_attached(_attachment: AttachmentData) -> void:
+	_view.show_weapon(_equipped)
+	_view.set_shown(not scope.scoped)
+	changed.emit()
 
 
 # `base` through the user's attribute `<class>_<stat>` of the equipped weapon (base itself unarmed or
@@ -372,82 +447,9 @@ func _attribute(attribute: StringName, fallback: float) -> float:
 	return attributes.value(attribute)
 
 
-func _build_view(data: WeaponData) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = data.view_size
-	var material := StandardMaterial3D.new()
-	material.albedo_color = data.view_color
-	material.roughness = 0.6
-	mesh.material = material
-	_view_material = material
-	_view.mesh = mesh
-	_view.position = data.view_box_offset
-	_pivot.visible = true
-	flash.clear()
-	_animate_view()
-
-
-## Shows the equipped weapon's swing frozen at `progress` (0 = start, 1 = end); screenshots and
-## tests. The next physics step carries on from the real kick timer.
-func preview_swing(progress: float) -> void:
-	_kick = _kick_length * (1.0 - clampf(progress, 0.0, 1.0))
-	_animate_view()
-
-
-# True while the view model is drawn see-through (the user is cloaked).
-func _is_view_cloaked() -> bool:
-	return _view_material != null and _view_material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
-
-
-# Cloaked user (`state.cloaked`): the view model turns translucent; first-person feedback only.
-func _update_cloak() -> void:
-	if _view_material == null:
-		return
-	var cloaked := ActorState.has(user, ActorState.CLOAKED)
-	if cloaked == _is_view_cloaked():
-		return
-	_view_material.transparency = (
-		BaseMaterial3D.TRANSPARENCY_ALPHA if cloaked else BaseMaterial3D.TRANSPARENCY_DISABLED
-	)
-	_view_material.albedo_color.a = CLOAKED_ALPHA if cloaked else 1.0
-
-
-## Pose of the view pivot (grip), for tests.
-func view_pivot() -> Node3D:
-	return _pivot
-
-
-# Recoil (pistol) or a chop about the grip (baton) while the kick timer runs.
-func _animate_view() -> void:
-	var data := weapon()
-	if data == null:
-		return
-	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
-	var view := Transform3D(_euler_deg(data.view_rest_deg), data.view_offset)
-	if data.is_melee():
-		# Fast chop to the bottom of the swing, slower return to the ready pose.
-		var progress := 1.0 - t
-		var chop := data.view_chop_share
-		var amount := 0.0
-		if t > 0.0:
-			if progress < chop:
-				amount = sin(progress / chop * PI * 0.5)
-			else:
-				amount = cos((progress - chop) / (1.0 - chop) * PI * 0.5)
-		view.basis = _euler_deg(data.view_rest_deg + data.view_swing_deg * amount)
-	else:
-		view.basis = Basis(Vector3.RIGHT, 0.25 * t) * view.basis
-		view.origin += Vector3(0, 0, 0.04 * t)
-	_pivot.transform = view
-
-
-# Pitch (about X), then yaw (Y), then roll (Z) in the camera's frame, degrees.
-static func _euler_deg(angles: Vector3) -> Basis:
-	return (
-		Basis(Vector3.BACK, deg_to_rad(angles.z))
-		* Basis(Vector3.UP, deg_to_rad(angles.y))
-		* Basis(Vector3.RIGHT, deg_to_rad(angles.x))
-	)
+## The first-person view: grip pivot, model or box, flash (tests, screenshots: preview_swing()).
+func view_pivot() -> WeaponView:
+	return _view
 
 
 func _play(stream: AudioStream, volume_db: float) -> void:

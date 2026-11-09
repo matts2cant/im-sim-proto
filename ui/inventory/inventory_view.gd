@@ -3,8 +3,10 @@ extends Control
 ## Custom-drawn grid (64 px cells) and belt row of the inventory screen. Left-drag moves a stack:
 ## a green / red footprint shows whether it fits; dropping it on a belt slot assigns it there;
 ## releasing outside this control drops it into the world. Dragging a belt slot's item off the belt
-## (anywhere but another slot) clears that slot. Right-click asks for the context menu. Hovering
-## shows a tooltip (name, description, count). Mouse positions are local to this control.
+## (anywhere but another slot) clears that slot. Dragging an attachment (a silencer) highlights every
+## weapon it fits, on the grid and the belt; dropping it on one fits it (ADR 0085), anywhere else it
+## moves or drops as usual. Right-click asks for the context menu. Hovering shows a tooltip (name,
+## description, count, what is fitted). Mouse positions are local to this control.
 
 signal context_requested(stack: ItemStack, at: Vector2)
 signal drop_requested(stack: ItemStack)
@@ -20,6 +22,8 @@ const CAPTION := Color(0.62, 0.72, 0.76)
 const SELECTED := Color(1.0, 0.82, 0.3)
 const FITS := Color(0.3, 0.9, 0.4, 0.35)
 const BLOCKED := Color(0.95, 0.25, 0.2, 0.35)
+## Weapons the dragged attachment fits.
+const ATTACH := Color(0.3, 0.75, 1.0, 0.3)
 const TOOLTIP_BG := Color(0.04, 0.05, 0.06, 0.95)
 const TOOLTIP_WIDTH := 260.0
 
@@ -105,6 +109,14 @@ func dragging() -> ItemStack:
 	return _drag
 
 
+## The stacks highlighted now: the weapons the dragged item can be fitted to (empty unless an
+## attachment is being dragged).
+func attach_targets() -> Array[ItemStack]:
+	if _drag == null or _drag.item.attachment == null:
+		return []
+	return player_inventory.attach_targets(_drag)
+
+
 func _gui_input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
 	if motion != null:
@@ -154,6 +166,11 @@ func _finish_drag(point: Vector2) -> void:
 	var from_belt := _drag_from_belt
 	_drag = null
 	_drag_from_belt = -1
+	var target := stack_at_point(point)
+	if target != null and player_inventory.can_attach(stack, target):
+		player_inventory.attach(stack, target)
+		queue_redraw()
+		return
 	var slot := belt_slot_at(point)
 	if slot >= 0:
 		player_inventory.belt.assign(slot, stack)
@@ -217,6 +234,18 @@ func _draw_belt_slot(index: int, font: Font) -> void:
 # The ghost follows the mouse; over it, the footprint where it would land (green fits, red not)
 # or the belt slot it would go to.
 func _draw_drag() -> void:
+	var targets := attach_targets()
+	for target in targets:
+		_draw_highlight(stack_rect(target), ATTACH)
+		var slot_index := player_inventory.belt.slot_of(target)
+		if slot_index >= 0:
+			_draw_highlight(belt_slot_rect(slot_index), ATTACH)
+	var over := stack_at_point(_hover)
+	if over != null and targets.has(over):
+		# Dropping here fits it: no move footprint.
+		var ghost_rect := Rect2(_hover - Vector2(0.5, 0.5) * CELL, Vector2(_drag.item.footprint) * CELL)
+		ItemIcon.draw(self, ghost_rect, _drag, 14, 0.5)
+		return
 	var ghost := Rect2(_hover - (Vector2(_drag_grab) + Vector2(0.5, 0.5)) * CELL, Vector2(_drag.item.footprint) * CELL)
 	ItemIcon.draw(self, ghost, _drag, 14, 0.5)
 	if grid_rect().has_point(_hover):
@@ -229,8 +258,12 @@ func _draw_drag() -> void:
 		draw_rect(preview.grow(-1.0), Color(colour, 1.0), false, 2.0)
 	var slot := belt_slot_at(_hover)
 	if slot >= 0:
-		draw_rect(belt_slot_rect(slot), FITS)
-		draw_rect(belt_slot_rect(slot).grow(-1.0), Color(FITS, 1.0), false, 2.0)
+		_draw_highlight(belt_slot_rect(slot), FITS)
+
+
+func _draw_highlight(rect: Rect2, colour: Color) -> void:
+	draw_rect(rect, colour)
+	draw_rect(rect.grow(-1.0), Color(colour, 1.0), false, 2.0)
 
 
 func _draw_tooltip(font: Font) -> void:
@@ -248,9 +281,7 @@ func _draw_tooltip(font: Font) -> void:
 	draw_rect(box, TOOLTIP_BG)
 	draw_rect(box, stack.item.colour, false, 1.0)
 	var title_at := box.position + Vector2(8, 8 + font.get_ascent(title_size))
-	draw_string(
-		font, title_at, stack.item.display_name, HORIZONTAL_ALIGNMENT_LEFT, text_width, title_size, ItemIcon.TEXT
-	)
+	draw_string(font, title_at, stack.display_name(), HORIZONTAL_ALIGNMENT_LEFT, text_width, title_size, ItemIcon.TEXT)
 	var body_at := box.position + Vector2(8, 30 + font.get_ascent(body_size))
 	draw_multiline_string(font, body_at, body, HORIZONTAL_ALIGNMENT_LEFT, text_width, body_size, -1, CAPTION)
 
@@ -266,6 +297,10 @@ static func tooltip_text(stack: ItemStack) -> String:
 		lines.append("Key: %s" % stack.state["key_id"])
 	if not str(stack.state.get("title", "")).is_empty():
 		lines.append('"%s"' % stack.state["title"])
+	for attachment in Attachments.fitted(stack.state):
+		lines.append("Fitted: " + attachment.label)
+	if stack.item.attachment != null:
+		lines.append("Drag onto a weapon to fit it (for good).")
 	return "\n".join(lines)
 
 

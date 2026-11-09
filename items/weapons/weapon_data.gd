@@ -1,7 +1,10 @@
 class_name WeaponData
 extends Resource
 ## One weapon's tuning (`items/weapons/<weapon>.tres`): damage stimuli, rate, reach, ammo, noise,
-## sounds and the placeholder view model. WeaponHolder uses it; WeaponState tracks ammo and timers.
+## sounds, projectiles per shot, automatic fire, its own aim cone and scope, the attachment slots it
+## accepts, and its view model (a model scene, or a placeholder box). WeaponHolder uses it;
+## WeaponState tracks ammo, timers and fitted attachments (ADR 0085). Any numeric property is a
+## stat attachments can modify (base_stat()).
 
 enum Kind { RANGED, MELEE }
 
@@ -30,6 +33,30 @@ enum Kind { RANGED, MELEE }
 @export var ammo_item: StringName = &""
 @export var reload_time: float = 0.0
 
+@export_group("Fire")
+## Projectiles per shot (shotgun pellets): each is its own damage and force ray. Damage entries are
+## per projectile.
+@export var pellets: int = 1
+## Half-angle (degrees) of the cone the projectiles spread evenly-random inside, around the shot's
+## direction (PelletPattern). 0: every projectile flies along the shot.
+@export var pellet_spread_deg: float = 0.0
+## Fires again every cycle while the trigger stays held (WeaponHolder.trigger_held).
+@export var automatic: bool = false
+
+@export_group("Aim")
+## The aim cone while this weapon is drawn (bloom, cap, settle). Null: the holder's own AimConfig.
+@export var aim_config: AimConfig
+## Camera field of view (degrees) through the scope; 0 = no scope.
+@export var scope_fov: float = 0.0
+## Seconds the zoom takes in or out.
+@export var scope_time: float = 0.15
+## The aim cone while scoped. Null: `aim_config`.
+@export var scope_aim_config: AimConfig
+
+@export_group("Attachments")
+## Slots attachments can be fitted to (AttachmentData.slot: `muzzle`).
+@export var attachment_slots: Array[StringName] = []
+
 @export_group("Melee")
 ## Radius of the sphere swept along the view.
 @export var sweep_radius: float = 0.2
@@ -48,18 +75,24 @@ enum Kind { RANGED, MELEE }
 
 @export_group("Audio")
 @export var fire_sound: AudioStream
+## The shot sound while the `suppressed` stat is above 0 (a fitted silencer). Null: fire_sound.
+@export var suppressed_fire_sound: AudioStream
 @export var fire_volume_db: float = 0.0
 @export var dry_fire_sound: AudioStream
 @export var hit_sound: AudioStream
 @export var reload_sound: AudioStream
 
 @export_group("View model")
-## Placeholder box held in front of the camera.
+## Model held in front of the camera, pointing along -Z (a WeaponModel scene: muzzle marker,
+## attachment mounts), hung off the grip pivot at `view_box_offset`. Null: the placeholder box.
+@export var view_scene: PackedScene
+## Placeholder box held in front of the camera (weapons without a model).
 @export var view_size: Vector3 = Vector3(0.05, 0.1, 0.2)
 @export var view_color: Color = Color(0.2, 0.2, 0.22)
 ## Pivot of the view model (the grip: a swing turns about it) relative to the camera.
 @export var view_offset: Vector3 = Vector3(0.22, -0.2, -0.45)
-## Box centre relative to the pivot, in the pivot's frame (zero: the box turns about its centre).
+## Box (or model) centre relative to the pivot, in the pivot's frame (zero: it turns about its
+## centre).
 @export var view_box_offset: Vector3 = Vector3.ZERO
 ## Ready pose: Euler degrees (pitch, yaw, roll) of the pivot; zero points the box along -Z.
 @export var view_rest_deg: Vector3 = Vector3.ZERO
@@ -82,3 +115,23 @@ func is_melee() -> bool:
 
 func uses_ammo() -> bool:
 	return magazine_size > 0
+
+
+## Base value of a stat attachments modify: the numeric property `stat` (`fire_noise`), 0 when there
+## is none (`suppressed`).
+func base_stat(stat: StringName) -> float:
+	var value: Variant = get(stat)
+	if value is float or value is int:
+		return float(value)
+	return 0.0
+
+
+## The aim cone while drawn: scoped, hip, or the holder's `fallback`.
+func aim_for(scoped: bool, fallback: AimConfig) -> AimConfig:
+	if scoped and scope_aim_config != null:
+		return scope_aim_config
+	return aim_config if aim_config != null else fallback
+
+
+func has_scope() -> bool:
+	return scope_fov > 0.0

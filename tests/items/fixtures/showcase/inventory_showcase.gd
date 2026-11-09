@@ -1,13 +1,17 @@
 extends Node
 ## Showcase helper (screenshots only, runs while paused): gives the player a mixed loadout (every
 ## footprint), draws the pistol, then per `mode` opens the inventory (hovering an item for its
-## tooltip), drags an item over a blocked spot, looks at a pickup for its prompt, reads the world
+## tooltip), drags an item over a blocked spot (`attach`: drags a silencer, ADR 0085, so the weapons it
+## fits are highlighted and the shotgun is not), looks at a pickup for its prompt, reads the world
 ## datapad in place (`reading`, ADR 0060),
 ## or shows the belt HUD (`belt`: two wheel steps from the pistol, so the medkit is highlighted and
 ## its name shows above the belt). Saves the window's image (UI included) to `capture_path` after
 ## `capture_after` seconds and quits. Command line overrides after `--`: mode=<mode> out=<res path>.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
+const SHOTGUN := "res://items/weapons/shotgun/shotgun_item.tres"
+const SNIPER := "res://items/weapons/sniper_rifle/sniper_rifle_item.tres"
+const SILENCER := "res://items/attachments/silencer/silencer.tres"
 const NOTE := (
 	"Shift change moved to 22:00. The east loading door keypad is 0451 until maintenance resets it."
 	+ "\n\nKeep the warehouse office locked; the spare keycard is in the foreman's desk."
@@ -17,7 +21,7 @@ const NOTE := (
 @export var pickup_path: NodePath
 ## The world datapad `reading` reads (its Readable gets NOTE).
 @export var datapad_path: NodePath = ^"../Datapad"
-## inventory | drag | belt | prompt | reading
+## inventory | drag | attach | belt | prompt | reading
 @export var mode: String = "inventory"
 @export var capture_path: String = "res://reports/screenshots/m5_inventory.png"
 @export var capture_after: float = 1.0
@@ -46,6 +50,9 @@ func _ready() -> void:
 	inventory.give(Items.LOCKPICK, 2)
 	inventory.give(Items.BIOCELL, 4)
 	inventory.give(Items.KEYCARD, 1, {"key_id": "warehouse_office"})
+	if mode == "attach":
+		for path: String in [SHOTGUN, SNIPER, SILENCER]:
+			inventory.give(load(path) as ItemData, 1)
 	inventory.select_slot(0)
 	if mode == "prompt":
 		var target := get_node(pickup_path) as Node3D
@@ -76,6 +83,12 @@ func _act() -> void:
 			var view := screen.view
 			_mouse(view, view.cell_center(Vector2i(2, 0)), true)
 			_mouse(view, view.cell_center(Vector2i(4, 1)), false)
+		"attach":
+			screen.open()
+			var grid := screen.view
+			var silencer := _player.inventory.inventory.stacks[-1]
+			_mouse(grid, grid.cell_center(silencer.cell), true)
+			_mouse(grid, grid.cell_center(Vector2i(5, 3)), false)
 		"belt":
 			_player.inventory.cycle(1)
 			_player.inventory.cycle(1)

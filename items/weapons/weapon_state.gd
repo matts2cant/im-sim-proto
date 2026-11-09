@@ -2,7 +2,11 @@ class_name WeaponState
 extends RefCounted
 ## Pure weapon cycle: rate of fire, magazine, reload timing, dry fire. Spare rounds come from an
 ## AmmoPool (a plain count, or the inventory's ammo stacks: InventoryAmmo). Time advances only
-## through step(), so tests drive it exactly.
+## through step(), so tests drive it exactly. Fitted attachments (ADR 0085) change its stats through
+## their Modifiers: stat() is the WeaponData value with them applied.
+
+## An attachment was fitted (the holder shows it on the view model).
+signal attached(attachment: AttachmentData)
 
 enum Result { FIRED, DRY, BUSY, RELOADING }
 
@@ -20,6 +24,11 @@ var reserve: int:
 var cooldown: float = 0.0
 ## Seconds left of a running reload; 0 when not reloading.
 var reload_left: float = 0.0
+## Fitted attachments, in the order they were fitted.
+var attachments: Array[AttachmentData] = []
+
+# Holds the attachments' modifiers; bases come from `data` (evaluate()).
+var _stats := AttributeSet.new()
 
 
 ## Without `p_ammo` the spare rounds are a plain pool of `data.reserve_ammo`.
@@ -27,6 +36,27 @@ func _init(p_data: WeaponData, p_ammo: AmmoPool = null) -> void:
 	data = p_data
 	magazine = data.magazine_size
 	ammo = p_ammo if p_ammo != null else AmmoPool.new(data.reserve_ammo)
+
+
+## Fits `attachment`: its modifiers apply to stat() from now on. False when its slot is not one of
+## the weapon's or is already taken (one attachment per slot).
+func attach(attachment: AttachmentData) -> bool:
+	if attachment == null or not data.attachment_slots.has(attachment.slot):
+		return false
+	for fitted in attachments:
+		if fitted.slot == attachment.slot:
+			return false
+	attachments.append(attachment)
+	for modifier in attachment.modifiers:
+		_stats.add_modifier(modifier)
+	attached.emit(attachment)
+	return true
+
+
+## The weapon's `stat` (a numeric WeaponData property, or `suppressed`) with the attachments applied:
+## a silencer's `fire_noise` x0.25 turns 25 into 6.25.
+func stat(name: StringName) -> float:
+	return _stats.evaluate(name, data.base_stat(name))
 
 
 func is_reloading() -> bool:

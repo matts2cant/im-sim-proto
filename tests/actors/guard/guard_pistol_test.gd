@@ -30,7 +30,7 @@ func test_unarmed_guard_scene_has_no_loadout_and_the_variants_only_set_one() -> 
 	assert_array(holder.weapons).is_empty()
 	assert_object(CombatBehaviour.of(unarmed)).is_not_null()
 	assert_str(String(_c.holder.weapons[0].id)).is_equal("pistol_unsilenced")
-	# The guards' pistol is the loud variant: same damage, louder than the silenced one (6 m).
+	# The guards' pistol is loud like the player's unsilenced pistol (25 m); a silencer brings that to 6.25.
 	assert_float(_c.holder.weapons[0].fire_noise).is_greater(20.0)
 	assert_float(_c.holder.weapons[0].damage[&"damage.ballistic"]).is_equal(25.0)
 

@@ -34,9 +34,11 @@ func test_table_pickups_stay_on_their_tables() -> void:
 		for child: Node in _room.get_node(station).get_children():
 			if ItemPickup.of(child) == null:
 				continue
-			var y := _room.to_local((child as Node3D).global_position).y
+			# The bottom of its collision box rests on the top (weapons lying on their side are taller).
+			var shape := (child.get_node("Collision") as CollisionShape3D).shape as BoxShape3D
+			var y := _room.to_local((child as Node3D).global_position).y - shape.size.y * 0.5
 			assert_float(y).override_failure_message("%s/%s" % [station, child.name]).is_between(
-				TABLE_TOP, TABLE_TOP + 0.1
+				TABLE_TOP - 0.05, TABLE_TOP + 0.05
 			)
 
 
@@ -46,7 +48,7 @@ func test_e_takes_the_item_table_pistol_onto_the_belt_and_key_1_draws_it() -> vo
 	assert_bool(_player.weapons.is_armed()).is_false()
 	_player.load_state(Objects.aiming_state(_player, _room.to_global(BESIDE_PISTOL), pistol.global_position))
 	await _driver.frames(3)
-	assert_str(_player.interactor.prompt).is_equal("E: pick up Silenced pistol")
+	assert_str(_player.interactor.prompt).is_equal("E: pick up Pistol")
 
 	await _driver.hold(&"use", 2)
 	await _driver.frames(1)

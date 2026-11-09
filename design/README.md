@@ -13,7 +13,7 @@ Pillars (v0): stealth/perception, physics objects, security/electronics, fire. W
 In:
 
 - A hub, a test gallery (one room per system) and one small warehouse mission.
-- Player movement incl. mantle and vents; body-part damage; silenced pistol and stun baton; grid inventory.
+- Player movement incl. mantle and vents; body-part damage; pistol, shotgun, sniper rifle, assault rifle (Kenney Blaster Kit models), a silencer attachment and the stun baton; grid inventory.
 - Skills (4 tiers) and augmentations with energy; no leveling.
 - Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm devices (controller, sirens, radio base station), locks, keypads, terminals.
 - Network hacking: subnets, firewalls, a deck, computers with desktop apps, tracers ([game/hacking.md](game/hacking.md)).

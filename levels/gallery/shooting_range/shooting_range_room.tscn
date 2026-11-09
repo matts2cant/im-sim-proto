@@ -11,6 +11,13 @@
 [ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="9_small_crate"]
 [ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="10_metal_crate"]
 [ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="11_medkit"]
+[ext_resource type="PackedScene" path="res://items/weapons/shotgun/shotgun_pickup.tscn" id="12_shotgun"]
+[ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_pickup.tscn" id="13_sniper_rifle"]
+[ext_resource type="PackedScene" path="res://items/weapons/assault_rifle/assault_rifle_pickup.tscn" id="14_assault_rifle"]
+[ext_resource type="PackedScene" path="res://items/shotgun_shells/shotgun_shells.tscn" id="15_shotgun_shells"]
+[ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="16_sniper_rounds"]
+[ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="17_rifle_rounds"]
+[ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="18_silencer"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -174,6 +181,45 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.045, -4.4)
 [node name="Medkit3" parent="Medkits" instance=ExtResource("11_medkit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.38, 1.045, -4.4)
 
+[node name="Rack" type="Node3D" parent="."]
+
+[node name="Table" parent="Rack" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.25, 0, -4.1)
+height = 1.0
+width = 2.4
+depth = 1.0
+surface = "wood"
+
+[node name="SniperRifle" parent="Rack" instance=ExtResource("13_sniper_rifle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -2.82, 1.0765, -4.36)
+
+[node name="Shotgun" parent="Rack" instance=ExtResource("12_shotgun")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.67, 1.1075, -4.36)
+
+[node name="AssaultRifle" parent="Rack" instance=ExtResource("14_assault_rifle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -2.95, 1.08, -4.84)
+
+[node name="ShotgunShells" parent="Rack" instance=ExtResource("15_shotgun_shells")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3, 1.035, -4.84)
+
+[node name="ItemPickup" parent="Rack/ShotgunShells"]
+count = 24
+
+[node name="SniperRounds" parent="Rack" instance=ExtResource("16_sniper_rounds")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 1.025, -4.84)
+
+[node name="ItemPickup" parent="Rack/SniperRounds"]
+count = 15
+
+[node name="RifleRounds" parent="Rack" instance=ExtResource("17_rifle_rounds")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 1.035, -4.84)
+
+[node name="ItemPickup" parent="Rack/RifleRounds"]
+count = 90
+
+[node name="Silencer" parent="Rack" instance=ExtResource("18_silencer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.35, 1.0555, -4.84)
+
 [node name="Labels" type="Node3D" parent="."]
 
 [node name="FiringLine" parent="Labels" instance=ExtResource("3_sign")]
@@ -236,6 +282,29 @@ size = 3
 [node name="Medkits" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 3, 1.9, -4.05)
 text = "Medkits · E takes · use heals 30"
+
+[node name="Rack" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -2.25, 2.6, -4.05)
+text = "Weapons rack"
+size = 0
+
+[node name="RackScope" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -2.25, 2.25, -4.05)
+text = "RMB: sniper scope on / off"
+size = 0
+pixel_size = 0.0025
+
+[node name="RackFullAuto" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -2.25, 2.0, -4.05)
+text = "Hold LMB: rifle full-auto"
+size = 0
+pixel_size = 0.0025
+
+[node name="RackSilencer" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -2.25, 1.75, -4.05)
+text = "Silencer: I, drag onto a weapon"
+size = 0
+pixel_size = 0.0025
 
 [node name="Lights" type="Node3D" parent="."]
 

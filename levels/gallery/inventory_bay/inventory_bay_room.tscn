@@ -14,6 +14,13 @@
 [ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="14_datapad"]
 [ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="15_large_crate"]
+[ext_resource type="PackedScene" path="res://items/weapons/shotgun/shotgun_pickup.tscn" id="20_shotgun"]
+[ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_pickup.tscn" id="21_sniper_rifle"]
+[ext_resource type="PackedScene" path="res://items/weapons/assault_rifle/assault_rifle_pickup.tscn" id="22_assault_rifle"]
+[ext_resource type="PackedScene" path="res://items/shotgun_shells/shotgun_shells.tscn" id="23_shotgun_shells"]
+[ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="24_sniper_rounds"]
+[ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="25_rifle_rounds"]
+[ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="26_silencer"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -61,28 +68,49 @@ depth = 0.8
 surface = "wood"
 
 [node name="Pistol" parent="ItemTable" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0465, -5.7)
 
 [node name="Baton" parent="ItemTable" instance=ExtResource("7_baton")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -7.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -6.3)
 
 [node name="PistolAmmo" parent="ItemTable" instance=ExtResource("8_pistol_ammo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.03, -8.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.03, -6.86)
 
 [node name="Medkit" parent="ItemTable" instance=ExtResource("9_medkit")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.045, -9.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.045, -7.42)
 
 [node name="Lockpick" parent="ItemTable" instance=ExtResource("11_lockpick")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -10.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.01, -7.98)
 
 [node name="Biocell" parent="ItemTable" instance=ExtResource("12_biocell")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -11.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -8.54)
 
 [node name="Keycard" parent="ItemTable" instance=ExtResource("13_keycard")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -12.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -9.1)
 
 [node name="ItemPickup" parent="ItemTable/Keycard"]
 state = {"key_id": "inventory_bay"}
+
+[node name="Shotgun" parent="ItemTable" instance=ExtResource("20_shotgun")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.1075, -9.75)
+
+[node name="SniperRifle" parent="ItemTable" instance=ExtResource("21_sniper_rifle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0765, -10.95)
+
+[node name="AssaultRifle" parent="ItemTable" instance=ExtResource("22_assault_rifle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.08, -12.2)
+
+[node name="ShotgunShells" parent="ItemTable" instance=ExtResource("23_shotgun_shells")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.035, -12.88)
+
+[node name="SniperRounds" parent="ItemTable" instance=ExtResource("24_sniper_rounds")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.025, -13.44)
+
+[node name="RifleRounds" parent="ItemTable" instance=ExtResource("25_rifle_rounds")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.035, -14.0)
+
+[node name="Silencer" parent="ItemTable" instance=ExtResource("26_silencer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0555, -14.56)
 
 [node name="Stacks" type="Node3D" parent="."]
 
@@ -121,37 +149,37 @@ depth = 1
 surface = "wood"
 
 [node name="Pistol1" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -9.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -9.8)
 
 [node name="Baton1" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -9.8)
 
 [node name="Pistol2" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -10.55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -10.55)
 
 [node name="Baton2" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -10.55)
 
 [node name="Pistol3" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -11.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -11.3)
 
 [node name="Baton3" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -11.3)
 
 [node name="Pistol4" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -12.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -12.05)
 
 [node name="Baton4" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -12.05)
 
 [node name="Pistol5" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -12.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -12.8)
 
 [node name="Baton5" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -12.8)
 
 [node name="Pistol6" parent="FillGrid" instance=ExtResource("6_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.025, -13.55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 1.0465, -13.55)
 
 [node name="Baton6" parent="FillGrid" instance=ExtResource("7_baton")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 1.025, -13.55)
@@ -283,50 +311,99 @@ size = 0
 [node name="ItemTags" type="Node3D" parent="Labels"]
 
 [node name="Pistol" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -6)
-text = "Silenced pistol
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -5.7)
+text = "Pistol
 2×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Baton" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -7.05)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -6.3)
 text = "Stun baton
 1×3"
 size = 0
 pixel_size = 0.0025
 
 [node name="PistolAmmo" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -8.1)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -6.86)
 text = "Pistol ammo
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Medkit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -9.15)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -7.42)
 text = "Medkit
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Lockpick" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -10.2)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -7.98)
 text = "Lockpick
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Biocell" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -11.25)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -8.54)
 text = "Bioelectric cell
 1×1"
 size = 0
 pixel_size = 0.0025
 
 [node name="Keycard" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -12.3)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -9.1)
 text = "Keycard
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Shotgun" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -9.75)
+text = "Shotgun
+3×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="SniperRifle" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -10.95)
+text = "Sniper rifle
+4×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="AssaultRifle" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -12.2)
+text = "Assault rifle
+2×2"
+size = 0
+pixel_size = 0.0025
+
+[node name="ShotgunShells" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -12.88)
+text = "Shotgun shells
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="SniperRounds" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -13.44)
+text = "Sniper rounds
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="RifleRounds" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -14.0)
+text = "Rifle rounds
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Silencer" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -14.56)
+text = "Silencer
 1×1"
 size = 0
 pixel_size = 0.0025

@@ -63,7 +63,7 @@ func test_ammo_and_weapon_name() -> void:
 	await _weapons.equip(1)
 	await _weapons.aim_at(Vector3.ZERO, WALL_POINT)
 	await _driver.frames(1)
-	assert_str(_hud.weapon_label.text).is_equal("Silenced pistol")
+	assert_str(_hud.weapon_label.text).is_equal("Pistol")
 	assert_str(_hud.ammo_label.text).is_equal("10 / 30")
 
 	await _weapons.fire()

@@ -101,13 +101,13 @@ func test_q_drops_the_weapon_in_hand_as_a_physics_pickup() -> void:
 	assert_object(_player.inventory.belt.stack_in(0)).is_null()
 	var dropped := EventLog.find(&"item.dropped")
 	assert_array(dropped).has_size(1)
-	var body := _driver.runner.scene().find_child("SilencedPistol", false, false) as RigidBody3D
+	var body := _driver.runner.scene().find_child("Pistol", false, false) as RigidBody3D
 	assert_object(body).is_not_null()
 	assert_int(ItemPickup.of(body).state["magazine"]).is_equal(4)
 	# 0.8 m ahead (-Z) at chest height, tossed forward.
 	assert_float(body.global_position.z).is_less(-0.5)
 	await _driver.frames(60)
-	assert_array(Objects.logged(&"object.impact", "object", "SilencedPistol")).is_not_empty()
+	assert_array(Objects.logged(&"object.impact", "object", "Pistol")).is_not_empty()
 	assert_float(body.global_position.y).is_less(0.2)
 
 

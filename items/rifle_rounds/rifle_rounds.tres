@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"rifle_rounds"
+display_name = "Rifle rounds"
+short_name = "5.56"
+description = "Box of 5.56 mm rounds for the assault rifle. Reloading takes them from here."
+footprint = Vector2i(1, 1)
+max_stack = 150
+colour = Color(0.35, 0.5, 0.3, 1)
+world_scene = "res://items/rifle_rounds/rifle_rounds.tscn"
+auto_belt = false
+default_state = {}
+use_action = 0

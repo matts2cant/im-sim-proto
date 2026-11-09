@@ -1,14 +1,16 @@
 # Weapons and aiming
 
-Milestone: M4 (Shooting range). Systems done in M4; the gallery room is built on top of them.
+Milestone: M4 (Shooting range). Systems done in M4; the gallery room is built on top of them. Shotgun, sniper rifle, assault rifle and the silencer: [ADR 0085](../decisions/0085-weapons-and-attachments.md).
 
 ## Purpose
 
-One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
+Lethal weapons with distinct roles and one non-lethal weapon, with a softened Deus Ex 1 aiming model; being quiet is a choice (fit a silencer), not a property of the starting gun.
 
 ## Player-facing behaviour
 
-- **Silenced pistol** (lethal), **stun baton** (non-lethal), carried as inventory items (M5, [inventory.md](inventory.md)). Their belt key draws them; the same key again holsters. LMB fires or swings, R reloads from the pistol ammo in the inventory.
+- **Pistol** (lethal, loud: guards hear it about 25 m away), **stun baton** (non-lethal), and in the shooting range a **shotgun**, **sniper rifle** and **assault rifle**, carried as inventory items (M5, [inventory.md](inventory.md)). Their belt key draws them; the same key again holsters. LMB fires or swings, R reloads from the weapon's own ammo in the inventory.
+- Shotgun: 8 pellets a shot, deadly up close, weak at range. Sniper rifle: wild from the hip; **RMB toggles the scope** (press to zoom in, press again to zoom out; it also comes off when you reload, switch or put the weapon away, or are knocked out): the view zooms to 15 degrees, the reticle becomes a black scope overlay with a thin crosshair and a thin ring (the aim cone), mouse look slows to match; held still, the ring shrinks to near-perfect in about 1.4 s. Assault rifle: **hold LMB** for full-auto, releasing stops; the spread grows with each shot and recovers when you stop.
+- **Silencer**: an item; in the inventory screen drag it onto the pistol, sniper rifle or assault rifle (they light up while you drag; the shotgun does not take one). It stays on for good: shots are a quarter as loud (pistol 25 m to 6.25 m), there is no muzzle flash, the shot sound is a muffled thud, and the silencer shows on the gun in your hands and on the floor when dropped. The weapon's name reads "Pistol (silenced)".
 - The reticle circle is the exact spread cone; shots always land inside it. Standing still it settles over about 0.8 s (untrained) to a small circle; walking, sprinting, jumping, mouse look, each shot and arm injuries widen it.
 - The baton is quiet up close: one hit from behind on an unaware target knocks it out; from the front or on an aware target it takes three.
 
@@ -40,25 +42,38 @@ One lethal and one non-lethal weapon, with a softened Deus Ex 1 aiming model.
 
 ### Weapons (`items/weapons/`)
 
-- `WeaponData` Resource per weapon (`pistol/pistol.tres`, `baton/baton.tres`): damage stimuli, cycle time, range, ammo, sweep radius, noises, impulse, sounds, placeholder view model (a box in front of the camera). The view model hangs off a pivot at the grip (`view_offset`; `view_box_offset`, `view_rest_deg`, `view_swing_deg`, `view_chop_share` in the `.tres`): the pistol's box turns about its centre, the baton is held pointing up and forward (about 60 degrees, tilted inwards) and a swing chops down across the view about the grip, then returns more slowly. Visual only: the swing timing and the hit sweep are unchanged.
+- `WeaponData` Resource per weapon (`pistol/pistol.tres`, `shotgun/shotgun.tres`, `sniper_rifle/sniper_rifle.tres`, `assault_rifle/assault_rifle.tres`, `baton/baton.tres`): damage stimuli, cycle time, range, ammo, sweep radius, noises, impulse, sounds, projectiles per shot (`pellets`, `pellet_spread_deg`), `automatic`, its own aim cone (`aim_config`) and scope (`scope_fov`, `scope_time`, `scope_aim_config`), the attachment slots it accepts (`attachment_slots`), and the view model: a model scene (`view_scene`, a `WeaponModel` from the Kenney Blaster Kit, [ADR 0085](../decisions/0085-weapons-and-attachments.md)) or a placeholder box (`view_size`, `view_color`; the baton, the guards' pistol). `WeaponView` (the holder's child "ViewPivot") draws it from a pivot at the grip (`view_offset`; `view_box_offset`, `view_rest_deg`, `view_swing_deg`, `view_chop_share` in the `.tres`): guns kick back, the long guns are turned 3 degrees inwards, the baton is held pointing up and forward (about 60 degrees, tilted inwards) and a swing chops down across the view about the grip, then returns more slowly. Visual only: the swing timing and the hit sweep are unchanged. A model's `muzzle` marker (or the end of a fitted muzzle attachment) is where the flash shows and the shot noise starts.
 - `WeaponState` (pure, unit-tested): magazine, cooldown, reload timer; spare rounds come from an `AmmoPool` (a plain count for fixed loadouts, or `InventoryAmmo`: the inventory's stacks of the weapon's `ammo_item`, smallest first). Results: `FIRED`, `DRY` (empty magazine: click, waits a cycle), `BUSY` (cycle running), `RELOADING`.
 - `WeaponHolder` (node, child of its user's eye: the player's camera, a guard's `Aim` node; [ADR 0070](../decisions/0070-guard-combat-and-loadouts.md)): the equipped `WeaponState`, the `AimModel`, the view model and sounds. It reads no input: whoever drives it points the eye and calls `physics_step(delta, stance, floor_add)` and `trigger()`, so any actor fires through the same code and stimuli (guards: [perception-and-ai.md](perception-and-ai.md#combat)). Armed either from a fixed loadout (`weapons`, `equip(index)`; saveable; guards' loadouts `guard_pistol.tscn`, `guard_baton.tscn`) or with `equip_state()` from an inventory weapon stack (the player since M5: `PlayerInventory` owns one state per pistol stack and mirrors its magazine into the stack's `magazine`).
 
-| | Silenced pistol | Stun baton |
-|---|---|---|
-| Damage | `damage.ballistic` 25 RAY (x2 on the head) | `damage.stun` 20 + `damage.blunt` 5 CONTACT |
-| Reach | ray 60 m along the sampled direction | sphere r 0.2 m swept along the view until its front is 1.8 m from the camera (no spread) |
-| Layers hit | world, objects, hitboxes (`WEAPON_MASK`) | same |
-| Rate | 0.35 s between shots | 0.6 s per swing |
-| Ammo | magazine 10, reload 1.6 s (R) from `pistol_ammo` stacks (HUD: magazine / rounds in the inventory); `reserve_ammo` 30 only for fixed loadouts | none |
-| Noise (PATH) | 6 m at the muzzle, 4 m at the hit point | 3 m swing (from the eye), 6 m on a hit (at the hit point) |
-| Physics objects hit | `force.impact` 3 N s at the hit point (an explosive barrel's 25 health: one shot) | blunt 5 (stun x0 on objects) |
-| Sounds | shot: `kenney_impact-sounds/impactPunch_medium_000-002` (a muffled thud reads as suppressed; random pitch); hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
+| | Pistol | Shotgun | Sniper rifle | Assault rifle | Stun baton |
+|---|---|---|---|---|---|
+| Damage | `damage.ballistic` 25 RAY (x2 on the head) | 8 pellets x `damage.ballistic` 12 RAY, evenly-random in a 2.5 degree half-angle cone around the aimed direction | `damage.ballistic` 90 RAY | `damage.ballistic` 14 RAY | `damage.stun` 20 + `damage.blunt` 5 CONTACT |
+| Reach | ray 60 m along the sampled direction | 30 m | 150 m | 80 m | sphere r 0.2 m swept along the view until its front is 1.8 m from the camera (no spread) |
+| Aim cone | the holder's (`aim_untrained.tres`, Pistols skill) | the holder's | hip `sniper_hip_aim.tres`: floor 6 degrees; scoped `sniper_scope_aim.tres`: floor 0.2, settle 0.3 s, look bloom 0.01 per px | `assault_rifle_aim.tres`: floor 1.0, +0.25 per shot up to 6, settle 0.5 s | none |
+| Layers hit | world, objects, hitboxes (`WEAPON_MASK`) | same | same | same | same |
+| Rate | 0.35 s between shots | 0.9 s | 1.4 s | 0.1 s, automatic while LMB is held | 0.6 s per swing |
+| Ammo | magazine 10, reload 1.6 s (R) from `pistol_ammo` stacks (HUD: magazine / rounds in the inventory); `reserve_ammo` 30 only for fixed loadouts | 6, reload 2.4 s, `shotgun_shells` | 5, reload 2.5 s, `sniper_rounds` | 30, reload 2.2 s, `rifle_rounds` | none |
+| Noise (PATH) | 25 m at the muzzle (silenced 6.25), 4 m at the hit point | 30 m, 5 m at the first pellet's hit | 35 m (silenced 8.75), 5 m | 28 m (silenced 7), 4 m | 3 m swing (from the eye), 6 m on a hit (at the hit point) |
+| Muzzle flash | 0.12 m (none silenced) | 0.2 m | 0.15 m | 0.12 m | none |
+| Physics objects hit | `force.impact` 3 N s at the hit point (an explosive barrel's 25 health: one shot) | 1 N s per pellet | 6 N s | 2 N s | blunt 5 (stun x0 on objects) |
+| Attachment slots | `muzzle` | none | `muzzle` | `muzzle` | none |
+| Sounds | shot: `Hollywood/Titan Handgun` (-4 dB); silenced: `kenney_impact-sounds/impactPunch_medium_000-002` (a muffled thud; random pitch); hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | Titan Handgun +2 dB | Titan Handgun +4 dB; silenced: impactPunch | Titan Handgun -6 dB, random pitch; silenced: impactPunch | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
+
+Measured on a standing guard body, torso-centred, 8 fixed seeds (`tests/items/weapons/weapon_outcomes_test.gd`): shotgun one shot at 5 m on every seed, 3 to 6+ shots at 15 m; sniper rifle scoped and still one torso shot at 40 m (the scoped cone settles to 0.25 degrees in 1.4 s); assault rifle held on the torso at 10 m kills in 0.53 to 0.63 s.
+
+### Pellets, full-auto, scope, attachments ([ADR 0085](../decisions/0085-weapons-and-attachments.md))
+
+- **Pellets** (`PelletPattern`, pure): pellet i lands in the i-th of n angular sectors, jittered inside it, at a radius uniform over the disk's area: no clumps or holes, never the same twice. Each pellet is its own damage and force ray from the shot's origin; one impact noise and hit sound per shot, at the first pellet's hit. `weapon.fired` logs `projectiles` and `hits`.
+- **Automatic** (`WeaponData.automatic`): the holder fires again each `cycle_time` while `trigger_held` is true, checked before the cooldown ticks (exactly one shot per cycle, a shot at once on the press). An empty magazine ends the burst (no dry clicks); releasing stops it at once. The player sets `trigger_held` from LMB every tick (hold, not toggle; never while carrying or holding a non-weapon item).
+- **Sustained-fire bloom**: `AimConfig.shot_bloom_cap_deg` caps how far shots bloom the cone (a stance floor above the cap is not narrowed); the cone recovers through the normal settle when firing stops.
+- **Scope** (`ScopeState`, pure): RMB (`alt_fire`) toggles it when the weapon has one (`scope_fov` > 0), the user can use its arms and it is not reloading. Each physics step it scopes out by itself when that stops being true (reload, knocked out, arms disabled); switching or holstering drops it at once. The zoom moves at 1 / `scope_time` per second. While scoped: the holder uses `scope_aim_config`, the view model is hidden, the shot noise starts at the eye; the player's camera FOV is `scope.view_fov()` (80 to 15 degrees), mouse sensitivity and look bloom scale by FOV / 80; the HUD shows the `ScopeOverlay` (black outside a lens of 0.46 x the screen height, thin crosshair, the cone as a thin red ring, all moved by the sway) instead of the reticle. Not a pause screen: the game keeps running. EventLog `weapon.scoped {weapon, scoped, reason}` (`toggle`, `auto`, `reload`).
+- **Attachments**: a weapon stack's state records what is fitted (`attachments: {slot: item id}`); `WeaponState.attach()` adds the attachment's `Modifier`s to the weapon's stats and `stat(name)` reads any numeric `WeaponData` property through them. The holder reads `fire_noise`, `impact_noise`, `fire_volume_db`, `muzzle_flash_size` and `suppressed` (> 0: `suppressed_fire_sound`) through `stat()`. Silencer: noise x0.25, flash x0, volume -2 dB, suppressed. Fitting: [inventory.md](inventory.md#attachments).
 
 - The baton hit is resolved when the swing starts; the rest of the 0.6 s is the animation and cooldown.
 - A shot is one immediate ray (impact point, impact noise, hit sound) plus one RAY stimulus per damage entry and a `force.impact` RAY (intensity `impact_impulse` N s) with the same origin and direction, delivered on the next tick. The push is no longer applied by the weapon: whatever the ray hits and has a `force` receptron (every physics prop) pushes itself at the hit point ([ADR 0057](../decisions/0057-forces-item-use-and-heat-as-generic-systems.md)). A shot at an object carried by someone else is not possible: `fire` throws while carrying.
 - Both arms disabled, dead or unconscious: `trigger()` refuses (`weapon.refused {weapon, reason}`).
-- EventLog: `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started {weapon, time}`, `weapon.reloaded {weapon, magazine}`, `weapon.refused`.
+- EventLog: `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit, projectiles, hits, noise}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started {weapon, time}`, `weapon.reloaded {weapon, magazine}`, `weapon.refused`, `weapon.scoped {weapon, scoped, reason}`.
 
 ### Stun and knockout ([ADR 0049](../decisions/0049-knockout-rules-awareness.md))
 
@@ -84,12 +99,14 @@ flowchart TD
 
 - Skills: Pistols (cone, settle, reload, damage), Low-Tech (baton damage and swing speed): [abilities.md](abilities.md). Cloak (`state.cloaked`) draws the view model at 30 % opacity.
 - Damage types and parts: [damage.md](damage.md).
-- Shots emit stimuli ([stimulus-response.md](stimulus-response.md)); guards hear the 6 m muzzle noise and the impact noise in M7 ([perception-and-ai.md](perception-and-ai.md)); shooting lights: [light-and-visibility.md](light-and-visibility.md).
-- **Guards' pistol** (`items/weapons/pistol/pistol_unsilenced.tres`, ADR 0070): the same numbers as the player's pistol but muzzle noise 25 m and a muzzle flash (`muzzle_flash_size` 0.12: a `MuzzleFlash`, an unshaded box at the front of the gun and a 4 m light for 0.06 s; the silenced pistol has none). Guards aim with their own `AimConfig` (`actors/guard/guard_aim.tres`: floor 0 standing, +3 walking, no shot bloom, sway 0.1) whose floor the combat component raises with its range, target-speed and settle terms.
+- Shots emit stimuli ([stimulus-response.md](stimulus-response.md)); guards hear the muzzle noise (pistol 25 m, 6.25 m silenced) and the impact noise in M7 ([perception-and-ai.md](perception-and-ai.md)); shooting lights: [light-and-visibility.md](light-and-visibility.md) (a muzzle flash is a real 4 m light for 0.06 s; silenced weapons have none).
+- **Guards' pistol** (`items/weapons/pistol/pistol_unsilenced.tres`, ADR 0070): the same numbers as the player's unsilenced pistol (muzzle noise 25 m, `muzzle_flash_size` 0.12: a `MuzzleFlash`, an unshaded box at the front of the gun and a 4 m light for 0.06 s), drawn as the placeholder box. Guards' loadouts did not change with ADR 0085. Guards aim with their own `AimConfig` (`actors/guard/guard_aim.tres`: floor 0 standing, +3 walking, no shot bloom, sway 0.1) whose floor the combat component raises with its range, target-speed and settle terms.
 - Controls: [controls.md](controls.md). Ammo and items: [inventory.md](inventory.md). Combat Strength strengthens melee: [abilities.md](abilities.md).
 
 ## Open questions
 
 - Auto-reload on an empty magazine (DX1 does it): v0 clicks dry until R.
-- View models are placeholder boxes; real meshes and muzzle flash later.
-- Pistol noise 6 m is quiet by design (silenced); guards' pistols are 25 m (ADR 0070).
+- The baton and the guards' pistol are still placeholder boxes; the muzzle flash is a placeholder box and light.
+- No skill scales the shotgun, sniper rifle or assault rifle yet (their `attribute_class` is empty): a Rifles skill would add `rifle_*` attributes.
+- All loud guns share the one gunshot sound in the project (Titan Handgun) at different volumes; real per-weapon sounds later.
+- Detaching attachments: not possible by design (user decision); other attachments (scopes, extended magazines) would be new `AttachmentData` with modifiers.
