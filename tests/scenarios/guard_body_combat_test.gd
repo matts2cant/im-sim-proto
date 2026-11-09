@@ -94,6 +94,13 @@ func test_a_woken_pistol_guard_engages_the_player() -> void:
 	assert_str(awareness.state_name()).is_equal("searching")
 	assert_str(awareness.model.reason).is_equal("woken")
 
+	# The sleeper can engage while the player lands, and PlayerDriver.place() clears the log once
+	# the player has landed: collect the engagements from the signal instead.
+	var engagements: Array[EventLogEntry] = []
+	var collect := func(entry: EventLogEntry) -> void:
+		if entry.kind == &"actor.engaged" and entry.data.get("actor") == "Sleeper":
+			engagements.append(entry)
+	EventLog.entry_added.connect(collect)
 	await _driver.place(OPEN, FACING_GUARD)
 	var sleeper_combat := CombatBehaviour.of(sleeper)
 	var engaged := false
@@ -102,8 +109,6 @@ func test_a_woken_pistol_guard_engages_the_player() -> void:
 		if sleeper_combat.is_engaged():
 			engaged = true
 			break
+	EventLog.entry_added.disconnect(collect)
 	assert_bool(engaged).is_true()
-	var engagements := EventLog.find(&"actor.engaged").filter(
-		func(entry: EventLogEntry) -> bool: return entry.data.get("actor") == "Sleeper"
-	)
 	assert_array(engagements).is_not_empty()
