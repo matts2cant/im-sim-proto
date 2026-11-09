@@ -802,7 +802,9 @@ def build_hall():
     b.cut(paths["UpperManager"], box((hx0, OFF_UP + OFF_U_H - 0.05, hz0), (hx1, OFF_ROOF + 0.05, hz1), mat="concrete", op="subtraction", name="DuctHole"))
     b.stairs("StairUp", of, ((UP_X0 + UP_X1) * 0.5, 0.0, UP_BOTTOM_Z), 180, OFF_UP, UP_X1 - UP_X0, UP_TREAD, 0.18)
     # Railings round the stair holes.
-    b.railing("RailUpHole", of, (UP_X0 - 0.05, UP_BOTTOM_Z), (UP_X0 - 0.05, HALL_Z1 - 0.9), OFF_UP)
+    # Open for the last 1.05 m at the top (the treads there are 0.65 m or less below the floor): the
+    # way off the stair onto the upper floor, wide enough for a standing player (M9f).
+    b.railing("RailUpHole", of, (UP_X0 - 0.05, UP_BOTTOM_Z), (UP_X0 - 0.05, HALL_Z1 - OFF_T - 1.05), OFF_UP)
     b.railing("RailUpHoleN", of, (UP_X0, UP_BOTTOM_Z - 0.05), (UP_X1, UP_BOTTOM_Z - 0.05), OFF_UP)
     b.railing("RailDownHole", of, (DOWN_X1 + 0.05, DOWN_TOP_Z + 0.3), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)
     b.railing("RailDownHoleS", of, (DOWN_X0, DOWN_HOLE_Z1 + 0.05), (DOWN_X1 + 0.05, DOWN_HOLE_Z1 + 0.05), 0.0)

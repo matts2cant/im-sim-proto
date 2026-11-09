@@ -256,7 +256,10 @@ func carry(character: Node3D) -> bool:
 func put_down() -> bool:
 	await press(&"drop_throw")
 	await route.frames(10)
-	return not route.player.carry.is_carrying()
+	if route.player.carry.is_carrying():
+		route.notes.append("could not put down: '%s'" % route.player.interactor.prompt)
+		return false
+	return true
 
 
 # What a shot at `character`'s head would hit first, and the weapon's state.
@@ -320,3 +323,29 @@ func _shoot_step(character: Node3D) -> void:
 		await route.player.get_tree().physics_frame
 		route.runner.simulate_action_release(&"fire")
 	await route.player.get_tree().physics_frame
+
+
+## Logs in at the terminal entity at `path` (E on it) with the credentials the player's personal log
+## knows (the screen fills them in), sends each [command, device entity path] of `commands` from
+## its screen and closes it. False when a step fails.
+func run_terminal(path: String, commands: Array) -> bool:
+	if not await use_node(path):
+		return false
+	var screen := TerminalScreen.of(route.player)
+	if screen == null or not screen.is_open():
+		route.notes.append("no terminal screen at %s" % path)
+		return false
+	screen.fill_in()
+	screen.submit_login()
+	await route.frames(2)
+	var ok := screen.terminal != null and screen.terminal.logged_in
+	if not ok:
+		route.notes.append("login refused at %s" % path)
+	for entry: Array in commands:
+		var device := Device.of(route.level.get_node(String(entry[1])))
+		if ok and device != null:
+			screen.press(entry[0] as StringName, device)
+			await route.frames(2)
+	screen.close()
+	await route.frames(2)
+	return ok

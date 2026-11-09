@@ -1533,7 +1533,7 @@ surface = "concrete"
 
 [node name="RailUpHole" parent="Offices" instance=ExtResource("5_fence")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.65, 4.5, 8.4)
-length = 5.7
+length = 5.3
 height = 1
 bar_spacing = 1
 bar_width = 0.05

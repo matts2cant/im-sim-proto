@@ -58,7 +58,7 @@ func test_1_over_the_fence_and_up_the_annex_chain_unseen() -> void:
 	ok = ok and await _route.go([Vector3(-23.5, 4.75, 7)], Route.Stance.CROUCH)
 
 	assert_bool(ok).override_failure_message(_route.report()).is_true()
-	assert_bool(_route.ghost()).override_failure_message(_route.report()).is_true()
+	assert_bool(_route.mission.tally.ghost()).override_failure_message(_route.report()).is_true()
 	_saved = _route.snapshot()
 
 
@@ -92,7 +92,7 @@ func test_2_roof_and_duct_b_to_the_manifest() -> void:
 
 	assert_bool(ok).override_failure_message(_route.report()).is_true()
 	assert_bool(_route.mission.tracker.main_done()).override_failure_message(_route.report()).is_true()
-	assert_bool(_route.ghost()).override_failure_message(_route.report()).is_true()
+	assert_bool(_route.mission.tally.ghost()).override_failure_message(_route.report()).is_true()
 	_saved = _route.snapshot()
 
 

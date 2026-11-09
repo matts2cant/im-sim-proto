@@ -108,10 +108,6 @@ func frames(count: int) -> void:
 		await _tree.physics_frame
 
 
-func seconds(value: float) -> void:
-	await frames(roundi(value / TICK))
-
-
 ## Puts the player at rest at `feet` facing `yaw` (an arranged segment start), standing or crouched.
 func place(feet: Vector3, yaw: float, crouched: bool = false) -> void:
 	player.load_state({"position": feet, "yaw": yaw, "pitch": 0.0, "crouched": crouched, "velocity": Vector3.ZERO})
@@ -172,12 +168,6 @@ func guard(guard_name: String) -> NavWalker:
 	return level.get_node(GUARDS + "/" + guard_name) as NavWalker
 
 
-## Horizontal distance (centre to centre) from guard `guard_name` to `point`.
-func guard_distance(guard_name: String, point: Vector3) -> float:
-	var at := guard(guard_name).global_position
-	return Vector2(at.x - point.x, at.z - point.z).length()
-
-
 ## Name of the patrol point guard `guard_name` walks to (or waits at); "" without a route.
 func patrol_target(guard_name: String) -> String:
 	var behaviour := guard(guard_name).get_node("Behaviour") as AwarenessBehaviour
@@ -185,6 +175,30 @@ func patrol_target(guard_name: String) -> String:
 		return ""
 	var points := behaviour.route.points()
 	return String(points[posmod(behaviour.patrol_index, points.size())].name)
+
+
+## Waits until guard `guard_name` (holding a post) has glanced aside (to `side`: 1 its left, -1 its
+## right, 0 either) and turned back to its post's facing: the next glance (to the other side) is
+## then `glance_interval - glance_hold` (4.5 s) away.
+func glance_over(guard_name: String, side: int = 0, max_seconds: float = 15.0) -> bool:
+	var walker := guard(guard_name)
+	var behaviour := walker.get_node("Behaviour") as AwarenessBehaviour
+	var off_post := func() -> float:
+		var facing := walker.facing()
+		return wrapf(atan2(-facing.x, -facing.z) - behaviour.post_yaw, -PI, PI)
+	var aside := func() -> bool:
+		var angle: float = off_post.call()
+		return absf(angle) > 0.3 and (side == 0 or signf(angle) == float(side))
+	if not await wait_until(aside, max_seconds, guard_name + " to glance"):
+		return false
+	return await wait_until(func() -> bool: return absf(off_post.call()) < 0.05, 3.0, guard_name + " to turn back")
+
+
+## True when the player stands in `guard_name`'s rear arc (120 degrees centred on its back): a
+## baton hit there knocks an unaware guard out at once.
+func behind(guard_name: String) -> bool:
+	var walker := guard(guard_name)
+	return StunRules.is_behind(walker.global_position, walker.facing(), player.global_position, 120.0)
 
 
 ## Horizontal distance from the player to the nearest guard that can act, among guards on about the
@@ -206,11 +220,6 @@ func sneak(points: Array[Vector3], quiet_distance: float = 10.0) -> bool:
 		if not await _go_to(point, Stance.WALK, quiet_distance):
 			return false
 	return true
-
-
-## True while no guard reached Alerted, no alarm rang and no body was found (the Ghost badge so far).
-func ghost() -> bool:
-	return mission.tally.ghost()
 
 
 ## Walks to `zone_point` (inside the Extraction zone) until the mission finishes; true when it did.
