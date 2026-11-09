@@ -1,28 +1,26 @@
 extends GdUnitTestSuite
-## Scenario (playtest report, design/levels/mission-warehouse.md "Routes"): the real player in the
-## populated warehouse enters the manager office the way a player does, through duct B: walks into
-## the roof mouth, crawls down the duct holding crouch and forward, drops through the hatch onto the
-## filing cabinet and walks on off it onto the carpet, then opens the office door from inside (its
-## free side) to leave. Duct B is the ghost route into the office: an ordinary entry must not leave
-## a guard Alerted, and no guard outside the office hears the careful drop through its walls.
-## KNOWN FAILURE (branch fix-duct-b-alert, not fixed yet): the landing on the metal cabinet top
-## (1.45 m drop, 7.2 m/s, loudness 13.8) snaps to the navmesh island on the cabinet top, from which
-## no navmesh path leaves; StimulusSystem bridges the partial path with a straight line through the
-## office wall (G7, 6.2 m: margin 7.6), its floor (G6, 6.7 m: 7.2) and more (G5, 9.5 m: 4.3). The
-## real way out, by the office door (attenuator 6 m), is 9.0 m to G7 and over 70 m to G5 and G6.
-## G7 investigates, looks around right outside the door and sees the player as it opens (0.7 m,
-## light 0.17): Alerted about 1.6 s later, then radio.
+## Scenario (playtest report, design/levels/mission-warehouse.md "Routes"; ADR 0094): the real
+## player in the populated warehouse enters the manager office the way a player does, through duct
+## B: walks into the roof mouth, crawls down the duct holding crouch and forward, drops through the
+## hatch onto the filing cabinet (1.45 m onto metal: loudness 13.8) and walks on off it onto the
+## carpet. Duct B is the ghost route into the office: no guard outside it hears that careful entry
+## (the way out of the office is by its door: about 9 m to G7 plus the closed door's 6 m). A
+## careless drop is noticed: with Speed Enhancement on (landings x1.5: 20.7) G7 hears it.
+## Before ADR 0094 the noise leaked from the cabinet top's navmesh island in a straight line through
+## the office wall (G7) and floor (G6, G5): all three went Suspicious, and G7, looking around outside
+## the door, was Alerted when the player opened it.
 
 const Route := preload("res://tests/levels/mission/warehouse_route_driver.gd")
-const MANAGER_DOOR := "Population/Security/Doors/ManagerDoor"
+const G7 := "G7VaultDoor"
 ## On the roof 2.7 m north of duct B's mouth (x 11, z -5.8), facing it (south).
 const ROOF_START := Vector3(11, 9.5, -8.5)
+## After landing on the carpet: time for the guards to react (they hear at once).
+const SETTLE_SECONDS := 2.0
 
 var _route: Route
-## "actor (reason)" for every guard that became Alerted, and "guard margin" for every one that
-## heard the player.
-var _alerted: PackedStringArray = []
+## "guard margin" for every guard that heard the player, and "guard (reason)" for every Alerted one.
 var _heard: PackedStringArray = []
+var _alerted: PackedStringArray = []
 
 
 func before_test() -> void:
@@ -30,8 +28,8 @@ func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
 	_route = Route.new()
-	_alerted = []
 	_heard = []
+	_alerted = []
 
 
 func after_test() -> void:
@@ -41,30 +39,43 @@ func after_test() -> void:
 	StimulusSystem.clear()
 
 
-func test_entering_by_duct_b_and_opening_the_door_alerts_no_guard() -> void:
+func test_a_careful_entry_is_heard_by_no_guard() -> void:
+	var ok := await _enter_by_duct_b(false)
+
+	var report := _report()
+	assert_bool(ok).override_failure_message(report).is_true()
+	assert_array(Array(_heard)).override_failure_message("Heard the careful entry:\n" + report).is_empty()
+	assert_array(Array(_alerted)).override_failure_message("Alerted:\n" + report).is_empty()
+
+
+func test_a_speed_enhanced_drop_is_heard_by_g7() -> void:
+	var ok := await _enter_by_duct_b(true)
+
+	var report := _report()
+	assert_bool(ok).override_failure_message(report).is_true()
+	var g7_heard := Array(_heard).any(func(line: String) -> bool: return line.begins_with(G7))
+	assert_bool(g7_heard).override_failure_message("G7 did not hear the loud drop:\n" + report).is_true()
+	assert_array(Array(_alerted)).override_failure_message("Alerted:\n" + report).is_empty()
+
+
+# Places the player on the roof, optionally with Speed Enhancement on, and crawls in until the feet
+# stand on the office floor; then lets the guards react. True when it got there.
+func _enter_by_duct_b(speed_enhancement: bool) -> bool:
 	await _route.setup(scene_runner(Route.fixture(self)))
 	await _route.place(ROOF_START, Route.SOUTH)
 	# Collected after place(): it clears the EventLog, nothing happens on the roof before.
 	EventLog.entry_added.connect(_on_entry)
+	if speed_enhancement:
+		_route.player.augmentations.set_installed(&"speed_enhancement", true)
+		if not _route.player.augmentations.activate(&"speed_enhancement"):
+			_route.notes.append("Speed Enhancement did not switch on")
+			return false
 	# Walk into the mouth, then crouch and keep going forward: down the duct, through the hatch onto
 	# the cabinet and on off its south edge onto the carpet.
 	await _walk_south(0.5)
 	var ok := await _crawl_to_the_office_floor()
-	# Leave by the door at once: it opens freely from the office side.
-	ok = ok and await _route.hands.use_door(MANAGER_DOOR)
-	ok = (
-		ok
-		and await _route.wait_until(
-			func() -> bool: return _route.hands.door(MANAGER_DOOR).is_open(), 3.0, "the door to open"
-		)
-	)
-	# 5 s of game time with the door open (G7 needed 1.6 s at 0.7 m), or until a guard is Alerted.
-	await _route.wait_until(func() -> bool: return not _alerted.is_empty(), 5.0, "a guard to be alerted")
-
-	var report := "%s\nheard (guard, margin m): %s" % [_route.report(), ", ".join(_heard)]
-	assert_bool(ok).override_failure_message(report).is_true()
-	assert_array(Array(_alerted)).override_failure_message("Alerted: %s\n%s" % [_alerted, report]).is_empty()
-	assert_array(Array(_heard)).override_failure_message("Heard the careful entry:\n" + report).is_empty()
+	await _route.frames(roundi(SETTLE_SECONDS * 60.0))
+	return ok
 
 
 # Holds forward (the view turned south) for `seconds` of game time.
@@ -92,6 +103,10 @@ func _crawl_to_the_office_floor() -> bool:
 	if not reached:
 		_route.notes.append("did not reach the office floor: feet at %s" % _route.player.global_position)
 	return reached
+
+
+func _report() -> String:
+	return "%s\nheard (guard margin m): %s" % [_route.report(), ", ".join(_heard)]
 
 
 func _on_entry(entry: EventLogEntry) -> void:

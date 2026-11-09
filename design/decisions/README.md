@@ -95,3 +95,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0091](0091-warehouse-population.md) | Warehouse population: generated from the layout markers, crossing gaps measured by simulation, breach panel and gas cylinders, duct B hatch lip | Accepted |
 | [0092](0092-warehouse-polish.md) | Warehouse polish: tighter patrols, two security switches, barred gates, side-wall door panels, free-side navigation links, door signs, label boxes in the network graph | Accepted |
 | [0093](0093-warehouse-route-tests.md) | Warehouse route scenario tests (chained segments, condition waits), the annex's high window and the cache shed, one shared sensor scan per frame, deferred level changes | Accepted |
+| [0094](0094-noise-reach-on-partial-paths.md) | Noise reach on partial navmesh paths (gaps only through open air, else searched backwards, else not heard); investigation arrival needs height too | Accepted |
