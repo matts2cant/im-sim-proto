@@ -14,6 +14,13 @@ signal command_pressed(command: StringName, target: Device)
 const MARGIN: float = 56.0
 ## Nodes closer than this (px, centre to centre) are pushed apart.
 const MIN_GAP: float = 84.0
+## Then their boxes (name and status line) are pushed this far apart (px, edge to edge), kept
+## NODE_INSET inside the panel. A node's point (cable end) is NODE_TOP below its box's top edge.
+const NODE_GAP: float = 6.0
+const NODE_INSET: float = 6.0
+const NODE_TOP: float = 14.0
+## Node box widths are rounded up to this (px) for pushing apart.
+const BOX_WIDTH_STEP: float = 24.0
 const MAX_STRETCH: float = 2.0
 const MENU_WIDTH: float = 210.0
 ## Gap between a node's centre and the top of its menu (px).
@@ -40,6 +47,8 @@ var menu_status: Label
 var _nodes: Array[Control] = []
 var _styles: Array[StyleBoxFlat] = []
 var _menu_buttons: VBoxContainer
+# What the last placement was computed from ([area, world positions, boxes]).
+var _layout_key: Array = []
 
 
 func _ready() -> void:
@@ -142,6 +151,14 @@ func menu_labels() -> Array[String]:
 	return labels
 
 
+## Each node's box (name and status line) in the graph, in row order (tests).
+func node_rects() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for node in _nodes:
+		rects.append(Rect2(node.position, node.size))
+	return rects
+
+
 ## The cables as pairs of device names (tests).
 func cable_names() -> Array[String]:
 	var names: Array[String] = []
@@ -198,11 +215,21 @@ func _layout() -> void:
 	var positions: Array[Vector3] = []
 	for row in rows:
 		positions.append(row.position())
-	points = NetworkLayout.project(positions, area, MARGIN, MAX_STRETCH, MIN_GAP)
-	for i in _nodes.size():
-		var node := _nodes[i]
+	# Names and status lines are wide: the node boxes are pushed apart so no label hides another.
+	# Box widths are rounded up to BOX_WIDTH_STEP, so a status change rarely moves the nodes, and the
+	# last placement is reused while nothing it depends on changed (pushing apart costs tens of ms).
+	var boxes: Array[Rect2] = []
+	for node in _nodes:
 		node.size = node.get_combined_minimum_size()
-		node.position = points[i] - Vector2(node.size.x * 0.5, 14.0)
+		var width := ceilf(node.size.x / BOX_WIDTH_STEP) * BOX_WIDTH_STEP
+		boxes.append(Rect2(Vector2(-width * 0.5, -NODE_TOP), Vector2(width, node.size.y)))
+	var key := [area, positions, boxes]
+	if key != _layout_key:
+		_layout_key = key
+		points = NetworkLayout.project(positions, area, MARGIN, MAX_STRETCH, MIN_GAP)
+		NetworkLayout.separate_boxes(points, boxes, NODE_GAP, area, NODE_INSET)
+	for i in _nodes.size():
+		_nodes[i].position = points[i] - Vector2(_nodes[i].size.x * 0.5, NODE_TOP)
 	_place_menu()
 	queue_redraw()
 

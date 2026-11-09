@@ -65,6 +65,7 @@ func test_the_console_reaches_both_parts_and_each_switch_cuts_only_its_own() -> 
 	for device_name: String in BUILDING + YARD + ["SecuritySwitch", "YardSwitch"]:
 		assert_bool(rows.has(device_name)).override_failure_message("missing " + device_name).is_true()
 		assert_bool(rows.get(device_name, false)).override_failure_message(device_name + " offline").is_true()
+	_assert_graph_labels_apart(console)
 
 	# Breaker B (building power) unpowers the building's switch: the console reaches nothing, but the
 	# yard's cameras still reach the yard's controller and it its sirens.
@@ -155,6 +156,26 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	assert_int(int(EventLog.find(&"camera.detected")[0].data["controllers"])).is_equal(0)
 	assert_array(EventLog.find(&"alarm.raised")).is_empty()
 	assert_array(EventLog.find(&"siren.started")).is_empty()
+
+
+# The console's Network tab at the terminal screen's graph size (as measured on screen): every
+# node's name and status line clear of the others and inside the graph.
+func _assert_graph_labels_apart(console: Terminal) -> void:
+	var graph: NetworkGraph = auto_free(NetworkGraph.new())
+	add_child(graph)
+	graph.size = Vector2(1050, TerminalScreen.TAB_HEIGHT)
+	var rows := console.devices()
+	graph.show_network(rows, Terminal.cables(rows), console.config)
+	var rects := graph.node_rects()
+	assert_int(rects.size()).is_equal(rows.size())
+	var points: Array[Vector2] = []
+	points.resize(rects.size())
+	points.fill(Vector2.ZERO)
+	assert_bool(NetworkLayout.boxes_overlap(points, rects)).override_failure_message("labels overlap").is_false()
+	var inside := Rect2(Vector2.ZERO, graph.size).grow(0.01)
+	for i in rects.size():
+		assert_bool(inside.encloses(rects[i])).override_failure_message(rows[i].name + " outside").is_true()
+	graph.free()
 
 
 # The yard's part on its own: the yard cameras reach the yard's controller and it a yard siren.

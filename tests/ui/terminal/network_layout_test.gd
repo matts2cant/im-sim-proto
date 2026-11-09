@@ -55,3 +55,58 @@ func test_stacked_devices_are_pushed_apart_and_stay_inside() -> void:
 			var gap := placed[i].distance_to(placed[j])
 			assert_float(gap).override_failure_message("%d-%d: %.1f" % [i, j, gap]).is_greater_equal(59.0)
 		assert_bool(inside.has_point(placed[i])).is_true()
+
+
+func test_label_boxes_are_pushed_apart_inside_the_panel() -> void:
+	# Three wide labels (100 x 30, the point 10 px below each box's top) on one spot, a fourth
+	# overlapping the first from the side, one at the panel's edge.
+	var placed: Array[Vector2] = [
+		Vector2(200, 100), Vector2(200, 100), Vector2(201, 101), Vector2(260, 104), Vector2(5, 5)
+	]
+	var boxes: Array[Rect2] = []
+	for i in placed.size():
+		boxes.append(Rect2(Vector2(-50, -10), Vector2(100, 30)))
+	assert_bool(NetworkLayout.boxes_overlap(placed, boxes, 4.0)).is_true()
+	NetworkLayout.separate_boxes(placed, boxes, 4.0, SIZE, 2.0)
+	assert_bool(NetworkLayout.boxes_overlap(placed, boxes, 4.0)).is_false()
+	var panel := Rect2(Vector2.ZERO, SIZE).grow(-2.0 + 0.01)
+	for i in placed.size():
+		var box := Rect2(placed[i] + boxes[i].position, boxes[i].size)
+		assert_bool(panel.encloses(box)).override_failure_message("%d outside: %s" % [i, box]).is_true()
+
+
+func test_boxes_already_apart_stay_where_they_are() -> void:
+	var placed: Array[Vector2] = [Vector2(80, 50), Vector2(300, 50), Vector2(80, 150)]
+	var before := placed.duplicate()
+	var boxes: Array[Rect2] = []
+	for i in placed.size():
+		boxes.append(Rect2(Vector2(-50, -10), Vector2(100, 30)))
+	NetworkLayout.separate_boxes(placed, boxes, 4.0, SIZE)
+	assert_array(placed).is_equal(before)
+
+
+func test_a_crowded_floor_plan_ends_without_overlaps_and_keeps_its_shape() -> void:
+	# 12 labels of 70-100 x 28 px (about 40 % of the panel with their gaps, like the warehouse console),
+	# most crowded into one corner of the plan.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 92
+	var placed: Array[Vector2] = []
+	var boxes: Array[Rect2] = []
+	for i in 12:
+		var corner := i < 10
+		placed.append(
+			(
+				Vector2(rng.randf_range(260, 360), rng.randf_range(120, 170))
+				if corner
+				else Vector2(rng.randf_range(40, 360), rng.randf_range(30, 170))
+			)
+		)
+		var width := rng.randf_range(70, 100)
+		boxes.append(Rect2(Vector2(-width * 0.5, -10), Vector2(width, 28)))
+	NetworkLayout.separate_boxes(placed, boxes, 4.0, SIZE, 2.0)
+	assert_bool(NetworkLayout.boxes_overlap(placed, boxes, 4.0)).is_false()
+	# The crowded corner spreads but stays on its side of the plan (it still reads like a floor plan).
+	var middle := Vector2.ZERO
+	for i in 10:
+		middle += placed[i] / 10.0
+	assert_float(middle.x).is_greater(SIZE.x * 0.5)
