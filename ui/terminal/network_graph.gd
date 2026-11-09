@@ -18,7 +18,7 @@ signal command_pressed(command: StringName, target: Device)
 ## Space kept around the network when fitted (px).
 const FIT_MARGIN: float = 24.0
 ## A node's cable end is NODE_TOP below its box's top edge (the middle of its name button).
-const NODE_TOP: float = 14.0
+const NODE_TOP: float = 12.0
 const MENU_WIDTH: float = 210.0
 ## Gap between a node's box and its menu (panel px).
 const MENU_GAP: float = 8.0
@@ -419,7 +419,10 @@ func _node(row: Terminal.Row) -> Control:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.1, 0.1, 1.0)
 	style.set_corner_radius_all(4)
-	style.set_content_margin_all(5)
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	style.content_margin_top = 3.0
+	style.content_margin_bottom = 3.0
 	_styles.append(style)
 	for state: StringName in [&"normal", &"hover", &"pressed"]:
 		node_button.add_theme_stylebox_override(state, style)

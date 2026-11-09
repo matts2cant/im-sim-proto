@@ -28,9 +28,9 @@ const STUB: float = 28.0
 ## Gap between a column and the next one out.
 const COLUMN_GAP: float = 40.0
 ## Gap between a hub's box and its first row.
-const HUB_GAP: float = 22.0
+const HUB_GAP: float = 18.0
 ## Gap between two rows of a column (box to box).
-const ROW_GAP: float = 10.0
+const ROW_GAP: float = 8.0
 ## Gap between two groups side by side, and between two rows of groups (at least).
 const GROUP_GAP: float = 96.0
 const GROUP_ROW_GAP: float = 72.0
@@ -61,6 +61,8 @@ var _anchor: float = 0.0
 var _links: Array[PackedInt32Array] = []
 var _depth: PackedInt32Array = []
 var _children: Array[Array] = []
+# Per node: its column's slot (the box's row at the column's rounded width).
+var _slots: Array[Rect2] = []
 # Per node: x of the bus to its children (the gap beyond its column).
 var _child_bus: PackedFloat32Array = []
 # Per hub: its row of groups; per row: its hubs west to east, its top and its lane count.
@@ -129,6 +131,7 @@ static func rects_overlap(p_rects: Array[Rect2], gap: float = 0.0) -> bool:
 func _run(aspect: float) -> void:
 	var count := _sizes.size()
 	rects.resize(count)
+	_slots.resize(count)
 	sides.resize(count)
 	sides.fill(0)
 	_child_bus.resize(count)
@@ -211,6 +214,8 @@ func _spread(seeds: Array[int], found: Array[int]) -> void:
 # The comb of `hub` in group coordinates: the hub's box top-centre at the origin.
 func _place_group(hub: int) -> void:
 	rects[hub] = Rect2(Vector2(-_sizes[hub].x * 0.5, 0.0), _sizes[hub])
+	var hub_width := _rounded(_sizes[hub].x)
+	_slots[hub] = Rect2(Vector2(-hub_width * 0.5, 0.0), Vector2(hub_width, _sizes[hub].y))
 	var members: Array[int] = []
 	members.assign(_children[hub])
 	members.sort_custom(func(a: int, b: int) -> bool: return _before(a, b, 0))
@@ -220,7 +225,6 @@ func _place_group(hub: int) -> void:
 	var right: Array[int] = []
 	right.assign(members.slice(half))
 	var top := _sizes[hub].y + HUB_GAP
-	var bottom := _sizes[hub].y
 	for side: int in [-1, 1]:
 		var column: Array[int] = left if side < 0 else right
 		column.sort_custom(func(a: int, b: int) -> bool: return _before(a, b, 2))
@@ -232,19 +236,18 @@ func _place_group(hub: int) -> void:
 			edges[depth] = edges[depth - 1] + widths.get(depth - 1, 0.0) + COLUMN_GAP
 		var y := top
 		for member in column:
-			var end := _place_subtree(member, side, y, edges, widths)
-			bottom = maxf(bottom, end)
-			y = end + ROW_GAP
-	var group := rects[hub]
+			y = _place_subtree(member, side, y, edges, widths) + ROW_GAP
+	# From the columns' rounded widths: a status change within a step does not move the group.
+	var group := _slots[hub]
 	for i in rects.size():
 		if hub_of[i] == hub:
-			group = group.merge(rects[i])
+			group = group.merge(_slots[i])
 	_group_bounds[hub] = group
 
 
 # The widest box (rounded up) at each depth of `node`'s subtree.
 func _measure(node: int, widths: Dictionary[int, float]) -> void:
-	var width := ceilf(_sizes[node].x / WIDTH_STEP - 0.001) * WIDTH_STEP
+	var width := _rounded(_sizes[node].x)
 	widths[_depth[node]] = maxf(widths.get(_depth[node], 0.0), width)
 	for child: int in _children[node]:
 		_measure(child, widths)
@@ -258,6 +261,8 @@ func _place_subtree(
 	var edge: float = edges[depth]
 	var x := edge if side > 0 else -edge - _sizes[node].x
 	rects[node] = Rect2(Vector2(x, y), _sizes[node])
+	var slot_width: float = widths.get(depth, 0.0)
+	_slots[node] = Rect2(Vector2(edge if side > 0 else -edge - slot_width, y), Vector2(slot_width, _sizes[node].y))
 	sides[node] = side
 	_child_bus[node] = side * (edge + widths.get(depth, 0.0) + COLUMN_GAP * 0.5)
 	var bottom := y + _sizes[node].y
@@ -270,6 +275,10 @@ func _place_subtree(
 		bottom = maxf(bottom, end)
 		row = end + ROW_GAP
 	return bottom
+
+
+func _rounded(width: float) -> float:
+	return ceilf(width / WIDTH_STEP - 0.001) * WIDTH_STEP
 
 
 # True when node a comes before b along world `axis` (0: x, 2: z), then the other axis, then index.
