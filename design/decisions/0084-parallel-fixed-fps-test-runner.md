@@ -22,7 +22,7 @@ Tests that switch a navigation map to synchronous iterations do it through `Guar
 
 ## Consequences
 
-- Full suite: ~36-41 s without an import, ~43 s with one, green in 4 consecutive runs (from a 705 s median, often red). Real time (`TEST_FIXED_FPS=0`) with the same shards: 137 s. The slowest shard is now bound by the two biggest suites (`movement_course_test` 35 s, `hub_start_guards_test` 34 s).
+- Full suite: 36-41.5 s without an import (median of the last 3: 41.4 s), ~43 s with one, green in 7 consecutive runs (from a 705 s median, often red). Real time (`TEST_FIXED_FPS=0`) with the same shards: 137 s. The slowest shard is now bound by the two biggest suites (`movement_course_test` 35 s, `hub_start_guards_test` 34 s).
 - A test that counts process frames to wait out game time fails deterministically at fixed fps instead of at random (`network_overlay_test` was fixed this way). UI and HUD suites were run 3x at fixed and real-time fps, green both ways.
 - Godot prints one `ERROR: Failed to open log file for writing: NUL` (and a WARNING) at start-up of every shard; the error scan ignores lines without a `res://` path.
 - Up to 12 Godot processes run at once; other agents' runs on the same machine slow each other more than before.

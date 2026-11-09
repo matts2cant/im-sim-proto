@@ -1,7 +1,7 @@
 # Test speed: Kaizen report
 
 Branch `test-speed`. Goal: the full suite reliably green in 2-3 min of wall time (stretch: under 1 min), measured end
-to end on this machine (24 logical cores), without weakening any test. Result: **705 s median (often red) -> ~37 s
+to end on this machine (24 logical cores), without weakening any test. Result: **705 s median (often red) -> 41.4 s
 median, green in every full run since the fixes.** Runner design: [ADR 0084](../decisions/0084-parallel-fixed-fps-test-runner.md);
 guidelines for agents: [testing.md "Writing fast tests"](testing.md#writing-fast-tests).
 
@@ -13,16 +13,17 @@ Wall time from the start of `tools/run_tests.sh` to its exit. "Other Godot" = Go
 | | Runs | Wall (median, spread) | Result | Other Godot |
 |---|---|---|---|---|
 | Before: master `0396bc8`, original runner (serial, real time, `tee`) | 3 | **705.1 s** (627.5-708.3) | 2 of 3 red (`door_test`, `network_overlay_test`) | none / another run for 110 s / 200 s |
-| After: `test-speed`, final runner, no import needed | 4 | **36.9 s** (36.0-41.2) | 4 of 4 green, 1282 tests | none |
+| After: `test-speed`, final runner (ac134c1), no import needed | 3 | **41.4 s** (41.2-41.5) | 3 of 3 green, 1282 tests | none |
+| Same runner before its last two small commits (the stamp and docs) | 4 | 36.9 s (36.0-41.2) | 4 of 4 green | none |
 | After, with an import (first run after a merge) | 1 | 43.3 s | green | none |
 | After, `TEST_FIXED_FPS=0` (real time, same shards) | 1 | 136.9 s | green | none |
 
 Breakdown, before (base3, serial): import 7.7 + start-up 1.9 + scan 8.5 + suite prologues 13.4 + **test bodies 562.3** +
 **between tests 82.0** + suite epilogues 13.8 + between suites 13.5 + end 1.0 + unattributed 0.7 = 705.1 s.
 
-Breakdown, after (gate2, the runner's own `Timing:` line): total 36.2 s = before shards 1.3 s (import check, no import)
-+ shards 34.5 s + after 0.4 s. The slowest shard (34.0 s) holds one suite: 30.9 s of suite + 3.1 s of start-up, scan
-and shutdown. Fit over the 12 shards: ~3.5 s per shard + ~0.07 s per suite outside the suites. The critical path is now
+Breakdown, after (final2, the runner's own `Timing:` line): total 41.1 s = before shards 1.2 s (import check, no
+import) + shards 39.4 s + after 0.4 s. The slowest shard (38.6 s): 6 suites 34.8 s + 3.9 s of start-up, scan and
+shutdown; every shard is packed up to the size of the biggest suite. Run-to-run spread over all 7 runs: 36.0-41.5 s. Fit over the 12 shards: ~3.5 s per shard + ~0.07 s per suite outside the suites. The critical path is now
 the two biggest suites: `movement_course_test` (14 tests, each loading the hub, 35 s) and `hub_start_guards_test` (one
 test simulating 60 s of the hub, 34 s).
 
@@ -63,8 +64,9 @@ test simulating 60 s of the hub, 34 s).
 
 ## Verification
 
-- Full suite with the final runner: 4 consecutive green runs (`Overall Summary: 1282 test cases | 0 errors | 0 failures
-  | 0 flaky | 1 skipped | 0 orphans | 0 crashed shard(s) | 210 suites in 12 shard(s)`; the skip is
+- Full suite with the final runner: 3 consecutive green runs (final1-3), after 4 green runs with the runner one
+  commit earlier (`Overall Summary: 1282 test cases | 0 errors | 0 failures
+  | 0 flaky | 1 skipped | 0 orphans | 0 crashed shard(s) | 210 suites in 11 shard(s)` (12 in earlier runs); the skip is
   `debug_panel_test`'s headless mouse-mode test, as on master), plus one green real-time run.
 - Process-frame suites (`tests/ui`, `player_test`, `player_damage_test`, `augmentations_test`, `body_sight_test`,
   `security_wing_test`, `body_discovery_test`, `guard_body_combat_test`, `quicksave_hub_test`,
@@ -74,7 +76,7 @@ test simulating 60 s of the hub, 34 s).
 
 ## Open questions
 
-- **Biggest suites bound the run** (~31-35 s of the ~37 s). Splitting `movement_course_test` (14 tests) into two suites
+- **Biggest suites bound the run** (~31-35 s of the ~37-41 s). Splitting `movement_course_test` (14 tests) into two suites
   by concern would let two shards share it (pure file split, no isolation change), but `hub_start_guards_test` (one
   60 s hub simulation) would still bound the run at ~34 s; going lower needs a shorter or smaller simulation, i.e. a
   test design decision. Left as is.
