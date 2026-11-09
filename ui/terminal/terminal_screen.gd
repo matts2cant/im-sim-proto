@@ -13,8 +13,9 @@ extends CanvasLayer
 ##     the selected one's live point of view on the right (a FEED_SIZE SubViewport whose Camera3D
 ##     follows the device's view node, rendered only while the tab shows a live view), "No signal"
 ##     when it is offline or sees nothing; its status and one button per command it accepts below.
-##   - Network: NetworkGraph, the devices as a floor plan with their cables and statuses; a node's
-##     menu has its commands.
+##   - Network: NetworkGraph, the devices grouped by the hub they hang on, with their cables and
+##     statuses (ADR 0099): drag to move the map, the wheel zooms, F or the Fit button shows the
+##     whole network (it opens fitted); a node's menu has its commands.
 ##   Offline devices (the terminal does not reach them, whatever the reason) are greyed and have no
 ##   commands. Refreshed on open, after each command and every `refresh_interval` seconds.
 
@@ -23,6 +24,7 @@ enum Tab { CAMERA, NETWORK }
 const WRONG_PASSWORD: String = "Wrong password."
 const NO_SIGNAL: String = "No signal"
 const HINT: String = "Esc: leave"
+const NETWORK_HINT: String = "Esc: leave · Drag: move the map · Wheel: zoom · F: fit"
 ## Render size of the camera feed (shown scaled to FEED_SHOWN).
 const FEED_SIZE: Vector2i = Vector2i(480, 270)
 const FEED_SHOWN: Vector2 = Vector2(576, 324)
@@ -64,6 +66,7 @@ var camera_actions: HFlowContainer
 var graph: NetworkGraph
 
 var _title: Label
+var _hint: Label
 var _login_view: VBoxContainer
 var _session_view: VBoxContainer
 var _camera_view: HBoxContainer
@@ -108,6 +111,7 @@ func open(p_terminal: Terminal) -> void:
 	_signature = ""
 	camera_device = null
 	graph.close_menu()
+	graph.request_fit()
 	if player != null:
 		_input_before = player.input_enabled
 		player.input_enabled = false
@@ -169,6 +173,7 @@ func show_tab(which: Tab) -> void:
 	graph.visible = tab == Tab.NETWORK
 	if tab != Tab.NETWORK:
 		graph.close_menu()
+	_update_hint()
 	update_feed()
 
 
@@ -267,6 +272,20 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		close()
 		get_viewport().set_input_as_handled()
+		return
+	var key := event as InputEventKey
+	if key != null and key.pressed and not key.echo and key.physical_keycode == KEY_F and _network_shown():
+		graph.fit_view()
+		get_viewport().set_input_as_handled()
+
+
+# Logged in, on the Network tab (no text field there: F is free).
+func _network_shown() -> bool:
+	return tab == Tab.NETWORK and _session_view.visible
+
+
+func _update_hint() -> void:
+	_hint.text = NETWORK_HINT if _network_shown() else HINT
 
 
 func _process(_delta: float) -> void:
@@ -308,6 +327,7 @@ func _show_view() -> void:
 		refresh_devices(true)
 		show_tab(tab)
 		return
+	_update_hint()
 	update_feed()
 	var known := terminal.known_credentials(user) if terminal != null else null
 	_known_row.visible = known != null
@@ -429,7 +449,8 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(spacer)
-	column.add_child(TerminalStyle.label(HINT, TerminalStyle.DIM_COLOR, 13))
+	_hint = TerminalStyle.label(HINT, TerminalStyle.DIM_COLOR, 13)
+	column.add_child(_hint)
 	_build_feed()
 
 

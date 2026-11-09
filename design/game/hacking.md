@@ -30,7 +30,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 
 | Tool | What it does |
 |---|---|
-| Map | Scanner. Shows the devices you can see from your entry point (see [Discovery](#discovery)) |
+| Map | Scanner. Shows the devices you can see from your entry point (see [Discovery](#discovery)); drawn like the terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)) |
 | Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs |
 | Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace |
 | Sniffer | Wireless only. Captures the logins made on devices connected through the same access point as the deck, while it runs (see [NPCs and logs](#npcs-and-logs)) |

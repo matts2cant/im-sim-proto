@@ -298,6 +298,14 @@ func _physics_process(_delta: float) -> void:
 		var screen := TerminalScreen.of(_player)
 		screen.show_tab(TerminalScreen.Tab.NETWORK)
 		screen.refresh_devices(true)
+	# Once the map is laid out and fitted (ADR 0099): zoom, or a node's menu.
+	if _shot.has("opened") and not _shot.has("viewed") and _time > 0.6:
+		_shot["viewed"] = true
+		var graph := TerminalScreen.of(_player).graph
+		if _shot.has("zoom"):
+			graph.zoom_at(graph.size * 0.5, float(_shot["zoom"]))
+		if _shot.has("select"):
+			graph.select(String(_shot["select"]))
 
 
 # The node a device sees from (a component's device_view(), DeviceStatus), else the entity.
