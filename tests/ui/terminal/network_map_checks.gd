@@ -31,6 +31,14 @@ static func check(
 	# The layout's boxes are the nodes' boxes.
 	for i in rects.size():
 		suite.assert_bool(rects[i].is_equal_approx(graph.layout.rects[i])).is_true()
+	# The content's rect holds every box and cable (a Control is culled by its rect: zoomed in, cables
+	# outside it would vanish).
+	var drawn := Rect2(Vector2.ZERO, graph.content.size).grow(0.01)
+	for rect in rects:
+		suite.assert_bool(drawn.encloses(rect)).override_failure_message("box outside the content").is_true()
+	for route in routes:
+		for point in route:
+			suite.assert_bool(drawn.has_point(point)).override_failure_message("cable outside the content").is_true()
 	# Fitted: every node inside the panel.
 	var inside := Rect2(Vector2.ZERO, graph.size).grow(0.01)
 	for row in rows:
