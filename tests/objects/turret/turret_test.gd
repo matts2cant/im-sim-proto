@@ -88,6 +88,38 @@ func test_the_player_is_not_a_target_once_retargeted_and_is_again_after() -> voi
 	assert_float(await _show.wait_for(&"turret.engaged", 2.0)).is_greater_equal(0.0)
 
 
+func test_a_downed_guard_or_player_is_not_a_target_for_any_preset() -> void:
+	await _show.command(Device.TARGET_GUARDS, "Turret")
+	var guard := _guard(Showcase.TURRET_SPOT)
+	Characters.tags_of(guard).add(ActorState.DEAD)
+	await _show.seconds(2.0)
+	assert_array(EventLog.find(&"turret.engaged")).is_empty()
+	assert_float(_show.turret().meter.meter).is_equal(0.0)
+	guard.queue_free()
+	await _show.command(Device.TARGET_INTRUDERS, "Turret")
+	ActorState.set_tag(_show.player, ActorState.UNCONSCIOUS, true)
+	await _show.place_player(Showcase.TURRET_SPOT, FACING_TURRET)
+	await _show.seconds(2.0)
+	assert_array(EventLog.find(&"turret.engaged")).is_empty()
+	ActorState.set_tag(_show.player, ActorState.UNCONSCIOUS, false)
+
+
+func test_a_target_going_down_ends_the_engagement_for_good() -> void:
+	await _show.command(Device.TARGET_GUARDS, "Turret")
+	var guard := _guard(Showcase.TURRET_SPOT)
+	assert_float(await _show.wait_for(&"turret.engaged", 3.0)).is_greater_equal(0.0)
+	Characters.tags_of(guard).add(ActorState.UNCONSCIOUS)
+	await _show.seconds(0.2)
+	var dropped := EventLog.find(&"turret.disengaged")
+	assert_array(dropped).has_size(1)
+	assert_str(String(dropped[0].data["reason"])).is_equal("target_down")
+	var shots := _fired().size()
+	await _show.seconds(2.0)
+	assert_array(EventLog.find(&"turret.engaged")).has_size(1)
+	assert_int(_fired().size()).is_equal(shots)
+	assert_object(_show.turret().target).is_null()
+
+
 func test_never_fires_when_someone_else_is_in_the_line() -> void:
 	# A guard stand-in (not a target) 2 m in front of the turret, the player behind it on the line.
 	_guard(Vector3(10.3, 0, -3))
