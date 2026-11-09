@@ -15,6 +15,9 @@ extends Node
 ## follows the arm. Polls every physics tick and shows the state at once (no fade) on its first tick
 ## and after a quickload (QuickSave.LOADED_GROUP), so a loaded downed body is already lying.
 ## The model's own AnimationPlayer is switched off; nothing is saved (the pose follows the state).
+## The animated parts cast no shadow unless `config.model_casts_shadows` (a moving shadow caster
+## makes every shadowed light around it render its shadow map again each tick): the character's
+## static shadow proxy (a "Pose" of shadow-only boxes, tipped by DownedPose) casts it instead.
 
 ## Fade into a shot or a swing (seconds): quick, so the recoil reads.
 const ACTION_FADE: float = 0.05
@@ -47,10 +50,11 @@ var _tracks: Dictionary[StringName, Dictionary] = {}
 # down clip -> metres the model rises at its last frame so the lowest part touches the floor.
 var _lift: Dictionary[StringName, float] = {}
 var _model_rest: Transform3D
-var _model_scale: float = 1.0
 var _pitch_axis: Vector3 = Vector3.RIGHT
 var _snap: bool = true
 var _mount_grip: int = CharacterAnimModel.NO_GRIP
+# The held down pose is shown and nothing moves.
+var _still: bool = false
 
 
 func _ready() -> void:
@@ -77,30 +81,33 @@ func _ready() -> void:
 		_place_mount(WeaponData.Grip.ONE_HAND)
 		holder.view_pivot().hang_from(hand_mount)
 		holder.fired.connect(_on_fired)
+	if not config.model_casts_shadows:
+		for geometry: GeometryInstance3D in model.find_children("*", "GeometryInstance3D", true, false):
+			geometry.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_to_group(QuickSave.LOADED_GROUP)
 
 
 func _physics_process(delta: float) -> void:
-	(
-		state
-		. update(
-			delta,
-			_ground_speed(),
-			ActorState.has(entity, ActorState.SPRINTING),
-			ActorState.is_dead(entity),
-			ActorState.has(entity, ActorState.UNCONSCIOUS),
-			_held_grip(),
-		)
-	)
+	var speed := _ground_speed()
+	var sprinting := ActorState.has(entity, ActorState.SPRINTING)
+	var dead := ActorState.is_dead(entity)
+	var unconscious := ActorState.has(entity, ActorState.UNCONSCIOUS)
+	state.update(delta, speed, sprinting, dead, unconscious, _held_grip())
 	if _snap:
 		_snap_layers()
 		_snap = false
+		_still = false
 	else:
 		_play_layers()
 		for layer in _layers():
 			layer.step(delta)
 	_place_mount(state.grip)
+	# A body lying still in its held down pose needs no new pose until something changes.
+	var settled := state.is_down() and down.blend >= 1.0 and down.current.progress() >= 1.0
+	if settled and _still:
+		return
 	_pose()
+	_still = settled
 
 
 ## QuickSave.LOADED_GROUP: the next tick shows the loaded state at once (a downed body lies still).
@@ -298,7 +305,7 @@ func _index_model() -> void:
 
 
 # Puts the hand mount where `grip` holds the weapon (a two-handed weapon between the hands), the
-# model's scale undone so the weapon keeps its size.
+# model's scale undone so the weapon shows at its size x config.held_scale.
 func _place_mount(grip: int) -> void:
 	if hand_mount == null or grip == _mount_grip or grip == CharacterAnimModel.NO_GRIP:
 		return
@@ -306,7 +313,7 @@ func _place_mount(grip: int) -> void:
 	var hand := hand_mount.get_parent() as Node3D
 	var scale := (entity.global_basis.inverse() * hand.global_basis).get_scale()
 	var mount := config.mount(grip)
-	var unscale := Vector3(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z)
+	var unscale := Vector3(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z) * config.held_scale
 	hand_mount.transform = Transform3D(mount.basis * Basis.from_scale(unscale), mount.origin)
 
 

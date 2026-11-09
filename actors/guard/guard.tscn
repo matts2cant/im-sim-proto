@@ -56,6 +56,7 @@
 [ext_resource type="PackedScene" path="res://assets/models/kenney_blocky_characters/character-j.glb" id="53_model"]
 [ext_resource type="Script" path="res://actors/common/animation/character_animator.gd" id="54_animator"]
 [ext_resource type="Resource" path="res://actors/common/animation/blocky_character_anim.tres" id="55_anim_config"]
+[ext_resource type="PackedScene" path="res://actors/common/animation/blocky_shadow_proxy.tscn" id="56_shadow"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -74,6 +75,8 @@ config = ExtResource("4_step_config")
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("Shape_body")
+
+[node name="Pose" parent="." instance=ExtResource("56_shadow")]
 
 [node name="Model" parent="." instance=ExtResource("53_model")]
 transform = Transform3D(-0.66, 0, 0, 0, 0.66, 0, 0, 0, -0.66, 0, 0, 0)
@@ -170,7 +173,6 @@ carry_speed_factor = 0.75
 
 [node name="DownedPose" type="Node" parent="."]
 script = ExtResource("32_downed_pose")
-pose_path = NodePath("")
 
 [node name="Indicator" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.15, 0)

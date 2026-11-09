@@ -9,7 +9,7 @@ extends Node3D
 ## translucent. Visual only: shots, sweeps and timings live in the holder.
 ## In a character's hand (`in_hand`, hang_from(), ADR 0103) the pivot sits at its
 ## mount instead of the camera offset, the arm's animation carries the swing (only the recoil stays)
-## and the weapon casts shadows.
+## (it casts no shadow, like the animated arm holding it).
 
 ## Recoil time of a shot; a swing animates over half its cycle.
 const KICK_TIME: float = 0.12
@@ -70,6 +70,8 @@ func show_weapon(weapon_state: WeaponState) -> void:
 		model.position = data.view_box_offset
 		add_child(model)
 		model.fit(weapon_state.attachments)
+		for geometry in model.geometry():
+			geometry.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_box.mesh = null
 		flash.reparent(model.muzzle_point(), false)
 		flash.front = 0.0
@@ -85,13 +87,12 @@ func show_weapon(weapon_state: WeaponState) -> void:
 		flash.front = -1.0
 	flash.transform = Transform3D.IDENTITY
 	flash.clear()
-	_apply_shadows()
 	visible = true
 	_animate()
 
 
 ## Hangs the view from `mount` (a character's hand: the grip pivot sits there and the model's
-## animation moves it; casts shadows), or back under its holder in first person when null. Visual
+## animation moves it), or back under its holder in first person when null. Visual
 ## only: shots still leave the holder's eye.
 func hang_from(mount: Node3D) -> void:
 	if _home == null:
@@ -100,7 +101,6 @@ func hang_from(mount: Node3D) -> void:
 	if get_parent() != parent:
 		reparent(parent, false)
 	in_hand = mount != null
-	_apply_shadows()
 	_animate()
 
 
@@ -161,17 +161,6 @@ func _set_cloaked(cloaked: bool) -> void:
 	if model != null:
 		for geometry in model.geometry():
 			geometry.transparency = 1.0 - CLOAKED_ALPHA if cloaked else 0.0
-
-
-# A view model in front of a camera casts no shadow; one in a character's hand does.
-func _apply_shadows() -> void:
-	var setting := (
-		GeometryInstance3D.SHADOW_CASTING_SETTING_ON if in_hand else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	)
-	_box.cast_shadow = setting
-	if model != null:
-		for geometry in model.geometry():
-			geometry.cast_shadow = setting
 
 
 # Recoil (ranged) or a chop about the grip (melee) while the kick timer runs. In a hand the pivot

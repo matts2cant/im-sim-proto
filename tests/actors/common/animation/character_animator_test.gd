@@ -59,11 +59,11 @@ func test_a_shot_plays_the_shoot_clip_with_the_weapon_in_hand() -> void:
 	holder.equip(0)
 	await _physics(20)
 	assert_float(animator.weight_of(CONFIG.hold_one_hand_clip)).is_equal(1.0)
-	# The view hangs from the hand mount, at its true size.
+	# The view hangs from the hand mount, at its size x held_scale.
 	var view := holder.view_pivot()
 	assert_object(view.get_parent()).is_same(animator.hand_mount)
 	assert_bool(view.in_hand).is_true()
-	assert_float(view.global_basis.get_scale().x).is_equal_approx(1.0, 0.01)
+	assert_float(view.global_basis.get_scale().x).is_equal_approx(CONFIG.held_scale, 0.01)
 	# Hold pose: the right arm points ahead (-Z), the hand at about chest height.
 	var hand := view.global_position - body.global_position
 	assert_float(hand.z).is_less(-0.35)

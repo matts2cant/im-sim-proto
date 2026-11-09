@@ -54,15 +54,24 @@ extends Resource
 ## The part the held weapon hangs from.
 @export var hand_part: StringName = &"arm-right"
 ## The held weapon's grip pivot in the hand part's frame (model units), by grip: -Z of the mount
-## points where the arm points in the hold pose, +Y up. Two-handed weapons sit between the hands.
+## points where the arm points in the hold pose, +Y up. One-handed weapons sit at the fist's end
+## (the blocky fist would hide a pistol), two-handed ones between the hands.
 @export var one_hand_mount: Transform3D = Transform3D(
-	Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-0.2, -0.85, 0.05)
+	Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-0.2, -1.0, 0.05)
 )
 @export var two_hand_mount: Transform3D = Transform3D(
 	Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(0.4, -0.85, 0.05)
 )
+## Size of the held weapon over its true size (the blocky hands are about 0.26 m wide).
+@export var held_scale: float = 1.3
 ## The hold and shot parts follow the aim's pitch (the eye looking up or down at a target).
 @export var follow_aim_pitch: bool = true
+
+@export_group("Rendering")
+## The animated parts cast shadows. Off by default: a moving shadow caster makes each shadowed light
+## around it render its shadow map again every tick (the warehouse fell from about 550 to 160-240
+## frames per second with ten idle guards), so a static shadow proxy on the character casts it.
+@export var model_casts_shadows: bool = false
 
 
 ## The hold pose clip for `grip` (WeaponData.Grip).
