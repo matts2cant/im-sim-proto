@@ -65,7 +65,7 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 
 Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "Writing fast tests"](design/tech/testing.md#writing-fast-tests)):
 
-- The runner simulates time (`--fixed-fps 144`): wait for physics frames, game time or a condition with a frame cap, never for a number of process frames standing in for time.
+- The runner simulates time (`--fixed-fps 144`): wait for physics frames, game time or a condition with a frame cap, never for a number of process frames standing in for time. A condition set by a worker thread (an asynchronous navigation iteration) gets a real-time cap instead (`GuardHelpers.async_iteration()`).
 - Use small fixture scenes; load the hub only for hub tests, keep hub suites short (each load ~1 s, each simulated hub second ~0.3-0.6 s) and split big suites by concern.
 - Switch navigation maps to synchronous iterations only with `GuardHelpers.use_sync_iterations()`, and `isolate_region()` against earlier suites' floors.
 - Collect events that can happen inside a helper that clears the EventLog (`PlayerDriver.place()`) from `EventLog.entry_added`.

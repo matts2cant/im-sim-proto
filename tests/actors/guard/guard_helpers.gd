@@ -7,6 +7,8 @@ extends RefCounted
 const POST := "res://tests/scenarios/fixtures/guard_post.tscn"
 const POST_WITH_PLAYER := "res://tests/scenarios/fixtures/guard_post_player.tscn"
 const TIME_FACTOR := 9.0
+## Real time (ms) to wait at most for a navigation map's asynchronous iteration (worker thread).
+const ASYNC_LANDING_MS := 5000
 
 var runner: GdUnitSceneRunner
 var scene: Node
@@ -46,7 +48,12 @@ func setup(p_runner: GdUnitSceneRunner, patrol: bool = false) -> void:
 ## queries come back empty and noise falls back to straight lines. A fixture that switched right
 ## after loading hit this about half the time when it ran first in a fresh process (door_test
 ## alone, ADR 0084). Switching the map back to asynchronous lets the pending iteration land, after
-## which the switch is safe. Costs two physics frames.
+## which the switch is safe. Costs two physics frames, five when it had to recover.
+## The pending iteration runs on a worker thread, so it lands after an amount of real time, not of
+## frames: the wait for it is capped in wall-clock time (ASYNC_LANDING_MS). A cap of 120 physics
+## frames was about 30 ms at the runner's fixed fps, and a busy machine (a one-process full run
+## next to other test runs) kept the worker thread off the CPU longer: the map stayed wedged and
+## guard_helpers_test and path_partial_test failed (M9h).
 static func use_sync_iterations(map: RID, region: NavigationRegion3D) -> void:
 	var tree := region.get_tree()
 	NavigationServer3D.map_set_use_async_iterations(map, false)
@@ -62,12 +69,21 @@ static func use_sync_iterations(map: RID, region: NavigationRegion3D) -> void:
 			return
 		# Wedged: let the pending asynchronous iteration land, then switch again.
 		NavigationServer3D.map_set_use_async_iterations(map, true)
-		for i in 120:
-			await tree.physics_frame
-			if NavigationServer3D.map_get_iteration_id(map) != before:
-				break
+		await async_iteration(tree, map, before)
 		NavigationServer3D.map_set_use_async_iterations(map, false)
 	push_error("Navigation map stopped iterating after switching to synchronous iterations")
+
+
+## Waits until `map` (iterating asynchronously) has an iteration newer than `iteration_id`, for at
+## most ASYNC_LANDING_MS of real time (worker threads run on the wall clock: never cap such a wait
+## with a frame count). Returns false when none landed.
+static func async_iteration(tree: SceneTree, map: RID, iteration_id: int) -> bool:
+	var deadline := Time.get_ticks_msec() + ASYNC_LANDING_MS
+	while NavigationServer3D.map_get_iteration_id(map) == iteration_id:
+		if Time.get_ticks_msec() > deadline:
+			return false
+		await tree.physics_frame
+	return true
 
 
 ## Switches off every other navigation region in the tree on `map`: a previous suite's fixture
@@ -78,6 +94,19 @@ static func isolate_region(map: RID, region: NavigationRegion3D) -> void:
 		var other := node as NavigationRegion3D
 		if other != region and other.get_navigation_map() == map:
 			other.enabled = false
+
+
+## Holds every guard (tag `actor.guard`) under `root` still except those under `keep`: their
+## processing is disabled, so they neither think nor move (stimuli still reach them). For a test
+## about one room of a level that holds other rooms' guards (the hub loads every gallery room):
+## a guard answering the room's alarm from elsewhere would walk into the test. Returns the guards held.
+static func hold_guards_outside(root: Node, keep: Node) -> Array[Node]:
+	var held: Array[Node] = []
+	for node in root.find_children("*", "Node3D", true, false):
+		if not keep.is_ancestor_of(node) and ActorState.has(node, &"actor.guard"):
+			node.process_mode = Node.PROCESS_MODE_DISABLED
+			held.append(node)
+	return held
 
 
 ## Lets fixtures of earlier suites that are freed late (auto_free, queue_free) leave the tree first.

@@ -4,8 +4,13 @@ extends GdUnitTestSuite
 ## body as a hostile every tick, engaged it again (warning beep restarted, noise 10 emitted) and
 ## dropped it as `target_down` on the next tick: the beep looped for as long as the body lay there.
 ## Now the dead guard is no sighting: no new engagement, no turret noise, and the beep stops.
+## The hub loads every gallery room: the other rooms' guards are held still, or one answering the
+## wing's alarm (the AI arena's post guard, seen once in a full run) can walk into the turret's view
+## after the kill and be engaged, rightly: the turret targets every `actor.guard`. This test is
+## about the downed one only.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const HUB := "res://levels/hub/hub.tscn"
 
 var _driver: PlayerDriver
@@ -21,6 +26,7 @@ func before_test() -> void:
 	_player = _driver.player
 	_player.reload_on_reset = false
 	_wing = _driver.runner.find_child("SecurityWing") as Node3D
+	assert_array(GuardHelpers.hold_guards_outside(_driver.runner.scene(), _wing)).is_not_empty()
 	await _driver.settle()
 
 

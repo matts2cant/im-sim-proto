@@ -3,6 +3,10 @@ extends GdUnitTestSuite
 ## a small kit scene; low spaces (vents, crawl spaces) stay off the navmesh.
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
+## Where the small kit scene stands: away from the origin, where the hub of the previous tests (freed
+## late, on an asynchronous map) still answered closest-point queries in a full run (M9h).
+const KIT_SPOT := Vector3(-200, 0, -600)
 const HUB := "res://levels/hub/hub.tscn"
 const FLOOR_SCENE: PackedScene = preload("res://levels/kit/surface_floor.tscn")
 const VENT_SCENE: PackedScene = preload("res://levels/kit/vent_segment.tscn")
@@ -10,14 +14,17 @@ const VENT_SCENE: PackedScene = preload("res://levels/kit/vent_segment.tscn")
 var _runner: GdUnitSceneRunner
 var _nav: LevelNavigation
 var _course: Node3D
+var _map_was_async: bool = true
 
 
 func before_test() -> void:
 	DebugPanel.set_open(false)
+	_map_was_async = NavigationServer3D.map_get_use_async_iterations(get_tree().root.find_world_3d().navigation_map)
 
 
 func after_test() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	NavigationServer3D.map_set_use_async_iterations(get_tree().root.find_world_3d().navigation_map, _map_was_async)
 
 
 func test_hub_bakes_a_navmesh_when_it_loads() -> void:
@@ -81,7 +88,9 @@ func test_vent_and_crawl_space_interiors_are_not_on_the_navmesh() -> void:
 
 
 func test_bake_matches_the_geometry_it_is_given() -> void:
+	await GuardHelpers.let_old_scenes_go(get_tree())
 	var level := auto_free(Node3D.new()) as Node3D
+	level.position = KIT_SPOT
 	var ground := FLOOR_SCENE.instantiate() as SurfaceFloor
 	ground.size = Vector2(10, 10)
 	level.add_child(ground)
@@ -97,8 +106,13 @@ func test_bake_matches_the_geometry_it_is_given() -> void:
 	var before := _area(nav.navigation_mesh)
 
 	assert_float(before).is_greater(50.0)
-	var in_vent := Vector3(0.1, 0, 0.5)
-	assert_bool(await KitGeometry.wait_for_navigation(get_tree(), map, Vector3(3, 0, 0.5))).is_true()
+	# Path queries on a synchronous map isolated from other suites' regions; baked again after the
+	# switch (a region switched after it got its navmesh can lose the pending update).
+	await GuardHelpers.use_sync_iterations(map, nav)
+	GuardHelpers.isolate_region(map, nav)
+	nav.bake()
+	var in_vent := level.to_global(Vector3(0.1, 0, 0.5))
+	assert_bool(await KitGeometry.wait_for_navigation(get_tree(), map, level.to_global(Vector3(3, 0, 0.5)))).is_true()
 	var closest := NavigationServer3D.map_get_closest_point(map, in_vent)
 	assert_float(closest.distance_to(in_vent)).override_failure_message(str(closest)).is_greater(0.5)
 
