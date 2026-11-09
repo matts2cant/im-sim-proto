@@ -40,6 +40,12 @@ Four agents in three waves: M8a devices, cable graph, remote commands and alarm 
 - Process: the bug brief's "reproduce the exact situation first, record the EventLog" found the real cause (my guesses, the new base station and DoorOpener, were wrong). Worktrees for three agents were cut from an old M1 commit; each agent noticed and reset to master. Briefs should say "branch from master" and agents should check `git log -1` first (added to CLAUDE.md).
 - Full suite on master after all merges: 1222 tests, 0 failures, 723 s wall with another agent running Godot.
 
+### Test speed kaizen (2026-11-09)
+
+- Full suite from a 705 s median (2 of 3 baseline runs red) to about 41-45 s, green 3x in a row (ADR 0084, design/tech/test-speed-kaizen.md): simulated fixed-fps time instead of real-time frame sleeps, 11-12 parallel shards balanced on measured wall time, Godot output to a file instead of a pipe (each print cost 2-13 ms through the pipe), import only when class declarations or non-script files change. Root-caused two flaky tests (a navigation map switched to synchronous mid-iteration; an EventLog clear racing a guard's engagement). Guidelines for agents: design/tech/testing.md "Writing fast tests"; AGENTS.md checklist.
+- What went wrong: the first agent was cut off when the session restarted (in-process agents die with it); a second resumed from its worktree commits. Lesson: long agents commit in small steps so a restart loses little (they did).
+- Open: `hub_start_guards_test` (34 s, one 60 s simulation) and `movement_course_test` set the floor; reusing a loaded hub across tests would change isolation. Not done.
+
 ## M7 — Light and AI (2026-11-07)
 
 Two waves of two agents in parallel worktrees. Wave 1: light level + lamps + breaker + Perception lab (ADR 0065–0066) and guard core: body, vision, hearing, graded awareness, patrols, feedback (ADR 0067–0069). Wave 2: guard combat and loadouts (ADR 0070) and bodies, shouts, radio, level alarm, AI arena, lab guard (ADR 0071–0072; that agent ran its own level sub-agent). Started without the M6 playtest at the user's request (they were travelling). 816 → 1023 tests. ~1.6M sub-agent tokens.
