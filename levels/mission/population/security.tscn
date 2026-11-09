@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="2_security_camera"]
-[ext_resource type="PackedScene" path="res://objects/laser/laser_tripwire.tscn" id="3_laser_tripwire"]
+[ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="3_laser_array"]
 [ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="4_turret"]
 [ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="5_terminal"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="6_alarm_controller"]
@@ -449,20 +449,20 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 6.88, 6)
 [node name="CameraRoof" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, 0.9397, 17, 12.3, -9.69)
 
-[node name="LaserRoofWest" parent="Devices" instance=ExtResource("3_laser_tripwire")]
+[node name="LaserRoofWest" parent="Devices" instance=ExtResource("3_laser_array")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.25, 10.8, 2.37)
 
-[node name="LaserBehaviour" parent="Devices/LaserRoofWest"]
-beam_length = 1.2
+[node name="Beam1" parent="Devices/LaserRoofWest"]
+length = 1.2
 
 [node name="Powered" parent="Devices/LaserRoofWest"]
 circuit = &"warehouse_yard"
 
-[node name="LaserRoofEast" parent="Devices" instance=ExtResource("3_laser_tripwire")]
+[node name="LaserRoofEast" parent="Devices" instance=ExtResource("3_laser_array")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10.8, -4.52)
 
-[node name="LaserBehaviour" parent="Devices/LaserRoofEast"]
-beam_length = 1.2
+[node name="Beam1" parent="Devices/LaserRoofEast"]
+length = 1.2
 
 [node name="Powered" parent="Devices/LaserRoofEast"]
 circuit = &"warehouse_yard"
