@@ -124,8 +124,11 @@ fi
 # Split the suites (in canonical, sorted order) into `jobs` contiguous slices of about equal wall
 # time, using each suite's share of a shard's wall time in earlier runs (reports/suite_times.tsv,
 # updated after every run by tools/test_timing.awk: GdUnit's suite time plus the measured per-suite
-# overhead). A suite with no recorded time counts as the median recorded time of its kind (scene
-# runner or not) in this run, or 3 s / 0.5 s when none is recorded. Contiguous slices keep every
+# overhead). A suite with no recorded time counts as the median recorded time of the suites of its
+# kind (scene runner or not) under its own folder, else under the nearest ancestor folder that has
+# one, else of its kind in this run, else 3 s / 0.5 s; and no shard takes more than its share
+# (ceil(unmeasured / jobs)) of unmeasured suites, so new suites added side by side (a milestone's
+# suites in one folder) never land in one shard on a guess. Contiguous slices keep every
 # shard's suite order a run of the serial order, so a suite only ever follows the suites it follows
 # in a serial run: state a suite leaks into the next one (late-freed nodes, viewport-parented
 # effects) cannot reach suites it never met before.
@@ -152,9 +155,30 @@ done < <(
 			n++; name[n] = $0; kind[n] = ($0 in is_scene) ? 1 : 0
 			if ($0 in t) { w[n] = t[$0]; known[kind[n], ++cnt[kind[n]]] = t[$0] }
 		}
-		function shards_for(cap,   k, load, used) {
-			used = 1; load = 0
-			for (k = 1; k <= n; k++) { if (load + w[k] > cap && load > 0) { used++; load = 0 } load += w[k] }
+		# Estimate for a suite with no recorded time: the median of the recorded suites of its kind under
+		# its own folder (subfolders included), else under the parent folder and so on up, else of its
+		# kind in this run, else the constant.
+		function estimate(k,   d, j, c, v) {
+			d = name[k]
+			while (sub(/\/[^\/]*$/, "", d) && index(d, "res://") == 1 && d != "res:/") {
+				c = 0
+				for (j = 1; j <= n; j++)
+					if ((name[j] in t) && kind[j] == kind[k] && index(name[j], d "/") == 1) v[++c] = t[name[j]]
+				if (c > 0) return median(v, c)
+			}
+			return fallback[kind[k]]
+		}
+		# A new shard starts before suite k when it would push the load over the cap, or when it is
+		# unmeasured and the shard already holds its share of unmeasured suites (spreads the guesses).
+		function starts_shard(k, load, unk, cap) {
+			return load > 0 && (load + w[k] > cap || (!(name[k] in t) && unk >= max_unk))
+		}
+		function shards_for(cap,   k, load, unk, used) {
+			used = 1; load = 0; unk = 0
+			for (k = 1; k <= n; k++) {
+				if (starts_shard(k, load, unk, cap)) { used++; load = 0; unk = 0 }
+				load += w[k]; if (!(name[k] in t)) unk++
+			}
 			return used
 		}
 		END {
@@ -163,15 +187,17 @@ done < <(
 				if (cnt[kd] > 0) { for (i = 1; i <= cnt[kd]; i++) vals[i] = known[kd, i]; fallback[kd] = median(vals, cnt[kd]) }
 			}
 			for (k = 1; k <= n; k++) {
-				if (!(name[k] in t)) w[k] = fallback[kind[k]]
+				if (!(name[k] in t)) { w[k] = estimate(k); n_unk++ }
 				total += w[k]; if (w[k] > big) big = w[k]
 			}
+			max_unk = n_unk ? int((n_unk + jobs - 1) / jobs) : 1
 			lo = big; hi = total
 			for (it = 0; it < 60; it++) { mid = (lo + hi) / 2; if (shards_for(mid) <= jobs) hi = mid; else lo = mid }
-			shard = 0; load = 0
+			shard = 0; load = 0; unk = 0
 			for (k = 1; k <= n; k++) {
-				if (load + w[k] > hi && load > 0 && shard < jobs - 1) { shard++; load = 0 }
-				load += w[k]; print shard, name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
+				if (starts_shard(k, load, unk, hi) && shard < jobs - 1) { shard++; load = 0; unk = 0 }
+				load += w[k]; if (!(name[k] in t)) unk++
+				print shard, name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
 			}
 		}'
 )
