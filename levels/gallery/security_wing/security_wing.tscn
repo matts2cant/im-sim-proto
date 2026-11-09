@@ -345,7 +345,6 @@ locked = true
 wall_thickness = 0.5
 
 [node name="KeypadLock" type="Node3D" parent="Doors/D1Keypad"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
 script = ExtResource("8_keypad")
 data = SubResource("Keypad_data")
 
@@ -359,7 +358,6 @@ locked = true
 wall_thickness = 0.5
 
 [node name="MechanicalLock" type="Node3D" parent="Doors/D2Mechanical"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
 script = ExtResource("10_mechanical")
 data = SubResource("Mechanical_data")
 
@@ -373,7 +371,6 @@ locked = true
 wall_thickness = 0.5
 
 [node name="KeycardLock" type="Node3D" parent="Doors/D3Keycard"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
 script = ExtResource("12_keycard")
 data = SubResource("Keycard_data")
 
@@ -394,7 +391,6 @@ script = ExtResource("15_powered")
 circuit = &"security_wing_a"
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/D4Electronic"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
 script = ExtResource("14_electronic")
 
 [node name="D5Breakable" parent="Doors" instance=ExtResource("7_breakable_door")]
@@ -423,7 +419,6 @@ script = ExtResource("15_powered")
 circuit = &"security_wing_b"
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/VaultDoor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0.27)
 script = ExtResource("14_electronic")
 
 [node name="Devices" type="Node3D" parent="."]

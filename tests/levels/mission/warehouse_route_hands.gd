@@ -34,21 +34,27 @@ func door(path: String) -> Door:
 	return route.level.get_node(path + "/Door") as Door
 
 
-## Presses E on the control panel of the door at `path` (a level node) on the player's side of it
-## (a grille's bars leave gaps the view ray passes through; the panel always takes it), walking up
-## to it first when it is out of reach.
+## Presses E on the door at `path` (a level node) from the player's side of it (ADR 0098): on its wall
+## box on that side when it has one (keypad, card reader, status or control box), else on the leaf's
+## handle (it stands out of the jamb when the door is open; a grille's bars leave gaps the view ray
+## passes through, the handle always takes it), walking up to it first when it is out of reach.
 func use_door(path: String) -> bool:
 	var entity := route.level.get_node(path) as Node3D
 	var local := entity.global_transform.affine_inverse() * route.player.global_position
 	var front := local.z > 0.0
-	var panel := (entity.get_node("ControlFrontShape" if front else "ControlBackShape") as Node3D).global_position
-	if route.player.eye_transform().origin.distance_to(panel) > 1.7:
-		# Out of reach: walk up to 1.1 m in front of the panel, on this side of the door.
+	var hardware := door(path).hardware
+	var boxes := hardware.controls(front)
+	var target := hardware.handle_point(front)
+	if not boxes.is_empty():
+		var shape := boxes[0].get_node("Shape") as CollisionShape3D
+		target = boxes[0].global_transform * Vector3(0.0, 0.0, (shape.shape as BoxShape3D).size.z)
+	if route.player.eye_transform().origin.distance_to(target) > 1.7:
+		# Out of reach: walk up to 1.1 m in front of it, on this side of the door.
 		var out := entity.global_basis.z * (1.1 if front else -1.1)
-		var stand := Vector3(panel.x + out.x, route.player.global_position.y, panel.z + out.z)
+		var stand := Vector3(target.x + out.x, route.player.global_position.y, target.z + out.z)
 		if not await route.go([stand]):
 			return false
-	return await use_at(panel)
+	return await use_at(target)
 
 
 ## Reads the datapad at `path` (a level node) from where the player stands (E) and closes the

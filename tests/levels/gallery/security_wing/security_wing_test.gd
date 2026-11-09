@@ -77,9 +77,10 @@ func test_closets_share_the_hall_wall_and_have_room_to_turn() -> void:
 		assert_vector(Vector2(opening.width, opening.height)).override_failure_message(where).is_equal(
 			Vector2(1.2, 2.2)
 		)
-		# The door's control panel (1 m on its -X side) is on the closet's inside face, and its pocket
-		# (1.95 m on its +X side) ends before the next doorway.
-		assert_float(door.position.x - 1.0).override_failure_message(where).is_greater_equal(inside.position.x)
+		# The door's wall boxes (ADR 0098: centred 0.77 m on its -X side, at most 0.06 m half-wide) are on
+		# the closet's inside face, and its pocket (1.95 m on its +X side) ends before the next doorway.
+		var box_edge := 0.6 + DoorLayout.BOX_COLUMN + 0.06
+		assert_float(door.position.x - box_edge).override_failure_message(where).is_greater_equal(inside.position.x)
 		if index + 1 < LOCK_ROW.size():
 			assert_float(door.position.x + 1.95).is_less(_door(LOCK_ROW[index + 1]).position.x - 0.6)
 	# Neighbouring closets share their side walls.

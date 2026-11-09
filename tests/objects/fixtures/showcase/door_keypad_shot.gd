@@ -24,11 +24,8 @@ func _physics_process(delta: float) -> void:
 		return
 	(Usable.of(pad) as Readable).use(player)
 	(player.get_node("ReadingOverlay") as ReadingOverlay).close()
-	var keypad: KeypadLock = null
-	for lock in Lock.locks_of(door):
-		if lock is KeypadLock:
-			keypad = lock as KeypadLock
-	keypad.use_locked(player)
+	# E on the keypad box (ADR 0098).
+	(Usable.of(Door.of(door).hardware.controls(true)[0]) as DoorControl).use(player)
 	var screen := KeypadScreen.of(player)
 	for digit: String in typed:
 		screen.press_key(digit)
