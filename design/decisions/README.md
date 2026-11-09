@@ -91,3 +91,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0087](0087-mission-systems.md) | Mission systems: a Mission node with data, objectives and tallies from events, death attribution by cause chain, level exits | Accepted |
 | [0088](0088-weapon-drops-and-bursts.md) | Weapon drops from a holder's own loadout; AI bursts with automatic weapons; the rifle guard | Accepted |
 | [0089](0089-warehouse-layout.md) | Warehouse layout: generated area scenes, see-through palisade Fence and Stairs kit parts, floodlights, breaker B in the basement | Accepted |
+| [0091](0091-warehouse-population.md) | Warehouse population: generated from the layout markers, crossing gaps measured by simulation, breach panel and gas cylinders, duct B hatch lip | Accepted |

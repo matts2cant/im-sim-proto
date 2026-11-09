@@ -27,7 +27,7 @@ func test_catalog_lists_every_object_with_a_button() -> void:
 	var tab := _tab("Spawn") as SpawnTab
 	var buttons := tab.get_node("Buttons").get_children()
 
-	assert_int(CATALOG.scenes.size()).is_equal(10)
+	assert_int(CATALOG.scenes.size()).is_equal(11)
 	assert_int(buttons.size()).is_equal(CATALOG.scenes.size())
 	assert_str((buttons[0] as Button).text).is_equal("small crate")
 	assert_object(tab.get_node("Actions/Reset")).is_not_null()
