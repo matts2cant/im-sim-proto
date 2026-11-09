@@ -12,7 +12,7 @@ Lethal weapons with distinct roles and one non-lethal weapon, with a softened De
 - Shotgun: 8 pellets a shot, deadly up close, weak at range. Sniper rifle: wild from the hip; **RMB toggles the scope** (press to zoom in, press again to zoom out; it also comes off when you reload, switch or put the weapon away, or are knocked out): the view zooms to 15 degrees, the reticle becomes a black scope overlay with a thin crosshair and a thin ring (the aim cone), mouse look slows to match; held still, the ring shrinks to near-perfect in about 1.4 s. Assault rifle: **hold LMB** for full-auto, releasing stops; the spread grows with each shot and recovers when you stop.
 - **Silencer**: an item; in the inventory screen drag it onto the pistol, sniper rifle or assault rifle (they light up while you drag; the shotgun does not take one). It stays on for good: shots are a quarter as loud (pistol 25 m to 6.25 m), there is no muzzle flash, the shot sound is a muffled thud, and the silencer shows on the gun in your hands and on the floor when dropped. The weapon's name reads "Pistol (silenced)".
 - The reticle circle is the exact spread cone; shots always land inside it. Standing still it settles over about 0.8 s (untrained) to a small circle; walking, sprinting, jumping, mouse look, each shot and arm injuries widen it.
-- The baton is quiet up close: one hit from behind on an unaware target knocks it out; from the front or on an aware target it takes three.
+- The baton is quiet up close: one hit from behind on an unaware target knocks it out; from the front or on an aware target it takes three. It breaks a security device in one or two hits and the turret in six, within 1.8 m of the eye ([security.md](security.md#breaking-devices)).
 
 ## Rules
 
