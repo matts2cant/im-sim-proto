@@ -131,9 +131,10 @@ CAMERAS = {
     "CameraOffice": (CAMERA_OFFICE, -90.0, 20.0),
     "CameraRoof": (CAMERA_ROOF, CAMERA_ROOF_YAW, 20.0),
 }
-# Roof laser tripwires (M9g, ADR 0097): high beams (1.3 m: crouched under) across the parapet gaps
-# where the annex stair and the fire escape arrive. Origin on the north post's south face, +Z across
-# the 1.2 m gap to the south post. On the yard circuit: cutting breaker A switches them off.
+# Roof laser arrays (M9g, ADR 0097; one-beam arrays since ADR 0100): high beams (1.3 m: crouched
+# under) across the parapet gaps where the annex stair and the fire escape arrive. Origin on the
+# north post's south face (the beam's emitter face), +Z across the 1.2 m gap to the south post. On
+# the yard circuit: cutting breaker A switches them off.
 ROOF_LASERS = {
     "LaserRoofWest": ((w.HALL_X0 - w.HALL_T * 0.5, w.ROOF + w.ROOF_BEAM_H, w.ROOF_GAP_W[0]), w.ROOF_GAP_W[1] - w.ROOF_GAP_W[0]),
     "LaserRoofEast": ((w.HALL_X1 + w.HALL_T * 0.5, w.ROOF + w.ROOF_BEAM_H, w.ROOF_GAP_E[0]), w.ROOF_GAP_E[1] - w.ROOF_GAP_E[0]),
@@ -257,7 +258,7 @@ KEYCARDS = {
 SCENES = {
     "door": "res://objects/door/door.tscn",
     "camera": "res://objects/camera/security_camera.tscn",
-    "laser": "res://objects/laser/laser_tripwire.tscn",
+    "laser": "res://objects/laser/laser_array.tscn",
     "turret": "res://objects/turret/turret.tscn",
     "terminal": "res://objects/terminal/terminal.tscn",
     "controller": "res://objects/alarm/alarm_controller.tscn",
@@ -374,7 +375,7 @@ def build():
         cabled.append(f"Devices/{name}")
     for name, (pos, length) in ROOF_LASERS.items():
         s.add(name, "Devices", instance=scene["laser"], props={"transform": Raw(transform(pos))})
-        s.override(f"Devices/{name}/LaserBehaviour", {"beam_length": round(length, 4)})
+        s.override(f"Devices/{name}/Beam1", {"length": round(length, 4)})
         s.override(f"Devices/{name}/Powered", {"circuit": sname(YARD)})
         cabled.append(f"Devices/{name}")
     pos, yaw = TURRET
