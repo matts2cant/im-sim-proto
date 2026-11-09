@@ -10,7 +10,7 @@ extends Node3D
 ## inventory: open the inventory screen; read_pads: read every datapad on the pedestal (closing
 ## the reading overlay); log: open the log screen; augs: augmentation ids switched on; energy: the
 ## charge; tiers: skill -> tier; pistol: draw a pistol; stats: open the debug panel's Stats tab;
-## wait: seconds.
+## give: item id -> count put in the inventory (before the screen opens); wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
 	"spawn": {"hub": true, "feet": Vector3(0, 0, 10), "look": Vector3(0, 1.65, 0)},
 	"hub_loadout": {"hub": true, "feet": Vector3(1.6, 0, 9.5), "look": Vector3(1.9, 1.0, 8.05)},
@@ -48,12 +48,29 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(1.5, 0, -9.0),
 		"look": Vector3(-3.0, 1.0, -18.5),
 		"augs": [&"speed_enhancement"],
-		"tiers": {&"pistols": 3, &"low_tech": 2, &"medicine": 1},
+		"tiers": {&"pistols": 3, &"rifles": 2, &"sniper": 1, &"low_tech": 2, &"medicine": 1},
 		"energy": 64.0,
 		"stats": true,
 	},
 	"inventory":
 	{"feet": Vector3(-4.6, 0, -10.2), "look": Vector3(-5.6, 1.0, -10.2), "take_table": true, "inventory": true},
+	"ammo_colours":
+	{
+		"feet": Vector3(-4.6, 0, -10.2),
+		"look": Vector3(-5.6, 1.0, -10.2),
+		"give":
+		{
+			&"shotgun": 1,
+			&"assault_rifle": 1,
+			&"sniper_rifle": 1,
+			&"pistol": 1,
+			&"shotgun_shells": 12,
+			&"rifle_rounds": 30,
+			&"sniper_rounds": 10,
+			&"pistol_ammo": 30,
+		},
+		"inventory": true,
+	},
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
@@ -114,6 +131,9 @@ func _process(delta: float) -> void:
 
 
 func _act() -> void:
+	var gifts: Dictionary = _shot.get("give", {})
+	for id: Variant in gifts:
+		_player.inventory.give(_player.inventory.catalog.find(StringName(str(id))), int(gifts[id]))
 	if _shot.get("take_table", false):
 		for child: Node in _room.get_node("ItemTable").get_children():
 			var pickup := ItemPickup.of(child)
