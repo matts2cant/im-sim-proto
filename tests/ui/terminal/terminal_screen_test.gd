@@ -5,7 +5,8 @@ extends GdUnitTestSuite
 ## the player is never shot). Camera tab: the devices with a view, a live feed of the selected one
 ## (a SubViewport whose camera sits on the device's eye), "No signal" when it sees nothing, its
 ## commands below. Network tab: a node per device, the cables, a node's menu with its status and
-## commands. Cutting the switch greys the branch with no commands. Esc leaves, E never does.
+## commands; the map opens fitted and F fits it again (ADR 0099). Cutting the switch greys the branch
+## with no commands. Esc leaves, E never does.
 
 const Showcase := preload("res://tests/objects/fixtures/showcase/security_helpers.gd")
 ## 1 m in front of the terminal.
@@ -167,6 +168,39 @@ func test_cutting_the_switch_greys_the_branch_with_no_commands_never_broken() ->
 	assert_object(_screen.camera_button("Enable")).is_not_null()
 
 
+func test_the_network_tab_opens_fitted_and_f_fits_it_again() -> void:
+	_log_in()
+	_screen.network_tab_button.pressed.emit()
+	await _show.frames(2)
+	var graph := _screen.graph
+	var panel := Rect2(Vector2.ZERO, graph.size).grow(0.01)
+	for device_name in graph.node_names():
+		assert_bool(panel.encloses(graph.node_screen_rect(device_name))).override_failure_message(device_name).is_true()
+	assert_str(_texts()).contains("Wheel: zoom")
+	var fitted_zoom := graph.view.zoom
+	var fitted_offset := graph.view.offset
+	graph.zoom_at(graph.size * 0.5, 1.6)
+	graph.pan(Vector2(-200, 50))
+	assert_float(absf(graph.view.zoom - fitted_zoom)).is_greater(0.1)
+	# F (by its physical key) fits it again.
+	for pressed: bool in [true, false]:
+		var key := InputEventKey.new()
+		key.physical_keycode = KEY_F
+		key.keycode = KEY_F
+		key.pressed = pressed
+		get_viewport().push_input(key)
+	assert_float(graph.view.zoom).is_equal_approx(fitted_zoom, 0.0001)
+	assert_vector(graph.view.offset).is_equal_approx(fitted_offset, Vector2.ONE * 0.01)
+	# Esc still leaves from the map; reopened, the map is fitted again.
+	graph.pan(Vector2(150, 0))
+	_show.runner.simulate_action_pressed(&"ui_cancel")
+	await _show.frames(2)
+	assert_bool(_screen.is_open()).is_false()
+	_show.terminal().use(_show.player)
+	await _show.frames(2)
+	assert_vector(graph.view.offset).is_equal_approx(fitted_offset, Vector2.ONE * 0.01)
+
+
 func test_esc_leaves_every_time_and_e_never_does() -> void:
 	var runner := _show.runner
 	_show.terminal().use(_show.player)
@@ -192,11 +226,17 @@ func test_esc_leaves_every_time_and_e_never_does() -> void:
 
 func test_the_hint_only_mentions_esc() -> void:
 	_show.terminal().use(_show.player)
+	var texts := _texts()
+	assert_str(texts).contains("Esc: leave")
+	assert_str(texts).not_contains("E: leave")
+
+
+# Every label's text on the screen.
+func _texts() -> String:
 	var texts := ""
 	for node in _screen.find_children("*", "Label", true, false):
 		texts += (node as Label).text + "\n"
-	assert_str(texts).contains("Esc: leave")
-	assert_str(texts).not_contains("E: leave")
+	return texts
 
 
 func _log_in() -> void:

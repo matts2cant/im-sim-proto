@@ -2,7 +2,8 @@ extends RefCounted
 ## Review shots of the warehouse's doors and security devices (M9c), merged into
 ## warehouse_shots.gd's list: run `warehouse_shots.tscn -- shots=<name>,... out=<folder>`. Keys as
 ## there, plus `view`: a free camera at the eye of a device's view node (a camera's point of view,
-## HUD hidden), and `terminal`: the player uses that terminal, logged in, on its Network tab.
+## HUD hidden), and `terminal`: the player uses that terminal, logged in, on its Network tab (then
+## `zoom`: zoomed by that factor around the map's centre, `select`: that node's menu open).
 
 const DEVICES := "Population/Security/Devices/"
 
@@ -73,4 +74,19 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# The security console's Network tab.
 	"terminal_network":
 	{"feet": Vector3(16.05, 0, 1.0), "look": Vector3(16.05, 1.45, 0.25), "terminal": DEVICES + "SecurityConsole"},
+	# M9h (ADR 0099): the map zoomed in around the panel's centre, and with a node's menu open.
+	"terminal_network_zoom":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"terminal": DEVICES + "SecurityConsole",
+		"zoom": 1.8,
+	},
+	"terminal_network_menu":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"terminal": DEVICES + "SecurityConsole",
+		"select": "Vault Turret",
+	},
 }

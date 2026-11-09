@@ -11,6 +11,7 @@ extends GdUnitTestSuite
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
 ## Devices on the building's switch, SecuritySwitch (besides the switches and the console itself).
 const BUILDING: Array[String] = [
 	"CameraHall",
@@ -68,7 +69,7 @@ func test_the_console_reaches_both_parts_and_each_switch_cuts_only_its_own() -> 
 	for device_name: String in BUILDING + YARD + ["SecuritySwitch", "YardSwitch"]:
 		assert_bool(rows.has(device_name)).override_failure_message("missing " + device_name).is_true()
 		assert_bool(rows.get(device_name, false)).override_failure_message(device_name + " offline").is_true()
-	_assert_graph_labels_apart(console)
+	_assert_graph_readable(console)
 
 	# Breaker B (building power) unpowers the building's switch: the console reaches nothing, but the
 	# yard's cameras still reach the yard's controller and it its sirens.
@@ -161,24 +162,15 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	assert_array(EventLog.find(&"siren.started")).is_empty()
 
 
-# The console's Network tab at the terminal screen's graph size (as measured on screen): every
-# node's name and status line clear of the others and inside the graph.
-func _assert_graph_labels_apart(console: Terminal) -> void:
-	var graph: NetworkGraph = auto_free(NetworkGraph.new())
-	add_child(graph)
-	graph.size = Vector2(1050, TerminalScreen.TAB_HEIGHT)
+# The console's Network tab at the terminal screen's graph size (ADR 0099, network_map_checks.gd):
+# boxes apart, no cable crossing or under a box, every node shown when fitted, deterministic; two
+# groups (one per switch) and a fitted zoom that keeps labels readable.
+func _assert_graph_readable(console: Terminal) -> void:
 	var rows := console.devices()
-	graph.show_network(rows, Terminal.cables(rows), console.config)
-	var rects := graph.node_rects()
-	assert_int(rects.size()).is_equal(rows.size())
-	var points: Array[Vector2] = []
-	points.resize(rects.size())
-	points.fill(Vector2.ZERO)
-	assert_bool(NetworkLayout.boxes_overlap(points, rects)).override_failure_message("labels overlap").is_false()
-	var inside := Rect2(Vector2.ZERO, graph.size).grow(0.01)
-	for i in rects.size():
-		assert_bool(inside.encloses(rects[i])).override_failure_message(rows[i].name + " outside").is_true()
-	graph.free()
+	var result := MapChecks.check(self, rows, Terminal.cables(rows), console.config)
+	var zoom: float = result["zoom"]
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.8)
+	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(2)
 
 
 # The yard's part on its own: the yard cameras reach the yard's controller and it a yard siren.

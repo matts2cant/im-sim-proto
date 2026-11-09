@@ -7,9 +7,11 @@ extends GdUnitTestSuite
 ## stays locked; breaker A off unlocks the fail-safe D4. The closed vault door blocks the turret's
 ## line of sight to the corridor and the entry hall. The camera covers the corridor (within 15 m and
 ## its sweep); the corridor centre line is lit (> 0.5) and both alcoves are dark (< 0.1). Room-local
-## coordinates (origin on the hub wall's outer face, +Z south).
+## coordinates (origin on the hub wall's outer face, +Z south). The terminal's network map reads well
+## (ADR 0099).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const NETWORK: Array[String] = [
 	"Devices/Camera",
@@ -120,6 +122,16 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 			assert_array(row.commands).contains([Device.DISABLE, Device.TARGET_GUARDS])
 		if row.device.entity.name == &"VaultDoor":
 			assert_array(row.commands).contains([Device.OPEN])
+
+
+# The terminal's Network tab (ADR 0099, network_map_checks.gd): one group on the switch, boxes apart,
+# no cable crossing or under a box, every node shown when fitted at a readable zoom, deterministic.
+func test_the_terminals_network_map_is_readable() -> void:
+	var rows := _terminal().devices()
+	var result := MapChecks.check(self, rows, Terminal.cables(rows), _terminal().config)
+	var zoom: float = result["zoom"]
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.9)
+	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(1)
 
 
 func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
