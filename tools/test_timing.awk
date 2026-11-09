@@ -1,56 +1,74 @@
-# Where one GdUnit process spent its time, from its timestamped output ("<epoch s.us> <line>" per
-# line, as tools/run_tests.sh writes reports/shards/<n>/timed.log).
-# Usage: gawk -v launch=<epoch s> -v end=<epoch s> -f tools/test_timing.awk timed.log
-#   launch, end: when the process started and exited (default: first and last line); with -v ms=1
-#   they are in milliseconds.
-# Prints one line with seconds that add up to end - launch:
-#   startup  process start -> GdUnit banner (engine, project and autoload start-up)
-#   scan     -> first "Run Test Suite" (GdUnit init; loads each suite script with its preloads and parses it)
-#   suites   "Run Test Suite" -> "Statistics" of each suite, split into test bodies (STARTED ->
-#            PASSED/FAILED) and around tests (before/after hooks, scene runner set-up and free,
-#            GdUnit's orphan and error checks)
-#   between  "Statistics" -> next "Run Test Suite" (suite load and instantiation, report writes)
-#   tail     last "Statistics" -> process exit (summary, HTML/XML reports, shutdown)
+# Where the shard processes of one tools/run_tests.sh run spent their time, from GdUnit's XML reports.
+# Usage: gawk -v times_out=NEW -v times_old=OLD -f tools/test_timing.awk shards.tsv
+#   shards.tsv: one line per shard: <shard> <start ms> <end ms> <results.xml path or "-"> (tab-separated)
+# Prints, per shard with a report, one line
+#   timing <shard> <wall ms> <text>
+# where the text splits the wall time into the suites (GdUnit's suite times, split into test cases and
+# the rest: before()/after(), scene runners, orphan checks) and everything outside the suites
+# (engine start-up, GdUnit's scan of the suite scripts, loading each suite, reports, shutdown); then
+#   slowest <shard> <wall ms> <text>      (the same line for the shard that took longest)
+#   overhead <per shard s> <per suite s> <shards fitted>
+# from a least-squares fit of (wall - suite times) = per shard + per suite x suites over the shards.
+# times_out gets "<res://suite path>\t<seconds>" per suite: its GdUnit time plus the per-suite
+# overhead, i.e. its share of a shard's wall time (tools/run_tests.sh balances shards on it),
+# followed by the suites of times_old this run did not measure.
+BEGIN { FS = "\t" }
+function attr(s, name) {
+	if (match(s, " " name "=\"[^\"]*\"")) return substr(s, RSTART + length(name) + 3, RLENGTH - length(name) - 4)
+	return ""
+}
 {
-	t = $1 + 0
-	line = substr($0, index($0, " ") + 1)
-	gsub(/\x1b\[[0-9;]*m/, "", line)
-	sub(/\r$/, "", line)
-	if (first_t == "") first_t = t
-	last_t = t
-}
-scan0 == "" && line ~ /GdUnit4 Comandline Tool/ { scan0 = t }
-line ~ /^Run Test Suite: / {
-	if (run0 == "") run0 = t
-	if (stats_t != "") between += t - stats_t
-	suite_t = t
-	in_suite = 1
-	test_t = ""
-	next
-}
-in_suite && line ~ / STARTED$/ { test_t = t; next }
-in_suite && test_t != "" && line !~ /^Statistics:/ && line ~ / (PASSED|FAILED|ERROR|FLAKY|SKIPPED)( |$)/ {
-	tests += t - test_t
-	test_t = ""
-	next
-}
-in_suite && line ~ /^Statistics: / {
-	suites += t - suite_t
-	n_suites++
-	stats_t = t
-	in_suite = 0
-	next
+	shard = $1
+	wall = ($3 - $2) / 1000.0
+	xml = $4
+	if (xml == "-" || xml == "") next
+	n = 0
+	suite_s = 0
+	case_s = 0
+	while ((getline line < xml) > 0) {
+		if (line ~ /<testsuite /) {
+			path = "res://" attr(line, "package") "/" attr(line, "name") ".gd"
+			t = attr(line, "time") + 0
+			suite_time[path] = t
+			suite_s += t
+			n++
+		} else if (line ~ /<testcase /) {
+			case_s += attr(line, "time") + 0
+		}
+	}
+	close(xml)
+	if (n == 0) next
+	k++
+	x[k] = n
+	y[k] = wall - suite_s
+	text = sprintf("%d suites %.1fs (test cases %.1fs, suite hooks and scene set-up %.1fs) + start-up, scan, suite loading and shutdown %.1fs",
+		n, suite_s, case_s, suite_s - case_s, wall - suite_s)
+	printf "timing %s %d %s\n", shard, wall * 1000, text
+	if (wall > slowest_wall) { slowest_wall = wall; slowest = sprintf("slowest %s %d %s", shard, wall * 1000, text) }
 }
 END {
-	if (ms) {
-		launch /= 1000
-		end /= 1000
+	# Fit y = a + b x; with fewer than 3 shards or equal suite counts, assume 0.1 s per suite.
+	b = 0.1
+	if (k >= 3) {
+		for (i = 1; i <= k; i++) { mx += x[i] / k; my += y[i] / k }
+		for (i = 1; i <= k; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ^ 2 }
+		if (sxx > 0) b = sxy / sxx
 	}
-	if (launch == "") launch = first_t
-	if (end == "") end = last_t
-	if (run0 == "") run0 = end
-	if (scan0 == "") scan0 = run0
-	tail_s = (stats_t != "" ? end - stats_t : end - run0)
-	printf "startup %.1fs + scan %.1fs + %d suites %.1fs (test bodies %.1fs, around tests %.1fs) + between suites %.1fs + reports/shutdown %.1fs\n",
-		scan0 - launch, run0 - scan0, n_suites, suites, tests, suites - tests, between, tail_s
+	if (b < 0) b = 0
+	if (b > 2) b = 2
+	a = 0
+	for (i = 1; i <= k; i++) a += (y[i] - b * x[i]) / k
+	if (slowest != "") print slowest
+	printf "overhead %.1f %.2f %d\n", a, b, k
+	if (times_out != "" && k > 0) {
+		for (p in suite_time) printf "%s\t%.3f\n", p, suite_time[p] + b > times_out
+		if (times_old != "") {
+			while ((getline line < times_old) > 0) {
+				split(line, f, "\t")
+				if (!(f[1] in suite_time) && f[1] != "") print line > times_out
+			}
+			close(times_old)
+		}
+		close(times_out)
+	}
 }
