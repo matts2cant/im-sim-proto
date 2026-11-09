@@ -357,6 +357,8 @@ func _layout() -> void:
 	for i in _nodes.size():
 		_nodes[i].position = layout.rects[i].position
 		_align(_nodes[i], layout.sides[i])
+	# A Control is culled by its own rect: the content's covers everything it draws.
+	content.size = layout.bounds.size
 	content.queue_redraw()
 	view.set_content(layout.bounds)
 	if not _try_fit():
@@ -498,9 +500,10 @@ func _restyle(selected_index: int) -> void:
 			style.set_border_width_all(3 if row.is_self else 2)
 
 
-# Beside the selected node as shown, clamped inside the panel; it follows the node when the view
-# moves. The first place wholly in the panel of: the node's outer side (away from its bus, where its
-# column has no neighbours), below, above, the bus side; a hub: below, right, left, above.
+# Beside the selected node as shown, inside the panel; it follows the node when the view moves.
+# Places, each slid inside the panel: the node's outer side (away from its bus, where its column has
+# no neighbours), below, above, the bus side (a hub: below, right, left, above); the first that does
+# not cover the node wins, else the first.
 func _place_menu() -> void:
 	var index := _index_of(selected) if is_instance_valid(selected) else -1
 	if index < 0 or index >= _nodes.size():
@@ -521,13 +524,14 @@ func _place_menu() -> void:
 		candidates = [right, below, above, left]
 	elif side < 0:
 		candidates = [left, below, above, right]
-	var inside := Rect2(Vector2.ZERO, panel)
-	var at := candidates[0]
+	var limit := (panel - menu_size).max(Vector2.ZERO)
+	var at := candidates[0].clamp(Vector2.ZERO, limit)
 	for candidate in candidates:
-		if inside.encloses(Rect2(candidate, menu_size)):
-			at = candidate
+		var slid := candidate.clamp(Vector2.ZERO, limit)
+		if not Rect2(slid, menu_size).intersects(box):
+			at = slid
 			break
-	menu.position = at.clamp(Vector2.ZERO, (panel - menu_size).max(Vector2.ZERO))
+	menu.position = at
 
 
 func _index_at(point: Vector2) -> int:

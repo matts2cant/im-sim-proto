@@ -99,7 +99,9 @@ func test_a_network_without_hubs_hangs_on_its_most_cabled_device() -> void:
 	assert_array(NetworkLayout.arrange([], [], [], ANCHOR).rects).is_empty()
 	var single := NetworkLayout.arrange([Vector3(4, 0, 4)], [], [BOX], ANCHOR)
 	assert_array(Array(single.hubs)).is_equal([0])
-	assert_vector(single.bounds.size).is_equal(BOX)
+	# The bounds hold its slot: its width rounded up to WIDTH_STEP (100 -> 120 px).
+	assert_vector(single.bounds.size).is_equal(Vector2(120, 40))
+	assert_bool(single.bounds.encloses(single.rects[0])).is_true()
 
 
 func test_groups_stand_apart_west_to_east_and_neighbouring_hubs_join_straight() -> void:

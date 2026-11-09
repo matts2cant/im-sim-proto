@@ -51,7 +51,7 @@ var parent: PackedInt32Array = []
 var hubs: PackedInt32Array = []
 ## Per cable (same order as `cables`): its route.
 var routes: Array[PackedVector2Array] = []
-## Everything drawn: boxes and routes.
+## Everything drawn: the boxes' column slots and the routes (it starts at the origin).
 var bounds: Rect2 = Rect2()
 
 var _positions: Array[Vector3] = []
@@ -143,12 +143,21 @@ func _run(aspect: float) -> void:
 		_place_group(hub)
 	_arrange_groups(aspect)
 	_route()
-	bounds = rects[0]
-	for rect in rects:
-		bounds = bounds.merge(rect)
+	# From the columns' slots (not the boxes), so a status change does not move everything.
+	bounds = _group_bounds[hubs[0]]
+	for hub in hubs:
+		bounds = bounds.merge(_group_bounds[hub])
 	for route in routes:
 		for point in route:
 			bounds = bounds.expand(point)
+	# Everything moved so the bounds start at the origin.
+	var shift := -bounds.position
+	for i in rects.size():
+		rects[i].position += shift
+	for k in routes.size():
+		for p in routes[k].size():
+			routes[k][p] += shift
+	bounds.position = Vector2.ZERO
 
 
 # Hubs, groups and the tree each group hangs on.
