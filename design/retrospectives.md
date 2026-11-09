@@ -63,6 +63,20 @@ Final suite: 1400 tests, 0 failures, 76 s.
 - Dropping out of duct B onto the cabinet makes four guards suspicious. Should it be quieter?
 - Still open from M8: keypad pauses but terminal does not; Searching guards alert on any glimpse (suspicion meter instead?); a remote "open" leaves a locked door locked.
 
+### Playtest feedback (2026-11-09)
+
+"Pretty cool", with four points. They are being fixed in M9g (ADR 0094-0097):
+- **One guard alerted on entering the manager office through duct B.**
+  - Cause: a defect in noise propagation. When the navmesh path from a noise did not reach a listener, `StimulusSystem._reach()` closed the gap with a straight line through walls and floors. The landing snapped to a navmesh island on the cabinet top, so G5, G6 and G7 heard it through the walls.
+  - G7 then looked around just outside the door and saw the player open it. M9f's "four guards suspicious" note was this bug, not intended noise.
+  - Fix: the path is queried from the listener when it stops short, and a straight gap is accepted only if no wall is in the way. Investigation arrival also checks height (ADR 0094).
+- **Darkness too strong.** Below light 0.1 the sight gain was 0 beyond 2 m. Moving targets now keep a small light factor in the dark, and guards carry flashlights: yard patrols always, and every guard while Searching or Alerted (ADR 0095).
+- **Rush run in 1:30** (crates to the roof, duct B, manifest, boat). The roof was a safe layer with no threat. Laser tripwires as network devices (ADR 0096), then roof lasers and a roof camera or patrol in the warehouse (ADR 0097).
+- **Process:**
+  - The route tests passed with Ghost while three guards went Suspicious on every duct B entry. Ghost only counts alerts, and no test checked who heard what.
+  - Lesson: scenario tests on a stealth route also assert that no guard becomes Suspicious where the design says the route is quiet.
+  - The reproduction-first bug brief found the real cause again. My guess (cabinet noise) was wrong.
+
 ## M8 — Security (2026-11-08)
 
 Four agents in three waves: M8a devices, cable graph, remote commands and alarm devices (ADR 0077, replacing the global LevelAlarm per ADR 0075); M8b doors, locks, keypads, multitool removal, Computer skill (ADR 0078, 0076); M8c cameras, turret, terminal (ADR 0079, 0080); M8d the security wing (gallery room 5). A Sonnet agent fixed a flaky HUD test before the last merge. Final suite: 1188 tests, 0 failures.
