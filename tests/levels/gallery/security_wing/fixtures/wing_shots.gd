@@ -47,11 +47,13 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"laser_pair_crouched": {"feet": Vector3(-5.2, 0, 15.2), "look": Vector3(-6.6, 0.9, 16.4), "crouched": true},
 	"laser_signs": {"feet": Vector3(-7.0, 0, 13.0), "look": Vector3(-4.5, 1.9, 13.6)},
 	"laser_emitters": {"feet": Vector3(-4.9, 0, 12.8), "look": Vector3(-7.5, 0.9, 15.2)},
+	"laser_pair_emitter": {"feet": Vector3(-6.0, 0, 15.3), "look": Vector3(-7.45, 0.85, 16.4)},
+	"laser_pair_receiver": {"feet": Vector3(-6.0, 0, 15.3), "look": Vector3(-4.55, 0.85, 16.4)},
 	"laser_terminal":
 	{
 		"feet": Vector3(-0.25, 0, 8.1),
 		"look": Vector3(-0.25, 1.45, 9),
-		"terminal": "LaserPairHigh",
+		"terminal": "LaserPair",
 		"wait": 2.5,
 	},
 }
