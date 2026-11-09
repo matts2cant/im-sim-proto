@@ -21,7 +21,12 @@ func before_test() -> void:
 	add_child(_scene)
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(_map())
 	var region: NavigationRegion3D = _scene.get_node("Rooms/NavigationRegion")
+	# A map switched to synchronous iterations while an asynchronous one runs stops iterating: this
+	# region never joins it and the noise path ran to a late-freed earlier fixture's floor and back
+	# (heard by nobody). use_sync_iterations() makes sure the map iterates; isolate_region() keeps
+	# such floors out of the path.
 	await GuardHelpers.use_sync_iterations(_map(), region)
+	GuardHelpers.isolate_region(_map(), region)
 	region.navigation_mesh = region.navigation_mesh.duplicate() as NavigationMesh
 	region.bake_navigation_mesh(false)
 	await Objects.frames(get_tree(), 5)
