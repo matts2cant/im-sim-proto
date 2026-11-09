@@ -1,0 +1,27 @@
+# 93. Warehouse route scenario tests: chained segments, condition waits; the annex window and the cache shed; shared sensor scan; deferred level change
+
+Status: Accepted
+
+Date: 2026-11-09
+
+## Context
+
+M9 wave 3 ([mission-warehouse.md](../levels/mission-warehouse.md) "Targets") asks for every main route to be doable ghost, pacifist and loud with the starting kit, covered by scenario tests that drive the real player through the real populated level with its guards at work, from PlayerSpawn to the manifest and the boat. A whole route is 100-180 s of game time; the full test run must stay near 40 s and each test well under 30 s of wall time. The M9e review left two systems without a level use (Combat Strength, stacking props), and the hub to warehouse level change printed "Removing a CollisionObject node during a physics callback".
+
+## Decision
+
+- **A route is one suite of segments.** Each test plays one segment and ends by capturing the level's saveable state with `LevelSnapshot.capture()` (as a quicksave does), kept in the suite; the next test loads a fresh fixture and restores it with `LevelSnapshot.apply()` before the navmesh bake. The badges asserted at the extraction (`MissionTally`, saved with the Mission) therefore count the whole route. The segments of a suite run in order; a segment run alone fails with "no saved state". One route (the vault) starts arranged in the manager office: its ways in are the other routes'.
+- **Moves are waypoints and conditions, not frame counts** (`tests/levels/mission/warehouse_route_driver.gd`, `warehouse_route_hands.gd`): the view turns toward the next waypoint every physics frame while the movement keys are held, with a time budget from the distance; `sneak()` crouches while a guard is near; waits are conditions on the guards (`patrol_target()`, `glance_over()`, `behind()`, no guard near a point). Interactions aim the real camera ray (corrected for the camera's offset from the head's pivot, after the eyes settle) and press E; shots wait for the aim cone to settle and need a clear line. Every random source is seeded (guards' awareness and combat, weapons, debris). Guard reactions and mission events are noted for failure messages.
+- **The routes tested** (wall times in the doc): fence (ghost), culvert (ghost), vault (ghost and pacifist with two takedowns, the console chain, the prototype) and loud (the alarm, the reinforcements, kills, the shipment). The loud route does not hold the gate lane: every guard converges on an alarm within seconds (radio), and the test player was knocked out in every attempt to fight it out with 20 rounds. It raises the alarm, then holds the outside containers (out of reach: guards cannot climb) and shoots the guards that come close, and continues by the roof, which is what a player with the starting kit can do.
+- **Level fixes found by the tests**: the office stair's top was impassable (the hole railing left 0.65 m between its end and the wall, the capsule is 0.7 m): it now ends 1.05 m short of the wall. The shipment's fuel drum stays where it is: it is shot from the roof through the dock's west skylight (over the railing, a shallow line); from the east skylight's railing every line crossed the rails or the slab.
+- **Combat Strength: the cache shed.** A concrete shed (1.2 x 1.2 x 1.2 m inside) in the back strip's south-west corner with its opening closed by a large crate (60 kg): carried away only with Combat Strength on (70 kg limit; 20 kg without). Inside: a medkit and 10 pistol rounds. Optional; breaking the crate is another way in.
+- **Stacking: the annex's high window.** A 1.2 x 1.1 m window in the annex's south wall, sill 2.9 m: from the ground it is out of reach even with Speed Enhancement (2.5 m), from one small crate (0.6 m) it is a 2.3 m mantle (Speed only, the metrics' Speed ledge), from two stacked small crates (1.2 m) a 1.7 m mantle. Two small crates stand beside it; a 1.5 m ledge inside breaks the drop. It opens the annex (breaker A, a biocell) without lockpicks. Optional.
+- **Sensors share one Tags scan per physics frame** (`PerceptionSensor.tagged_any()`): `look()` and `look_for_bodies()` iterated every Tags node in the tree, per guard, per frame (hundreds of tagged props in the warehouse). The candidates (Tags with one of a tag list) are now collected once per physics frame and tag list and shared; each sensor still checks the live tags. A body downed during a frame is seen by sensors from the next frame. The warehouse's per-frame cost with ten guards went from 7.1 ms to 2.8 ms.
+- **Level changes are deferred**: `LevelReset.load_level()` calls `change_scene_to_file` deferred, so a trigger that changes the level from its `body_entered` (a physics callback, `LevelExit`) no longer removes collision objects inside the callback. The current scene stays in the tree until the deferred calls run (`mission_level_change_test` asserts it is still in the tree when the callback returns).
+
+## Consequences
+
+- The four route suites take about 25-40 s each (one shard each in a full run).
+- A change to the level or the guards that breaks a route fails a route test with the noted guard reactions; patrol timing changes are absorbed by the condition waits.
+- Segment chaining depends on `LevelSnapshot` restoring everything that matters; a saveable that does not restore its state makes a later segment differ from a played-through route.
+- Loud play with the starting kit cannot hold ground against the whole compound; whether that is too hard is a playtest question.

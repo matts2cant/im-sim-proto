@@ -280,6 +280,13 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] Signs over the office doors (OFFICES, MANAGER, VAULT, SECURITY, STAIRS, FIRE EXIT) read at night from the hall and the corridors and lead to the manager's office without markers.
   - [ ] The security console's Network tab: no label hides another; statuses (the front gate's "unlocked") are readable; the graph does not jump when a status changes.
   - [ ] Guards chase you out through doors that open freely from their side (the side door into the west yard, the back gate onto the quay); they never follow you in through such a door without its key.
+- [ ] Warehouse routes and additions (M9f, [mission-warehouse.md](../levels/mission-warehouse.md#routes-covered-by-tests-m9f), [ADR 0093](../decisions/0093-warehouse-route-tests.md); review shots: `warehouse_shots.tscn` with `-- shots=m9f_window_out,m9f_window_in,m9f_window_sill,m9f_cache,m9f_cache_open,m9f_office_stair_top,m9f_drum_skylight,m9f_duct_c_exit,m9f_corridor_g7 out=res://reports/screenshots/m9f`):
+  - [ ] Play each tested route by hand (fence, culvert, vault, loud: the routes table in the doc) and compare with the tests: the waits they use (G2 leaving the annex for the yard's north end, G9 turning back west at the fire escape, G3 leaving the drain chamber) are readable from where the player hides.
+  - [ ] Annex window: the two small crates beside the annex's south wall invite stacking; carrying and putting one on the other under the window works at the first or second try; from the stack the window is a mantle (ends crouched in the window); inside, the ledge breaks the drop, and the way back out works (ledge, sill, drop onto the stack).
+  - [ ] Cache shed: from the back strip's dark corner the large crate in the shed's opening reads as something to move ("Too heavy" without Combat Strength); with Combat Strength on it lifts, can be put aside, and the medkit and rounds inside are picked up crouched.
+  - [ ] Office stair: off the stair's top west onto the upper floor without snagging on the hole railing's end.
+  - [ ] Loud: after the gate camera's alarm, the containers north-west of the gate are a place to hold (guards cannot climb them) and shoot from; the compound converging within seconds feels tight, not hopeless. The fuel drum can be shot from the roof through the dock's west skylight.
+  - [ ] Vault without a fight: duct C into the security room behind G5 between two of his glances, the console (credentials from the manager's audit note) disables the turret and the office camera and opens the vault; G7 can be knocked out from behind as he glances east.
 
 ## Generic character components (ADR 0056)
 
