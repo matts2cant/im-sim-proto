@@ -29,3 +29,4 @@ Parked items, out of scope for v0.
 | Git LFS, GitHub remote, CI | Remote workflow | Local git only for now ([ADR 0019](decisions/0019-version-control.md)) |
 | Voiced barks | Replace text barks | Text and placeholder sound suffice ([ADR 0022](decisions/0022-guard-feedback.md)) |
 | Inventory rotation | Rotate items on the grid | Fixed footprints keep it simple ([ADR 0015](decisions/0015-inventory-grid.md)) |
+| Route used in the mission summary | Show which entry route the player took | Dropped from M9: detecting a route needs per-route markers; time, alarms, kills and badges suffice ([ADR 0086](decisions/0086-warehouse-mission.md)) |

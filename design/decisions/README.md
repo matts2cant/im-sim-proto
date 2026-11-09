@@ -87,3 +87,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0083](0083-security-terminal-redesign.md) | Security terminal redesign: Camera and Network tabs, device status from components, Esc only | Accepted |
 | [0084](0084-parallel-fixed-fps-test-runner.md) | Test runner: parallel shards, simulated time (`--fixed-fps`), output to files, import only when needed | Accepted (amends 0011) |
 | [0085](0085-weapons-and-attachments.md) | Shotgun, sniper rifle, assault rifle and weapon attachments (pellets, full-auto, scope, silencer as modifiers) | Accepted |
+| [0086](0086-warehouse-mission.md) | Warehouse mission: separate level, fixed kit, objectives, badges, reinforcements, weapon drops | Accepted |

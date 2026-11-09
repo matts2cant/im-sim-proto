@@ -65,7 +65,7 @@ flowchart LR
 | M6 | Skills, augmentations, energy, stats tab, save/load (Esc game menu) | Inventory bay |
 | M7 | Light level, guard perception and AI, alerts, bodies | Perception lab, AI arena |
 | M8 | Security: cameras, turret, doors/locks/keypads, terminals (credentials placeholder); security devices with a stimulus-based remote command interface over a physical link graph; alarm controller, sirens and radio base station replace the global LevelAlarm; multitool and Electronics removed ([ADR 0075](decisions/0075-alarms-as-network-devices.md), [ADR 0076](decisions/0076-computer-skill-multitool-removed.md)) | Security wing |
-| M9 | Mission area and scenario tests | Mission |
+| M9 | Mission: warehouse (separate night level, objectives, summary with ghost/pacifist badges, reinforcements, weapon drops) and scenario tests ([ADR 0086](decisions/0086-warehouse-mission.md)) | Warehouse mission |
 | M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
 | M11 | Network hacking: addresses, subnets, firewalls; the deck and its tools; computers with Mail, Files, Security; intrusion (credentials, Icebreaker, exploits); tracers; Computer skill consumers ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
 
@@ -96,7 +96,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 - [levels/metrics.md](levels/metrics.md): player size, clearances, jump/mantle limits, noise numbers for level building.
 - [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms; a network lab planned for M11.
-- [levels/mission-warehouse.md](levels/mission-warehouse.md): warehouse mission, four routes.
+- [levels/mission-warehouse.md](levels/mission-warehouse.md): warehouse mission: night compound, many routes, objectives, badges.
 
 ### Tech
 
@@ -107,6 +107,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (81 decisions, 0001–0083; 0062 and 0081 unused).
+- [decisions/README.md](decisions/README.md): ADR index (84 decisions, 0001–0086; 0062 and 0081 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

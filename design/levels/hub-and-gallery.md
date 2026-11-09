@@ -16,7 +16,7 @@ graph TD
     H --> R6["6 AI arena"]
     H --> R7["7 Inventory and abilities bay"]
     H --> R8["8 Network lab (M11)"]
-    H --> M["Mission area"]
+    H --> M["Warehouse mission (separate scene, M9)"]
 ```
 
 ## Rooms
@@ -32,7 +32,7 @@ graph TD
 | 7 | Inventory and abilities bay | Items of every footprint, stats menu | M5, M6 | [inventory](../game/inventory.md), [abilities](../game/abilities.md) |
 | 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M11 | [hacking](../game/hacking.md) |
 
-The mission area is described in [mission-warehouse.md](mission-warehouse.md).
+The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described in [mission-warehouse.md](mission-warehouse.md). The hub's west wall north doorway loads it when the player walks through; the mission offers a way back to the hub after extraction ([ADR 0086](../decisions/0086-warehouse-mission.md)). Nothing the player carries in the hub comes along.
 
 ## Hub
 
@@ -271,7 +271,7 @@ Tests (`tests/levels/gallery/ai_arena/`): `ai_arena_test.gd` (the room alone: sh
 
 ## 7 Inventory and abilities bay
 
-`levels/gallery/inventory_bay/inventory_bay_room.tscn`, instanced at hub (-15.5, 0, 7.5) and turned so its local -Z points west (-X) through doorway "7 Inventory & Abilities"; local +X is hub -Z (towards the mission doorway). Kit parts only, M5 item pickups from `items/`, kit `Sign`s. A 3.5 m corridor (`Shell/Corridor`, 2 x 3 m, walls shared as in [ADR 0043](../decisions/0043-room-connections-share-a-wall.md)) leads into a 12 x 16 m hall, 5 m high, concrete (`Shell/Hall`, interior x -6 to 6, z -4 to -20). Footprint in hub coordinates (outer wall faces): x -19 to -36, z 1 to 14. The hall is 12 m across the door rather than 16 so it stays south of hub z 0.5 (the mission doorway at z -7.5 keeps the north half of the west side) and north of hub z 15.5 (room 6 lies beyond the south wall). Lighting: a corridor light and four shadowed 0.9-energy ceiling lights.
+`levels/gallery/inventory_bay/inventory_bay_room.tscn`, instanced at hub (-15.5, 0, 7.5) and turned so its local -Z points west (-X) through doorway "7 Inventory & Abilities"; local +X is hub -Z (towards the mission doorway). Kit parts only, M5 item pickups from `items/`, kit `Sign`s. A 3.5 m corridor (`Shell/Corridor`, 2 x 3 m, walls shared as in [ADR 0043](../decisions/0043-room-connections-share-a-wall.md)) leads into a 12 x 16 m hall, 5 m high, concrete (`Shell/Hall`, interior x -6 to 6, z -4 to -20). Footprint in hub coordinates (outer wall faces): x -19 to -36, z 1 to 14. The hall is 12 m across the door rather than 16 so it stays north of hub z 15.5 (room 6 lies beyond the south wall). Lighting: a corridor light and four shadowed 0.9-energy ceiling lights.
 
 Floor plan (room-local, 1 column = 0.33 m, rows not to scale; top is the back wall):
 
@@ -328,4 +328,4 @@ Not built yet (M11). Size and position: measure the free space between neighbour
 
 ## Open questions
 
-- The mission area behind the west wall's north doorway must stay north of hub z 1 (the outer face of room 7's north wall). South of the hub, room 5 takes hub x -0.5 to 18.5 up to z 38 and room 6 x -25.5 to -1 up to z 36. Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
+- The west wall's north doorway loads the mission scene, so it needs no space behind the wall. South of the hub, room 5 takes hub x -0.5 to 18.5 up to z 38 and room 6 x -25.5 to -1 up to z 36. Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
