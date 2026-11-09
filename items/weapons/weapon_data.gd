@@ -23,8 +23,10 @@ enum Kind { RANGED, MELEE }
 @export var max_range: float = 60.0
 ## Weapon class whose attributes of the user scale this weapon (ADR 0061): `<class>_damage_mult`
 ## (damage stimuli, Stimulus.scale_attribute), `<class>_cycle_mult`, `<class>_reload_mult`,
-## `<class>_spread_mult` (cone floors and bloom) and `<class>_settle_time` (base: AimConfig).
-## Pistols and Low-Tech skills, Combat Strength write them. Empty: nothing scales it.
+## `<class>_spread_mult` (cone floors, bloom and the pellet cone), `<class>_settle_time` (base:
+## AimConfig) and `<class>_sway_mult`. The Pistols (`pistol`), Rifles (`rifle`: assault rifle and
+## shotgun), Sniper (`sniper`) and Low-Tech (`melee`) skills and Combat Strength write them (ADR
+## 0101). Empty: nothing scales it.
 @export var attribute_class: StringName = &""
 
 @export_group("Ammo")

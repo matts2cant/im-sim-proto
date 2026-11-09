@@ -21,6 +21,7 @@ kind = 0
 damage = Dictionary[StringName, float]({&"damage.ballistic": 12.0})
 cycle_time = 0.9
 max_range = 30.0
+attribute_class = &"rifle"
 pellets = 8
 pellet_spread_deg = 2.5
 magazine_size = 6

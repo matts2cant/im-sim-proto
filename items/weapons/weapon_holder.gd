@@ -11,8 +11,9 @@ extends Node3D
 ## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
 ## carries its part).
 ## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
-## (through Stimulus.scale_attribute), cycle, reload, cone floors and bloom, settle time; crouching
-## (`stance.crouch`) settles faster (AimConfig.crouch_settle_factor).
+## (through Stimulus.scale_attribute), cycle, reload, cone floors, bloom and the pellet cone, settle
+## time, sway (on top of `aim_sway_mult`); crouching (`stance.crouch`) settles faster
+## (AimConfig.crouch_settle_factor).
 ## Per weapon (ADR 0085): several projectiles per shot spread inside a cone (WeaponData.pellets,
 ## PelletPattern), automatic fire while `trigger_held`, the weapon's own aim cone
 ## (WeaponData.aim_config) and a scope (toggle_scope(); `scope`, a ScopeState: the scope's cone, the
@@ -39,6 +40,15 @@ const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
 @export var aim_config: AimConfig
 ## Seed of the shot RandomNumberGenerator; 0 = random (tests seed it).
 @export var rng_seed: int = 0
+## First-person view: every weapon's grip pivot (WeaponData.view_offset) moved on screen by this
+## angle, degrees (x: to the right, y: down; WeaponView.shift_deg), one rule for every weapon. The
+## player's camera holder lowers its view models with it (ADR 0101); zero leaves the pose as the
+## weapon's data has it (guards: the gun they hold).
+@export var view_shift_deg: Vector2 = Vector2.ZERO:
+	set(value):
+		view_shift_deg = value
+		if _view != null:
+			_view.shift_deg = value
 
 ## The character holding the weapons (shots come from it; its body and hitboxes are excluded).
 var user: CollisionObject3D
@@ -78,6 +88,7 @@ func _ready() -> void:
 	for data in weapons:
 		states.append(WeaponState.new(data))
 	_view = WeaponView.new()
+	_view.shift_deg = view_shift_deg
 	add_child(_view)
 	flash = _view.flash
 	_audio = AudioStreamPlayer3D.new()
@@ -163,7 +174,7 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 	var stance_floor := aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult)
 	_floor = minf(stance_floor + floor_add, aim.config.max_spread_deg)
 	aim.step(delta, _floor, _settle_time())
-	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0))
+	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0) * _class_value("sway_mult", 1.0))
 	# Automatic fire before the cooldowns tick: one shot every cycle_time while held.
 	_auto_fire()
 	var stepped := states.duplicate()
@@ -324,7 +335,9 @@ func _shoot(data: WeaponData) -> void:
 	var from := aim_transform()
 	var centre := aim.sample_direction(from.basis)
 	var spread := aim.spread
-	var directions := PelletPattern.spread(centre, from.basis.y, data.pellets, data.pellet_spread_deg, aim.rng)
+	# The pellet cone narrows with the shooter's skill like the aim cone (`<class>_spread_mult`).
+	var pellet_spread := data.pellet_spread_deg * _class_value("spread_mult", 1.0)
+	var directions := PelletPattern.spread(centre, from.basis.y, data.pellets, pellet_spread, aim.rng)
 	var exclude := _own_rids()
 	var space := get_world_3d().direct_space_state
 	var rays: Dictionary[StringName, float] = data.damage.duplicate()

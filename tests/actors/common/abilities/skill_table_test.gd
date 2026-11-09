@@ -27,6 +27,34 @@ func test_pistols_settle_time_per_tier_from_the_untrained_base() -> void:
 		assert_float(attributes.evaluate(&"pistol_settle_time", 0.8)).is_equal_approx(expected[tier], 0.0001)
 
 
+func test_rifles_and_sniper_scale_like_pistols_per_tier() -> void:
+	# ADR 0101: spread, reload and damage per tier as Pistols.
+	var spread: Array[float] = [1.0, 0.8, 0.6, 0.4]
+	var reload: Array[float] = [1.0, 0.85, 0.7, 0.5]
+	var damage: Array[float] = [1.0, 1.1, 1.2, 1.3]
+	for tier in 4:
+		for weapon_class: String in ["rifle", "sniper"]:
+			var skill := TABLE.find(&"rifles" if weapon_class == "rifle" else &"sniper")
+			var attributes := AttributeSet.new()
+			for modifier in skill.modifiers_for(tier):
+				attributes.add_modifier(modifier)
+			var read := func(stat: String) -> float: return attributes.evaluate(StringName(weapon_class + stat), 1.0)
+			assert_float(read.call("_spread_mult")).is_equal_approx(spread[tier], 0.0001)
+			assert_float(read.call("_reload_mult")).is_equal_approx(reload[tier], 0.0001)
+			assert_float(read.call("_damage_mult")).is_equal_approx(damage[tier], 0.0001)
+
+
+func test_sniper_steadies_the_scope_and_rifles_leave_settle_and_sway_alone() -> void:
+	var settle: Array[float] = [1.0, 0.8, 0.6, 0.4]
+	var sway: Array[float] = [1.0, 0.75, 0.5, 0.25]
+	for tier in 4:
+		var values := _values(TABLE.find(&"sniper"), tier)
+		assert_float(values.get(&"sniper_settle_time", 1.0)).is_equal_approx(settle[tier], 0.0001)
+		assert_float(values.get(&"sniper_sway_mult", 1.0)).is_equal_approx(sway[tier], 0.0001)
+		var rifles := _values(TABLE.find(&"rifles"), tier)
+		assert_bool(rifles.has(&"rifle_settle_time") or rifles.has(&"rifle_sway_mult")).is_false()
+
+
 func test_low_tech_and_medicine_per_tier() -> void:
 	var stun: Array[float] = [20.0, 25.0, 30.0, 40.0]
 	var heal: Array[float] = [30.0, 45.0, 60.0, 90.0]
