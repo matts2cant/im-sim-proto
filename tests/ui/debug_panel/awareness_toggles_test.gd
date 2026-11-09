@@ -45,7 +45,7 @@ func test_raise_and_clear_reach_every_controller() -> void:
 	await Fixtures.frames(get_tree(), 3)
 	for controller in controllers:
 		assert_bool(controller.is_ringing()).is_true()
-	assert_str(AwarenessToggles.state_text_for(controllers)).is_equal("ALARM 90s")
+	assert_str(AwarenessToggles.state_text_for(controllers)).is_equal("ALARM 45s")
 
 	assert_int(_toggles.clear_level_alarm()).is_equal(2)
 	await Fixtures.frames(get_tree(), 3)

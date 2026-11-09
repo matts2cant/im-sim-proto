@@ -77,7 +77,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0072](0072-shouts-radio-level-alarm.md) | Shouts, radio and the level alarm | Accepted (level alarm superseded by 0075) |
 | [0073](0073-realistic-lockpicking.md) | Realistic pin-tumbler lockpicking minigame | Accepted |
 | [0074](0074-network-hacking.md) | Network hacking: a realistic network, a deck and tracers | Accepted |
-| [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted |
+| [0075](0075-alarms-as-network-devices.md) | Alarms as network devices | Accepted, amended by 0100 |
 | [0076](0076-computer-skill-multitool-removed.md) | Computer skill replaces Electronics; the multitool is removed | Accepted |
 | [0077](0077-devices-cables-and-remote-commands.md) | Devices, cables and remote commands (M8 alarm devices) | Accepted |
 | [0078](0078-doors-locks-and-door-navigation.md) | Doors, locks as components, and doors on the navmesh | Accepted |
@@ -97,5 +97,6 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0093](0093-warehouse-route-tests.md) | Warehouse route scenario tests (chained segments, condition waits), the annex's high window and the cache shed, one shared sensor scan per frame, deferred level changes | Accepted |
 | [0094](0094-noise-reach-on-partial-paths.md) | Noise reach on partial navmesh paths (gaps only through open air, else searched backwards, else not heard); investigation arrival needs height too | Accepted |
 | [0095](0095-darkness-and-flashlights.md) | Darkness and flashlights: a light floor for moving targets in the dark (a step at 0.5 m/s), flashlights as carried spot lights lit by awareness state or a patrol flag | Accepted |
-| [0096](0096-laser-tripwires.md) | Laser tripwires: a beam device on the security network (shape query, carried ghosts, ignored tags unless downed), re-arm on a clear beam, low / high / pair heights, the security wing's laser hall | Accepted |
+| [0096](0096-laser-tripwires.md) | Laser tripwires: a beam device on the security network (shape query, carried ghosts, ignored tags unless downed), re-arm on a clear beam, low / high / pair heights, the security wing's laser hall | Accepted, amended by 0100 |
 | [0097](0097-warehouse-roof-security.md) | Warehouse roof security: high beams at the two roof arrivals, a camera over duct B's lit forecourt (with a sweep window), on the yard network (breaker A, the booth switch) | Accepted |
+| [0100](0100-laser-arrays-alarm-time-downed-targets.md) | Laser arrays (one device feeding 1 to 4 authored beams, one emitter body, one incident per crossing), the alarm rings 45 s, a downed hostile is no sighting (the turret beep loop) | Accepted |

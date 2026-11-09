@@ -1,12 +1,13 @@
 extends GdUnitTestSuite
-## Gallery room 5 (security wing): the laser hall (ADR 0096). `Shell/LaserHall` (interior x -7.5 ..
-## -4.5, z 9.5 .. 17.5, 3 m high) shares closet D1's back wall and opens from it (1.2 x 2.2 m at x
-## -6.25). Four laser tripwires on its west wall face (x -7.49) beam 2.98 m east to receivers on its
-## east wall face: LaserLow 0.4 m at z 11.5, LaserHigh 1.3 m at z 14.5, and the pair LaserPairLow /
-## LaserPairHigh (0.4 m + 1.3 m) at z 16.4, all cabled to the wing's switch. The real player walks
+## Gallery room 5 (security wing): the laser hall (ADR 0096, ADR 0100). `Shell/LaserHall` (interior
+## x -7.5 .. -4.5, z 9.5 .. 17.5, 3 m high) shares closet D1's back wall and opens from it (1.2 x
+## 2.2 m at x -6.25). Three laser arrays on its west wall face (x -7.49) beam 2.98 m east to
+## receivers on its east wall face: LaserLow (one beam, 0.4 m) at z 11.5, LaserHigh (one beam,
+## 1.3 m) at z 14.5, and LaserPair (two beams, 0.4 m + 1.3 m, one emitter) at z 16.4, all cabled to
+## the wing's switch. The real player walks
 ## in from the hall through D1 (opened), jumps the low beam (take-off 1.3 m before it, mid-window of
 ## 0.64-1.92 m), crouches under the high one, stops between the high beam and the pair, then walks
-## into the pair: the incident rings the wing's alarm. Room-local coordinates (origin on the hub
+## into the pair: one incident rings the wing's alarm. Room-local coordinates (origin on the hub
 ## wall's outer face, +Z south); fixture `fixtures/wing_player.tscn` puts the wing and a player at
 ## (600, 0, -300).
 
@@ -14,10 +15,8 @@ const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const FIXTURE := "res://tests/levels/gallery/security_wing/fixtures/wing_player.tscn"
-## Name, height above the floor, z of the beam.
-const LASERS: Array[Array] = [
-	["LaserLow", 0.4, 11.5], ["LaserHigh", 1.3, 14.5], ["LaserPairLow", 0.4, 16.4], ["LaserPairHigh", 1.3, 16.4]
-]
+## Array name, its beams' heights above the floor, z of the beams.
+const LASERS: Array[Array] = [["LaserLow", [0.4], 11.5], ["LaserHigh", [1.3], 14.5], ["LaserPair", [0.4, 1.3], 16.4]]
 const CAPSULE_RADIUS := 0.35
 ## Walking line through D1 and into the hall (the doorways span x -7.0 .. -5.8 and -6.85 .. -5.65).
 const LANE_X := -6.3
@@ -73,27 +72,35 @@ func test_beams_cross_the_hall_wall_to_wall_at_the_preset_heights() -> void:
 	var inside := _interior(room.get_node("Shell/LaserHall") as Room)
 	for spec: Array in LASERS:
 		var laser := room.get_node("Devices/" + String(spec[0])) as Node3D
-		var where := String(spec[0])
-		var behaviour := LaserTripwire.of(laser)
-		assert_float(laser.position.y).override_failure_message(where).is_equal_approx(float(spec[1]), 0.0001)
-		assert_float(laser.position.z).override_failure_message(where).is_equal_approx(float(spec[2]), 0.0001)
-		assert_vector(laser.basis.z).override_failure_message(where).is_equal_approx(Vector3.RIGHT, Vector3.ONE * 0.001)
-		# The emitter sits on the west wall face; the receiver on the east one.
-		assert_float(laser.position.x - inside.position.x).override_failure_message(where).is_between(0.0, 0.02)
-		assert_float(inside.end.x - (laser.position.x + behaviour.beam_length)).is_between(0.0, 0.02)
-		# Nothing of the world crosses the beam: the first world hit along it is the east wall.
-		var exclude: Array[RID] = [(laser as CollisionObject3D).get_rid()]
-		var query := PhysicsRayQueryParameters3D.create(
-			behaviour.beam_start(),
-			room.to_global(Vector3(inside.end.x + 0.3, float(spec[1]), float(spec[2]))),
-			1,
-			exclude
+		var heights: Array = spec[1]
+		var behaviour := LaserArray.of(laser)
+		assert_int(behaviour.beams.size()).override_failure_message(String(spec[0])).is_equal(heights.size())
+		assert_vector(laser.basis.z).override_failure_message(String(spec[0])).is_equal_approx(
+			Vector3.RIGHT, Vector3.ONE * 0.001
 		)
-		var hit := space.intersect_ray(query)
-		assert_bool(hit.is_empty()).override_failure_message(where).is_false()
-		assert_float(room.to_local(hit["position"] as Vector3).x).override_failure_message(where).is_equal_approx(
-			inside.end.x, 0.01
-		)
+		for index in heights.size():
+			var beam := behaviour.beams[index]
+			var where := "%s/%s" % [spec[0], beam.name]
+			var start := room.to_local(beam.start_point(0.0))
+			var end := room.to_local(beam.end_point(0.0))
+			assert_float(start.y).override_failure_message(where).is_equal_approx(float(heights[index]), 0.0001)
+			assert_float(start.z).override_failure_message(where).is_equal_approx(float(spec[2]), 0.0001)
+			# The emitter head sits on the west wall face; the receiver on the east one.
+			assert_float(start.x - inside.position.x).override_failure_message(where).is_between(0.0, 0.02)
+			assert_float(inside.end.x - end.x).override_failure_message(where).is_between(0.0, 0.02)
+			# Nothing of the world crosses the beam: the first world hit along it is the east wall.
+			var exclude: Array[RID] = [(laser as CollisionObject3D).get_rid()]
+			var query := PhysicsRayQueryParameters3D.create(
+				behaviour.beam_start(beam),
+				room.to_global(Vector3(inside.end.x + 0.3, float(heights[index]), float(spec[2]))),
+				1,
+				exclude
+			)
+			var hit := space.intersect_ray(query)
+			assert_bool(hit.is_empty()).override_failure_message(where).is_false()
+			assert_float(room.to_local(hit["position"] as Vector3).x).override_failure_message(where).is_equal_approx(
+				inside.end.x, 0.01
+			)
 	# A walking jump from mid-window lands clear of the high beam, with room to crouch.
 	var low_z := float(LASERS[0][2])
 	var high_z := float(LASERS[1][2])
@@ -147,12 +154,12 @@ func test_jump_crouch_then_the_pair_rings_the_alarm() -> void:
 	# Into the pair: the incident reaches the wing's controller, which rings its sirens.
 	await driver.hold(&"move_forward", 30)
 	await driver.frames(10)
-	# A standing body breaks both beams of the pair: two incidents (the second restarts the alarm).
-	var lasers: Array[String] = []
-	for entry in EventLog.find(&"laser.tripped"):
-		lasers.append(String(entry.data["laser"]))
-		assert_int(int(entry.data["controllers"])).is_equal(1)
-	assert_array(lasers).contains_exactly_in_any_order(["LaserPairLow", "LaserPairHigh"])
+	# A standing body breaks both beams of the two-beam array: one incident (ADR 0100).
+	var tripped := EventLog.find(&"laser.tripped")
+	assert_array(tripped).has_size(1)
+	assert_str(String(tripped[0].data["laser"])).is_equal("LaserPair")
+	assert_int(int(tripped[0].data["controllers"])).is_equal(1)
+	assert_array(EventLog.find(&"alarm.raised")).has_size(1)
 	assert_array(EventLog.find(&"alarm.raised")).is_not_empty()
 	assert_array(EventLog.find(&"siren.started")).is_not_empty()
 

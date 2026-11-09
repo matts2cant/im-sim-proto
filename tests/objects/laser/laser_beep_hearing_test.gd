@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
-const LASER: PackedScene = preload("res://objects/laser/laser_tripwire.tscn")
+const LASER: PackedScene = preload("res://objects/laser/laser_array.tscn")
 const ORIGIN := Vector3(-300, 0, -600)
 ## In the laser's room, 2 m from the beam's line (z 2) and 4 m from the wall.
 const SAME_ROOM := Vector3(4, 0, 2)
@@ -51,7 +51,7 @@ func _trip_at(height: float) -> void:
 	var laser := LASER.instantiate() as Node3D
 	laser.position = ORIGIN + Vector3(0.2, height, 0)
 	laser.basis = Basis(Vector3.UP, PI * 0.5)
-	(laser.get_node("LaserBehaviour") as LaserTripwire).beam_length = 3.0
+	(laser.get_node("Beam1") as LaserBeam).length = 3.0
 	_root.add_child(laser)
 	var near := Fixtures.entity(_root, "Near", ORIGIN + SAME_ROOM, [Fixtures.receptron(&"noise")])
 	var behind := Fixtures.entity(_root, "Behind", ORIGIN + BEHIND_WALL, [Fixtures.receptron(&"noise")])

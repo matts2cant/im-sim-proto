@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_script")
-duration = 90.0
+duration = 45.0
 ring_refresh = 1.0

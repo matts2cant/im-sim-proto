@@ -393,7 +393,7 @@ With both up, a camera's incident reaches both controllers and each rings every 
 | CameraHall | Hall north wall inside (-1, 6.5, -9.98), tilted 30 degrees down | Looks south down the R2-R3 aisle |
 | CameraOffice | Upper corridor east wall above the fire escape door (19.74, 6.88, 6) | Looks west along the corridor (vault and manager doors) |
 | CameraRoof | Roof, the mast's south face in the north-east corner (17, 12.3, -9.69), rest yaw -20 | Sweeps over duct B's lit forecourt at the west end of its sweep (M9g, [Roof security](#roof-security-m9g)) |
-| LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | High beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
+| LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | One-beam laser arrays (`laser_array.tscn`, `Beam1.length` 1.2; [ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)): high beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
 | VaultTurret | Vault (16.9, 4.5, 1.0) | Faces the vault door (intruders) |
 | SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Terminal "security console", credentials `warehouse_security_console`; M11's SEC-SERVER |
 | AlarmController, RadioBaseStation | Security room east wall, over the desk | The building's controller |

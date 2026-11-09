@@ -165,7 +165,9 @@ static func center_of(target: Node3D) -> Vector3:
 	return target.global_position
 
 
-## The hostile target seen best (highest gain) now, or null. `wary` raises the gain.
+## The hostile target seen best (highest gain) now, or null. `wary` raises the gain. A hostile that
+## cannot act (ActorState: unconscious or dead) is never a sighting, so nothing keeps watching,
+## tracking or shooting a body.
 func look(wary: bool = false) -> Sighting:
 	last_sighting = null
 	if entity == null or not ActorState.can_act(entity):
@@ -180,6 +182,9 @@ func look(wary: bool = false) -> Sighting:
 		if target == null or target == entity or not target.is_inside_tree():
 			continue
 		if not tags.container.has_any(config.hostile_tags) or tags.container.has_any(config.hidden_tags):
+			continue
+		# A downed hostile (unconscious, dead: the body tags) is not a target (ADR 0100).
+		if not ActorState.can_act(target):
 			continue
 		var distance := VisionRules.flat_distance(eye, target.global_position)
 		var angle := VisionRules.angle_off(forward, eye, target.global_position)
