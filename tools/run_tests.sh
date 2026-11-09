@@ -279,17 +279,14 @@ if [ "$t_flaky" -gt 0 ]; then
 	[ "$rc" -eq 0 ] && rc=1
 fi
 
-# GdUnit4 can pass while Godot prints script errors from project code: fail on those.
-# Offending = SCRIPT ERROR:/ERROR: lines whose block (the line plus its indented "at:" line) mentions
-# a res:// path outside res://addons/, minus tools/test_error_allowlist.txt regexes.
+# GdUnit4 can pass while Godot prints errors caused by project code: fail on those.
+# Offending = SCRIPT ERROR:/ERROR: blocks whose error or "at:" line names a res:// path outside
+# res://addons/ (script errors), or whose GDScript backtrace has a frame there (engine errors raised
+# by project code, e.g. "at: ... (scene/...cpp:123)"), minus tools/test_error_allowlist.txt regexes.
+# One line per block (tools/project_errors.awk): error and "at:" line, then " | backtrace: " frames.
 allow="tools/test_error_allowlist.txt"
 patterns="$(grep -v -e '^[[:space:]]*#' -e '^[[:space:]]*$' "$allow" 2>/dev/null | tr -d '\r' || true)"
-tr -d '\r' < "$log" | awk '
-	/^(SCRIPT )?ERROR:/ { if (blk != "") print blk; blk = $0; next }
-	/^[[:space:]]+at:/ && blk != "" { blk = blk " " $0; next }
-	{ if (blk != "") print blk; blk = "" }
-	END { if (blk != "") print blk }
-' | grep -E 'res://' | grep -vE 'res://addons/' > reports/.project_errors.tmp || true
+tr -d '\r' < "$log" | awk -f tools/project_errors.awk > reports/.project_errors.tmp || true
 if [ -n "$patterns" ]; then
 	grep -vEf <(printf '%s\n' "$patterns") reports/.project_errors.tmp > reports/project_errors.log || true
 else
