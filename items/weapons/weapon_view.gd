@@ -13,6 +13,13 @@ const KICK_TIME: float = 0.12
 ## Opacity while the user is cloaked.
 const CLOAKED_ALPHA: float = 0.3
 
+## Screen shift of the grip pivot, degrees (x: right, y: down; WeaponHolder.view_shift_deg): the
+## pivot moves sideways and down by its depth x tan(angle), so every weapon moves by the same angle
+## on screen whatever its distance from the eye. Zero: the pose of the weapon's data.
+var shift_deg := Vector2.ZERO:
+	set(value):
+		shift_deg = value
+		_animate()
 ## The muzzle flash (MuzzleFlash.hold() freezes it for screenshots).
 var flash: MuzzleFlash
 ## The weapon shown, or null.
@@ -140,7 +147,7 @@ func _animate() -> void:
 	if data == null:
 		return
 	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
-	var pose := Transform3D(_euler_deg(data.view_rest_deg), data.view_offset)
+	var pose := Transform3D(_euler_deg(data.view_rest_deg), rest_position(data.view_offset, shift_deg))
 	if data.is_melee():
 		# Fast chop to the bottom of the swing, slower return to the ready pose.
 		var progress := 1.0 - t
@@ -156,6 +163,13 @@ func _animate() -> void:
 		pose.basis = Basis(Vector3.RIGHT, 0.25 * t) * pose.basis
 		pose.origin += Vector3(0, 0, 0.04 * t)
 	transform = pose
+
+
+## The grip pivot of a weapon whose data puts it at `offset` (camera frame, -Z ahead), moved on
+## screen by `shift` degrees (x right, y down): sideways and down by its depth x tan(angle).
+static func rest_position(offset: Vector3, shift: Vector2) -> Vector3:
+	var depth := absf(offset.z)
+	return offset + Vector3(depth * tan(deg_to_rad(shift.x)), -depth * tan(deg_to_rad(shift.y)), 0.0)
 
 
 # Pitch (about X), then yaw (Y), then roll (Z) in the camera's frame, degrees.
