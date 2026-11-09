@@ -33,3 +33,14 @@ static func reminder(known_code: String, source: String) -> String:
 	if source.is_empty():
 		return "Note: %s" % known_code
 	return "Note: %s, from '%s'" % [known_code, source]
+
+
+## True when a point `depth` m along an entity's +Z (negative: behind it) is on its free side
+## `side` (Lock.FRONT = 1: +Z, Lock.BACK = 2: -Z; 0: none). The plane itself is on neither side.
+static func on_free_side(side: int, depth: float) -> bool:
+	match side:
+		1:
+			return depth > 0.0
+		2:
+			return depth < 0.0
+	return false

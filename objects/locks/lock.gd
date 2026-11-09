@@ -8,8 +8,18 @@ extends Node3D
 ## - grants_passage() / passage_layers(): characters it lets through while locked (navigation);
 ## - accepts_tool() / tool_hold() / tool_release() / tool_progress(): a held tool worked on it
 ##   (ToolUse; the hold-to-pick placeholder until M10's minigame).
+## Any lock can have a free side (ADR 0090): from that side of the entity (its +Z: FRONT, -Z: BACK)
+## it opens without the key, like an exit handle or a push bar (opens_freely_for(); the Door opens
+## without unlocking it, Lockable.grants_passage() lets characters there through).
+
+## Free sides of the entity: none, FRONT (its +Z side), BACK (its -Z side).
+const NO_SIDE := 0
+const FRONT := 1
+const BACK := 2
 
 @export var entity_path: NodePath = ^".."
+## The side of the entity from which it opens without this lock (NONE: no free side).
+@export_enum("None", "Front", "Back") var free_side: int = NO_SIDE
 
 var entity: Node
 
@@ -63,6 +73,19 @@ func locked_reason(_user: Node) -> String:
 ## True when `actor` may pass while it is locked (a keycard it carries).
 func grants_passage(_actor: Node) -> bool:
 	return false
+
+
+## True when `user` stands on this lock's free side of the entity (it opens from there without a
+## key). False without a free side or when either is not a Node3D.
+func opens_freely_for(user: Node) -> bool:
+	var body := user as Node3D
+	var anchor := entity as Node3D
+	if free_side == NO_SIDE or body == null or anchor == null:
+		return false
+	if not body.is_inside_tree() or not anchor.is_inside_tree():
+		return false
+	var depth := anchor.global_basis.z.normalized().dot(body.global_position - anchor.global_position)
+	return LockRules.on_free_side(free_side, depth)
 
 
 ## Navigation layers that may plan a path through it while locked (AccessLayers).
