@@ -37,6 +37,11 @@ extends Resource
 ## Within this horizontal distance (centre to centre) the light factor is at least `close_light`.
 @export var close_distance: float = 2.0
 @export var close_light: float = 0.5
+## A target moving faster than `moving_speed` (horizontal, m/s, from its body's velocity) keeps a
+## light factor of at least `moving_light`, however dark it is (ADR 0095): movement gives a target
+## away in the dark, standing still does not. 0 turns the floor off (cameras, turrets).
+@export var moving_light: float = 0.0
+@export var moving_speed: float = 0.5
 ## Distance factor: 1 up to `distance_full`, linear down to `distance_far_factor` at `distance_far`.
 @export var distance_full: float = 5.0
 @export var distance_far: float = 20.0

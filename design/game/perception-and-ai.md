@@ -24,7 +24,7 @@ stateDiagram-v2
     Suspicious --> Alerted : meter 1.0, hostile harm, alert_at()
     Suspicious --> Unaware : nothing found (wary)
     Alerted --> Searching : target unseen 4 s
-    Searching --> Alerted : target seen, harm, alert_at()
+    Searching --> Alerted : target seen (meter 0.2), harm, alert_at()
     Searching --> Unaware : search over (wary)
     Unaware --> Searching : body found, ally's shout or radio, siren, dispatch, woken
     Suspicious --> Searching : body found, ally's shout or radio, siren, dispatch
@@ -37,7 +37,7 @@ stateDiagram-v2
 | Unaware | none | Patrol its route (`PatrolRoute`, waits per point); without one hold the post (spawn position and facing), glancing ±45° for 1.5 s every 6 s |
 | Suspicious | `?` yellow | Stop, face the point 2 s; walk there at 2.5 m/s; look around 4 s; give up. New evidence moves the point. A noise perceived >= 10 skips the look and runs (5 m/s) |
 | Alerted | `!` red | Run to the last known position (tracks the target while seen); stop and face a seen target within 1.5 m. Armed and seeing the target: fight it ([Combat](#combat)). Unseen 4 s: Searching |
-| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most) |
+| Searching | `?` orange | 4 random navmesh points within 8 m of the last known position (first at run pace, then walk), look around 3 s at each, 30 s at most. Entered from a call, a body or the alarm: the reported point first (run), then 3 random points. By an unconscious ally: stand by it until it is woken (TEND, 8 s at most). Sight alerts once the meter reaches 0.2 (`search_alert_meter`, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): a lit target within a fraction of a second, a target moving in the dark after about a second of sight |
 
 ## Bodies ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md))
 
@@ -63,7 +63,7 @@ stateDiagram-v2
 - Targets: entities whose tags include a hostile tag (`actor.player`) and no hidden tag (`state.cloaked`) ([ADR 0069](../decisions/0069-hostile-and-ally-tags.md)).
 - Eyes 1.6 m above the feet; rays to the target's head, chest and feet (fractions of its collision shape, so crouching lowers them); world and props block; seen if any ray is clear.
 - Focus ±30°, 20 m; peripheral ±60°, 10 m, x0.4; nothing outside ±60° (horizontal angle and distance).
-- Suspicion per second = 1.25 x light x distance x zone x stance (crouch 0.7) x wary (1.5). Light = clamp((L - 0.1) / 0.4, 0, 1) from the target's light level L (its `LightExposure`, [ADR 0065](../decisions/0065-light-level-model.md); 1.0 without one; the guard has one too), at least 0.5 within 2 m. Distance = 1 to 5 m, down to 0.25 at 20 m. Decay 0.25/s unseen. Suspicious at 0.3, Alerted at 1.0.
+- Suspicion per second = 1.25 x light x distance x zone x stance (crouch 0.7) x wary (1.5). Light = clamp((L - 0.1) / 0.4, 0, 1) from the target's light level L (its `LightExposure`, [ADR 0065](../decisions/0065-light-level-model.md); 1.0 without one; the guard has one too), at least 0.5 within 2 m, and at least 0.14 while the target moves faster than 0.5 m/s horizontally (its body's velocity; a step, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): in the dark a still target is invisible beyond 2 m, a moving one is not. Distance = 1 to 5 m, down to 0.25 at 20 m. Decay 0.25/s unseen. Suspicious at 0.3, Alerted at 1.0.
 
 | Situation | Gain | Time to Alerted |
 |---|---|---|
@@ -72,10 +72,17 @@ stateDiagram-v2
 | Dim (L 0.25), 4 m | 0.47/s | 2.1 s |
 | Crouched, dim, 8 m | 0.28/s | 3.6 s |
 | Lit, 45° off, 6 m (peripheral) | 0.48/s | 2.1 s |
-| Dark (L 0.05), 6 m / cloaked / behind | 0 | never |
+| Dark (L 0.05), 6 m, standing still / cloaked / behind | 0 | never |
+| Dark, walking, 4.5 m, focus (moving floor) | 0.175/s | 5.7 s (Suspicious 1.7 s) |
+| Dark, crouch-walking, 4.5 m, focus | 0.12/s | 8.2 s (Suspicious 2.5 s) |
+| Dark, walking, 8 m, in a flashlight's beam (L about 0.23) | about 0.35/s | 2.6 s (the guard walks closer after its look) |
 | Dark, 1.5 m, focus (close override) | 0.63/s | 1.6 s |
 
-Security cameras and turrets see with the same sensor and rules and their own configs (no hidden tags: Cloak does not hide you from them; no peripheral cone), filling a `SightMeter` instead of an awareness model: [security.md](security.md#cameras-and-turrets), [ADR 0079](../decisions/0079-security-cameras-and-turret.md).
+Times at a held distance (`vision_rules_test.gd`, `darkness_detection_test.gd`, `flashlight_detection_test.gd`). A Suspicious guard looks for 2 s and then walks to the point: if the target stays put (pacing on the spot), the guard comes within 2 m and the close override alerts it sooner (walking 5.1 s, crouch-walking 6.4 s in the dark at 4.5 m).
+
+**Flashlights** ([ADR 0095](../decisions/0095-darkness-and-flashlights.md), [light-and-visibility.md](light-and-visibility.md)): every guard carries one on its Aim node, lit while Searching or Alerted, and always while it can act when its `on_while_patrolling` flag is set (the warehouse yard patrols); off while unconscious or dead. It is a spot light like any lamp: what it lights reads a higher light level, so a target or a body in its beam is seen through the rules above, unchanged.
+
+Security cameras and turrets see with the same sensor and rules and their own configs (no hidden tags: Cloak does not hide you from them; no peripheral cone; no moving floor), filling a `SightMeter` instead of an awareness model: [security.md](security.md#cameras-and-turrets), [ADR 0079](../decisions/0079-security-cameras-and-turret.md).
 
 ## Combat
 

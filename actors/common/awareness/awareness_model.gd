@@ -13,7 +13,8 @@ extends RefCounted
 ##   while it is seen. Unseen for lose_time: Searching. Also entered on harm from a hostile and on
 ##   an external alert (alert(): alarms and radio plug in here).
 ## - Searching: visits search_points random points within search_radius of the last known position
-##   (the first at run pace, then walking), looking around at each; seeing the target: Alerted;
+##   (the first at run pace, then walking), looking around at each; seeing the target with the meter
+##   at search_alert_meter or more: Alerted;
 ##   all visited or search_duration over: Unaware and wary. Also entered by search_at() (an ally's
 ##   shout or radio call, a siren, being woken: ADR 0072, ADR 0077) and discover_body() (ADR 0071):
 ##   the first destination is the point itself (run pace), then the random points.
@@ -267,7 +268,7 @@ func _step_alerted(delta: float) -> void:
 
 
 func _step_searching(delta: float) -> void:
-	if target_seen:
+	if target_seen and meter >= config.search_alert_meter:
 		_alert(target_position, "sight")
 		return
 	search_time += delta

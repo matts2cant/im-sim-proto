@@ -5,7 +5,8 @@ extends Node
 ## inside the focus or peripheral cone of the parent's facing (-Z), with a clear line of sight from
 ## the eyes (`eye_height` above the parent's origin, the feet) to the target's head, chest or feet
 ## (rays on `view_mask`: world and props block). The gain (suspicion per second) comes from
-## VisionRules with the target's light level (light_level_of()) and stance tag. Targets are found
+## VisionRules with the target's light level (light_level_of()), stance tag and horizontal speed
+## (horizontal_speed_of()). Targets are found
 ## by tags only (group Tags.GROUP), never by class or name. A character that cannot act
 ## (ActorState) sees nothing. GradedAwareness calls look() once per tick. look_for_bodies() finds
 ## downed allies (an ally tag and a `body_tags` tag: unconscious, dead) with the same cones, light
@@ -71,6 +72,18 @@ static func of(node: Node) -> PerceptionSensor:
 static func light_level_of(target: Node) -> float:
 	var exposure := LightExposure.of(target)
 	return clampf(exposure.level, 0.0, 1.0) if exposure != null else 1.0
+
+
+## Horizontal speed (m/s) of `target` from its body's velocity: the motion a character body really
+## made in its last move (get_real_velocity(): walking into a wall is standing still), a rigid
+## body's linear velocity; 0 for anything else. Feeds the moving floor of the light factor (ADR 0095).
+static func horizontal_speed_of(target: Node) -> float:
+	var velocity := Vector3.ZERO
+	if target is CharacterBody3D:
+		velocity = (target as CharacterBody3D).get_real_velocity()
+	elif target is RigidBody3D:
+		velocity = (target as RigidBody3D).linear_velocity
+	return Vector2(velocity.x, velocity.z).length()
 
 
 func eye_position() -> Vector3:
@@ -173,7 +186,8 @@ func look(wary: bool = false) -> Sighting:
 		if VisionRules.zone_factor(angle, distance, config) <= 0.0:
 			continue
 		var light := light_level_of(target)
-		var gain := VisionRules.gain(angle, distance, light, tags.has(config.crouch_tag), wary, config)
+		var crouched := tags.has(config.crouch_tag)
+		var gain := VisionRules.gain(angle, distance, light, crouched, wary, config, horizontal_speed_of(target))
 		if gain <= 0.0 or (last_sighting != null and gain <= last_sighting.gain):
 			continue
 		if has_line_of_sight(eye, target):

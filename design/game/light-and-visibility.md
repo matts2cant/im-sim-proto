@@ -22,9 +22,11 @@ A HUD light gauge (a gem and a bar above the body silhouette and energy bar) sho
 - Rooms that must look dark override the environment ambient with a `ReflectionProbe` (ambient colour mode) whose box encloses every surface by more than its blend distance; otherwise the hub's ambient makes them look grey while they read 0.04.
 - Shootable lamps (`objects/light_fixture/ceiling_lamp.tscn`, `wall_lamp.tscn`) are Breakable glass with `health` 1; breaking frees the lamp and its light. `Powered` puts a lamp on a circuit; a `CircuitBreaker` (breaker panel) switches the circuit ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md), [security.md](security.md)). Lamp, breaker and circuit state are saved; a broken lamp stays broken after a load.
 - Light level is shown in the debug Overlays tab ([debug-panel.md](debug-panel.md)).
+- **Flashlights** (M9g, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): `Flashlight` (`actors/common/light/flashlight.tscn`, tuning `flashlight.tres`) is a component any character carries where it holds it (a guard: its Aim node, pitched 10 degrees down). It is a plain `SpotLight3D` (range 12 m, half-angle 20 degrees, energy 0.85, shadows on so the render never lights the far side of a wall) plus a lens and a halo that show from far away, so every `LightExposure` sees it like a lamp: a walking body 8 m down the beam reads about 0.21-0.25 (dim). Lit while the carrier has none of `off_tags` (unconscious, dead) and either its awareness is in `on_states` (Searching, Alerted) or its `on_while_patrolling` flag is set (level data: the warehouse's yard patrols). Saveable.
 
 ```mermaid
 flowchart LR
+    F["Flashlight (carried SpotLight3D)"] --> L
     L["Visible Omni/Spot lights in range"] --> M["LightModel: falloff x cone x shadow ray, per body point"]
     P["Body points (stance.crouch lowers them)"] --> M
     M --> C["1 - exp(-gain x sum) per point, weighted average, + ambient"]
@@ -45,4 +47,4 @@ flowchart LR
 ## Open questions
 
 - Whether light should be smoothed over time for guards (it is raw at 10 Hz; the HUD gauge eases its display).
-- Flashlights or muzzle flashes as light sources: none yet.
+- Muzzle flashes as light sources: none yet (flashlights: M9g, above).

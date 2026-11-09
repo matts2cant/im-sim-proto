@@ -203,6 +203,14 @@ Hub loadout table and gallery room 7 (Inventory bay):
 - [ ] Guards discover bodies and wake unconscious guards; unconscious guards do not wake alone.
 - [ ] Cloak hides the player from guards.
 
+## M9g Darkness and flashlights ([ADR 0095](../decisions/0095-darkness-and-flashlights.md))
+
+- [ ] Dark spot about 5 m in front of a guard at its post (perception lab dark lane or a warehouse hiding spot): standing still you stay unseen for as long as you like; walking upright across its view it turns to look (the "?" indicator) in about 2 s and is Alerted in about 6 s if you keep moving in view; crouch-walking takes noticeably longer (about 2.5 s / 8 s). Feels fair, not psychic: stopping in the dark lets the meter fall again.
+- [ ] Warehouse west yard at night (breakers on or off): the west yard patrol's flashlight (halo and the pool on the ground) is visible from 15 m and more; you can read where it looks. It never lights the far side of a wall or a container.
+- [ ] Step into that patrol's beam about 8 m ahead while walking: the light gauge goes amber and it is Alerted within about 3 s. Out of the beam, in the dark, crouching still: it walks past.
+- [ ] Alert a guard indoors (G6 break room): its flashlight comes on while it chases and searches and goes off when it gives up; knock it out: the light goes off with it. A body lying in a dark corner is found when a searching guard's beam falls on it.
+- [ ] Save while a guard searches with its light on, load: the light is on; knock out a yard patrol, save, load: its light stays off.
+
 ## M8 Security (Security wing)
 
 Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)). Take the loadout table's pistol, baton and lockpicks first.

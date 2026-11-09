@@ -94,6 +94,34 @@ func test_dark_at_1_5m_in_focus_is_seen_by_the_close_override() -> void:
 	assert_float(_time_to_alert(gain)).is_between(1.45, 1.8)
 
 
+func test_moving_in_the_dark_keeps_the_moving_floor() -> void:
+	# ADR 0095: faster than 0.5 m/s (horizontal), the light factor is at least 0.14; a step.
+	assert_float(VisionRules.light_factor(0.05, 6.0, CONFIG, 4.0)).is_equal_approx(0.14, 0.0001)
+	assert_float(VisionRules.light_factor(0.05, 6.0, CONFIG, 1.0)).is_equal_approx(0.14, 0.0001)
+	assert_float(VisionRules.light_factor(0.05, 6.0, CONFIG, 0.2)).is_equal(0.0)
+	# Brighter than the floor, or close: the larger factor wins.
+	assert_float(VisionRules.light_factor(0.25, 6.0, CONFIG, 4.0)).is_equal_approx(0.375, 0.0001)
+	assert_float(VisionRules.light_factor(0.05, 1.5, CONFIG, 4.0)).is_equal_approx(0.5, 0.0001)
+
+
+func test_walking_in_the_dark_at_4_5m_alerts_in_about_5_7s() -> void:
+	# 4.5 m keeps clear of the 5 m distance breakpoint. Without the guard closing in.
+	var gain := VisionRules.gain(0.0, 4.5, 0.05, false, false, CONFIG, 4.0)
+	assert_float(gain).is_equal_approx(1.25 * 0.14, 0.0001)
+	assert_float(_time_to_alert(gain)).is_between(5.4, 6.0)
+
+
+func test_crouch_walking_in_the_dark_at_4_5m_alerts_in_about_8_2s() -> void:
+	var gain := VisionRules.gain(0.0, 4.5, 0.05, true, false, CONFIG, 2.0)
+	assert_float(gain).is_equal_approx(1.25 * 0.14 * 0.7, 0.0001)
+	assert_float(_time_to_alert(gain)).is_between(7.9, 8.5)
+
+
+func test_cameras_have_no_moving_floor() -> void:
+	var camera: PerceptionConfig = load("res://objects/camera/security_camera_perception.tres")
+	assert_float(VisionRules.gain(0.0, 6.0, 0.05, false, false, camera, 4.0)).is_equal(0.0)
+
+
 func test_wary_multiplies_the_gain() -> void:
 	var calm := VisionRules.gain(0.0, 8.0, 0.25, false, false, CONFIG)
 	var wary := VisionRules.gain(0.0, 8.0, 0.25, false, true, CONFIG)
@@ -109,10 +137,10 @@ func _see(model: AwarenessModel, gain: float, seconds: float) -> void:
 		model.step(TICK, true, gain, Vector3(0, 0, -4))
 
 
-# Seconds of continuous sight until Alerted (at most 10 s).
+# Seconds of continuous sight until Alerted (at most 15 s).
 func _time_to_alert(gain: float) -> float:
 	var model := _model()
-	for i in 600:
+	for i in 900:
 		model.step(TICK, true, gain, Vector3(0, 0, -4))
 		if model.state == AwarenessModel.State.ALERTED:
 			return (i + 1) * TICK

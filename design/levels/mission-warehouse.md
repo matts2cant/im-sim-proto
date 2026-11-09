@@ -269,6 +269,8 @@ Ten guards (`Population/People/Guards`), on their layout markers. Routes loop th
 
 No route crosses a doorway (`warehouse_people_test.gd`): the doors there are locked to guards (keypad, mechanical) or loud (roller doors). Lamps for the catwalk routes (building circuit, `Population/People/Lamps`): a wall lamp on the north catwalk at x -10 and one on the east catwalk at z -3, ceiling lamps over the bridge at x 1 and 5.5. The yard patrols walk dark ground and cross the lit pools.
 
+**Flashlights** (M9g, [ADR 0095](../decisions/0095-darkness-and-flashlights.md)): every guard carries one (`guard.tscn`, on its Aim node) and lights it while Searching or Alerted. The yard patrols (G2, G3, G9: their routes run outside the buildings) keep it on while patrolling (`on_while_patrolling`, set by `warehouse_people.py`): their halo and the pool on the ground show where they are from across the yard, and a player caught in the beam at 8 m reads about 0.2 (dim) and is Alerted in about 2.6 s. Cost with all ten lit (shadowed spot lights): render within the frame-to-frame noise (hall 492 to 468 fps, west yard unchanged at about 685 fps, 1152x648, vsync off), physics process about +0.5 ms per frame (5.4-7.3 ms without, 6.0-7.5 ms with; `warehouse_shots.gd` `perf=1 flashlights=1`).
+
 **Crossing points** (a player route crosses a patrol path). A guard passes while within 5 m (horizontal, same floor); the gap is the time between passes, round the lap for a point one guard passes. Target: at least 4 s (a window to cross) and at most 45 s (the compound feels watched); measured 6-39 s.
 
 | Crossing | Position | Passed by | Gaps (measured, smallest .. largest) |
