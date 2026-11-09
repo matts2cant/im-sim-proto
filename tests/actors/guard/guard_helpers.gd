@@ -80,6 +80,19 @@ static func isolate_region(map: RID, region: NavigationRegion3D) -> void:
 			other.enabled = false
 
 
+## Holds every guard (tag `actor.guard`) under `root` still except those under `keep`: their
+## processing is disabled, so they neither think nor move (stimuli still reach them). For a test
+## about one room of a level that holds other rooms' guards (the hub loads every gallery room):
+## a guard answering the room's alarm from elsewhere would walk into the test. Returns the guards held.
+static func hold_guards_outside(root: Node, keep: Node) -> Array[Node]:
+	var held: Array[Node] = []
+	for node in root.find_children("*", "Node3D", true, false):
+		if not keep.is_ancestor_of(node) and ActorState.has(node, &"actor.guard"):
+			node.process_mode = Node.PROCESS_MODE_DISABLED
+			held.append(node)
+	return held
+
+
 ## Lets fixtures of earlier suites that are freed late (auto_free, queue_free) leave the tree first.
 static func let_old_scenes_go(tree: SceneTree) -> void:
 	for i in 4:
