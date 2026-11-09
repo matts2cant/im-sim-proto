@@ -18,7 +18,7 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (from the layout docs or the scenes, not the hub tests, which do not list them); do not guess.
 - Level briefs ask passage tests to step off every climb (stair, ladder, mantle) onto the destination floor, not only reach its top, and to walk the main routes end to end with the guards active (M9: a stair top 0.65 m wide for a 0.7 m capsule went unnoticed for four waves).
 - Briefs that add test suites give a wall-time budget per suite and ask for each new suite's time in the report; briefs that populate a level ask for the physics-frame cost with every actor active.
-- Judge full-suite time on the second full run after merging new suites (the first run has no recorded times for them).
+- Judge full-suite time on the second full run after merging new suites: the first run only estimates them (spread over shards, but heavier shards). `tools/run_tests.sh --dry-run` shows the split.
 - After merging, run `git worktree list` and remove every agent worktree and branch, including ones an agent spawned for its own sub-agents.
 - Bug-fix briefs ask the agent to reproduce the user's exact actions (what they did in the level, with real in-game values) before testing hypotheses; my guessed scenarios may already pass.
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.

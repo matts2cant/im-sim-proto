@@ -43,7 +43,11 @@ Final suite: 1400 tests, 0 failures, 76 s.
 - **My slip:** I deleted a `worktree-agent-*` base branch while its agent was still running (harmless, the agent worked on its own branch).
 
 **Changes made**
-- Runner (agent `runner-gaps`): an engine ERROR whose GDScript backtrace has a project frame (outside `addons/`) fails the run. An unmeasured suite is estimated from the median of its own directory before the global median.
+- Runner (merged `runner-gaps`):
+  - An engine ERROR whose GDScript backtrace has a project frame (outside `addons/`) fails the run. It caught no existing test.
+  - An unmeasured suite is estimated from its folder's median, and unmeasured suites are spread over shards. A folder median alone still put all four route suites in one shard.
+  - `--dry-run` prints the shard split.
+  - Full suite now 66 s; its floor is `warehouse_route_vault_test.gd` alone (about 60 s under load). Splitting or speeding it up is the next kaizen item.
 - CLAUDE.md:
   - Level briefs ask passage tests to step off every climb onto the destination floor.
   - Briefs that add suites give a time budget and ask for the suite's wall time in the report.
