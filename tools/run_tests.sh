@@ -60,17 +60,18 @@ touch reports/.gdignore
 # Import only when something the import depends on changed since the last successful import (or
 # TEST_IMPORT=1): a stale global class cache (new class_names after a merge) makes tests fail with
 # "Could not find base class" and segfault Godot. The stamp hashes every file's path (new, deleted
-# and renamed files change it), the size and mtime of every file except scripts, and for scripts
-# only the lines the global class cache is built from (class_name, extends, @tool, @abstract,
-# @icon): editing a script's body, the usual edit while iterating on tests, needs no import.
+# and renamed files change it), the size and mtime of every file except scripts and Markdown (never
+# imported), and for scripts only the lines the global class cache is built from (class_name,
+# extends, @tool, @abstract, @icon): editing a script's body, the usual edit while iterating on
+# tests, needs no import.
 stamp_file=.godot/run_tests_import.stamp
 project_stamp() {
 	local prune=(\( -path ./.godot -o -path ./.git -o -path ./reports -o -path ./.venv -o -path ./.claude
 		-o -path ./.api-docs -o -name __pycache__ \) -prune -o)
 	{
 		echo "$GODOT_BIN"
-		find . "${prune[@]}" -type f ! -name '*.gd' -printf '%P %s %T@\n'
-		find . "${prune[@]}" -type f -name '*.gd' -printf '%P\n'
+		find . "${prune[@]}" -type f ! -name '*.gd' ! -name '*.md' -printf '%P %s %T@\n'
+		find . "${prune[@]}" -type f \( -name '*.gd' -o -name '*.md' \) -printf '%P\n'
 		find . "${prune[@]}" -type f -name '*.gd' -print0 |
 			xargs -0 grep -HE '^[[:space:]]*(class_name|extends|@tool|@abstract|@icon)' || true
 	} | LC_ALL=C sort | md5sum | cut -d' ' -f1
