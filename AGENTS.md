@@ -63,6 +63,15 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 - Game feel is manual: update [design/tech/playtest-checklist.md](design/tech/playtest-checklist.md).
 - Details: [design/tech/testing.md](design/tech/testing.md).
 
+Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "Writing fast tests"](design/tech/testing.md#writing-fast-tests)):
+
+- The runner simulates time (`--fixed-fps 144`): wait for physics frames, game time or a condition with a frame cap, never for a number of process frames standing in for time.
+- Use small fixture scenes; load the hub only for hub tests, keep hub suites short (each load ~1 s, each simulated hub second ~0.3-0.6 s) and split big suites by concern.
+- Switch navigation maps to synchronous iterations only with `GuardHelpers.use_sync_iterations()`, and `isolate_region()` against earlier suites' floors.
+- Collect events that can happen inside a helper that clears the EventLog (`PlayerDriver.place()`) from `EventLog.entry_added`.
+- Shards run in parallel processes: write files only under `user://`, reset autoloads in `before_test`, restore engine-wide settings in `after_test`.
+- Iterate on a subset, run the full suite once at the end; for a failure seen only in a full run, replay its shard (`-j 1 $(cat reports/shards/<n>/suites.txt)`) and fix the root cause, never retry.
+
 ## Godot version
 
 - The engine is Godot 4.7.2. Your training data mixes Godot 3.x and older 4.x APIs and settings.
@@ -125,7 +134,7 @@ A task is done only when all of these hold:
 - When engine behaviour is uncertain (CSG timing, navigation map sync, physics frame order), write a 10–20 line `--script` probe **before** building on an assumption. It is far cheaper than debugging the full feature.
 - Probes live in the scratchpad, not in `res://`, end with `quit()`, and run under `timeout 60 "$GODOT_BIN" --headless ...`. Never leave a Godot process running when you finish: check with `tasklist | grep -i godot`, but only stop processes you started (note their PIDs): other agents' test runs may be in progress and slow yours down.
 - Scratch files go in a private subfolder of the scratchpad named after your task (other agents share the scratchpad).
-- After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports first; for ad-hoc runs use `--headless --import`.
+- After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports when a `class_name`/`extends` line or a non-script file changed; for ad-hoc runs use `--headless --import`.
 - In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
 
 ## Workflow
@@ -144,7 +153,9 @@ A task is done only when all of these hold:
 py -3.12 -m venv .venv
 .venv/Scripts/pip install -r tools/requirements-dev.txt
 tools/install_hooks.sh                  # git core.hooksPath -> tools/hooks
-tools/run_tests.sh [res://tests/core]   # GdUnit4 headless; optional path subset
+tools/run_tests.sh [res://tests/core]   # GdUnit4 headless in parallel shards (~40 s for all); optional subset
+tools/run_tests.sh -j 1 res://tests/ui  # one Godot process, output streamed; -j N sets the shard count
+TEST_FIXED_FPS=0 tools/run_tests.sh ... # real-time frames instead of simulated time; TEST_IMPORT=1 forces the import
 tools/lint.sh                           # gdformat --check + gdlint, addons excluded
 tools/lint.sh --fix                     # format in place
 tools/gen_api_docs.sh                   # local Godot 4.7.2 API reference into .api-docs/

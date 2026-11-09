@@ -30,14 +30,44 @@ func setup(p_runner: GdUnitSceneRunner, patrol: bool = false) -> void:
 		behaviour.route = null
 	var map := guard.get_world_3d().navigation_map
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(map)
-	NavigationServer3D.map_set_use_async_iterations(map, false)
 	var region := scene.find_child("LevelNavigation", true, false) as LevelNavigation
-	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	await use_sync_iterations(map, region)
 	isolate_region(map, region)
 	# Baked in _ready while the region was still asynchronous: bake again so the map gets it now.
 	region.bake()
 	await frames(6)
 	EventLog.clear()
+
+
+## Switches `map` and `region` to synchronous iterations (region changes reach path queries on the
+## next physics frame instead of whenever a worker thread finishes) and makes sure the map still
+## iterates. Godot 4.7.2 wedges a map for good when it is switched to synchronous iterations while
+## an asynchronous iteration is still running on a worker thread: it never iterates again, path
+## queries come back empty and noise falls back to straight lines. A fixture that switched right
+## after loading hit this about half the time when it ran first in a fresh process (door_test
+## alone, ADR 0084). Switching the map back to asynchronous lets the pending iteration land, after
+## which the switch is safe. Costs two physics frames.
+static func use_sync_iterations(map: RID, region: NavigationRegion3D) -> void:
+	var tree := region.get_tree()
+	NavigationServer3D.map_set_use_async_iterations(map, false)
+	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	for attempt in 3:
+		var before := NavigationServer3D.map_get_iteration_id(map)
+		# Any region change makes a synchronous map iterate on the next physics frame.
+		region.enabled = not region.enabled
+		region.enabled = not region.enabled
+		for i in 2:
+			await tree.physics_frame
+		if NavigationServer3D.map_get_iteration_id(map) != before:
+			return
+		# Wedged: let the pending asynchronous iteration land, then switch again.
+		NavigationServer3D.map_set_use_async_iterations(map, true)
+		for i in 120:
+			await tree.physics_frame
+			if NavigationServer3D.map_get_iteration_id(map) != before:
+				break
+		NavigationServer3D.map_set_use_async_iterations(map, false)
+	push_error("Navigation map stopped iterating after switching to synchronous iterations")
 
 
 ## Switches off every other navigation region in the tree on `map`: a previous suite's fixture

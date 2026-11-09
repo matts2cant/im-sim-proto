@@ -85,4 +85,5 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0080](0080-credentials-terminal.md) | The credentials terminal (M8 placeholder): login from known credentials, commands from receptrons | Accepted (screen amended by 0083) |
 | [0082](0082-walkable-downed-bodies.md) | Downed bodies do not block characters (layer 8 `downed`) | Accepted |
 | [0083](0083-security-terminal-redesign.md) | Security terminal redesign: Camera and Network tabs, device status from components, Esc only | Accepted |
+| [0084](0084-parallel-fixed-fps-test-runner.md) | Test runner: parallel shards, simulated time (`--fixed-fps`), output to files, import only when needed | Accepted (amends 0011) |
 | [0085](0085-weapons-and-attachments.md) | Shotgun, sniper rifle, assault rifle and weapon attachments (pellets, full-auto, scope, silencer as modifiers) | Accepted |
