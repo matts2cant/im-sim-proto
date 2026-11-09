@@ -16,6 +16,11 @@ const POINT_FRACTIONS: Array[float] = [0.9, 0.6, 0.1]
 ## Height assumed for a target without a collision shape (m), its origin at the feet.
 const FALLBACK_HEIGHT: float = 1.8
 
+## Physics frame of `_tagged` and, per tag list, the Tags that had one of its tags then: every sensor
+## shares one scan of the Tags group per frame and tag list (tagged_any()).
+static var _tagged_frame: int = -1
+static var _tagged: Dictionary[String, Array] = {}
+
 @export var config: PerceptionConfig
 
 var entity: Node3D
@@ -96,10 +101,12 @@ func look_for_bodies(wary: bool = false) -> Array[Sighting]:
 		return found
 	var eye := eye_position()
 	var forward := facing()
-	for node in get_tree().get_nodes_in_group(Tags.GROUP):
-		var tags := node as Tags
-		var target := node.get_parent() as Node3D
-		if tags == null or target == null or target == entity or not target.is_inside_tree():
+	for item: Variant in tagged_any(get_tree(), config.body_tags):
+		if not is_instance_valid(item):
+			continue
+		var tags := item as Tags
+		var target := tags.get_parent() as Node3D
+		if target == null or target == entity or not target.is_inside_tree():
 			continue
 		var container := tags.container
 		if not container.has_any(config.ally_tags) or not container.has_any(config.body_tags):
@@ -114,6 +121,25 @@ func look_for_bodies(wary: bool = false) -> Array[Sighting]:
 		if gain > 0.0 and has_line_of_sight(eye, target):
 			found.append(Sighting.new(target, gain, distance, angle, light))
 	return found
+
+
+## The Tags components (group Tags.GROUP) that have one of `tags`, as of this physics frame: one scan
+## of the group per frame and tag list, shared by every sensor (a level holds hundreds of tagged
+## props and ten guards look every frame). Entries can be freed later in the frame: check them.
+static func tagged_any(tree: SceneTree, tags: Array[StringName]) -> Array:
+	var frame := Engine.get_physics_frames()
+	if frame != _tagged_frame:
+		_tagged_frame = frame
+		_tagged.clear()
+	var key := str(tags)
+	if not _tagged.has(key):
+		var found: Array = []
+		for node in tree.get_nodes_in_group(Tags.GROUP):
+			var tag_node := node as Tags
+			if tag_node != null and tag_node.container.has_any(tags):
+				found.append(tag_node)
+		_tagged[key] = found
+	return _tagged[key]
 
 
 ## The middle of `target`'s first enabled collision shape (a body lying down: its torso), else its
@@ -133,10 +159,12 @@ func look(wary: bool = false) -> Sighting:
 		return null
 	var eye := eye_position()
 	var forward := facing()
-	for node in get_tree().get_nodes_in_group(Tags.GROUP):
-		var tags := node as Tags
-		var target := node.get_parent() as Node3D
-		if tags == null or target == null or target == entity or not target.is_inside_tree():
+	for item: Variant in tagged_any(get_tree(), config.hostile_tags):
+		if not is_instance_valid(item):
+			continue
+		var tags := item as Tags
+		var target := tags.get_parent() as Node3D
+		if target == null or target == entity or not target.is_inside_tree():
 			continue
 		if not tags.container.has_any(config.hostile_tags) or tags.container.has_any(config.hidden_tags):
 			continue
