@@ -94,7 +94,9 @@ static func of_level(node: Node) -> Mission:
 func _ready() -> void:
 	add_to_group(&"saveable")
 	add_to_group(GROUP)
-	var objectives: Array[MissionObjective] = data.objectives if data != null else []
+	var objectives: Array[MissionObjective] = []
+	if data != null:
+		objectives = data.objectives
 	tracker = ObjectiveTracker.new(objectives)
 	tally = MissionTally.new()
 	_context = MissionContext.new(self)

@@ -6,7 +6,8 @@ extends GdUnitTestSuite
 ## - The guard finds it while the player is hidden and goes to wake it; the player steps into the
 ##   light 8 m from the origin: the guard drops the body, is Alerted by sight and engages; it does
 ##   not stop to wake the body while it fights.
-## - A woken pistol guard fights: woken through the `revive` stimulus, it engages the player.
+## - A pistol guard dropped its pistol when it went down (ADR 0088): woken through the `revive`
+##   stimulus, it stays unarmed and does not engage the player.
 
 const Combat := preload("res://tests/actors/guard/combat_helpers.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -83,10 +84,17 @@ func test_a_guard_tending_a_body_drops_it_to_engage_the_player() -> void:
 	assert_bool(ActorState.has(body, ActorState.UNCONSCIOUS)).is_true()
 
 
-func test_a_woken_pistol_guard_engages_the_player() -> void:
+func test_a_woken_pistol_guard_has_dropped_its_pistol_and_does_not_engage() -> void:
 	# Off to the side of the main guard, facing the open ground; woken directly.
 	var sleeper := _downed(PISTOL_SCENE, "Sleeper", Vector3(3, 0, -2), 0.0)
 	await _c.frames(10)
+	# Down, it dropped its pistol beside it (WeaponDrop, ADR 0088).
+	var holder := sleeper.get_node("Aim/WeaponHolder") as WeaponHolder
+	assert_array(holder.states).is_empty()
+	var drops := EventLog.find(&"weapon.dropped").filter(
+		func(entry: EventLogEntry) -> bool: return entry.source == "Sleeper"
+	)
+	assert_array(drops).has_size(1)
 	StimulusSystem.emit(Stimulus.make_contact(&"revive", 1.0, sleeper, _c.guard))
 	await _c.frames(4)
 	assert_bool(ActorState.can_act(sleeper)).is_true()
@@ -110,5 +118,8 @@ func test_a_woken_pistol_guard_engages_the_player() -> void:
 			engaged = true
 			break
 	EventLog.entry_added.disconnect(collect)
-	assert_bool(engaged).is_true()
-	assert_array(engagements).is_not_empty()
+	# Woken unarmed: it does not get its pistol back and never engages (CombatBehaviour needs a
+	# loadout), though the player stands in the light in front of it.
+	assert_bool(engaged).is_false()
+	assert_array(engagements).is_empty()
+	assert_array(holder.states).is_empty()

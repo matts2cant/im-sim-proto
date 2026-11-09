@@ -18,7 +18,9 @@ const BROKEN := "PhysicsFireRoom/BarricadeRoom/SideRoomCrate"
 const BARRICADE := "PhysicsFireRoom/BarricadeRoom/Barricade"
 const DATAPAD := "InventoryBayRoom/DatapadPedestal/Datapad/Readable"
 const OTHER_DATAPAD := "InventoryBayRoom/DatapadPedestal/StorageAccess/Readable"
-const SAVED_SPOT := Vector3(1.0, 0.0, 8.0)
+## Open floor west of the loadout table (its west end is at x 0.6, z 7.7 to 8.4). (1, 0, 8) was
+## inside the table: the player was pushed out with a velocity that a load replayed for a frame.
+const SAVED_SPOT := Vector3(-1.0, 0.0, 8.0)
 ## Attributes the saved skills and augmentations change (their values must match after the load).
 const ABILITY_ATTRIBUTES: Array[StringName] = [
 	&"pistol_spread_mult",
