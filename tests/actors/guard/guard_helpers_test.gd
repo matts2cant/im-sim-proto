@@ -9,6 +9,9 @@ extends GdUnitTestSuite
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const NEAR := Vector3(-200, 0, 800)
 const FAR := Vector3(0, 0, 800)
+## How long the busy test keeps every worker thread busy (ms of real time): well past the old
+## 120-frame cap, well under GuardHelpers.ASYNC_LANDING_MS.
+const BUSY_MS := 250
 
 var _regions: Array[NavigationRegion3D] = []
 var _map_was_async: bool = true
@@ -43,6 +46,37 @@ func test_a_region_added_while_an_async_iteration_runs_reaches_path_queries() ->
 	assert_bool(path.is_empty()).is_false()
 	assert_float(path[0].distance_to(NEAR)).is_less(5.0)
 	assert_float(path[path.size() - 1].distance_to(NEAR)).is_less(5.0)
+
+
+func test_the_switch_recovers_when_worker_threads_are_busy() -> void:
+	# Regression (M9h): a one-process full run next to other test runs failed this suite and
+	# path_partial_test. The pending asynchronous iteration runs on a worker thread; with the
+	# machine busy it landed after the recovery's 120-frame cap (about 30 ms of real time at the
+	# runner's fixed fps) and the map stayed wedged. Two busy tasks per core reproduce it here
+	# (the old cap failed 5 runs in 6).
+	NavigationServer3D.map_set_use_async_iterations(_map(), true)
+	var far := _square_region(FAR)
+	for i in 10:
+		await get_tree().physics_frame
+	var near := _square_region(NEAR)
+	var busy := WorkerThreadPool.add_group_task(_busy, OS.get_processor_count() * 2, -1, true)
+	far.enabled = false
+	far.enabled = true
+	await get_tree().physics_frame
+
+	await GuardHelpers.use_sync_iterations(_map(), near)
+	WorkerThreadPool.wait_for_group_task_completion(busy)
+
+	var path := NavigationServer3D.map_get_path(_map(), NEAR + Vector3(-3, 0, 0), NEAR + Vector3(3, 0, 0), true)
+	assert_bool(path.is_empty()).is_false()
+	assert_float(path[0].distance_to(NEAR)).is_less(5.0)
+
+
+## Keeps a worker thread busy for BUSY_MS of real time.
+func _busy(_index: int) -> void:
+	var until := Time.get_ticks_msec() + BUSY_MS
+	while Time.get_ticks_msec() < until:
+		pass
 
 
 func _map() -> RID:
