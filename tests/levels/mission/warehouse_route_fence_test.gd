@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Scenario (design/levels/mission-warehouse.md "Design review (M9e)", ghost route): the real player,
+## Scenario (design/levels/mission-warehouse.md "Routes covered by tests", ghost route A): the real player,
 ## starting kit only, through the populated warehouse with its guards at work, from PlayerSpawn
 ## over the north-west fence, up the annex chain to the roof, down duct B into the manager office
 ## (the manifest), back up the duct, down the fire escape and out of the back gate (it opens from

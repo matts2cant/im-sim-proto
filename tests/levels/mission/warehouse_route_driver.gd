@@ -191,7 +191,7 @@ func patrol_target(guard_name: String) -> String:
 ## same floor (within 3 m of height).
 func nearest_guard() -> float:
 	var best := INF
-	for node in _guards():
+	for node in guards():
 		var walker := node as Node3D
 		if not ActorState.can_act(walker) or absf(walker.global_position.y - player.global_position.y) > 3.0:
 			continue
@@ -282,7 +282,8 @@ func _go_to(point: Vector3, stance: Stance, quiet_distance: float = 0.0, reach: 
 	return reached
 
 
-func _guards() -> Array[Node]:
+## Every guard of the level, reinforcements included.
+func guards() -> Array[Node]:
 	var result: Array[Node] = level.get_node(GUARDS).get_children()
 	result.append_array(mission.reinforcements.get_children())
 	return result
@@ -291,7 +292,7 @@ func _guards() -> Array[Node]:
 func _seed() -> void:
 	seed(9)
 	var index := 0
-	for node in level.get_node(GUARDS).get_children():
+	for node in guards():
 		index += 1
 		var awareness := GradedAwareness.of_node(node)
 		if awareness != null:
@@ -304,6 +305,8 @@ func _seed() -> void:
 
 
 func _on_entry(entry: EventLogEntry) -> void:
+	if entry.kind == &"mission.reinforcements":
+		_seed.call_deferred()
 	var line := ""
 	match entry.kind:
 		&"actor.awareness":
