@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://levels/gallery/perception_lab/perception_lab.tscn" id="18_perception_lab"]
 [ext_resource type="PackedScene" path="res://levels/gallery/ai_arena/ai_arena.tscn" id="19_ai_arena"]
 [ext_resource type="PackedScene" path="res://levels/gallery/security_wing/security_wing.tscn" id="20_security_wing"]
+[ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="21_silencer"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -204,32 +205,35 @@ depth = 0.7
 surface = "wood"
 
 [node name="Pistol" parent="Loadout" instance=ExtResource("11_pistol")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 1.025, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.0465, 8.05)
+
+[node name="Silencer" parent="Loadout" instance=ExtResource("21_silencer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.23, 1.0555, 8.05)
 
 [node name="Baton" parent="Loadout" instance=ExtResource("12_baton")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.36, 1.025, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.56, 1.025, 8.05)
 
 [node name="PistolAmmo" parent="Loadout" instance=ExtResource("13_pistol_ammo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.72, 1.03, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.89, 1.03, 8.05)
 
 [node name="ItemPickup" parent="Loadout/PistolAmmo"]
 count = 60
 
 [node name="Medkit" parent="Loadout" instance=ExtResource("14_medkit")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08, 1.045, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.22, 1.045, 8.05)
 
 [node name="ItemPickup" parent="Loadout/Medkit"]
 count = 2
 
 
 [node name="Lockpick" parent="Loadout" instance=ExtResource("16_lockpick")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.44, 1.01, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.55, 1.01, 8.05)
 
 [node name="ItemPickup" parent="Loadout/Lockpick"]
 count = 2
 
 [node name="Biocell" parent="Loadout" instance=ExtResource("17_biocell")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 1.06, 8.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.88, 1.06, 8.05)
 
 [node name="ItemPickup" parent="Loadout/Biocell"]
 count = 2

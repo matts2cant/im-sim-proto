@@ -6,6 +6,9 @@ extends RefCounted
 const TEXT := Color(0.95, 0.95, 0.92)
 const SHADOW := Color(0, 0, 0, 0.7)
 const COUNT := Color(1.0, 0.92, 0.55)
+## Fitted attachments' tag ("SIL").
+const TAG := Color(0.55, 0.85, 1.0)
+const TAG_SIZE: int = 10
 
 
 ## Draws `stack` filling `rect` (minus a 2 px inset). `alpha` dims it (drag ghost).
@@ -37,6 +40,19 @@ static func draw(canvas: CanvasItem, rect: Rect2, stack: ItemStack, font_size: i
 		text_colour,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
+	var tags := tag_text(stack)
+	if not tags.is_empty():
+		var top := inner.position.y + 3.0 + font.get_ascent(TAG_SIZE)
+		_text(
+			canvas,
+			font,
+			Vector2(inner.position.x, top),
+			tags,
+			inner.size.x - 5.0,
+			TAG_SIZE,
+			Color(TAG, alpha),
+			HORIZONTAL_ALIGNMENT_RIGHT
+		)
 	var count := count_text(stack)
 	if not count.is_empty():
 		var bottom := inner.end.y - 4.0 - font.get_descent(font_size)
@@ -50,6 +66,15 @@ static func draw(canvas: CanvasItem, rect: Rect2, stack: ItemStack, font_size: i
 			Color(COUNT, alpha),
 			HORIZONTAL_ALIGNMENT_RIGHT
 		)
+
+
+## Top-right tag: the short labels of what is fitted to a weapon ("SIL"; ADR 0085), else "".
+static func tag_text(stack: ItemStack) -> String:
+	var labels: Array[String] = []
+	for attachment in Attachments.fitted(stack.state):
+		if not attachment.short_label.is_empty():
+			labels.append(attachment.short_label)
+	return " ".join(labels)
 
 
 ## What the corner shows: the count of a stackable item, a weapon's magazine ("10"), else "".

@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://ui/hud/belt_bar.gd" id="4_belt"]
 [ext_resource type="Script" path="res://ui/hud/energy_bar.gd" id="5_energy"]
 [ext_resource type="Script" path="res://ui/hud/light_gauge.gd" id="6_light"]
+[ext_resource type="Script" path="res://ui/hud/scope_overlay.gd" id="7_scope"]
 
 [sub_resource type="LabelSettings" id="Label_weapon"]
 font_size = 18
@@ -73,6 +74,17 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.8, 0.05, 0.05, 0)
+
+[node name="ScopeOverlay" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_scope")
 
 [node name="Reticle" type="Control" parent="."]
 layout_mode = 3

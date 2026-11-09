@@ -3,7 +3,8 @@ extends Node
 ## Component of an item's world scene (a RigidBody3D on layer 4 with ImpactNoise): looking at it
 ## and pressing E puts `count` of `item` into the player's inventory (PlayerInventory.pick_up()).
 ## What does not fit stays here. `state` overrides the item's default instance state: `magazine`
-## (pistol), `key_id` (keycard). Saveable (count and state).
+## (pistol), `key_id` (keycard), fitted `attachments` (ADR 0085: a WeaponModel in the pickup shows
+## them). Saveable (count and state).
 
 @export var item: ItemData
 @export var count: int = 1
@@ -22,6 +23,7 @@ static func of(node: Node) -> ItemPickup:
 
 func _ready() -> void:
 	add_to_group(&"saveable")
+	refresh_model()
 
 
 func entity() -> Node3D:
@@ -33,9 +35,21 @@ func stack_state() -> Dictionary:
 	return item.make_state(state)
 
 
-## "Lockpick (3)": the count only when more than one.
+## "Lockpick (3)": the count only when more than one; a weapon's name says what is fitted to it
+## ("Pistol (silenced)").
 func label() -> String:
-	return item.display_name if count <= 1 else "%s (%d)" % [item.display_name, count]
+	var shown := Attachments.display_name(item, stack_state())
+	return shown if count <= 1 else "%s (%d)" % [shown, count]
+
+
+## Shows the attachments of `state` on the entity's WeaponModel (a weapon pickup), if it has one.
+func refresh_model() -> void:
+	var holder := get_parent()
+	if holder == null or item == null:
+		return
+	for child in holder.get_children():
+		if child is WeaponModel:
+			(child as WeaponModel).fit(Attachments.fitted(stack_state()))
 
 
 ## Everything was taken: the world object goes.
@@ -52,3 +66,4 @@ func load_state(data: Dictionary) -> void:
 	count = int(data.get("count", count))
 	var saved: Dictionary = data.get("state", state)
 	state = saved.duplicate(true)
+	refresh_model()

@@ -27,6 +27,11 @@ func rect() -> Rect2i:
 	return Rect2i(cell, item.footprint)
 
 
+## The item's name with what is fitted to it: "Pistol (silenced)" (ADR 0085).
+func display_name() -> String:
+	return Attachments.display_name(item, state)
+
+
 ## "Pistol ammo (40)"; the count only when more than one.
 func label() -> String:
-	return item.display_name if count <= 1 else "%s (%d)" % [item.display_name, count]
+	return display_name() if count <= 1 else "%s (%d)" % [display_name(), count]

@@ -22,6 +22,9 @@ extends Resource
 @export var look_bloom_max_per_frame: float = 2.0
 ## Bloom per shot.
 @export var shot_bloom_deg: float = 2.5
+## Shots bloom the cone up to this (degrees; an automatic weapon's sustained-fire cap); stance floors
+## may still be wider. 0: up to `max_spread_deg`.
+@export var shot_bloom_cap_deg: float = 0.0
 @export var max_spread_deg: float = 10.0
 ## Aim sway: amplitude (degrees) of a slow figure-of-eight drift of the aim point, x `aim_sway_mult`.
 @export var sway_deg: float = 0.15

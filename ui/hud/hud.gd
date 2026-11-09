@@ -1,6 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## In-game HUD of the player it is a child of: reticle (exact aim cone), the name of the item in
+## In-game HUD of the player it is a child of: reticle (exact aim cone; through a scope the scope
+## overlay replaces it, ADR 0085), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
@@ -28,6 +29,7 @@ var _message_left: float = 0.0
 var _item_name_left: float = 0.0
 
 @onready var reticle: Reticle = $Reticle
+@onready var scope_overlay: ScopeOverlay = $ScopeOverlay
 @onready var weapon_label: Label = $Weapon/Name
 @onready var ammo_label: Label = $Weapon/Ammo
 @onready var silhouette: BodySilhouette = $Body
@@ -98,7 +100,7 @@ func _process(delta: float) -> void:
 		if _item_name_left == 0.0:
 			item_name_label.text = ""
 	if player != null and player.is_node_ready():
-		_update_reticle()
+		refresh_reticle()
 		refresh_weapon()
 		prompt_label.text = player.interactor.prompt if ActorState.can_act(player) else ""
 		# Every frame: the tags may come from any source (an Effect adding `state.unconscious`).
@@ -147,11 +149,11 @@ func reticle_radius() -> float:
 
 func refresh_weapon() -> void:
 	var data := player.weapons.weapon()
-	var held := player.inventory.held
-	if data != null:
-		weapon_label.text = data.display_name
+	var stack := player.inventory.in_hand()
+	if stack != null:
+		weapon_label.text = stack.display_name()
 	else:
-		weapon_label.text = held.item.display_name if held != null else ""
+		weapon_label.text = data.display_name if data != null else ""
 	ammo_label.text = HudRules.ammo_text(player.weapons.state())
 
 
@@ -171,7 +173,8 @@ func flash_alpha() -> float:
 	return damage_flash.color.a
 
 
-func _update_reticle() -> void:
+## Shows the scope overlay instead of the reticle while the player is scoped.
+func refresh_reticle() -> void:
 	var radius := reticle_radius()
 	var offset := Vector2.ZERO
 	if radius > 0.0:
@@ -181,8 +184,12 @@ func _update_reticle() -> void:
 		offset = Vector2(
 			AimModel.reticle_radius(sway.x, camera.fov, height), -AimModel.reticle_radius(sway.y, camera.fov, height)
 		)
+	var scoped := player.weapons.scope.scoped and ActorState.can_act(player)
+	scope_overlay.visible = scoped
+	if scoped:
+		scope_overlay.show_cone(radius, offset)
 	reticle.show_cone(radius, offset)
-	reticle.visible = ActorState.can_act(player)
+	reticle.visible = ActorState.can_act(player) and not scoped
 
 
 # The item put in hand: its name above the belt for a moment; empty hands: no name.
@@ -192,7 +199,7 @@ func _on_hand_changed() -> void:
 		item_name_label.text = ""
 		_item_name_left = 0.0
 		return
-	item_name_label.text = stack.item.display_name
+	item_name_label.text = stack.display_name()
 	item_name_label.modulate.a = 1.0
 	_item_name_left = _item_name_time()
 

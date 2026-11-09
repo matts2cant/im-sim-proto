@@ -17,6 +17,9 @@ extends CharacterBody3D
 ## `move_speed_mult` scales speed. The attributes `jump_apex_height` and `mantle_max_height` (base:
 ## config) change the jump and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
 ## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
+## Weapons (ADR 0085): LMB held sets the WeaponHolder's `trigger_held` (automatic weapons), RMB
+## (`alt_fire`) toggles a weapon's scope; the camera follows the holder's scope FOV and mouse look
+## scales with it.
 ## Saveable.
 
 signal mantled(height: float)
@@ -35,6 +38,7 @@ const PRESS_ACTIONS: Array[StringName] = [
 	&"use",
 	&"drop_throw",
 	&"fire",
+	&"alt_fire",
 	&"reload",
 	&"holster",
 	&"belt_1",
@@ -87,6 +91,8 @@ var _actions_held: Dictionary[StringName, bool] = {}
 var _belt_steps: int = 0
 ## Camera height minus eye height (m): a step moves the body at once, the view eases after it.
 var _view_offset: float = 0.0
+## The camera's field of view without a scope (player.tscn: 80 degrees vertical).
+var _hip_fov: float = 80.0
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
@@ -114,6 +120,7 @@ func _ready() -> void:
 	carry.player = self
 	carry.config = config
 	weapons.setup(self, _camera)
+	_hip_fov = _camera.fov
 	inventory.setup(self)
 	interactor.player = self
 	body.died.connect(_on_died)
@@ -185,16 +192,27 @@ func _physics_process(delta: float) -> void:
 	_step_tool(delta)
 	_handle_actions()
 	carry.physics_step()
+	weapons.trigger_held = _trigger_held()
 	weapons.physics_step(delta, aim_stance())
+	_camera.fov = weapons.scope.view_fov(weapons.weapon(), _hip_fov)
 
 
-## Turns the view by a mouse delta in screen pixels (and blooms the aim cone).
+## Turns the view by a mouse delta in screen pixels (and blooms the aim cone). Through a scope the
+## turn (and the bloom) scales with the field of view, so the crosshair moves as far on screen per
+## pixel as at the hip (ADR 0085).
 func look(screen_delta: Vector2) -> void:
-	weapons.add_look(screen_delta.length())
-	rotation.y = wrapf(rotation.y - screen_delta.x * config.mouse_sensitivity, -PI, PI)
+	var zoom := fov_ratio()
+	weapons.add_look(screen_delta.length() * zoom)
+	var sensitivity := config.mouse_sensitivity * zoom
+	rotation.y = wrapf(rotation.y - screen_delta.x * sensitivity, -PI, PI)
 	var limit := deg_to_rad(config.max_pitch_deg)
-	pitch = clampf(pitch - screen_delta.y * config.mouse_sensitivity, -limit, limit)
+	pitch = clampf(pitch - screen_delta.y * sensitivity, -limit, limit)
 	_head.rotation.x = pitch
+
+
+## The camera's field of view over the hip one (1 without a scope, 15 / 80 fully scoped).
+func fov_ratio() -> float:
+	return _camera.fov / _hip_fov if _hip_fov > 0.0 else 1.0
 
 
 func is_mantling() -> bool:
@@ -447,6 +465,8 @@ func _handle_actions() -> void:
 					carry.throw()
 				elif not inventory.use_held():
 					weapons.trigger()
+			&"alt_fire":
+				weapons.toggle_scope()
 			&"reload":
 				weapons.reload()
 			&"holster":
@@ -468,6 +488,19 @@ func _step_tool(delta: float) -> void:
 		and Input.is_action_pressed(&"fire")
 	)
 	tool_use.step(interactor.looked_at, inventory.held_tool(), holding, delta)
+
+
+# LMB held with a weapon in hand (nothing carried, able to act): an automatic weapon keeps firing
+# (hold, not toggle; releasing stops it).
+func _trigger_held() -> bool:
+	return (
+		input_enabled
+		and not DebugPanel.is_open()
+		and ActorState.can_act(self)
+		and not carry.is_carrying()
+		and inventory.held == null
+		and Input.is_action_pressed(&"fire")
+	)
 
 
 ## Losing overlay (dead or knocked out): reloads the level (or only signals, for tests).

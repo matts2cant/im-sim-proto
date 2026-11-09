@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://items/weapons/weapon_model.gd" id="1_model"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_blaster_kit/blaster-b.glb" id="2_mesh"]
+[ext_resource type="Script" path="res://items/attachments/attachment_mount.gd" id="3_mount"]
+
+[node name="PistolModel" type="Node3D" node_paths=PackedStringArray("muzzle")]
+script = ExtResource("1_model")
+muzzle = NodePath("Mesh/Muzzle")
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0, 0)
+
+[node name="Muzzle" type="Marker3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.013, -0.26)
+script = ExtResource("3_mount")

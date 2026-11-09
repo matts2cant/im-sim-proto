@@ -30,7 +30,7 @@ func test_wheel_down_from_holstered_takes_the_first_then_the_next_item() -> void
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
 	assert_int(_player.inventory.belt.selected).is_equal(0)
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
-	assert_str(_hud.item_name_label.text).is_equal("Silenced pistol")
+	assert_str(_hud.item_name_label.text).is_equal("Pistol")
 
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
 	assert_int(_player.inventory.belt.selected).is_equal(3)
@@ -104,7 +104,7 @@ func test_item_name_hides_after_its_time() -> void:
 	await _load()
 	_loadout_with_gap()
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
-	assert_str(_hud.item_name_label.text).is_equal("Silenced pistol")
+	assert_str(_hud.item_name_label.text).is_equal("Pistol")
 
 	# 1.5 s of game time is 90 physics frames (delta stays 1/60 s with the time factor): wait 120.
 	await _driver.frames(120)

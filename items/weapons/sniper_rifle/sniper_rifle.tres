@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Titan Handgun.wav" id="2_bang"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg" id="3_shot_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_001.ogg" id="4_shot_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_interface-sounds/Audio/click_002.ogg" id="5_dry"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="6_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="7_reload"]
+[ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_model.tscn" id="8_model"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_hip_aim.tres" id="9_hip"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_scope_aim.tres" id="10_scope"]
+
+[sub_resource type="AudioStreamRandomizer" id="Shot"]
+random_pitch = 1.03
+streams_count = 1
+stream_0/stream = ExtResource("2_bang")
+
+[sub_resource type="AudioStreamRandomizer" id="Suppressed"]
+random_pitch = 1.05
+streams_count = 2
+stream_0/stream = ExtResource("3_shot_0")
+stream_1/stream = ExtResource("4_shot_1")
+
+[resource]
+script = ExtResource("1_script")
+id = &"sniper_rifle"
+display_name = "Sniper rifle"
+kind = 0
+damage = Dictionary[StringName, float]({&"damage.ballistic": 90.0})
+cycle_time = 1.4
+max_range = 150.0
+aim_config = ExtResource("9_hip")
+scope_fov = 15.0
+scope_time = 0.15
+scope_aim_config = ExtResource("10_scope")
+attachment_slots = Array[StringName]([&"muzzle"])
+magazine_size = 5
+reserve_ammo = 15
+ammo_item = &"sniper_rounds"
+reload_time = 2.5
+fire_noise = 35.0
+impact_noise = 5.0
+impact_impulse = 6.0
+muzzle_flash_size = 0.15
+fire_sound = SubResource("Shot")
+suppressed_fire_sound = SubResource("Suppressed")
+fire_volume_db = 4.0
+dry_fire_sound = ExtResource("5_dry")
+hit_sound = ExtResource("6_hit")
+reload_sound = ExtResource("7_reload")
+view_scene = ExtResource("8_model")
+view_size = Vector3(0.05, 0.1, 1.0)
+view_color = Color(0.2, 0.22, 0.2, 1)
+view_offset = Vector3(0.24, -0.25, -0.85)
+view_rest_deg = Vector3(0, 3, 0)

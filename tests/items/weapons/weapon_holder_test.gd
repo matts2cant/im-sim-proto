@@ -65,13 +65,14 @@ func test_shot_emits_ray_muzzle_noise_and_impact_noise() -> void:
 	var noises := emitted.filter(func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"noise")
 	(
 		assert_array(noises.map(func(entry: EventLogEntry) -> float: return entry.data["intensity"]))
-		. contains_exactly([6.0, 4.0])
+		. contains_exactly([25.0, 4.0])
 	)
 	var impact: Vector3 = noises[1].data["origin"]
 	assert_float(impact.z).is_equal_approx(-5.8, 0.01)
 	assert_float(impact.distance_to(WALL_POINT)).is_less(0.3)
 	var muzzle: Vector3 = noises[0].data["origin"]
-	assert_float(muzzle.distance_to(_player.eye_transform().origin)).is_less(0.6)
+	# At the pistol model's barrel end (WeaponModel muzzle), about 0.66 m from the eye.
+	assert_float(muzzle.distance_to(_player.eye_transform().origin)).is_less(0.8)
 	var fired := EventLog.find(&"weapon.fired")
 	assert_array(fired).has_size(1)
 	assert_int(fired[0].data["magazine"]).is_equal(9)

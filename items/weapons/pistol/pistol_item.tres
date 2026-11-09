@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("1_script")
 id = &"pistol"
-display_name = "Silenced pistol"
+display_name = "Pistol"
 short_name = "PISTOL"
-description = "Suppressed 10 mm sidearm. Quiet, accurate at rest. Holds a 10-round magazine; reloads from pistol ammo."
+description = "10 mm sidearm. Accurate at rest, loud: guards hear a shot about 25 m away. Takes a silencer on its muzzle. Holds a 10-round magazine; reloads from pistol ammo."
 footprint = Vector2i(2, 1)
 max_stack = 1
 colour = Color(0.36, 0.4, 0.48, 1)

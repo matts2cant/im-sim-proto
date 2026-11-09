@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/weapons/shotgun/shotgun.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"shotgun"
+display_name = "Shotgun"
+short_name = "SHOTGUN"
+description = "Pump shotgun: 8 pellets a shot in a 5 degree cone. Devastating up close, weak at range. Holds 6 shells; reloads from shotgun shells. Loud, no silencer fits."
+footprint = Vector2i(3, 1)
+max_stack = 1
+colour = Color(0.55, 0.45, 0.22, 1)
+world_scene = "res://items/weapons/shotgun/shotgun_pickup.tscn"
+auto_belt = true
+default_state = {"magazine": 6}
+use_action = 1
+weapon = ExtResource("2_weapon")
