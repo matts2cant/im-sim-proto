@@ -322,8 +322,15 @@ def build_exterior():
         bd,
         "wood",
         [
-            box((10.4, -1.3, 33.6), (12.9, 0.3, 40.4)),
-            box((10.7, 0.3, 37.4), (12.6, 1.9, 39.6), mat="wall", name="Cabin"),
+            # Hull with a pointed bow downstream (south), an open deck well, a cabin with windows
+            # and an outboard motor at the stern (clear of the quay wall).
+            box((10.4, -1.3, 33.8), (12.9, 0.35, 39.6), name="Hull"),
+            obox((11.65, -0.475, 39.6), (1.768, 1.65, 1.768), yaw_basis(45.0), name="Bow"),
+            box((10.6, 0.05, 34.0), (12.7, 0.4, 39.4), op="subtraction", name="DeckWell"),
+            box((10.75, 0.05, 35.6), (12.55, 1.85, 37.8), mat="wall", name="Cabin"),
+            box((10.7, 1.1, 36.0), (12.6, 1.5, 37.4), mat="wall", op="subtraction", name="Windows"),
+            box((10.65, 1.85, 35.5), (12.65, 1.95, 37.9), mat="metal", name="CabinRoof"),
+            box((11.4, -0.5, 33.45), (11.9, 0.75, 33.8), mat="metal", name="Motor"),
         ],
     )
     del boat
