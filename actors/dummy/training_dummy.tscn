@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://actors/dummy/training_dummy.gd" id="1_dummy"]
-[ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="2_hitboxes"]
+[ext_resource type="PackedScene" path="res://actors/common/body/blocky_hitboxes.tscn" id="2_hitboxes"]
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
 [ext_resource type="Script" path="res://core/attributes/attributes.gd" id="4_attributes"]
 [ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="5_receiver"]
@@ -14,43 +14,17 @@
 [ext_resource type="Resource" path="res://actors/common/body/receptrons/heal.tres" id="heal_receptron"]
 [ext_resource type="Script" path="res://actors/common/impact_sensor/impact_sensor.gd" id="12_impact_sensor"]
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="13_impact_settings"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney_blocky_characters/character-d.glb" id="14_model"]
+[ext_resource type="Script" path="res://actors/common/animation/character_animator.gd" id="15_animator"]
+[ext_resource type="Resource" path="res://actors/common/animation/blocky_character_anim.tres" id="16_anim_config"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.3
 height = 1.8
 
-[sub_resource type="StandardMaterial3D" id="Material_body"]
-albedo_color = Color(0.72, 0.64, 0.5, 1)
-roughness = 0.8
-
-[sub_resource type="StandardMaterial3D" id="Material_visor"]
-albedo_color = Color(0.1, 0.1, 0.12, 1)
-roughness = 0.3
-
 [sub_resource type="StandardMaterial3D" id="Material_base"]
 albedo_color = Color(0.3, 0.3, 0.32, 1)
 roughness = 0.7
-
-[sub_resource type="SphereMesh" id="Mesh_head"]
-material = SubResource("Material_body")
-radius = 0.14
-height = 0.28
-
-[sub_resource type="BoxMesh" id="Mesh_visor"]
-material = SubResource("Material_visor")
-size = Vector3(0.2, 0.06, 0.06)
-
-[sub_resource type="BoxMesh" id="Mesh_torso"]
-material = SubResource("Material_body")
-size = Vector3(0.44, 0.62, 0.26)
-
-[sub_resource type="BoxMesh" id="Mesh_arm"]
-material = SubResource("Material_body")
-size = Vector3(0.13, 0.66, 0.16)
-
-[sub_resource type="BoxMesh" id="Mesh_leg"]
-material = SubResource("Material_body")
-size = Vector3(0.17, 0.9, 0.2)
 
 [sub_resource type="CylinderMesh" id="Mesh_base"]
 material = SubResource("Material_base")
@@ -71,35 +45,8 @@ shape = SubResource("Shape_body")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
 mesh = SubResource("Mesh_base")
 
-[node name="Pose" type="Node3D" parent="."]
-
-[node name="Head" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0)
-mesh = SubResource("Mesh_head")
-
-[node name="Visor" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.67, -0.115)
-mesh = SubResource("Mesh_visor")
-
-[node name="Torso" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.21, 0)
-mesh = SubResource("Mesh_torso")
-
-[node name="ArmL" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 1.18, 0)
-mesh = SubResource("Mesh_arm")
-
-[node name="ArmR" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.18, 0)
-mesh = SubResource("Mesh_arm")
-
-[node name="LegL" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.45, 0)
-mesh = SubResource("Mesh_leg")
-
-[node name="LegR" type="MeshInstance3D" parent="Pose"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.45, 0)
-mesh = SubResource("Mesh_leg")
+[node name="Model" parent="." instance=ExtResource("14_model")]
+transform = Transform3D(-0.66, 0, 0, 0, 0.66, 0, 0, 0, -0.66, 0, 0.04, 0)
 
 [node name="Hitboxes" parent="." instance=ExtResource("2_hitboxes")]
 
@@ -132,3 +79,9 @@ verb = "reset"
 [node name="ImpactSensor" type="Node" parent="."]
 script = ExtResource("12_impact_sensor")
 settings = ExtResource("13_impact_settings")
+
+[node name="Animator" type="Node" parent="."]
+script = ExtResource("15_animator")
+config = ExtResource("16_anim_config")
+holder_path = NodePath("")
+aim_path = NodePath("")

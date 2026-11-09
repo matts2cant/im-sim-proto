@@ -7,6 +7,8 @@ extends Resource
 ## stat attachments can modify (base_stat()).
 
 enum Kind { RANGED, MELEE }
+## How a character holds it (CharacterAnimator's hold and shot poses, ADR 0103).
+enum Grip { ONE_HAND, TWO_HAND }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -15,6 +17,9 @@ enum Kind { RANGED, MELEE }
 ## this resource. Empty: it cannot be dropped (a turret's gun).
 @export var item_id: StringName = &""
 @export var kind: Kind = Kind.RANGED
+## One hand (pistol, baton) or both (the long guns): which hold and shot poses an animated character
+## uses and where the weapon sits in its hands (CharacterAnimConfig, ADR 0103).
+@export var grip: Grip = Grip.ONE_HAND
 ## Damage stimuli per hit, emitted in this order: type -> intensity (`damage.ballistic`: 25).
 @export var damage: Dictionary[StringName, float] = {}
 ## Seconds between shots, or the length of a swing.

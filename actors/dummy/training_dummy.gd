@@ -1,10 +1,12 @@
 class_name TrainingDummy
 extends StaticBody3D
 ## Training dummy: a static humanoid target with BodyParts (dummy profile), Hitboxes, Awareness
-## (exported, unaware by default) and a facing (-Z, marked by the visor). Every hit shows a floating
-## number (part and amount); knocked out or dead it tips over backwards. `use` (E) or reset()
-## restores health, consciousness and pose. Collision layers 3 (actors) and 7 (static actors: props
-## bounce off it, ADR 0070); weapons hit its hitboxes.
+## (exported, unaware by default) and a facing (-Z). Every hit shows a floating number (part and
+## amount); knocked out or dead its hitboxes and collision tip over backwards, and the figure falls
+## with them: its CharacterAnimator plays the down clip from the same tags (ADR 0103), or an
+## optional "Pose" node tips like the hitboxes. `use` (E) or reset() restores health,
+## consciousness and pose. Collision layers 3 (actors) and 7 (static actors: props bounce off it,
+## ADR 0070); weapons hit its hitboxes.
 
 const NUMBER_TIME: float = 1.2
 const NUMBER_RISE: float = 0.5
@@ -27,7 +29,8 @@ var _standing_collision: Transform3D
 
 @onready var body: BodyParts = $BodyParts
 @onready var hitboxes: Hitboxes = $Hitboxes
-@onready var pose: Node3D = $Pose
+## A figure that tips with the hitboxes (optional: an animated model falls by itself).
+@onready var pose: Node3D = get_node_or_null(^"Pose") as Node3D
 @onready var _collision: CollisionShape3D = $Collision
 @onready var _numbers: Node3D = $Numbers
 
@@ -88,11 +91,12 @@ func _update_pose() -> void:
 	_tween.tween_method(_set_fall, _fall, 1.0, TIP_TIME).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 
 
-# 0 = standing, 1 = lying: the figure, its hitboxes and its collision capsule all tip together.
+# 0 = standing, 1 = lying: the hitboxes, the collision capsule (and a Pose figure) tip together.
 func _set_fall(amount: float) -> void:
 	_fall = amount
 	var lying := Transform3D.IDENTITY.interpolate_with(LYING, amount)
-	pose.transform = lying
+	if pose != null:
+		pose.transform = lying
 	hitboxes.transform = lying
 	_collision.transform = lying * _standing_collision
 

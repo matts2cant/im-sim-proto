@@ -28,6 +28,7 @@ id = &"sniper_rifle"
 item_id = &"sniper_rifle"
 display_name = "Sniper rifle"
 kind = 0
+grip = 1
 damage = Dictionary[StringName, float]({&"damage.ballistic": 90.0})
 cycle_time = 1.4
 max_range = 150.0
