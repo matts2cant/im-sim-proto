@@ -75,8 +75,11 @@ func test_baton_from_behind_on_unaware_dummy_knocks_out_in_one_hit() -> void:
 	await _load()
 	_dummy.rotation.y = 0.0
 	await _weapons.equip(2)
-	# The dummy faces -Z; the player stands behind it (on +Z).
-	await _weapons.aim_at(Vector3(0, 0, -1.7), Weapons.part_position(_dummy, &"torso"))
+	# The dummy faces -Z; the player stands behind it (on +Z). Aimed at the lower torso: the swept
+	# 0.2 m sphere aimed at the torso centre from the eye grazes the back of the 0.53 m head box
+	# (ADR 0105) on its way down.
+	var lower_torso := Weapons.part_position(_dummy, &"torso") + Vector3.DOWN * 0.15
+	await _weapons.aim_at(Vector3(0, 0, -1.7), lower_torso)
 
 	await _weapons.fire()
 
