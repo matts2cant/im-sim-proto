@@ -1,0 +1,35 @@
+# 92. Warehouse polish: tighter patrols, two security switches, barred gates, side-wall door panels, free-side links, door signs, label boxes in the network graph
+
+Status: Accepted
+
+Date: 2026-11-09
+
+## Context
+
+M9 wave 3 reviews the finished warehouse ([mission-warehouse.md](../levels/mission-warehouse.md) "Design review (M9e)") before the route scenario tests. Known issues: patrol laps of 55-87 s left crossings unwatched for up to 82 s; one network switch in the basement store (beside breaker B) carried every security device, so one shot or one breaker silenced the whole compound; the solid 6 m front gate blocked the view through the see-through palisade; door control panels at the end of 1.5 m corridors sat inside the cross wall; the terminal's network graph overlapped labels (the front gate's "unlocked" read as "locked" under the gate camera's label); guards never planned through a locked door from its free side ([ADR 0090](0090-door-size-free-side-locks-warehouse-security.md)), because a navigation link runs both ways; and the warehouse suites had taken the full test run from about 45 s to 144 s.
+
+## Decision
+
+- **Patrols** ([ADR 0091](0091-warehouse-population.md) measures them): five patrols instead of three. Two new guards: G9 (baton) walks the back strip from the weak wall to the east strip beside the fire escape, G10 (pistol) the west catwalk and the bridge. G2 (west yard) and G3 (east yard) walk shorter loops that pass the side door and the drain chamber exit twice a lap; G4 (rifle) walks the north catwalk out and back between the east catwalk and the north-west corner. Laps 37-52 s; every crossing gap is now 6-39 s. `warehouse_patrol_timing_test.gd` simulates 60 s and asserts 4 s <= gap <= 45 s at each crossing (no crossing is shared by two patrols, so the gaps stay periodic); `warehouse_people_test.gd` checks each patrolling guard starts on its first point. Two lamps light the new catwalk turning points.
+- **Two security switches**: the building's (`SecuritySwitch`, basement store, breaker B) carries the building's cameras, the turret, the console, the security room's alarm controller, the radio base station, the security panic button, the indoor sirens and the cabled office doors. The yard's (`YardSwitch`, gate booth, east wall inside, on breaker A) carries the gate and yard cameras, the booth's panic button, the yard's own alarm controller (`AlarmControllerYard`, in the booth), the four outdoor sirens and the front gate. An uplink cable joins them: with both up, either controller rings every siren and the console reaches the yard. Breaking or unpowering one switch cuts its part only; the other keeps working on its own controller. Silencing the whole compound takes two decisions in two places (the basement store or breaker B; the booth, G1's post, or breaker A in the annex). The yard switch is visible through the booth's west window, so a silenced pistol can break it from cover.
+- **Barred gates**: `DoorSettings.bar_spacing` (0 = a solid sheet) makes a door's panel a grille of vertical bars and two rails, built at `_ready` as one ConcavePolygonShape3D and one mesh that move like the panel: bodies are stopped, sight, shots and light pass between the bars, and a grille does not muffle noise (`attenuate_below` 0). The vehicle gate and the fence gate use the palisade's spacing (0.22 m, 0.05 m bars), so the front and back gates read like the fence and players scout the yard through them.
+- **Side-wall control panels**: `Door.front_side_wall` / `back_side_wall` (0 = beside the doorway) put a face's control panel (and its prompt shape) on a narrow corridor's side wall, facing across it, 0.4 m in from the door's wall. The warehouse sets them for the four doors at the ends of 1.5 m corridors (office entrance, bridge, fire escape, catwalk stairs).
+- **Free-side navigation links**: every door has a second, one-way NavigationLink3D (`FreeSideLink`), enabled while the door is locked and a lock has a free side, from that side through the doorway on `AccessLayers.WALK`. Any guard plans out of a room through a lock that opens freely from its side (the side door to the west yard, the back gate to the quay, the manager office, the vault); it never plans in. DoorOpener and `Door.open_for()` already opened such a door for a character on its free side.
+- **Door signs**: kit Signs over the office block's doors name the rooms (OFFICES from the hall and the bridge, SECURITY, MANAGER, VAULT, BREAK ROOM, LOCKERS, OFFICE, STAIRS, FIRE EXIT, BOILER ROOM / STORE), placed by the security generator from a doorway -> faces table; the objective names the manager's office and the level now does too, without waypoint markers.
+- **Network graph**: after the floor-plan projection, `NetworkLayout.separate_boxes()` pushes the nodes' label boxes (name and status line) apart along the axis they overlap least, keeps them inside the panel, and moves any box still overlapping after the passes to the nearest free spot. Box widths are rounded up to 24 px and the placement is reused while positions and boxes are unchanged (pushing apart takes tens of milliseconds for 26 nodes).
+
+## Alternatives considered
+
+- **Longer waits or a single yard patrol with more points**: a lap round the whole yard stays above 60 s at 1.8 m/s; gaps shrink only with more guards or shorter loops.
+- **Two crossing-sharing patrols** (more overlap at one point): two guards with different laps drift in and out of phase, so their combined gaps are not periodic and can fall below 4 s; each crossing keeps one patrol, and patrols overlap in the areas between crossings instead.
+- **One switch per area with a single controller** (security room): breaking the building switch would still silence the yard, because the yard's cameras could no longer reach the only controller. The yard needs its own controller.
+- **A see-through layer for the solid gate panel**: no layer is "blocks bodies but not sight" today, and every sight, shot and light query would have to learn it; bars use the same rule as the fence.
+- **Moving the corridor panels to the door's other side or above it**: the pocket (+X) side holds the open door, and a panel above the doorway is out of reach and unreadable.
+- **Two-way links for free-side doors**: guards would plan in through a door they cannot open and stall at it.
+
+## Consequences
+
+- Ten guards (eight before) and two more reinforcements after the first alarm: ghost runs have more to read; the route scenario tests (next) measure whether every route still works.
+- Cutting breaker A now also silences the yard's alarms (the yard switch is on its circuit): a dark yard is a quiet yard.
+- Guards chase a player out through the side door, the back gate and the other free-side doors.
+- Test time: the warehouse suites took about 126 s of a full run (summed over suites) and now about 58 s. Suites whose tests only query the level load it once (`before()`), `LevelNavigation.bake_on_ready` lets tests skip the bake at load (none when no test walks a path, one on the synchronous map otherwise), and the patrol simulation runs 60 s without the devices and props it never touches.
