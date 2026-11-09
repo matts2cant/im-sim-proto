@@ -54,9 +54,9 @@ State to clip (`actors/common/animation/blocky_character_anim.tres`, every name 
 | Head | sphere r 0.14 | y 1.64 | y 1.52 | cube 0.53, y 1.25-1.78 |
 | Torso | box 0.44 x 0.62 x 0.26 | y 1.21 | y 0.96 | 0.53 x 0.59 x 0.40, y 0.66-1.25 |
 | Arms | box 0.13 x 0.66 x 0.16 | x ±0.3, y 1.18 | x ±0.4, y 0.89, z +0.07 | 0.26 x 0.73 x 0.26, x ±0.26-0.53 |
-| Legs | box 0.17 x 0.9 x 0.2 | x ±0.11, y 0.45 | x ±0.13, y 0.45 | 0.26 x 0.66 x 0.26 each, y 0-0.66 |
+| Legs | box 0.17 x 0.9 x 0.2 | x ±0.11, y 0.45 | unchanged | 0.26 x 0.66 x 0.26 each, x 0-±0.26, y 0-0.66 |
 
-The hitboxes do not animate (they tip with `DownedPose` as before). Shapes keep their sizes, so a shot at the outer part of the big head (above 1.66 m or below 1.38 m, or its corners) misses it; the torso box covers up to 1.27 m. Damage numbers and tests are unchanged.
+The legs stay where they were: centred on the model's legs (±0.13) their 0.17 m boxes would leave a 9 cm gap between them instead of 5 cm, and a ray at a lying body's middle (the warehouse vault route picks a knocked-out guard up there) passed through it. The hitboxes do not animate (they tip with `DownedPose` as before). Shapes keep their sizes, so a shot at the outer part of the big head (above 1.66 m or below 1.38 m, or its corners) misses it; the torso box covers up to 1.27 m. Damage numbers and tests are unchanged.
 
 **Training dummy**: `character-d` on its base (raised 0.04 m), idle; knocked out or dead it plays `die` (its tags come from BodyParts like a guard's), and `reset()` stands it up through the wake fade. Its physics (layers 3 and 7, ADR 0070) and its tipping hitboxes and capsule are unchanged.
 
