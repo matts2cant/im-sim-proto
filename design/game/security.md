@@ -99,10 +99,11 @@ Built in M8 ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). 
 ### Doors
 
 - `objects/door/door.tscn`: a sliding pocket door filling a 1.2 x 2.2 m doorway (origin on the floor at the doorway's centre, panel in the wall's middle plane, X along the wall). The panel slides 1.3 m along +X into the wall in 0.6 s (`door_settings.tres`). Closed, it blocks bodies and sight (world layer) and its `SoundAttenuator` adds 6 m to noise paths through the doorway (while less than half open). It does not close on a body in the doorway (player, guard, prop: `door.blocked`; a closing door that something walks into opens again). Place it where 1.35 m of wall continues on its +X side (the pocket) and 1 m on its -X side (control panels); set `Door.wall_thickness` (default 0.25) so the control panels sit on the wall faces. Rotate it 180 degrees to swap sides.
+- **Size and motion are data** ([ADR 0090](../decisions/0090-door-size-free-side-locks-warehouse-security.md)): `DoorSettings.doorway` (width x height, default 1.2 x 2.2), `travel` (where the panel moves to open, door-local: +X slides it into the wall beside the doorway, +Y raises it into the wall above), `panel_thickness`, `panel_offset` (off the wall's middle plane, e.g. a gate sliding past its posts outside a fence) and `open_time`. The door sizes its panel, noise attenuator, navigation carve and control panels from them at `_ready`. Shipped: `door_settings.tres` (1.2 x 2.2, slides 1.3 m in 0.6 s), `roller_door_settings.tres` (4 x 4 m, rises 4.1 m in 2.5 s, noise 15), `vehicle_gate_settings.tres` (6 x 3 m, slides 6.2 m past its post, 0.3 m outside the fence line, in 3 s), `fence_gate_settings.tres` (1.2 x 3 m in a 3 m fence), `wall_panel_settings.tres` (a 0.45 m panel that never moves: with `breakable_door.tscn` and the wall material on its panel, a weak wall). A roller door needs `travel.y` of wall above the doorway; a pocket door 1.35 m of wall beside it.
 - E on the panel or on either control panel: "E: open" / "E: close"; locked: what a lock offers ("E: enter code", "E: open (keycard)"), "Picking 40%" while picking, else "Locked: keycard or lockpick" (the locks' reasons), "Locked" with no lock. The control panels' light is red while locked, green unlocked, dark when broken or unpowered; their label lists the locks.
 - `objects/door/breakable_door.tscn`: the same plus `Breakable` (health 50, material `reinforced`: `damage.explosive` x1; ballistic, blunt, stun and fire x0) with `free_entity` off. A barrel blast (100 / 4 m) breaks it within about 2 m of the door's centre (100 x (1 - 2/4) = 50); pistol rounds (25 ballistic) and baton hits (20 stun + 5 blunt) never do. Broken, the panel is gone for good: passable, no attenuation, `state.broken`.
 - Saveable: `Door` (`open`, `broken`), `Lockable` (`locked`); `Tags` and `Attributes` save themselves.
-- EventLog: `door.opened` / `door.closed` {door, by}, `door.blocked`, `door.refused`, `door.command {door, command, done}`; `lock.unlocked` / `lock.locked` {entity, how}, `lock.code_entered {entity, code_id, correct}`, `lock.pick_started` / `lock.pick_cancelled` / `lock.picked`.
+- EventLog: `door.opened` / `door.closed` {door, by}, `door.opened_freely` (from a lock's free side), `door.blocked`, `door.refused`, `door.command {door, command, done}`; `lock.unlocked` / `lock.locked` {entity, how}, `lock.code_entered {entity, code_id, correct}`, `lock.pick_started` / `lock.pick_cancelled` / `lock.picked`.
 
 ### Locks (components on any entity)
 
@@ -115,6 +116,7 @@ Built in M8 ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). 
 | `KeycardLock` | `KeycardLockData`: `access_id`, `accept_noise` 2 | E while carrying a keycard whose `key_id` is the access id | A character tagged `access.<access_id>` has the same access: guards with it path through and open the door while it stays locked |
 | `ElectronicLock` | the entity's tags | Remote unlock or open; power loss when fail-safe | `door.fail_safe` unlocks on power loss (its `Powered` switching off, or `state.unpowered` added); `door.fail_secure` (or no tag) stays as it is |
 
+- **Free side** (any lock, [ADR 0090](../decisions/0090-door-size-free-side-locks-warehouse-security.md)): `Lock.free_side` names a side of the entity (FRONT: its +Z, BACK: its -Z) from which it opens without that lock's key, like an exit handle or a push bar. There the door prompts "E: open" and makes an authorised open (it stays locked, so it is locked again once closed; `door.opened_freely`); `Lockable.grants_passage()` lets a character on that side through. The navigation link stays on the lock's layers, so guards without the key do not plan through it. The warehouse's back gate, tunnel gate and roof doors use it.
 - Keypad: code found in world notes. Datapads are read in place and copied to the player's personal log ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)); a datapad's `Readable.codes` maps the keypad's code id to the code. A code learned any other way (a conversation, a log entry) feeds the same reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`. From M11 a keypad is also hackable ("read its code", [hacking.md](hacking.md)).
 - Mechanical lock: the pin-tumbler minigame replaces the placeholder in M10 ([lockpicking.md](lockpicking.md)).
 - Electronic: the lock is a network device: opened remotely (from M11 with access to a machine it trusts or to the door itself), or by power loss when it is fail-safe.
@@ -153,7 +155,7 @@ flowchart TD
 
 ## Interactions
 
-- Mission office and side-door route: [../levels/mission-warehouse.md](../levels/mission-warehouse.md)
+- The warehouse mission's doors, keys and security network: [../levels/mission-warehouse.md](../levels/mission-warehouse.md#doors-locks-and-keys-m9-wave-2)
 - Network hacking: [hacking.md](hacking.md). Guards and sirens: [perception-and-ai.md](perception-and-ai.md).
 
 ## Open questions

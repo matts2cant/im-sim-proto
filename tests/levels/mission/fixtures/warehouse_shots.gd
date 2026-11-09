@@ -7,6 +7,11 @@ extends Node3D
 ## height. `cam`: a free camera at `eye` instead of the player (HUD hidden). User args: `dark=1`
 ## turns breakers A and B off; `perf=1` prints frames per second (vsync off); `lit=1` raises the
 ## ambient light and clears the fog (layout review only: it is not what the player sees).
+## The doors and security devices' shots (M9c) live in warehouse_security_shots.gd: `view` puts the
+## free camera at a device's view node (a camera's eye), `terminal` opens that terminal logged in on
+## its Network tab.
+
+const SecurityShots := preload("res://tests/levels/mission/fixtures/warehouse_security_shots.gd")
 
 const SHOTS: Dictionary[String, Dictionary] = {
 	# Overviews (free camera).
@@ -104,6 +109,7 @@ const SHOT_SIZE := Vector2i(1152, 648)
 const WAIT := 1.2
 
 var _queue: Array[String] = []
+var _shots: Dictionary = SHOTS.merged(SecurityShots.SHOTS)
 var _out := "res://reports/screenshots/warehouse"
 var _shot: Dictionary = {}
 var _time := 0.0
@@ -126,9 +132,9 @@ func _ready() -> void:
 		if parts.size() == 2:
 			args[parts[0]] = parts[1]
 	var names := String(args.get("shots", "start"))
-	var wanted: Array = SHOTS.keys() if names == "all" else Array(names.split(","))
+	var wanted: Array = _shots.keys() if names == "all" else Array(names.split(","))
 	for shot_name: String in wanted:
-		if not SHOTS.has(shot_name):
+		if not _shots.has(shot_name):
 			push_error("Unknown shot %s" % shot_name)
 			continue
 		_queue.append(shot_name)
@@ -157,7 +163,7 @@ func _next() -> void:
 		get_tree().quit()
 		return
 	var shot_name: String = _queue.pop_front()
-	_shot = SHOTS[shot_name].duplicate()
+	_shot = (_shots[shot_name] as Dictionary).duplicate()
 	_shot["name"] = shot_name
 	_time = 0.0
 	for path: String in _shot.get("hide", []):
@@ -171,11 +177,32 @@ func _physics_process(_delta: float) -> void:
 	(_player.get_node("Hud") as CanvasLayer).visible = not _shot.get("cam", false)
 	if _shot.get("cam", false):
 		_camera.current = true
-		_camera.global_transform = Transform3D.IDENTITY.translated(_shot["eye"] as Vector3)
-		_camera.look_at(_shot["look"] as Vector3)
+		if _shot.has("view"):
+			_camera.global_transform = _device_view(_level.get_node(String(_shot["view"]))).global_transform
+		else:
+			_camera.global_transform = Transform3D.IDENTITY.translated(_shot["eye"] as Vector3)
+			_camera.look_at(_shot["look"] as Vector3)
 		return
 	_camera.current = false
 	_place_player()
+	if _shot.has("terminal") and not _shot.has("opened") and _time > 0.2:
+		_shot["opened"] = true
+		var terminal := Terminal.of(_level.get_node(String(_shot["terminal"])))
+		terminal.log_in(terminal.username, terminal.password)
+		terminal.use(_player)
+		var screen := TerminalScreen.of(_player)
+		screen.show_tab(TerminalScreen.Tab.NETWORK)
+		screen.refresh_devices(true)
+
+
+# The node a device sees from (a component's device_view(), DeviceStatus), else the entity.
+func _device_view(entity: Node) -> Node3D:
+	for child in entity.get_children():
+		if child.has_method(&"device_view"):
+			var view: Node3D = child.call(&"device_view")
+			if view != null:
+				return view
+	return entity as Node3D
 
 
 func _process(delta: float) -> void:
@@ -194,6 +221,9 @@ func _process(delta: float) -> void:
 	var path := "%s/%s.png" % [_out, _shot["name"]]
 	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(path))
 	print("Saved ", path)
+	var screen := TerminalScreen.of(_player)
+	if screen != null and screen.is_open():
+		screen.close()
 	for hidden: String in _shot.get("hide", []):
 		(_level.get_node(hidden) as Node3D).visible = true
 	_shot = {}
