@@ -38,6 +38,18 @@ func test_a_pocket_door_with_every_lock_type() -> void:
 	assert_array(KitGeometry.coplanar_material_overlaps(_root)).is_empty()
 
 
+func test_the_checks_catch_boxes_off_or_inside_the_wall() -> void:
+	# A door told its wall is 0.45 m thick in a 0.25 m wall: its boxes float 0.1 m off each face. One
+	# told 0.05 m: its boxes sit inside the wall.
+	_wall(Vector3.ZERO, 0.25, Vector2(4, 3), PLAIN.doorway)
+	_wall(Vector3(6, 0, 0), 0.25, Vector2(4, 3), PLAIN.doorway)
+	var floating := _door(PLAIN, Vector3.ZERO, 0.45, [&"keypad"])
+	var buried := _door(PLAIN, Vector3(6, 0, 0), 0.05, [&"keypad"])
+	await KitGeometry.settle(get_tree(), 4)
+	assert_str(" ".join(Checks.problems(floating))).contains("floating")
+	assert_str(" ".join(Checks.problems(buried))).contains("inside a wall")
+
+
 func test_a_pocket_door_between_two_short_corridors() -> void:
 	# A 1.5 m corridor on each face: its side wall 0.75 m from the doorway's centre line on the -X
 	# side, 0.2 m thick, 2 m long.

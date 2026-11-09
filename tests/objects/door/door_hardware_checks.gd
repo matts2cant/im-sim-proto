@@ -3,7 +3,9 @@ extends RefCounted
 ## problems() returns what is wrong with each box, empty when every box
 ## - is flush on a wall surface: a ray from 2 cm inside the box, near each corner of its back face,
 ##   meets the world (not the door) 2 cm behind, so no corner floats or overhangs an edge;
-## - is not inside a wall: the box shrunk by 4 mm overlaps nothing on the world layer;
+## - is not inside a wall: the box shrunk by 4 mm overlaps nothing on the world layer, and rays from
+##   0.25 m in front of it to its back face meet nothing (a box buried in a wall's collision
+##   trimesh crosses none of its faces);
 ## - is clear of the leaf's sweep (closed to open, with its handle);
 ## and the door has the same number of boxes on both faces.
 
@@ -24,7 +26,7 @@ static func problems(door: Door) -> PackedStringArray:
 		var where := "%s/%s" % [label, box.name]
 		var size := ((box.get_node("Shape") as CollisionShape3D).shape as BoxShape3D).size
 		found.append_array(_flush(door, box, size, where))
-		if _inside_wall(door, box, size):
+		if _inside_wall(door, box, size) or _covered(door, box, size):
 			found.append("%s: inside a wall" % where)
 		var local := box.transform * AABB(Vector3(-size.x * 0.5, -size.y * 0.5, 0.0), size)
 		if local.intersects(sweep):
@@ -64,3 +66,19 @@ static func _inside_wall(door: Door, box: StaticBody3D, size: Vector3) -> bool:
 	query.collision_mask = PhysicsLayers.WORLD
 	query.exclude = [box.get_rid(), door.entity.get_rid()]
 	return not box.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
+
+
+# True when something on the world layer (not the door) stands between a point 0.25 m in front of
+# the box and its back face, at any corner.
+static func _covered(door: Door, box: StaticBody3D, size: Vector3) -> bool:
+	var space := box.get_world_3d().direct_space_state
+	var inset := Vector2(size.x * 0.5 - 0.01, size.y * 0.5 - 0.01)
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var from := box.global_transform * Vector3(corner.x * inset.x, corner.y * inset.y, 0.25)
+		var to := box.global_transform * Vector3(corner.x * inset.x, corner.y * inset.y, 0.004)
+		var query := PhysicsRayQueryParameters3D.create(
+			from, to, PhysicsLayers.WORLD, [box.get_rid(), door.entity.get_rid()]
+		)
+		if not space.intersect_ray(query).is_empty():
+			return true
+	return false

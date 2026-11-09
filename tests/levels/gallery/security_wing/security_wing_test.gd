@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## from the hub (not turned: local axes are hub axes).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const HardwareChecks := preload("res://tests/objects/door/door_hardware_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const CAPSULE_RADIUS := 0.35
 const CAPSULE_HEIGHT := 1.8
@@ -179,6 +180,23 @@ func test_each_lock_row_door_has_its_lock() -> void:
 	assert_bool((vault.get_node("Tags") as Tags).has(ElectronicLock.FAIL_SECURE)).is_true()
 	assert_str(String(Powered.of(vault).circuit)).is_equal(String(_breaker("BreakerB").circuit))
 	assert_object(Breakable.of(_door("D5Breakable"))).is_not_null()
+
+
+func test_door_hardware_sits_flush_beside_every_frame() -> void:
+	# ADR 0098: the keypad, reader and status boxes flush on the closet and vault walls on both faces,
+	# inside no wall and clear of the leaves' sweeps; D2's keyholes on both faces of its handle.
+	await KitGeometry.settle(get_tree(), 5)
+	var problems: PackedStringArray = []
+	for entity: Node in _room.get_node("Doors").get_children():
+		problems.append_array(HardwareChecks.problems(Door.of(entity)))
+	assert_array(problems).is_empty()
+	assert_int(_door("D2Mechanical").get_node("HandleMesh").get_child_count()).is_equal(2)
+	for door_name: String in ["D1Keypad", "D3Keycard", "D4Electronic", "VaultDoor"]:
+		(
+			assert_int(Door.of(_door(door_name)).hardware.controls(true).size())
+			. override_failure_message(door_name)
+			. is_equal(1)
+		)
 
 
 func test_what_opens_each_door_is_in_the_room() -> void:

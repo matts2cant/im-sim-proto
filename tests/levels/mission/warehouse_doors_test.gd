@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
+const HardwareChecks := preload("res://tests/objects/door/door_hardware_checks.gd")
 
 ## Doorway -> [locked at the start, lock components, extra tags, free side (Lock.NO_SIDE / FRONT /
 ## BACK), breakable]. The intended locks of the layout's doorway table.
@@ -217,6 +218,26 @@ func test_signs_name_the_office_rooms_over_their_doors() -> void:
 
 func test_the_populated_level_has_no_coplanar_faces_with_different_materials() -> void:
 	assert_array(KitGeometry.coplanar_material_overlaps(_helpers.level)).is_empty()
+
+
+func test_door_hardware_sits_flush_on_the_walls_beside_every_frame() -> void:
+	# ADR 0098: every door's wall boxes (keypads, readers, status and control boxes) flush on a wall
+	# surface on both faces, inside no wall and clear of the leaf's sweep, in the real level geometry
+	# (gate posts, roller-door walls, short corridors' side walls); pin locks have their keyholes.
+	var problems: PackedStringArray = []
+	var boxes := 0
+	for entity: Node in _helpers.level.get_node("%s/Doors" % Helpers.SECURITY).get_children():
+		var door := Door.of(entity)
+		problems.append_array(HardwareChecks.problems(door))
+		boxes += door.hardware.controls(true).size()
+		var keyholes := entity.get_node("HandleMesh").get_child_count()
+		var picks := Lock.locks_of(entity).filter(func(lock: Lock) -> bool: return lock is MechanicalLock).size()
+		if keyholes != picks * 2:
+			problems.append("%s: %d keyholes for %d pin locks" % [entity.name, keyholes, picks])
+	assert_array(problems).is_empty()
+	# Keypads (side door, manager), readers (security, vault), status boxes (front gate, bridge door)
+	# and the two roller doors' control boxes.
+	assert_int(boxes).is_equal(8)
 
 
 func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void:
