@@ -53,10 +53,16 @@ func test_walking_through_the_doorway_loads_the_mission_with_only_its_kit() -> v
 	# 2.5 m east of the doorway, facing west (yaw +90 degrees turns -Z to -X).
 	player.load_state({"position": Vector3(-12.5, 0, -7.5), "yaw": PI / 2.0, "pitch": 0.0, "velocity": Vector3.ZERO})
 	await Missions.frames(get_tree(), 3)
+	# The exit fires in a physics callback (body_entered): the hub (its collision objects) must
+	# still be in the tree when that callback returns ("Removing a CollisionObject node during a
+	# physics callback"); the change happens deferred. Connected after the exit, so it runs after it.
+	var in_tree_after_exit: Array[bool] = []
+	exit.body_entered.connect(func(_body: Node3D) -> void: in_tree_after_exit.append(hub.is_inside_tree()))
 
 	Input.action_press(&"move_forward")
 	var level := await Missions.wait_for_scene_change(get_tree(), hub, 600)
 	Input.action_release(&"move_forward")
+	assert_array(in_tree_after_exit).is_equal([true])
 	await Missions.frames(get_tree(), 3)
 
 	assert_object(level).is_not_null()
