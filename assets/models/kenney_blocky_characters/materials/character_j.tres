@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/kenney_blocky_characters/Textures/texture-j.png" id="1_texture"]
+
+[resource]
+resource_name = "texture-j"
+albedo_texture = ExtResource("1_texture")
+metallic_specular = 0.3
+roughness = 0.9
+texture_filter = 1
