@@ -23,6 +23,14 @@ Four tiers: 0 Untrained, 1 Trained, 2 Advanced, 3 Master. The player starts Untr
 | | `pistol_settle_time` (base AimConfig 0.8 s) | 0.8 / 0.6 / 0.4 / 0.2 s |
 | | `pistol_reload_mult` (base 1.6 s) | ×1.0 / 0.85 / 0.7 / 0.5 |
 | | `pistol_damage_mult` | ×1.0 / 1.1 / 1.2 / 1.3 (torso 25 → 32.5 at Master) |
+| Rifles ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `rifle_spread_mult` (assault rifle and shotgun: every cone floor, the look and shot bloom, the shotgun's 2.5 degree pellet cone) | ×1.0 / 0.8 / 0.6 / 0.4 (pellet cone 2.5 / 2.0 / 1.5 / 1.0 degrees) |
+| | `rifle_reload_mult` (shotgun 2.4 s, assault rifle 2.2 s) | ×1.0 / 0.85 / 0.7 / 0.5 |
+| | `rifle_damage_mult` | ×1.0 / 1.1 / 1.2 / 1.3 (assault rifle 14 → 18.2, pellet 12 → 15.6 at Master) |
+| Sniper ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `sniper_spread_mult` (sniper rifle: hip and scoped floors, look and shot bloom) | ×1.0 / 0.8 / 0.6 / 0.4 (scoped floor 0.2 → 0.08 degrees) |
+| | `sniper_settle_time` (scoped 0.3 s, hip 0.8 s) | ×1.0 / 0.8 / 0.6 / 0.4 |
+| | `sniper_sway_mult` (0.15 degrees) | ×1.0 / 0.75 / 0.5 / 0.25 |
+| | `sniper_reload_mult` (2.5 s) | ×1.0 / 0.85 / 0.7 / 0.5 |
+| | `sniper_damage_mult` (90) | ×1.0 / 1.1 / 1.2 / 1.3 |
 | Low-Tech | `melee_damage_mult` (baton stun and blunt) | ×1.0 / 1.25 / 1.5 / 2.0 |
 | | `melee_cycle_mult` (swing interval 0.6 s) | ×1.0 / 0.9 / 0.8 / 0.7 |
 | Medicine | `medical_heal_mult` (medkit 30) | 30 / 45 / 60 / 90 |
@@ -32,6 +40,8 @@ Four tiers: 0 Untrained, 1 Trained, 2 Advanced, 3 Master. The player starts Untr
 | Lockpicking | `lockpick_time_mult` | ×1.0 / 0.75 / 0.5 / 0.25 (M8: scales the hold-to-pick placeholder timer, pins x 1 s x this, read by `MechanicalLock` from its picker, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md). M10 replaces it with tolerance attributes: wider tension window and lift tolerance, lower drop threshold, slower pin drops, clearer feedback; tier 2 hints the binding pin, tier 3 auto-rakes Simple locks: [lockpicking.md](lockpicking.md), [ADR 0073](../decisions/0073-realistic-lockpicking.md)) |
 
 Computer replaces Electronics ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)): Electronics and its `bypass_time_mult` went in M8 with the multitool, and Computer took its place in the skill table (no effects, no consumer until M11's deck). It affects only the deck's tools; admin access allows every admin action. Attribute names are set in M11.
+
+Measured, Untrained / Master ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md), `tests/items/weapons/long_gun_skills_test.gd`): assault rifle full-auto, a 30-round group at 15 m, mean distance from its centre 0.33 / 0.13 m; sniper rifle scoped and still, settled to 0.25 degrees in 1.40 / 0.28 s; shotgun pellets on a 0.5 m plate at 10 m 2 to 5 / all 8 of 8. Guards have no Skills: their rifle shots are unchanged.
 
 Knockout check (dummy threshold 60, frontal): Untrained stun 20 → 3 hits; Trained 25 → 3; Advanced 30 → 2; Master 40 → 2. From behind on an unaware target ×10: always one hit. Combat Strength multiplies on top (×1.5).
 
