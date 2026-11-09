@@ -70,12 +70,13 @@ func locks() -> Array[Lock]:
 	return Lock.locks_of(entity)
 
 
-## True when `actor` may pass: unlocked, or a lock lets it through (a keycard it holds).
+## True when `actor` may pass: unlocked, or a lock lets it through (a keycard it holds, or it
+## stands on the lock's free side).
 func grants_passage(actor: Node) -> bool:
 	if not locked:
 		return true
 	for each in locks():
-		if each.grants_passage(actor):
+		if each.grants_passage(actor) or each.opens_freely_for(actor):
 			return true
 	return false
 

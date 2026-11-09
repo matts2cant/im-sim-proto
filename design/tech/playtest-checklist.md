@@ -263,6 +263,15 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] Knock out the rifle guard: its assault rifle lies beside the body on the catwalk.
   - [ ] Throwables: glass bottles on the break-room table, cardboard boxes west of the booth, small crates on the back strip, a metal crate and a box by roller door 2.
   - [ ] The boat at the pontoon reads as the way out (bow, cabin, motor).
+- [ ] Warehouse doors and security (M9 wave 2, [mission-warehouse.md](../levels/mission-warehouse.md#doors-locks-and-keys-m9-wave-2), [ADR 0090](../decisions/0090-door-size-free-side-locks-warehouse-security.md); review shots: `warehouse_shots.tscn` with `-- shots=door_front_gate_road,door_roller_yard,terminal_network,view_camera_hall,... out=res://reports/screenshots/m9c`, names in `tests/levels/mission/fixtures/warehouse_security_shots.gd`):
+  - [ ] The front gate slides along the outside of the fence in about 3 s and reads as a gate, not a wall; the roller doors rise into the wall in about 2.5 s and are clearly loud; nothing clips through posts or walls while they move.
+  - [ ] Back gate: from the quay it says "Locked: lockpick" and picks in about 4 s with lockpicks; from inside it just opens ("E: open") and locks again once closed. Same for the tunnel gate (picked from the ditch), the annex roof door and the fire escape door (opened from inside).
+  - [ ] Side door: the code note in the dumpster gives 2390 and the keypad shows the reminder. Manager office: 4471 from the night shift notes in the break room; from inside (after duct B) the door just opens.
+  - [ ] Keycards: the security keycard on the locker room bench opens the security room; the vault keycard on the security room desk opens the vault. The console login is on the manager's desk next to the manifest.
+  - [ ] Security console (Network tab): every device is listed with readable labels; it disables the turret, opens the vault, locks or opens the front gate. Cutting breaker B or shooting the switch in the basement store turns everything offline.
+  - [ ] Cameras: the gate, yard, hall and office cameras spot you lit within a couple of seconds and every siren rings; the dark corners (dumpster corner, truck gap, behind the containers) stay unseen. With the switch broken, the cameras still turn red but nothing rings.
+  - [ ] Sirens: when the alarm rings, guards in the yard, on the catwalks, in the offices and in the basement react; you can hear a siren from every guard post.
+  - [ ] Office PCs (second office, picked door): the sticky note and the shift notes log in; they show only the office network.
 
 ## Generic character components (ADR 0056)
 

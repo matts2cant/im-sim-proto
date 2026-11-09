@@ -1,11 +1,12 @@
 extends GdUnitTestSuite
-## Warehouse population (design/levels/mission-warehouse.md "Guards", "Equipment to find"): the eight
-## guards stand on the navmesh with their loadouts and access tags; the posts and the rifle guard's
-## catwalk stand in light (>= 0.5, the player sees them and they see the player); patrol routes
-## cross no doorway (the doors there are locked to guards or loud); every item to find is placed
-## and reachable on foot from the player's start (a navmesh point within pick-up reach), or lies
-## where a listed climb leads. Positions and routes come from the layout markers
-## (tools/level_gen/warehouse_people.py).
+## Warehouse population (design/levels/mission-warehouse.md "Guards", "Equipment to find"): the
+## eight guards stand on the navmesh with their loadouts and access tags; the posts and the rifle
+## guard's catwalk stand in light (>= 0.5, the player sees them and they see the player); patrol
+## routes cross no doorway (the doors there are locked to guards or loud); every item to find is
+## placed and reachable on foot from the player's start (a navmesh point within pick-up reach,
+## through every door: the keys are found on the way, warehouse_doors_test), or lies where a listed
+## climb leads. Guards reach their posts through the doors their access tags open. Positions and
+## routes come from the layout markers (tools/level_gen/warehouse_people.py).
 
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
@@ -77,8 +78,9 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		var spec: Array = GUARDS[guard_name]
 		var guard := guards.get_node(guard_name) as NavWalker
 		assert_object(guard).override_failure_message(guard_name).is_not_null()
+		var layers := AccessLayers.agent_layers(ActorState.tags_of(guard).container)
 		(
-			assert_bool(_reaches(start, guard.global_position))
+			assert_bool(_reaches(start, guard.global_position, layers))
 			. override_failure_message("%s off the navmesh" % guard_name)
 			. is_true()
 		)
@@ -94,7 +96,7 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		if route != null:
 			for point in route.points():
 				(
-					assert_bool(_reaches(start, point.global_position))
+					assert_bool(_reaches(start, point.global_position, layers))
 					. override_failure_message("%s/%s" % [guard_name, point.name])
 					. is_true()
 				)
@@ -150,7 +152,11 @@ func test_every_item_is_placed_and_reachable() -> void:
 		var at := (node as Node3D).global_position
 		if WALK_INS.has(String(node.name)):
 			var walk: Array = WALK_INS[String(node.name)]
-			if not _reaches(start, walk[0]) or not _walk_clear(walk[0], walk[1]) or not _within_reach(walk[1], at):
+			if (
+				not _reaches(start, walk[0], AccessLayers.ALL)
+				or not _walk_clear(walk[0], walk[1])
+				or not _within_reach(walk[1], at)
+			):
 				unreachable.append("%s at %s (walked to from %s)" % [node.name, at, walk[0]])
 		elif not _stand_spot_reaches(start, at):
 			unreachable.append("%s at %s" % [node.name, at])
@@ -169,7 +175,7 @@ func _stand_spot_reaches(start: Vector3, at: Vector3) -> bool:
 			probes.append(at + Vector3(cos(angle), 0.0, sin(angle)) * distance + Vector3.DOWN * 0.6)
 	for probe in probes:
 		var stand := NavigationServer3D.map_get_closest_point(_map, probe)
-		if _within_reach(stand, at) and _reaches(start, stand):
+		if _within_reach(stand, at) and _reaches(start, stand, AccessLayers.ALL):
 			return true
 	return false
 
@@ -195,8 +201,10 @@ func _walk_clear(from: Vector3, to: Vector3) -> bool:
 	return fractions.is_empty() or fractions[0] >= 1.0
 
 
-func _reaches(from: Vector3, to: Vector3) -> bool:
-	var path := NavigationServer3D.map_get_path(_map, from, to, true)
+# `layers`: the navigation layers of who walks (AccessLayers: WALK, a guard's access, ALL for the
+# player with the keys).
+func _reaches(from: Vector3, to: Vector3, layers: int = AccessLayers.WALK) -> bool:
+	var path := NavigationServer3D.map_get_path(_map, from, to, true, layers)
 	return not path.is_empty() and path[-1].distance_to(to) < REACH
 
 

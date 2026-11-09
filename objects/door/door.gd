@@ -1,16 +1,20 @@
 class_name Door
 extends Usable
 ## Component of a sliding door (ADR 0078; `objects/door/door.tscn`). The entity is a StaticBody3D
-## on the world layer whose `Panel` shape fills a 1.2 x 2.2 m doorway and slides `slide_distance`
-## along +X into the wall in `open_time` s. While closed the panel blocks bodies and sight and the
+## on the world layer whose `Panel` shape fills the settings' `doorway` (1.2 x 2.2 m by default) and
+## moves by `travel` (1.3 m along +X into the wall; a roller door rises) in `open_time` s. The
+## panel, the doorway's attenuator, navigation carve and the control panels are sized from the
+## settings at `_ready` (ADR 0090). While closed the panel blocks bodies and sight and the
 ## `SoundAttenuator` adds its metres to noise paths through the doorway (enabled while less than
 ## `attenuate_below` is open). E: open / close, or what the locks offer ("E: enter code"), else
 ## "Locked: <what opens it>". Control panels on both wall faces carry the prompt target, a red /
 ## green lock light and the names of the locks.
 ## Locks: the entity's Lockable and Lock components (objects/locks/); a user who unlocks it through
-## one opens it. Remote commands: the door is a network device (its `Device`, ADR 0077): the
-## shared receptrons `objects/devices/receptrons/command_*.tres` (blocked by `state.unpowered` and
-## `state.broken`) run DeviceActionEffect, and the Device's `action_received` brings `command.open`
+## one opens it. A lock with a free side (Lock.free_side, ADR 0090) lets a user on that side open
+## the locked door without its key: an authorised open that leaves it locked once closed.
+## Remote commands: the door is a network device (its `Device`, ADR 0077): the shared receptrons
+## `objects/devices/receptrons/command_*.tres` (blocked by `state.unpowered` and `state.broken`) run
+## DeviceActionEffect, and the Device's `action_received` brings `command.open`
 ## / `command.close` here (command()) and `command.lock` / `command.unlock` to the Lockable. A
 ## remote open is an authorised open: it opens a locked door without unlocking it.
 ## Navigation: the doorway is carved out of the navmesh (`NavCarve`) and bridged by a
@@ -43,7 +47,7 @@ var broken: bool = false
 var _open: bool = false
 var _panel: CollisionShape3D
 var _panel_mesh: Node3D
-var _closed_x: float = 0.0
+var _closed := Vector3.ZERO
 var _attenuator: SoundAttenuator
 var _link: NavigationLink3D
 var _light_material: StandardMaterial3D
@@ -60,9 +64,9 @@ func _ready() -> void:
 	entity = get_node(entity_path) as StaticBody3D
 	_panel = entity.get_node(^"Panel") as CollisionShape3D
 	_panel_mesh = entity.get_node(^"PanelMesh") as Node3D
-	_closed_x = _panel.position.x
 	_attenuator = entity.get_node_or_null(^"SoundAttenuator") as SoundAttenuator
 	_link = entity.get_node_or_null(^"NavigationLink3D") as NavigationLink3D
+	_fit_doorway()
 	lockable = Lockable.of(entity)
 	if lockable != null:
 		lockable.lock_changed.connect(_on_lock_changed)
@@ -144,6 +148,14 @@ func open_for(actor: Node) -> bool:
 	return open(actor)
 
 
+## True when `user` may open it although it is locked: it stands on a lock's free side.
+func opens_freely_for(user: Node) -> bool:
+	for each in Lock.locks_of(entity):
+		if each.opens_freely_for(user):
+			return true
+	return false
+
+
 ## Runs remote command `action` (Device.OPEN or Device.CLOSE) sent by `by`. True when it changed
 ## something. Logged `door.command {door, command, done}`.
 func command(action: StringName, by: Node = null) -> bool:
@@ -173,7 +185,7 @@ func available(_user: Node) -> bool:
 func prompt(user: Node) -> String:
 	if _open:
 		return "E: close"
-	if not is_locked():
+	if not is_locked() or opens_freely_for(user):
 		return "E: open"
 	for each in Lock.locks_of(entity):
 		var progress := each.tool_progress()
@@ -194,6 +206,12 @@ func use(user: Node) -> bool:
 		return close(user)
 	if not is_locked():
 		open(user)
+		used.emit(user)
+		return true
+	if opens_freely_for(user):
+		# The free side (an exit handle): an authorised open, it stays locked once closed.
+		open(user)
+		_log(&"door.opened_freely", user)
 		used.emit(user)
 		return true
 	for each in Lock.locks_of(entity):
@@ -240,7 +258,7 @@ func _set_open(value: bool, by: Node) -> void:
 
 
 func _apply() -> void:
-	var offset := Vector3(_closed_x + openness * settings.slide_distance, _panel.position.y, _panel.position.z)
+	var offset := _closed + openness * settings.travel
 	_panel.position = offset
 	_panel_mesh.position = offset
 	_panel.disabled = broken
@@ -268,7 +286,7 @@ func _doorway_blocked() -> bool:
 	box.size = Vector3(box.size.x - 0.1, box.size.y - 0.05, box.size.z + 0.3)
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = box
-	query.transform = entity.global_transform * Transform3D(Basis.IDENTITY, Vector3(_closed_x, _panel.position.y, 0.0))
+	query.transform = entity.global_transform * Transform3D(Basis.IDENTITY, Vector3(_closed.x, _closed.y, 0.0))
 	query.collision_mask = settings.blocking_mask
 	query.exclude = [entity.get_rid()]
 	return not entity.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
@@ -281,6 +299,41 @@ func _reasons(user: Node) -> Array[String]:
 		if not reason.is_empty() and not reasons.has(reason):
 			reasons.append(reason)
 	return reasons
+
+
+# Sizes the panel, the doorway's attenuator, navigation carve and link and places the control
+# panels for the settings' doorway (the scene's own shapes are shared: they are copied first).
+func _fit_doorway() -> void:
+	var size := settings.doorway
+	var panel_size := Vector3(size.x + 0.1, size.y + 0.05, settings.panel_thickness)
+	var panel_shape := _panel.shape.duplicate() as BoxShape3D
+	panel_shape.size = panel_size
+	_panel.shape = panel_shape
+	var mesh_instance := _panel_mesh as MeshInstance3D
+	if mesh_instance != null and mesh_instance.mesh is BoxMesh:
+		var mesh := mesh_instance.mesh.duplicate() as BoxMesh
+		mesh.size = panel_size
+		mesh_instance.mesh = mesh
+	_closed = Vector3(0.0, panel_size.y * 0.5 + 0.005, settings.panel_offset)
+	if _attenuator != null:
+		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
+		if doorway != null and doorway.shape is BoxShape3D:
+			var box := doorway.shape.duplicate() as BoxShape3D
+			box.size = Vector3(size.x, size.y, box.size.z)
+			doorway.shape = box
+			doorway.position.y = size.y * 0.5
+	var carve := entity.get_node_or_null(^"NavCarve") as NavigationObstacle3D
+	if carve != null:
+		var half := size.x * 0.5 + 0.1
+		carve.height = size.y
+		carve.vertices = PackedVector3Array(
+			[Vector3(-half, 0, -0.4), Vector3(half, 0, -0.4), Vector3(half, 0, 0.4), Vector3(-half, 0, 0.4)]
+		)
+	var control_x := -(size.x * 0.5 + 0.3)
+	for side: String in ["ControlFront", "ControlBack", "ControlFrontShape", "ControlBackShape"]:
+		var node := entity.get_node_or_null(NodePath(side)) as Node3D
+		if node != null:
+			node.position.x = control_x
 
 
 func _place_controls() -> void:

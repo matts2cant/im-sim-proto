@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DoorSettings" format=3]
+
+[ext_resource type="Script" path="res://objects/door/door_settings.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+resource_name = "vehicle_gate_settings"
+open_time = 3.0
+doorway = Vector2(6, 3)
+travel = Vector3(6.2, 0, 0)
+panel_thickness = 0.08
+panel_offset = -0.3
+attenuate_below = 0.5
+slide_noise = 10.0
+blocking_mask = 142
