@@ -730,11 +730,12 @@ beams ring the alarm"
 size = 0
 
 [node name="LaserHall" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 2.2, 10.2)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 2.3, 11)
 pixel_size = 0.003
-text = "Laser tripwires: anything breaking a beam
-rings the alarm, guards excepted.
-Throw the box through one on purpose"
+text = "Laser tripwires: anything
+breaking a beam rings the
+alarm (guards excepted).
+Throw the box through one"
 size = 0
 
 [node name="LaserLow" parent="Labels" instance=ExtResource("3_sign")]
@@ -752,9 +753,10 @@ crouch under it"
 size = 0
 
 [node name="LaserPair" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -4.55, 2.2, 16.4)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -4.55, 2.3, 16.3)
 pixel_size = 0.003
-text = "Pair: no jump or crouch gets past.
-Disable it at the terminal,
-cut breaker B or shoot an emitter"
+text = "Pair: no jump or crouch
+gets past. Disable it at
+the terminal, cut breaker B
+or shoot an emitter"
 size = 0

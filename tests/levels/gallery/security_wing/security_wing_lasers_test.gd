@@ -157,6 +157,32 @@ func test_jump_crouch_then_the_pair_rings_the_alarm() -> void:
 	assert_array(EventLog.find(&"siren.started")).is_not_empty()
 
 
+func test_laser_signs_fit_their_walls() -> void:
+	var room := _room()
+	await get_tree().process_frame
+	var hall := _interior(room.get_node("Shell/LaserHall") as Room)
+	var closet := _interior(room.get_node("Shell/ClosetD1") as Room)
+	# Name, the wall's span along the text (x for the door sign, z for the hall's side walls).
+	for spec: Array in [
+		["LaserHallDoor", Vector2(closet.position.x, closet.end.x)],
+		["LaserHall", Vector2(hall.position.y, hall.end.y)],
+		["LaserLow", Vector2(hall.position.y, hall.end.y)],
+		["LaserHigh", Vector2(hall.position.y, hall.end.y)],
+		["LaserPair", Vector2(hall.position.y, hall.end.y)],
+	]:
+		var sign := room.get_node("Labels/" + String(spec[0])) as Sign
+		var box := sign.get_aabb()
+		# The text's width runs along the sign's x axis, its height along y.
+		var along := sign.basis.x
+		var centre := sign.position.x if absf(along.x) > 0.5 else sign.position.z
+		var span: Vector2 = spec[1]
+		var where := String(spec[0])
+		assert_float(centre - box.size.x * 0.5).override_failure_message(where).is_greater(span.x + 0.05)
+		assert_float(centre + box.size.x * 0.5).override_failure_message(where).is_less(span.y - 0.05)
+		assert_float(sign.position.y + box.end.y).override_failure_message(where).is_less(3.0)
+		assert_float(sign.position.y + box.position.y).override_failure_message(where).is_greater(1.6)
+
+
 func _room() -> Node3D:
 	var room := auto_free(ROOM_SCENE.instantiate()) as Node3D
 	room.position = Vector3(-300, 0, 600)

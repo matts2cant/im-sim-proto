@@ -233,7 +233,7 @@ func _build_beam() -> void:
 	if _beam == null:
 		return
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.012, 0.012, maxf(beam_length - config.end_inset * 2.0, 0.01))
+	mesh.size = Vector3(0.016, 0.016, maxf(beam_length - config.end_inset * 2.0, 0.01))
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = config.beam_color

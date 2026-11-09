@@ -5,7 +5,8 @@ extends Node3D
 ## `actor.player` tag so the camera, the turret and the guard leave it alone. Positions are
 ## wing-local (origin on the hub wall, +Z into the wing) unless `space` is "hub". `open`: doors
 ## (paths under Doors/) opened first. `alarm`: the wing's alarm controller is triggered first.
-## `network`: the debug panel's network overlay on (ADR 0083).
+## `network`: the debug panel's network overlay on (ADR 0083). `crouched`: at the crouched eye height
+## (0.9 m). `terminal`: the booth terminal's Network tab, logged in, with that device's menu open.
 
 ## feet / look: points; space: "hub" (default the wing); wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
@@ -37,6 +38,22 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"vault_inside": {"feet": Vector3(3.8, 0, 19.2), "look": Vector3(9, 0.9, 20.8), "open": ["VaultDoor"]},
 	"vault_door_inside": {"feet": Vector3(7.4, 0, 21.4), "look": Vector3(9, 1.4, 18.25), "open": ["VaultDoor"]},
 	"alarm": {"feet": Vector3(9.4, 0, 9), "look": Vector3(10.5, 2.8, 12.6), "alarm": true},
+	"laser_entry": {"feet": Vector3(-6.25, 0, 7.0), "look": Vector3(-6.1, 0.9, 13), "open": ["D1Keypad"]},
+	"laser_low": {"feet": Vector3(-6.0, 0, 9.85), "look": Vector3(-7.0, 0.5, 11.5)},
+	"laser_low_crouched": {"feet": Vector3(-6.0, 0, 9.85), "look": Vector3(-7.0, 0.5, 11.5), "crouched": true},
+	"laser_high": {"feet": Vector3(-5.2, 0, 13.0), "look": Vector3(-6.6, 1.3, 14.5)},
+	"laser_high_crouched": {"feet": Vector3(-5.2, 0, 13.0), "look": Vector3(-6.6, 1.3, 14.5), "crouched": true},
+	"laser_pair": {"feet": Vector3(-5.2, 0, 15.2), "look": Vector3(-6.6, 0.9, 16.4)},
+	"laser_pair_crouched": {"feet": Vector3(-5.2, 0, 15.2), "look": Vector3(-6.6, 0.9, 16.4), "crouched": true},
+	"laser_signs": {"feet": Vector3(-7.0, 0, 13.0), "look": Vector3(-4.5, 1.9, 13.6)},
+	"laser_emitters": {"feet": Vector3(-4.9, 0, 12.8), "look": Vector3(-7.5, 0.9, 15.2)},
+	"laser_terminal":
+	{
+		"feet": Vector3(-0.25, 0, 8.1),
+		"look": Vector3(-0.25, 1.45, 9),
+		"terminal": "LaserPairHigh",
+		"wait": 2.5,
+	},
 }
 
 ## Review image size (the project's 16:9 default).
@@ -47,6 +64,7 @@ var _out: String = ""
 var _time: float = 0.0
 var _opened: bool = false
 var _alarm_sent: bool = false
+var _terminal_open: bool = false
 
 @onready var _hub: Node3D = $Hub
 @onready var _wing: Node3D = $Hub/SecurityWing
@@ -87,6 +105,9 @@ func _process(delta: float) -> void:
 		for door_name: String in _shot.get("open", []):
 			Door.of(_wing.get_node("Doors/" + door_name)).open()
 		DebugPanel.network_overlay.enabled = bool(_shot.get("network", false))
+	if _shot.has("terminal") and _time > 0.6 and not _terminal_open:
+		_terminal_open = true
+		_open_terminal(String(_shot["terminal"]))
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
 		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Controller")))
@@ -102,13 +123,26 @@ func _process(delta: float) -> void:
 func _place_player() -> void:
 	var space: Node3D = _hub if String(_shot.get("space", "")) == "hub" else _wing
 	var feet := space.to_global(_shot["feet"] as Vector3)
-	var eye := feet + Vector3.UP * _player.config.standing_eye_height
+	var crouched := bool(_shot.get("crouched", false))
+	var eye_height := _player.config.crouched_eye_height if crouched else _player.config.standing_eye_height
+	var eye := feet + Vector3.UP * eye_height
 	var to := space.to_global(_shot["look"] as Vector3) - eye
 	var state := {
 		"position": feet,
 		"yaw": atan2(-to.x, -to.z),
 		"pitch": atan2(to.y, Vector2(to.x, to.z).length()),
-		"crouched": false,
+		"crouched": crouched,
 		"velocity": Vector3.ZERO,
 	}
 	_player.load_state(state)
+
+
+# Logs in at the booth terminal, opens its screen on the Network tab and selects `device`.
+func _open_terminal(device: String) -> void:
+	var terminal := Terminal.of(_wing.get_node("Devices/Terminal"))
+	terminal.log_in(terminal.username, terminal.password)
+	terminal.use(_player)
+	var screen := TerminalScreen.of(_player)
+	screen.show_tab(TerminalScreen.Tab.NETWORK)
+	screen.refresh_devices(true)
+	screen.graph.select(Terminal.display_name(Device.of(_wing.get_node("Devices/" + device))))
