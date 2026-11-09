@@ -5,8 +5,8 @@ extends Node3D
 ## overview camera), waits, saves `<folder>/<name>.png` and quits after the last one. Positions are
 ## warehouse coordinates (x east, z south, origin at the compound centre). `crouch`: crouched eye
 ## height. `cam`: a free camera at `eye` instead of the player (HUD hidden). User args: `dark=1`
-## turns breakers A and B off; `lit=1` raises the ambient light and clears the fog (layout review
-## only: it is not what the player sees).
+## turns breakers A and B off; `perf=1` prints frames per second (vsync off); `lit=1` raises the
+## ambient light and clears the fog (layout review only: it is not what the player sees).
 
 const SHOTS: Dictionary[String, Dictionary] = {
 	# Overviews (free camera).
@@ -108,6 +108,9 @@ var _out := "res://reports/screenshots/warehouse"
 var _shot: Dictionary = {}
 var _time := 0.0
 var _camera: Camera3D
+## `perf=1`: vsync off, and each shot prints the frames per second while it waits.
+var _perf := false
+var _frames := 0
 
 @onready var _level: Node3D = $Warehouse
 @onready var _player: Player = $Warehouse/Player
@@ -140,6 +143,9 @@ func _ready() -> void:
 		var environment := (_level.get_node("WorldEnvironment") as WorldEnvironment).environment
 		environment.ambient_light_energy = 1.2
 		environment.fog_enabled = false
+	if args.get("perf", "") == "1":
+		_perf = true
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	if args.get("dark", "") == "1":
 		Powered.set_circuit(get_tree(), &"warehouse_yard", false)
 		Powered.set_circuit(get_tree(), &"warehouse_building", false)
@@ -178,8 +184,13 @@ func _process(delta: float) -> void:
 	if _shot.is_empty() or get_tree().paused:
 		return
 	_time += delta
+	if _time > 0.5:
+		_frames += 1
 	if _time < WAIT:
 		return
+	if _perf:
+		print("%s: %.0f fps" % [_shot["name"], _frames / (_time - 0.5)])
+	_frames = 0
 	var path := "%s/%s.png" % [_out, _shot["name"]]
 	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(path))
 	print("Saved ", path)
