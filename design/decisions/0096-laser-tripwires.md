@@ -1,6 +1,6 @@
 # 96. Laser tripwires
 
-Status: Accepted
+Status: Accepted, amended by [ADR 0100](0100-laser-arrays-alarm-time-downed-targets.md) (laser arrays: one device feeding 1 to 4 beams replaces the single tripwire; `LaserTripwire` is now `LaserArray`, `laser_tripwire.tscn` is `laser_array.tscn`; the gallery pair is one two-beam array)
 
 Date: 2026-11-09
 
@@ -32,4 +32,4 @@ M9g asks for laser detectors that can raise the alarm, as devices on the securit
 - Any entity with a `Device`, the receptrons and a `LaserTripwire` is a tripwire: tested on a minimal entity built in code (`tests/objects/laser/laser_tripwire_test.gd`), with the shipped scene and the real player (`laser_tripwire_player_test.gd`: walk, jump, crouch, pair, a thrown crate, a pistol round), its beep on a baked navmesh (`laser_beep_hearing_test.gd`), the alarm chain and terminal (`tests/scenarios/laser_alarm_test.gd`) and the gallery (`tests/levels/gallery/security_wing/security_wing_lasers_test.gd`). Pure model: `tripwire_model_test.gd`.
 - Throwing a prop through a beam is a way to ring the alarm on purpose (a distraction).
 - Level builders set `beam_length` to the gap between the two wall faces (the receiver is placed at load, not in the editor) and keep world geometry out of the beam; the gallery test checks the first world hit along each beam is the far wall.
-- See [security](../game/security.md#laser-tripwires).
+- See [security](../game/security.md#laser-arrays).
