@@ -123,10 +123,28 @@ WALL_DEVICES = {
     "RadioBaseStation": ("base_station", (19.74, 1.2, 1.2), -90.0),
     "PanicButtonSecurity": ("panic", (14.01, 1.3, 2.0), 90.0),
     "PanicButtonBooth": ("panic", (-12.49, 1.3, -20.6), 90.0),
+    # The yard's own controller (M9e, ADR 0092): booth east wall inside, south of the door.
+    "AlarmControllerYard": ("controller", (-9.51, 1.5, -20.6), -90.0),
 }
 TURRET = ((16.9, w.OFF_UP, 1.0), 0.0)
 SECURITY_CONSOLE = ((16.05, 1.47, 0.26), 0.0)
+# Two switches (M9e, ADR 0092): the building's in the basement store on breaker B, the yard's in the
+# gate booth on breaker A (booth east wall inside, north of the door: seen through the west window).
+# Cutting the whole network takes both, in two places; an uplink cable joins them.
 SWITCH = ((19.49, w.BASE_Y + 1.6, 6.0), -90.0)
+YARD_SWITCH = ((-9.51, 1.5, -23.4), -90.0)
+# Devices on the yard switch (the rest of the cabled devices hang on the building's).
+YARD_DEVICES = (
+    "Doors/FrontGate",
+    "Devices/CameraGate",
+    "Devices/CameraYard",
+    "Devices/PanicButtonBooth",
+    "Devices/AlarmControllerYard",
+    "Devices/SirenDock",
+    "Devices/SirenEastYard",
+    "Devices/SirenBackStrip",
+    "Devices/SirenWestYard",
+)
 BREAKERS = {
     "BreakerA": ((-25.99, 1.4, 4.0), 90.0, YARD, "yard lights"),
     "BreakerB": ((19.49, w.BASE_Y + 1.4, 3.0), -90.0, BUILDING, "building power"),
@@ -311,13 +329,22 @@ def build():
     for name, (pos, yaw, circuit, label) in BREAKERS.items():
         s.add(name, "Devices", instance=scene["breaker"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
         s.override(f"Devices/{name}/CircuitBreaker", {"circuit": sname(circuit), "label": label})
-    # The switch every security device hangs on (basement store, on breaker B): breaking or
-    # unpowering it cuts the cameras, panic buttons and console from the controller and the
-    # controller from the sirens (the showcase moment).
+    # Two switches (ADR 0092). The building's (basement store, breaker B) carries the building's
+    # devices and the security room's controller; the yard's (gate booth, breaker A) the yard's
+    # cameras, sirens, panic button, the front gate and the booth's controller. Breaking or
+    # unpowering one cuts its part (its cameras reach no controller, its sirens hear none); the
+    # other part keeps working on its own controller (the showcase moment, twice). The uplink
+    # between them lets either controller ring every siren and the console reach the yard.
+    yard = [p for p in cabled if p in YARD_DEVICES]
+    building = [p for p in cabled if p not in YARD_DEVICES]
     pos, yaw = SWITCH
     s.add("SecuritySwitch", "Devices", instance=scene["switch"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
     s.override("Devices/SecuritySwitch/Powered", {"circuit": sname(BUILDING)})
-    s.override("Devices/SecuritySwitch/Device", {"links": node_paths(["../../../" + p for p in cabled])})
+    s.override("Devices/SecuritySwitch/Device", {"links": node_paths(["../../../" + p for p in building + ["Devices/YardSwitch"]])})
+    pos, yaw = YARD_SWITCH
+    s.add("YardSwitch", "Devices", instance=scene["switch"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
+    s.override("Devices/YardSwitch/Powered", {"circuit": sname(YARD)})
+    s.override("Devices/YardSwitch/Device", {"links": node_paths(["../../../" + p for p in yard])})
 
     # --- M11 hooks (separate networks until M11's gateway joins them) ---------------------------
     s.add("Network", ".", "Node3D")

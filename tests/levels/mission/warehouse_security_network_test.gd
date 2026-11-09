@@ -1,38 +1,44 @@
 extends GdUnitTestSuite
-## Warehouse security network (design/levels/mission-warehouse.md "Security network"): the security
-## console reaches every device cabled to the security switch and loses them when the switch is
-## broken or unpowered (breaker B); a camera that sees a lit intruder rings every siren through the
-## alarm controller, and once the switch is broken it tells nobody; every guard (as placed by the
-## people population), its patrol points and the layout's markers are within earshot of a siren (31
-## m of path, 3 m inside the 34 m a siren carries); doors and devices keep their state through a
-## save and load.
+## Warehouse security network (design/levels/mission-warehouse.md "Security network", ADR 0092):
+## two switches, the building's (basement store, breaker B) and the yard's (gate booth, breaker A),
+## joined by an uplink. The security console reaches every cabled device and loses a part when its
+## switch is broken or unpowered; the other part keeps working on its own alarm controller. A camera
+## that sees a lit intruder rings every siren through both controllers; with the building switch
+## broken a yard camera still rings the yard's sirens, and with both switches broken it tells
+## nobody. Every guard (as placed by the people population), its patrol points and the layout's
+## markers are within earshot of a siren (31 m of path, 3 m inside the 34 m a siren carries); doors
+## and devices keep their state through a save and load.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-## Devices on the security switch (besides the switch and the console itself).
-const NETWORK: Array[String] = [
-	"CameraGate",
-	"CameraYard",
+## Devices on the building's switch, SecuritySwitch (besides the switches and the console itself).
+const BUILDING: Array[String] = [
 	"CameraHall",
 	"CameraOffice",
 	"VaultTurret",
 	"AlarmController",
 	"RadioBaseStation",
 	"PanicButtonSecurity",
-	"PanicButtonBooth",
-	"SirenDock",
-	"SirenEastYard",
-	"SirenBackStrip",
-	"SirenWestYard",
 	"SirenHallNorth",
 	"SirenHallWest",
 	"SirenOfficeGround",
 	"SirenOfficeUpper",
 	"SirenBasement",
-	"FrontGate",
 	"SecurityDoor",
 	"BridgeDoor",
 	"VaultDoor",
+]
+## Devices on the yard's switch, YardSwitch.
+const YARD: Array[String] = [
+	"CameraGate",
+	"CameraYard",
+	"PanicButtonBooth",
+	"AlarmControllerYard",
+	"SirenDock",
+	"SirenEastYard",
+	"SirenBackStrip",
+	"SirenWestYard",
+	"FrontGate",
 ]
 const HEARD: StringName = &"test.heard_siren"
 ## A siren is heard at intensity 35 x (1 - d / 35): 4 or more means 31 m of path or less.
@@ -52,35 +58,56 @@ func after_test() -> void:
 	StimulusSystem.clear()
 
 
-func test_the_console_reaches_its_devices_and_loses_them_with_the_switch() -> void:
+func test_the_console_reaches_both_parts_and_each_switch_cuts_only_its_own() -> void:
 	await _helpers.load_level(self)
 	var console := _helpers.console()
 	var rows := _rows(console)
-	for device_name: String in NETWORK + ["SecuritySwitch"]:
+	for device_name: String in BUILDING + YARD + ["SecuritySwitch", "YardSwitch"]:
 		assert_bool(rows.has(device_name)).override_failure_message("missing " + device_name).is_true()
 		assert_bool(rows.get(device_name, false)).override_failure_message(device_name + " offline").is_true()
 
-	# Breaker B (building power) unpowers the switch: everything behind it goes offline.
-	var breaker := _helpers.device_entity("BreakerB").get_node("CircuitBreaker") as CircuitBreaker
-	breaker.use(null)
+	# Breaker B (building power) unpowers the building's switch: the console reaches nothing, but the
+	# yard's cameras still reach the yard's controller and it its sirens.
+	var breaker_b := _helpers.device_entity("BreakerB").get_node("CircuitBreaker") as CircuitBreaker
+	breaker_b.use(null)
 	await _helpers.frames(2)
 	rows = _rows(console)
-	for device_name: String in NETWORK:
+	for device_name: String in BUILDING + YARD:
 		assert_bool(rows[device_name]).override_failure_message(device_name + " still online").is_false()
-	breaker.use(null)
+	_assert_yard_works(true)
+	breaker_b.use(null)
 	await _helpers.frames(2)
 	assert_bool(_rows(console)["CameraYard"]).is_true()
 
-	# Breaking the switch (a pistol round's worth and more) cuts it for good.
+	# Breaker A (yard lights) unpowers the yard's switch: the yard's part goes offline, the
+	# building's stays.
+	var breaker_a := _helpers.device_entity("BreakerA").get_node("CircuitBreaker") as CircuitBreaker
+	breaker_a.use(null)
+	await _helpers.frames(2)
+	rows = _rows(console)
+	for device_name: String in YARD:
+		assert_bool(rows[device_name]).override_failure_message(device_name + " still online").is_false()
+	for device_name: String in BUILDING:
+		assert_bool(rows[device_name]).override_failure_message(device_name + " offline").is_true()
+	_assert_yard_works(false)
+	breaker_a.use(null)
+	await _helpers.frames(2)
+
+	# Breaking the building's switch (a pistol round's worth and more) cuts it for good; the yard
+	# still works until its own switch is broken too.
 	Breakable.of(_helpers.device_entity("SecuritySwitch")).take_damage(&"damage.ballistic", 100.0)
 	await _helpers.frames(2)
 	rows = _rows(console)
-	for device_name: String in NETWORK:
+	for device_name: String in BUILDING + YARD:
 		assert_bool(rows[device_name]).override_failure_message(device_name + " still online").is_false()
 	assert_bool(console.device.reaches(_helpers.door_entity("VaultDoor"))).is_false()
+	_assert_yard_works(true)
+	Breakable.of(_helpers.device_entity("YardSwitch")).take_damage(&"damage.ballistic", 100.0)
+	await _helpers.frames(2)
+	_assert_yard_works(false)
 
 
-func test_a_camera_seeing_an_intruder_rings_the_sirens_until_the_switch_is_cut() -> void:
+func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	await _helpers.load_level(self, true)
 	var camera := SecurityCamera.of(_helpers.device_entity("CameraHall"))
 	camera.model.stop_sweep()
@@ -90,36 +117,73 @@ func test_a_camera_seeing_an_intruder_rings_the_sirens_until_the_switch_is_cut()
 	assert_bool(await _helpers.wait_for(&"alarm.raised", 4.0)).is_true()
 	await _helpers.seconds(1.5)
 	var detected := EventLog.find(&"camera.detected")
-	assert_int(int(detected[0].data["controllers"])).is_equal(1)
-	var rung := {}
-	for entry in EventLog.find(&"siren.started"):
-		rung[entry.data["siren"]] = true
-	for device_name: String in NETWORK:
+	assert_int(int(detected[0].data["controllers"])).is_equal(2)
+	var rung := _sirens_started()
+	for device_name: String in BUILDING + YARD:
 		if device_name.begins_with("Siren"):
 			assert_bool(rung.has(device_name)).override_failure_message(device_name + " silent").is_true()
 
-	# Reset from the console, then break the switch: the gate camera still sees an intruder but
-	# reaches no controller, and nothing rings.
+	# Reset both controllers from the console, then break the building's switch: the gate camera
+	# still reaches the yard's controller, which rings the yard's sirens only.
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
 	assert_bool(console.send(Device.RESET, _helpers.device("AlarmController"))).is_true()
+	assert_bool(console.send(Device.RESET, _helpers.device("AlarmControllerYard"))).is_true()
 	await _helpers.seconds(3.0)
 	Breakable.of(_helpers.device_entity("SecuritySwitch")).take_damage(&"damage.ballistic", 100.0)
 	EventLog.clear()
-	var gate := SecurityCamera.of(_helpers.device_entity("CameraGate"))
-	gate.model.stop_sweep()
-	var axis := gate.entity.global_basis.z
-	_helpers.stand_in(
-		"Intruder2",
-		gate.entity.global_position + Vector3(axis.x, 0, axis.z).normalized() * 5.0 - Vector3(0, 1.35, 0),
-		[&"actor.player"]
-	)
+	_stand_in_view("Intruder2", "CameraGate", 5.0, 1.35)
+
+	assert_bool(await _helpers.wait_for(&"alarm.raised", 4.0)).is_true()
+	await _helpers.seconds(1.5)
+	assert_int(int(EventLog.find(&"camera.detected")[0].data["controllers"])).is_equal(1)
+	rung = _sirens_started()
+	for device_name: String in YARD:
+		if device_name.begins_with("Siren"):
+			assert_bool(rung.has(device_name)).override_failure_message(device_name + " silent").is_true()
+	for device_name: String in BUILDING:
+		if device_name.begins_with("Siren"):
+			assert_bool(rung.has(device_name)).override_failure_message(device_name + " rang").is_false()
+
+	# Break the yard's switch too: the yard camera sees an intruder but reaches no controller.
+	Breakable.of(_helpers.device_entity("YardSwitch")).take_damage(&"damage.ballistic", 100.0)
+	EventLog.clear()
+	_stand_in_view("Intruder3", "CameraYard", 8.0, 3.0)
 
 	assert_bool(await _helpers.wait_for(&"camera.detected", 4.0)).is_true()
 	await _helpers.seconds(1.5)
 	assert_int(int(EventLog.find(&"camera.detected")[0].data["controllers"])).is_equal(0)
 	assert_array(EventLog.find(&"alarm.raised")).is_empty()
 	assert_array(EventLog.find(&"siren.started")).is_empty()
+
+
+# The yard's part on its own: the yard cameras reach the yard's controller and it a yard siren.
+func _assert_yard_works(expected: bool) -> void:
+	var controller := _helpers.device_entity("AlarmControllerYard")
+	for camera: String in ["CameraGate", "CameraYard"]:
+		(
+			assert_bool(_helpers.device(camera).reaches(controller))
+			. override_failure_message("%s reaches the yard controller: %s" % [camera, not expected])
+			. is_equal(expected)
+		)
+	assert_bool(Device.of(controller).reaches(_helpers.device_entity("SirenDock"))).is_equal(expected)
+
+
+# A stand-in intruder `distance` m in front of camera `camera_name` (horizontally), `below` m under it.
+func _stand_in_view(entity_name: String, camera_name: String, distance: float, below: float) -> void:
+	var camera := SecurityCamera.of(_helpers.device_entity(camera_name))
+	camera.model.stop_sweep()
+	var axis := camera.entity.global_basis.z
+	var at := camera.entity.global_position + Vector3(axis.x, 0, axis.z).normalized() * distance
+	_helpers.stand_in(entity_name, at - Vector3(0, below, 0), [&"actor.player"])
+
+
+# Siren name -> true, for every siren that started since the log was cleared.
+func _sirens_started() -> Dictionary:
+	var rung := {}
+	for entry in EventLog.find(&"siren.started"):
+		rung[entry.data["siren"]] = true
+	return rung
 
 
 func test_every_guard_post_and_patrol_point_hears_a_siren() -> void:
@@ -155,12 +219,13 @@ func test_save_and_load_keep_doors_and_devices() -> void:
 	var level := _helpers.level
 	_helpers.door("SideDoor").open()
 	Lockable.of(_helpers.door_entity("BackGate")).unlock(null, &"test")
-	(_helpers.device_entity("BreakerA").get_node("CircuitBreaker") as CircuitBreaker).use(null)
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
 	console.send(Device.DISABLE, _helpers.device("CameraYard"))
 	console.send(Device.DISARM, _helpers.device("AlarmController"))
 	await _helpers.seconds(1.0)
+	# Breaker A after the commands: it unpowers the yard's switch, which carries the yard camera.
+	(_helpers.device_entity("BreakerA").get_node("CircuitBreaker") as CircuitBreaker).use(null)
 	Breakable.of(_helpers.device_entity("SecuritySwitch")).take_damage(&"damage.ballistic", 100.0)
 	await _helpers.frames(2)
 	var snapshot := LevelSnapshot.capture(level)

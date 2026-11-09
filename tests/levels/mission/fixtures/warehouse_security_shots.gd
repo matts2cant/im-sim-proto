@@ -38,6 +38,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"locker_bench": {"feet": Vector3(15.5, 0, 9), "look": Vector3(13.65, 0.4, 10.2)},
 	"office_pcs": {"feet": Vector3(16.2, 4.5, 9.5), "look": Vector3(16.2, 5.6, 14.7)},
 	"network_switch": {"feet": Vector3(17.2, -4, 4.5), "look": Vector3(19.49, -2.5, 4.6)},
+	# M9e: the yard's switch and controller in the gate booth, and the switch seen through the west window.
+	"yard_switch": {"feet": Vector3(-11.6, 0, -21.8), "look": Vector3(-9.5, 1.5, -22.0)},
+	"yard_switch_window": {"feet": Vector3(-16, 0, -21), "look": Vector3(-9.5, 1.5, -23.4)},
 	"breaker_a": {"feet": Vector3(-23.5, 0, 5.5), "look": Vector3(-26, 1.4, 4)},
 	"sirens_dock": {"feet": Vector3(0, 0, -16), "look": Vector3(0, 2.0, -10.5)},
 	# Each camera's point of view.
