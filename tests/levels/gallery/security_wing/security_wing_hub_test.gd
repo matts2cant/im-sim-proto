@@ -2,16 +2,17 @@ extends GdUnitTestSuite
 ## Security wing inside the hub (behind doorway "5 Security" on the south wall): the room sits on the
 ## doorway, not turned, and every one of its kit rooms stays clear of the other gallery rooms (room 6
 ## to the west, the shooting range to the east) inside hub x -0.5 .. 18.5, z 15 .. 38; the player
-## walks in from the hub; the hub's navmesh covers the wing (hall, closets, corridor, alcoves, vault)
-## and holds the guard and its post; the guard is within 30 m of navmesh path of a siren (sirens
-## carry 34 m).
+## walks in from the hub; the hub's navmesh covers the wing (hall, closets, corridor, alcoves, vault,
+## laser hall) and holds the guard and its post; the guard is within 30 m of navmesh path of a siren
+## (sirens carry 34 m).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const HUB := "res://levels/hub/hub.tscn"
 const HUB_SCENE: PackedScene = preload("res://levels/hub/hub.tscn")
 const SIREN_REACH := 30.0
-## Room-local floor points the navmesh must cover: hall, each closet, corridor, both alcoves, vault.
+## Room-local floor points the navmesh must cover: hall, each closet, corridor, both alcoves, vault,
+## laser hall.
 const NAV_POINTS: Array[Vector3] = [
 	Vector3(0, 0, 3),
 	Vector3(-6.25, 0, 7.4),
@@ -23,6 +24,7 @@ const NAV_POINTS: Array[Vector3] = [
 	Vector3(6.4, 0, 10.3),
 	Vector3(6.4, 0, 14.9),
 	Vector3(8, 0, 20),
+	Vector3(-6, 0, 13),
 ]
 
 var _hub: Node3D
@@ -58,7 +60,7 @@ func test_room_sits_behind_doorway_five_and_keeps_clear_of_its_neighbours() -> v
 			mine.append(node as Room)
 		else:
 			others.append(node as Room)
-	assert_int(mine.size()).is_equal(10)
+	assert_int(mine.size()).is_equal(11)
 	for room in mine:
 		var rect := _rect(hub, room)
 		for other in others:

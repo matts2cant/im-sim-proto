@@ -11,9 +11,13 @@ extends Node
 ##   unaugmented 20 kg limit.
 ## - `carry_speed_factor`: the carrier's speed multiplier while holding it (on top of the heavy-load
 ##   factor).
+## While carried it is in group `carried` (CARRIED_GROUP): a held body is a ghost that no physics
+## query finds, so sensors that should still notice it (a laser tripwire, ADR 0096) look there.
 
 signal picked_up(by: Node3D)
 signal released
+
+const CARRIED_GROUP: StringName = &"carried"
 
 ## Off: never offered for pick-up.
 @export var enabled: bool = true
@@ -65,8 +69,10 @@ func is_carried() -> bool:
 func set_carrier(by: Node3D) -> void:
 	carrier = by
 	if by != null:
+		add_to_group(CARRIED_GROUP)
 		# A held body is a ghost (no collision): what rested on it falls (ADR 0055).
 		SupportWake.wake_touching(body())
 		picked_up.emit(by)
 	else:
+		remove_from_group(CARRIED_GROUP)
 		released.emit()

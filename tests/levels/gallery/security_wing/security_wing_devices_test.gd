@@ -1,11 +1,12 @@
 extends GdUnitTestSuite
 ## Gallery room 5 (security wing) on its own: the security devices. The terminal reaches the camera,
-## turret, alarm controller, both sirens, the panic button, the radio base station and the vault door
-## through the network switch; with breaker B (the switch's circuit) off it reaches nothing and shows
-## every device offline, and the fail-secure vault door stays locked; breaker A off unlocks the fail-safe D4. The
-## closed vault door blocks the turret's line of sight to the corridor and the entry hall. The camera
-## covers the corridor (within 15 m and its sweep); the corridor centre line is lit (> 0.5) and both
-## alcoves are dark (< 0.1). Room-local coordinates (origin on the hub wall's outer face, +Z south).
+## turret, alarm controller, both sirens, the panic button, the radio base station, the vault door
+## and the laser hall's four tripwires through the network switch; with breaker B (the switch's
+## circuit) off it reaches nothing and shows every device offline, and the fail-secure vault door
+## stays locked; breaker A off unlocks the fail-safe D4. The closed vault door blocks the turret's
+## line of sight to the corridor and the entry hall. The camera covers the corridor (within 15 m and
+## its sweep); the corridor centre line is lit (> 0.5) and both alcoves are dark (< 0.1). Room-local
+## coordinates (origin on the hub wall's outer face, +Z south).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
@@ -18,7 +19,12 @@ const NETWORK: Array[String] = [
 	"Devices/PanicButton",
 	"Devices/BaseStation",
 	"Doors/VaultDoor",
+	"Devices/LaserLow",
+	"Devices/LaserHigh",
+	"Devices/LaserPairLow",
+	"Devices/LaserPairHigh",
 ]
+const LASERS: Array[String] = ["LaserLow", "LaserHigh", "LaserPairLow", "LaserPairHigh"]
 ## Corridor centre line (x 9), from the hall end to the guard post, and between the alcoves.
 const CORRIDOR_LINE: Array[Vector3] = [
 	Vector3(9, 0, 7.5), Vector3(9, 0, 10.3), Vector3(9, 0, 12.6), Vector3(9, 0, 14.9), Vector3(9, 0, 16.4)
@@ -82,23 +88,23 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 	var terminal := _device("Devices/Terminal")
 	for path in NETWORK:
 		assert_bool(terminal.reaches(_room.get_node(path))).override_failure_message(path).is_true()
-	assert_array(_listed()).contains_exactly_in_any_order(
-		["Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "VaultDoor"]
-	)
+	var listed: Array[String] = ["Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "VaultDoor"]
+	listed.append_array(LASERS)
+	assert_array(_listed()).contains_exactly_in_any_order(listed)
 	# The network view also shows the switch, the panic button and the base station (ADR 0083).
-	assert_array(_network()).contains_exactly_in_any_order(
-		[
-			"Switch",
-			"Camera",
-			"Turret",
-			"Controller",
-			"SirenHall",
-			"SirenCorridor",
-			"PanicButton",
-			"BaseStation",
-			"VaultDoor"
-		]
-	)
+	var network: Array[String] = [
+		"Switch",
+		"Camera",
+		"Turret",
+		"Controller",
+		"SirenHall",
+		"SirenCorridor",
+		"PanicButton",
+		"BaseStation",
+		"VaultDoor"
+	]
+	network.append_array(LASERS)
+	assert_array(_network()).contains_exactly_in_any_order(network)
 	# The controller rings both sirens and dispatches through the base station; the camera and the
 	# panic button report to it.
 	var controller := _device("Devices/Controller")
@@ -106,6 +112,8 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
 	assert_array(_device("Devices/Camera").reached(Device.INCIDENT)).contains_exactly([controller])
 	assert_array(_device("Devices/PanicButton").reached(Device.INCIDENT)).contains_exactly([controller])
+	for laser in LASERS:
+		assert_array(_device("Devices/" + laser).reached(Device.INCIDENT)).contains_exactly([controller])
 	# Every row offers its commands: the turret Disable and its presets, the vault door Open.
 	for row in _terminal().devices():
 		if row.device.entity.name == &"Turret":
@@ -141,7 +149,7 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 
 	_breaker("BreakerB").set_closed(true)
 
-	assert_array(_listed()).has_size(6)
+	assert_array(_listed()).has_size(6 + LASERS.size())
 
 
 func test_shooting_the_switch_cuts_the_chain_too() -> void:
@@ -162,7 +170,7 @@ func test_breaker_a_off_unlocks_d4_only() -> void:
 
 	assert_bool(d4.is_locked()).is_false()
 	assert_bool(Door.of(_room.get_node("Doors/VaultDoor")).is_locked()).is_true()
-	assert_array(_listed()).has_size(6)
+	assert_array(_listed()).has_size(6 + LASERS.size())
 
 
 func test_closed_vault_door_blocks_the_turrets_line_of_sight() -> void:
