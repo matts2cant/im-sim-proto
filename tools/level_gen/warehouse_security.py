@@ -80,6 +80,29 @@ DOORS = {
     "TunnelGate": {"yaw": -90, "wall": 0.3, "locked": True, "locks": [("mechanical", 4, BACK, FRONT)]},
 }
 
+# Signs over doorways (kit Sign): doorway -> [(face, text[, size])], SMALL unless given (corridors are
+# narrow). The office block and its rooms read
+# from the hall and the corridors at night; the objective names the manager's office.
+DOOR_SIGNS = {
+    "OfficeEntrance": [(BACK, "OFFICES", 1)],
+    "BridgeDoor": [(BACK, "OFFICES", 1)],
+    "CatwalkStairsDoor": [(BACK, "STAIRS")],
+    "BreakRoomHall": [(BACK, "BREAK ROOM")],
+    "BreakRoomCorridor": [(FRONT, "BREAK ROOM")],
+    "SecurityDoor": [(FRONT, "SECURITY")],
+    "StairsGround": [(BACK, "STAIRS")],
+    "LockerRoom": [(BACK, "LOCKERS")],
+    "ManagerDoor": [(FRONT, "MANAGER")],
+    "VaultDoor": [(FRONT, "VAULT")],
+    "StairsUpper": [(BACK, "STAIRS")],
+    "OfficeTwo": [(BACK, "OFFICE")],
+    "FireEscapeDoor": [(BACK, "FIRE EXIT")],
+    "BoilerStore": [(FRONT, "BOILER ROOM"), (BACK, "STORE")],
+}
+# Sign centre heights above the doorway's floor (doorways are 2.2 m; upper rooms 2.6 m high).
+SIGN_Y = 2.55
+SIGN_UPPER_Y = 2.4
+
 
 def facing(direction):
     """Yaw (degrees) whose +Z points along `direction` (x, z): wall devices face out of +Z."""
@@ -229,6 +252,7 @@ SCENES = {
     "datapad": "res://objects/datapad/datapad.tscn",
     "keycard": "res://items/keycard/keycard.tscn",
     "ledge": "res://levels/kit/ledge.tscn",
+    "sign": "res://levels/kit/sign.tscn",
 }
 SCRIPTS = {
     "keypad": "res://objects/locks/keypad_lock.gd",
@@ -308,6 +332,21 @@ def build():
             s.add(LOCK_NODE[kind], path, "Node3D", props=props)
         if spec.get("cabled"):
             cabled.append(f"Doors/{name}")
+
+    # --- Door signs (M9e: where to go without markers) -------------------------------------------
+    s.add("Signs", ".", "Node3D")
+    for name, faces in DOOR_SIGNS.items():
+        pos, _axis = DOORWAYS[name]
+        spec = DOORS[name]
+        upper = pos[1] >= w.OFF_UP - 0.1
+        for side, text, *size in faces:
+            # Above the doorway on the wall face (upper storey: under its 2.6 m ceiling).
+            depth = (spec["wall"] * 0.5 + 0.02) * (1 if side == FRONT else -1)
+            yaw = spec["yaw"] + (0.0 if side == FRONT else 180.0)
+            radians = math.radians(spec["yaw"])
+            at = (pos[0] + depth * math.sin(radians), pos[1] + (SIGN_UPPER_Y if upper else SIGN_Y), pos[2] + depth * math.cos(radians))
+            label = name + ("Front" if side == FRONT else "Back")
+            s.add(label, "Signs", instance=scene["sign"], props={"transform": Raw(transform(at, yaw_basis(yaw))), "text": text, "size": size[0] if size else 0})
 
     # --- Security network ---------------------------------------------------------------------
     s.add("Devices", ".", "Node3D")

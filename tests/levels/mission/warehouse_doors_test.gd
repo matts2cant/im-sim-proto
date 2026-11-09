@@ -192,6 +192,29 @@ func test_every_key_is_reachable_without_its_own_lock() -> void:
 	assert_array(deadlocks).is_empty()
 
 
+func test_signs_name_the_office_rooms_over_their_doors() -> void:
+	# Sign -> [door, text]: over the doorway, on the side it names, facing away from the wall.
+	var expected: Dictionary[String, Array] = {
+		"OfficeEntranceBack": ["OfficeEntrance", "OFFICES"],
+		"BridgeDoorBack": ["BridgeDoor", "OFFICES"],
+		"SecurityDoorFront": ["SecurityDoor", "SECURITY"],
+		"ManagerDoorFront": ["ManagerDoor", "MANAGER"],
+		"VaultDoorFront": ["VaultDoor", "VAULT"],
+	}
+	for sign_name: String in expected:
+		var label := _helpers.level.get_node("%s/Signs/%s" % [Helpers.SECURITY, sign_name]) as Label3D
+		var door := _helpers.door_entity(String(expected[sign_name][0]))
+		assert_str(label.text).is_equal(String(expected[sign_name][1]))
+		var offset := label.global_position - door.global_position
+		assert_float(offset.y).override_failure_message(sign_name).is_between(2.25, 2.7)
+		assert_float(Vector2(offset.x, offset.z).length()).override_failure_message(sign_name).is_less(0.5)
+		(
+			assert_float(label.global_basis.z.dot(Vector3(offset.x, 0, offset.z)))
+			. override_failure_message(sign_name)
+			. is_greater(0.0)
+		)
+
+
 func test_the_populated_level_has_no_coplanar_faces_with_different_materials() -> void:
 	assert_array(KitGeometry.coplanar_material_overlaps(_helpers.level)).is_empty()
 
