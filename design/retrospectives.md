@@ -77,6 +77,56 @@ Final suite: 1400 tests, 0 failures, 76 s.
   - Lesson: scenario tests on a stealth route also assert that no guard becomes Suspicious where the design says the route is quiet.
   - The reproduction-first bug brief found the real cause again. My guess (cabinet noise) was wrong.
 
+### Character models and their playtest fixes (2026-11-10)
+
+Two agents, one after the other:
+- Kenney blocky characters for guards and dummies, with a layered `CharacterAnimator` (ADR 0103). Baton breaks devices (ADR 0104).
+- The user's six remarks after playing with the models (ADR 0105):
+  - The models were unshaded.
+  - The baton was held flat.
+  - Two-handed holds looked wrong.
+  - The flashlight had no model in the hand.
+  - Dummies moved with the idle animation.
+  - The head hit zone was too small.
+
+Final suite on master: 1577 tests, 0 failures, 2 skipped (headless mouse mode, loud route segment 3), lint clean. It took 182 s, but other Godot processes were running, so the time needs a second run.
+
+- **Went well:**
+  - The shading agent found the real cause instead of tweaking light levels. The GLBs declare `KHR_materials_unlit`, so the fix is an external shaded material in the import settings, with no code.
+  - The flashlight's beam direction is decoupled from the animation, so a test holds its direction at 0° from the old beam in every state. The ADR 0095 detection times are unchanged.
+  - The dummy's static pose is data (an animation config), not a dummy branch.
+  - Time-to-kill was measured before and after the head change: a new pistol test, plus the shotgun's existing one.
+- **Went wrong: the scripted warehouse route tests.**
+  - The 7 route suites are about 1,800 lines. They were edited in 6 of the 8 batches since M9f, almost never because the level broke. Each time a rule elsewhere moved under them:
+    - the searching-guard alert threshold;
+    - guard speeds;
+    - where locks sit on doors;
+    - the roof lasers;
+    - the leg hit zones;
+    - the head hit zone.
+  - Both character agents spent a long stretch on the loud route:
+    - The first made it accept a gate the guard had opened.
+    - The second bisected a death at 99 s: the bigger head means the segment 1 fight also kills G2. The searching guards then reach the roof and find the player waiting there.
+    - Neither was a level bug. Both were emergent behaviour, which an immersive sim is meant to produce.
+  - Scripted end-to-end runs with live guards, combat and patrol timing are brittle by nature, so tuning changes keep breaking them.
+  - The bugs they found are caught more cheaply by targeted tests:
+    - The office stair top only 0.65 m wide: a passage test that steps off every climb.
+    - Duct B noise heard through walls: a noise spot check at each quiet spot. The user found this one by playing; the route test only encoded it afterwards.
+  - I stopped the second agent on the user's call. It skipped the failing segment 3 of the loud route, with a reason pointing to the replacement.
+- **Changes:**
+  - The user's decision: test individual features and systems well, not full routes.
+  - CLAUDE.md: level briefs ask for passage tests and noise spot checks, and no new scripted full-route tests.
+  - Next batch: replace the scripted route suites with:
+    - passage tests at every connection;
+    - noise spot checks at quiet spots;
+    - mission logic tests fed with events;
+    - one warehouse smoke test (all actors for a few seconds, no errors, frame cost within budget).
+    The routes themselves move to the playtest checklist.
+- **Open for the user:**
+  - Shotgun at 15 m: upper pellets now land on the bigger head. It kills in 1-3 shots (median 2), not ADR 0085's 3 or more. Keep it, or weaken the shotgun?
+  - The off-hand flashlight's lens sits 0.40-0.52 m from the old beam origin (about 0.4 m was asked). Closer puts the arm through the head.
+  - Frame rate is about 5% lower (shaded models, the hand-held beam's moving shadow), up to 11% with every flashlight lit.
+
 ### M9h — playtest batch 2 (2026-11-09/10)
 
 Seven agents, all merged on green full runs:
