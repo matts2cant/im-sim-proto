@@ -1,21 +1,23 @@
 extends GdUnitTestSuite
 ## Unit/integration: the held view model. The baton pivots about its grip (the hand), points up and
-## forward at rest and chops down across the view; a weapon without a model (the guards' pistol) is
+## forward at rest and chops down across the view; a weapon without a model (a stand-in) is
 ## a box in its own pose; a weapon with a model (the pistol, ADR 0085) shows it instead of the box,
 ## its muzzle flash at the model's muzzle, and a fitted silencer at the muzzle mount.
 
 const BATON: WeaponData = preload("res://items/weapons/baton/baton.tres")
-const BOX_PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol_unsilenced.tres")
 const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
 const SILENCER: ItemData = preload("res://items/attachments/silencer/silencer.tres")
 
 var _holder: WeaponHolder
+var _box_pistol: WeaponData
 
 
 func before_test() -> void:
+	_box_pistol = PISTOL.duplicate() as WeaponData
+	_box_pistol.view_scene = null
 	_holder = auto_free(WeaponHolder.new())
 	_holder.aim_config = AimConfig.new()
-	_holder.weapons = [BATON, BOX_PISTOL, PISTOL] as Array[WeaponData]
+	_holder.weapons = [BATON, _box_pistol, PISTOL] as Array[WeaponData]
 	add_child(_holder)
 	_holder.setup(null, null)
 
@@ -59,7 +61,7 @@ func test_baton_swing_keeps_the_grip_and_moves_the_tip() -> void:
 func test_box_pistol_pose_is_unchanged() -> void:
 	_holder.equip(1)
 
-	assert_vector(_holder.view_pivot().position).is_equal_approx(BOX_PISTOL.view_offset, Vector3.ONE * 0.001)
+	assert_vector(_holder.view_pivot().position).is_equal_approx(_box_pistol.view_offset, Vector3.ONE * 0.001)
 	assert_vector(_holder.get_node("ViewPivot/ViewModel").position).is_equal(Vector3.ZERO)
 	assert_bool(_holder.view_pivot().transform.basis.is_equal_approx(Basis.IDENTITY)).is_true()
 	assert_object(_holder.view_pivot().model).is_null()
