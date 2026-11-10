@@ -116,8 +116,8 @@ Final suite on master: 1577 tests, 0 failures, 2 skipped (headless mouse mode, l
 - **Changes:**
   - The user's decision: test individual features and systems well, not full routes.
   - CLAUDE.md: level briefs ask for passage tests and noise spot checks, and no new scripted full-route tests.
-  - The user then dropped every scripted warehouse route suite outright, with no replacement batch (ADR 0106).
-  - Full suite after the drop: 1563 tests in 48 s on the second run (was 99 s). The existing passage test and duct B noise test stay, and the routes move to the playtest checklist.
+  - The user then dropped every scripted warehouse route suite outright, with no replacement batch (ADR 0106). The existing passage test and duct B noise test stay, and the routes move to the playtest checklist.
+  - Full suite after the drop: 1563 tests in 48 s on the second run (was 99 s).
 - **Open for the user:**
   - Shotgun at 15 m: upper pellets now land on the bigger head. It kills in 1-3 shots (median 2), not ADR 0085's 3 or more. Keep it, or weaken the shotgun? → **Keep it** (user, 2026-11-10).
   - The off-hand flashlight's lens sits 0.40-0.52 m from the old beam origin (about 0.4 m was asked). Closer puts the arm through the head.
