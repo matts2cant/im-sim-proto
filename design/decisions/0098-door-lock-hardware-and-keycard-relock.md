@@ -28,7 +28,7 @@ The leaf of a pocket door slides wholly into the wall (its 5 cm overlap included
 
 ## Consequences
 
-- The yellow panel's `ControlFront` / `ControlBack` nodes and `Door.SIDE_PANEL_DEPTH` are gone; tests and helpers use `door.hardware.controls(front)` and `door.hardware.handle_point(front)` (`warehouse_route_hands.use_door()` takes the box on the player's side, else the handle).
+- The yellow panel's `ControlFront` / `ControlBack` nodes and `Door.SIDE_PANEL_DEPTH` are gone; tests and helpers use `door.hardware.controls(front)` and `door.hardware.handle_point(front)` (`warehouse_route_hands.use_door()` (route tests dropped, ADR 0106; the helper stays) takes the box on the player's side, else the handle).
 - Tests: `door_layout_test` (unit), `door_hardware_placement_test` (every preset in its wall: flush on a wall surface, uncovered, clear of the sweep; the checks catch a floating and a buried box), `door_hardware_player_test` (E on each box and the leaf, picking from both faces, keypad stays unlocked), `keycard_relock_test` (relock, save/load, free side), a guard relock test in `door_navigation_test`, and level-wide checks of every door in the warehouse and the security wing (`door_hardware_checks.gd`).
 - An open pocket door narrows its doorway by 7 cm at handle height (0.82 to 1.18 m): a 0.35 m capsule on the centre line clears it by 0.18 m.
 
