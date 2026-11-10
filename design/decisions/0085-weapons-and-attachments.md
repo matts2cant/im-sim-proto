@@ -1,6 +1,6 @@
 # 85. Shotgun, sniper rifle, assault rifle and weapon attachments
 
-Status: Accepted (amends [ADR 0048](0048-aim-model.md), [ADR 0050](0050-inventory-model-and-belt-references.md) and [ADR 0070](0070-guard-combat-and-loadouts.md))
+Status: Accepted (amends [ADR 0048](0048-aim-model.md), [ADR 0050](0050-inventory-model-and-belt-references.md) and [ADR 0070](0070-guard-combat-and-loadouts.md)); shotgun at 15 m amended by [ADR 0105](0105-character-model-playtest-fixes.md): 1-3 shots with the model-sized head, kept by the user
 
 Date: 2026-11-09
 

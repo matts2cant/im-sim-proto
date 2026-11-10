@@ -123,7 +123,7 @@ Final suite on master: 1577 tests, 0 failures, 2 skipped (headless mouse mode, l
     - one warehouse smoke test (all actors for a few seconds, no errors, frame cost within budget).
     The routes themselves move to the playtest checklist.
 - **Open for the user:**
-  - Shotgun at 15 m: upper pellets now land on the bigger head. It kills in 1-3 shots (median 2), not ADR 0085's 3 or more. Keep it, or weaken the shotgun?
+  - Shotgun at 15 m: upper pellets now land on the bigger head. It kills in 1-3 shots (median 2), not ADR 0085's 3 or more. Keep it, or weaken the shotgun? → **Keep it** (user, 2026-11-10).
   - The off-hand flashlight's lens sits 0.40-0.52 m from the old beam origin (about 0.4 m was asked). Closer puts the arm through the head.
   - Frame rate is about 5% lower (shaded models, the hand-held beam's moving shadow), up to 11% with every flashlight lit.
 
