@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_interface-sounds/Audio/click_002.ogg" id="5_dry"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="6_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="7_reload"]
+[ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_model.tscn" id="9_model"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.05
@@ -38,6 +39,7 @@ fire_volume_db = 4.0
 dry_fire_sound = ExtResource("5_dry")
 hit_sound = ExtResource("6_hit")
 reload_sound = ExtResource("7_reload")
-view_size = Vector3(0.05, 0.1, 0.22)
-view_color = Color(0.12, 0.12, 0.14, 1)
-view_offset = Vector3(0.22, -0.22, -0.5)
+view_scene = ExtResource("9_model")
+view_size = Vector3(0.04, 0.08, 0.2)
+view_color = Color(0.24, 0.24, 0.27, 1)
+view_offset = Vector3(0.2, -0.19, -0.5)
