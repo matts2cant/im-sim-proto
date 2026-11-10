@@ -1,6 +1,6 @@
 # 93. Warehouse route scenario tests: chained segments, condition waits; the annex window and the cache shed; shared sensor scan; deferred level change
 
-Status: Accepted
+Status: Superseded by [ADR 0106](0106-drop-scripted-warehouse-route-tests.md) (the route tests; the annex window, cache shed, shared sensor scan and deferred level change stand)
 
 Date: 2026-11-09
 
