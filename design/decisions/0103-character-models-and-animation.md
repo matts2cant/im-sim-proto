@@ -1,6 +1,6 @@
 # 103. Character models and animation (Kenney Blocky Characters, CharacterAnimator)
 
-Status: Accepted (amends [ADR 0047](0047-hitboxes-layer-5-part-aware-ray.md), [ADR 0070](0070-guard-combat-and-loadouts.md), [ADR 0071](0071-bodies-discovery-waking-carrying.md) and [ADR 0085](0085-weapons-and-attachments.md))
+Status: Accepted (amends [ADR 0047](0047-hitboxes-layer-5-part-aware-ray.md), [ADR 0070](0070-guard-combat-and-loadouts.md), [ADR 0071](0071-bodies-discovery-waking-carrying.md) and [ADR 0085](0085-weapons-and-attachments.md)). Amended by [ADR 0105](0105-character-model-playtest-fixes.md): lit materials, every weapon one-handed with a per-weapon hold turn, the flashlight in the off hand, still training dummies, the head hit zone the size of the model's head
 
 Date: 2026-11-09
 

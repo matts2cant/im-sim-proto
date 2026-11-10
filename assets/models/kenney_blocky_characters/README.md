@@ -9,4 +9,6 @@ Only the files the game uses are copied here (GLB format, with the textures at t
 | `character-j.glb`, `Textures/texture-j.png` | Guards (`actors/guard/guard.tscn` "Model") |
 | `character-d.glb`, `Textures/texture-d.png` | Training dummies (`actors/dummy/training_dummy.tscn` "Model") |
 
+`materials/character_j.tres` and `character_d.tres` are our shaded copies of the GLBs' one material (same texture): the GLBs mark it unlit (`KHR_materials_unlit`), so each `.glb.import` maps it to these external materials (`_subresources`), and the characters are lit by the scene ([ADR 0105](../../../design/decisions/0105-character-model-playtest-fixes.md)).
+
 Each model has seven rigid parts animated by node transforms (no skin) and the pack's clips (idle, walk, sprint, die, holding-*, holding-*-shoot, attack-*, ...). The scenes scale it to 0.66 and turn it to face -Z, never edit it; `CharacterAnimator` plays the clips. See [ADR 0103](../../../design/decisions/0103-character-models-and-animation.md).

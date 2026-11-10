@@ -1,6 +1,6 @@
 # 95. Darkness and flashlights: a moving floor in the dark, flashlights as plain spot lights
 
-Status: Accepted
+Status: Accepted, amended by [ADR 0105](0105-character-model-playtest-fixes.md) (the flashlight is a model held in the off hand while lit, at the belt while off; the beam leaves its lens, about 0.46 m from where it was, along the same direction)
 
 Date: 2026-11-09
 
