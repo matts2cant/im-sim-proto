@@ -112,6 +112,16 @@ enum Grip { ONE_HAND, TWO_HAND }
 ## Melee: share of the swing the chop takes (0..1); the rest is the slower return.
 @export_range(0.05, 0.95) var view_chop_share: float = 0.3
 
+@export_group("Held by a character")
+## How the weapon sits in an animated character's fist (WeaponView.hang_from(), ADR 0105), in the
+## hand mount's frame: -Z runs along the forearm out of the fist, +Y is up when the arm points
+## ahead. Euler degrees (pitch, yaw, roll, like view_rest_deg) of the grip pivot: zero points the
+## weapon along the forearm (a pistol); pitch 90 holds it upright across the fist (a baton).
+@export var hold_rotation_deg: Vector3 = Vector3.ZERO
+## Shift of the grip pivot from the fist's end, in the mount's frame before the turn (metres at the
+## weapon's own size; the character's held scale applies): -Z further out, +Z back into the fist.
+@export var hold_offset: Vector3 = Vector3.ZERO
+
 
 ## `<attribute_class>_<stat>` (`pistol_damage_mult`), or empty without a class.
 func class_attribute(stat: String) -> StringName:

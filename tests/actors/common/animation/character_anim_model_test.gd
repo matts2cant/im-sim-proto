@@ -1,7 +1,9 @@
 extends GdUnitTestSuite
 ## Unit (ADR 0103): CharacterAnimModel's state choice. Speeds are kept away from the thresholds
 ## (idle below 0.25 m/s, sprint at 3.0 m/s or with the sprint stance); dead beats unconscious beats
-## everything; a shot overrides the hold pose; the grip comes from WeaponData.
+## everything; a shot overrides the hold pose; the grip comes from WeaponData. Every shipped weapon is
+## one-handed (ADR 0105): the two-handed path is tested with a stand-in grip (TWO_HAND); the off hand
+## holds its pose while its item is in use.
 
 const CONFIG: CharacterAnimConfig = preload("res://actors/common/animation/blocky_character_anim.tres")
 const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol_unsilenced.tres")
@@ -11,6 +13,8 @@ const SHOTGUN: WeaponData = preload("res://items/weapons/shotgun/shotgun.tres")
 const SNIPER: WeaponData = preload("res://items/weapons/sniper_rifle/sniper_rifle.tres")
 const STEP := 1.0 / 60.0
 const NONE := CharacterAnimModel.NO_GRIP
+## A stand-in two-handed weapon's grip.
+const TWO_HAND := WeaponData.Grip.TWO_HAND
 
 var _model: CharacterAnimModel
 
@@ -55,14 +59,16 @@ func test_playback_is_clamped() -> void:
 
 
 func test_grip_comes_from_weapon_data() -> void:
-	assert_int(PISTOL.grip).is_equal(WeaponData.Grip.ONE_HAND)
-	assert_int(BATON.grip).is_equal(WeaponData.Grip.ONE_HAND)
-	for weapon: WeaponData in [RIFLE, SHOTGUN, SNIPER]:
-		assert_int(weapon.grip).is_equal(WeaponData.Grip.TWO_HAND)
-	_model.update(STEP, 0.0, false, false, false, PISTOL.grip)
-	assert_str(String(_model.hold_clip())).is_equal("holding-right")
-	assert_array(_model.hold_parts()).contains_exactly([&"arm-right"])
-	_model.update(STEP, 0.0, false, false, false, RIFLE.grip)
+	# Every shipped weapon is held in one hand like the pistol (ADR 0105).
+	for weapon: WeaponData in [PISTOL, BATON, RIFLE, SHOTGUN, SNIPER]:
+		assert_int(weapon.grip).is_equal(WeaponData.Grip.ONE_HAND)
+		_model.update(STEP, 0.0, false, false, false, weapon.grip)
+		assert_str(String(_model.hold_clip())).is_equal("holding-right")
+		assert_array(_model.hold_parts()).contains_exactly([&"arm-right"])
+	# A weapon whose data asks for both hands.
+	var stand_in := WeaponData.new()
+	stand_in.grip = WeaponData.Grip.TWO_HAND
+	_model.update(STEP, 0.0, false, false, false, stand_in.grip)
 	assert_str(String(_model.hold_clip())).is_equal("holding-both")
 	assert_array(_model.hold_parts()).contains_exactly_in_any_order([&"arm-right", &"arm-left"])
 	_model.update(STEP, 0.0, false, false, false, NONE)
@@ -70,7 +76,7 @@ func test_grip_comes_from_weapon_data() -> void:
 
 
 func test_a_shot_overrides_holding_then_ends() -> void:
-	_model.update(STEP, 1.5, false, false, false, RIFLE.grip)
+	_model.update(STEP, 1.5, false, false, false, TWO_HAND)
 	assert_str(String(_model.fire(false))).is_equal("holding-both-shoot")
 	assert_str(String(_model.upper_clip())).is_equal("holding-both-shoot")
 	assert_array(_model.action_parts).contains([&"torso", &"arm-left", &"arm-right"])
@@ -78,7 +84,7 @@ func test_a_shot_overrides_holding_then_ends() -> void:
 	# The legs keep walking under it.
 	assert_str(String(_model.base_clip())).is_equal("walk")
 	for tick in 15:
-		_model.update(STEP, 1.5, false, false, false, RIFLE.grip)
+		_model.update(STEP, 1.5, false, false, false, TWO_HAND)
 	assert_str(String(_model.upper_clip())).is_equal("holding-both")
 
 
@@ -101,13 +107,13 @@ func test_dead_beats_unconscious_beats_everything() -> void:
 	var config := CONFIG.duplicate() as CharacterAnimConfig
 	config.unconscious_clip = &"sit"
 	_model = CharacterAnimModel.new(config)
-	_model.update(STEP, 2.0, true, false, true, RIFLE.grip)
+	_model.update(STEP, 2.0, true, false, true, TWO_HAND)
 	assert_int(_model.down).is_equal(CharacterAnimModel.Down.UNCONSCIOUS)
 	assert_str(String(_model.down_clip())).is_equal("sit")
 	# Down: nothing held, no shot plays.
 	assert_str(String(_model.hold_clip())).is_empty()
 	assert_str(String(_model.fire(false))).is_empty()
-	_model.update(STEP, 2.0, true, true, true, RIFLE.grip)
+	_model.update(STEP, 2.0, true, true, true, TWO_HAND)
 	assert_int(_model.down).is_equal(CharacterAnimModel.Down.DEAD)
 	assert_str(String(_model.down_clip())).is_equal("die")
 
@@ -122,6 +128,17 @@ func test_going_down_cuts_an_action() -> void:
 	assert_str(String(_model.down_clip())).is_empty()
 	assert_str(String(_model.upper_clip())).is_equal("holding-right")
 	assert_str(String(_model.base_clip())).is_equal("idle")
+
+
+func test_the_off_hand_holds_while_its_item_is_in_use() -> void:
+	_model.update(STEP, 1.5, false, false, false, PISTOL.grip, true)
+	assert_str(String(_model.off_hand_clip())).is_equal("holding-left")
+	assert_str(String(_model.hold_clip())).is_equal("holding-right")
+	_model.update(STEP, 1.5, false, false, false, NONE, false)
+	assert_str(String(_model.off_hand_clip())).is_empty()
+	# Down: the off hand lets go of its pose.
+	_model.update(STEP, 0.0, false, false, true, NONE, true)
+	assert_str(String(_model.off_hand_clip())).is_empty()
 
 
 func test_layer_cross_fades_and_holds_a_clip_end() -> void:

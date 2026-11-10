@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_script")
+off_hand_turn_deg = Vector3(-14, -48, 0)

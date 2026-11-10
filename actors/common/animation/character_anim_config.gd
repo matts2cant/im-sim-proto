@@ -14,7 +14,8 @@ extends Resource
 @export var dead_clip: StringName = &"die"
 ## Played once and held while it is unconscious (and alive).
 @export var unconscious_clip: StringName = &"die"
-## Upper-body pose while a weapon of that grip (WeaponData.grip) is drawn.
+## Upper-body pose while a weapon of that grip (WeaponData.grip) is drawn. Every shipped weapon is
+## one-handed (ADR 0105); the two-handed pose stays for weapons whose data asks for it.
 @export var hold_one_hand_clip: StringName = &"holding-right"
 @export var hold_two_hand_clip: StringName = &"holding-both"
 ## Played once over the hold pose on every shot, by grip.
@@ -22,6 +23,8 @@ extends Resource
 @export var shoot_two_hand_clip: StringName = &"holding-both-shoot"
 ## Played once on every melee swing.
 @export var melee_clip: StringName = &"attack-melee-right"
+## Pose of the off hand while its item is in use (a lit flashlight, ADR 0105).
+@export var hold_off_hand_clip: StringName = &"holding-left"
 
 @export_group("Locomotion")
 ## Horizontal ground speed (m/s) below which the character stands (idle).
@@ -66,6 +69,29 @@ extends Resource
 @export var held_scale: float = 1.3
 ## The hold and shot parts follow the aim's pitch (the eye looking up or down at a target).
 @export var follow_aim_pitch: bool = true
+
+@export_group("Off hand")
+## Parts (node names) the off-hand pose drives while its item is in use: the arm, and the torso so
+## the upper body stays upright under the light (a sprint's forward lean would carry the hand away
+## from the eye, where the beam used to leave). A two-handed hold, a shot or a swing overrides them.
+@export var off_hand_parts: Array[StringName] = [&"arm-left", &"torso"]
+## The part holding the off-hand item: it takes the turn below and follows the aim's pitch like the
+## held arm.
+@export var off_hand_part: StringName = &"arm-left"
+## Extra turn of the off-hand part over the off-hand clip (Euler degrees: pitch, yaw, roll about the
+## model's own axes; the model faces +Z, so a negative yaw turns a left arm inwards and a negative
+## pitch raises it): the flashlight is held in front of the chest, near the eye.
+@export var off_hand_turn_deg: Vector3 = Vector3.ZERO
+## The item's pivot in the off-hand part's frame (model units): -Z of the mount points out of the
+## fist along the arm. The item keeps its own size (the model's scale is undone).
+@export var off_hand_mount: Transform3D = Transform3D(
+	Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(0.2, -0.95, 0.0)
+)
+## Where the off-hand item hangs while it is not in use (a part and a mount in its frame, -Z down).
+@export var stowed_part: StringName = &"torso"
+@export var stowed_mount: Transform3D = Transform3D(
+	Vector3(1, 0, 0), Vector3(0, 0, -1), Vector3(0, 1, 0), Vector3(0.25, 0.45, 0.36)
+)
 
 @export_group("Rendering")
 ## The animated parts cast shadows. Off by default: a moving shadow caster makes each shadowed light

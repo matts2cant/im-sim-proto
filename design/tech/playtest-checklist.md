@@ -345,14 +345,25 @@ Guards are the Kenney blocky police officer, training dummies the crash-test fig
 
 - [ ] A patrolling guard's legs keep pace with the ground (no obvious skating or moonwalking at 1.5 m/s; `walk_clip_speed` 2.6); an investigating guard (2.5 m/s) walks faster, an alerted one sprints (4 m/s) without its feet sliding.
 - [ ] Switching between idle, walk and sprint blends (about 0.2 s) without pops; turning on the spot does not look broken.
-- [ ] A drawn pistol or baton raises the right arm, a rifle both arms; walking with a gun drawn, the legs walk while the arms hold. The weapon sits in the hand (pistol at the fist, rifle between the fists) and points where the guard aims, also up or down a stair.
+- [ ] Every drawn weapon raises the right arm only (ADR 0105: rifles too); walking with a gun drawn, the legs walk while the arm holds. The weapon sits in the fist and points where the guard aims, also up or down a stair.
 - [ ] Every shot kicks the arms and torso; the muzzle flash shows at the gun in the hand. A baton swing raises the arm overhead and chops. Shots still come from the guard's eyes (cover that hides its hand but not its head does not stop its shots, as before).
 - [ ] Knocked out or killed, the guard falls backwards and lies flat on the floor (nothing sinks into it or floats); you can walk over it and pick it up; carried, it stays in its lying pose (translucent). A revived guard gets up smoothly (about 0.5 s) and idles.
 - [ ] Quicksave with a guard lying down, quickload: it is already lying (no fall replayed).
-- [ ] Headshots: aim at the middle of the big head (the hit zone is the old 0.28 m head; its edges and top miss). Report whether this feels unfair.
-- [ ] Training dummies idle on their base, fall over when knocked out or killed, and stand up again on E (reset).
+- [ ] Headshots (ADR 0105): the whole blocky head is the hit zone now; its edges and top count. Report whether guards die too easily (a snapped pistol shot at a head 10 m away usually kills within 2 s), and whether the shotgun is too strong at 15 m (often one or two shots now).
+- [ ] Training dummies stand still on their base, arms down, like mannequins (ADR 0105), fall over when knocked out or killed, and stand up again on E (reset).
 - [ ] Guards cast a blocky shadow under lamps (a static proxy: it does not swing its limbs); performance with the whole warehouse populated feels unchanged.
 - [ ] A guard fits through the levels' 1.2 m doors without its arms visibly passing through the frame.
+
+### Playtest fixes ([ADR 0105](../decisions/0105-character-model-playtest-fixes.md))
+
+New review shots in `character_shots.tscn`: `hold_*` (each weapon), `patrol_light_6m`, `patrol_light_15m`, `patrol_light_side`, `aim_light`, `aim_light_dark`, `light_pose_front`, `light_pose_top`, `light_off_belt`, `dead_light`.
+
+- [ ] Guards and dummies are lit like the walls around them: in the dark warehouse yard away from lamps a guard is about as dark as the wall next to him; in a lamp's pool he is clearly lit; at the shooting range the dummies are shaded (darker on the side away from the lights), not flat bright yellow.
+- [ ] A guard's baton stands upright in his fist (like a real baton), not along the arm; it swings overhead and chops with the arm.
+- [ ] Pistol, assault rifle, shotgun and sniper rifle are all held in the right hand; the long guns sit with their grip in the fist and the stock along the forearm, and read as guns from the side and the front.
+- [ ] A guard with his flashlight on holds a flashlight in his left fist across his chest, below the chin; the beam and the glow come from it and point where he looks, also while he walks, runs (he runs upright), aims and shoots. With it off, the flashlight hangs at the front left of his belt and the left arm swings while walking.
+- [ ] Knock out a guard whose flashlight is on: it goes off and stays in his fist; carry him: it comes along.
+- [ ] Yard patrols at night (warehouse west yard): the light reads from 15 m and more as before, and you are noticed in its beam about as quickly as before (2-3 s at 8 m).
 
 ## M7 Bodies, shouts, radio, alarm ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md), [ADR 0072](../decisions/0072-shouts-radio-level-alarm.md))
 

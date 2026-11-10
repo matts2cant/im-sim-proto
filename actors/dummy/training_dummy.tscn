@@ -16,7 +16,7 @@
 [ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="13_impact_settings"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney_blocky_characters/character-d.glb" id="14_model"]
 [ext_resource type="Script" path="res://actors/common/animation/character_animator.gd" id="15_animator"]
-[ext_resource type="Resource" path="res://actors/common/animation/blocky_character_anim.tres" id="16_anim_config"]
+[ext_resource type="Resource" path="res://actors/common/animation/blocky_mannequin_anim.tres" id="16_anim_config"]
 [ext_resource type="PackedScene" path="res://actors/common/animation/blocky_shadow_proxy.tscn" id="17_shadow"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]

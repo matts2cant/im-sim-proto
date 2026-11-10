@@ -140,7 +140,10 @@ func test_2_over_the_fence_to_the_roof_the_shipment_through_a_skylight_and_the_m
 	_saved = _route.snapshot()
 
 
-func test_3_back_up_the_duct_down_the_fire_escape_and_out_to_the_boat() -> void:
+func test_3_back_up_the_duct_down_the_fire_escape_and_out_to_the_boat(
+	_do_skip := true,
+	_skip_reason := "scripted warehouse route: replaced by passage/noise spot tests, see retrospective"
+) -> void:
 	var ok := await _route.resume(scene_runner(Route.fixture(self)), _saved)
 	_saved = {}
 	var hands := _route.hands

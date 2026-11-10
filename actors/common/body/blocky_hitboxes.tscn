@@ -2,10 +2,16 @@
 
 [ext_resource type="PackedScene" path="res://actors/common/body/hitboxes.tscn" id="1_hitboxes"]
 
+[sub_resource type="BoxShape3D" id="Shape_head_box"]
+size = Vector3(0.528, 0.528, 0.528)
+
 [node name="Hitboxes" instance=ExtResource("1_hitboxes")]
 
 [node name="Head" parent="." index="0"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.52, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.518, 0)
+
+[node name="Shape" parent="Head" index="0"]
+shape = SubResource("Shape_head_box")
 
 [node name="Torso" parent="." index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)

@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Integration: the player's pistol and baton against a training dummy (hit location, headshots,
-## floating numbers, knockout from behind and from the front, reset).
+## floating numbers, knockout from behind and from the front, reset; a standing dummy holds still).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
@@ -75,8 +75,11 @@ func test_baton_from_behind_on_unaware_dummy_knocks_out_in_one_hit() -> void:
 	await _load()
 	_dummy.rotation.y = 0.0
 	await _weapons.equip(2)
-	# The dummy faces -Z; the player stands behind it (on +Z).
-	await _weapons.aim_at(Vector3(0, 0, -1.7), Weapons.part_position(_dummy, &"torso"))
+	# The dummy faces -Z; the player stands behind it (on +Z). Aimed at the lower torso: the swept
+	# 0.2 m sphere aimed at the torso centre from the eye grazes the back of the 0.53 m head box
+	# (ADR 0105) on its way down.
+	var lower_torso := Weapons.part_position(_dummy, &"torso") + Vector3.DOWN * 0.15
+	await _weapons.aim_at(Vector3(0, 0, -1.7), lower_torso)
 
 	await _weapons.fire()
 
@@ -156,6 +159,19 @@ func test_reset_restores_health_consciousness_and_pose() -> void:
 	assert_float(animator.weight_of(animator.config.unconscious_clip)).is_equal(0.0)
 	assert_bool((_dummy.get_node("Tags") as Tags).has(&"state.unconscious")).is_false()
 	assert_array(EventLog.find(&"actor.reset")).has_size(1)
+
+
+func test_a_standing_dummy_stands_still() -> void:
+	await _load()
+	# A mannequin (ADR 0105): its animator's idle clip is `static`, so no part moves.
+	var animator := _dummy.get_node("Animator") as CharacterAnimator
+	var start: Dictionary[StringName, Transform3D] = {}
+	for part_name: StringName in [&"torso", &"head", &"arm-left", &"arm-right", &"leg-left", &"leg-right"]:
+		start[part_name] = animator.part(part_name).transform
+	await _driver.frames(120)
+	assert_float(animator.weight_of(&"static")).is_equal(1.0)
+	for part_name: StringName in start:
+		assert_bool(animator.part(part_name).transform.is_equal_approx(start[part_name])).is_true()
 
 
 func _load() -> void:
