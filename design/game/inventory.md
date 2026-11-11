@@ -39,7 +39,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Rifle rounds | `rifle_rounds` | 1 x 1 | 150 | none | no | |
 | Silencer | `silencer` | 1 x 1 | 1 | none ("Drag it onto a weapon in the inventory (I) to fit it"); dragged onto a weapon whose slots take it in the inventory screen: fitted and used up | no | |
 | Medkit | `medkit` | 1 x 1 | 15 | heal 30 x the user's `medical_heal_mult` (Medicine), consumes one; refused when unhurt | yes | |
-| Lockpick | `lockpick` | 1 x 1 | 10 | in hand, `tool_kind` `lockpick`: hold LMB on a mechanical lock (M8 hold-to-pick placeholder, consumes nothing; M10: [lockpicking minigame](lockpicking.md), breaks only on failure, success consumes nothing; loadout economy to retune) | yes | |
+| Lockpick | `lockpick` | 1 x 1 | 10 | in hand, `tool_kind` `lockpick`: LMB on a mechanical lock starts the [lockpicking minigame](lockpicking.md) (M10); a broken pick uses one up (`PlayerInventory.use_up_tool()`: from the stack in hand first, another stays in hand while any is left), success consumes nothing; loadout economy to retune | yes | |
 | Bioelectric cell | `biocell` | 1 x 1 | 20 | `energy` 25 to the user, consumes one; refused ("Energy full") at full energy ([abilities.md](abilities.md)) | yes | |
 | Keycard | `keycard` | 1 x 1 | 1 | "Use it on a door": carried, it opens keycard readers whose `access_id` is its `key_id` (E on the door, M8) | no | `key_id` |
 | Deck (M11) | `deck` | 2 x 1 | 1 | in hand: LMB on a wall jack, maintenance port or computer plugs it in; within an access point's range LMB raises it for wireless ([hacking.md](hacking.md)) | yes | copied files, Icebreaker progress per account |

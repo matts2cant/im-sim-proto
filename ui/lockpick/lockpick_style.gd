@@ -1,7 +1,8 @@
 class_name LockpickStyle
 extends RefCounted
 ## Colours, fonts and drawing helpers of the lockpicking screen (the prototype's palette,
-## design/prototypes/lockpicking_bench.html).
+## design/prototypes/lockpicking_bench.html). The screen owns one (`LockpickScreen.style`): it caches
+## the font and gradient textures, freed with the screen.
 
 const BG := Color("0b0e11")
 const LINE := Color("2a3540")
@@ -14,11 +15,11 @@ const WARN := Color("e6b45a")
 const BAD := Color("e2786b")
 const ACRYLIC := Color("9fc3d6")
 
-static var _mono: SystemFont = null
-static var _textures: Dictionary[String, GradientTexture2D] = {}
+var _mono: SystemFont = null
+var _textures: Dictionary[String, GradientTexture2D] = {}
 
 
-static func mono_font() -> Font:
+func mono_font() -> Font:
 	if _mono == null:
 		_mono = SystemFont.new()
 		_mono.font_names = PackedStringArray(
@@ -51,7 +52,7 @@ static func rounded_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat
 
 
 ## A radial gradient texture (centre to edge) through `colours` at `offsets`, cached by `key`.
-static func radial(key: String, colours: PackedColorArray, offsets: PackedFloat32Array) -> GradientTexture2D:
+func radial(key: String, colours: PackedColorArray, offsets: PackedFloat32Array) -> GradientTexture2D:
 	if _textures.has(key):
 		return _textures[key]
 	var gradient := Gradient.new()
@@ -94,7 +95,7 @@ static func quadratic(a: Vector2, control: Vector2, b: Vector2, segments: int = 
 
 
 ## Draws `text` on `canvas` with its baseline at `at`; `align` -1 left, 0 centred, 1 right of `at.x`.
-static func text(canvas: CanvasItem, at: Vector2, value: String, size: int, colour: Color, align: int = 0) -> void:
+func text(canvas: CanvasItem, at: Vector2, value: String, size: int, colour: Color, align: int = 0) -> void:
 	var font := mono_font()
 	var width := font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var x := at.x - (width * 0.5 if align == 0 else (width if align > 0 else 0.0))

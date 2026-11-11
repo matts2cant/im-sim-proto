@@ -10,7 +10,7 @@ extends Node3D
 ## - locked_reason(): why it stays shut ("keycard", "lockpick"), for "Locked: ..." prompts;
 ## - grants_passage() / passage_layers(): characters it lets through while locked (navigation);
 ## - accepts_tool() / tool_hold() / tool_release() / tool_progress(): a held tool worked on it
-##   (ToolUse; the hold-to-pick placeholder until M10's minigame).
+##   (ToolUse; a MechanicalLock opens the user's lockpicking minigame, ADR 0107).
 ## Any lock can have a free side (ADR 0090): from that side of the entity (its +Z: FRONT, -Z: BACK)
 ## it opens without the key, like an exit handle or a push bar (opens_freely_for(); the Door opens
 ## without unlocking it, Lockable.grants_passage() lets characters there through).

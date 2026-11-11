@@ -23,7 +23,7 @@ func _draw() -> void:
 		return
 	var w := size.x
 	var h := size.y
-	var bg := LockpickStyle.radial(
+	var bg := screen.style.radial(
 		"front_bg", PackedColorArray([Color("222a32"), Color("0b0e11")]), PackedFloat32Array([0.0, 1.0])
 	)
 	var reach := maxf(w, h) * 0.75
@@ -48,7 +48,7 @@ func _draw_lock(model: PinTumbler, center: Vector2, big: float) -> void:
 	var plate := Rect2(center.x - big * 1.35, center.y - big * 1.55, big * 2.7, big * 3.2)
 	draw_style_box(LockpickStyle.rounded_box(Color("1a2027"), Color("2c3640"), roundi(big * 0.12)), plate)
 	# Housing
-	var housing := LockpickStyle.radial(
+	var housing := screen.style.radial(
 		"housing",
 		PackedColorArray([Color("e7c672"), Color("b58d3c"), Color("6e5424")]),
 		PackedFloat32Array([0.0, 0.6, 1.0])
@@ -61,7 +61,7 @@ func _draw_lock(model: PinTumbler, center: Vector2, big: float) -> void:
 	# Plug and keyway, turned by the plug angle
 	var angle := deg_to_rad(model.plug_angle_deg())
 	draw_set_transform(center + _jolt, angle)
-	var plug_tex := LockpickStyle.radial(
+	var plug_tex := screen.style.radial(
 		"plug", PackedColorArray([Color("d9b865"), Color("8f6f2e")]), PackedFloat32Array([0.0, 1.0])
 	)
 	var plug := LockpickStyle.circle(Vector2.ZERO, small)
@@ -119,14 +119,15 @@ func _draw_pick(model: PinTumbler, center: Vector2, big: float, small: float, an
 # Pick depth dots (how far the pick is in), under the plate.
 func _draw_depth(model: PinTumbler, center: Vector2, big: float) -> void:
 	var count := model.pins.size()
-	var y := center.y + big * 1.75
+	# The prototype's height, kept inside the panel with its label (a 4:3 panel would clip it).
+	var y := minf(center.y + big * 1.75, size.y - 24.0)
 	var gap := minf(22.0, big * 0.3)
 	var x0 := center.x - gap * (count - 1) / 2.0
 	var current := roundi(model.pick_shown)
 	for i in count:
 		var here := i == current
 		draw_circle(Vector2(x0 + gap * i, y), 4.0 if here else 3.0, LockpickStyle.BRASS if here else Color("33404c"))
-	LockpickStyle.text(self, Vector2(center.x, y + 18.0), "pick depth", 11, LockpickStyle.MUTED)
+	screen.style.text(self, Vector2(center.x, y + 16.0), "pick depth", 11, LockpickStyle.MUTED)
 
 
 # Tension gauge: a vertical bar at the right edge, 0 % at the bottom. Its bands are the picker's
@@ -170,13 +171,13 @@ func _draw_gauge(model: PinTumbler, w: float, h: float, cy: float, big: float) -
 	draw_rect(Rect2(x - 2.0, ny - 1.0, bar_w + 4.0, 2.0), LockpickStyle.FG)
 	# Labels
 	var mid := x + bar_w / 2.0
-	LockpickStyle.text(self, Vector2(mid, y0 - 10.0), "TENSION", 10, LockpickStyle.MUTED)
+	screen.style.text(self, Vector2(mid, y0 - 10.0), "TENSION", 10, LockpickStyle.MUTED)
 	var zone := params.zone(t)
 	var zone_colour := (
 		LockpickStyle.OK if zone == "sweet" else (LockpickStyle.WARN if zone == "low" else LockpickStyle.BAD)
 	)
-	LockpickStyle.text(self, Vector2(mid, y1 + 16.0), "%d%%" % roundi(t * 100.0), 11, zone_colour)
-	LockpickStyle.text(self, Vector2(mid, y1 + 28.0), zone, 10, zone_colour)
+	screen.style.text(self, Vector2(mid, y1 + 16.0), "%d%%" % roundi(t * 100.0), 11, zone_colour)
+	screen.style.text(self, Vector2(mid, y1 + 28.0), zone, 10, zone_colour)
 
 
 func _round_polyline(points: PackedVector2Array, colour: Color, width: float) -> void:

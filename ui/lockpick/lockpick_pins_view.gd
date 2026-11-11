@@ -39,7 +39,7 @@ func _draw() -> void:
 	draw_rect(Rect2(x0, shear, x1 - x0, bottom - shear), Color(acrylic, 0.35), false, 1.0)
 	# Shear line
 	draw_dashed_line(Vector2(x0 - 6.0, shear), Vector2(x1 + 6.0, shear), Color(LockpickStyle.BRASS, 0.6), 1.0, 5.0)
-	LockpickStyle.text(self, Vector2(x1, shear - 4.0), "shear line", 10, Color(LockpickStyle.BRASS, 0.8), 1)
+	screen.style.text(self, Vector2(x1, shear - 4.0), "shear line", 10, Color(LockpickStyle.BRASS, 0.8), 1)
 	var spacing := (x1 - x0) / model.pins.size()
 	var pin_w := minf(spacing * 0.42, 24.0)
 	for i in model.pins.size():
@@ -57,7 +57,9 @@ func _draw() -> void:
 	draw_polyline(shaft, Color("cfd8e0"), 3.0, true)
 	# Wrench at the plug's front
 	draw_rect(Rect2(x0 - 3.0, bottom - 12.0, 8.0, 10.0), LockpickStyle.STEEL)
-	LockpickStyle.text(self, Vector2(12.0, 22.0), "PRACTICE LOCK · CLEAR ACRYLIC", 12, LockpickStyle.ACRYLIC, -1)
+	var practice := is_instance_valid(screen.lock) and screen.lock.is_practice()
+	var title := "PRACTICE LOCK · CLEAR ACRYLIC" if practice else "PINS"
+	screen.style.text(self, Vector2(12.0, 22.0), title, 12, LockpickStyle.ACRYLIC, -1)
 
 
 func _draw_pin(
@@ -108,7 +110,7 @@ func _draw_pin(
 	draw_polyline(spring, Color(0.78, 0.82, 0.86, 0.6), 1.0, true)
 	# Label
 	var label := str(index + 1) if pin.type == PinTumbler.STANDARD else "%d %s" % [index + 1, pin.type]
-	LockpickStyle.text(self, Vector2(cx, size.y - 4.0), label, 10, LockpickStyle.MUTED)
+	screen.style.text(self, Vector2(cx, size.y - 4.0), label, 10, LockpickStyle.MUTED)
 
 
 func _spool(cx: float, half: float, waist: float, y0: float, y1: float, length: float) -> PackedVector2Array:

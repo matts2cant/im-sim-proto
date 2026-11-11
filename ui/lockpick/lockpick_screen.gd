@@ -25,7 +25,10 @@ const OUT_OF_PICKS := "Out of lockpicks"
 const NEW_LAYOUT := "new pin layout"
 const CAPTION_FADE := 0.25
 const PANEL_WIDTH := 0.42
-const PANEL_HEIGHT := 0.56
+## The bottom of the screen kept free for the HUD's belt (fraction of the height).
+const BELT_MARGIN := 0.13
+## Room for the gaps and the hint line under the views (px).
+const COLUMN_EXTRA := 44.0
 const PIN_VIEW_RATIO := 6.0 / 16.0
 
 @export var tuning: LockpickTuning
@@ -40,6 +43,8 @@ var assist: int = 0
 var caption_text: String = ""
 var caption_left: float = 0.0
 
+## Fonts and gradients of the views.
+var style := LockpickStyle.new()
 var front: LockpickFrontView
 var pins_view: LockpickPinsView
 var caption_panel: PanelContainer
@@ -51,6 +56,7 @@ var _input_before: bool = true
 var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _close_left: float = -1.0
 var _body: BodyParts = null
+var _center: CenterContainer
 
 @onready var audio: LockpickAudio = $Audio
 
@@ -106,6 +112,7 @@ func open_for(p_lock: MechanicalLock, p_user: Node) -> void:
 	var params := LockpickParams.from_entity(user, tuning)
 	model = lock.new_model(params)
 	assist = LockpickParams.assist_for(params.assist, lock.is_practice())
+	_layout()
 	_close_left = -1.0
 	caption_text = ""
 	caption_left = 0.0
@@ -296,6 +303,7 @@ func _build() -> void:
 	center.name = "Center"
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center = center
 	add_child(center)
 	var column := VBoxContainer.new()
 	column.name = "Column"
@@ -337,17 +345,21 @@ func _build() -> void:
 
 func _label(font_size: int, colour: Color) -> Label:
 	var label := Label.new()
-	label.add_theme_font_override(&"font", LockpickStyle.mono_font())
+	label.add_theme_font_override(&"font", style.mono_font())
 	label.add_theme_font_size_override(&"font_size", font_size)
 	label.add_theme_color_override(&"font_color", colour)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
 
 
-# The front panel about 45 % of the screen (4:3), the pins view under it at the same width.
+# The front panel about 45 % of the screen (4:3), the pins view under it at the same width, the
+# whole column centred above the HUD's belt.
 func _layout() -> void:
 	var screen_size := get_viewport().get_visible_rect().size
-	var width := minf(screen_size.x * PANEL_WIDTH, screen_size.y * PANEL_HEIGHT * 4.0 / 3.0)
+	var margin := screen_size.y * BELT_MARGIN
+	_center.offset_bottom = -margin
+	var stack := 0.75 + (PIN_VIEW_RATIO if shows_pins() else 0.0)
+	var width := minf(screen_size.x * PANEL_WIDTH, (screen_size.y - margin - COLUMN_EXTRA) / stack)
 	front.custom_minimum_size = Vector2(width, width * 0.75).round()
 	pins_view.custom_minimum_size = Vector2(width, width * PIN_VIEW_RATIO).round()
 	hint_label.custom_minimum_size = Vector2(width, 0)
