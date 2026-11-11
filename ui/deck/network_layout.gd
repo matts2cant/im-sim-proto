@@ -709,10 +709,16 @@ func _block(hub: int, plan: RegionPlan) -> Rect2:
 	var y := comb.end.y + LANE_GAP
 	for r in rows:
 		var row := kids.slice(r * plan.children_per_row, (r + 1) * plan.children_per_row)
-		var width := -GROUP_GAP
-		for child: int in row:
-			width += blocks[child].size.x + GROUP_GAP
-		var x := comb.position.x + LANE_GAP * 0.5 if rows > 1 else -width * 0.5
+		# One row: its first and last child hubs centred on the hub's bus (one child right under it).
+		var x := comb.position.x + LANE_GAP * 0.5
+		if rows == 1:
+			var first := -blocks[row[0]].position.x
+			var last := first
+			var cursor := 0.0
+			for child: int in row:
+				last = cursor - blocks[child].position.x
+				cursor += blocks[child].size.x + GROUP_GAP
+			x = -(first + last) * 0.5
 		bands.append(y)
 		var top := y + LANE_GAP
 		var bottom := top

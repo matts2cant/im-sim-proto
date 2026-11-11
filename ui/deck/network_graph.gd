@@ -53,7 +53,7 @@ const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
 const SUBNET_FILL_ALPHA: float = 0.1
 const SUBNET_BORDER_ALPHA: float = 0.55
 const SUBNET_RADIUS: int = 8
-const SUBNET_TITLE_SIZE: int = 12
+const SUBNET_TITLE_SIZE: int = 14
 
 ## Command -> button label for the default menu (empty: the words after `command.`).
 var command_label: Callable = Callable()
@@ -511,13 +511,13 @@ func _title(id: StringName) -> Control:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override(&"separation", 10)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var text_color := data.map_color.lightened(0.35)
+	var text_color := data.map_color.lightened(0.5)
 	var name_label := DeckStyle.mono(
 		data.label if not data.label.is_empty() else String(id).to_upper(), text_color, SUBNET_TITLE_SIZE
 	)
 	line.add_child(name_label)
 	if not data.address_range.is_empty():
-		line.add_child(DeckStyle.mono(data.address_range, Color(text_color, 0.75), SUBNET_TITLE_SIZE))
+		line.add_child(DeckStyle.mono(data.address_range, Color(text_color, 0.8), SUBNET_TITLE_SIZE))
 	for child in line.get_children():
 		(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(line)

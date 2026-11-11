@@ -214,7 +214,7 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 # The deck's Map of the whole lab network from the jack (network_map_checks.gd: readable, no cable
 # crossing, nothing off the tree): three subnet boxes left to right (Office, Security, Servers) in
 # their data's colours with their names and ranges, RTR-01 and RTR-02 between them with both
-# addresses. Fitted in the deck's 1152 x 648 Map panel at about 0.6.
+# addresses. Fitted in the deck's 1152 x 648 Map panel at about 0.51.
 func test_the_deck_map_shows_three_subnet_boxes_with_the_routers_between() -> void:
 	assert_array(Router.of(_node("Devices/Rtr01")).addresses()).is_equal(["10.0.10.1", "10.0.20.254"])
 	assert_array(Router.of(_node("Devices/Rtr02")).addresses()).is_equal(["10.0.20.1", "10.0.30.1"])
@@ -224,7 +224,7 @@ func test_the_deck_map_shows_three_subnet_boxes_with_the_routers_between() -> vo
 	assert_int(result["crossings"]).is_equal(0)
 	assert_int(result["extra"]).is_equal(0)
 	var zoom: float = result["zoom"]
-	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.5)
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.45)
 	var boxes: Dictionary = result["boxes"]
 	assert_array(boxes.keys()).contains_exactly([&"office", &"security", &"servers"])
 	var titles := {
