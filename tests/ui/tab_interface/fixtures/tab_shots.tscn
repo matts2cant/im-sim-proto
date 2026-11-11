@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://tests/ui/tab_interface/fixtures/tab_shots.gd" id="3_shots"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="4_datapad"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="5_crate"]
+
+[sub_resource type="Environment" id="Environment_room"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.7, 0.75, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+
+[node name="TabShots" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_room")
+
+[node name="Room" parent="." instance=ExtResource("1_room")]
+size = Vector3(8, 3.5, 10)
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0.5)
+light_energy = 1.4
+omni_range = 12.0
+shadow_enabled = true
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.5)
+
+[node name="SmallCrate" parent="." instance=ExtResource("5_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.3, 0)
+
+[node name="SmallCrate2" parent="." instance=ExtResource("5_crate")]
+transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, -1.2, 0.3, -0.6)
+
+[node name="Datapad" parent="." instance=ExtResource("4_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.62, 0)
+
+[node name="Shots" type="Node" parent="."]
+script = ExtResource("3_shots")
+player_path = NodePath("../Player")

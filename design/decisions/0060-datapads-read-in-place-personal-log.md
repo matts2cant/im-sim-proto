@@ -1,6 +1,6 @@
 # 60. Datapads are read in place into a personal log
 
-Status: Accepted
+Status: Accepted, amended by [ADR 0110](0110-tab-interface.md) (the log screen is the Tab interface's Journal tab; the reading overlay no longer pauses)
 
 Date: 2026-11-06
 

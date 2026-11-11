@@ -8,7 +8,7 @@ Every stateful system is saveable from day one so saving and loading never need 
 
 ## Player-facing behaviour
 
-- **Esc** opens the game menu (pauses, frees the mouse; not over the inventory, log screen or reading overlay, which Esc closes instead; not while the debug panel is open): **Resume**, **Save**, **Load**, **Quit game**. Esc or Resume closes it. One slot.
+- **Esc** opens the game menu (pauses, frees the mouse; not over the Tab interface, the reading overlay, the keypad, the terminal or the lockpicking screen, which Esc closes instead ([ADR 0110](../decisions/0110-tab-interface.md)); not while the debug panel is open): **Resume**, **Save**, **Load**, **Quit game**. Esc or Resume closes it. One slot.
 - **Save** writes the slot; the menu stays open and says "Saved". Refused while dead ("Cannot save while dead") or knocked out ("Cannot save while knocked out").
 - **Load** is disabled when there is nothing loadable; the line under it says "Saved 14:32 · Hub" (local time, level) or why not: "No save", "Save is damaged", "Save is from another version", "Saved level not found". Load closes the menu, loads, and the HUD says "Loaded".
 - **Quit game** asks "Quit? Unsaved progress is lost." (Yes / No, No focused; Esc = No); Yes quits.

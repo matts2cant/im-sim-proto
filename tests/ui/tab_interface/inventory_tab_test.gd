@@ -86,7 +86,7 @@ func test_a_click_selects_and_the_details_follow() -> void:
 
 	var medkit := _player.inventory.inventory.stacks[1]
 	assert_object(_tab.selected_stack()).is_same(medkit)
-	assert_str((_tab.detail_box.get_node("Title") as Label).text).is_equal("Medkit  x2")
+	assert_str((_tab.detail_box.get_node("Head/Title") as Label).text).is_equal("Medkit  x2")
 	assert_str(_tab.use_button.text).is_equal("Use")
 
 
@@ -124,7 +124,7 @@ func test_equip_drop_and_the_belt_picker() -> void:
 
 	# The picker lists "not on the belt" then the ten slots; the pistol took belt 1 when given.
 	assert_int(_tab.belt_picker.item_count).is_equal(11)
-	assert_int(_tab.belt_picker.get_selected_id()).is_equal(0)
+	assert_int(_tab.belt_picker.selected).is_equal(1)
 	_tab.belt_picker.select(8)
 	_tab.belt_picker.item_selected.emit(8)
 	assert_int(_player.inventory.belt.slot_of(pistol)).is_equal(7)

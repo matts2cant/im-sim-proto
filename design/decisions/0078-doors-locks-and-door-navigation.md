@@ -1,6 +1,6 @@
 # 78. Doors, locks as components, and doors on the navmesh
 
-Status: Accepted
+Status: Accepted, amended by [ADR 0110](0110-tab-interface.md) (the keypad screen no longer pauses: the player's input is off instead)
 
 Date: 2026-11-08
 

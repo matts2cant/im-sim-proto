@@ -237,8 +237,21 @@ func _build_notes() -> void:
 	var list_box := TabStyle.column_box(list_column)
 	list_box.add_theme_constant_override(&"separation", 4)
 	for entry in list:
-		var button := TabStyle.row_button("%s\n%s" % [entry.title, entry.source], entry == shown)
+		var button := TabStyle.row_button("", entry == shown)
 		button.name = "Note_%s" % String(entry.id).replace(".", "_")
+		button.custom_minimum_size = Vector2(0, 50)
+		# Title over a dim source line (a Button has one text colour).
+		var lines := VBoxContainer.new()
+		lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lines.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		lines.offset_left = 10.0
+		lines.offset_top = 7.0
+		lines.add_theme_constant_override(&"separation", 2)
+		var note_title := TabStyle.label(entry.title, 13, TabStyle.FG)
+		note_title.name = "Title"
+		lines.add_child(note_title)
+		lines.add_child(TabStyle.mono(entry.source, 11, TabStyle.DIM))
+		button.add_child(lines)
 		button.pressed.connect(open_note.bind(entry.id))
 		list_box.add_child(button)
 	_body.add_child(TabStyle.divider())

@@ -55,7 +55,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0049](0049-knockout-rules-awareness.md) | Knockout rules and Awareness interface | Accepted |
 | [0050](0050-inventory-model-and-belt-references.md) | Inventory model and belt references | Accepted |
 | [0051](0051-single-interactor-hud-prompts.md) | Single Interactor and HUD prompts | Accepted |
-| [0052](0052-inventory-pauses-the-game.md) | Inventory pauses the game | Accepted |
+| [0052](0052-inventory-pauses-the-game.md) | Inventory pauses the game | Superseded by 0110 |
 | [0053](0053-ghosted-upright-carry-safe-release.md) | Ghosted, upright carry with safe release | Accepted |
 | [0054](0054-player-and-physics-props.md) | Player and physics props: no solver contact, scripted push and weight | Accepted |
 | [0055](0055-wake-props-when-support-goes.md) | Wake props when their support goes | Accepted |
@@ -63,7 +63,7 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0057](0057-forces-item-use-and-heat-as-generic-systems.md) | Forces, item use and heat as generic systems | Accepted |
 | [0058](0058-step-climbing.md) | Step climbing as a generic character component | Accepted |
 | [0059](0059-belt-selects-lmb-uses.md) | Belt selects, LMB uses; mouse wheel and H | Accepted |
-| [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted |
+| [0060](0060-datapads-read-in-place-personal-log.md) | Datapads are read in place into a personal log | Accepted, amended by 0110 |
 | [0061](0061-abilities-model.md) | Abilities: skills, energy and augmentations as attribute modifiers | Accepted (Electronics replaced by Computer, 0076) |
 | [0063](0063-quicksave-quickload.md) | Quicksave and quickload: one JSON slot, level snapshot with removed and spawned nodes | Accepted (keys amended by 0064) |
 | [0064](0064-game-menu.md) | Esc game menu: save, load and quit; F5 becomes Combat Strength | Accepted |
@@ -111,3 +111,4 @@ One ADR per design decision. Add a new ADR for any new design decision (next num
 | [0107](0107-lockpicking-minigame.md) | Lockpicking minigame: the prototype's pin-tumbler model (`PinTumbler`, tuning in a `.tres`), a screen on the picker in real time, the Lockpicking skill as attributes replacing `lockpick_time_mult`, an assist ladder (gauge, captions, pins view), pin changes that reset the lift, practice locks that re-lay their pins | Accepted, amended by 0109 |
 | [0108](0108-lockpick-sounds.md) | Lockpicking sounds: one-shots baked to WAV by `tools/sfx_gen/lockpick_sfx.py`, a port of the prototype's WebAudio synth (three noise variants per noisy cue, a new `relock` cue); the scrape and strain synthesised live into an `AudioStreamGenerator` with the same formulas; non-positional on Master; cues and tuning in `sounds.tres` | Accepted |
 | [0109](0109-lockpicking-side-view-and-mouse-pick.md) | Lockpicking rework (amends 0107): the final prototype's side cutaway with a rigid hook pick (brass, or clear for the Master assist and practice locks), wheel tension, the mouse moving the pick's aim with a bottom band for sliding between pins, sweet spot 40-3t .. 55+3t %, a set dwell, the aim bias after a set, overset only from the sweet spot (set and loose pins +0.15), physical raking by strokes on rakeable locks (at most 5 standard pins) | Accepted |
+| [0110](0110-tab-interface.md) | The Tab interface: one host (`TabInterface`) loading `TabPage` scenes as data (Inventory, Health, Augmentations, Skills, Journal), over the running world with the player's input off; Tab / I / L / Esc / 1-5 / Q-E rules, one screen at a time, closes on death or knockout; only the game menu, briefing and summary pause (the keypad and datapad reading no longer do); the Inventory tab's data-driven details (`ItemDetails`), the Journal (objectives, codes with `Readable.code_labels`, notes) | Accepted |

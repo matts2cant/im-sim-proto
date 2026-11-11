@@ -28,7 +28,7 @@ uniform float strength = 0.0;
 uniform vec4 colour : source_color = vec4(0.898, 0.325, 0.294, 0.6);
 void fragment() {
 	vec2 d = min(UV, vec2(1.0) - UV);
-	float edge = 1.0 - smoothstep(0.0, 0.16, min(d.x, d.y * 0.6));
+	float edge = 1.0 - smoothstep(0.0, 0.12, min(d.x, d.y * 0.6));
 	COLOR = vec4(colour.rgb, colour.a * edge * strength);
 }
 """

@@ -152,7 +152,7 @@ static func column(min_width: float = 0.0) -> ScrollContainer:
 	for side: StringName in [&"margin_left", &"margin_right"]:
 		margin.add_theme_constant_override(side, 20)
 	for side: StringName in [&"margin_top", &"margin_bottom"]:
-		margin.add_theme_constant_override(side, 18)
+		margin.add_theme_constant_override(side, 14)
 	scroll.add_child(margin)
 	var vbox := VBoxContainer.new()
 	vbox.name = "Box"

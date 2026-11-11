@@ -14,7 +14,7 @@ const MENU_DROP := 1
 const MENU_SPLIT := 2
 ## Belt slot i is id MENU_BELT + i.
 const MENU_BELT := 100
-## Belt picker id for "not on the belt".
+## assign_belt() slot for "not on the belt" (the picker's first entry; slot i is entry i + 1).
 const OFF_BELT := -1
 const NO_SELECTION := "Select an item."
 const AMMO_TYPES := "Ammo types come later: the standard round is loaded."
@@ -66,6 +66,7 @@ func bind(p_player: Node) -> void:
 ## Opens with the item in hand selected (else the first stack) when nothing is.
 func on_shown() -> void:
 	status_label.text = ""
+	status_label.visible = false
 	_status_left = 0.0
 	if inventory != null and selected_stack() == null:
 		var stack := inventory.in_hand()
@@ -192,11 +193,13 @@ func _process(delta: float) -> void:
 		_status_left = maxf(_status_left - delta, 0.0)
 		if _status_left == 0.0:
 			status_label.text = ""
+			status_label.visible = false
 
 
 func _on_message(text: String) -> void:
 	if is_visible_in_tree():
 		status_label.text = text
+		status_label.visible = true
 		_status_left = STATUS_TIME
 
 
@@ -231,15 +234,20 @@ func _rebuild_details() -> void:
 	if stack == null:
 		detail_box.add_child(TabStyle.paragraph(NO_SELECTION))
 		return
+	var head := HBoxContainer.new()
+	head.name = "Head"
+	head.add_theme_constant_override(&"separation", 16)
+	detail_box.add_child(head)
 	var icon := DetailIcon.new()
 	icon.name = "Icon"
 	icon.stack = stack
-	detail_box.add_child(icon)
+	head.add_child(icon)
 	var title := TabStyle.label(stack.display_name(), 18, TabStyle.FG)
 	title.name = "Title"
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if stack.count > 1:
 		title.text += "  x%d" % stack.count
-	detail_box.add_child(title)
+	head.add_child(title)
 	var description := TabStyle.paragraph(stack.item.description)
 	description.name = "Description"
 	detail_box.add_child(description)
@@ -295,12 +303,11 @@ func _make_belt_picker(stack: ItemStack) -> OptionButton:
 	picker.add_theme_stylebox_override(&"normal", style)
 	picker.add_theme_stylebox_override(&"hover", style)
 	picker.add_theme_stylebox_override(&"pressed", style)
-	picker.add_item(NOT_ON_BELT, OFF_BELT)
+	picker.add_item(NOT_ON_BELT)
 	for slot in inventory.belt.size():
-		picker.add_item(_slot_text(slot, stack), slot)
-	var current := inventory.belt.slot_of(stack)
-	picker.select(picker.get_item_index(current if current >= 0 else OFF_BELT))
-	picker.item_selected.connect(func(index: int) -> void: assign_belt(picker.get_item_id(index)))
+		picker.add_item(_slot_text(slot, stack))
+	picker.select(inventory.belt.slot_of(stack) + 1)
+	picker.item_selected.connect(func(index: int) -> void: assign_belt(index - 1))
 	return picker
 
 
@@ -323,6 +330,7 @@ func _build() -> void:
 	left_box.add_child(TabStyle.future(CREDITS))
 	status_label = TabStyle.label("", 13, TabStyle.AMBER)
 	status_label.name = "Status"
+	status_label.visible = false
 	left_box.add_child(status_label)
 	row.add_child(TabStyle.divider())
 	var right := TabStyle.column()

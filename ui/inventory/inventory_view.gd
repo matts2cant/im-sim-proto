@@ -248,7 +248,8 @@ func _draw_belt_slot(index: int, font: Font) -> void:
 	draw_rect(rect, CELL_FILL)
 	var stack := belt.stack_in(index)
 	if stack != null:
-		ItemIcon.draw(self, rect, stack, 11, 0.35 if stack == _drag else 1.0)
+		var font_size := maxi(roundi(11.0 * belt_slot / BELT_SLOT), 8)
+		ItemIcon.draw(self, rect, stack, font_size, 0.35 if stack == _drag else 1.0)
 	var selected := index == belt.selected
 	draw_rect(rect, SELECTED if selected else LINE, false, 2.0 if selected else 1.0)
 	draw_string(font, rect.position + Vector2(4, 12), Belt.key_label(index), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, CAPTION)
