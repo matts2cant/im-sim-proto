@@ -36,6 +36,7 @@ const SECURITY_DEVICES: Array[String] = [
 	"Devices/PanicButtonBooth",
 	"Devices/LaserRoofWest",
 	"Devices/LaserRoofEast",
+	"Devices/ApYard",
 	"Devices/SirenDock",
 	"Devices/SirenEastYard",
 	"Devices/SirenBackStrip",
@@ -131,15 +132,17 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 		listed.append(String(_level.get_node(SECURITY).get_path_to(row.device.entity)))
 	for path: String in SECURITY_DEVICES:
 		var device := _device(path)
-		if path.contains("Switch") or path.ends_with("SecurityConsole"):
+		# Network gear (switches, AP-YARD) carries traffic and takes no orders.
+		if path.contains("Switch") or path.ends_with("ApYard") or path.ends_with("SecurityConsole"):
 			continue
 		assert_array(DeviceNetwork.trusted(device)).override_failure_message(path).contains([console.device])
 		assert_array(listed).override_failure_message(path + " not listed").contains([path])
 	for path: String in ["Network/OfficePc1", "Network/OfficePc2"]:
 		var pc := Computer.of(_entity(path))
 		assert_array(pc.devices()).override_failure_message(path).is_empty()
-		# It reaches the vault door through RTR-01 (device traffic passes), but the door obeys the console only.
-		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor"))).is_true()
+		# M12b: RTR-01's rules keep the office off the Security subnet (but for the console), and the
+		# door obeys the console only anyway.
+		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor"))).is_false()
 		assert_bool(pc.send(Device.OPEN, _device("Doors/VaultDoor"))).is_false()
 	# The console's known login (the audit note) works bare-handed; it opens the vault door remotely.
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
@@ -155,9 +158,16 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() -> void:
 	var console := Computer.of(_entity("Devices/SecurityConsole"))
 	var vault: Array[String] = ["Devices/VaultTurret", "Doors/VaultDoor", "Doors/BridgeDoor", "Devices/CameraOffice"]
-	var roof: Array[String] = ["Devices/CameraRoof", "Devices/LaserRoofWest", "Devices/LaserRoofEast"]
+	# M12b: the roof lasers link by radio to AP-YARD (on the yard's switch): the roof's switch feeds
+	# only the roof camera.
+	var roof: Array[String] = ["Devices/CameraRoof"]
 	var others: Array[String] = [
-		"Devices/AlarmController", "Devices/CameraHall", "Devices/CameraGate", "Doors/FrontGate"
+		"Devices/AlarmController",
+		"Devices/CameraHall",
+		"Devices/CameraGate",
+		"Doors/FrontGate",
+		"Devices/LaserRoofWest",
+		"Devices/LaserRoofEast",
 	]
 	# The vault's switch unpowered: the vault and upper corridor devices go offline, the rest of the
 	# subnet (the security room, the hall, the yard and the roof) stays reachable.

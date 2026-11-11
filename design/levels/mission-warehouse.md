@@ -387,10 +387,10 @@ A subnet can span several switches (M12a): the Security subnet is wired the way 
 - **`SecuritySwitch`** (the main security switch, SW-SECURITY): basement store, east wall (19.49, -2.4, 6), next to breaker B and on its circuit (`warehouse_building`), beside RTR-01 and the office switch (the network closet). It carries the hall and basement devices (CameraHall, the hall's two sirens, SirenOfficeGround, SirenBasement) and the area switches' uplinks.
 - **`SecurityRoomSwitch`** (SW-SEC-ROOM): security room west wall (14.01, 1.6, 3.6), building circuit. The console, the security room's `AlarmController`, the radio base station, the security panic button and the SecurityDoor.
 - **`VaultSwitch`** (SW-VAULT): vault west wall (14.01, 6.1, 1.5), building circuit. The vault turret, the VaultDoor, the BridgeDoor, CameraOffice and SirenOfficeUpper (the upper floor).
-- **`YardSwitch`** (SW-YARD): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. CameraGate, CameraYard, the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
-- **`RoofSwitch`** (SW-ROOF): roof, the north parapet's inner face at the camera mast's foot (15.9, 10.05, -9.99), breaker A's circuit. CameraRoof, LaserRoofWest and LaserRoofEast (M9g).
+- **`YardSwitch`** (SW-YARD): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. CameraGate, the access point AP-YARD (M12b: CameraYard and the roof lasers link to it by radio, [below](#wireless-and-intrusion-m12b)), the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
+- **`RoofSwitch`** (SW-ROOF): roof, the north parapet's inner face at the camera mast's foot (15.9, 10.05, -9.99), breaker A's circuit. CameraRoof (M9g; LaserRoofWest and LaserRoofEast moved to AP-YARD's radio in M12b).
 
-With every switch up, a camera's incident reaches both controllers and each rings every siren; the console reaches every device. Breaking a switch (a pistol round) or cutting its breaker cuts only the devices behind it: they tell no controller and hear none, while the rest of the subnet keeps working (`warehouse_hacking_test.gd`: the vault's switch unpowered, the roof's broken). Cutting breaker B silences the building and leaves the console with nothing online (its own switch is on that circuit); breaking the store's main switch cuts every area switch from the others: the security room keeps its controller, panic button and door (the console still runs them), the hall, the vault and the upper floor go silent, the yard and the roof lose the building's controller. Breaking the booth's switch silences the yard; the roof's switch (or breaker A, which also darkens the yard and cuts both) the roof. Silencing everything still takes two decisions in two places (the store and the booth, or breaker B and breaker A). The devices themselves are on no circuit (they stay powered when a breaker is cut), except the doors (the fail-secure doors stay locked, the bridge door unlocks).
+With every switch up, a camera's incident reaches both controllers and each rings every siren; the console reaches every device. Breaking a switch (a pistol round) or cutting its breaker cuts only the devices behind it: they tell no controller and hear none, while the rest of the subnet keeps working (`warehouse_hacking_test.gd`: the vault's switch unpowered, the roof's broken). Cutting breaker B silences the building and leaves the console with nothing online (its own switch is on that circuit); breaking the store's main switch cuts every area switch from the others: the security room keeps its controller, panic button and door (the console still runs them), the hall, the vault and the upper floor go silent, the yard and the roof lose the building's controller. Breaking the booth's switch silences the yard (and, through AP-YARD on it, the roof's beams, M12b); the roof's switch the roof camera; breaker A, which also darkens the yard, cuts both. Silencing everything still takes two decisions in two places (the store and the booth, or breaker B and breaker A). The devices themselves are on no circuit (they stay powered when a breaker is cut), except the doors (the fail-secure doors stay locked, the bridge door unlocks).
 
 | Device | Where | Notes |
 |---|---|---|
@@ -442,12 +442,12 @@ Blind spots and dark routes kept: the dumpster corner north of the side door, th
 
 - **High beams at both arrivals** (B1 `LaserRoofWest`, B2 `LaserRoofEast`): 1.3 m over the roof, across the parapet's 1.2 m gaps where the annex stair and the fire escape arrive, between two 1.6 m posts (the parapet's ends raised). Crouch under (0.35 m to spare); a jump does not clear them. Duct A, from the north catwalk's alcove, reaches the roof behind them.
 - **The roof camera** (`CameraRoof`, on a mast in the north-east corner) and **a flood lamp** on the mast's top light and watch duct B's forecourt (0.6-0.9 standing; dark at the waits w and e beside the duct's housing and at both arrivals). The forecourt sits at the west end of the camera's sweep: in focus 3-5 s per 14.7 s cycle, out of focus 8.5 s in a row. Lit, the forecourt is also seen from the north catwalk through the roof's east skylight (G4 walking east along the catwalk's west half: Sightlines).
-- **On the roof's own switch** (M12a; at the mast's foot, cabled to the main security switch, breaker A's circuit; before M12a the yard switch): beams and lamp on breaker A's circuit, the camera on none (like the other cameras).
+- **On the roof's own switch** (M12a; at the mast's foot, cabled to the main security switch, breaker A's circuit; before M12a the yard switch): beams and lamp on breaker A's circuit, the camera on none (like the other cameras). M12b: the beams link by radio to AP-YARD over the dock instead ([Wireless and intrusion](#wireless-and-intrusion-m12b)); the roof switch feeds the camera only.
 
 | Obstacle | Answers |
 |---|---|
-| A beam | Crouch under it (no tools); the other arrival or duct A (another way round); breaker A (the annex, through the high window from two stacked crates: no tools); the console (disable); shoot an emitter (noise); break the roof switch at the mast's foot (the beam beeps but rings nothing) |
-| The lit forecourt | Wait in the dark beside the housing until the camera turns east (and G4 walks west), then 3 s to the mouth (no tools); breaker A (lamp off: the camera is blind and cut off); the console (disable); shoot the camera or the lamp (noise); break the roof switch |
+| A beam | Crouch under it (no tools); the other arrival or duct A (another way round); breaker A (the annex, through the high window from two stacked crates: no tools); the console (disable); shoot an emitter (noise); break AP-YARD over the dock (M12b: the beams beep but ring nothing) |
+| The lit forecourt | Wait in the dark beside the housing until the camera turns east (and G4 walks west), then 3 s to the mouth (no tools); breaker A (lamp off: the camera is blind and cut off); the console (disable); shoot the camera or the lamp (noise); break the roof switch (cuts the camera only) |
 
 A rush (sprinting over the fence and up the annex chain, upright through B1) rings both controllers 15 s after the start ([routes covered by tests](#routes-covered-by-tests-m9f)).
 
@@ -460,8 +460,9 @@ The M9 hooks became a real network ([../game/hacking.md](../game/hacking.md), [A
   SW-OFFICE (store) --- RTR-01 (store) ------- SW-SECURITY (store): hall cameras and sirens
     OFFICE-JACK (wall jack, 2nd office)       |-- SW-SEC-ROOM: SEC-CONSOLE, ALARM, RADIO-BASE, PANIC-SECURITY, DOOR-SECURITY
     OFFICE-PC1, OFFICE-PC2                    |-- SW-VAULT: TUR-VAULT, DOOR-VAULT, DOOR-BRIDGE, CAM-OFFICE, SIREN-OFFICE-UP
-                       Sentry tracer:         |-- SW-YARD (booth): CAM-GATE, CAM-YARD, ALARM-YARD, PANIC-BOOTH, DOOR-FRONT-GATE, 4 sirens
-                       Office + Security      '-- SW-ROOF (mast's foot): CAM-ROOF, LASER-ROOF-W, LASER-ROOF-E
+                       Sentry tracer:         |-- SW-YARD (booth): CAM-GATE, ALARM-YARD, PANIC-BOOTH, DOOR-FRONT-GATE, 4 sirens,
+                       Office + Security      |     AP-YARD (M12b) - - CAM-YARD, LASER-ROOF-W, LASER-ROOF-E (radio)
+                                              '-- SW-ROOF (mast's foot): CAM-ROOF
 ```
 
 - **Subnets and addresses.** Office 10.0.10.0/24: RTR-01 .1, SW-OFFICE .2, OFFICE-PC1 .11, OFFICE-PC2 .12, OFFICE-JACK .40. Security 10.0.20.0/24 (it spans five switches): SW-SECURITY .2, SW-YARD .3, SW-SEC-ROOM .4, SEC-CONSOLE .5, SW-VAULT .6, SW-ROOF .7, cameras .21-.25, TUR-VAULT .31, ALARM .40, ALARM-YARD .41, RADIO-BASE .45, panic buttons .46-.47, doors .51-.54, roof lasers .61-.62, sirens .71-.79. Each device's `display_name` metadata names it on the deck's Map; switches and routers name their subnet, the rest take their switch's.
@@ -469,12 +470,76 @@ The M9 hooks became a real network ([../game/hacking.md](../game/hacking.md), [A
 - **The office switch** (`Network/OfficeSwitch`) and **RTR-01** (`Network/Rtr01`, `router.tscn`) hang in the basement store's network closet beside the main security switch, (19.49, -2.4, 8.1) and (19.49, -2.4, 7.05), all on breaker B's circuit: cutting breaker B takes the tracer down with the building.
 - **RTR-01** runs the one tracer, "Sentry tracer" (default `tracer.tres`), watching Office and Security. Its admin account (`admin`, Medium) is written nowhere in the level (`warehouse_hacking_test.gd` checks every datapad, mail and file): crack it with the Icebreaker (Trained or better: 18 s, about +58 % trace from the Sentry tracer at 4 %/s x 0.8), or skip the network and use the security console bare-handed in the security room with the audit note's `dmarsh` / `harbor77`.
 - **Discovery.** From the office jack the Map shows the Office subnet and RTR-01 only; hacking RTR-01 reveals the Security subnet and its five switches.
-- **Trust.** Every security device trusts the security console; the sirens and the radio base station also trust both alarm controllers (the controllers ring and broadcast to them). Device traffic passes RTR-01 (cameras reporting, controllers ringing), so the office PCs reach the security devices, but none obeys them; their docks have no Security app (Mail and Files only: `ComputerData.apps`). The deck commands a device with an account on it (none of the security devices has one) or through the console's remote desktop once it has the console's account.
-- **Existing logins** keep working: the console's `dmarsh` (console audit note), office PC 1's `lpetrova` (sticky note), office PC 2's `kbrandt` (night shift notes; PC 2's mail and birthday card remain the implicit clue to PC 1). Office PC 1 gained a mail from IT about RTR-01 and its tracer.
+- **Trust.** Every security device trusts the security console; the sirens and the radio base station also trust both alarm controllers (the controllers ring and broadcast to them). Device traffic passed RTR-01 in M12a, so the office PCs reached the security devices, but none obeyed them; since M12b RTR-01's rules keep the office off the Security subnet except the console ([below](#wireless-and-intrusion-m12b)); their docks have no Security app (Mail and Files only: `ComputerData.apps`). The deck commands a device with an account on it (none of the security devices has one) or through the console's remote desktop once it has the console's account.
+- **Existing logins** keep working: the console's `dmarsh` (console audit note), office PC 1's `lpetrova` (sticky note), office PC 2's `kbrandt` (night shift notes; PC 2's mail and birthday card remain the implicit clue to PC 1). Office PC 1 gained a mail from IT about RTR-01 and its tracer (and, M12b, "Camera firmware" with an exploit).
 - **Subnet data**: RTR-01 carries the Office (blue) and Security (orange) `Subnet` resources (`objects/network/subnets/`) and its Security-side address 10.0.20.1; the deck's Map shows each as a box with its name and range, RTR-01 between them ([ADR 0112 amendment](../decisions/0112-hacking-reconciled-with-the-built-game.md#as-built-m12a-follow-up-2026-11-11)).
-- **Map readability** (`warehouse_security_network_test.gd`): the whole network as one Map has six groups (the five security switches and the office's) in two subnet boxes, RTR-01 between them; inside Security the main switch's comb sits on top and its four area switches stand in two rows below it. No cable crosses (it was 3 before the layout by subnet) and nothing is off the tree; fitted in the deck's Map panel at 1152 x 648 its zoom is about 0.48 (the player zooms in).
+- **Map readability** (`warehouse_security_network_test.gd`): the whole network as one Map has six groups (the five security switches and the office's) in two subnet boxes, RTR-01 between them; inside Security the main switch's comb sits on top and its four area switches stand in two rows below it. No cable crosses (it was 3 before the layout by subnet) and nothing is off the tree; fitted in the deck's Map panel at 1152 x 648 its zoom is about 0.45 (0.48 before AP-YARD and its three radio devices joined the yard's group in M12b; the player zooms in).
 
 Tests: `warehouse_hacking_test.gd` (subnets, addresses and names, RTR-01 between exactly the two subnets on the office side, the jack a real wall jack, the one tracer on RTR-01 watching both, its Medium admin login written nowhere, every security device trusting the console and listed by it, the office PCs listing none and refused, the console's known login opening the vault door remotely, one area switch unpowered or broken taking only its devices offline, a deck on the office jack seeing the office and RTR-01 and the Security subnet once RTR-01 is hacked); `warehouse_security_network_test.gd` (the two alarm parts with the area switches); the other warehouse suites unchanged. Review shots (`fixtures/warehouse_shots.tscn`): `office_jack`, `network_closet`, `security_room_switch`, `vault_switch`, `roof_switch`, `deck_map_office` and `deck_map_hacked` (a deck on the office jack before and after hacking RTR-01), `console_cameras`, `office_pc1_dock`.
+
+## Wireless and intrusion (M12b)
+
+M12b's exploits, Firewall and wireless ([hacking.md](../game/hacking.md), [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md), [ADR 0117](../decisions/0117-wireless-access-points-and-the-decks-wifi.md)) placed in the level. The mail server, the internet link and fail-secure vault doors are M12c.
+
+### AP-YARD and the cracking spots
+
+```text
+ north up; x east, z south; distances from the eye (feet + 1.65) to AP-YARD's centre
+
+ z -10.5   ======== hall north wall (outer face), parapet top 10.5 =========================
+           [RD1 x -10..-6]        A = AP-YARD (0, 11.3, -10.62)     [RD2 x 2..6]
+                                  on a bracket, 0.8 m over the parapet
+ z -11.6                                                    G (4, 0): 10.5 m, Trained
+ z -12.5                                                 [trailer x 2.75..5.25, z -20.5..-12.5]
+                                                         (cab to z -23.5; crouch under: 1.25 m)
+ roof (top 9.5), behind the parapet:
+ z -4.2                           R (0, 9.5): 6.4 m, Untrained     dock-east skylight x 2.8..5.2
+```
+
+- **AP-YARD** (`Population/Security/Devices/ApYard`, `objects/network/access_point.tscn`; 10.0.20.60, Skylink AP-5 2.2) sits on a metal bracket (a mesh, no collision) on the hall's north parapet above the dock, between the roller doors, at (0, 11.3, -10.62): 0.8 m over the parapet's top and just outside its outer face, so it is in sight from the yard below and from the roof behind the parapet. Cabled to SW-YARD (the gate booth) on the Security subnet, on breaker A's circuit (`warehouse_yard`) like the yard switch; Wi-Fi key Weak (Untrained cracks it in 10 s), client address 10.0.20.90; `wireless_range` 27 m.
+- **Radio devices**: CAM-YARD (21.7 m away), LASER-ROOF-W (24.1 m) and LASER-ROOF-E (21.2 m) link to it by radio (`Device.wireless`), at least 2.9 m inside its range. SW-YARD no longer cables CAM-YARD; SW-ROOF keeps only CAM-ROOF. Breaking (health 30: a few pistol rounds) or unpowering AP-YARD takes the three offline (their incidents reach no controller, the beams beep and ring nothing) while the cabled devices beside them stay up: the quiet way past both roof beams and the yard camera for a player who finds it. Breaker A did that already (it also darkens the yard and cuts the yard's switch).
+- **Cracking spots** (both outside the Security area, in sight of AP-YARD):
+  - **Roof** (0, 9.5, -4.2): 6.4 m, in the Untrained range (8 m). Dark (0.04 standing and crouched), on concrete; no guard in sight (the catwalk guards below are blocked by the roof; the roof camera has a line but is 18 m away, beyond its 15 m). Reached by the roof's usual ways (the annex stair or the fire escape under a beam, or duct A).
+  - **Yard, the gap between the truck's trailer and the hall wall** (4, 0, -11.6): 10.5 m, so it needs Trained (12 m); 10.2-10.9 m anywhere in the gap. Dark (0.04), out of every camera's view (the gap was already the cameras' blind spot). G1 at the gate post (16.5 m), G3 at YardEastA (15.4 m) and G2 at YardWestA (22.7 m) have a line to it past the trailer's wheels, but at 0.04 a guard sees the player only within 2 m and the yard patrols' flashlights reach 12 m: nobody notices a player standing there for the 7.5 s a Trained crack takes. Getting there is the risk: the dock apron is lit (crouch under the trailer from its south end).
+  - Both are quiet: a crouch-walk there (loudness 2 on concrete) reaches no guard post or patrol point (the nearest is 15 m away).
+- **Joined over AP-YARD**, the deck is on the Security subnet as 10.0.20.90: the Map shows the subnet (the console, every camera, both lasers, both alarm controllers, the doors) and RTR-01, not the office; nothing goes through RTR-01. The **Sentry tracer** on RTR-01 still watches the subnet (through SW-SECURITY): the crack (about +40 % Untrained, +24 % Trained), scans and exploit runs add trace there, and a full trace reports AP-YARD as the entry point. Breaking SW-SECURITY or cutting breaker B leaves the subnet unwatched (and the building's devices out of reach).
+
+### Software and exploits
+
+| Devices | Software |
+|---|---|
+| CAM-GATE, CAM-HALL, CAM-OFFICE / CAM-YARD / CAM-ROOF | Helix CAM-3 2.1 / 2.0 / 2.2 |
+| LASER-ROOF-W, LASER-ROOF-E | Lumen Tripwire 1.3 |
+| AP-YARD | Skylink AP-5 2.2 |
+| ALARM (security room) / ALARM-YARD (booth) | Vigil AC-200 3.4 / 3.1 |
+| Sirens; panic buttons | Vigil SR-10 1.2; Vigil PB-1 1.0 |
+| RADIO-BASE | Mercom RB-4 2.3 |
+| TUR-VAULT | Ardent TR-6 1.4 |
+| DOOR-SECURITY, DOOR-BRIDGE, DOOR-VAULT / DOOR-FRONT-GATE | Castell DL-7 5.0 / Castell GT-2 2.4 |
+| SEC-CONSOLE / OFFICE-PC1, OFFICE-PC2 | Halcyon OS 4.2 / 4.4 |
+| RTR-01; every switch | Norsk EdgeGuard 2.0; Norsk SW-24 3.2 |
+
+The office wall jack is passive (no software). Vendors and products reuse the network lab fixture's where they fit (`tests/objects/network/network_fixtures.gd`); the software resources are sub-resources of `population/security.tscn`.
+
+| Exploit | Found | Matches | Out of range |
+|---|---|---|---|
+| Helix default service login (Helix CAM-3 2.0-2.1, admin) | Office PC 1's mail "Camera firmware" (IT) | CAM-GATE, CAM-YARD, CAM-HALL, CAM-OFFICE: a camera taken without an account | CAM-ROOF 2.2, just out of range (the mail says so) |
+| Vigil AC debug port (Vigil AC-200 3.0-3.2, admin) | Datapad "Field service notes" (`warehouse.tower_notes`) on the water tower deck (43.5, 20.03, -12.6), beside the sniper rifle: an optional detour | ALARM-YARD 3.1 (disarm the yard's controller) | ALARM 3.4 |
+
+The field service notes also say where AP-YARD is and what it carries. **Burning**: every Security device is watched by the Sentry tracer, so the first run of each exploit there works and patches every device of that product on the subnet (the Helix run on one camera patches all five); a run with the subnet unwatched (SW-SECURITY broken, breaker B off) burns nothing.
+
+### RTR-01's firewall rules
+
+| # | From | To | Verdict |
+|---|---|---|---|
+| 1 | SECURITY subnet | OFFICE subnet | ALLOW (incidents, the console's mail) |
+| 2 | OFFICE subnet | SEC-CONSOLE (10.0.20.5) | ALLOW |
+| 3 | OFFICE subnet | SECURITY subnet | DENY |
+| | no match | | ALLOW (the default) |
+
+The office PCs reach the console only (before M12b they reached every security device, which obeyed none); the deck of a player with access to RTR-01 still passes (only rules from "you" judge it, [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md)); RTR-01 itself sends freely (its tracer's incidents reach both alarm controllers). **No rule silences the sirens here**: both alarm controllers and every siren are on the Security subnet, so ringing never crosses RTR-01 (a level with sirens across a router would offer it).
+
+Tests: `warehouse_ap_yard_test.gd` (AP-YARD on the Security subnet cabled to SW-YARD; the three radio devices within its range with 2 m to spare and watched by the Sentry tracer; both spots' distances (6-7 m, 10-11 m), in range per tier, line of sight, floors, darkness and crouch-walk noise; breaking or unpowering AP-YARD cutting only its radio devices; a deck joined over it reaching the controllers, cameras and lasers without passing RTR-01; the Map from the office jack and from AP-YARD readable, 0 crossings); `warehouse_intrusion_test.gd` (software on every networked device, the mail and the datapad teaching their exploits and no other document teaching any, the matches and the out-of-range versions, a seen Helix run over AP-YARD patching every Helix camera, RTR-01's rules). Review shots (`fixtures/warehouse_shots.tscn`): `ap_yard_roof`, `ap_yard_gap`, `ap_yard_apron`, `ap_yard_close`, `deck_map_ap_yard` (joined over AP-YARD), `tower_notes`, and `deck_map_office` / `deck_map_hacked` (the office jack).
 
 ## Rules
 

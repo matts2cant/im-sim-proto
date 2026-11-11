@@ -148,6 +148,21 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"hack": [NETWORK + "Rtr01"],
 		"wait": 3.0,
 	},
+	# M12b: AP-YARD on its bracket over the north parapet, from the Untrained cracking spot on the roof
+	# (6.4 m), the Trained one in the gap between the trailer and the hall wall (10.5 m), the dock
+	# apron and close up; the deck joined over it; the field service datapad on the water tower.
+	"ap_yard_roof": {"feet": Vector3(0, 9.5, -4.2), "look": Vector3(0, 11.3, -10.62)},
+	"ap_yard_gap": {"feet": Vector3(4, 0, -11.6), "look": Vector3(0, 11.3, -10.62)},
+	"ap_yard_apron": {"feet": Vector3(-3, 0, -21), "look": Vector3(0, 8, -10.6)},
+	"ap_yard_close": {"feet": Vector3(1.2, 9.5, -8.6), "look": Vector3(0, 11.0, -10.62)},
+	"deck_map_ap_yard":
+	{
+		"feet": Vector3(0, 9.5, -4.2),
+		"look": Vector3(0, 11.3, -10.62),
+		"deck": DEVICES + "ApYard",
+		"wait": 3.0,
+	},
+	"tower_notes": {"feet": Vector3(44.6, 20, -11.9), "look": Vector3(43.5, 20.03, -12.6)},
 	# Breaker A's circuit off (the yard devices unreachable: grey) and the hall camera disabled (red).
 	"console_states":
 	{
