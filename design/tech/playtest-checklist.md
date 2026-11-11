@@ -417,7 +417,7 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 
 ## M12a Network and deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md))
 
-Take the deck from the hub's loadout table. Until the network lab room exists (a later brief), use the deck lab fixture's review shots (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_gateway|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
+Take the deck from the hub's loadout table (or the network lab's entrance table). The deck lab fixture's review shots stay useful (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_gateway|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
 
 - [ ] LMB with the deck on a wall jack: the screen rises at once; nothing else in the world stops (guards keep walking). Esc and ✕ lower it without opening the game menu; LMB on the jack raises it again.
 - [ ] The 2 s scan when you plug in reads as "the deck is working", not as lag. The gateway shows at once, the rest after the scan.
@@ -492,3 +492,22 @@ In the gallery's security wing booth and the warehouse (security console, the tw
 - [ ] Security app (booth computer, warehouse console): devices grouped under Cameras and turrets, Doors, Alarm and Laser arrays, each with its kind's icon and a short status in green / red (disabled) / amber (ringing, alert) / grey (offline); switches and computers are not listed. The camera's and the turret's live views move smoothly (the frame rate holds); a door, the alarm controller and a laser array show no view. Each action button does what it says within a fraction of a second (Disable a camera: "No signal"; Lock / Unlock / Open the vault door; Disarm the alarm; Disable a laser array: its beams go out), and the line under the buttons says "<device>: <action> sent.".
 - [ ] Office PCs: their Security app says "This computer controls no security devices." and points to the deck.
 - [ ] Panic buttons and radio base stations are listed with their status but have no buttons yet (their disable / enable comes later).
+
+## M12a Network lab and warehouse network ([hacking.md](../game/hacking.md#levels), [hub-and-gallery.md](../levels/hub-and-gallery.md#8-network-lab), [mission-warehouse.md](../levels/mission-warehouse.md#network-m12a))
+
+Network lab (hub doorway "8 Network Lab", west wall), Computer skill Untrained unless noted:
+
+- [ ] The lab is found easily from the hub (the sign over the new west doorway; the mission doorway beside it now shows the lab's outer wall behind it: does that read as odd?). Each station's sign is readable from where you stand to use it, and says what to do next.
+- [ ] Deck table: E takes the deck; selecting it on the belt and LMB on the wall jack (0.45 m up) is easy to aim; the Map shows the office and FW-01 only.
+- [ ] Office PC 1: the sticky note, then Fill in, logs in; the "Re: my password" mail reads as a fair clue. Office PC 2: after reading the photo on its desk, the guess (`jnovak` / `mishka2029`) feels findable, not a riddle; a wrong guess shows the Sentry tracer's bar rising.
+- [ ] FW-01: cracking it Untrained (10 s) from the Map, then the Security subnet appearing after its scan, feels like the payoff; the trace bar (about 60 % at the peak) teaches the tracer without locking you out.
+- [ ] Security console (login from PC 2's mail): its Security app shows only the closet camera and the closet door; Disable the camera and Open the closet; the biocells inside are a fair reward. The same from the console's remote desktop on the deck.
+- [ ] Breaker beside the closet switch: off, the camera and the door go grey (offline) in the console and on the Map while the console and FW-02 stay up; the closet stays shut (fail-secure); on again, everything returns.
+- [ ] FW-02: "Log in (from fw02.txt)" after reading the console's file; the server subnet appears; cracking the file server and opening its desktop remotely shows `well_done.txt`. The chain office -> FW-01 -> Security -> FW-02 -> servers reads on the Map.
+
+Warehouse network:
+
+- [ ] The deck on office PC 2's desk is noticed; the office wall jack (second office, east wall, low) is easy to find and plug into; the Map shows the office, FW-01 and nothing behind it.
+- [ ] Without the Computer skill, FW-01 says "too strong"; the console in the security room (audit note login) is the other way. With Trained (debug panel), cracking FW-01 (18 s, about +58 % trace) reveals the Security subnet and its five switches; the full Map is readable once zoomed (note where cables cross).
+- [ ] The office PCs' Security app controls nothing; the console's controls every camera, door, turret, laser array and alarm device as before.
+- [ ] Area switches: shooting the vault's switch (vault west wall) silences the vault, the upper corridor's camera and siren only; the roof's switch at the mast's foot silences the roof's camera and beams; the store's main switch still cuts the building from the yard. Breakers A and B behave as before (B also takes FW-01 and its tracer down).
