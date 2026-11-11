@@ -89,7 +89,7 @@ flowchart LR
 | M17 | Dialogue: branching conversations whose choices set story flags (to be designed) | to be designed |
 | M18 | Experience: XP from objectives, dialogue, discoveries and hacks; spent on skills in the Tab interface (to be designed) | none |
 | M19 | Money and shops: currency, traders, an economy tuned with XP and loot; then a compact test area (a street with NPCs, a shop and a side quest) to try factions, dialogue, XP and money together (to be designed) | test area |
-| M20 | Open map and story: a large map, a 30-minute story, side quests, places to discover, NPCs to meet; starts with a layout and scale prototype (frame rate, navigation) (to be designed) | the map |
+| M20 | Open map and story: a large map, a 30-minute story, side quests, places to discover, NPCs to meet; starts with a layout and scale prototype (frame rate, navigation) and the engine decision: stay on Godot or move to Unreal 5.8+ (World Partition, Nanite; costs: binary assets agents can't diff, slower build and test loop), measured by a 1–2 day trial porting one system (to be designed) | the map |
 
 Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](tech/playtest-checklist.md).
 
