@@ -10,6 +10,8 @@ extends Resource
 @export var failed_login: float = 15.0
 ## % added by a map scan of a watched subnet.
 @export var scan: float = 10.0
+## % added by one exploit run against a watched device (spread over the run).
+@export var exploit: float = 10.0
 ## % per second drained while nothing adds to it ...
 @export var drain_per_second: float = 10.0
 ## ... starting this long after the last gain (s).

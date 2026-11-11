@@ -5,7 +5,8 @@ extends Node
 ## runs (`running`, its host's Device up and not disabled by a command) and its host reaches the
 ## device (a cut cable or a dead switch between them: unwatched). Activity against a watched device
 ## adds trace for the user doing it (TraceModel, tuning in `config`): a tool running against it
-## (gain per second), a failed login, a map scan of a watched subnet; every gain times the user's
+## (gain per second), a failed login, a map scan of a watched subnet, an exploit run (its amount
+## spread over the run: report_exploit()); every gain times the user's
 ## `deck_trace_gain_mult` (the Computer skill). Trace drains while nothing adds to it.
 ## Full trace: like a camera, the host reports an incident (Device.report_incident(), location: the
 ## user's entry point, not their position) to the alarm controllers it reaches, and the user's
@@ -92,6 +93,23 @@ static func report_subnet(tree: SceneTree, subnet: StringName, by: Node, source:
 	for tracer in Tracer.all(tree):
 		if tracer.is_running() and tracer.watched.has(subnet):
 			tracer.add(tracer.config.scan, by, source, SCAN)
+
+
+## `fraction` of an exploit run (0..1, this tick's share) by `by` against `target`: every tracer
+## watching it adds that share of its exploit amount. Returns those tracers (they saw the run).
+static func report_exploit(target: Device, by: Node, source: NetworkSource, fraction: float) -> Array[Tracer]:
+	var found := Tracer.watching(target)
+	for tracer in found:
+		tracer.add(tracer.config.exploit * fraction, by, source)
+	return found
+
+
+## The highest exploit amount of the tracers watching `target` (0: unwatched; the Advanced assist).
+static func highest_exploit(target: Device) -> float:
+	var amount := 0.0
+	for tracer in Tracer.watching(target):
+		amount = maxf(amount, tracer.config.exploit)
+	return amount
 
 
 ## A tool running for `delta` s against `target`: every tracer watching it adds its gain.

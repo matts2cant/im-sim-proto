@@ -1,8 +1,9 @@
 class_name LogBook
 extends RefCounted
 ## Pure logic of a PersonalLog (ADR 0060): the entries read, oldest first, one per entry id, and
-## the codes they carried. Known codes are derived from the entries: when two entries carry the same
-## code id, the one added last wins (newer information). Saved as the entry list only.
+## the codes and exploits (ADR 0116) they carried. Known codes and exploits are derived from the
+## entries: when two entries carry the same code id (or exploit id), the one added last wins (newer
+## information). Saved as the entry list only.
 
 var entries: Array[LogEntry] = []
 
@@ -56,6 +57,29 @@ func code_entries(code_id: StringName) -> Array[LogEntry]:
 	for entry in entries:
 		if entry.codes.has(code_id):
 			found.append(entry)
+	return found
+
+
+## Every known exploit, one per id (the latest entry's), in the order first learned.
+func known_exploits() -> Array[Exploit]:
+	var by_id: Dictionary[StringName, Exploit] = {}
+	for entry in entries:
+		for exploit in entry.exploits:
+			if exploit != null:
+				by_id[exploit.id] = exploit
+	var found: Array[Exploit] = []
+	for exploit_id: StringName in by_id:
+		found.append(by_id[exploit_id])
+	return found
+
+
+## The entry the exploit `exploit_id` was learned from (the latest), or null.
+func exploit_entry(exploit_id: StringName) -> LogEntry:
+	var found: LogEntry = null
+	for entry in entries:
+		for exploit in entry.exploits:
+			if exploit != null and exploit.id == exploit_id:
+				found = entry
 	return found
 
 

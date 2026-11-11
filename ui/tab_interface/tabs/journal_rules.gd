@@ -2,10 +2,12 @@ class_name JournalRules
 extends RefCounted
 ## Pure texts of the Journal tab (ADR 0110): the mission's objectives with their state and a short
 ## briefing line, the codes and logins a PersonalLog knows (with a readable name for what each opens
-## and the entry it came from), and the line of what an entry taught.
+## and the entry it came from), the exploits it knows (ADR 0116: what each targets, the access it
+## grants, where it was learned), and the line of what an entry taught.
 
 const NO_MISSION := "No mission running. Objectives show here during a mission."
 const NO_CODES := "None yet. Codes and logins you read show here."
+const NO_EXPLOITS := "None yet. Exploits you read about in mails, files and datapads show here."
 const EMPTY_LOG := "Nothing read yet. Look at a datapad and press E to read it."
 ## A short briefing line stops at the end of the sentence that reaches this length.
 const BRIEFING_CHARS := 120
@@ -69,17 +71,42 @@ static func _code_row(code_id: StringName, entry: LogEntry) -> Dictionary:
 	return row
 
 
+## Every known exploit: id, title, targets ("Helix CAM-3 2.0–2.1"), access ("admin"), entry_id,
+## entry_title and entry_source (where it was learned); in the order learned.
+static func exploits(book: LogBook) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	if book == null:
+		return rows
+	for exploit in book.known_exploits():
+		var entry := book.exploit_entry(exploit.id)
+		var row := {"id": exploit.id, "title": exploit.title, "targets": exploit.targets()}
+		row["access"] = exploit.access_name()
+		row["entry_id"] = entry.id if entry != null else &""
+		row["entry_title"] = entry.title if entry != null else ""
+		row["entry_source"] = entry.source if entry != null else ""
+		rows.append(row)
+	return rows
+
+
+## "Exploit Helix default service login (Helix CAM-3 2.0–2.1, admin)".
+static func exploit_text(exploit: Exploit) -> String:
+	return "exploit %s (%s, %s)" % [exploit.title, exploit.targets(), exploit.access_name()]
+
+
 ## A code as shown: a login ("user:password") as "user / password", anything else as it is.
 static func code_value(raw: String) -> String:
 	var login := LoginCredentials.parse(raw)
 	return "%s / %s" % [login.user, login.password] if login != null else raw
 
 
-## "Learned: Storage door 2817 · Office PC 2 login kbrandt / ferry19", or "" when it carries none.
+## "Learned: Storage door 2817 · Office PC 2 login kbrandt / ferry19 · exploit Helix default service
+## login (Helix CAM-3 2.0–2.1, admin)", or "" when it carries nothing.
 static func learned_line(entry: LogEntry) -> String:
-	if entry == null or entry.codes.is_empty():
+	if entry == null or (entry.codes.is_empty() and entry.exploits.is_empty()):
 		return ""
 	var parts: PackedStringArray = []
 	for code_id: StringName in entry.codes:
 		parts.append("%s %s" % [entry.code_label(code_id), code_value(entry.codes[code_id])])
+	for exploit in entry.exploits:
+		parts.append(exploit_text(exploit))
 	return "Learned: " + " · ".join(parts)

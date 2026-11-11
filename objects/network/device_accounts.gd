@@ -11,7 +11,9 @@ extends Node
 ## known_login() reads the viewer's PersonalLog ("Log in" on the Map; computers' "Fill in" reads
 ## the same codes). User names match without regard to case or surrounding spaces, passwords exactly.
 ## EventLog: `network.login {device, user, by, ok, address, reason}` (reason: wrong, unknown,
-## offline, blocked; "" on success), `network.password {device, user}`. Saveable (who has access).
+## offline, blocked; "" on success), `network.password {device, user}`. Every attempt that reaches
+## the device (right or wrong) is also written to its Device's `device_log` with the source address.
+## Saveable (who has access).
 
 ## `by`'s access changed (granted or revoked).
 signal access_changed(by_key: String)
@@ -91,6 +93,9 @@ func login_from(user: String, password: String, by: Node, source: NetworkSource)
 		"reason": reason
 	}
 	EventLog.record(&"network.login", NetworkSource.user_key(by), _name(), data)
+	if own != null and (ok or reason == "wrong" or reason == "unknown"):
+		var kind := DeviceLog.LOGIN if ok else DeviceLog.FAILED_LOGIN
+		own.intrusion.device_log.record(kind, source.address if source != null else "", user)
 	if ok:
 		grant(by, found.user)
 	elif reason == "wrong" or reason == "unknown":

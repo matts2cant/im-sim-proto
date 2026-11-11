@@ -105,7 +105,7 @@ static func learned_text(item: ComputerDocument) -> String:
 
 
 static func _teaches(item: ComputerDocument) -> bool:
-	return not item.implicit_clue and not item.codes.is_empty()
+	return item.teaches()
 
 
 func _rebuild_list() -> void:

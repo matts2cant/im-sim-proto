@@ -228,3 +228,84 @@ static func panel_style(border: Color = BORDER_COLOR, width: int = 1, margin: fl
 	style.set_border_width_all(width)
 	style.set_content_margin_all(margin)
 	return style
+
+
+## Shows the new trace `bars` in `box`: the bars already there take their texts, fills and tooltips
+## in place when they match one for one (one bar per tracer, the same parts), else `box` is refilled.
+## A trace that rises adds and frees nothing, so the controls around a still cursor stay put.
+static func show_bars(box: Node, bars: Array[HBoxContainer]) -> void:
+	var olds: Array[Node] = []
+	for child in box.get_children():
+		if not child.is_queued_for_deletion():
+			olds.append(child)
+	var same := olds.size() == bars.size()
+	if same:
+		for i in olds.size():
+			same = same and olds[i].get_child_count() == bars[i].get_child_count()
+	if not same:
+		for child in olds:
+			discard(child)
+		for bar in bars:
+			box.add_child(bar)
+		return
+	for i in olds.size():
+		var old := olds[i] as Control
+		old.tooltip_text = bars[i].tooltip_text
+		for j in old.get_child_count():
+			var part := old.get_child(j)
+			var fresh := bars[i].get_child(j)
+			if part is Label and fresh is Label:
+				(part as Label).text = (fresh as Label).text
+			elif part.get_child_count() > 0 and fresh.get_child_count() > 0:
+				var fill := part.get_child(0) as ColorRect
+				var fresh_fill := fresh.get_child(0) as ColorRect
+				if fill != null and fresh_fill != null:
+					fill.color = fresh_fill.color
+					fill.size = fresh_fill.size
+		bars[i].free()
+
+
+## One trace bar: `label`, a `width` px bar of `value` % (red above `hot` %), "N %" and "blocked N s" while
+## `lockout_left` > 0. The deck's title bar and the computer overlay use it.
+static func trace_bar(
+	label: String, value: float, lockout_left: float, width: float = 120.0, hot: float = 70.0
+) -> HBoxContainer:
+	var bar := HBoxContainer.new()
+	bar.add_theme_constant_override(&"separation", 8)
+	if not label.is_empty():
+		bar.add_child(mono(label, DIM_COLOR, 12))
+	var track := Panel.new()
+	track.custom_minimum_size = Vector2(width, 8.0)
+	track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	track.add_theme_stylebox_override(&"panel", box(FIELD_COLOR, LINE_COLOR, 0.0, 0.0, 0.0))
+	var fill := ColorRect.new()
+	fill.color = ERROR_COLOR if value > hot else ALERT_COLOR
+	fill.size = Vector2(width * clampf(value / 100.0, 0.0, 1.0), 8.0)
+	track.add_child(fill)
+	bar.add_child(track)
+	var text := "%d %%" % roundi(value)
+	if lockout_left > 0.0:
+		text += " · blocked %d s" % ceili(lockout_left)
+	bar.add_child(mono(text, DIM_COLOR, 12))
+	return bar
+
+
+## A skill assist line ("Computer skill · about +30 % trace"), outlined blue.
+static func assist(text: String) -> Label:
+	var label := mono("Computer skill · " + text, SELF_COLOR, 12)
+	var style := box(Color(0, 0, 0, 0), Color(SELF_COLOR, 0.5), 4.0, 8.0, 4.0)
+	label.add_theme_stylebox_override(&"normal", style)
+	return label
+
+
+## "7.5 s", "18 s".
+static func seconds(value: float) -> String:
+	return "%s s" % number(value)
+
+
+## A value to one decimal, without ".0".
+static func number(value: float) -> String:
+	var rounded := snappedf(value, 0.1)
+	if is_equal_approx(rounded, roundf(rounded)):
+		return str(roundi(rounded))
+	return "%.1f" % rounded

@@ -34,9 +34,9 @@ Hacking as a believable network, not a minigame. The level has real devices with
 |---|---|---|
 | Map | Shows the devices you can see (see [Discovery](#discovery)), drawn like the old terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)). Clicking a device opens its menu: its address, status and account names; per account "Log in" (a login the Journal knows) or the Icebreaker; on a device you have access to, its actions; on a computer you have an account on, "Open its desktop (remote)" | M12a |
 | Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs | M12a |
-| Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace | M12b |
-| Firewall | As admin of a router: view and edit its rules | M12b |
-| Logs | As admin of a device: read its log and erase entries | M12b |
+| Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace | M12b (built: [Exploits, Firewall and logs as built](#exploits-firewall-and-logs-as-built-m12b)) |
+| Firewall | As admin of a router: view and edit its rules | M12b (built) |
+| Logs | As admin of a device: read its log and erase entries | M16 (M12b records the logs) |
 | Sniffer | Wireless only. Captures the logins guards make on devices connected through the same access point | M16 (needs guards logging in) |
 
 ## Network model
@@ -176,7 +176,7 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 
 ### NPCs and logs
 
-- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool (M12b). An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
+- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address (recorded since M12b). An admin can erase entries with the deck's Logs tool (M16). An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
 - **M16** (AI overhaul): guards log in to devices through a "use device" action at patrol waypoints (feeding the Sniffer and the logs), and a security operator watches the monitors.
 
 ## UI
@@ -186,7 +186,7 @@ Overlays, like the Tab interface ([mockup](../prototypes/hacking_screens.html)):
 | Screen | Contents |
 |---|---|
 | Computer (Halcyon OS) | Title bar (host, address, account and access level, trace bars, ✕). Login: user and password, "Fill in" for the logins known for this machine, an error line ("+15 % trace" on a wrong guess). Desktop: the apps installed on it (Mail, Files, and Security on security consoles) in a dock |
-| Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker; M12b tools greyed until then); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
+| Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker, Exploits, Firewall; Logs greyed until M16); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
 
 - One trace bar per tracer watching you (an undiscovered tracer shows as "unknown tracer"), only inside these screens.
 - Skill assists appear on the deck (see [Icebreaker](#icebreaker)).
@@ -209,7 +209,7 @@ Controls ([controls.md](controls.md)):
 
 Settled while building the network layer and the deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md)):
 
-- **Discovery is reach.** A router passes a user's traffic only once the user has an account on it (its rules first: M12b's Firewall). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a router (a known login or the Icebreaker) is what reveals the subnets behind it; a router inside them is hacked in turn. Routers show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
+- **Discovery is reach.** A router passes a user's traffic only once the user has an account on it (rules from "you" first, and an exploit's grant counts too: M12b). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a router (a known login or the Icebreaker) is what reveals the subnets behind it; a router inside them is hacked in turn. Routers show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
 - **Addresses**: a wall jack gives the deck the jack's address on its subnet; a maintenance port `port:<device address>` (that device only); a computer its own address. A tracer blocks the address it caught: plugging in elsewhere is a new address.
 - **Tethered**: more than 3 m (horizontal, the player's origin to the plugged entity) unplugs the deck; so do being unable to act and losing the deck. The screen lowers with Esc or ✕; LMB on the port raises it again.
 - **Accounts**: logging in gives the account until its password changes. The Journal files a device's logins under one code id per device (its `credentials_id`: on `DeviceAccounts`, else its `Computer`, else its node name in snake_case), one entry per login "user:password"; a cracked login is learned that way, in an entry "Cracked: user@HOST".
@@ -232,6 +232,19 @@ Settled while building it ([ADR 0117](../decisions/0117-wireless-access-points-a
 - **Joined**: a cracked key joins the deck to the access point's subnet over Wi-Fi with the access point's client address (an entry point like a wall jack: the access point is "your entry point", a full trace reports there). Discovery, the Map, the tools and remote desktops work from it. You can lower the deck and walk around; leaving the deck's range of the access point drops the connection and stops its tools; aiming at the access point again in range rejoins (the key is known, saved).
 - **On the Map** wireless links are dashed light blue (#7fd4ff), dashed grey with an end offline; wireless devices hang on their access point in the tidy tree (computed from the topology, no crossings); an access point reads "AP-YARD · access point" and a wireless device's menu says "wireless via AP-YARD".
 - Levels: none yet; a later brief places access points in the lab and the warehouse.
+
+## Exploits, Firewall and logs as built (M12b)
+
+Settled while building them ([ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md)):
+
+- **Software** is data on any device (`Device.software`: vendor, product, version, a `Software` resource). A device's menu on the Map shows it ("Helix CAM-3 2.1") once its subnet is scanned, then "Exploits (n)" when known exploits match it (never on your entry point).
+- **Exploits** (`Exploit` resources: id, title, vendor, product, an inclusive version range with open ends allowed, user or admin) are taught by mails, files (`ComputerDocument.exploits`) and datapads (`Readable.exploits`) like codes; an implicit clue teaches none. The reader's last line names them ("Learned: exploit Helix default service login (Helix CAM-3 2.0–2.1, admin)"); the Journal's **Exploits** section lists them with where each was learned. Versions compare part by part ("2.0" < "2.0.1" < "2.10").
+- **The Exploits tool** (`ExploitTool` beside the deck's session; `ExploitsView`): the known exploits as a table (exploit and where learned, targets, grants) against the device the menu picked: Run on a match, "no match" (dimmed) otherwise, "patched on this subnet" once burned. A run takes 4 s (skill does not change it) and adds the tracers' exploit amount (+10 %) times your trace gain, spread over the run; Advanced shows "about +N % trace per run". It grants the exploit's level on the device without an account (`Device.has_access()` / `is_admin()`: accounts or exploit grants): its commands, a computer's desktop, and on a router the subnets behind it and its Firewall. It stops if the deck loses the device.
+- **Burned when detected**: a tracer that added trace during the run saw it; when the run ends (even stopped or cut off) every device on that subnet with the exploit's vendor and product, cabled or wireless, is patched against it (saved). A finished run still grants its access. An unwatched run burns nothing.
+- **Firewall rules** (`Router`): first match wins. Your traffic (the deck, on a jack, a port, a computer or Wi-Fi) is judged only by rules from "you"; without one it passes a router you have access to (the M12a rule). Devices' traffic (commands, incidents, ringing, everything sent over the network) is judged by the other rules, else the router's default (allow). So "ALARM → SIREN-OFFICE · DENY" silences that siren when the alarm rings without breaking anything, and "you → SEC-CONSOLE · DENY" is how you would cut yourself off.
+- **The Firewall tool** (`FirewallView`, as admin of a router the deck reaches; the router's menu offers "Firewall rules", the tool button opens the last picked router or the first you are admin of): a table of rules (number: click to select; From and To lists: any, "you" (From only), the subnets and devices on your map; ALLOW / DENY toggles), Add a rule (appends "any → any" with the router's default, a no-op until edited), Move up, Move down, Delete, and a line saying what happens without a match. Every edit is logged on the router with your address.
+- **Device logs** (`DeviceLog` in `Device.intrusion`, newest 50, saved): logins and failed logins with the source address (a computer's own address bare-handed), exploit runs (at the start: an undetected run leaves its entry), commands received (from a device or the deck), remote desktops opened from the deck, firewall edits. Nothing reads them in the game until M16; the debug panel's Network overlay shows each device's log size and newest entry.
+- Levels: none yet; a later brief places software versions, exploits and firewall stations in the lab and the warehouse.
 
 ## Levels
 
