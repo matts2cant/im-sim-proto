@@ -5,48 +5,30 @@ extends CanvasLayer
 ## over the dimmed, running world: while it is open the player's input is off, the mouse is free and
 ## the HUD hidden. Esc or the ✕ lowers it (never also opening the game menu); the deck stays plugged
 ## in and its tools keep running (LMB on the port again raises it). It closes when the deck unplugs.
-## - Title bar: "Deck", the entry point and address, one trace bar per tracer watching the user
-##   (DeckSession.tracers(); "unknown tracer" until its host is on the map), ✕.
-## - Tools on the left: Map, Icebreaker, Exploits, Firewall; Logs greyed (M16).
-## - Map: NetworkGraph of DeckSession.map_devices() (amber: access, grey: out of reach): the network
-##   the deck is plugged into only; unplugged (from the Wi-Fi key screen) it draws nothing and says
-##   UNPLUGGED_NOTE. A node's
-##   menu: address and status, its software once its subnet is scanned (M12b), "Exploits (n)" when
-##   known exploits match it (opens the Exploits tool on it), "Firewall rules" on a router the user
-##   is admin of, its accounts (access / "Log in (from <note>)" / Icebreaker / "too strong"), the
-##   access an exploit gave, a router's note, "Open its desktop (remote)" on a computer with access,
-##   its commands with access, else who it trusts. Drag pans, the wheel zooms, F fits.
-## - Icebreaker: the picked account's letters locking in, the progress bar, Start / Stop / Resume.
-## - Exploits (ExploitsView, ExploitTool) and Firewall (FirewallView); menu parts: IntrusionMenu (ADR 0116).
+## This host owns the window (a WindowFrame: header, tools sidebar, body) and switches the tools:
+## - Header: "Deck", the entry point and address, one trace bar per tracer watching the user
+##   (DeckTraceBars; "unknown tracer" until its host is on the map), ✕.
+## - Tools in the sidebar: Map (DeckMapView, its menus DeckDeviceMenu), Icebreaker (DeckIceView),
+##   Exploits (ExploitsView), Firewall (FirewallView); Logs greyed (M16). Wi-Fi (WifiPanel, M12b,
+##   ADR 0117): open_wifi() raises it on the Wi-Fi key screen, plugged in or not.
 ## - Refreshes (every refresh interval, every session change) keep the buttons under the cursor: the
 ##   Map rebuilds its nodes only when they change, the menu and the Icebreaker are filled aside and
 ##   reconciled (DeckStyle.reconcile()), the trace bars update in place, so a still cursor keeps its
 ##   hover and a still click held across a refresh lands.
-## - Skill assists (Icebreaker.assist()): Trained crack times and time left; Advanced + the trace an
-##   action adds; Master + how many hidden subnets a router routes to.
 ## - A remote desktop (DeckSession.open_remote()): the user's ComputerScreen draws it over the deck's
-##   content area (ComputerScreen.set_remote_area() with that area's anchors); its Esc and "Back to
-##   the map" close it (the deck leaves that Esc to it) and the Map shows again.
+##   body (ComputerScreen.set_remote_area() with that area's anchors); its Esc and "Back to the map"
+##   close it (the deck leaves that Esc to it) and the Map shows again.
 ## - Trace bars in the computer overlay too (ADR 0114's slot): while the user's ComputerScreen is
-##   open, one bar per tracer watching the user there (remote: the deck's; bare-handed: the
-##   computer's own device and address), refreshed with the screen.
-## - Wi-Fi (M12b, ADR 0117): open_wifi() raises it on the Wi-Fi key screen (WifiPanel), plugged in or
-##   not; the Map draws wireless links (NetworkGraph); a wireless device's menu names its access point.
+##   open, one bar per tracer watching the user there (DeckTraceBars.computer_bars()).
 
 enum Tool { MAP, ICEBREAKER, WIFI, EXPLOITS, FIREWALL }
 
 const PANEL_FRACTION: float = 0.85
 const TOAST_TIME: float = 2.5
-const HINT: String = "Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit. Esc: lower the deck"
 const TETHER_NOTE: String = "Walking away unplugs the deck and stops its tools."
 const WIRELESS_NOTE: String = "Leaving the access point's range drops the Wi-Fi and stops its tools."
-const ASSIST_PREFIX: String = "Computer skill · "
-## What the Map says while the deck is not plugged in (it draws nothing).
-const UNPLUGGED_NOTE: String = "Plug the deck into a device to see its network."
-## A remote desktop's title bar is narrower: its bars go without a name (the deck's own bar above
-## shows the named ones).
-const COMPACT_BAR_WIDTH: float = 48.0
-const MENU_WIDTH: float = 300.0
+const UNPLUGGED_NOTE: String = DeckMapView.UNPLUGGED_NOTE
+const COMPUTER_TRACE_INTERVAL: float = 0.25
 
 var session: DeckSession
 ## The deck's Icebreaker (beside the session).
@@ -58,6 +40,7 @@ var player: Player
 var tool: Tool = Tool.MAP
 
 var root: Control
+var frame: WindowFrame
 var title_meta: Label
 var trace_box: HBoxContainer
 var close_button: Button
@@ -65,17 +48,16 @@ var map_button: Button
 var ice_button: Button
 var exploits_button: Button
 var firewall_button: Button
+var map_view: DeckMapView
 var graph: NetworkGraph
-var map_view: Control
 ## The Map's line while unplugged (UNPLUGGED_NOTE).
 var unplugged_label: Label
-var ice_view: MarginContainer
-var ice_column: VBoxContainer
+var ice_view: DeckIceView
 var exploits_view: ExploitsView
 var firewall_view: FirewallView
 var wifi_view: WifiPanel
 var tether_label: Label
-## The area right of the tools and under the bar (the Map, the Icebreaker, a remote desktop).
+## The frame's body, right of the tools and under the header (the tools, a remote desktop).
 var content_area: Control
 ## The user's computer overlay (trace bars, remote desktops), or null.
 var computer_screen: ComputerScreen
@@ -86,9 +68,6 @@ var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _hud_before: bool = true
 var _refresh_left: float = 0.0
 var _toast_left: float = 0.0
-var _signature: String = ""
-var _ice_signature: String = ""
-var _fit_on_show: bool = true
 var _computer_left: float = 0.0
 
 
@@ -101,16 +80,7 @@ func _ready() -> void:
 	if computer_screen != null:
 		computer_screen.opened.connect(_on_computer_opened)
 	if DeckSession.of(get_parent()) != null:  # Notices reach the HUD before a first raise.
-		DeckSession.of(get_parent()).notice.connect(_on_notice)
-
-
-## The anchors (fractions of the viewport) of the deck's content area: where a remote desktop shows.
-func content_anchors() -> Rect2:
-	var view := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2.ZERO
-	var rect := content_area.get_global_rect()
-	if view.x <= 0.0 or view.y <= 0.0 or rect.size.x <= 0.0:
-		return ComputerScreen.REMOTE_AREA
-	return Rect2(rect.position / view, rect.size / view)
+		DeckSession.of(get_parent()).notice.connect(show_notice)
 
 
 func _exit_tree() -> void:
@@ -126,6 +96,15 @@ static func of(node: Node) -> DeckScreen:
 		if child is DeckScreen:
 			return child as DeckScreen
 	return null
+
+
+## The anchors (fractions of the viewport) of the deck's body: where a remote desktop shows.
+func content_anchors() -> Rect2:
+	var view := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2.ZERO
+	var rect := content_area.get_global_rect()
+	if view.x <= 0.0 or view.y <= 0.0 or rect.size.x <= 0.0:
+		return ComputerScreen.REMOTE_AREA
+	return Rect2(rect.position / view, rect.size / view)
 
 
 func is_open() -> bool:
@@ -151,14 +130,16 @@ func _raise(p_session: DeckSession, which: Tool) -> void:
 	session = p_session
 	ice = IcebreakerTool.of(session.get_parent())
 	exploit_tool = ExploitTool.of(session.get_parent())
+	wireless = WirelessTool.of(session.get_parent())
+	map_view.bind(session, ice, exploit_tool)
+	ice_view.bind(session, ice)
 	exploits_view.bind(session, exploit_tool)
 	firewall_view.bind(session)
-	wireless = WirelessTool.of(session.get_parent())
 	if not session.changed.is_connected(_on_changed):
 		session.changed.connect(_on_changed)
 		session.remote_changed.connect(_on_remote_changed)
-	if not session.notice.is_connected(_on_notice):
-		session.notice.connect(_on_notice)
+	if not session.notice.is_connected(show_notice):
+		session.notice.connect(show_notice)
 	visible = true
 	if player != null:
 		_input_before = player.input_enabled
@@ -171,11 +152,8 @@ func _raise(p_session: DeckSession, which: Tool) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_toast_left = 0.0
 	toast_label.visible = false
-	_signature = ""
-	_ice_signature = ""
-	graph.close_menu()
-	_fit_on_show = true
-	graph.request_fit()
+	map_view.reset()
+	ice_view.invalidate()
 	if which == Tool.MAP and ice != null and ice.is_running():
 		which = Tool.ICEBREAKER
 	elif which == Tool.MAP and exploit_tool != null and exploit_tool.is_running():
@@ -219,11 +197,11 @@ func show_tool(which: Tool) -> void:
 		var fallback := firewall_view.default_router()
 		if fallback != null:
 			firewall_view.show_router(fallback)
-	_ice_signature = ""
+	ice_view.invalidate()
 	refresh()
 
 
-## Brings the title bar, the map and the Icebreaker up to date (also every refresh interval).
+## Brings the header and the shown tool up to date (also every refresh interval).
 func refresh() -> void:
 	if session == null or (not session.is_plugged() and tool != Tool.WIFI and tool != Tool.MAP):
 		return
@@ -239,12 +217,12 @@ func refresh() -> void:
 	else:
 		var verb := "Joined" if session.is_wireless() else "Plugged into"
 		title_meta.text = "%s %s · %s" % [verb, entry_label(), _address_text()]
-	_refresh_traces()
+	DeckTraceBars.show_bars(trace_box, DeckTraceBars.deck_bars(session, wireless, tool == Tool.WIFI, tracer_name))
 	match tool:
 		Tool.MAP:
-			_refresh_map()
+			map_view.refresh()
 		Tool.ICEBREAKER:
-			_refresh_ice()
+			ice_view.refresh()
 		Tool.EXPLOITS:
 			exploits_view.refresh()
 		Tool.FIREWALL:
@@ -253,7 +231,7 @@ func refresh() -> void:
 			wifi_view.show_for(wireless)
 
 
-## How the title bar names the entry point ("Office Jack (wall jack)").
+## How the header names the entry point ("Office Jack (wall jack)").
 func entry_label() -> String:
 	if session == null or not session.is_plugged():
 		return ""
@@ -272,84 +250,39 @@ func entry_label() -> String:
 func tracer_name(tracer: Tracer) -> String:
 	if tracer.device != null and session.map_devices().has(tracer.device):
 		return tracer.label
-	return "unknown tracer"
+	return DeckTraceBars.UNKNOWN
 
 
 ## The rows the Map shows now.
 func map_rows() -> Array[NetworkRow]:
-	var rows: Array[NetworkRow] = []
-	if session == null:
-		return rows
-	var reached := session.reached_devices()
-	for device in session.map_devices():
-		if not is_instance_valid(device) or not is_instance_valid(device.entity):
-			continue
-		var row := NetworkRow.new()
-		row.device = device
-		row.name = NetworkSource.display_name(device)
-		row.is_self = session.is_entry(device)
-		row.online = reached.has(device) or (row.is_self and device.is_up())
-		row.status = DeviceStatus.of(device.entity, row.online)
-		row.disabled = row.online and DeviceStatus.is_disabled(device.entity)
-		row.has_view = DeviceStatus.has_view(device.entity)
-		row.access = session.has_access(device)
-		place_in_network(row, device)
-		rows.append(row)
-	return rows
+	return map_view.map_rows()
 
 
-## Fills `row`'s network place from `device`: its address, its subnet and, for a router, the
-## subnets it joins, both addresses and the word "router" (ADR 0112 amendment).
-static func place_in_network(row: NetworkRow, device: Device) -> void:
-	row.address = device.address
-	row.subnet = DeviceNetwork.subnet_of(device)
-	if AccessPoint.of(device.entity) != null:
-		row.role = "access point"
-	var router := Router.of(device.entity)
-	if router == null:
-		return
-	row.joins = router.subnets()
-	row.role = "router"
-	var addresses := router.addresses()
-	if not addresses.is_empty():
-		row.address = " · ".join(addresses)
-
-
-## The cables and wireless links between `rows`, as index pairs (lower first), each once.
-static func cables_of(rows: Array[NetworkRow]) -> Array[Vector2i]:
-	var index_of: Dictionary[Device, int] = {}
-	for i in rows.size():
-		index_of[rows[i].device] = i
-	var pairs: Array[Vector2i] = []
-	for i in rows.size():
-		var ends := rows[i].device.linked()
-		if rows[i].device.wireless_link() != null:
-			ends.append(rows[i].device.wireless_link())
-		for other in ends:
-			if not index_of.has(other):
-				continue
-			var pair := Vector2i(mini(i, index_of[other]), maxi(i, index_of[other]))
-			if not pairs.has(pair):
-				pairs.append(pair)
-	return pairs
+## Shows `text` in the deck's toast (open) or as a HUD message (lowered).
+func show_notice(text: String) -> void:
+	if visible:
+		toast_label.text = text
+		toast_label.visible = true
+		_toast_left = TOAST_TIME
+	elif player != null:
+		var hud := player.get_node_or_null(^"Hud") as Hud
+		if hud != null:
+			hud.show_message(text)
 
 
 ## The visible button labelled `text` anywhere on the screen (tests), or null.
 func find_button(text: String) -> Button:
-	return _find_button(root, text)
+	return UiQuery.find_button(root, text)
 
 
 ## The open device menu's button labelled `text` (tests), or null.
 func menu_button(text: String) -> Button:
-	return _find_button(graph.menu, text) if graph.menu.visible else null
+	return UiQuery.find_button(graph.menu, text) if graph.menu.visible else null
 
 
 ## Every visible button label on the open menu (tests).
 func menu_texts() -> Array[String]:
-	var found: Array[String] = []
-	if graph.menu.visible:
-		_collect_texts(graph.menu, found)
-	return found
+	return UiQuery.texts(graph.menu) if graph.menu.visible else [] as Array[String]
 
 
 ## The text of the trace bars, one "<name> <n> %" per tracer (tests).
@@ -368,9 +301,18 @@ func trace_texts() -> Array[String]:
 
 ## The Icebreaker's visible text lines (tests).
 func ice_texts() -> Array[String]:
-	var found: Array[String] = []
-	_collect_texts(ice_column, found)
-	return found
+	return UiQuery.texts(ice_view.column)
+
+
+## Fills the computer overlay's trace slot (DeckTraceBars.computer_bars()).
+func refresh_computer_traces() -> void:
+	_computer_left = COMPUTER_TRACE_INTERVAL
+	if computer_screen == null or not computer_screen.is_open() or computer_screen.computer == null:
+		return
+	# In place while the tracers stay the same: the overlay's bar (and its Back button) stay put.
+	DeckTraceBars.show_bars(
+		computer_screen.trace_bars(), DeckTraceBars.computer_bars(computer_screen, session, get_parent())
+	)
 
 
 func _process(delta: float) -> void:
@@ -410,21 +352,10 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_changed() -> void:
-	_signature = ""
-	_ice_signature = ""
+	map_view.invalidate()
+	ice_view.invalidate()
 	if visible:
 		refresh()
-
-
-func _on_notice(text: String) -> void:
-	if visible:
-		toast_label.text = text
-		toast_label.visible = true
-		_toast_left = TOAST_TIME
-	elif player != null:
-		var hud := player.get_node_or_null(^"Hud") as Hud
-		if hud != null:
-			hud.show_message(text)
 
 
 func _on_remote_changed(computer: Computer) -> void:
@@ -432,7 +363,7 @@ func _on_remote_changed(computer: Computer) -> void:
 		computer_screen.set_remote_area(content_anchors())
 	elif computer == null and is_inside_tree():
 		# Deferred: a desktop also closes while the level leaves the tree.
-		_signature = ""
+		map_view.invalidate()
 		refresh.call_deferred()
 
 
@@ -440,170 +371,8 @@ func _on_computer_opened(_computer: Computer, _remote: bool) -> void:
 	refresh_computer_traces()
 
 
-## Fills the computer overlay's trace slot: remote, the deck's tracers; bare-handed, those watching
-## that computer for its address.
-func refresh_computer_traces() -> void:
-	_computer_left = 0.25
-	if computer_screen == null or not computer_screen.is_open() or computer_screen.computer == null:
-		return
-	var computer := computer_screen.computer
-	var viewer := get_parent()
-	var address := computer.address()
-	var tracers: Array[Tracer] = []
-	if computer_screen.is_remote() and session != null and session.is_plugged():
-		address = session.source.address
-		tracers = session.tracers()
-	elif computer.device != null:
-		var seen: Array[Device] = [computer.device]
-		tracers = Tracer.bars_for(get_tree(), viewer, seen, address)
-	var bars: Array[HBoxContainer] = []
-	for tracer in tracers:
-		var known := tracer.device == computer.device or (session != null and session.map_devices().has(tracer.device))
-		var label := tracer.label if known else "unknown tracer"
-		var left := tracer.model.lockout_left(address)
-		var bar: HBoxContainer
-		if computer_screen.is_remote():
-			# Compact: the deck's own bar right above names it.
-			bar = DeckStyle.trace_bar("", tracer.trace_of(viewer), left, COMPACT_BAR_WIDTH)
-			bar.tooltip_text = label
-		else:
-			bar = DeckStyle.trace_bar(label, tracer.trace_of(viewer), left)
-		bars.append(bar)
-	# In place while the tracers stay the same: the overlay's bar (and its Back button) stay put.
-	DeckStyle.show_bars(computer_screen.trace_bars(), bars)
-
-
-func _address_text() -> String:
-	var address := session.source.address
-	return address if not address.is_empty() else "no address"
-
-
-func _refresh_map() -> void:
-	unplugged_label.visible = not session.is_plugged()
-	var rows := map_rows()
-	var signature := _signature_of(rows)
-	if signature == _signature:
-		return
-	_signature = signature
-	graph.subnets = Router.subnet_info(get_tree())
-	graph.show_network(rows, cables_of(rows))
-	if _fit_on_show and not rows.is_empty():
-		_fit_on_show = false
-		graph.request_fit()
-
-
-func _signature_of(rows: Array[NetworkRow]) -> String:
-	var parts := PackedStringArray()
-	for row in rows:
-		var progress := 0.0
-		var accounts := DeviceAccounts.of(row.device.entity)
-		if accounts != null:
-			for each in accounts.accounts:
-				progress += ice.saved_progress(row.device, each.user)
-		parts.append(
-			(
-				"%s|%s|%s|%s|%s|%d|%s"
-				% [
-					row.name,
-					row.online,
-					row.access,
-					row.disabled,
-					" ".join(row.status),
-					roundi(progress * 20.0),
-					session.is_blocked(row.device)
-				]
-			)
-		)
-		parts.append(
-			(
-				"%s|%s|%d|%d"
-				% [
-					row.device.is_admin(session.entity),
-					DeckSession.has_scanned(session.stack, row.subnet),
-					row.device.intrusion.patched.size(),
-					exploit_tool.matching(row.device).size() if exploit_tool != null else 0
-				]
-			)
-		)
-	parts.append(str(Icebreaker.assist(session.entity)))
-	parts.append(str(Icebreaker.max_strength(session.entity)))
-	return "\n".join(parts)
-
-
-func _refresh_traces() -> void:
-	var bars: Array[HBoxContainer] = []
-	var wifi := tool == Tool.WIFI
-	var plugged := session.source.address if session.is_plugged() else ""
-	var address := WifiPanel.aim_address(wireless) if wifi else plugged
-	for tracer in WifiPanel.tracers(wireless) if wifi else session.tracers():
-		var left := tracer.model.lockout_left(address)
-		bars.append(DeckStyle.trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
-	DeckStyle.show_bars(trace_box, bars)
-
-
-# The deck's menu for `row` (NetworkGraph.menu_builder).
-func _build_menu(row: NetworkRow, column: VBoxContainer) -> void:
-	var device := row.device
-	var software := IntrusionMenu.software_line(row, session)
-	if software != null:
-		column.add_child(software)
-	if device.wireless_link() != null:
-		var via := "wireless via %s" % NetworkSource.display_name(device.wireless_link())
-		column.add_child(DeckStyle.mono(via, NetworkGraph.WIRELESS_COLOR, 12))
-	if row.is_self and session.source.kind == NetworkSource.Kind.JACK:
-		column.add_child(DeckStyle.paragraph("Your entry point.", DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
-		return
-	if row.is_self:
-		column.add_child(DeckStyle.paragraph("Your entry point.", DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
-	if not row.online:
-		column.add_child(DeckStyle.label("No connection.", DeckStyle.DIM_COLOR, 13))
-		return
-	if session.is_blocked(device):
-		var left := 0.0
-		for tracer in Tracer.watching(device):
-			left = maxf(left, tracer.model.lockout_left(session.source.address))
-		column.add_child(DeckStyle.label("Blocked by a tracer: %d s" % ceili(left), DeckStyle.ERROR_COLOR, 13))
-		return
-	IntrusionMenu.add_to(column, row, session, exploit_tool, _open_exploits, _open_firewall)
-	var assist := Icebreaker.assist(session.entity)
-	var accounts := DeviceAccounts.of(device.entity)
-	if accounts != null and not accounts.accounts.is_empty():
-		column.add_child(DeckStyle.mono("ACCOUNTS", DeckStyle.DIM_COLOR, 11))
-		for each in accounts.accounts:
-			column.add_child(_account_row(device, accounts, each, assist))
-	var router := Router.of(device.entity)
-	if router != null:
-		var note := "Hacked: the subnets behind it are on the map."
-		if not row.access:
-			note = "A router between subnets. Hack it to see what lies behind it; a subnet behind may hide another router."
-		column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
-		if assist >= Icebreaker.ASSIST_ROUTES and not row.access:
-			var routes := session.hidden_routes(device)
-			column.add_child(DeckStyle.assist("routes to %d hidden subnet%s" % [routes, "" if routes == 1 else "s"]))
-	if row.access and Computer.of(device.entity) != null:
-		var remote := DeckStyle.button("Open its desktop (remote)", 13, true)
-		remote.pressed.connect(func() -> void: session.open_remote(device))
-		column.add_child(remote)
-	if row.access:
-		var commands := DeviceStatus.applicable(session.commands_for(device), row.status, row.disabled)
-		if not commands.is_empty():
-			var flow := HFlowContainer.new()
-			flow.add_theme_constant_override(&"h_separation", 6)
-			flow.add_theme_constant_override(&"v_separation", 6)
-			for command in commands:
-				var button := DeckStyle.button(session.config.label_for(command), 13)
-				button.pressed.connect(_on_command.bind(command, device))
-				flow.add_child(button)
-			column.add_child(flow)
-	elif accounts == null or accounts.accounts.is_empty():
-		var trusted := DeviceNetwork.trusted(device)
-		var note := "No accounts."
-		if not trusted.is_empty():
-			var names := PackedStringArray()
-			for each in trusted:
-				names.append(NetworkSource.display_name(each))
-			note = "No accounts. Trusts %s: control it from that computer's Security app." % ", ".join(names)
-		column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
+func _on_crack_started() -> void:
+	show_tool(Tool.ICEBREAKER)
 
 
 func _open_exploits(device: Device) -> void:
@@ -616,204 +385,9 @@ func _open_firewall(device: Device) -> void:
 	show_tool(Tool.FIREWALL)
 
 
-func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccount, assist: int) -> Control:
-	var line := HBoxContainer.new()
-	line.add_theme_constant_override(&"separation", 8)
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_theme_constant_override(&"separation", 0)
-	var known := accounts.knows_login(session.entity, account.user)
-	var has := accounts.has_access(session.entity, account.user)
-	var detail := DeviceAccount.strength_name(account.strength)
-	var can := ice.can_crack(device, account.user)
-	if not known and not has and can and assist >= Icebreaker.ASSIST_TIMES:
-		detail += " · %s" % DeckStyle.seconds(ice.crack_time(device, account.user))
-	info.add_child(DeckStyle.mono(account.user, DeckStyle.TEXT_COLOR, 13))
-	info.add_child(DeckStyle.mono(detail, DeckStyle.DIM_COLOR, 11))
-	if not known and not has and can and assist >= Icebreaker.ASSIST_TRACE:
-		var gain := Tracer.highest_gain(device)
-		var progress := ice.saved_progress(device, account.user)
-		var trace := (
-			(1.0 - progress) * ice.crack_time(device, account.user) * gain * Icebreaker.trace_mult(session.entity)
-		)
-		info.add_child(DeckStyle.mono(ASSIST_PREFIX + "about +%d %% trace" % roundi(trace), DeckStyle.SELF_COLOR, 11))
-	line.add_child(info)
-	if has:
-		line.add_child(DeckStyle.label("access", DeckStyle.ACCESS_COLOR, 13))
-	elif known:
-		var source := accounts.known_source(session.entity, account.user)
-		var login := DeckStyle.button("Log in (from %s)" % source if not source.is_empty() else "Log in", 12, true)
-		login.pressed.connect(func() -> void: session.log_in(device, account.user))
-		login.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		line.add_child(login)
-	else:
-		var progress := ice.saved_progress(device, account.user)
-		var text := "Icebreaker" if can else "too strong"
-		if can and progress > 0.0:
-			text = "Icebreaker (%d %%)" % roundi(progress * 100.0)
-		var crack := DeckStyle.button(text, 12)
-		crack.disabled = not can
-		crack.pressed.connect(_on_crack.bind(device, account.user))
-		crack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		line.add_child(crack)
-	return line
-
-
-func _refresh_ice() -> void:
-	var job := ice.job
-	var assist := Icebreaker.assist(session.entity)
-	var mult := Icebreaker.crack_mult(session.entity)
-	var signature := "none"
-	if job != null:
-		signature = (
-			"%s|%d|%s|%s|%d" % [job.key, job.locked_letters(), job.running, job.is_done(), roundi(job.progress * 200.0)]
-		)
-	signature += "|%d|%s" % [assist, mult]
-	if signature == _ice_signature:
-		return
-	_ice_signature = signature
-	# Filled aside, then reconciled: Start / Stop keeps its node while the crack runs.
-	var fresh := VBoxContainer.new()
-	_fill_ice(fresh, job, assist, mult)
-	DeckStyle.reconcile(ice_column, fresh)
-
-
-func _fill_ice(column: VBoxContainer, job: Icebreaker, assist: int, mult: float) -> void:
-	if job == null:
-		column.add_child(DeckStyle.label("Icebreaker", DeckStyle.TITLE_COLOR, 20))
-		column.add_child(
-			DeckStyle.paragraph(
-				"Pick an account on the Map to crack its password. Progress stays on the deck if you stop.",
-				DeckStyle.DIM_COLOR,
-				14,
-				480.0
-			)
-		)
-		var names := PackedStringArray()
-		for strength in range(Icebreaker.max_strength(session.entity) + 1):
-			names.append(DeviceAccount.strength_name(strength as DeviceAccount.Strength))
-		column.add_child(
-			DeckStyle.paragraph(
-				"What your Computer skill can crack: %s." % ", ".join(names), DeckStyle.DIM_COLOR, 14, 480.0
-			)
-		)
-		return
-	column.add_child(DeckStyle.label("Icebreaker · %s@%s" % [job.user, job.host], DeckStyle.TITLE_COLOR, 20))
-	var strength_line := (
-		"Password strength %s · base %s · deterministic"
-		% [DeviceAccount.strength_name(job.strength as DeviceAccount.Strength), DeckStyle.seconds(job.base_time)]
-	)
-	column.add_child(DeckStyle.mono(strength_line, DeckStyle.DIM_COLOR, 12))
-	var letters := HBoxContainer.new()
-	letters.name = "Letters"
-	letters.add_theme_constant_override(&"separation", 6)
-	var locked := job.locked_letters()
-	for i in job.password.length():
-		var shown := job.password[i] if i < locked else "·"
-		var cell := DeckStyle.mono(shown, DeckStyle.TITLE_COLOR if i < locked else DeckStyle.DIM_COLOR, 20)
-		cell.custom_minimum_size = Vector2(34, 44)
-		cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cell.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		var border := DeckStyle.TITLE_COLOR if i < locked else DeckStyle.LINE_COLOR
-		cell.add_theme_stylebox_override(&"normal", DeckStyle.box(DeckStyle.FIELD_COLOR, border, 2.0, 0.0, 0.0))
-		letters.add_child(cell)
-	column.add_child(letters)
-	var track := Panel.new()
-	track.custom_minimum_size = Vector2(520, 10)
-	track.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	track.add_theme_stylebox_override(
-		&"panel", DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 0.0, 0.0, 0.0)
-	)
-	var fill := ColorRect.new()
-	fill.color = DeckStyle.TITLE_COLOR
-	fill.size = Vector2(520.0 * job.progress, 10.0)
-	track.add_child(fill)
-	column.add_child(track)
-	var actions := HFlowContainer.new()
-	actions.add_theme_constant_override(&"h_separation", 8)
-	actions.add_theme_constant_override(&"v_separation", 8)
-	if job.is_done():
-		actions.add_child(
-			DeckStyle.label("Cracked: added to the Journal (Codes and logins)", DeckStyle.ACCESS_COLOR, 14)
-		)
-		var back := DeckStyle.button("Back to the map", 13)
-		back.pressed.connect(show_tool.bind(Tool.MAP))
-		actions.add_child(back)
-	else:
-		var text := "Stop (keeps progress)" if job.running else ("Resume" if job.progress > 0.0 else "Start")
-		var toggle := DeckStyle.button(text, 13, not job.running)
-		toggle.pressed.connect(_on_ice_toggle)
-		actions.add_child(toggle)
-		if assist >= Icebreaker.ASSIST_TIMES:
-			actions.add_child(DeckStyle.assist("%s left" % DeckStyle.seconds(job.time_left(mult))))
-		if assist >= Icebreaker.ASSIST_TRACE and is_instance_valid(ice.device):
-			var trace := job.trace_to_finish(
-				Tracer.highest_gain(ice.device), mult, Icebreaker.trace_mult(session.entity)
-			)
-			actions.add_child(DeckStyle.assist("about +%d %% trace to finish" % roundi(trace)))
-	column.add_child(actions)
-	var note := "Adds trace while it runs (4 %%/s x your skill's trace gain) to every tracer watching %s." % job.host
-	if is_instance_valid(ice.device):
-		var gain := Tracer.highest_gain(ice.device)
-		if gain > 0.0:
-			note = (
-				"Adds trace while it runs (%s %%/s x your skill's trace gain) to every tracer watching %s."
-				% [DeckStyle.number(gain), job.host]
-			)
-	column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, 480.0))
-
-
-func _on_crack(device: Device, user: String) -> void:
-	if ice.start(device, user):
-		show_tool(Tool.ICEBREAKER)
-
-
-func _on_ice_toggle() -> void:
-	if ice.job == null:
-		return
-	if ice.job.running:
-		ice.stop()
-	else:
-		ice.resume()
-	_ice_signature = ""
-	refresh()
-
-
-func _on_command(command: StringName, device: Device) -> void:
-	var label := session.config.label_for(command)
-	var target := NetworkSource.display_name(device)
-	_on_notice("%s: %s sent." % [target, label] if session.send(command, device) else "%s: no connection." % target)
-	_signature = ""
-
-
-func _find_button(node: Node, text: String) -> Button:
-	for child in node.get_children():
-		if child.is_queued_for_deletion():
-			continue
-		var canvas := child as CanvasItem
-		if canvas != null and not canvas.visible:
-			continue
-		var button := child as Button
-		if button != null and button.text == text:
-			return button
-		var found := _find_button(child, text)
-		if found != null:
-			return found
-	return null
-
-
-func _collect_texts(node: Node, found: Array[String]) -> void:
-	for child in node.get_children():
-		if child.is_queued_for_deletion():
-			continue
-		var canvas := child as CanvasItem
-		if canvas != null and not canvas.visible:
-			continue
-		if child is Button:
-			found.append((child as Button).text)
-		elif child is Label:
-			found.append((child as Label).text)
-		_collect_texts(child, found)
+func _address_text() -> String:
+	var address := session.source.address
+	return address if not address.is_empty() else "no address"
 
 
 func _build() -> void:
@@ -828,49 +402,86 @@ func _build() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(dim)
+	frame = WindowFrame.new(&"Deck")
+	frame.name = "Panel"
 	var margin := (1.0 - PANEL_FRACTION) * 0.5
-	var panel := PanelContainer.new()
-	panel.name = "Panel"
-	panel.anchor_left = margin
-	panel.anchor_top = margin
-	panel.anchor_right = 1.0 - margin
-	panel.anchor_bottom = 1.0 - margin
-	var shell := DeckStyle.box(DeckStyle.SCREEN_COLOR, DeckStyle.LINE_COLOR, 6.0, 0.0, 0.0)
-	panel.add_theme_stylebox_override(&"panel", shell)
-	root.add_child(panel)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 0)
-	panel.add_child(column)
-	column.add_child(_build_bar())
-	var body := HBoxContainer.new()
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override(&"separation", 0)
-	column.add_child(body)
-	body.add_child(_build_tools())
-	var content := Control.new()
-	content_area = content
-	content.name = "Content"
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.clip_contents = true
-	body.add_child(content)
-	_build_map(content)
-	_build_ice(content)
+	frame.anchor_left = margin
+	frame.anchor_top = margin
+	frame.anchor_right = 1.0 - margin
+	frame.anchor_bottom = 1.0 - margin
+	root.add_child(frame)
+	frame.title_label.text = "Deck"
+	title_meta = frame.subtitle_label
+	trace_box = frame.trace_slot
+	close_button = frame.close_button
+	close_button.tooltip_text = "Close (Esc): tools keep running while you stay plugged in"
+	frame.close_requested.connect(close)
+	content_area = frame.body
+	_build_tools()
+	map_view = DeckMapView.new()
+	graph = map_view.graph
+	unplugged_label = map_view.unplugged_label
+	map_view.menu.exploits_requested.connect(_open_exploits)
+	map_view.menu.firewall_requested.connect(_open_firewall)
+	map_view.menu.crack_started.connect(_on_crack_started)
+	map_view.menu.notice.connect(show_notice)
+	map_view.menu.map_changed.connect(map_view.invalidate)
+	content_area.add_child(map_view)
+	ice_view = DeckIceView.new()
+	ice_view.map_requested.connect(show_tool.bind(Tool.MAP))
+	ice_view.refresh_requested.connect(refresh)
+	content_area.add_child(ice_view)
 	exploits_view = ExploitsView.new()
 	exploits_view.visible = false
-	content.add_child(exploits_view)
+	content_area.add_child(exploits_view)
 	firewall_view = FirewallView.new()
 	firewall_view.visible = false
-	content.add_child(firewall_view)
+	content_area.add_child(firewall_view)
 	wifi_view = WifiPanel.new()
 	wifi_view.map_requested.connect(show_tool.bind(Tool.MAP))
-	content.add_child(wifi_view)
+	content_area.add_child(wifi_view)
+	_build_toast()
+
+
+func _build_tools() -> void:
+	var column := frame.sidebar_column
+	map_button = _tool_button("Map", Tool.MAP)
+	ice_button = _tool_button("Icebreaker", Tool.ICEBREAKER)
+	exploits_button = _tool_button("Exploits", Tool.EXPLOITS)
+	firewall_button = _tool_button("Firewall", Tool.FIREWALL)
+	var logs := _tool_button("Logs  (M16)", -1)
+	logs.disabled = true
+	logs.tooltip_text = "Reading and erasing device logs comes later (M16)."
+	var text_width := float(WindowFrame.metric(&"sidebar_width") - 2 * WindowFrame.metric(&"inset"))
+	tether_label = DeckStyle.paragraph(TETHER_NOTE, DeckStyle.DIM_COLOR, 11, text_width)
+	tether_label.custom_minimum_size.y = 40.0
+	# Text at the frame's inset, like the tools' names above it.
+	var note := MarginContainer.new()
+	note.name = "Tether"
+	note.add_theme_constant_override(&"margin_left", WindowFrame.metric(&"space_s"))
+	note.add_child(tether_label)
+	column.add_child(note)
+
+
+func _tool_button(text: String, which: int) -> Button:
+	var button := Button.new()
+	button.name = text.get_slice(" ", 0)
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.toggle_mode = true
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.theme_type_variation = &"DeckToolButton"
+	if which >= 0:
+		button.pressed.connect(show_tool.bind(which))
+	frame.sidebar_column.add_child(button)
+	return button
+
+
+func _build_toast() -> void:
 	toast_label = DeckStyle.mono("", DeckStyle.TEXT_COLOR, 13)
 	toast_label.name = "Toast"
 	toast_label.visible = false
-	toast_label.add_theme_stylebox_override(
-		&"normal", DeckStyle.box(Color(0, 0, 0, 0.8), Color(0, 0, 0, 0), 4.0, 14.0, 6.0)
-	)
+	toast_label.theme_type_variation = &"DeckToast"
 	toast_label.anchor_left = 0.5
 	toast_label.anchor_right = 0.5
 	toast_label.anchor_top = 1.0
@@ -880,118 +491,4 @@ func _build() -> void:
 	toast_label.offset_bottom = -40.0
 	toast_label.z_index = 3
 	toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_child(toast_label)
-
-
-func _build_bar() -> Control:
-	var bar := PanelContainer.new()
-	bar.name = "Bar"
-	bar.add_theme_stylebox_override(
-		&"panel", DeckStyle.box(DeckStyle.PANEL_COLOR, DeckStyle.LINE_COLOR, 0.0, 12.0, 6.0)
-	)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 14)
-	bar.add_child(row)
-	row.add_child(DeckStyle.label("Deck", DeckStyle.TITLE_COLOR, 16))
-	title_meta = DeckStyle.mono("", DeckStyle.DIM_COLOR, 12)
-	title_meta.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(title_meta)
-	var grow := Control.new()
-	grow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(grow)
-	trace_box = HBoxContainer.new()
-	trace_box.name = "Traces"
-	trace_box.add_theme_constant_override(&"separation", 16)
-	row.add_child(trace_box)
-	close_button = DeckStyle.button("✕", 15)
-	close_button.name = "Close"
-	close_button.tooltip_text = "Close (Esc): tools keep running while you stay plugged in"
-	close_button.pressed.connect(close)
-	row.add_child(close_button)
-	return bar
-
-
-func _build_tools() -> Control:
-	var tools := PanelContainer.new()
-	tools.name = "Tools"
-	tools.custom_minimum_size.x = 150.0
-	tools.add_theme_stylebox_override(
-		&"panel", DeckStyle.box(DeckStyle.PANEL_COLOR, DeckStyle.LINE_COLOR, 0.0, 8.0, 12.0)
-	)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 4)
-	tools.add_child(column)
-	map_button = _tool_button("Map")
-	map_button.pressed.connect(show_tool.bind(Tool.MAP))
-	column.add_child(map_button)
-	ice_button = _tool_button("Icebreaker")
-	ice_button.pressed.connect(show_tool.bind(Tool.ICEBREAKER))
-	column.add_child(ice_button)
-	exploits_button = _tool_button("Exploits")
-	exploits_button.pressed.connect(show_tool.bind(Tool.EXPLOITS))
-	column.add_child(exploits_button)
-	firewall_button = _tool_button("Firewall")
-	firewall_button.pressed.connect(show_tool.bind(Tool.FIREWALL))
-	column.add_child(firewall_button)
-	var logs := _tool_button("Logs  (M16)")
-	logs.disabled = true
-	logs.tooltip_text = "Reading and erasing device logs comes later (M16)."
-	column.add_child(logs)
-	tether_label = DeckStyle.paragraph(TETHER_NOTE, DeckStyle.DIM_COLOR, 11, 130.0)
-	tether_label.custom_minimum_size.y = 40.0
-	column.add_child(tether_label)
-	return tools
-
-
-func _tool_button(text: String) -> Button:
-	var button := DeckStyle.button(text, 13)
-	button.toggle_mode = true
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	var on := DeckStyle.box(Color(DeckStyle.TITLE_COLOR, 0.06), DeckStyle.TITLE_COLOR, 4.0, 10.0, 7.0)
-	button.add_theme_stylebox_override(&"pressed", on)
-	button.add_theme_stylebox_override(&"hover_pressed", on)
-	var off := DeckStyle.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 4.0, 10.0, 7.0)
-	button.add_theme_stylebox_override(&"normal", off)
-	button.add_theme_stylebox_override(&"disabled", off)
-	return button
-
-
-func _build_map(content: Control) -> void:
-	map_view = Control.new()
-	map_view.name = "Map"
-	map_view.set_anchors_preset(Control.PRESET_FULL_RECT)
-	content.add_child(map_view)
-	graph = NetworkGraph.new()
-	graph.name = "Graph"
-	graph.set_anchors_preset(Control.PRESET_FULL_RECT)
-	graph.menu_width = MENU_WIDTH
-	graph.menu_builder = _build_menu
-	map_view.add_child(graph)
-	var hint := DeckStyle.mono(HINT, DeckStyle.DIM_COLOR, 12)
-	hint.name = "Hint"
-	hint.anchor_top = 1.0
-	hint.anchor_bottom = 1.0
-	hint.offset_left = 16.0
-	hint.offset_top = -28.0
-	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	map_view.add_child(hint)
-	unplugged_label = DeckStyle.label(UNPLUGGED_NOTE, DeckStyle.DIM_COLOR, 15)
-	unplugged_label.name = "Unplugged"
-	unplugged_label.set_anchors_preset(Control.PRESET_CENTER)
-	unplugged_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	unplugged_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-	unplugged_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	unplugged_label.visible = false
-	map_view.add_child(unplugged_label)
-
-
-func _build_ice(content: Control) -> void:
-	ice_view = MarginContainer.new()
-	ice_view.name = "Icebreaker"
-	ice_view.set_anchors_preset(Control.PRESET_FULL_RECT)
-	for side: String in ["left", "right", "top", "bottom"]:
-		ice_view.add_theme_constant_override("margin_" + side, 18)
-	content.add_child(ice_view)
-	ice_column = VBoxContainer.new()
-	ice_column.add_theme_constant_override(&"separation", 14)
-	ice_view.add_child(ice_column)
+	content_area.add_child(toast_label)

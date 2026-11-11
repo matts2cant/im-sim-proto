@@ -35,8 +35,7 @@ func _init() -> void:
 	name = "Wifi"
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	for side: String in ["left", "right", "top", "bottom"]:
-		add_theme_constant_override("margin_" + side, 18)
+	theme_type_variation = &"WindowBody"
 	column = VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 14)
 	add_child(column)
@@ -234,7 +233,7 @@ func _fill_crack(actions: HFlowContainer, target: Device) -> void:
 		actions.add_child(DeckStyle.mono(prefix + pause_text(reason), DeckStyle.ALERT_COLOR, 12))
 	if can and Icebreaker.assist(wireless.entity) >= Icebreaker.ASSIST_TIMES:
 		var left := (1.0 - progress) * wireless.crack_time(target)
-		actions.add_child(_assist("%s s left" % _number(left)))
+		actions.add_child(DeckStyle.assist("%s s left" % _number(left)))
 
 
 # "Signal" and its bars (or "out of range") and the distance, "Line of sight" clear / blocked.
@@ -269,24 +268,10 @@ static func _signal_line(distance: float, reach: float, sight: bool) -> Control:
 
 
 static func _progress(value: float) -> Control:
-	var track := Panel.new()
+	var track := DeckStyle.track(PROGRESS_WIDTH, 10.0, value, DeckStyle.TITLE_COLOR)
 	track.name = "Progress"
-	track.custom_minimum_size = Vector2(PROGRESS_WIDTH, 10)
 	track.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	var style := DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 0.0, 0.0, 0.0)
-	track.add_theme_stylebox_override(&"panel", style)
-	var fill := ColorRect.new()
-	fill.color = DeckStyle.TITLE_COLOR
-	fill.size = Vector2(PROGRESS_WIDTH * clampf(value, 0.0, 1.0), 10.0)
-	track.add_child(fill)
 	return track
-
-
-static func _assist(text: String) -> Label:
-	var label := DeckStyle.mono(DeckScreen.ASSIST_PREFIX + text, DeckStyle.SELF_COLOR, 12)
-	var style := DeckStyle.box(Color(0, 0, 0, 0), Color(DeckStyle.SELF_COLOR, 0.5), 4.0, 8.0, 4.0)
-	label.add_theme_stylebox_override(&"normal", style)
-	return label
 
 
 static func _number(value: float) -> String:

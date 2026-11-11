@@ -131,7 +131,7 @@ func _build() -> void:
 	var left := MarginContainer.new()
 	left.name = "List"
 	left.custom_minimum_size = Vector2(LIST_WIDTH, 0)
-	_margins(left, 16)
+	left.theme_type_variation = &"WindowBody"
 	add_child(left)
 	var left_box := VBoxContainer.new()
 	left_box.add_theme_constant_override(&"separation", 8)
@@ -150,7 +150,7 @@ func _build() -> void:
 	var right := MarginContainer.new()
 	right.name = "Reader"
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_margins(right, 18)
+	right.theme_type_variation = &"WindowBody"
 	add_child(right)
 	var right_scroll := ScrollContainer.new()
 	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -165,9 +165,7 @@ func _build() -> void:
 	from_label = HalcyonStyle.label("", 12, HalcyonStyle.DIM)
 	column.add_child(from_label)
 	_reader_box = PanelContainer.new()
-	_reader_box.add_theme_stylebox_override(
-		&"panel", HalcyonStyle.box(Color(0.55, 0.95, 0.85, 0.03), HalcyonStyle.LINE, 1, 4, 14)
-	)
+	_reader_box.theme_type_variation = &"HalcyonReader"
 	column.add_child(_reader_box)
 	reader_label = HalcyonStyle.paragraph("", 14, HalcyonStyle.TEXT)
 	reader_label.custom_minimum_size = Vector2(380, 0)
@@ -175,8 +173,3 @@ func _build() -> void:
 	learned_label = HalcyonStyle.paragraph("", 12, HalcyonStyle.DIM)
 	learned_label.label_settings.font = TabStyle.mono_font()
 	column.add_child(learned_label)
-
-
-static func _margins(node: MarginContainer, value: int) -> void:
-	for side: String in ["left", "right", "top", "bottom"]:
-		node.add_theme_constant_override("margin_" + side, value)

@@ -430,6 +430,12 @@ Take the deck from the hub's loadout table (or the network lab's entrance table)
 - [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
 - [ ] Clicks with a still mouse (ADR 0099 amendment, 2026-11-11): rest the cursor on a device, on the menu's Icebreaker / Log in / Open its desktop, on Stop / Resume and on the remote desktop's Back to the map; each shows its hover while still and a slow click (hold it half a second) acts every time. Dragging from a device or a button never moves the map; dragging the background does.
 
+### Shared window frame (2026-11-11, [ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md#amendment-shared-window-frame-and-theme-2026-11-11) / [0114](../decisions/0114-computers-halcyon-os.md#amendment-shared-window-frame-and-theme-2026-11-11) amendments)
+
+- [ ] At your monitor's full resolution (and at 1152 x 648 windowed): the deck (Map, Icebreaker, Firewall), a computer's login card and its desktop show all four rounded corners and an unbroken border; nothing square pokes out at a corner.
+- [ ] The header title, the tools' / dock's names and the body's content start on one line from the left; the ✕ sits as far from the top-right corner as the title from the top-left.
+- [ ] The dock at the deck's sidebar width (icon and name in a row) reads well on the desktop and on a remote desktop inside the deck.
+
 ### M12b Wireless ([ADR 0117](../decisions/0117-wireless-access-points-and-the-decks-wifi.md))
 
 No level has an access point yet: use the review shots (`tests/ui/deck/fixtures/wireless_shots.tscn` with `SHOT=map|crack|paused|joined|joined_map|world`, run through `tools/run_windowed.sh`) until the levels brief places them, then check in the lab and the warehouse.

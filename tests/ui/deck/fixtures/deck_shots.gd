@@ -54,7 +54,7 @@ var _done: bool = false
 
 
 func _ready() -> void:
-	DisplayServer.window_set_size(SIZE)
+	DisplayServer.window_set_size(shot_size(SIZE))
 	_lab = get_node(lab_path) as Lab
 	_player = _lab.get_node("Player") as Player
 	_shot = OS.get_environment("SHOT")
@@ -88,6 +88,14 @@ func _ready() -> void:
 	await _seconds(0.3)
 	_screen.refresh()
 	_finish()
+
+
+## The window size: SHOT_SIZE ("2560x1440") when set, else `fallback`.
+static func shot_size(fallback: Vector2i) -> Vector2i:
+	var parts := OS.get_environment("SHOT_SIZE").split("x")
+	if parts.size() == 2 and parts[0].is_valid_int() and parts[1].is_valid_int():
+		return Vector2i(parts[0].to_int(), parts[1].to_int())
+	return fallback
 
 
 func _stage() -> void:

@@ -2,6 +2,9 @@ class_name DeckStyle
 extends RefCounted
 ## Colours and small widget helpers of the deck's screens and its network map (ADR 0113), from the
 ## approved mockup (design/prototypes/hacking_screens.html): the terminal's teal on a dark panel.
+## Boxes, buttons and fields are type variations of ui/window/window_theme.tres (DeckButton,
+## DeckCard, DeckTrack, ...): the deck's WindowFrame carries that theme, so widgets built here get
+## their look once they are inside it.
 ## Status colours depend on what a device reports (DeviceStatus words, its disabled flag) and on the
 ## viewer's access, never on what the device is: offline grey, disabled red, access amber, alert
 ## words orange, else green (relative luminance about 0.1, 0.3, 0.6, 0.5 and 0.7).
@@ -22,15 +25,12 @@ const ACCESS_COLOR: Color = Color(1.0, 0.82, 0.3)
 ## The viewer's own entry point; Computer skill assists (#73D9FF).
 const SELF_COLOR: Color = Color(0.45, 0.85, 1.0)
 const ERROR_COLOR: Color = Color(0.95, 0.4, 0.35)
-## Screen background, panel, bar and line colours (the mockup's --os-*).
-const SCREEN_COLOR: Color = Color(0.027, 0.07, 0.067, 0.98)
+## The deck's panel colour (its header and tools; the map shots' backdrop).
 const PANEL_COLOR: Color = Color(0.043, 0.102, 0.098, 1.0)
-const BORDER_COLOR: Color = Color(0.3, 0.75, 0.66, 0.9)
-const LINE_COLOR: Color = Color(0.3, 0.75, 0.66, 0.45)
-const FIELD_COLOR: Color = Color(0.012, 0.063, 0.063, 1.0)
-const BUTTON_COLOR: Color = Color(0.047, 0.133, 0.125, 1.0)
 ## The world behind the panel, dimmed but visible.
 const WORLD_DIM: Color = Color(4.0 / 255.0, 6.0 / 255.0, 8.0 / 255.0, 0.55)
+## What a Computer skill assist line starts with.
+const ASSIST_PREFIX: String = "Computer skill · "
 ## Status words that mean something is happening right now (shown orange: red means disabled).
 const ALERT_WORDS: Array[String] = ["alert", "suspicious", "tracking", "firing", "ringing", "broadcasting"]
 
@@ -118,7 +118,8 @@ static func _reconcile_children(target: Node, fresh: Node) -> void:
 
 
 # What a button shows and does when pressed, apart from its connections and a press held on it (a
-# plain button reports a held press as `button_pressed`).
+# plain button reports a held press as `button_pressed`). Only what the button itself sets counts
+# (its type variation and overrides): `fresh` is out of the tree, where the theme does not reach.
 static func _button_key(button: BaseButton) -> Array:
 	var key: Array = [
 		button.disabled,
@@ -126,15 +127,19 @@ static func _button_key(button: BaseButton) -> Array:
 		button.toggle_mode and button.button_pressed,
 		button.tooltip_text,
 		button.mouse_filter,
-		button.get_theme_color(&"font_color"),
-		button.get_theme_font_size(&"font_size"),
+		button.theme_type_variation,
 	]
+	if button.has_theme_color_override(&"font_color"):
+		key.append(button.get_theme_color(&"font_color"))
+	if button.has_theme_font_size_override(&"font_size"):
+		key.append(button.get_theme_font_size(&"font_size"))
 	var text_button := button as Button
 	if text_button != null:
 		key.append(text_button.text)
-	var style := button.get_theme_stylebox(&"normal") as StyleBoxFlat
-	if style != null:
-		key.append_array([style.bg_color, style.border_color, style.border_width_left])
+	if button.has_theme_stylebox_override(&"normal"):
+		var style := button.get_theme_stylebox(&"normal") as StyleBoxFlat
+		if style != null:
+			key.append_array([style.bg_color, style.border_color, style.border_width_left])
 	return key
 
 
@@ -186,116 +191,34 @@ static func paragraph(text: String, color: Color = DIM_COLOR, font_size: int = 1
 
 
 ## A button that never takes keyboard focus (Esc and typing stay with the screen), in the mockup's
-## teal; `primary` outlines it brighter.
+## teal (DeckButton); `primary` outlines it brighter (DeckButtonPrimary).
 static func button(text: String, font_size: int = 14, primary: bool = false) -> Button:
 	var result := Button.new()
 	result.text = text
 	result.focus_mode = Control.FOCUS_NONE
+	result.theme_type_variation = &"DeckButtonPrimary" if primary else &"DeckButton"
 	result.add_theme_font_size_override(&"font_size", font_size)
-	var border := TITLE_COLOR if primary else LINE_COLOR
-	for state: StringName in [&"normal", &"pressed"]:
-		result.add_theme_stylebox_override(state, box(BUTTON_COLOR, border, 4.0, 10.0, 5.0))
-	result.add_theme_stylebox_override(&"hover", box(BUTTON_COLOR, TITLE_COLOR, 4.0, 10.0, 5.0))
-	result.add_theme_stylebox_override(
-		&"disabled", box(BUTTON_COLOR.darkened(0.3), LINE_COLOR.darkened(0.5), 4.0, 10.0, 5.0)
-	)
-	result.add_theme_color_override(&"font_color", TITLE_COLOR if primary else TEXT_COLOR)
-	result.add_theme_color_override(&"font_hover_color", TITLE_COLOR)
-	result.add_theme_color_override(&"font_disabled_color", DIM_COLOR.darkened(0.3))
 	return result
 
 
-## A flat box: `fill`, a 1 px `border`, `radius`, content margins `margin_x` / `margin_y`.
-static func box(
-	fill: Color, border: Color, radius: float = 4.0, margin_x: float = 8.0, margin_y: float = 6.0
-) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(int(radius))
-	style.content_margin_left = margin_x
-	style.content_margin_right = margin_x
-	style.content_margin_top = margin_y
-	style.content_margin_bottom = margin_y
-	return style
-
-
-static func panel_style(border: Color = BORDER_COLOR, width: int = 1, margin: float = 22.0) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = PANEL_COLOR
-	style.border_color = border
-	style.set_border_width_all(width)
-	style.set_content_margin_all(margin)
-	return style
-
-
-## Shows the new trace `bars` in `box`: the bars already there take their texts, fills and tooltips
-## in place when they match one for one (one bar per tracer, the same parts), else `box` is refilled.
-## A trace that rises adds and frees nothing, so the controls around a still cursor stay put.
-static func show_bars(box: Node, bars: Array[HBoxContainer]) -> void:
-	var olds: Array[Node] = []
-	for child in box.get_children():
-		if not child.is_queued_for_deletion():
-			olds.append(child)
-	var same := olds.size() == bars.size()
-	if same:
-		for i in olds.size():
-			same = same and olds[i].get_child_count() == bars[i].get_child_count()
-	if not same:
-		for child in olds:
-			discard(child)
-		for bar in bars:
-			box.add_child(bar)
-		return
-	for i in olds.size():
-		var old := olds[i] as Control
-		old.tooltip_text = bars[i].tooltip_text
-		for j in old.get_child_count():
-			var part := old.get_child(j)
-			var fresh := bars[i].get_child(j)
-			if part is Label and fresh is Label:
-				(part as Label).text = (fresh as Label).text
-			elif part.get_child_count() > 0 and fresh.get_child_count() > 0:
-				var fill := part.get_child(0) as ColorRect
-				var fresh_fill := fresh.get_child(0) as ColorRect
-				if fill != null and fresh_fill != null:
-					fill.color = fresh_fill.color
-					fill.size = fresh_fill.size
-		bars[i].free()
-
-
-## One trace bar: `label`, a `width` px bar of `value` % (red above `hot` %), "N %" and "blocked N s" while
-## `lockout_left` > 0. The deck's title bar and the computer overlay use it.
-static func trace_bar(
-	label: String, value: float, lockout_left: float, width: float = 120.0, hot: float = 70.0
-) -> HBoxContainer:
-	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override(&"separation", 8)
-	if not label.is_empty():
-		bar.add_child(mono(label, DIM_COLOR, 12))
-	var track := Panel.new()
-	track.custom_minimum_size = Vector2(width, 8.0)
-	track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	track.add_theme_stylebox_override(&"panel", box(FIELD_COLOR, LINE_COLOR, 0.0, 0.0, 0.0))
+## A bar's track (DeckTrack) `width` x `height` px with a fill of `fraction` in `color`.
+static func track(width: float, height: float, fraction: float, color: Color) -> Panel:
+	var result := Panel.new()
+	result.theme_type_variation = &"DeckTrack"
+	result.custom_minimum_size = Vector2(width, height)
 	var fill := ColorRect.new()
-	fill.color = ERROR_COLOR if value > hot else ALERT_COLOR
-	fill.size = Vector2(width * clampf(value / 100.0, 0.0, 1.0), 8.0)
-	track.add_child(fill)
-	bar.add_child(track)
-	var text := "%d %%" % roundi(value)
-	if lockout_left > 0.0:
-		text += " · blocked %d s" % ceili(lockout_left)
-	bar.add_child(mono(text, DIM_COLOR, 12))
-	return bar
+	fill.name = "Fill"
+	fill.color = color
+	fill.size = Vector2(width * clampf(fraction, 0.0, 1.0), height)
+	result.add_child(fill)
+	return result
 
 
-## A skill assist line ("Computer skill · about +30 % trace"), outlined blue.
+## A skill assist line ("Computer skill · about +30 % trace"), outlined blue (DeckAssist).
 static func assist(text: String) -> Label:
-	var label := mono("Computer skill · " + text, SELF_COLOR, 12)
-	var style := box(Color(0, 0, 0, 0), Color(SELF_COLOR, 0.5), 4.0, 8.0, 4.0)
-	label.add_theme_stylebox_override(&"normal", style)
-	return label
+	var result := mono(ASSIST_PREFIX + text, SELF_COLOR, 12)
+	result.theme_type_variation = &"DeckAssist"
+	return result
 
 
 ## "7.5 s", "18 s".

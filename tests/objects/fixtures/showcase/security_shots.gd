@@ -9,6 +9,7 @@ extends Node
 ## desktop inside a stand-in of the deck's panel: ADR 0114).
 
 const SIZE := Vector2i(1152, 648)
+const DeckShots := preload("res://tests/ui/deck/fixtures/deck_shots.gd")
 
 @export var showcase_path: NodePath = ^"../Showcase"
 
@@ -21,7 +22,7 @@ var _done: bool = false
 
 
 func _ready() -> void:
-	DisplayServer.window_set_size(SIZE)
+	DisplayServer.window_set_size(DeckShots.shot_size(SIZE))
 	_show = get_node(showcase_path) as Node3D
 	_player = _show.get_node("Player") as Player
 	_player.input_enabled = false
@@ -104,8 +105,8 @@ func _console_session(screen: ComputerScreen) -> void:
 			screen.security_app.select("Camera")
 
 
-# A stand-in of the deck's overlay (the other M12a brief builds the real one): dimmed world, the
-# 85 % panel, its title bar and tools column, under the remote desktop's layer.
+# A stand-in of the deck's overlay: dimmed world, the 85 % WindowFrame with its header and tools,
+# under the remote desktop's layer.
 func _deck_stand_in() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 24
@@ -114,23 +115,21 @@ func _deck_stand_in() -> void:
 	dim.color = TabStyle.WORLD_DIM
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(dim)
-	var panel := Panel.new()
-	panel.anchor_left = 0.075
-	panel.anchor_top = 0.075
-	panel.anchor_right = 0.925
-	panel.anchor_bottom = 0.925
-	panel.add_theme_stylebox_override(&"panel", HalcyonStyle.box(HalcyonStyle.OS_BG, HalcyonStyle.LINE, 1, 6))
-	layer.add_child(panel)
-	var bar := HalcyonStyle.label("Deck    Plugged into the office wall jack · 10.0.10.40", 13, HalcyonStyle.TEAL, true)
-	bar.position = Vector2(12, 9)
-	panel.add_child(bar)
-	var tools := VBoxContainer.new()
-	tools.position = Vector2(12, 52)
-	panel.add_child(tools)
+	var frame := WindowFrame.new(&"Deck")
+	frame.anchor_left = 0.075
+	frame.anchor_top = 0.075
+	frame.anchor_right = 0.925
+	frame.anchor_bottom = 0.925
+	layer.add_child(frame)
+	frame.title_label.text = "Deck"
+	frame.subtitle_label.text = "Plugged into the office wall jack · 10.0.10.40"
 	for tool: String in ["Map", "Icebreaker", "Exploits", "Firewall", "Logs"]:
-		tools.add_child(
-			HalcyonStyle.label(tool, 13, HalcyonStyle.TEXT if tool in ["Map", "Icebreaker"] else HalcyonStyle.DIM)
-		)
+		var button := Button.new()
+		button.text = tool
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.theme_type_variation = &"DeckToolButton"
+		button.disabled = tool not in ["Map", "Icebreaker"]
+		frame.sidebar_column.add_child(button)
 
 
 func _place(local: Vector3, yaw: float, pitch_deg: float, extra_yaw: float = 0.0) -> void:
