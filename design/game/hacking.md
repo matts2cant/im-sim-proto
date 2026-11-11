@@ -253,3 +253,17 @@ All trace gains are multiplied by the Computer skill's trace gain (×1 / 0.8 / 0
 
 - **Account names**: the Map lists the account names of every device you have seen (like a login banner). Passwords are the secret; clues, the Sniffer and Icebreaker supply them.
 - **Security operator's radio call** (M16): on a dark camera feed or "Tracer offline", the operator radios the nearest guard with `equipment.radio`, who goes to investigate the device. Other guards are not alerted.
+
+## M12b design notes (to be designed)
+
+Agreed with the user (2026-11-11), to design with M12b:
+
+- **Readability**:
+  - **Status lights**: every networked device has an LED with one colour language: green online, blinking amber lost network, red disabled, dark unpowered; network gear shows port lights that go dark with it.
+  - **Labels**: switches, routers and access points carry a plate naming them and what they feed ("SW-VAULT · feeds: vault turret, office camera, alarm"); wiring closets share one look (rack, lights, a "NETWORK CLOSET" sign).
+  - **Deck AR view**: with the deck in hand, the links of devices on the Map are drawn in the world, generated from the link data (no per-level routing): "ceiling runs" (up from the device to ceiling height, across, down to its switch), drawn on top of the world in the subnet's colour, fading with distance. No physical cables modelled in levels.
+  - **Feedback after an action**: a HUD line when equipment drops ("SW-VAULT offline · 5 devices lost"), sirens announcing a network fault, Mail saying which route is down.
+  - Rejected: warnings on the Map before acting (babysitting); physical cables in levels (clutter).
+- **Teaching**: the future Deus Ex-style training level teaches the network rules ([../backlog.md](../backlog.md)).
+- **Tradeoffs against breaking everything** (candidates, to choose from): mail on a mail server (in the building or on the internet through an edge router's internet link: cut the route and unread mail is out of reach); loss-of-signal alarms (the alarm controller raises a "network fault" incident when several devices drop at once); fail-secure vault doors; cameras as the player's own intel; fail-dangerous standalone devices (a turret that targets everyone without its link); broken gear as evidence for guards (M16); a "Clean hands" badge and payout or XP penalties (M18, M19).
+
