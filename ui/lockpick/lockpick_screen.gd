@@ -30,6 +30,8 @@ const BELT_MARGIN := 0.13
 ## Room for the gaps and the hint line under the views (px).
 const COLUMN_EXTRA := 44.0
 const PIN_VIEW_RATIO := 6.0 / 16.0
+## Seconds a closed screen keeps its LockpickAudio (a quick retry reuses it).
+const AUDIO_LINGER := 1.0
 
 @export var tuning: LockpickTuning
 
@@ -42,6 +44,9 @@ var model: PinTumbler
 var assist: int = 0
 var caption_text: String = ""
 var caption_left: float = 0.0
+## The minigame's sounds (ADR 0108), created when it opens and freed a moment after it closes: an
+## idle player carries no live audio stream.
+var audio: LockpickAudio = null
 
 ## Fonts and gradients of the views.
 var style := LockpickStyle.new()
@@ -57,8 +62,8 @@ var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _close_left: float = -1.0
 var _body: BodyParts = null
 var _center: CenterContainer
-
-@onready var audio: LockpickAudio = $Audio
+## Seconds until the closed screen frees its LockpickAudio (< 0: not counting).
+var _audio_left: float = -1.0
 
 
 func _ready() -> void:
@@ -109,6 +114,11 @@ func open_for(p_lock: MechanicalLock, p_user: Node) -> void:
 		return
 	lock = p_lock
 	user = p_user
+	_audio_left = -1.0
+	if audio == null:
+		audio = LockpickAudio.new()
+		audio.name = "Audio"
+		add_child(audio)
 	var params := LockpickParams.from_entity(user, tuning)
 	model = lock.new_model(params)
 	assist = LockpickParams.assist_for(params.assist, lock.is_practice())
@@ -146,6 +156,7 @@ func close(reason: StringName = &"left") -> void:
 		return
 	visible = false
 	audio.stop_all()
+	_audio_left = AUDIO_LINGER
 	if is_instance_valid(lock) and lock.relocked.is_connected(_on_relocked):
 		lock.relocked.disconnect(_on_relocked)
 	if is_instance_valid(_body) and _body.damaged.is_connected(_on_damaged):
@@ -207,9 +218,14 @@ func _physics_process(delta: float) -> void:
 			close(&"picked")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if visible:
 		refresh()
+	elif _audio_left >= 0.0:
+		_audio_left -= delta
+		if _audio_left < 0.0 and audio != null:
+			audio.queue_free()
+			audio = null
 
 
 func _input(event: InputEvent) -> void:
