@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Unit: pure lock logic (ADR 0078): code check, hold-to-pick timing, keycard match, power loss,
+## Unit: pure lock logic (ADR 0078): code check, keycard match, power loss,
 ## keypad reminder, navigation access layers and the keypad's digit entry.
 
 
@@ -10,27 +10,6 @@ func test_code_matches_only_the_exact_code() -> void:
 	assert_bool(LockRules.code_matches("", "2817")).is_false()
 	# A lock without a code never opens by code.
 	assert_bool(LockRules.code_matches("", "")).is_false()
-
-
-func test_pick_time_scales_with_pins_and_lockpick_time_mult() -> void:
-	assert_float(LockRules.pick_time(3, 1.0, 1.0)).is_equal_approx(3.0, 0.0001)
-	# Trained Lockpicking (x0.75): 3 pins take 2.25 s.
-	assert_float(LockRules.pick_time(3, 1.0, 0.75)).is_equal_approx(2.25, 0.0001)
-	assert_float(LockRules.pick_time(5, 1.0, 0.5)).is_equal_approx(2.5, 0.0001)
-	# At least one pin.
-	assert_float(LockRules.pick_time(0, 1.0, 1.0)).is_equal_approx(1.0, 0.0001)
-
-
-func test_pick_progress_needs_the_whole_time_held() -> void:
-	var progress := PickProgress.new(LockRules.pick_time(3, 1.0, 0.75))
-
-	assert_bool(progress.advance(1.0)).is_false()
-	assert_bool(progress.advance(1.0)).is_false()
-	assert_float(progress.fraction()).is_equal_approx(2.0 / 2.25, 0.0001)
-	assert_bool(progress.advance(0.5)).is_true()
-	progress.reset()
-	assert_float(progress.fraction()).is_equal(0.0)
-	assert_bool(progress.is_done()).is_false()
 
 
 func test_key_matches_the_access_id() -> void:

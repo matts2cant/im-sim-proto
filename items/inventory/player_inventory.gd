@@ -146,6 +146,24 @@ func held_tool() -> StringName:
 	return held.item.tool_kind
 
 
+## One tool of kind `kind` is used up (a lockpick broke, ADR 0107): taken from the stack in hand
+## first; while any is left one stays in hand. Returns how many are left.
+func use_up_tool(kind: StringName) -> int:
+	var stacks := _tool_stacks(kind)
+	if stacks.is_empty():
+		return 0
+	var stack: ItemStack = held if stacks.has(held) else stacks[0]
+	var was_held := stack == held
+	inventory.remove(stack, 1)
+	_log_used(stack, "used_up")
+	var left := 0
+	for each in _tool_stacks(kind):
+		left += each.count
+	if was_held and held == null and left > 0:
+		hold(_tool_stacks(kind)[0])
+	return left
+
+
 ## The stack in hand (weapon or held item), or null.
 func in_hand() -> ItemStack:
 	return _weapon_stack if _weapon_stack != null else held
@@ -311,6 +329,14 @@ func _on_stack_removed(stack: ItemStack) -> void:
 	if in_hand() == stack:
 		put_away()
 	_weapon_states.erase(stack)
+
+
+func _tool_stacks(kind: StringName) -> Array[ItemStack]:
+	var out: Array[ItemStack] = []
+	for stack in inventory.stacks:
+		if stack.item.use_action == ItemData.UseAction.EQUIP_TOOL and stack.item.tool_kind == kind:
+			out.append(stack)
+	return out
 
 
 func _flat_forward() -> Vector3:

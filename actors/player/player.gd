@@ -93,6 +93,11 @@ var _belt_steps: int = 0
 var _view_offset: float = 0.0
 ## The camera's field of view without a scope (player.tscn: 80 degrees vertical).
 var _hip_fov: float = 80.0
+## face_towards(): the point the view turns to and the seconds left of the turn.
+var _face_point: Vector3 = Vector3.ZERO
+var _face_left: float = 0.0
+## LMB was still held when a screen gave the input back: tools wait for a fresh press.
+var _tool_latched: bool = false
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
@@ -188,6 +193,7 @@ func _physics_process(delta: float) -> void:
 		_step_movement(delta, jump_held)
 	_head.position.y = PlayerMotion.step_eye(_head.position.y, PlayerMotion.eye_height(crouched, config), delta, config)
 	_set_view_offset(StepRules.ease_offset(_view_offset, delta, step.config))
+	_step_face(delta)
 	interactor.refresh()
 	_step_tool(delta)
 	_handle_actions()
@@ -286,11 +292,20 @@ func look_hit(length: float) -> Dictionary:
 
 
 ## Takes the current key state as "already held", so a key still down when a pause screen closes
-## (E closing the reading overlay) does not count as a new press.
+## (E closing the reading overlay) does not count as a new press; LMB still down does not work a
+## tool until it is pressed again (leaving the lockpicking screen does not start it again).
 func resync_actions() -> void:
 	for action in PRESS_ACTIONS:
 		_actions_held[action] = Input.is_action_pressed(action)
 	_jump_was_held = Input.is_action_pressed(&"jump")
+	_tool_latched = Input.is_action_pressed(&"fire")
+
+
+## Turns the view to look at `point` (world) over `duration` seconds, smoothly (the lockpicking
+## screen faces the lock). Mouse look would fight it: callers take the input first.
+func face_towards(point: Vector3, duration: float) -> void:
+	_face_point = point
+	_face_left = maxf(duration, 0.001)
 
 
 func save_state() -> Dictionary:
@@ -307,6 +322,7 @@ func save_state() -> Dictionary:
 ## Restores what `data` has (tests pass only position and view; the inventory is optional).
 func load_state(data: Dictionary) -> void:
 	_mantle = null
+	_face_left = 0.0
 	carry.drop(&"load")
 	global_position = data.get("position", global_position)
 	rotation.y = data.get("yaw", rotation.y)
@@ -368,10 +384,13 @@ func _update_stance_tags() -> void:
 
 
 # Crouch is held. Standing up waits until there is headroom. Both legs disabled: always crouched.
+# While a screen holds the input (lockpicking, a terminal) the stance stays as it was.
 func _update_crouch() -> void:
 	if ActorState.legs_disabled(self):
 		if not crouched:
 			_apply_crouched(true)
+		return
+	if not input_enabled:
 		return
 	var wants_crouch := _input_allowed() and Input.is_action_pressed(&"crouch")
 	if wants_crouch and not crouched:
@@ -480,8 +499,11 @@ func _handle_actions() -> void:
 # Holding LMB with a tool in hand works it on what the crosshair is on (ToolUse: a lockpick on a
 # mechanical lock, ADR 0078); letting go, looking away or carrying something stops.
 func _step_tool(delta: float) -> void:
+	if _tool_latched and not Input.is_action_pressed(&"fire"):
+		_tool_latched = false
 	var holding: bool = (
 		input_enabled
+		and not _tool_latched
 		and not DebugPanel.is_open()
 		and ActorState.can_act(self)
 		and not carry.is_carrying()
@@ -524,6 +546,24 @@ func _respawn() -> void:
 	_ground_y = global_position.y
 	step.reset()
 	_set_view_offset(0.0)
+
+
+# face_towards(): eases yaw and pitch towards the point for the time left.
+func _step_face(delta: float) -> void:
+	if _face_left <= 0.0:
+		return
+	var to := _face_point - eye_transform().origin
+	var flat := Vector2(to.x, to.z).length()
+	if to.length_squared() < 0.0001:
+		_face_left = 0.0
+		return
+	var share := minf(1.0, delta / _face_left)
+	_face_left -= delta
+	var yaw := atan2(-to.x, -to.z)
+	rotation.y = wrapf(rotation.y + wrapf(yaw - rotation.y, -PI, PI) * share, -PI, PI)
+	var limit := deg_to_rad(config.max_pitch_deg)
+	pitch = lerpf(pitch, clampf(atan2(to.y, flat), -limit, limit), share)
+	_head.rotation.x = pitch
 
 
 # A step moved the body by `rise`: the camera stays where it was and eases after it.

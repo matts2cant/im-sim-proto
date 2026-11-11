@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/lockpick/lockpick_screen.gd" id="1_screen"]
+[ext_resource type="Script" path="res://items/lockpick/audio/lockpick_audio.gd" id="2_audio"]
+
+[node name="LockpickScreen" type="CanvasLayer"]
+layer = 23
+script = ExtResource("1_screen")
+
+[node name="Audio" type="Node" parent="."]
+script = ExtResource("2_audio")
