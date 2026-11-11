@@ -17,6 +17,9 @@ extends Control
 ## SUBNET_FILL_ALPHA, a 1 px border) with its name and range at its top-left; a router row (it joins
 ## two subnets or more) stands between the boxes, "router" after its name. A subnet shows its box
 ## only while one of its devices is on the map.
+## Wireless links (M12b, ADR 0117): a cable whose rows' devices are linked by radio
+## (Device.wireless_link(): `wireless`) is laid out like a cable (so wireless devices sit with their
+## access point) and always drawn dashed in WIRELESS_COLOR (the offline grey while an end is offline).
 ## Clicking a node (without dragging) opens a small menu beside it, kept inside the panel: its name,
 ## status and, by default, one button per command of its row (none while offline; a button emits
 ## `command_pressed`); an owner with `menu_builder` fills the menu itself (the deck: accounts,
@@ -53,6 +56,10 @@ const NODE_FILL: Color = Color(0.04, 0.1, 0.1, 1.0)
 const DISABLED_FILL: Color = Color(0.22, 0.08, 0.08, 1.0)
 const SELECTED_FILL: Color = Color(0.13, 0.22, 0.22, 1.0)
 const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
+## A wireless link's colour (the mockup's light blue #7fd4ff) and dashes (content px).
+const WIRELESS_COLOR: Color = Color(0.498, 0.831, 1.0)
+const WIRELESS_DASH: float = 6.0
+const WIRELESS_GAP: float = 5.0
 ## A subnet box's fill and border opacity (its colour from its Subnet), its corner radius.
 const SUBNET_FILL_ALPHA: float = 0.1
 const SUBNET_BORDER_ALPHA: float = 0.55
@@ -68,6 +75,8 @@ var menu_builder: Callable = Callable()
 var menu_width: float = MENU_WIDTH
 var rows: Array[NetworkRow] = []
 var cables: Array[Vector2i] = []
+## The indices of the cables that are wireless links (show_network() finds them).
+var wireless: PackedInt32Array = PackedInt32Array()
 ## Subnet id -> its data (Router.subnet_info()): the subnets drawn as boxes.
 var subnets: Dictionary[StringName, Subnet] = {}
 ## The subnets of the last layout, in region order (layout.region_rects).
@@ -156,6 +165,7 @@ func _ready() -> void:
 func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = null) -> void:
 	rows = NetworkRow.list(p_rows)
 	cables = p_cables
+	wireless = NetworkRow.wireless_cables(rows, cables)
 	if p_labels is Callable:
 		command_label = p_labels as Callable
 	elif p_labels is Object and (p_labels as Object).has_method(&"label_for"):
@@ -407,6 +417,10 @@ func _draw_cables() -> void:
 			var route := layout.routes[k]
 			if route.size() < 2:
 				continue
+			if wireless.has(k):
+				for dash in dashes(route, WIRELESS_DASH, WIRELESS_GAP):
+					content.draw_line(dash[0], dash[1], cable_color(k), CABLE_WIDTH, true)
+				continue
 			if live:
 				content.draw_polyline(route, cable_color(k), CABLE_WIDTH, true)
 				continue
@@ -422,9 +436,12 @@ func cable_live(k: int) -> bool:
 	return rows[cables[k].x].online and rows[cables[k].y].online
 
 
-## The colour cable `k` is drawn in: green while live, the offline grey otherwise.
+## The colour cable `k` is drawn in: green while live (light blue for a wireless link), the offline
+## grey otherwise.
 func cable_color(k: int) -> Color:
-	return LIVE_CABLE_COLOR if cable_live(k) else DeckStyle.OFFLINE_COLOR
+	if not cable_live(k):
+		return DeckStyle.OFFLINE_COLOR
+	return WIRELESS_COLOR if wireless.has(k) else LIVE_CABLE_COLOR
 
 
 ## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs.
@@ -579,6 +596,7 @@ func _drawn_key() -> String:
 		]
 		parts.append(str(fields))
 	parts.append(str(cables))
+	parts.append(str(wireless))
 	for id: StringName in subnets:
 		var data := subnets[id]
 		if data != null:

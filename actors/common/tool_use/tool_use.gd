@@ -7,13 +7,20 @@ extends Node
 ## `tool_hold(user, delta) -> bool` (true: finished), `tool_release(user)`; a Lock, a Device for the
 ## deck, ADR 0113) and calls its tool_hold(); letting go, switching target or tool calls
 ## tool_release() (a lock loses the progress). Knows nothing about specific locks or tools.
+## Ranged (M12b, ADR 0117): when nothing within reach takes the tool, the entity aimed at further
+## away (`aimed`, up to `aim_reach`: the deck aimed at an access point) is worked by its first
+## component with `accepts_ranged_tool(tool, user) -> bool` true, through the same tool_hold() and
+## tool_release().
 
 ## The user finished working `lock` (it unlocked); null for a tool target that is not a Lock.
 signal finished(lock: Lock)
 
 const ACCEPTS_METHOD: StringName = &"accepts_tool"
+const ACCEPTS_RANGED_METHOD: StringName = &"accepts_ranged_tool"
 
 @export var entity_path: NodePath = ^".."
+## How far a ranged tool target may be aimed at (m, from the eye; its component decides the rest).
+@export var aim_reach: float = 40.0
 
 var entity: Node
 
@@ -33,9 +40,12 @@ static func of(node: Node) -> ToolUse:
 	return null
 
 
-## One tick of work: `target` (an entity or null), `tool` (ItemData.tool_kind or &""), `holding`.
-func step(target: Node, tool: StringName, holding: bool, delta: float) -> void:
+## One tick of work: `target` (an entity or null), `tool` (ItemData.tool_kind or &""), `holding`;
+## `aimed`: the entity aimed at within `aim_reach`, for ranged tool targets (null: none).
+func step(target: Node, tool: StringName, holding: bool, delta: float, aimed: Node = null) -> void:
 	var found := find_target(target, tool) if holding else null
+	if found == null and holding:
+		found = find_ranged_target(aimed, tool, entity)
 	if found != _target:
 		release()
 		_target = found
@@ -66,6 +76,16 @@ static func find_lock(target: Node, tool: StringName) -> Lock:
 	for lock in Lock.locks_of(target):
 		if lock.accepts_tool(tool):
 			return lock
+	return null
+
+
+## The first component of `aimed` (in child order) that accepts `tool` from afar for `user`, or null.
+static func find_ranged_target(aimed: Node, tool: StringName, user: Node) -> Node:
+	if aimed == null or tool.is_empty():
+		return null
+	for child in aimed.get_children():
+		if child.has_method(ACCEPTS_RANGED_METHOD) and bool(child.call(ACCEPTS_RANGED_METHOD, tool, user)):
+			return child
 	return null
 
 

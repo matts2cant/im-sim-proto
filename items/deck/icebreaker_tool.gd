@@ -156,7 +156,7 @@ func _cracked(accounts: DeviceAccounts) -> void:
 	EventLog.record(
 		&"deck.cracked", NetworkSource.user_key(entity), device_name, {"device": device_name, "user": job.user}
 	)
-	session.notice.emit(session.access_notice(device, "Cracked %s: added to the Journal" % job.user))
+	session.notice.emit(DeckSession.access_notice(device, "Cracked %s: added to the Journal" % job.user))
 	session.refresh()
 
 

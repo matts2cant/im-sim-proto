@@ -74,6 +74,8 @@ func test_tool_skills_only_write_attributes() -> void:
 	assert_float(computer[&"deck_trace_gain_mult"]).is_equal_approx(0.8, 0.0001)
 	assert_float(computer[&"deck_max_strength"]).is_equal_approx(1.0, 0.0001)
 	assert_float(computer[&"deck_assist"]).is_equal_approx(1.0, 0.0001)
+	# M12b: the deck's Wi-Fi range (8 m base) +4 m Trained.
+	assert_float(computer[&"deck_wireless_range"]).is_equal_approx(4.0, 0.0001)
 	var lockpicking := _values(TABLE.find(&"lockpicking"), 1)
 	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.03, 0.0001)
 	assert_float(lockpicking[&"lockpick_assist"]).is_equal_approx(1.0, 0.0001)
@@ -118,6 +120,7 @@ func test_tier_rows_read_the_display_data() -> void:
 		["Crack time", "24 s (Medium)", "18 s (Medium)", "12 s (Medium)", "7.2 s (Medium)"]
 	)
 	assert_array(Array(computer[2])).is_equal(["Cracks up to", "Weak", "Medium", "Strong", "Strong"])
+	assert_array(Array(computer[4])).is_equal(["Wi-Fi range", "8 m", "12 m", "18 m", "25 m"])
 
 
 func test_every_shipped_effect_has_a_label() -> void:
