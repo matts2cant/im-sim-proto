@@ -32,3 +32,10 @@ ADR 0074 (2026-11-08) designed network hacking before the security terminal, its
 
 - [hacking.md](../game/hacking.md) rewritten in the affected sections; [security.md](../game/security.md) (terminal → computer), [perception-and-ai.md](../game/perception-and-ai.md) (operator and "use device" in M16), [abilities.md](../game/abilities.md) (Computer skill assists), the roadmap in [README](../README.md).
 - The old UI wireframes are superseded by the mockup.
+
+## Amendment: switches, routers and access points (2026-11-11)
+
+- **Switches follow the building's wiring**: a subnet can span several switches cabled up to one another (a switch per room or area, one per floor in a wiring closet, or one for a small office: it depends on the building, it is not a rule). A device can plug straight into a router. Losing one switch cuts only the devices behind it.
+- **Gateways are renamed routers** (a router with firewall rules, as at a real network's edge), in code, scenes, screens and docs, in one pass after the M12a levels merge.
+- **Access points (M12b)**: any device except network devices (switches, routers, access points) can link wirelessly to an access point within the access point's range instead of by cable; wireless links show as dashed light-blue lines on the deck's Map; breaking or unpowering an access point takes its wireless devices offline. An access point has a Wi-Fi key (a password with a strength): the player **aims the deck at the access point** and cracks the key with the Icebreaker from a distance, then joins its subnet from anywhere in range (a wireless entry point). Deck range by Computer skill, straight-line distance: Untrained 8 m, Trained 12 m, Advanced 18 m, Master 25 m.
+- **Signal jamming (M14, explosives)**: a thrown or placed jammer item (a jamming grenade). Inside its radius (start 10 m) for its duration (start 20 s) every wireless link drops (wireless devices go offline: a camera still sees but its incidents reach no one) and guards' radios get no dispatches. Silent; guard reactions to jamming wait for M16.

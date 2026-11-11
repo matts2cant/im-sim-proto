@@ -23,7 +23,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 | Wall network jack | the deck | the deck's address on the jack's subnet | Tethered: walking away unplugs the deck and stops its tools | M12a |
 | Autonomous device's maintenance port | the deck | a direct link to that device only | Tethered, like a jack | M12a |
 | Plugging the deck into a computer | the deck | the computer's address | Tethered, like a jack | M12a |
-| Wireless, within an access point's range | the deck | the deck's address on the access point's subnet | You can lower the deck; tools keep running while you stay in range. Leaving the range stops them | M12b |
+| Wireless, within an access point's range | the deck, and the access point's Wi-Fi key (aim the deck at the access point and crack the key with the Icebreaker; deck range by Computer skill: 8 / 12 / 18 / 25 m) | the deck's address on the access point's subnet | You can lower the deck; tools keep running while you stay in range. Leaving the range stops them | M12b |
 
 - "You" in a firewall rule is the address the deck currently uses (its own, or the computer's when plugged into one).
 - Lowering the deck (Esc) while plugged in keeps its tools running.
@@ -42,7 +42,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 ## Network model
 
 - **Devices** have IP addresses and are grouped into **subnets** (never "segments"). A subnet is a logical address range; **switches are the physical wiring**: a subnet can span several switches, cabled up to one another, and how many depends on the building (a switch per room or area, one large switch per floor in a wiring closet, or one for a small office). A device can also plug straight into a gateway port. Losing one switch cuts only the devices behind it. No VLANs.
-- **Physical links**: cable or wireless. An access point has a range. A device can also be **autonomous** (no link at all); it has a maintenance port.
+- **Physical links**: cable or wireless. Any device except network devices (switches, routers, access points) can link wirelessly to an access point within the access point's range (M12b); wireless links show as dashed light-blue lines on the Map; breaking or unpowering an access point takes its wireless devices offline. **Jamming** (a jamming grenade, M14) drops every wireless link in its radius for a while. A device can also be **autonomous** (no link at all); it has a maintenance port ([ADR 0112 amendment](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)).
 - **Gateways** (firewalls) are nodes between subnets. Rules are an ordered list of from / to / allow or deny; the first match wins. From and To are a subnet, a device or "you". No ports.
 - **Power and damage**: switches, access points and gateways have `Powered` and `Breakable` like any prop ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)). Unpowering or breaking one cuts everything behind it. A device that loses its link falls back to standalone behaviour (see [Devices](#devices-and-their-remote-actions)).
 - **Doors on power loss**: a door's tag says fail-safe (unlocks on power loss) or fail-secure (stays locked). Breaking a switch can disable security, but it can also stop you opening a door remotely.
