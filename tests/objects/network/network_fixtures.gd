@@ -27,6 +27,7 @@ extends RefCounted
 ##
 ##   SecuritySwitch (8,0) ── ApYard (12,3) ┄┄ CamYard (14,7), LaserRoof (15,5)   (radio, 15 m range)
 ##          └── CamDock (11,2): cabled, beside the access point
+## annex() (M12b map fix) builds a second network with no link to the lab (see its description).
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
