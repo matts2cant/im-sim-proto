@@ -15,7 +15,7 @@ In:
 - A hub, a test gallery (one room per system) and one small warehouse mission.
 - Player movement incl. mantle and vents; body-part damage; pistol, shotgun, sniper rifle, assault rifle (Kenney Blaster Kit models), a silencer attachment and the stun baton; grid inventory. Guards and training dummies are animated Kenney Blocky Characters ([ADR 0103](decisions/0103-character-models-and-animation.md)).
 - Skills (4 tiers) and augmentations with energy; no leveling.
-- Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm devices (controller, sirens, radio base station), locks, keypads, terminals.
+- Light-based visibility; graded guard AI with communication and alarm; cameras, turret, alarm devices (controller, sirens, radio base station), locks, keypads, computers.
 - Network hacking: subnets, firewalls, a deck, computers with desktop apps, tracers ([game/hacking.md](game/hacking.md)).
 - Stimulus/response framework with attributes, modifiers and tags; EventLog; debug panel; save/load from the Esc game menu.
 - GdUnit4 tests in three layers.
@@ -104,7 +104,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 - [game/damage.md](game/damage.md): body parts and damage types.
 - [game/weapons-and-aiming.md](game/weapons-and-aiming.md): pistol, baton, reticle.
 - [game/objects-and-fire.md](game/objects-and-fire.md): physics objects and fire.
-- [game/security.md](game/security.md): cameras, alarm devices, turret, doors and locks, terminals.
+- [game/security.md](game/security.md): cameras, alarm devices, turret, doors and locks, computers.
 - [game/hacking.md](game/hacking.md): network, deck, computers, credentials, Icebreaker, exploits, tracers.
 - [game/lockpicking.md](game/lockpicking.md): pin-tumbler lockpicking minigame.
 - [game/inventory.md](game/inventory.md): grid, belt, items.
