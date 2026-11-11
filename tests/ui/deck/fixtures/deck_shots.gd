@@ -10,12 +10,17 @@ extends Node
 ## address blocked, the incident sent, the console's menu says so), remote (the console's desktop
 ## opened from the Map over the deck, its Security app on the camera), login_trace (the console
 ## bare-handed after a wrong password: the tracer's bar in the computer overlay).
+## M12b intrusion (ADR 0116; the lab knows the mockup's exploits): menu_software (CAM-GATE's menu:
+## its software line and "Exploits (1)"), exploits (Advanced: the Exploits tool on CAM-GATE, one
+## match and three that do not), exploits_patched (the same after a seen run burned it), firewall
+## (RTR-01's rules with a deny rule selected).
 ## It always quits: after saving, on an unknown shot name, and after WATCHDOG real seconds.
 
 const SIZE := Vector2i(1152, 648)
 const WATCHDOG := 25.0
 const DECK: ItemData = preload("res://items/deck/deck.tres")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
+const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const TIERS: Dictionary[String, int] = {
 	"map_start": 0,
 	"map_hacked": 1,
@@ -27,6 +32,10 @@ const TIERS: Dictionary[String, int] = {
 	"full_trace": 1,
 	"remote": 1,
 	"login_trace": 1,
+	"menu_software": 1,
+	"exploits": 2,
+	"exploits_patched": 1,
+	"firewall": 1,
 }
 
 @export var lab_path: NodePath = ^"../DeckLab"
@@ -89,7 +98,34 @@ func _stage() -> void:
 		await _seconds(0.4)
 	_screen.refresh()
 	_screen.graph.fit_view()
+	if _shot in ["menu_software", "exploits", "exploits_patched"]:
+		var x := Net.exploits()
+		Net.learn(_player, [x["helix"], x["vigil"], x["halcyon"], x["norsk"]])
+		_session.refresh()
 	match _shot:
+		"menu_software":
+			_screen.graph.select("CAM-GATE")
+		"exploits", "exploits_patched":
+			var tool := ExploitTool.of(_player)
+			tool.select(_lab.device("Camera"))
+			if _shot == "exploits_patched":
+				ExploitTool.patch_subnet(get_tree(), &"security", Net.exploits()["helix"])
+			_screen.show_tool(DeckScreen.Tool.EXPLOITS)
+		"firewall":
+			var router := Router.of(_lab.node("Rtr01"))
+			router.add_rule(
+				RouterRule.make(RouterRule.Match.SUBNET, "security", RouterRule.Match.SUBNET, "office", true)
+			)
+			router.add_rule(RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.SUBNET, "security", true))
+			router.add_rule(
+				RouterRule.make(RouterRule.Match.DEVICE, "10.0.20.40", RouterRule.Match.DEVICE, "10.0.10.12", false)
+			)
+			router.add_rule(
+				RouterRule.make(RouterRule.Match.SUBNET, "office", RouterRule.Match.SUBNET, "security", false)
+			)
+			_screen.firewall_view.show_router(_lab.device("Rtr01"))
+			_screen.firewall_view.selected = 2
+			_screen.show_tool(DeckScreen.Tool.FIREWALL)
 		"remote":
 			DeviceAccounts.of(_lab.node("Console")).grant(_player, "dmarsh")
 			_session.refresh()

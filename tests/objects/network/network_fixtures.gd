@@ -269,11 +269,11 @@ static func exploits() -> Dictionary[String, Exploit]:
 	}
 
 
-## Teaches `user` the exploits `list` through a read datapad entry `entry_id` (as a mail or a file
-## would).
+## Teaches `user` the exploits `list` through a datapad entry `entry_id` added to their log (as a
+## mail or a file read would; no reading overlay).
 static func learn(user: Node, list: Array[Exploit], entry_id: StringName = &"test.exploits") -> void:
 	var entry := LogEntry.make(entry_id, "Exploit notes", "Notes on exploits.", "Datapad", {}, {}, list)
-	PersonalLog.of(user).read(entry, "Datapad")
+	PersonalLog.of(user).add(entry, "Datapad")
 
 
 ## A siren stand-in "Siren" (SIREN-OFFICE, 10.0.10.30) cabled to the lab's OfficeSwitch: it takes
