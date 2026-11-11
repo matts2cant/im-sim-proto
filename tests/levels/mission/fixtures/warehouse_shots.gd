@@ -294,7 +294,8 @@ func _physics_process(_delta: float) -> void:
 	if _shot.is_empty():
 		return
 	ActorState.set_tag(_player, &"actor.player", false)
-	(_player.get_node("Hud") as CanvasLayer).visible = not _shot.get("cam", false)
+	# A computer shot keeps the HUD hidden (its overlay hides it).
+	(_player.get_node("Hud") as CanvasLayer).visible = not _shot.get("cam", false) and not _shot.has("computer")
 	if _shot.get("cam", false):
 		_camera.current = true
 		if _shot.has("view"):

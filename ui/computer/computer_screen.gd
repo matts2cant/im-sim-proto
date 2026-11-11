@@ -32,6 +32,7 @@ const PANEL_FRACTION: float = 0.85
 const WRONG_LOGIN := "Wrong user or password."
 const NO_KNOWN := "None. Find one, or crack it with the deck."
 const HINT := "Esc: leave"
+const REMOTE_HINT := "Esc: back\nto the map"
 const APP_NAMES: Array[String] = ["Mail", "Files", "Security"]
 const APP_IDS: Array[StringName] = [Computer.MAIL, Computer.FILES, Computer.SECURITY]
 const DOCK_WIDTH: float = 96.0
@@ -315,6 +316,8 @@ func _show_view() -> void:
 	if logged_in:
 		who_label.text = "%s\n%s" % [account, computer.access_level(account)]
 		logout_button.visible = not remote
+		(logout_button.get_parent().get_node(^"Hint") as Label).text = REMOTE_HINT if remote else HINT
+		security_app.set_view_size(SecurityApp.FEED_SHOWN_COMPACT if remote else SecurityApp.FEED_SHOWN)
 		for i in dock_buttons.size():
 			var icon := dock_buttons[i].get_node(^"Column/Icon") as DeviceIcon
 			icon.strokes = computer.config.app_icons.get(APP_IDS[i], PackedStringArray())
@@ -538,6 +541,7 @@ func _build_desktop(body: Control) -> void:
 	logout_button.pressed.connect(log_out)
 	dock_box.add_child(logout_button)
 	var hint := HalcyonStyle.label(HINT, 11, HalcyonStyle.DIM, true)
+	hint.name = "Hint"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	dock_box.add_child(hint)
 	desktop.add_child(HalcyonStyle.rule(true))

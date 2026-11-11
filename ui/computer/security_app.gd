@@ -25,6 +25,8 @@ const NOTE := (
 ## Render size of the live view (shown scaled to FEED_SHOWN).
 const FEED_SIZE: Vector2i = Vector2i(480, 270)
 const FEED_SHOWN: Vector2 = Vector2(448, 252)
+## Shown size inside a remote desktop (the deck's narrower panel).
+const FEED_SHOWN_COMPACT: Vector2 = Vector2(352, 198)
 const FEED_FOV: float = 70.0
 const FEED_NEAR: float = 0.05
 const FEED_FAR: float = 80.0
@@ -55,6 +57,7 @@ var view_label: Label
 
 var _list: VBoxContainer
 var _list_column: MarginContainer
+var _list_scroll: ScrollContainer
 var _detail_column: MarginContainer
 var _none_column: MarginContainer
 var _actions: HFlowContainer
@@ -99,6 +102,7 @@ func select(device_name: String) -> bool:
 			_rebuild_list()
 			_rebuild_detail()
 			update_feed()
+			_list_scroll.ensure_control_visible.call_deferred(entry(device_name))
 			return true
 	return false
 
@@ -173,6 +177,12 @@ func action_labels() -> Array[String]:
 		if button != null and not button.is_queued_for_deletion():
 			labels.append(button.text)
 	return labels
+
+
+## Shows the live view at `shown` size (FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop).
+func set_view_size(shown: Vector2) -> void:
+	feed_frame.custom_minimum_size = shown
+	feed_rect.custom_minimum_size = shown
 
 
 ## Sends `command` to `target` and says what happened.
@@ -342,6 +352,7 @@ func _build() -> void:
 	DocumentApp._margins(_list_column, 14)
 	add_child(_list_column)
 	var scroll := ScrollContainer.new()
+	_list_scroll = scroll
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_list_column.add_child(scroll)
 	_list = VBoxContainer.new()
