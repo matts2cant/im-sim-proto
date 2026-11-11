@@ -57,6 +57,18 @@ const SOFTWARE: Dictionary[String, Array] = {
 const WEAK := DeviceAccount.Strength.WEAK
 const MEDIUM := DeviceAccount.Strength.MEDIUM
 const STRONG := DeviceAccount.Strength.STRONG
+## AP-ANNEX's key (annex()).
+const ANNEX_KEY := "annex404"
+## The names annex() devices show.
+const ANNEX_SHOWN: Dictionary[String, String] = {
+	"JackB": "ANNEX-JACK",
+	"SwitchB": "SW-ANNEX",
+	"PcB": "ANNEX-PC",
+	"PrinterB": "PRINTER",
+	"TerminalB": "TERMINAL",
+	"ApAnnex": "AP-ANNEX",
+	"CamAnnex": "CAM-ANNEX",
+}
 ## The names screens show (`display_name` metadata), as in the mockup.
 const SHOWN: Dictionary[String, String] = {
 	"Jack": "OFFICE-JACK",
@@ -322,6 +334,39 @@ static func add_wireless(n: Dictionary[String, Node3D], parent: Node, origin: Ve
 		added[entity_name].set_meta(&"display_name", SHOWN[entity_name])
 		n[entity_name] = added[entity_name]
 	return added
+
+
+## A second network with no link to the lab (the M12b map fix's tests): the annex subnet behind its
+## own wall jack, a printer that can break (10 health), a powered terminal, and the access point
+## AP-ANNEX (key ANNEX_KEY, deck address 10.0.50.90) with the wireless camera CAM-ANNEX
+## (positions from `origin`):
+##
+##   JackB (-4,0) ── SwitchB (-5.5,0) ── PcB (-6,3), PrinterB (-4,3), TerminalB (-7,1.5)
+##                         └── ApAnnex (-6,6) ┄┄ CamAnnex (-6.5,9)   (radio, 15 m range)
+static func annex(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
+	var n: Dictionary[String, Node3D] = {}
+	n["JackB"] = instance(parent, JACK, "JackB", origin + Vector3(-4, 0.5, 0), &"annex", "10.0.50.40")
+	n["SwitchB"] = instance(parent, SWITCH, "SwitchB", origin + Vector3(-5.5, 1.2, 0), &"annex", "10.0.50.2")
+	n["PcB"] = body_device(parent, "PcB", origin + Vector3(-6, 1, 3))
+	_address(n["PcB"], &"", "10.0.50.12")
+	n["PrinterB"] = body_device(parent, "PrinterB", origin + Vector3(-4, 1, 3), [], false, 10.0)
+	_address(n["PrinterB"], &"", "10.0.50.30")
+	n["TerminalB"] = body_device(parent, "TerminalB", origin + Vector3(-7, 1, 1.5), [], true)
+	_address(n["TerminalB"], &"", "10.0.50.31")
+	n["ApAnnex"] = instance(parent, ACCESS_POINT, "ApAnnex", origin + Vector3(-6, 2.6, 6), &"", "10.0.50.60")
+	var radio := AccessPoint.of(n["ApAnnex"])
+	radio.key = ANNEX_KEY
+	radio.key_strength = WEAK
+	radio.client_address = "10.0.50.90"
+	n["CamAnnex"] = body_device(parent, "CamAnnex", origin + Vector3(-6.5, 2.5, 9))
+	_address(n["CamAnnex"], &"", "10.0.50.22")
+	link_wireless(n["CamAnnex"], n["ApAnnex"])
+	for entity_name: String in ["PcB", "PrinterB", "TerminalB", "ApAnnex"]:
+		link(n["SwitchB"], n[entity_name])
+	link(n["JackB"], n["SwitchB"])
+	for entity_name: String in n:
+		n[entity_name].set_meta(&"display_name", ANNEX_SHOWN[entity_name])
+	return n
 
 
 ## Links `device_entity` to the access point `access_point` by radio (its Device's `wireless`).
