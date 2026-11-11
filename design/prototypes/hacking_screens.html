@@ -242,22 +242,29 @@ input.field:focus { outline: 1px solid var(--teal); }
 
   // Deck map: only your own subnet and its gateway show at first. Hacking the gateway (its admin
   // account) reveals the subnets behind it. Example addresses.
+  const SUBNETS = {
+    office: { name: "OFFICE", range: "10.0.10.0/24", fill: "rgba(90, 160, 255, 0.10)", edge: "rgba(90, 160, 255, 0.55)", text: "#8fc1ff" },
+    security: { name: "SECURITY", range: "10.0.20.0/24", fill: "rgba(255, 140, 90, 0.10)", edge: "rgba(255, 140, 90, 0.55)", text: "#ffb08a" },
+    servers: { name: "SERVERS", range: "10.0.30.0/24", fill: "rgba(185, 130, 255, 0.11)", edge: "rgba(185, 130, 255, 0.55)", text: "#cfa8ff" },
+  };
   const NET = [
-    { id: "jack", kind: "sw", label: "Wall jack · you", addr: "10.0.10.40", x: 90, y: 110, self: true },
-    { id: "swo", kind: "sw", label: "SW-OFFICE", addr: "10.0.10.0/24", x: 250, y: 110 },
-    { id: "pc1", kind: "pc", label: "OFFICE-PC1", addr: "10.0.10.11", x: 170, y: 270, accounts: [["lpetrova", "Weak"]], computer: "pc1" },
-    { id: "pc2", kind: "pc", label: "OFFICE-PC2", addr: "10.0.10.12", x: 330, y: 270, accounts: [["kbrandt", "Weak"]], computer: "pc2" },
-    { id: "fw", kind: "gateway", label: "FW-01 · Sentry tracer", addr: "10.0.10.1", x: 470, y: 110, accounts: [["admin", "Medium"]], gateway: true },
-    { id: "sws", kind: "sw", label: "SW-SECURITY", addr: "10.0.20.0/24", x: 680, y: 110, behind: "fw" },
-    { id: "con", kind: "pc", label: "SEC-CONSOLE", addr: "10.0.20.5", x: 600, y: 270, accounts: [["dmarsh", "Medium"]], computer: "console", behind: "fw" },
-    { id: "cam", kind: "camera", label: "CAM-GATE", addr: "10.0.20.21", x: 760, y: 270, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
-    { id: "tur", kind: "turret", label: "TUR-VAULT", addr: "10.0.20.31", x: 880, y: 200, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
-    { id: "alm", kind: "alarm", label: "ALARM", addr: "10.0.20.40", x: 880, y: 60, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
-    { id: "fw2", kind: "gateway", label: "FW-02", addr: "10.0.20.1", x: 690, y: 400, accounts: [["admin", "Medium"]], gateway: true, behind: "fw" },
-    { id: "swv", kind: "sw", label: "SW-SERVERS", addr: "10.0.30.0/24", x: 840, y: 400, behind: "fw2" },
-    { id: "srv", kind: "pc", label: "FILE-SERVER", addr: "10.0.30.8", x: 940, y: 320, accounts: [["hale", "Strong"]], behind: "fw2" },
+    { id: "jack", kind: "sw", net: "office", label: "Wall jack · you", addr: "10.0.10.40", x: 100, y: 130, self: true },
+    { id: "swo", kind: "sw", net: "office", label: "SW-OFFICE", addr: "10.0.10.2", x: 250, y: 130 },
+    { id: "pc1", kind: "pc", net: "office", label: "OFFICE-PC1", addr: "10.0.10.11", x: 170, y: 270, accounts: [["lpetrova", "Weak"]], computer: "pc1" },
+    { id: "pc2", kind: "pc", net: "office", label: "OFFICE-PC2", addr: "10.0.10.12", x: 330, y: 270, accounts: [["kbrandt", "Weak"]], computer: "pc2" },
+    { id: "fw", kind: "gateway", label: "RTR-01 · router", addr: "10.0.10.1 · 10.0.20.1", x: 455, y: 130, accounts: [["admin", "Medium"]], gateway: true, tracer: "Sentry tracer" },
+    { id: "sws", kind: "sw", net: "security", label: "SW-SEC (closet)", addr: "10.0.20.2", x: 620, y: 130, behind: "fw" },
+    { id: "con", kind: "pc", net: "security", label: "SEC-CONSOLE", addr: "10.0.20.5", x: 580, y: 270, accounts: [["dmarsh", "Medium"]], computer: "console", behind: "fw" },
+    { id: "cam", kind: "camera", net: "security", label: "CAM-GATE", addr: "10.0.20.21", x: 700, y: 270, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "swv", kind: "sw", net: "security", label: "SW-VAULT (room)", addr: "10.0.20.3", x: 810, y: 130, behind: "fw" },
+    { id: "tur", kind: "turret", net: "security", label: "TUR-VAULT", addr: "10.0.20.31", x: 810, y: 270, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "alm", kind: "alarm", net: "security", label: "ALARM", addr: "10.0.20.40", x: 920, y: 270, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "fw2", kind: "gateway", label: "RTR-02 · router", addr: "10.0.20.254 · 10.0.30.1", x: 620, y: 410, accounts: [["admin", "Medium"]], gateway: true, behind: "fw" },
+    { id: "swsv", kind: "sw", net: "servers", label: "SW-SERVERS", addr: "10.0.30.2", x: 780, y: 520, behind: "fw2" },
+    { id: "srv", kind: "pc", net: "servers", label: "FILE-SERVER", addr: "10.0.30.8", x: 920, y: 520, accounts: [["hale", "Strong"]], behind: "fw2" },
   ];
-  const LINKS = [["jack", "swo"], ["swo", "pc1"], ["swo", "pc2"], ["swo", "fw"], ["fw", "sws"], ["sws", "con"], ["sws", "cam"], ["sws", "tur"], ["sws", "alm"], ["sws", "fw2"], ["fw2", "swv"], ["swv", "srv"]];
+  const LINKS = [["jack", "swo"], ["swo", "pc1"], ["swo", "pc2"], ["swo", "fw"], ["fw", "sws"], ["sws", "con"], ["sws", "cam"], ["sws", "swv"],
+    ["swv", "tur"], ["swv", "alm"], ["sws", "fw2"], ["fw2", "swsv"], ["swsv", "srv"]];
   // Logins the Journal already knows, usable from the deck without cracking
   const KNOWN = { pc2: { kbrandt: "Night shift notes" }, con: { dmarsh: "Console audit" } };
   const hacked = (id) => Object.keys(S.cracked).some((k) => k.startsWith(id + "|"));
@@ -367,6 +374,14 @@ input.field:focus { outline: 1px solid var(--teal); }
     const shown = NET.filter(visible);
     const links = LINKS.filter(([a, b]) => visible(pos[a]) && visible(pos[b])).map(([a, b]) =>
       `<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="rgba(77,191,168,0.5)" stroke-width="1.5"/>`).join("");
+    // Subnets: a flat colour-coded rectangle behind each visible subnet, its name and range on top
+    const boxes = Object.entries(SUBNETS).map(([key, sn]) => {
+      const members = shown.filter((n) => n.net === key); if (!members.length) return "";
+      const xs = members.map((n) => n.x), ys = members.map((n) => n.y);
+      const x0 = Math.min(...xs) - 72, x1 = Math.max(...xs) + 72, y0 = Math.min(...ys) - 62, y1 = Math.max(...ys) + 66;
+      return `<g><rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" rx="8" fill="${sn.fill}" stroke="${sn.edge}" stroke-width="1"/>
+        <text x="${x0 + 12}" y="${y0 + 20}" style="font:600 12px var(--font-mono);letter-spacing:0.08em" fill="${sn.text}">${sn.name}</text>
+        <text x="${x0 + 12 + sn.name.length * 8.6 + 10}" y="${y0 + 20}" style="font:12px var(--font-mono)" fill="${sn.text}" opacity="0.75">${sn.range}</text></g>`; }).join("");
     const nodes = shown.map((n) => { const col = n.self ? "var(--self)" : hacked(n.id) ? "var(--amber)" : "var(--online)";
       return `<g class="node" data-node="${n.id}" transform="translate(${n.x},${n.y})"><circle r="24" fill="#061413" stroke="${col}" stroke-width="2"/>
         <g transform="translate(-11,-11)" style="color:${col}">${ICON[n.kind].replace("<svg", '<svg width="22" height="22"')}</g>
@@ -381,14 +396,14 @@ input.field:focus { outline: 1px solid var(--teal); }
         return `<div class="acc"><span>${a} <span class="muted">${s}${known ? "" : est}</span></span>${btn}</div>`; }).join("");
       let extra = "";
       if (n.gateway) extra = hacked(n.id) ? `<p class="muted" style="margin-top:8px;font-size:12px">Hacked: the subnets behind it are on the map.</p>`
-        : `<p class="muted" style="margin-top:8px;font-size:12px">A gateway. Hack it to see what lies behind it; a subnet behind may hide another gateway.${n.id === "fw" ? " It runs the Sentry tracer, which watches both sides." : ""}</p>${S.skill >= 3 ? `<span class="assist">Master: routes to 1 hidden subnet</span>` : ""}`;
+        : `<p class="muted" style="margin-top:8px;font-size:12px">A router between subnets. Hack it to see what lies behind it; a subnet behind may hide another router.${n.tracer ? " It runs the " + n.tracer + ", which watches both sides." : ""}</p>${S.skill >= 3 ? `<span class="assist">Master: routes to 1 hidden subnet</span>` : ""}`;
       if (n.computer && hacked(n.id)) extra += `<div class="btns" style="margin-top:10px"><button type="button" class="btn primary" data-remote="${n.computer}">Open its desktop (remote)</button></div>`;
       if (n.trusts) extra += `<p class="muted" style="margin-top:8px;font-size:12px">No accounts. Trusts ${esc(n.trusts)}: control it from that computer's Security app.</p>`;
-      menu = `<div class="menu" style="left:${Math.min(n.x + 30, 640)}px;top:${Math.min(n.y + 10, 250)}px"><h4>${esc(n.label)}</h4>
+      menu = `<div class="menu" style="left:${Math.min(n.x * 0.97 + 30, 640)}px;top:${Math.min(n.y * 0.78 + 10, 250)}px"><h4>${esc(n.label)}</h4>
         <div class="muted" style="font:12px var(--font-mono);margin-bottom:6px">${esc(n.addr)} · online</div>
         ${n.self ? `<p class="muted" style="font-size:12px">Your entry point.</p>` : `${accts ? `<h3 style="margin-top:8px">Accounts</h3>${accts}` : ""}${extra}`}
       </div>`; }
-    return `<div class="map"><svg viewBox="0 0 980 470">${links}${nodes}</svg>${menu}
+    return `<div class="map"><svg viewBox="0 0 990 600">${boxes}${links}${nodes}</svg>${menu}
       <div style="position:absolute;left:16px;bottom:12px;font:12px var(--font-mono);color:var(--teal-dim)">Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit.</div></div>`;
   }
   function deckRemote() {
@@ -439,12 +454,12 @@ input.field:focus { outline: 1px solid var(--teal); }
     if (d.dev) { S.dev = Number(d.dev); render(); return; }
     if (d.cmd) { command(S.devs[S.dev], d.cmd); render(); return; }
     if (d.tool) { S.tool = d.tool; S.menu = null; S.remote = null; render(); return; }
-    if (d.known) { S.cracked[d.known] = true; toast("Logged in with a login from the Journal"); if (NET.find((q) => q.id === d.known.split("|")[0]).gateway) toast("Gateway hacked: the subnets behind it appear on the map"); render(); return; }
+    if (d.known) { S.cracked[d.known] = true; toast("Logged in with a login from the Journal"); if (NET.find((q) => q.id === d.known.split("|")[0]).gateway) toast("Router hacked: the subnets behind it appear on the map"); render(); return; }
     if (d.remote) { S.remote = d.remote; S.menu = null; S.app = d.remote === "console" ? "security" : "mail"; S.sel = 0; S.dev = 0; render(); return; }
     if (d.act === "unremote") { S.remote = null; render(); return; }
     if (d.node) { S.menu = S.menu === d.node ? null : d.node; render(); return; }
     if (d.crack) { const [id, acc, s] = d.crack.split("|"); const n = NET.find((q) => q.id === id);
-      const pw = { pc1: "Mishka29", pc2: "ferry19", con: "harbor77", fw: "Gh7vQx2e", fw2: "k3epOut9", srv: "Riverside#1" }[id];
+      const pw = { pc1: "Mishka29", pc2: "ferry19", con: "harbor77", fw: "Gh7vQx2e", fw2: "k3epOut9", srv: "Riverside#1" }[id] || "s3cret";
       S.ice = { node: id, account: acc, host: n.label.split(" ")[0], strength: s, password: pw, p: 0, locked: 0, run: true, done: false }; S.tool = "ice"; S.menu = null; render(); return; }
     if (d.act === "run" && S.ice) { S.ice.run = true; render(); return; }
     if (d.act === "stop" && S.ice) { S.ice.run = false; render(); return; }
@@ -472,7 +487,7 @@ input.field:focus { outline: 1px solid var(--teal); }
       const total = BASE[I.strength] * MULT[S.skill]; I.p = Math.min(1, I.p + dt / total);
       I.locked = Math.floor(I.p * I.password.length); addTrace(4 * dt / [1, 0.8, 0.6, 0.4][S.skill] * [1, 0.8, 0.6, 0.4][S.skill]);
       if (I.p >= 1) { I.done = true; I.run = false; I.locked = I.password.length; S.cracked[I.node + "|" + I.account] = true;
-        toast(NET.find((q) => q.id === I.node).gateway ? "Gateway hacked: the subnets behind it appear on the map" : `Cracked ${I.account}: added to the Journal`); }
+        toast(NET.find((q) => q.id === I.node).gateway ? "Router hacked: the subnets behind it appear on the map" : `Cracked ${I.account}: added to the Journal`); }
       dirty = true;
     } else if (S.trace > 0 && now - S.lastGain > 2000) { S.trace = Math.max(0, S.trace - 10 * dt); dirty = true; }
     if (dirty && !document.activeElement?.matches?.("input")) render();
