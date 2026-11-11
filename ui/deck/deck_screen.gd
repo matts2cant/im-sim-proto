@@ -10,11 +10,11 @@ extends CanvasLayer
 ## - Tools on the left: Map, Icebreaker; Exploits, Firewall and Logs greyed (M12b).
 ## - Map: NetworkGraph of DeckSession.map_devices() (amber: an account, grey: out of reach); a node's
 ##   menu: address and status, its accounts (access / "Log in (from <note>)" / Icebreaker / "too
-##   strong"), a gateway's note, "Open its desktop (remote)" on a computer with an account, its
+##   strong"), a router's note, "Open its desktop (remote)" on a computer with an account, its
 ##   commands with an account, else who it trusts. Drag pans, the wheel zooms, F fits.
 ## - Icebreaker: the picked account's letters locking in, the progress bar, Start / Stop / Resume.
 ## - Skill assists (Icebreaker.assist()): Trained crack times and time left; Advanced + the trace an
-##   action adds; Master + how many hidden subnets a gateway routes to.
+##   action adds; Master + how many hidden subnets a router routes to.
 ## - A remote desktop (DeckSession.open_remote()): the user's ComputerScreen draws it over the deck's
 ##   content area (ComputerScreen.set_remote_area() with that area's anchors); its Esc and "Back to
 ##   the map" close it (the deck leaves that Esc to it) and the Map shows again.
@@ -479,11 +479,11 @@ func _build_menu(row: NetworkRow, column: VBoxContainer) -> void:
 		column.add_child(DeckStyle.mono("ACCOUNTS", DeckStyle.DIM_COLOR, 11))
 		for each in accounts.accounts:
 			column.add_child(_account_row(device, accounts, each, assist))
-	var gateway := Gateway.of(device.entity)
-	if gateway != null:
+	var router := Router.of(device.entity)
+	if router != null:
 		var note := "Hacked: the subnets behind it are on the map."
 		if not row.access:
-			note = "A gateway. Hack it to see what lies behind it; a subnet behind may hide another gateway."
+			note = "A router between subnets. Hack it to see what lies behind it; a subnet behind may hide another router."
 		column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
 		if assist >= Icebreaker.ASSIST_ROUTES and not row.access:
 			var routes := session.hidden_routes(device)

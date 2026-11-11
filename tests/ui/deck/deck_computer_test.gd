@@ -51,7 +51,7 @@ func _plug_with_access() -> void:
 	_player.inventory.hold(stack)
 	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
 	await _driver.frames(2)
-	DeviceAccounts.of(_lab.node("Fw01")).grant(_player, "admin")
+	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
 	DeviceAccounts.of(_lab.node("Console")).grant(_player, "dmarsh")
 	_session.plug_and_raise(_lab.device("Jack"))
 	# Scans of the office and security subnets (2 s each, at once).

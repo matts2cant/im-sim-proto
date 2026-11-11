@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Network lab (gallery room 8, design/levels/hub-and-gallery.md "8 Network lab"), the Office
 ## stations with the real Player in the room fixture (fixtures/lab_player.tscn): the deck from the
-## entrance table plugs into the wall jack with LMB and its Map shows the Office subnet and FW-01
+## entrance table plugs into the wall jack with LMB and its Map shows the Office subnet and RTR-01
 ## only; the sticky note's login opens Office PC 1 bare-handed (Fill in) and its mail is an implicit
 ## clue (nothing learned); PC 2 takes the guess from that mail and the photo (a wrong guess adds the
 ## Sentry tracer's failed-login trace) and its mail teaches the security console's login.
@@ -30,7 +30,7 @@ func after_test() -> void:
 	StimulusSystem.clear()
 
 
-func test_the_deck_from_the_table_plugs_into_the_jack_and_maps_the_office_and_fw01() -> void:
+func test_the_deck_from_the_table_plugs_into_the_jack_and_maps_the_office_and_rtr01() -> void:
 	assert_bool(await _lab.take_deck()).is_true()
 	await _lab.click(Helpers.AT_JACK, "Devices/Jack")
 	var session := DeckSession.of(_lab.player)
@@ -42,7 +42,7 @@ func test_the_deck_from_the_table_plugs_into_the_jack_and_maps_the_office_and_fw
 	var screen := DeckScreen.of(_lab.player)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains_exactly_in_any_order(
-		["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC1", "OFFICE-PC2", "FW-01"]
+		["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC1", "OFFICE-PC2", "RTR-01"]
 	)
 	assert_float(_lab.tracer().trace_of(_lab.player)).is_greater(0.0)
 

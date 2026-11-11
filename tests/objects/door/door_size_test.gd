@@ -90,7 +90,7 @@ func test_a_barred_gate_stops_bodies_but_not_sight_or_noise() -> void:
 	assert_bool(_clear(space, Vector3(between, 1.65, 3), Vector3(between, 1.65, -3))).is_true()
 	assert_bool(_clear(space, Vector3(first_bar, 1.65, 3), Vector3(first_bar, 1.65, -3))).is_false()
 	assert_bool(_clear(space, Vector3(between, 0.31, 3), Vector3(between, 0.31, -3))).is_false()
-	# A standing body (player capsule) in the gateway touches the bars.
+	# A standing body (player capsule) in the gate opening touches the bars.
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.35
 	capsule.height = 1.7

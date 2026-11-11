@@ -2,10 +2,10 @@ extends Node
 ## Screenshot helper (not a test, ADR 0113): the deck's screen in the lab fixture (deck_lab.tscn),
 ## plugged into the wall jack. The shot named by the SHOT environment variable is saved (UI
 ## included) to SHOT_PATH (default reports/screenshots/deck_<shot>.png), then it quits.
-## Shots: map_start (the office subnet and its gateway; nothing behind it), map_hacked (gateway Fw01
-## hacked: the security subnet and the second gateway Fw02 show), map_chained (Fw02 hacked too: the
-## servers), menu (Advanced: the console's menu with crack time and trace estimates), menu_gateway
-## (Master: Fw02's menu with its hidden routes), ice_trained / ice_advanced (the Icebreaker part way
+## Shots: map_start (the office subnet and its router; nothing behind it), map_hacked (router Rtr01
+## hacked: the security subnet and the second router Rtr02 show), map_chained (Rtr02 hacked too: the
+## servers), menu (Advanced: the console's menu with crack time and trace estimates), menu_router
+## (Master: Rtr02's menu with its hidden routes), ice_trained / ice_advanced (the Icebreaker part way
 ## through the console's Medium password, with that tier's assists), full_trace (the tracer full: the
 ## address blocked, the incident sent, the console's menu says so), remote (the console's desktop
 ## opened from the Map over the deck, its Security app on the camera), login_trace (the console
@@ -21,7 +21,7 @@ const TIERS: Dictionary[String, int] = {
 	"map_hacked": 1,
 	"map_chained": 1,
 	"menu": 2,
-	"menu_gateway": 3,
+	"menu_router": 3,
 	"ice_trained": 1,
 	"ice_advanced": 2,
 	"full_trace": 1,
@@ -79,11 +79,11 @@ func _ready() -> void:
 
 func _stage() -> void:
 	if _shot != "map_start":
-		DeviceAccounts.of(_lab.node("Fw01")).grant(_player, "admin")
+		DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
 	_session.refresh()
 	await _seconds(0.4)
 	if _shot == "map_chained":
-		DeviceAccounts.of(_lab.node("Fw02")).grant(_player, "admin")
+		DeviceAccounts.of(_lab.node("Rtr02")).grant(_player, "admin")
 		DeviceAccounts.of(_lab.node("OfficePc")).grant(_player, "kbrandt")
 		_session.refresh()
 		await _seconds(0.4)
@@ -113,8 +113,8 @@ func _stage() -> void:
 			_screen.refresh_computer_traces()
 		"menu":
 			_screen.graph.select("SEC-CONSOLE")
-		"menu_gateway":
-			_screen.graph.select("FW-02")
+		"menu_router":
+			_screen.graph.select("RTR-02")
 		"ice_trained", "ice_advanced":
 			_ice.start(_lab.device("Console"), "dmarsh")
 			_ice.job.progress = 0.4

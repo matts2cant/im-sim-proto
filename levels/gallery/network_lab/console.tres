@@ -10,15 +10,15 @@ title = "Closet"
 sender = "M. Ortiz"
 text = "The spare biocells are in the closet under the camera. Its door has an electronic lock, fail-secure: open it from the Security app. Cut the closet switch's breaker and it stays shut."
 
-[sub_resource type="Resource" id="File_fw02"]
+[sub_resource type="Resource" id="File_rtr02"]
 script = ExtResource("2_document")
-id = &"gallery.network_lab.console_file_fw02"
-title = "fw02.txt"
-text = "FW-02 (10.0.20.1) is the gateway from Security to the server subnet. Admin login: admin / k3epOut9."
-codes = Dictionary[StringName, String]({&"network_lab_fw02": "admin:k3epOut9"})
-code_labels = Dictionary[StringName, String]({&"network_lab_fw02": "FW-02 login"})
+id = &"gallery.network_lab.console_file_rtr02"
+title = "rtr02.txt"
+text = "RTR-02 (10.0.20.1) is the router from Security to the server subnet. Admin login: admin / k3epOut9."
+codes = Dictionary[StringName, String]({&"network_lab_rtr02": "admin:k3epOut9"})
+code_labels = Dictionary[StringName, String]({&"network_lab_rtr02": "RTR-02 login"})
 
 [resource]
 script = ExtResource("1_data")
 mail = Array[ExtResource("2_document")]([SubResource("Mail_closet")])
-files = Array[ExtResource("2_document")]([SubResource("File_fw02")])
+files = Array[ExtResource("2_document")]([SubResource("File_rtr02")])

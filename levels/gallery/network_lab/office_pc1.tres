@@ -20,7 +20,7 @@ script = ExtResource("2_document")
 id = &"gallery.network_lab.pc1_mail_network"
 title = "Office network"
 sender = "IT"
-text = "PC 1 and PC 2 are on the Office subnet (10.0.10.0/24), behind the gateway FW-01. FW-01 runs the Sentry tracer: wrong passwords, scans and cracking tools on office or security machines add trace, and a full trace locks the address out."
+text = "PC 1 and PC 2 are on the Office subnet (10.0.10.0/24), behind the router RTR-01. RTR-01 runs the Sentry tracer: wrong passwords, scans and cracking tools on office or security machines add trace, and a full trace locks the address out."
 
 [resource]
 script = ExtResource("1_data")

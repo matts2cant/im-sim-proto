@@ -178,7 +178,7 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 
 # The deck's Map of the console's whole network (ADR 0099, network_map_checks.gd): boxes apart, no cable
 # under a box, every node shown when fitted, deterministic; six groups (one per switch: the main one,
-# the security room, the vault, the yard, the roof and, through FW-01, the office; M12a). Known
+# the security room, the vault, the yard, the roof and, through RTR-01, the office; M12a). Known
 # layout limit (open question for the deck's Map, M12a levels report): the main switch's cables to
 # four area switches in the other row share lanes and cross (MAP_CROSSINGS), and the fitted zoom of
 # this 45-device network in the old 1050 x 440 panel drops to about 0.68 (the deck's panel is larger;

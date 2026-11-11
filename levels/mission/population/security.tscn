@@ -31,7 +31,7 @@
 [ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc1.tres" id="42_pc1_data"]
 [ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc2.tres" id="43_pc2_data"]
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="44_wall_jack"]
-[ext_resource type="PackedScene" path="res://objects/network/gateway.tscn" id="45_gateway"]
+[ext_resource type="PackedScene" path="res://objects/network/router.tscn" id="45_router"]
 [ext_resource type="Script" path="res://objects/network/tracer.gd" id="46_tracer"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
@@ -50,7 +50,7 @@ script = ExtResource("40_account")
 user = "kbrandt"
 password = "ferry19"
 
-[sub_resource type="Resource" id="Account_fw01"]
+[sub_resource type="Resource" id="Account_rtr01"]
 script = ExtResource("40_account")
 user = "admin"
 password = "Rk4vTq8z"
@@ -793,23 +793,23 @@ links = Array[NodePath]([NodePath("../../OfficeWallJack"), NodePath("../../Offic
 address = "10.0.10.2"
 subnet = &"office"
 
-[node name="Fw01" parent="Network" instance=ExtResource("45_gateway")]
+[node name="Rtr01" parent="Network" instance=ExtResource("45_router")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 7.05)
-metadata/display_name = "FW-01"
+metadata/display_name = "RTR-01"
 
-[node name="Powered" parent="Network/Fw01"]
+[node name="Powered" parent="Network/Rtr01"]
 circuit = &"warehouse_building"
 
-[node name="Device" parent="Network/Fw01"]
+[node name="Device" parent="Network/Rtr01"]
 links = Array[NodePath]([NodePath("../../OfficeSwitch"), NodePath("../../../Devices/SecuritySwitch")])
 address = "10.0.10.1"
 subnet = &"office"
 
-[node name="DeviceAccounts" parent="Network/Fw01"]
-accounts = Array[ExtResource("40_account")]([SubResource("Account_fw01")])
-credentials_id = &"warehouse_fw01"
+[node name="DeviceAccounts" parent="Network/Rtr01"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr01")])
+credentials_id = &"warehouse_rtr01"
 
-[node name="Tracer" type="Node" parent="Network/Fw01"]
+[node name="Tracer" type="Node" parent="Network/Rtr01"]
 script = ExtResource("46_tracer")
 label = "Sentry tracer"
 watched = Array[StringName]([&"office", &"security"])

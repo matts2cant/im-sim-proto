@@ -8,7 +8,7 @@ extends Node3D
 ## first; `off` circuits switched off; `computer` that computer (a path under Devices/) opened on its
 ## desktop as its first account, on `app` (security, mail or files) with `select` selected; `deck`
 ## plugs a deck into that device (a path under Devices/) and raises its Map, `hack` grants those
-## gateways' first account first, `menu` opens that device's menu (its display name). States last
+## routers' first account first, `menu` opens that device's menu (its display name). States last
 ## for the rest of the run: put such shots last.
 
 const SHOT_SIZE := Vector2i(1152, 648)
@@ -27,7 +27,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"jack": {"feet": Vector3(-0.6, 0, -6), "look": Vector3(-2, 0.6, -6)},
 	"office_pc1": {"feet": Vector3(-0.4, 0, -8.5), "look": Vector3(-2, 1.3, -8.5)},
 	"office_pc2": {"feet": Vector3(-0.4, 0, -12), "look": Vector3(-2, 1.3, -12)},
-	"fw01": {"feet": Vector3(0.0, 0, -15.0), "look": Vector3(-2, 1.7, -15.4)},
+	"rtr01": {"feet": Vector3(0.0, 0, -15.0), "look": Vector3(-2, 1.7, -15.4)},
 	"security_corner": {"feet": Vector3(0.6, 0, -15.6), "look": Vector3(0.2, 1.6, -18)},
 	"console": {"feet": Vector3(2.6, 0, -16.2), "look": Vector3(2.6, 1.4, -18)},
 	"closet_door": {"feet": Vector3(5.85, 0, -15.6), "look": Vector3(5.85, 1.8, -18.25)},
@@ -52,9 +52,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"select": "Closet Camera",
 	},
 	"deck_map_start": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack"},
-	"deck_map_fw01": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Fw01"]},
+	"deck_map_rtr01": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01"]},
 	"deck_map_chained":
-	{"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Fw01", "Fw02"]},
+	{"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01", "Rtr02"]},
 	"switch_off_console":
 	{
 		"feet": Vector3(2.6, 0, -16.9),
@@ -184,13 +184,13 @@ func _open_computer() -> void:
 			screen.security_app.select(select)
 
 
-# Gives the player a deck, holds it and plugs it into the shot's device; grants the `hack` gateways.
+# Gives the player a deck, holds it and plugs it into the shot's device; grants the `hack` routers.
 func _plug_deck() -> void:
 	var session := DeckSession.of(_player)
 	session.config = session.config.duplicate() as DeckConfig
 	session.config.scan_time = 0.1
-	for gateway: String in _shot.get("hack", []):
-		var accounts := DeviceAccounts.of(_lab.get_node("Devices/" + gateway))
+	for router: String in _shot.get("hack", []):
+		var accounts := DeviceAccounts.of(_lab.get_node("Devices/" + router))
 		accounts.grant(_player, accounts.accounts[0].user)
 	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
 		_player.inventory.give(DECK, 1)

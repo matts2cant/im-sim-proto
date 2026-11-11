@@ -7,7 +7,7 @@ extends RefCounted
 ## Security app, a mail's subject or a file's name). Before a shot, `off` turns those circuits off
 ## and `disable` sends `command.disable` to those devices (both last for the rest of the run: put
 ## such shots last). `deck` (M12a): a deck plugged into that device, its Map shown (`hack`: those
-## gateways hacked first; the access lasts for the rest of the run).
+## routers hacked first; the access lasts for the rest of the run).
 
 const DEVICES := "Population/Security/Devices/"
 const NETWORK := "Population/Security/Network/"
@@ -125,8 +125,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"look": Vector3(14.5, 5.95, 14.74),
 		"computer": NETWORK + "OfficePc1",
 	},
-	# M12a network: the office wall jack, the network closet in the basement store (FW-01 between the
-	# office and security switches), the deck's Map from the jack before and after hacking FW-01.
+	# M12a network: the office wall jack, the network closet in the basement store (RTR-01 between the
+	# office and security switches), the deck's Map from the jack before and after hacking RTR-01.
 	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
 	"network_closet": {"feet": Vector3(17.0, -4, 7.0), "look": Vector3(19.49, -2.5, 7.0)},
 	# The Security subnet's area switches (a subnet can span several switches).
@@ -145,7 +145,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(18.9, 4.5, 10),
 		"look": Vector3(19.74, 4.9, 10),
 		"deck": NETWORK + "OfficeWallJack",
-		"hack": [NETWORK + "Fw01"],
+		"hack": [NETWORK + "Rtr01"],
 		"wait": 3.0,
 	},
 	# Breaker A's circuit off (the yard devices unreachable: grey) and the hall camera disabled (red).

@@ -7,7 +7,7 @@
 script = ExtResource("2_document")
 id = &"gallery.network_lab.server_file_done"
 title = "well_done.txt"
-text = "You reached the server subnet: the office jack, FW-01, the Security subnet, FW-02. Each gateway hides what lies behind it until you hold an account on it. In the warehouse, FW-01's admin password is Medium: the Icebreaker needs Trained Computer for it."
+text = "You reached the server subnet: the office jack, RTR-01, the Security subnet, RTR-02. Each router hides what lies behind it until you hold an account on it. In the warehouse, RTR-01's admin password is Medium: the Icebreaker needs Trained Computer for it."
 
 [resource]
 script = ExtResource("1_data")

@@ -97,7 +97,7 @@ In the gallery: the security wing's laser hall behind closet D1 has a low one-be
 [ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md), player-facing rules in [hacking.md](hacking.md):
 
 - **Addresses and subnets** are `Device` exports (`address`, `subnet`); a device without a subnet takes the subnet of a cabled device that names one (its switch). Levels without network data stay one open network, as in M8.
-- **Gateways** (`objects/network/gateway.tscn`: `Gateway` + `DeviceAccounts`) sit between subnets: their ordered rules first, else devices' traffic passes (cameras still report to a controller behind a gateway) and a user's only once that user has an account on the gateway.
+- **Routers** (`objects/network/router.tscn`: `Router` + `DeviceAccounts`) sit between subnets: their ordered rules first, else devices' traffic passes (cameras still report to a controller behind a router) and a user's only once that user has an account on the router.
 - **Trust**: a device's `trusted` list names the devices allowed to command it (a camera trusting the security console); without a list any device that reaches it may (M8). A session on the device itself (the deck with an account on it) may too. Incidents are reports: trust does not stop them.
 - **Ports**: a wall jack (`objects/network/wall_jack.tscn`, `deck_port` JACK) puts the deck on its subnet; an autonomous device (no cables) has a maintenance port (the deck reaches that device only); a computer lends the deck its address.
 - **DeviceSwitch** (`objects/devices/device_switch.gd`): `command.disable` / `enable` for devices without a switch of their own (panic buttons, radio base stations), status enabled / disabled, saved.

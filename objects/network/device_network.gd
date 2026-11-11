@@ -5,14 +5,14 @@ extends RefCounted
 
 
 ## `device`'s subnet: its own `subnet`, else the first cabled device's that names one (a switch,
-## not a gateway), else &"" (the implicit subnet of a level without network data).
+## not a router), else &"" (the implicit subnet of a level without network data).
 static func subnet_of(device: Device) -> StringName:
 	if device == null or not is_instance_valid(device):
 		return &""
 	if not device.subnet.is_empty():
 		return device.subnet
 	for other in cabled(device):
-		if not other.subnet.is_empty() and Gateway.of(other.entity) == null:
+		if not other.subnet.is_empty() and Router.of(other.entity) == null:
 			return other.subnet
 	return &""
 

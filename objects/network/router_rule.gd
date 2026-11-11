@@ -1,7 +1,7 @@
-class_name GatewayRule
+class_name RouterRule
 extends Resource
-## One firewall rule of a Gateway (ADR 0074, 0113): traffic from `from` to `to` is allowed or denied.
-## A gateway's rules are an ordered list; the first that matches wins. From: any, a subnet, a device
+## One firewall rule of a Router (ADR 0074, 0113): traffic from `from` to `to` is allowed or denied.
+## A router's rules are an ordered list; the first that matches wins. From: any, a subnet, a device
 ## (its entity's node name or its address) or "you" (traffic a user sends: the deck). To: any, a
 ## subnet or a device (the traffic's final destination). M12a only reads them; the Firewall tool
 ## (M12b) edits them.
@@ -16,8 +16,8 @@ enum Match { ANY, SUBNET, DEVICE, YOU }
 @export var allow: bool = true
 
 
-static func make(p_from_kind: Match, p_from: String, p_to_kind: Match, p_to: String, p_allow: bool) -> GatewayRule:
-	var rule := GatewayRule.new()
+static func make(p_from_kind: Match, p_from: String, p_to_kind: Match, p_to: String, p_allow: bool) -> RouterRule:
+	var rule := RouterRule.new()
 	rule.from_kind = p_from_kind
 	rule.from = p_from
 	rule.to_kind = p_to_kind
@@ -35,7 +35,7 @@ func to_dict() -> Dictionary:
 	return {"from_kind": int(from_kind), "from": from, "to_kind": int(to_kind), "to": to, "allow": allow}
 
 
-static func from_dict(data: Dictionary) -> GatewayRule:
+static func from_dict(data: Dictionary) -> RouterRule:
 	return make(
 		int(data.get("from_kind", 0)) as Match,
 		str(data.get("from", "")),

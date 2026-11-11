@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0113): reach on the lab network (network_fixtures.gd) built from components.
-## A deck's traffic (NetworkSource) reaches its own subnet and the gateway in front of it; a gateway
+## A deck's traffic (NetworkSource) reaches its own subnet and the router in front of it; a router
 ## lets a user's traffic through only once the user has an account on it (hidden, then revealed,
-## then chained); devices' own traffic passes gateways by default; a gateway's rules come first; a
+## then chained); devices' own traffic passes routers by default; a router's rules come first; a
 ## maintenance port reaches its device only; power cuts and breaking cut reach as before; a trust
 ## list limits who may command a device.
 
@@ -47,27 +47,27 @@ func test_subnets_come_from_the_switch_a_device_hangs_on() -> void:
 	assert_str(String(DeviceNetwork.subnet_of(_dev("OfficePc")))).is_equal("office")
 	assert_str(String(DeviceNetwork.subnet_of(_dev("Console")))).is_equal("security")
 	assert_str(String(DeviceNetwork.subnet_of(_dev("FileServer")))).is_equal("servers")
-	# A gateway names its own side.
-	assert_str(String(DeviceNetwork.subnet_of(_dev("Fw01")))).is_equal("office")
-	assert_array(Array(Gateway.of(_n["Fw01"]).subnets())).contains_exactly_in_any_order([&"office", &"security"])
+	# A router names its own side.
+	assert_str(String(DeviceNetwork.subnet_of(_dev("Rtr01")))).is_equal("office")
+	assert_array(Array(Router.of(_n["Rtr01"]).subnets())).contains_exactly_in_any_order([&"office", &"security"])
 
 
-func test_a_jack_reaches_its_subnet_and_its_gateway_only() -> void:
+func test_a_jack_reaches_its_subnet_and_its_router_only() -> void:
 	var source := _jack()
 	assert_str(source.address).is_equal("10.0.10.40")
 	assert_str(String(source.subnet)).is_equal("office")
 	var reached := _names(source.reached(get_tree()))
-	assert_array(reached).contains_exactly_in_any_order(["Jack", "OfficeSwitch", "OfficePc", "Fw01"])
+	assert_array(reached).contains_exactly_in_any_order(["Jack", "OfficeSwitch", "OfficePc", "Rtr01"])
 	assert_bool(source.reaches(get_tree(), _dev("Console"))).is_false()
 
 
-func test_hacking_a_gateway_reveals_what_is_behind_it_and_chains() -> void:
-	DeviceAccounts.of(_n["Fw01"]).grant(_user, "admin")
+func test_hacking_a_router_reveals_what_is_behind_it_and_chains() -> void:
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	var reached := _names(_jack().reached(get_tree()))
-	assert_array(reached).contains(["SecuritySwitch", "Console", "Camera", "Alarm", "Fw02"])
+	assert_array(reached).contains(["SecuritySwitch", "Console", "Camera", "Alarm", "Rtr02"])
 	assert_bool(reached.has("FileServer")).is_false()
-	# The second gateway, inside the revealed subnet, hides the servers until it is hacked too.
-	DeviceAccounts.of(_n["Fw02"]).grant(_user, "admin")
+	# The second router, inside the revealed subnet, hides the servers until it is hacked too.
+	DeviceAccounts.of(_n["Rtr02"]).grant(_user, "admin")
 	assert_bool(_jack().reaches(get_tree(), _dev("FileServer"))).is_true()
 	# Another user has hacked nothing.
 	var other := Net.user(_root, ORIGIN + Vector3(0, 0, 2))
@@ -79,36 +79,36 @@ func test_hacking_a_gateway_reveals_what_is_behind_it_and_chains() -> void:
 	)
 
 
-func test_devices_traffic_crosses_gateways_by_default() -> void:
-	# The gateway's tracer reports to the alarm controller behind it; the console reaches the camera.
-	assert_bool(_dev("Fw01").reaches(_dev("Alarm"))).is_true()
+func test_devices_traffic_crosses_routers_by_default() -> void:
+	# The router's tracer reports to the alarm controller behind it; the console reaches the camera.
+	assert_bool(_dev("Rtr01").reaches(_dev("Alarm"))).is_true()
 	assert_bool(_dev("OfficePc").reaches(_dev("FileServer"))).is_true()
-	Gateway.of(_n["Fw02"]).default_allow = false
+	Router.of(_n["Rtr02"]).default_allow = false
 	assert_bool(_dev("OfficePc").reaches(_dev("FileServer"))).is_false()
-	assert_bool(_dev("Fw02").reaches(_dev("FileServer"))).is_true()
+	assert_bool(_dev("Rtr02").reaches(_dev("FileServer"))).is_true()
 
 
 func test_rules_come_first_and_the_first_match_wins() -> void:
-	var gateway := Gateway.of(_n["Fw01"])
-	DeviceAccounts.of(_n["Fw01"]).grant(_user, "admin")
-	gateway.rules = [
-		GatewayRule.make(GatewayRule.Match.YOU, "", GatewayRule.Match.DEVICE, "Console", false),
-		GatewayRule.make(GatewayRule.Match.ANY, "", GatewayRule.Match.SUBNET, "security", true),
+	var router := Router.of(_n["Rtr01"])
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
+	router.rules = [
+		RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.DEVICE, "Console", false),
+		RouterRule.make(RouterRule.Match.ANY, "", RouterRule.Match.SUBNET, "security", true),
 	]
 	# Hacked, but a rule denies "you" the console; the rest of the subnet is allowed.
 	assert_bool(_jack().reaches(get_tree(), _dev("Console"))).is_false()
 	assert_bool(_jack().reaches(get_tree(), _dev("Camera"))).is_true()
 	# A device rule matches by name or address.
-	gateway.rules = [GatewayRule.make(GatewayRule.Match.DEVICE, "10.0.10.12", GatewayRule.Match.ANY, "", false)]
+	router.rules = [RouterRule.make(RouterRule.Match.DEVICE, "10.0.10.12", RouterRule.Match.ANY, "", false)]
 	assert_bool(_dev("OfficePc").reaches(_dev("Console"))).is_false()
 	assert_bool(_dev("OfficeSwitch").reaches(_dev("Console"))).is_true()
-	# Saved and loaded with the gateway.
-	var saved := gateway.save_state()
-	gateway.rules = []
-	gateway.load_state(saved)
-	assert_int(gateway.rules.size()).is_equal(1)
-	assert_str(gateway.rules[0].from).is_equal("10.0.10.12")
-	assert_bool(gateway.rules[0].allow).is_false()
+	# Saved and loaded with the router.
+	var saved := router.save_state()
+	router.rules = []
+	router.load_state(saved)
+	assert_int(router.rules.size()).is_equal(1)
+	assert_str(router.rules[0].from).is_equal("10.0.10.12")
+	assert_bool(router.rules[0].allow).is_false()
 
 
 func test_a_maintenance_port_reaches_its_device_only() -> void:
@@ -125,14 +125,14 @@ func test_a_computer_lends_its_address_and_its_reach() -> void:
 	var host := NetworkSource.for_user(_user, _dev("OfficePc"), NetworkSource.Kind.HOST)
 	assert_str(host.address).is_equal("10.0.10.12")
 	var reached := _names(host.reached(get_tree()))
-	assert_array(reached).contains(["OfficePc", "OfficeSwitch", "Jack", "Fw01"])
-	# Its own traffic crosses the gateway, the user's does not.
+	assert_array(reached).contains(["OfficePc", "OfficeSwitch", "Jack", "Rtr01"])
+	# Its own traffic crosses the router, the user's does not.
 	assert_bool(_dev("OfficePc").reaches(_dev("Console"))).is_true()
 	assert_bool(host.reaches(get_tree(), _dev("Console"))).is_false()
 
 
 func test_power_cuts_and_breaking_cut_reach_behind_them() -> void:
-	DeviceAccounts.of(_n["Fw01"]).grant(_user, "admin")
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	Powered.of(_n["SecuritySwitch"]).on = false
 	var source := _jack()
 	assert_bool(source.reaches(get_tree(), _dev("Console"))).is_false()
@@ -140,7 +140,7 @@ func test_power_cuts_and_breaking_cut_reach_behind_them() -> void:
 	assert_bool(_names(source.connected(get_tree())).has("SecuritySwitch")).is_true()
 	assert_bool(_names(source.connected(get_tree())).has("Console")).is_false()
 	Powered.of(_n["SecuritySwitch"]).on = true
-	Breakable.of(_n["Fw01"]).take_damage(&"damage.ballistic", 100.0)
+	Breakable.of(_n["Rtr01"]).take_damage(&"damage.ballistic", 100.0)
 	assert_bool(source.reaches(get_tree(), _dev("Console"))).is_false()
 	assert_bool(source.reaches(get_tree(), _dev("OfficePc"))).is_true()
 
@@ -157,7 +157,7 @@ func test_a_trust_list_limits_who_commands_a_device() -> void:
 	assert_str(" ".join(DeviceStatus.of(_n["Camera"], true))).is_equal("online disabled")
 	# Incidents are reports, not commands: a trust list does not stop them.
 	Device.of(_n["Alarm"]).trusted.append(Device.of(_n["Alarm"]).get_path_to(_n["Console"]))
-	assert_int(_dev("Fw01").report_incident(ORIGIN)).is_equal(1)
+	assert_int(_dev("Rtr01").report_incident(ORIGIN)).is_equal(1)
 
 
 func test_a_level_without_network_data_keeps_one_open_network() -> void:

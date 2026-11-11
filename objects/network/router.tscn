@@ -12,7 +12,7 @@
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
 [ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
-[ext_resource type="Script" path="res://objects/network/gateway.gd" id="13_gateway"]
+[ext_resource type="Script" path="res://objects/network/router.gd" id="13_router"]
 [ext_resource type="Script" path="res://objects/network/device_accounts.gd" id="14_accounts"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
@@ -26,7 +26,7 @@ size = Vector3(0.48, 0.3, 0.28)
 material = ExtResource("12_led")
 size = Vector3(0.12, 0.025, 0.01)
 
-[node name="Gateway" type="StaticBody3D"]
+[node name="Router" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
@@ -44,7 +44,7 @@ mesh = SubResource("Mesh_leds")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
-initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.gateway"])
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.router"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("2_attributes")
@@ -71,8 +71,8 @@ targets = Array[NodePath]([NodePath("../Indicator")])
 script = ExtResource("10_device")
 broken_hide = Array[NodePath]([NodePath("../Indicator")])
 
-[node name="GatewayRules" type="Node" parent="."]
-script = ExtResource("13_gateway")
+[node name="Router" type="Node" parent="."]
+script = ExtResource("13_router")
 
 [node name="DeviceAccounts" type="Node" parent="."]
 script = ExtResource("14_accounts")

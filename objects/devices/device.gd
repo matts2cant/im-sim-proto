@@ -20,7 +20,7 @@ extends Node
 ##   device this one reaches that accepts it (alarm controllers).
 ## - Network (M12a, ADR 0113): `address` and `subnet` (empty: the subnet of a cabled device that
 ##   names one, else the implicit &"" every level without network data is on); a device with a
-##   Gateway component is a gate between subnets (DeviceGraph): it lets a device's traffic through by
+##   Router component is a gate between subnets (DeviceGraph): it lets a device's traffic through by
 ##   its rules (default allow) and a user's (the deck) only once that user has an account on it.
 ##   `trusted`: the devices allowed to command this one (empty: any device that reaches it, M8's
 ##   behaviour); incidents are reports, not commands, and ignore it.
@@ -140,7 +140,7 @@ static func all(tree: SceneTree) -> Array[Device]:
 	return found
 
 
-## The reach graph of every device in `tree` (ids: Device instance ids), with subnets and gateways.
+## The reach graph of every device in `tree` (ids: Device instance ids), with subnets and routers.
 ## `source`: the user traffic comes from (a deck, ADR 0113): its start node (source.start_id())
 ## speaks with its user's rights at the gates; a deck on a wall jack is a node of its own (DECK_NODE)
 ## cabled to the jack. Without a source every node speaks for its own device.
@@ -150,9 +150,9 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 	for device in devices:
 		var id := device.get_instance_id()
 		result.add_node(id, device.is_up())
-		var gateway := Gateway.of(device.entity)
-		if gateway != null:
-			result.set_gate(id, Device._gate(gateway, source, result))
+		var router := Router.of(device.entity)
+		if router != null:
+			result.set_gate(id, Device._gate(router, source, result))
 	for device in devices:
 		for other in device.linked():
 			result.link(device.get_instance_id(), other.get_instance_id())
@@ -173,9 +173,9 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 	return result
 
 
-# The gate of `gateway`: Gateway.passes() for the traffic's source (the user's at the source's start
+# The gate of `router`: Router.passes() for the traffic's source (the user's at the source's start
 # node, else the sending device's) and its final destination.
-static func _gate(gateway: Gateway, source: NetworkSource, network: DeviceGraph) -> Callable:
+static func _gate(router: Router, source: NetworkSource, network: DeviceGraph) -> Callable:
 	var senders: Dictionary[int, NetworkSource] = {}
 	return func(from: int, to: int) -> bool:
 		var sender := source if source != null and from == source.start_id() else null
@@ -184,7 +184,7 @@ static func _gate(gateway: Gateway, source: NetworkSource, network: DeviceGraph)
 		if sender == null:
 			sender = NetworkSource.of_device(instance_from_id(from) as Device, network.subnet_of(from))
 			senders[from] = sender
-		return gateway.passes(sender, instance_from_id(to) as Device)
+		return router.passes(sender, instance_from_id(to) as Device)
 
 
 ## Tool interface (ToolUse): a deck plugs in when this device has a port for it.

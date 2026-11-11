@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0113): a DeckSession and its IcebreakerTool on a minimal user entity (no player:
 ## network_fixtures.gd user()) plugged into the lab network. Discovery: the own subnet after a 2 s
-## scan (+10 % on the tracer watching it), the gateway at once, the subnets behind it hidden until it
+## scan (+10 % on the tracer watching it), the router at once, the subnets behind it hidden until it
 ## is hacked, then chained; seen devices stay on the map when out of reach. The Icebreaker: a crack
 ## gives the account and is learned into the PersonalLog (the Journal lists it); stopping keeps the
 ## progress on the deck, resuming continues, a changed password starts over; a lockout stops it.
@@ -48,7 +48,7 @@ func _map() -> Array[String]:
 
 
 func _tracer() -> Tracer:
-	return _n["Fw01"].get_node("Tracer") as Tracer
+	return _n["Rtr01"].get_node("Tracer") as Tracer
 
 
 func _seconds(seconds: float) -> void:
@@ -65,44 +65,44 @@ func _plug_jack(real_scan: bool = false) -> void:
 	await _seconds(_session.config.scan_time + 0.1)
 
 
-func test_plugging_into_a_jack_scans_the_own_subnet_and_shows_its_gateway() -> void:
+func test_plugging_into_a_jack_scans_the_own_subnet_and_shows_its_router() -> void:
 	await _plug_jack(true)
 	assert_bool(_session.is_plugged()).is_true()
 	assert_str(_session.source.address).is_equal("10.0.10.40")
 	var plugged := EventLog.find(&"deck.plugged")
 	assert_str(str(plugged[0].data["port"])).is_equal("JACK")
-	assert_array(_map()).contains_exactly_in_any_order(["Jack", "OfficeSwitch", "OfficePc", "Fw01"])
+	assert_array(_map()).contains_exactly_in_any_order(["Jack", "OfficeSwitch", "OfficePc", "Rtr01"])
 	# One scan of the office subnet, +10 % on the Sentry tracer (it watches office).
 	assert_int(EventLog.find(&"deck.scan").size()).is_equal(1)
 	assert_float(_tracer().trace_of(_user)).is_between(0.0, 10.0)
 	assert_array(_stack.state[DeckSession.SCANNED] as Array).is_equal(["office"])
-	# Behind the gateway: no node at all.
+	# Behind the router: no node at all.
 	assert_bool(_map().has("Console")).is_false()
-	assert_int(_session.hidden_routes(_dev("Fw01"))).is_equal(1)
+	assert_int(_session.hidden_routes(_dev("Rtr01"))).is_equal(1)
 
 
-func test_the_gateway_shows_before_the_scan_ends() -> void:
+func test_the_router_shows_before_the_scan_ends() -> void:
 	assert_bool(_session.plug(_dev("Jack"), _stack)).is_true()
 	await _seconds(0.5)
-	assert_array(_map()).is_equal(["Fw01"])
+	assert_array(_map()).is_equal(["Rtr01"])
 
 
-func test_hacked_gateways_reveal_the_subnets_behind_them_in_a_chain() -> void:
+func test_hacked_routers_reveal_the_subnets_behind_them_in_a_chain() -> void:
 	await _plug_jack()
 	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"router": "admin:Gh7vQx2e"})
 	PersonalLog.of(_user).add(note)
-	assert_bool(_session.log_in(_dev("Fw01"), "admin")).is_false()
-	DeviceAccounts.of(_n["Fw01"]).credentials_id = &"router"
+	assert_bool(_session.log_in(_dev("Rtr01"), "admin")).is_false()
+	DeviceAccounts.of(_n["Rtr01"]).credentials_id = &"router"
 	var before := _tracer().trace_of(_user)
-	assert_bool(_session.log_in(_dev("Fw01"), "admin")).is_true()
+	assert_bool(_session.log_in(_dev("Rtr01"), "admin")).is_true()
 	# A known login adds no trace (the next scan does).
 	assert_float(_tracer().trace_of(_user)).is_equal(before + 10.0)
 	await _seconds(0.3)
-	assert_array(_map()).contains(["SecuritySwitch", "Console", "Camera", "Alarm", "Fw02"])
+	assert_array(_map()).contains(["SecuritySwitch", "Console", "Camera", "Alarm", "Rtr02"])
 	assert_bool(_map().has("FileServer")).is_false()
-	assert_int(_session.hidden_routes(_dev("Fw01"))).is_equal(0)
-	assert_int(_session.hidden_routes(_dev("Fw02"))).is_equal(1)
-	DeviceAccounts.of(_n["Fw02"]).grant(_user, "admin")
+	assert_int(_session.hidden_routes(_dev("Rtr01"))).is_equal(0)
+	assert_int(_session.hidden_routes(_dev("Rtr02"))).is_equal(1)
+	DeviceAccounts.of(_n["Rtr02"]).grant(_user, "admin")
 	_session.refresh()
 	await _seconds(0.3)
 	assert_array(_map()).contains(["ServerSwitch", "FileServer"])
@@ -138,16 +138,16 @@ func test_a_crack_gives_the_account_and_is_learned_into_the_journal() -> void:
 	# Nothing left to crack there.
 	assert_bool(_ice.start(_dev("OfficePc"), "kbrandt")).is_false()
 	# A Medium password is too strong for an untrained user; Trained cracks it.
-	assert_bool(_ice.can_crack(_dev("Fw01"), "admin")).is_false()
-	assert_bool(_ice.start(_dev("Fw01"), "admin")).is_false()
+	assert_bool(_ice.can_crack(_dev("Rtr01"), "admin")).is_false()
+	assert_bool(_ice.start(_dev("Rtr01"), "admin")).is_false()
 	Net.set_tier(_user, 1)
-	assert_bool(_ice.can_crack(_dev("Fw01"), "admin")).is_true()
+	assert_bool(_ice.can_crack(_dev("Rtr01"), "admin")).is_true()
 
 
 func test_stopping_keeps_progress_and_resuming_continues_unless_the_password_changed() -> void:
 	Net.set_tier(_user, 1)
 	await _plug_jack()
-	DeviceAccounts.of(_n["Fw01"]).grant(_user, "admin")
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	_session.refresh()
 	await _seconds(0.3)
 	# Trained, Medium: 18 s.
@@ -220,7 +220,7 @@ func test_a_maintenance_port_shows_its_device_only() -> void:
 
 func test_an_account_gives_the_devices_commands() -> void:
 	await _plug_jack()
-	DeviceAccounts.of(_n["Fw01"]).grant(_user, "admin")
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	_session.refresh()
 	await _seconds(0.3)
 	var accounts := Net.add_accounts(_n["Camera"], [["maint", "cam", Net.WEAK]])

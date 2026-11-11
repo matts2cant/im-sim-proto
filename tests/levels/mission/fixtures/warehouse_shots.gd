@@ -11,7 +11,7 @@ extends Node3D
 ## The doors and security devices' shots (M9c) live in warehouse_security_shots.gd: `view` puts the
 ## free camera at a device's view node (a camera's eye), `computer` opens that computer logged in on an
 ## app (ADR 0114), `deck` plugs a deck into that device and shows its Map, after granting the `hack`
-## gateways' first account (M12a). `wait`: seconds before the shot (default WAIT).
+## routers' first account (M12a). `wait`: seconds before the shot (default WAIT).
 
 const SecurityShots := preload("res://tests/levels/mission/fixtures/warehouse_security_shots.gd")
 
@@ -339,7 +339,7 @@ func _open_computer() -> void:
 			screen.security_app.select(select)
 
 
-# Gives the player a deck (fast scans), grants the shot's `hack` gateways their first account and
+# Gives the player a deck (fast scans), grants the shot's `hack` routers their first account and
 # plugs the deck into the shot's `deck` device, raising its Map (M12a, ADR 0113).
 func _plug_deck() -> void:
 	var session := DeckSession.of(_player)

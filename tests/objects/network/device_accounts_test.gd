@@ -31,7 +31,7 @@ func _accounts(entity_name: String) -> DeviceAccounts:
 
 
 func _tracer() -> Tracer:
-	return _n["Fw01"].get_node("Tracer") as Tracer
+	return _n["Rtr01"].get_node("Tracer") as Tracer
 
 
 func test_a_right_login_gives_the_account_without_trace() -> void:
@@ -72,12 +72,12 @@ func test_a_down_device_or_a_blocked_address_refuses_without_trace() -> void:
 	assert_bool(_accounts("OfficePc").try_login("kbrandt", "ferry19", _user)).is_false()
 	assert_str(str(EventLog.find(&"network.login")[0].data["reason"])).is_equal("blocked")
 	assert_float(_tracer().trace_of(_user)).is_equal(0.0)
-	Powered.of(_n["Fw01"]).on = false
+	Powered.of(_n["Rtr01"]).on = false
 	# The tracer's host is down: nothing watches, nothing blocks.
 	assert_bool(_accounts("OfficePc").try_login("kbrandt", "ferry19", _user)).is_true()
-	Powered.of(_n["Fw01"]).on = true
-	Powered.of(_n["Fw02"]).on = false
-	assert_bool(_accounts("Fw02").try_login("admin", "k3epOut9", _user)).is_false()
+	Powered.of(_n["Rtr01"]).on = true
+	Powered.of(_n["Rtr02"]).on = false
+	assert_bool(_accounts("Rtr02").try_login("admin", "k3epOut9", _user)).is_false()
 	assert_str(str(EventLog.find(&"network.login")[-1].data["reason"])).is_equal("offline")
 
 
@@ -89,7 +89,7 @@ func test_a_password_change_takes_the_account_away() -> void:
 	assert_bool(accounts.try_login("dmarsh", "harbor77", _user)).is_false()
 	assert_bool(accounts.try_login("dmarsh", "tide88", _user)).is_true()
 	# Other devices sharing the resources keep their passwords.
-	assert_str(_accounts("Fw01").account("admin").password).is_equal("Gh7vQx2e")
+	assert_str(_accounts("Rtr01").account("admin").password).is_equal("Gh7vQx2e")
 
 
 func test_the_journal_knows_a_login_by_its_code_id() -> void:
@@ -109,7 +109,7 @@ func test_the_journal_knows_a_login_by_its_code_id() -> void:
 
 
 func test_access_and_passwords_are_saved() -> void:
-	var accounts := _accounts("Fw01")
+	var accounts := _accounts("Rtr01")
 	accounts.grant(_user, "admin")
 	accounts.set_password("admin", "N3w")
 	accounts.grant(_user, "admin")

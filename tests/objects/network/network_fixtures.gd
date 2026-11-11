@@ -1,20 +1,20 @@
 extends RefCounted
 ## Test helper (not a suite): a small network built in code from components (ADR 0113), to show
-## the network behaviour is generic: any entity with a Device, and a Gateway, DeviceAccounts, Tracer
+## the network behaviour is generic: any entity with a Device, and a Router, DeviceAccounts, Tracer
 ## or Computer component, behaves the same. lab() builds the network of the approved mockup
 ## (positions in metres from `origin`, plan view: x east, z south):
 ##
-##   Jack ── OfficeSwitch ── Fw01 ── SecuritySwitch ── Fw02 ── ServerSwitch ── FileServer
+##   Jack ── OfficeSwitch ── Rtr01 ── SecuritySwitch ── Rtr02 ── ServerSwitch ── FileServer
 ##   (0,0)   (2,0)   │       (5,0)   (8,0) │ │ │       (8,-3)  (11,-3)          (12,-5)
 ##                OfficePc               Console Camera Alarm
 ##                (2,3)                  (7,3)   (9,3)  (10,1)
 ##   Kiosk (0,4): autonomous (no cables), a maintenance port.
 ##
-## Subnets: office (Jack, OfficeSwitch, OfficePc, Fw01), security (SecuritySwitch, Console, Camera,
-## Alarm, Fw02), servers (ServerSwitch, FileServer). Fw01 runs the "Sentry tracer" watching office
+## Subnets: office (Jack, OfficeSwitch, OfficePc, Rtr01), security (SecuritySwitch, Console, Camera,
+## Alarm, Rtr02), servers (ServerSwitch, FileServer). Rtr01 runs the "Sentry tracer" watching office
 ## and security. Camera trusts Console. Accounts (user, password, strength, admin):
-## OfficePc kbrandt / ferry19 Weak; Fw01 admin / Gh7vQx2e Medium admin; Console dmarsh / harbor77
-## Medium; Fw02 admin / k3epOut9 Medium admin; FileServer hale / Riverside#1 Strong; Kiosk service /
+## OfficePc kbrandt / ferry19 Weak; Rtr01 admin / Gh7vQx2e Medium admin; Console dmarsh / harbor77
+## Medium; Rtr02 admin / k3epOut9 Medium admin; FileServer hale / Riverside#1 Strong; Kiosk service /
 ## kiosk1 Weak. OfficePc and Console are computers (Computer component). Screens show the mockup's
 ## names (SHOWN: `display_name` metadata).
 
@@ -22,7 +22,7 @@ const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
 const JACK: PackedScene = preload("res://objects/network/wall_jack.tscn")
-const GATEWAY: PackedScene = preload("res://objects/network/gateway.tscn")
+const ROUTER: PackedScene = preload("res://objects/network/router.tscn")
 ## Added to the alarm stand-in by every incident it receives.
 const ALARMED: StringName = &"test.alarmed"
 const WEAK := DeviceAccount.Strength.WEAK
@@ -33,12 +33,12 @@ const SHOWN: Dictionary[String, String] = {
 	"Jack": "OFFICE-JACK",
 	"OfficeSwitch": "SW-OFFICE",
 	"OfficePc": "OFFICE-PC",
-	"Fw01": "FW-01",
+	"Rtr01": "RTR-01",
 	"SecuritySwitch": "SW-SECURITY",
 	"Console": "SEC-CONSOLE",
 	"Camera": "CAM-GATE",
 	"Alarm": "ALARM",
-	"Fw02": "FW-02",
+	"Rtr02": "RTR-02",
 	"ServerSwitch": "SW-SERVERS",
 	"FileServer": "FILE-SERVER",
 	"Kiosk": "KIOSK",
@@ -157,9 +157,9 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	_address(n["OfficePc"], &"", "10.0.10.12")
 	add_computer(n["OfficePc"])
 	add_accounts(n["OfficePc"], [["kbrandt", "ferry19", WEAK]])
-	n["Fw01"] = instance(parent, GATEWAY, "Fw01", origin + Vector3(5, 1.2, 0), &"office", "10.0.10.1")
-	add_accounts(n["Fw01"], [["admin", "Gh7vQx2e", MEDIUM, true]])
-	add_tracer(n["Fw01"], "Sentry tracer", [&"office", &"security"])
+	n["Rtr01"] = instance(parent, ROUTER, "Rtr01", origin + Vector3(5, 1.2, 0), &"office", "10.0.10.1")
+	add_accounts(n["Rtr01"], [["admin", "Gh7vQx2e", MEDIUM, true]])
+	add_tracer(n["Rtr01"], "Sentry tracer", [&"office", &"security"])
 	n["SecuritySwitch"] = instance(
 		parent, SWITCH, "SecuritySwitch", origin + Vector3(8, 1.2, 0), &"security", "10.0.20.2"
 	)
@@ -179,8 +179,8 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	var alarm_receptrons: Array[Receptron] = [Devices.command_receptron(Device.INCIDENT, [Fixtures.add_tag(ALARMED)])]
 	n["Alarm"] = body_device(parent, "Alarm", origin + Vector3(10, 1.5, 1), alarm_receptrons)
 	_address(n["Alarm"], &"", "10.0.20.40")
-	n["Fw02"] = instance(parent, GATEWAY, "Fw02", origin + Vector3(8, 1.2, -3), &"security", "10.0.20.1")
-	add_accounts(n["Fw02"], [["admin", "k3epOut9", MEDIUM, true]])
+	n["Rtr02"] = instance(parent, ROUTER, "Rtr02", origin + Vector3(8, 1.2, -3), &"security", "10.0.20.1")
+	add_accounts(n["Rtr02"], [["admin", "k3epOut9", MEDIUM, true]])
 	n["ServerSwitch"] = instance(parent, SWITCH, "ServerSwitch", origin + Vector3(11, 1.2, -3), &"servers", "10.0.30.2")
 	n["FileServer"] = body_device(parent, "FileServer", origin + Vector3(12, 1, -5))
 	_address(n["FileServer"], &"", "10.0.30.8")
@@ -190,13 +190,13 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	add_accounts(n["Kiosk"], [["service", "kiosk1", WEAK]])
 	link(n["Jack"], n["OfficeSwitch"])
 	link(n["OfficeSwitch"], n["OfficePc"])
-	link(n["OfficeSwitch"], n["Fw01"])
-	link(n["Fw01"], n["SecuritySwitch"])
+	link(n["OfficeSwitch"], n["Rtr01"])
+	link(n["Rtr01"], n["SecuritySwitch"])
 	link(n["SecuritySwitch"], n["Console"])
 	link(n["SecuritySwitch"], n["Camera"])
 	link(n["SecuritySwitch"], n["Alarm"])
-	link(n["SecuritySwitch"], n["Fw02"])
-	link(n["Fw02"], n["ServerSwitch"])
+	link(n["SecuritySwitch"], n["Rtr02"])
+	link(n["Rtr02"], n["ServerSwitch"])
 	link(n["ServerSwitch"], n["FileServer"])
 	var camera := Device.of(n["Camera"])
 	camera.trusted.append(camera.get_path_to(n["Console"]))

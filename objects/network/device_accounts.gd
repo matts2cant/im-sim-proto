@@ -1,9 +1,9 @@
 class_name DeviceAccounts
 extends Node
 ## Component: a device's local accounts (ADR 0112, 0113). Any device can carry it (a computer, a
-## gateway, a door controller). Logging in with the right password gives the user that account
-## (access, saved): the deck's Map draws the device amber, offers its actions, and a gateway lets the
-## user's traffic through (Gateway). A wrong password adds trace to every tracer watching the device
+## router, a door controller). Logging in with the right password gives the user that account
+## (access, saved): the deck's Map draws the device amber, offers its actions, and a router lets the
+## user's traffic through (Router). A wrong password adds trace to every tracer watching the device
 ## (Tracer, +15 % by default) and is logged; a refused attempt (the device is down, or a tracer has
 ## blocked the address) adds nothing.
 ## The Journal knows a login as a code under the device's `code_id()` whose value is "user:password"

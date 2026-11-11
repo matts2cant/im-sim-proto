@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0113): the deck's Map and Icebreaker on the real Player in the lab fixture
 ## (fixtures/deck_lab.tscn), plugged into the wall jack. A device's menu: a login the Journal knows
-## logs in without trace and hacking the gateway reveals the subnet behind it; the Icebreaker cracks
+## logs in without trace and hacking the router reveals the subnet behind it; the Icebreaker cracks
 ## an account and the Journal lists it; the skill assists by tier; a computer with an account offers
 ## its desktop remotely; saving and loading keeps the crack progress and the trace.
 
@@ -60,11 +60,11 @@ func _press(text: String) -> void:
 		button.pressed.emit()
 
 
-func test_a_known_login_logs_in_without_trace_and_hacking_the_gateway_reveals_its_subnet() -> void:
-	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"fw01": "admin:Gh7vQx2e"})
-	DeviceAccounts.of(_lab.node("Fw01")).credentials_id = &"fw01"
+func test_a_known_login_logs_in_without_trace_and_hacking_the_router_reveals_its_subnet() -> void:
+	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"rtr01": "admin:Gh7vQx2e"})
+	DeviceAccounts.of(_lab.node("Rtr01")).credentials_id = &"rtr01"
 	PersonalLog.of(_player).add(note)
-	assert_bool(_screen.graph.select("FW-01")).is_true()
+	assert_bool(_screen.graph.select("RTR-01")).is_true()
 	var texts := _screen.menu_texts()
 	assert_array(texts).contains(["ACCOUNTS", "admin", "Medium", "Log in (from Router notes)"])
 	assert_bool(texts.has("SEC-CONSOLE")).is_false()
@@ -72,16 +72,16 @@ func test_a_known_login_logs_in_without_trace_and_hacking_the_gateway_reveals_it
 	_press("Log in (from Router notes)")
 	# No trace for the login; the scan of the revealed subnet adds its 10 %.
 	assert_float(_lab.tracer().trace_of(_player)).is_equal_approx(trace + 10.0, 0.001)
-	assert_bool(DeviceAccounts.of(_lab.node("Fw01")).has_access(_player)).is_true()
+	assert_bool(DeviceAccounts.of(_lab.node("Rtr01")).has_access(_player)).is_true()
 	await _driver.frames(130)
 	_screen.refresh()
-	assert_array(_screen.graph.node_names()).contains(["SW-SECURITY", "SEC-CONSOLE", "CAM-GATE", "FW-02"])
+	assert_array(_screen.graph.node_names()).contains(["SW-SECURITY", "SEC-CONSOLE", "CAM-GATE", "RTR-02"])
 	assert_bool(_screen.graph.node_names().has("FILE-SERVER")).is_false()
-	# The hacked gateway is amber; the console's menu offers the Icebreaker; the camera says who it
+	# The hacked router is amber; the console's menu offers the Icebreaker; the camera says who it
 	# trusts.
-	assert_bool(_screen.graph.node_color("FW-01").is_equal_approx(Color.WHITE)).is_true()
+	assert_bool(_screen.graph.node_color("RTR-01").is_equal_approx(Color.WHITE)).is_true()
 	_screen.graph.close_menu()
-	assert_bool(_screen.graph.node_color("FW-01").is_equal_approx(DeckStyle.ACCESS_COLOR)).is_true()
+	assert_bool(_screen.graph.node_color("RTR-01").is_equal_approx(DeckStyle.ACCESS_COLOR)).is_true()
 	_screen.graph.select("CAM-GATE")
 	assert_array(_screen.menu_texts()).contains(
 		["No accounts. Trusts SEC-CONSOLE: control it from that computer's Security app."]
@@ -122,7 +122,7 @@ func test_the_icebreaker_cracks_an_account_into_the_journal() -> void:
 
 
 func test_the_skill_assists_by_tier() -> void:
-	DeviceAccounts.of(_lab.node("Fw01")).grant(_player, "admin")
+	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
 	_session.refresh()
 	await _driver.frames(130)
 	_screen.refresh()
@@ -146,15 +146,15 @@ func test_the_skill_assists_by_tier() -> void:
 	_screen.graph.select("SEC-CONSOLE")
 	var advanced := _screen.menu_texts()
 	assert_bool(advanced.any(func(text: String) -> bool: return text.begins_with("Computer skill · about +"))).is_true()
-	# Master: + the hidden subnets a gateway routes to.
+	# Master: + the hidden subnets a router routes to.
 	_player.skills.set_tier(&"computer", 3)
-	_screen.graph.select("FW-02")
+	_screen.graph.select("RTR-02")
 	assert_array(_screen.menu_texts()).contains(["Computer skill · routes to 1 hidden subnet"])
 
 
 func test_saving_and_loading_keeps_crack_progress_and_trace() -> void:
 	_player.skills.set_tier(&"computer", 1)
-	DeviceAccounts.of(_lab.node("Fw01")).grant(_player, "admin")
+	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
 	_session.refresh()
 	await _driver.frames(130)
 	assert_bool(_ice.start(_lab.device("Console"), "dmarsh")).is_true()
@@ -167,15 +167,15 @@ func test_saving_and_loading_keeps_crack_progress_and_trace() -> void:
 	# What a save writes (JSON), then a load over a changed state.
 	var player_data: Variant = JSON.from_native(_player.save_state())
 	var tracer_data: Variant = JSON.from_native(_lab.tracer().save_state())
-	var accounts_data: Variant = JSON.from_native(DeviceAccounts.of(_lab.node("Fw01")).save_state())
+	var accounts_data: Variant = JSON.from_native(DeviceAccounts.of(_lab.node("Rtr01")).save_state())
 	_session.unplug()
 	_lab.tracer().model.from_dict({})
-	DeviceAccounts.of(_lab.node("Fw01")).load_state({"access": {}})
+	DeviceAccounts.of(_lab.node("Rtr01")).load_state({"access": {}})
 	_player.load_state(JSON.to_native(player_data) as Dictionary)
 	_lab.tracer().load_state(JSON.to_native(tracer_data) as Dictionary)
-	DeviceAccounts.of(_lab.node("Fw01")).load_state(JSON.to_native(accounts_data) as Dictionary)
+	DeviceAccounts.of(_lab.node("Rtr01")).load_state(JSON.to_native(accounts_data) as Dictionary)
 	assert_float(_lab.tracer().trace_of(_player)).is_equal_approx(trace, 0.001)
-	assert_bool(DeviceAccounts.of(_lab.node("Fw01")).has_access(_player)).is_true()
+	assert_bool(DeviceAccounts.of(_lab.node("Rtr01")).has_access(_player)).is_true()
 	# Plugged in again with the loaded deck: the crack resumes where it stopped.
 	var stack := _player.inventory.inventory.stacks_of(&"deck")[0]
 	_player.inventory.hold(stack)

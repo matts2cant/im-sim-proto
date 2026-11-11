@@ -35,16 +35,16 @@ Hacking as a believable network, not a minigame. The level has real devices with
 | Map | Shows the devices you can see (see [Discovery](#discovery)), drawn like the old terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)). Clicking a device opens its menu: its address, status and account names; per account "Log in" (a login the Journal knows) or the Icebreaker; on a device you have access to, its actions; on a computer you have an account on, "Open its desktop (remote)" | M12a |
 | Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs | M12a |
 | Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace | M12b |
-| Firewall | As admin of a gateway: view and edit its rules | M12b |
+| Firewall | As admin of a router: view and edit its rules | M12b |
 | Logs | As admin of a device: read its log and erase entries | M12b |
 | Sniffer | Wireless only. Captures the logins guards make on devices connected through the same access point | M16 (needs guards logging in) |
 
 ## Network model
 
-- **Devices** have IP addresses and are grouped into **subnets** (never "segments"). A subnet is a logical address range; **switches are the physical wiring**: a subnet can span several switches, cabled up to one another, and how many depends on the building (a switch per room or area, one large switch per floor in a wiring closet, or one for a small office). A device can also plug straight into a gateway port. Losing one switch cuts only the devices behind it. No VLANs.
+- **Devices** have IP addresses and are grouped into **subnets** (never "segments"). A subnet is a logical address range; **switches are the physical wiring**: a subnet can span several switches, cabled up to one another, and how many depends on the building (a switch per room or area, one large switch per floor in a wiring closet, or one for a small office). A device can also plug straight into a router port. Losing one switch cuts only the devices behind it. No VLANs.
 - **Physical links**: cable or wireless. Any device except network devices (switches, routers, access points) can link wirelessly to an access point within the access point's range (M12b); wireless links show as dashed light-blue lines on the Map; breaking or unpowering an access point takes its wireless devices offline. **Jamming** (a jamming grenade, M14) drops every wireless link in its radius for a while. A device can also be **autonomous** (no link at all); it has a maintenance port ([ADR 0112 amendment](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)).
-- **Gateways** (firewalls) are nodes between subnets. Rules are an ordered list of from / to / allow or deny; the first match wins. From and To are a subnet, a device or "you". No ports.
-- **Power and damage**: switches, access points and gateways have `Powered` and `Breakable` like any prop ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)). Unpowering or breaking one cuts everything behind it. A device that loses its link falls back to standalone behaviour (see [Devices](#devices-and-their-remote-actions)).
+- **Routers** (firewalls) are nodes between subnets. Rules are an ordered list of from / to / allow or deny; the first match wins. From and To are a subnet, a device or "you". No ports.
+- **Power and damage**: switches, access points and routers have `Powered` and `Breakable` like any prop ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)). Unpowering or breaking one cuts everything behind it. A device that loses its link falls back to standalone behaviour (see [Devices](#devices-and-their-remote-actions)).
 - **Doors on power loss**: a door's tag says fail-safe (unlocks on power loss) or fail-secure (stays locked). Breaking a switch can disable security, but it can also stop you opening a door remotely.
 - **Access is per machine**: local accounts with user or admin rights. No domain accounts.
 - **Reach**: what a machine can do depends on its subnet, the firewall rules for its address, and which devices trust it. Example: cameras trust the security console, so the console's Security app controls them; an office PC cannot reach them.
@@ -53,7 +53,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 ```mermaid
 flowchart LR
     AP["Access point (Guest)"] --- SWG["Switch: Guest"]
-    SWG --- FW["Gateway FW-01 (tracer: Sentry)"]
+    SWG --- FW["Router RTR-01 (tracer: Sentry)"]
     SWO["Switch: Office"] --- FW
     SWS["Switch: Security"] --- FW
     SWO --- PC["Office PC"]
@@ -66,8 +66,8 @@ flowchart LR
 
 ### Discovery
 
-- From an entry point the Map shows every device on your own subnet, plus its gateway. **What lies behind a gateway is hidden**: no node, no count.
-- **Hacking a gateway** (gaining an account on it, by a known login or the Icebreaker) reveals the subnets behind it and their devices. A gateway inside those subnets can be hacked in turn: you hack your way through several subnets in a row.
+- From an entry point the Map shows every device on your own subnet, plus its router. **What lies behind a router is hidden**: no node, no count.
+- **Hacking a router** (gaining an account on it, by a known login or the Icebreaker) reveals the subnets behind it and their devices. A router inside those subnets can be hacked in turn: you hack your way through several subnets in a row.
 - Devices once seen stay on the map, greyed out, when you lose access. Node colours follow the network map's rule ([ADR 0099 amendment](../decisions/0099-network-map-layout-pan-zoom.md#amendment-node-colours-m9h)): grey out of reach, red disabled, else green; devices you have access to are drawn amber.
 
 ## Credentials and clues
@@ -104,7 +104,7 @@ Resulting crack times (the longest is 25 s: no crack should make the player wait
 | Advanced | 5 s | 12 s | 25 s |
 | Master | 3 s | 7 s | 15 s |
 
-- **Skill assists** (shown on the deck, tier by tier like lockpicking, [ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md)): Trained: time estimates (crack time per account, time left); Advanced: + the trace an action will add ("about +30 %"); Master: + how many hidden subnets a gateway routes to.
+- **Skill assists** (shown on the deck, tier by tier like lockpicking, [ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md)): Trained: time estimates (crack time per account, time left); Advanced: + the trace an action will add ("about +30 %"); Master: + how many hidden subnets a router routes to.
 - Stopping keeps the progress on the deck (saved with the game). Running it on the same account later resumes. If the password has changed since, the progress is lost.
 - The skill affects only the deck's tools. Admin access allows every admin action: no action is skill-gated.
 
@@ -117,7 +117,7 @@ Resulting crack times (the longest is 25 s: no crack should make the player wait
 
 ## Tracers
 
-- A tracer is not a property of a subnet. It is an app running on a computer, server or gateway. Example: "Sentry tracer" on firewall FW-01 watches the Guest and Office subnets. A subnet with no tracer is unwatched.
+- A tracer is not a property of a subnet. It is an app running on a computer, server or router. Example: "Sentry tracer" on firewall RTR-01 watches the Guest and Office subnets. A subnet with no tracer is unwatched.
 - Tuning is a `.tres` on the tracer: trace gain rate, the amount a failed login or an exploit run adds, drain rate while you are idle, lockout duration. Starting values in [Tuning](#tuning).
 - Activity against a device adds trace to every running tracer that watches the device's subnet. The Computer skill scales the gain.
 - Trace drains while nothing adds to it.
@@ -208,20 +208,20 @@ Controls ([controls.md](controls.md)):
 
 Settled while building the network layer and the deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md)):
 
-- **Discovery is reach.** A gateway passes a user's traffic only once the user has an account on it (its rules first: M12b's Firewall). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a gateway (a known login or the Icebreaker) is what reveals the subnets behind it; a gateway inside them is hacked in turn. Gateways show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
+- **Discovery is reach.** A router passes a user's traffic only once the user has an account on it (its rules first: M12b's Firewall). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a router (a known login or the Icebreaker) is what reveals the subnets behind it; a router inside them is hacked in turn. Routers show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
 - **Addresses**: a wall jack gives the deck the jack's address on its subnet; a maintenance port `port:<device address>` (that device only); a computer its own address. A tracer blocks the address it caught: plugging in elsewhere is a new address.
 - **Tethered**: more than 3 m (horizontal, the player's origin to the plugged entity) unplugs the deck; so do being unable to act and losing the deck. The screen lowers with Esc or ✕; LMB on the port raises it again.
 - **Accounts**: logging in gives the account until its password changes. The Journal files a device's logins under one code id per device (its `credentials_id`: on `DeviceAccounts`, else its `Computer`, else its node name in snake_case), one entry per login "user:password"; a cracked login is learned that way, in an entry "Cracked: user@HOST".
 - **Commands with an account**: the deck sends a device's commands (its menu) as a session on the device itself, from wherever it is plugged in; trust lists do not apply to it. No trace (logging in with the right password adds none either).
 - **Tracers**: trace is per user; a full trace reports once, then drains as usual; it cannot fill again while the address is locked out. A tracer whose host is cut from the watched device (a dead switch between them) does not watch it. Trace bars (deck and computer screens) show every tracer that has trace for you, blocks your address, or watches a device on your map.
 - **Icebreaker**: one account at a time; picking another stops the current one (progress kept). A password changed while it runs makes it start over on the new one.
-- **Assists** (deck only): Trained: each crackable account's crack time in its menu, time left in the Icebreaker; Advanced: + "about +N % trace" for a crack (from the highest tracer gain watching the device); Master: + "routes to N hidden subnets" on a gateway you have not hacked.
+- **Assists** (deck only): Trained: each crackable account's crack time in its menu, time left in the Icebreaker; Advanced: + "about +N % trace" for a crack (from the highest tracer gain watching the device); Master: + "routes to N hidden subnets" on a router you have not hacked.
 - **Names**: the Map names a device by its entity's `display_name` metadata, else its node name in words.
 
 ## Levels
 
-- **Network lab** (gallery room 8, M12a, built: [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#8-network-lab)): behind a ninth hub doorway on the west wall. Office, Security and Servers subnets; FW-01 (Weak admin, the Icebreaker cracks it Untrained) runs the Sentry tracer watching Office and Security; FW-02 inside Security leads to a file server with one file (chained discovery; FW-02's login is in the console's files). A deck on a table at the entrance, a wall jack on the Office subnet, office PC 1 with a sticky note and a mail with an implicit clue to office PC 2's login (the cat's name from a photo and the year), PC 2's mail with the security console's login; the console's Security app commands a camera and a closet door that trust it (two biocells inside); a subnet can span several switches: the camera and the door hang on a closet room switch whose breaker cuts only them while the rest of the Security subnet stays up. A sign at each station.
-- **Warehouse** (M12a, built: [../levels/mission-warehouse.md](../levels/mission-warehouse.md#network-m12a)): Office (the office switch, both office PCs, the office wall jack, now a real wall jack) and Security (the console and every security device, on five switches: a main one in the basement store and area switches for the security room, the vault, the yard and the roof) behind FW-01 in the store, which runs the one tracer (default tuning) watching both. FW-01's Medium admin login is written nowhere: crack it Trained, or use the console bare-handed with its known login. Security devices trust the console (sirens and the radio base station also the alarm controllers); the office PCs control nothing. The deck is found on office PC 2's desk. M12b adds exploits and wireless.
+- **Network lab** (gallery room 8, M12a, built: [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#8-network-lab)): behind a ninth hub doorway on the west wall. Office, Security and Servers subnets; RTR-01 (Weak admin, the Icebreaker cracks it Untrained) runs the Sentry tracer watching Office and Security; RTR-02 inside Security leads to a file server with one file (chained discovery; RTR-02's login is in the console's files). A deck on a table at the entrance, a wall jack on the Office subnet, office PC 1 with a sticky note and a mail with an implicit clue to office PC 2's login (the cat's name from a photo and the year), PC 2's mail with the security console's login; the console's Security app commands a camera and a closet door that trust it (two biocells inside); a subnet can span several switches: the camera and the door hang on a closet room switch whose breaker cuts only them while the rest of the Security subnet stays up. A sign at each station.
+- **Warehouse** (M12a, built: [../levels/mission-warehouse.md](../levels/mission-warehouse.md#network-m12a)): Office (the office switch, both office PCs, the office wall jack, now a real wall jack) and Security (the console and every security device, on five switches: a main one in the basement store and area switches for the security room, the vault, the yard and the roof) behind RTR-01 in the store, which runs the one tracer (default tuning) watching both. RTR-01's Medium admin login is written nowhere: crack it Trained, or use the console bare-handed with its known login. Security devices trust the console (sirens and the radio base station also the alarm controllers); the office PCs control nothing. The deck is found on office PC 2's desk. M12b adds exploits and wireless.
 
 ## Interactions
 

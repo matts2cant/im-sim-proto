@@ -66,7 +66,7 @@ func test_lmb_on_a_jack_plugs_the_deck_in_and_esc_lowers_it() -> void:
 	await _driver.frames(150)
 	_screen.refresh()
 	assert_bool(get_tree().paused).is_false()
-	assert_array(_screen.graph.node_names()).contains(["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC", "FW-01"])
+	assert_array(_screen.graph.node_names()).contains(["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC", "RTR-01"])
 	assert_array(_screen.trace_texts()).has_size(1)
 	assert_str(_screen.trace_texts()[0]).starts_with("Sentry tracer")
 	# Esc lowers it: input back, the game menu stays shut, the deck stays plugged in.

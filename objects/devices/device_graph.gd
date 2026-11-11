@@ -5,7 +5,7 @@ extends RefCounted
 ## reaches another when a path of links joins them whose every node, both ends included, is up.
 ## No scene tree: Device builds one from the level (Device.graph()) for each query.
 ## Subnets and gates (M12a, ADR 0113): each node may carry a subnet (default &"": one implicit
-## subnet). A gate (a gateway) is a node whose crossing is decided by a Callable
+## subnet). A gate (a router) is a node whose crossing is decided by a Callable
 ## `gate(from: int, to: int) -> bool` (`from` the node the traffic starts at, `to` its final
 ## destination): traffic that enters a gate from one subnet and leaves it into a node of another
 ## subnet passes only when the gate says so; leaving on the side it came from is free, and a gate is
