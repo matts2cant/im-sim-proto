@@ -85,14 +85,14 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
 
   <div class="layout">
     <section class="stage-col">
-      <div class="stage" id="stage" tabindex="0" aria-label="Lock view. Mouse up and down lifts the pick.">
+      <div class="stage" id="stage" tabindex="0" aria-label="Side view of the lock. The mouse wheel sets tension; the mouse moves the pick tip: left and right along the pins while it is down, up to lift.">
         <canvas id="front"></canvas>
         <div class="tag" id="stageTag">Standard lock</div>
         <div class="caption" id="caption" style="opacity:0"></div>
         <div class="overlay" id="overlay">
           <div class="overlay-box">
             <h2 id="ovTitle">Pick this lock</h2>
-            <p id="ovText">Hold tension with W, find the binding pin with A / D, lift it with the mouse until it clicks. Too little tension and set pins drop; too much and they jam or the pick snaps.</p>
+            <p id="ovText">Roll the mouse wheel up for tension. The mouse moves the pick tip: slide it under a pin while it is down, then lift until the pin clicks. Too little tension and set pins drop; too much and they jam or the pick snaps.</p>
             <button class="primary" id="ovBtn" type="button">Take the tools</button>
           </div>
         </div>
@@ -105,7 +105,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
         <button type="button" id="pNext">Pin ▶</button>
       </div>
 
-      <div class="side" id="sideWrap">
+      <div class="side" id="sideWrap" hidden>
         <canvas id="side"></canvas>
         <div class="tag">Practice lock · clear acrylic</div>
       </div>
@@ -157,21 +157,30 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
       <div class="card">
         <h3>Controls</h3>
         <div class="keys">
-          <kbd>W</kbd><span>more tension (it holds where you leave it)</span>
-          <kbd>S</kbd><span>less tension</span>
-          <kbd>Shift</kbd><span>hold for fine tension steps</span>
-          <kbd>A</kbd> <span>pick to the previous pin</span>
-          <kbd>D</kbd><span>pick to the next pin</span>
-          <kbd>Mouse ↑↓</kbd><span>lift the pick (over the lock)</span>
-          <kbd>R</kbd><span>hold to rake (Master, Simple locks)</span>
+          <kbd>Wheel</kbd><span>tension: up is more, 3 % a notch (wheel scheme)</span>
+          <kbd>Mouse ←→</kbd><span>slide the pick tip along the pins, only in the bottom 10 % (wheel scheme); tension, left is more (mouse X scheme)</span>
+          <kbd>W</kbd><span>more tension (W / S scheme)</span>
+          <kbd>S</kbd><span>less tension (W / S scheme)</span>
+          <kbd>Shift</kbd><span>hold for fine tension steps (1 % a wheel notch)</span>
+          <kbd>A</kbd> <span>pick to the previous pin, only while the tip is down (A / D schemes)</span>
+          <kbd>D</kbd><span>pick to the next pin, only while the tip is down (A / D schemes)</span>
+          <kbd>Mouse ↑↓</kbd><span>lift the pick tip (over the lock)</span>
+          <kbd>Wiggle ←→</kbd><span>with the tip in the bottom 10 %, fast back-and-forth strokes rake (Master sets pins on Simple and Standard locks, with light tension: from the drop line to the top of the sweet spot)</span>
           <kbd>E</kbd><span>leave the lock (progress is lost)</span>
         </div>
       </div>
 
       <div class="card">
         <h3>Bench options</h3>
+        <label class="field">Controls
+          <select id="scheme">
+            <option value="wheel" selected>Wheel tension · mouse X pins</option>
+            <option value="mouseX">Mouse X tension · A / D pins</option>
+            <option value="keys">W / S tension · A / D pins</option>
+          </select>
+        </label>
         <label class="check"><input type="checkbox" id="gauge" checked> Tension gauge (shows the sweet spot)</label>
-        <label class="check"><input type="checkbox" id="practice" checked> Practice lock (show the pins)</label>
+        <label class="check"><input type="checkbox" id="practice" checked> Clear lock (pins shown in the cutaway)</label>
         <label class="check"><input type="checkbox" id="captions" checked> Sound captions</label>
         <label class="check"><input type="checkbox" id="sound" checked> Sound</label>
         <label class="check"><input type="checkbox" id="readoutOn"> Designer readout</label>
@@ -194,21 +203,27 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
 
   // ---------- Data ----------
   const TIERS = {
-    simple:   { name: "Simple",        pins: ["std", "std", "std"],                                 tol: 1.1, target: "about 5 s untrained; Master rakes it" },
-    standard: { name: "Standard",      pins: ["std", "std", "std", "std", "std"],                   tol: 1.0, target: "about 15 s untrained, 7 s at Master" },
+    simple:   { name: "Simple",        pins: ["std", "std", "std"],                                 tol: 1.1, target: "about 5 s untrained; Master can rake it" },
+    standard: { name: "Standard",      pins: ["std", "std", "std", "std", "std"],                   tol: 1.0, target: "about 15 s untrained, 7 s at Master; Master can rake it" },
     secure:   { name: "Secure",        pins: ["std", "std", "std", "spool", "spool"],               tol: 0.9, target: "about 30 s untrained, 15 s at Master" },
     high:     { name: "High-security", pins: ["std", "std", "spool", "spool", "serrated", "serrated"], tol: 0.7, target: "about 60 s untrained, 25 s at Master" },
   };
   const BASE_TOL = 0.045;
+  const SET_OVERSET = 0.15; // how far past the shear line (beyond the tolerance) a set or loose pin's key pin must be pushed to overset
+  const BOTTOM = 0.10; // the bottom band: tip and mouse lift (0..1) at or under this can slide between pins and rake
+  const RAKE_SPEED = 2.5; // pin slots per second: a sideways move faster than this is a rake stroke
+  const RAKE_STROKES = 3; // reversals of fast strokes that set one binding pin (Master, rakeable lock)
+  const RAKE_GAP = 0.5;   // seconds without a stroke before the raking rhythm is lost
   const NOISE = { click: 2, scrape: 2, tick: 2, jam: 3, clunk: 3, open: 4, snap: 6 };
 
   function skillParams(t) {
     return {
-      lo: 0.30 - 0.04 * t,        // working window, tension 0..1
-      hi: 0.60 + 0.04 * t,
+      lo: 0.40 - 0.03 * t,        // working window (sweet spot), tension 0..1: 40-55 % untrained, 31-64 % at Master
+      hi: 0.55 + 0.03 * t,
       drop: 0.15 - 0.03 * t,      // below this, set pins start to drop
       dropDelay: 0.3 + 0.15 * t,  // seconds per dropped pin
       tolBonus: 0.012 * t,        // lift tolerance around the shear line
+      setDwell: 0.08 - 0.012 * t, // seconds the binding pin must stay at the shear line to set
       hint: t >= 2,               // stronger scrape and tremor on the binding pin
       rake: t >= 3,
     };
@@ -228,12 +243,12 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   }
 
   // ---------- State ----------
-  const cfg = { tier: "standard", seed: 4127, skill: 0, gauge: true, practice: true, captions: true, sound: true, readout: false };
+  const cfg = { tier: "standard", seed: 4127, skill: 0, scheme: "wheel", gauge: true, practice: true, captions: true, sound: true, readout: false };
   let lock = null;
   const st = {
     started: false, tension: 0, tip: 0, target: 0, pick: 0, picks: 2,
     strain: 0, force: 0, dropTimer: 0, falseExtra: 0, tickAngle: 0, setStack: [],
-    opened: false, openT: 0, t0: null, elapsed: 0, nudge: 0, rake: 0, tremor: 0,
+    opened: false, openT: 0, t0: null, elapsed: 0, nudge: 0, rake: 0, tremor: 0, aim: 0, aimBias: 0, rakeDir: 0, rakeGap: 0, lastRakeHint: 0, pinMove: 0, tipX: 0, aimX: 0, geo: null,
     lastScrapeLog: -9, lastCreak: 0, scraping: 0, outOfPicks: false,
   };
   const keys = {};
@@ -245,10 +260,10 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     const types = shuffle(T.pins.slice(), rng);
     const pins = types.map((type) => {
       const s = 0.44 + rng() * 0.30;
-      return { type, s, fs: s - 0.12, levels: [s - 0.18, s - 0.09], h: 0, set: false, overset: false, spool: "none", tFalse: 0, ticks: 0, bump: 0 };
+      return { type, s, fs: s - 0.12, levels: [s - 0.18, s - 0.09], h: 0, set: false, overset: false, spool: "none", tFalse: 0, ticks: 0, bump: 0, dwell: 0 };
     });
     lock = { tier: cfg.tier, name: T.name, pins, order: shuffle(pins.map((_, i) => i), rng), tolMult: T.tol };
-    st.pick = 0;
+    st.pick = 0; st.tipX = 0; st.aimX = 0;
     resetProgress();
     st.t0 = null; st.elapsed = 0; st.opened = false; st.openT = 0;
     $("stageTag").textContent = T.name + " lock";
@@ -257,7 +272,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   }
 
   function resetProgress() {
-    for (const p of lock.pins) { p.h = 0; p.set = false; p.overset = false; p.spool = "none"; p.tFalse = 0; p.ticks = 0; p.bump = 0; }
+    for (const p of lock.pins) { p.h = 0; p.set = false; p.overset = false; p.spool = "none"; p.tFalse = 0; p.ticks = 0; p.bump = 0; p.dwell = 0; }
     st.setStack = []; st.strain = 0; st.dropTimer = 0; st.falseExtra = 0; st.tickAngle = 0; st.rake = 0;
   }
 
@@ -337,6 +352,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     const p = lock.pins[i];
     const P = skillParams(cfg.skill);
     p.set = true; p.spool = p.type === "spool" ? "set" : p.spool; p.bump = 0;
+    st.aimBias += Math.max(0, st.target - st.tip);
     st.setStack.push(i); st.falseExtra = 0;
     const muted = st.tension > P.hi;
     SFX.click(muted); st.nudge = muted ? 0.15 : 0.45;
@@ -346,7 +362,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   }
   function oversetPin(i) {
     lock.pins[i].overset = true;
-    SFX.jam(); st.nudge = 0.6; caption("clunk, the pick hits a hard stop");
+    SFX.jam(); st.nudge = 0.6; caption("clunk, a pin is overset: release the tension to reset");
     logNoise("Overset jam", "jam");
   }
   function falseSet(i) {
@@ -370,7 +386,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     SFX.snap(); st.nudge = 1; caption("SNAP, the pick breaks");
     logNoise("Pick breaks", "snap");
     st.picks = Math.max(0, st.picks - 1); renderPicks();
-    st.tension = 0; st.target = 0; st.tip = 0; resetProgress();
+    st.tension = 0; st.target = 0; st.aim = 0; st.tip = 0; resetProgress();
     if (st.picks === 0) { st.outOfPicks = true; showOverlay("Out of lockpicks", "Both picks are broken. Restock to try again.", "Restock picks"); st.started = false; }
     setResult(st.picks ? "Pick broke" : "Out of picks");
   }
@@ -381,7 +397,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     setResult(`Unlocked in ${st.elapsed.toFixed(1)} s`);
   }
   function leave() {
-    st.tension = 0; st.target = 0; st.tip = 0;
+    st.tension = 0; st.target = 0; st.aim = 0; st.tip = 0;
     if (lock && !st.opened) resetProgress();
     st.started = false;
     showOverlay("You stepped away", "Leaving releases tension and every set pin drops. The pins stay the same on the next try.", "Pick again");
@@ -402,13 +418,32 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   function step(dt) {
     if (capTimer > 0) { capTimer -= dt; if (capTimer <= 0) $("caption").style.opacity = "0"; }
     st.nudge = Math.max(0, st.nudge - dt * 4);
+    // Opened or not picking: the continuous sounds (scrape, strain) fall silent
+    if (st.opened || !st.started) { st.scraping = 0; st.strain = 0; }
     if (st.opened) { st.openT = Math.min(1, st.openT + dt * 1.8); return; }
     if (!st.started) return;
 
     const P = skillParams(cfg.skill);
     const rate = keys.ShiftLeft || keys.ShiftRight ? 0.15 : 0.5;
-    if (keys.KeyW || touch.up) st.tension = clamp(st.tension + rate * dt, 0, 1);
-    if (keys.KeyS || touch.down) st.tension = clamp(st.tension - rate * dt, 0, 1);
+    const keyTension = cfg.scheme === "keys";
+    if ((keyTension && keys.KeyW) || touch.up) st.tension = clamp(st.tension + rate * dt, 0, 1);
+    if ((keyTension && keys.KeyS) || touch.down) st.tension = clamp(st.tension - rate * dt, 0, 1);
+    // When a pin sets, the tip stays where it was instead of springing up to the mouse: the mouse's
+    // lead becomes a bias, which lowering the mouse wears off
+    st.aimBias = Math.min(st.aimBias, st.aim);
+    st.target = Math.max(0, st.aim - st.aimBias);
+    // The tip slides along the keyway only while it is in the bottom band; lifted higher, it stays
+    // under its pin. Its pin is the nearest one once the tip is more than 0.55 of a slot away.
+    const prevTipX = st.tipX;
+    {
+      const n = lock.pins.length, down = st.tip <= BOTTOM && st.aim <= BOTTOM;
+      const goal = down ? (cfg.scheme === "wheel" ? clamp(st.aimX, -0.45, n - 0.55) : st.pick) : st.pick;
+      st.tipX += (goal - st.tipX) * Math.min(1, (down ? 14 : 20) * dt);
+      if (down) {
+        const near = clamp(Math.round(st.tipX), 0, n - 1);
+        if (near !== st.pick && Math.abs(st.tipX - st.pick) > 0.55) st.pick = near;
+      }
+    }
     if (!st.t0 && (st.tension > 0 || st.target > 0.05)) st.t0 = performance.now();
 
     const p = lock.pins[st.pick];
@@ -442,17 +477,31 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     } else {
       st.tip += (st.target - st.tip) * ease;
       st.strain = Math.max(0, st.strain - 0.8 * dt);
-      p.h = p.set ? Math.min(st.tip, p.s - 0.02) : st.tip;
+      p.h = st.tip; // the key pin rests on the tip, set or not (a set pin's key pin is loose: its driver is caught above the shear line)
     }
     for (let i = 0; i < lock.pins.length; i++) {
       const q = lock.pins[i];
       if (i !== st.pick && !q.overset) q.h = Math.max(0, q.h - 3 * dt);
     }
 
+    // Overset: with the plug turning (tension in the window or above), the binding pin's key pin
+    // pushed past the shear line (beyond the tolerance) jams in the housing. Set and loose pins
+    // overset only when shoved well past it (SET_OVERSET above the tolerance): the pick springs up a
+    // little when a pin sets, and that alone must not overset it. Recovering needs the tension
+    // released to zero, which drops every set pin.
+    const over = st.tension > P.hi ? Math.max(0.35, 1 - 1.4 * (st.tension - P.hi) / (1 - P.hi)) : 1;
+    const tol = (BASE_TOL + P.tolBonus) * lock.tolMult * over;
+    if (st.tension >= P.lo && !p.overset) {
+      if ((p.set || !isBinding) && p.h > p.s + tol + SET_OVERSET) {
+        if (p.set) { p.set = false; st.setStack = st.setStack.filter((k) => k !== st.pick); }
+        oversetPin(st.pick);
+      } else if (!p.set && isBinding && p.h > p.s + tol) {
+        oversetPin(st.pick);
+      }
+    }
+
     // Binding pin events
     if (isBinding && bindingActive && !p.set && !p.overset) {
-      const over = st.tension > P.hi ? Math.max(0.35, 1 - 1.4 * (st.tension - P.hi) / (1 - P.hi)) : 1;
-      const tol = (BASE_TOL + P.tolBonus) * lock.tolMult * over;
       const h = p.h;
       if (p.type === "spool" && p.spool === "none" && st.tension >= P.lo && h >= p.fs - tol) falseSet(st.pick);
       if (p.type === "serrated") {
@@ -470,9 +519,12 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
         st.falseExtra = Math.min(st.falseExtra, extra);
       }
       const canTrue = p.type !== "spool" ? st.tension >= P.lo : p.spool === "false";
-      if (canTrue && h >= p.s - tol) {
-        if (h <= p.s + tol) setPin(st.pick); else oversetPin(st.pick);
-      }
+      // It sets only after staying at the shear line for setDwell: lifting through it too fast
+      // carries the key pin past it (the overset above)
+      if (canTrue && h >= p.s - tol && h <= p.s + tol) {
+        p.dwell += dt;
+        if (p.dwell >= P.setDwell) setPin(st.pick);
+      } else p.dwell = 0;
     }
 
     // Scrape: the binding pin rubs while it moves
@@ -489,11 +541,40 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
       if (st.dropTimer >= P.dropDelay && st.setStack.length) { dropLast(); st.dropTimer = 0; }
     } else st.dropTimer = 0;
 
-    // Master rakes Simple locks
-    if (P.rake && lock.tier === "simple" && keys.KeyR && st.tension >= P.lo && st.tension <= P.hi) {
-      st.rake += dt; st.target = 0.3 + 0.25 * Math.abs(Math.sin(performance.now() / 70));
-      if (st.rake >= 0.65) { st.rake = 0; const b = bindingIndex(); if (b >= 0) { st.pick = b; setPin(b); } }
-    } else st.rake = 0;
+    // Raking: fast back-and-forth strokes of the tip in the bottom band. Every lock scrapes; on a
+    // rakeable lock (only standard pins, at most 5: Simple and Standard), a Master with tension in the
+    // sweet spot sets the binding pin every RAKE_STROKES strokes.
+    {
+      const vx = (st.tipX - prevTipX) / Math.max(dt, 1e-3);
+      const inBand = st.tip <= BOTTOM && st.aim <= BOTTOM;
+      st.rakeGap += dt;
+      if (st.rakeGap > RAKE_GAP) { st.rakeDir = 0; st.rake = 0; }
+      if (inBand && Math.abs(vx) > RAKE_SPEED) {
+        st.scraping = Math.max(st.scraping, Math.min(1, Math.abs(vx) / 8));
+        const dir = Math.sign(vx);
+        if (dir !== st.rakeDir) {
+          if (st.rakeDir !== 0) {
+            st.rakeGap = 0;
+            SFX.tick(); st.nudge = Math.max(st.nudge, 0.15);
+            if (performance.now() - st.lastScrapeLog > 600) { st.lastScrapeLog = performance.now(); logNoise("Rake", "scrape"); }
+            const rakeable = lock.pins.length <= 5 && lock.pins.every((q) => q.type === "std");
+            // Raking works with light tension: from the drop threshold up to the top of the sweet spot
+            const jammed = lock.pins.some((q) => q.overset);
+            if (P.rake && rakeable && st.tension >= P.drop && st.tension <= P.hi && !jammed) {
+              st.rake += 1;
+              if (st.rake >= RAKE_STROKES) { st.rake = 0; const b = bindingIndex(); if (b >= 0) setPin(b); }
+            } else if (P.rake && rakeable && performance.now() - st.lastRakeHint > 1500) {
+              // Why nothing catches, for a Master on a rakeable lock
+              st.lastRakeHint = performance.now();
+              caption(jammed ? "rattle: a pin is overset, release the tension"
+                : st.tension < P.drop ? "rattle: the pins bounce back, add a little tension"
+                : "rattle: too much tension, the pins bind");
+            }
+          }
+          st.rakeDir = dir; st.rakeGap = 0;
+        }
+      }
+    }
 
     if (st.strain >= 1) breakPick();
     if (st.t0 && !st.opened) st.elapsed = (performance.now() - st.t0) / 1000;
@@ -525,6 +606,13 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
   }
 
+  // Main view: the lock seen from the side, cut away along the keyway, in the proportions of a
+  // real clear practice lock (body a little wider than tall, housing and plug of similar height,
+  // pin spacing 0.148 of the body height, chambers 45 % of the spacing). With the clear lock on
+  // (practice / pins shown) the body is acrylic and the pins, springs and shear line show; otherwise
+  // the body is brass and only the plug's cut-out window shows the pick inside.
+  // The pick is rigid: a fixed shaft, hook and handle. It pivots in the keyway mouth and slides in
+  // and out of it, so its tip lands where the simulation puts it.
   function drawFront() {
     fit(front);
     const g = fctx, W = front.clientWidth, H = front.clientHeight;
@@ -533,76 +621,151 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     const bg = g.createRadialGradient(W * 0.5, H * 0.45, 10, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
     bg.addColorStop(0, "#222a32"); bg.addColorStop(1, "#0b0e11");
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    const mono = getComputedStyle(document.body).getPropertyValue("--font-mono");
 
     const shake = st.nudge * 3;
     g.save(); g.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
-    const cx = W * 0.5, cy = H * 0.45, R = Math.min(W, H) * 0.3, r = R * 0.62;
+    const n = lock.pins.length, clear = cfg.practice;
+    // Size: the body plus about 1.2 body widths of pick to its left (the handle's end may leave the
+    // view when the tip is at the front pin), and the gauge to its right
+    const widthPerH = n * 0.148 + 0.25;
+    const bodyH = Math.max(120, Math.min(H * 0.6, (W - 110) / 2.2 / widthPerH));
+    const bodyW = bodyH * widthPerH, spacing = bodyH * 0.148, pw = spacing * 0.45;
+    const bx1 = W - 100, bx0 = bx1 - bodyW, by0 = (H - bodyH) / 2 - H * 0.02, by1 = by0 + bodyH;
+    const top = by0, shear = by0 + bodyH * 0.48, bottom = by1 - bodyH * 0.07;
+    const keyBase = bottom - (bottom - shear) * 0.12, Lpx = (bottom - shear) * 0.78;
+    const x0 = bx0 + bodyW * 0.15;
+    st.geo = { x0, spacing };
 
-    // Door plate
-    g.fillStyle = "#1a2027"; roundRect(g, cx - R * 1.35, cy - R * 1.55, R * 2.7, R * 3.2, R * 0.12); g.fill();
-    g.strokeStyle = "#2c3640"; g.lineWidth = 1; g.stroke();
-    // Housing
-    let grad = g.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R * 1.05);
-    grad.addColorStop(0, "#e7c672"); grad.addColorStop(0.6, "#b58d3c"); grad.addColorStop(1, "#6e5424");
-    g.fillStyle = grad; g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = "rgba(0,0,0,0.45)"; g.lineWidth = R * 0.03; g.stroke();
-    g.strokeStyle = "rgba(255,240,200,0.25)"; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, R * 0.97, Math.PI * 1.1, Math.PI * 1.7); g.stroke();
-
-    const ang = plugAngleDeg() * Math.PI / 180;
-    g.save(); g.translate(cx, cy); g.rotate(ang);
-    grad = g.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
-    grad.addColorStop(0, "#d9b865"); grad.addColorStop(1, "#8f6f2e");
-    g.fillStyle = grad; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = "rgba(0,0,0,0.55)"; g.lineWidth = R * 0.025; g.stroke();
-    // Keyway (warded slot)
-    g.fillStyle = "#07090b"; g.beginPath();
-    const kw = r * 0.085;
-    g.moveTo(-kw * 0.6, -r * 0.8);
-    g.lineTo(kw * 0.6, -r * 0.8);
-    g.lineTo(kw * 0.9, -r * 0.45); g.lineTo(kw * 0.2, -r * 0.3); g.lineTo(kw * 1.0, -r * 0.1);
-    g.lineTo(kw * 0.4, r * 0.15); g.lineTo(kw * 1.1, r * 0.4); g.lineTo(kw * 1.4, r * 0.72);
-    g.lineTo(-kw * 1.4, r * 0.72); g.lineTo(-kw * 1.1, r * 0.45); g.lineTo(-kw * 0.3, r * 0.25);
-    g.lineTo(-kw * 1.0, r * 0.0); g.lineTo(-kw * 0.3, -r * 0.2); g.lineTo(-kw * 0.9, -r * 0.5);
-    g.closePath(); g.fill();
-    g.restore();
-
-    // Tension wrench: bottom of the keyway, turning with the plug and flexing with tension
-    const wAng = ang + st.tension * 0.12;
-    g.save(); g.translate(cx, cy); g.rotate(wAng);
-    g.fillStyle = "#c6d0d8"; g.fillRect(-kw * 1.1, r * 0.6, kw * 2.2, r * 0.1);
-    g.strokeStyle = "#aab6c1"; g.lineWidth = R * 0.07; g.lineCap = "round"; g.lineJoin = "round";
-    g.beginPath(); g.moveTo(0, r * 0.66); g.lineTo(R * 1.55, r * 0.66); g.lineTo(R * 1.62, r * 0.66 + R * 0.55); g.stroke();
-    g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(kw, r * 0.63); g.lineTo(R * 1.52, r * 0.63); g.stroke();
-    g.restore();
-
-    // Pick: shaft into the keyway; the tip height is the lift, the bow is the force
-    const tipLocalY = r * 0.5 - st.tip * r * 1.05;
-    const jitter = st.tremor ? (Math.random() - 0.5) * R * 0.012 : 0;
-    const tx = cx + Math.cos(ang) * (jitter) - Math.sin(ang) * tipLocalY;
-    const ty = cy + Math.sin(ang) * (jitter) + Math.cos(ang) * tipLocalY;
-    const n = lock.pins.length;
-    const depth = (n - 1 - st.pick) / Math.max(1, n - 1);
-    const hx = cx - R * (1.1 + depth * 0.45), hy = cy + R * (1.05 + depth * 0.2);
-    const bow = Math.min(0.5, st.force) * R * 0.9;
-    const mx = (hx + tx) / 2 + bow * 0.3, my = (hy + ty) / 2 + bow;
-    g.strokeStyle = st.strain > 0.5 ? "#e0d3c7" : "#cfd8e0"; g.lineWidth = R * 0.03; g.lineCap = "round";
-    g.beginPath(); g.moveTo(hx, hy); g.quadraticCurveTo(mx, my, tx, ty); g.stroke();
-    g.fillStyle = "#e8eef3"; g.beginPath(); g.arc(tx, ty, R * 0.022, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = "#5a3f33"; g.lineWidth = R * 0.11;
-    const hdx = hx - (tx - hx) * 0.25, hdy = hy - (ty - hy) * 0.25;
-    g.beginPath(); g.moveTo(hx, hy); g.lineTo(hdx, hdy); g.stroke();
-    g.restore();
-
-    // Pick depth notches (how far the pick is in), under the plate
-    const dy = cy + R * 1.75, gap = Math.min(22, R * 0.3), x0 = cx - gap * (n - 1) / 2;
-    for (let i = 0; i < n; i++) {
-      g.fillStyle = i === st.pick ? "#c9a24a" : "#33404c";
-      g.beginPath(); g.arc(x0 + gap * i, dy, i === st.pick ? 4 : 3, 0, Math.PI * 2); g.fill();
+    const brass = (y0, y1, light) => {
+      const gr = g.createLinearGradient(0, y0, 0, y1);
+      gr.addColorStop(0, light ? "#d9b865" : "#c49a45"); gr.addColorStop(0.5, light ? "#e6c97a" : "#b58d3c"); gr.addColorStop(1, light ? "#a9853a" : "#7d5f28");
+      return gr;
+    };
+    const plugGlass = (y0, y1) => {
+      const gr = g.createLinearGradient(0, y0, 0, y1);
+      const tint = st.opened ? "127, 214, 162" : "160, 205, 228";
+      gr.addColorStop(0, `rgba(${tint}, 0.08)`); gr.addColorStop(0.45, `rgba(${tint}, 0.2)`); gr.addColorStop(1, `rgba(${tint}, 0.06)`);
+      return gr;
+    };
+    const edge = clear ? "rgba(160, 205, 228, 0.4)" : "rgba(0, 0, 0, 0.45)";
+    g.lineWidth = 1;
+    // Housing (above the shear line) with rounded top corners, and the lip under the plug
+    g.fillStyle = clear ? "rgba(160, 205, 228, 0.07)" : brass(top, shear, false);
+    roundRect(g, bx0, top, bodyW, by1 - top, bodyH * 0.06); g.fill(); g.strokeStyle = edge; g.stroke();
+    // Plug: a cylinder along the keyway, sticking out a little at the back (the cam end, right)
+    const capW = bodyW * 0.05;
+    g.fillStyle = clear ? plugGlass(shear, bottom) : brass(shear, bottom, true);
+    roundRect(g, bx0, shear, bodyW + capW, bottom - shear, (bottom - shear) * 0.18); g.fill(); g.strokeStyle = edge; g.stroke();
+    // The cam end's screw slot
+    g.strokeStyle = clear ? "rgba(200, 210, 220, 0.5)" : "rgba(60, 40, 10, 0.7)"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(bx1 + capW * 0.55, shear + (bottom - shear) * 0.3); g.lineTo(bx1 + capW * 0.55, bottom - (bottom - shear) * 0.3); g.stroke();
+    g.lineWidth = 1;
+    // Plug grooves between the pins
+    g.strokeStyle = clear ? "rgba(200, 215, 225, 0.18)" : "rgba(90, 65, 20, 0.35)";
+    for (let i = 0; i <= n; i++) { const gx = x0 + spacing * i; g.beginPath(); g.moveTo(gx, shear + 2); g.lineTo(gx, bottom - 2); g.stroke(); }
+    // Opaque lock: the keyway shows as a soft dark groove along the plug (the pins stay hidden in
+    // the brass); the pick inside the body is drawn faded, and solid where it is in the groove
+    const grooveTop = keyBase - Lpx * 0.28, grooveBottom = keyBase + 5, grooveEnd = x0 + spacing * n;
+    if (!clear) {
+      const gg = g.createLinearGradient(0, grooveTop, 0, grooveBottom);
+      gg.addColorStop(0, "rgba(20, 14, 4, 0.15)"); gg.addColorStop(0.35, "rgba(10, 8, 4, 0.75)");
+      gg.addColorStop(0.8, "rgba(10, 8, 4, 0.8)"); gg.addColorStop(1, "rgba(20, 14, 4, 0.2)");
+      g.fillStyle = gg; roundRect(g, bx0, grooveTop, grooveEnd - bx0, grooveBottom - grooveTop, (grooveBottom - grooveTop) * 0.45); g.fill();
+      if (st.opened) { g.fillStyle = "rgba(127, 214, 162, 0.18)"; g.fillRect(bx0, shear, bodyW, bottom - shear); }
     }
-    g.fillStyle = "#6f7c88"; g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--font-mono");
-    g.textAlign = "center"; g.fillText("pick depth", cx, dy + 18);
-    if (cfg.gauge) drawGauge(g, W, H, cy, R);
+    // Keyway mouth in the front face
+    g.fillStyle = "#07090b"; g.fillRect(bx0 - 2, keyBase - Lpx * 0.3, 7, Lpx * 0.3 + 5);
+    // Shear line
+    g.setLineDash([5, 4]); g.strokeStyle = clear ? "rgba(201, 162, 74, 0.6)" : "rgba(40, 28, 10, 0.8)";
+    g.beginPath(); g.moveTo(bx0, shear); g.lineTo(bx1, shear); g.stroke(); g.setLineDash([]);
+    g.font = "10px " + mono;
+    if (clear) { g.fillStyle = "rgba(201, 162, 74, 0.8)"; g.textAlign = "right"; g.fillText("shear line", bx1 - 6, shear - 4); }
+
+    // Pins (clear lock only)
+    if (clear) {
+      for (let i = 0; i < n; i++) {
+        const p = lock.pins[i];
+        const cxp = x0 + spacing * (i + 0.5);
+        g.strokeStyle = "rgba(160, 205, 228, 0.25)";
+        g.strokeRect(cxp - pw / 2 - 2, top + bodyH * 0.04, pw + 4, keyBase - top - bodyH * 0.04);
+        const keyLen = Math.max(8, keyBase - p.s * Lpx - shear);
+        const kb = keyBase - p.h * Lpx, kt = kb - keyLen;
+        g.fillStyle = "#c9a24a";
+        g.beginPath(); g.moveTo(cxp - pw / 2, kt); g.lineTo(cxp + pw / 2, kt); g.lineTo(cxp + pw / 2, kb - pw * 0.4); g.lineTo(cxp, kb); g.lineTo(cxp - pw / 2, kb - pw * 0.4); g.closePath(); g.fill();
+        const dLen = (shear - top) * 0.3;
+        let db = p.set ? Math.min(kt, shear) : kt;
+        if (p.spool === "false") db = Math.min(db, shear + 3);
+        const dt = db - dLen;
+        g.fillStyle = "#aab6c1";
+        if (p.type === "spool") {
+          const wst = pw * 0.28;
+          g.beginPath(); g.moveTo(cxp - pw / 2, dt); g.lineTo(cxp + pw / 2, dt); g.lineTo(cxp + pw / 2, dt + dLen * 0.25);
+          g.lineTo(cxp + wst, dt + dLen * 0.4); g.lineTo(cxp + wst, dt + dLen * 0.6); g.lineTo(cxp + pw / 2, dt + dLen * 0.75);
+          g.lineTo(cxp + pw / 2, db); g.lineTo(cxp - pw / 2, db); g.lineTo(cxp - pw / 2, dt + dLen * 0.75);
+          g.lineTo(cxp - wst, dt + dLen * 0.6); g.lineTo(cxp - wst, dt + dLen * 0.4); g.lineTo(cxp - pw / 2, dt + dLen * 0.25); g.closePath(); g.fill();
+        } else {
+          g.fillRect(cxp - pw / 2, dt, pw, dLen);
+          if (p.type === "serrated") { g.strokeStyle = "#5d6974"; for (let k = 1; k < 5; k++) { g.beginPath(); g.moveTo(cxp - pw / 2, dt + dLen * k / 5); g.lineTo(cxp - pw / 2 + 3, dt + dLen * k / 5); g.moveTo(cxp + pw / 2, dt + dLen * k / 5); g.lineTo(cxp + pw / 2 - 3, dt + dLen * k / 5); g.stroke(); } }
+        }
+        g.strokeStyle = "rgba(200, 210, 220, 0.65)"; g.beginPath();
+        const s0 = top + bodyH * 0.05, s1 = dt, coils = 8;
+        for (let k = 0; k <= coils * 2; k++) { const y = s0 + (s1 - s0) * k / (coils * 2); const x = cxp + (k % 2 ? pw / 2 - 1 : -pw / 2 + 1); k ? g.lineTo(x, y) : g.moveTo(cxp, y); }
+        g.stroke();
+        g.fillStyle = "#6f7c88"; g.textAlign = "center";
+        g.fillText(String(i + 1), cxp, by1 + 16);
+        if (p.type !== "std") g.fillText(p.type === "spool" ? "spool" : "serr.", cxp, by1 + 29);
+      }
+    }
+
+    // Tension wrench: a short blade in the bottom of the keyway mouth, its arm hanging outside;
+    // more tension swings the arm further
+    g.save(); g.translate(bx0, keyBase + 3); g.rotate(-0.12 - st.tension * 0.35);
+    g.strokeStyle = "#aab6c1"; g.lineWidth = 4; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.moveTo(spacing * 0.7, 0); g.lineTo(-bodyW * 0.03, 0); g.lineTo(-bodyW * 0.05, bodyH * 0.55); g.stroke();
+    g.restore();
+
+    // Hook pick, rigid. The pivot is the keyway mouth; the hook (fixed size) ends at the tip, so the
+    // shaft's angle and how far it is inserted follow from the tip; the rest of the pick (shaft,
+    // neck and handle, fixed lengths) sticks out of the lock behind the pivot.
+    const jitter = st.tremor ? (Math.random() - 0.5) * 2 : 0;
+    const tipX = x0 + spacing * (st.tipX + 0.5) + jitter, tipY = keyBase - st.tip * Lpx;
+    const hookH = Math.max(6, Math.min(14, Lpx * 0.18)), hookW = hookH * 0.8;
+    const pvx = bx0 + 1, pvy = keyBase - 3;
+    const dx = tipX - pvx, dy = tipY - pvy, d2 = dx * dx + dy * dy;
+    const reach = Math.sqrt(Math.max(1, d2 - hookH * hookH));           // pivot to the hook's corner, plus hookW
+    const ang = Math.atan2(dy, dx) + Math.atan2(hookH, reach);
+    const inside = reach - hookW;                                        // shaft length inside the lock
+    const shaftLen = (x0 + spacing * n - pvx) * 1.06;                    // the whole shaft, fixed
+    const handleLen = shaftLen * 1.15, th = Math.max(8, bodyH * 0.05), outside = shaftLen - inside;
+    const bow = Math.min(0.5, st.force) * bodyH * 0.06;
+    const drawPick = () => {
+      g.save(); g.translate(pvx, pvy); g.rotate(ang);
+      g.strokeStyle = st.strain > 0.5 ? "#e0d3c7" : "#cfd8e0"; g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = Math.max(2.5, bodyH * 0.012);
+      g.beginPath(); g.moveTo(-outside, 0); g.lineTo(0, 0);
+      g.quadraticCurveTo(inside / 2, bow, inside, 0);
+      g.quadraticCurveTo(inside + hookW, 0, inside + hookW, -hookH); g.stroke();
+      g.fillStyle = "#e8eef3"; g.beginPath(); g.arc(inside + hookW, -hookH, 1.8, 0, Math.PI * 2); g.fill();
+      // Flat handle with two rivets
+      const hx1 = -outside, hx0 = hx1 - handleLen;
+      const hg = g.createLinearGradient(0, -th / 2, 0, th / 2);
+      hg.addColorStop(0, "#c3ccd4"); hg.addColorStop(0.5, "#9aa5ae"); hg.addColorStop(1, "#6f7a83");
+      g.fillStyle = hg; roundRect(g, hx0, -th / 2, handleLen, th, th / 2); g.fill();
+      g.strokeStyle = "rgba(0, 0, 0, 0.35)"; g.lineWidth = 1; g.stroke();
+      g.fillStyle = "#7b858e";
+      for (const rx of [hx1 - th * 0.8, hx0 + th * 0.7]) { g.beginPath(); g.arc(rx, 0, th * 0.16, 0, Math.PI * 2); g.fill(); }
+      g.restore();
+    };
+    if (clear) drawPick();
+    else {
+      // Outside the lock: solid; inside the brass: faded; in the keyway groove: solid again
+      const clipTo = (x, y, w, h, alpha) => { g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); g.globalAlpha = alpha; drawPick(); g.restore(); };
+      clipTo(-W, -H, bx0 + W, 3 * H, 1);
+      clipTo(bx0, -H, 2 * W, 3 * H, 0.4);
+      clipTo(bx0, grooveTop, grooveEnd - bx0, grooveBottom - grooveTop, 1);
+    }
+    g.restore();
+    if (cfg.gauge) drawGauge(g, W, H, (by0 + by1) / 2, bodyH / 2.6);
   }
 
   // Tension gauge: a vertical bar at the right edge, 0 % at the bottom. Its bands are the current
@@ -732,7 +895,7 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   let last = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    step(dt); audioFrame(); drawFront(); drawSide(); renderPanel();
+    step(dt); audioFrame(); drawFront(); renderPanel();
     requestAnimationFrame(frame);
   }
 
@@ -743,8 +906,8 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     keys[e.code] = true;
     if (!st.started) return;
     if (e.repeat) return;
-    if (e.code === "KeyA") st.pick = Math.max(0, st.pick - 1);
-    if (e.code === "KeyD") st.pick = Math.min(lock.pins.length - 1, st.pick + 1);
+    if (e.code === "KeyA") setPick(st.pick - 1);
+    if (e.code === "KeyD") setPick(st.pick + 1);
     if (e.code === "KeyE" || e.code === "Escape") { e.preventDefault(); leave(); }
   });
   window.addEventListener("keyup", (e) => { keys[e.code] = false; });
@@ -754,8 +917,29 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   function liftFromPointer(e) {
     const rct = stage.getBoundingClientRect();
     const yn = (e.clientY - rct.top) / rct.height;
-    st.target = clamp((0.8 - yn) / 0.65, 0, 1);
+    st.aim = clamp((0.8 - yn) / 0.65, 0, 1);
+    const xn = (e.clientX - rct.left) / rct.width;
+    if (cfg.scheme === "mouseX") {
+      // Mouse X: tension, 0 % at 85 % of the stage width, 100 % at 15 % (left turns the wrench harder)
+      st.tension = clamp((0.85 - xn) / 0.7, 0, 1);
+    } else if (cfg.scheme === "wheel" && st.geo) {
+      // Mouse X: where along the keyway the tip goes (in pin slots, front pin on the left)
+      st.aimX = (e.clientX - rct.left - st.geo.x0) / st.geo.spacing - 0.5;
+    }
   }
+  // A / D: the pick changes pins only while its tip is down at the bottom
+  function setPick(i) {
+    i = clamp(i, 0, lock.pins.length - 1);
+    if (i === st.pick || st.tip > BOTTOM || st.aim > BOTTOM) return;
+    st.pick = i;
+  }
+  stage.addEventListener("wheel", (e) => {
+    if (!st.started || st.opened || cfg.scheme !== "wheel") return;
+    e.preventDefault();
+    const notches = e.deltaMode === 1 ? e.deltaY / 3 : e.deltaMode === 2 ? e.deltaY * 10 : e.deltaY / 100;
+    const stepSize = keys.ShiftLeft || keys.ShiftRight ? 0.01 : 0.03;
+    st.tension = clamp(st.tension - notches * stepSize, 0, 1);
+  }, { passive: false });
   stage.addEventListener("pointermove", (e) => { if (st.started && !st.opened && (e.pointerType === "mouse" || e.buttons)) liftFromPointer(e); });
   stage.addEventListener("pointerdown", (e) => { if (st.started && e.pointerType !== "mouse") liftFromPointer(e); });
 
@@ -766,8 +950,8 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
     btn.addEventListener("pointerleave", off); btn.addEventListener("pointercancel", off);
   }
   hold($("tUp"), "up"); hold($("tDown"), "down");
-  $("pPrev").addEventListener("click", () => { if (st.started) st.pick = Math.max(0, st.pick - 1); });
-  $("pNext").addEventListener("click", () => { if (st.started) st.pick = Math.min(lock.pins.length - 1, st.pick + 1); });
+  $("pPrev").addEventListener("click", () => { if (st.started) setPick(st.pick - 1); });
+  $("pNext").addEventListener("click", () => { if (st.started) setPick(st.pick + 1); });
 
   $("ovBtn").addEventListener("click", start);
   $("tier").addEventListener("change", (e) => { cfg.tier = e.target.value; buildLock(); leaveQuiet(); });
@@ -776,14 +960,15 @@ pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-he
   $("newLock").addEventListener("click", () => { cfg.seed = 1 + Math.floor(Math.random() * 99998); $("seed").value = cfg.seed; buildLock(); leaveQuiet(); });
   $("retry").addEventListener("click", () => { buildLock(); leaveQuiet(); });
   $("restock").addEventListener("click", () => { st.picks = 2; st.outOfPicks = false; renderPicks(); if (!st.started) showOverlay("Pick this lock", "Fresh picks in hand.", "Take the tools"); });
+  $("scheme").addEventListener("change", (e) => { cfg.scheme = e.target.value; });
   $("gauge").addEventListener("change", (e) => { cfg.gauge = e.target.checked; });
-  $("practice").addEventListener("change", (e) => { cfg.practice = e.target.checked; $("sideWrap").hidden = !cfg.practice; });
+  $("practice").addEventListener("change", (e) => { cfg.practice = e.target.checked; });
   $("captions").addEventListener("change", (e) => { cfg.captions = e.target.checked; if (!cfg.captions) $("caption").style.opacity = "0"; });
   $("sound").addEventListener("change", (e) => { cfg.sound = e.target.checked; if (master) master.gain.value = cfg.sound ? 0.7 : 0; });
   $("readoutOn").addEventListener("change", (e) => { cfg.readout = e.target.checked; $("readout").hidden = !cfg.readout; });
 
   function leaveQuiet() {
-    st.tension = 0; st.target = 0; st.tip = 0; st.started = false;
+    st.tension = 0; st.target = 0; st.aim = 0; st.tip = 0; st.started = false;
     showOverlay("Pick this lock", `${lock.name} lock, seed ${cfg.seed}. The pins are the same every retry.`, "Take the tools");
   }
 
