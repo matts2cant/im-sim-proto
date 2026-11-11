@@ -36,5 +36,5 @@ M12a shipped the network, computers, the deck's Map and Icebreaker, tracers and 
 ## Consequences
 
 - [hacking.md](../game/hacking.md) gains the M12b and M12c sections; the roadmap splits M12b and M12c.
-- An HTML mockup of the Exploits tool, the Firewall tool, the Map's software lines and wireless precedes M12b's agents.
+- Approved mockup for M12b: [intrusion_screens.html](../prototypes/intrusion_screens.html) (the Map's software lines, the Exploits tool, the Firewall tool, wireless links, cracking an access point).
 - M12c starts after the user plays M12b.
