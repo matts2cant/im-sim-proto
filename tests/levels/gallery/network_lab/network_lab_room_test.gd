@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/network_lab/network_lab.tscn")
 const ORIGIN := Vector3(-300, 0, -500)
 ## Hall interior (lab-local): x -2..12, z -18..-4, 4 m high.
@@ -208,6 +209,47 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	assert_str(String(Powered.of(_node("Devices/ClosetSwitch")).circuit)).is_equal(String(circuit))
 	assert_str(String(Powered.of(_node("Doors/ClosetDoor")).circuit)).is_equal(String(circuit))
 	assert_bool(ActorState.has(_node("Doors/ClosetDoor"), ElectronicLock.FAIL_SECURE)).is_true()
+
+
+# The deck's Map of the whole lab network from the jack (network_map_checks.gd: readable, no cable
+# crossing, nothing off the tree): three subnet boxes left to right (Office, Security, Servers) in
+# their data's colours with their names and ranges, RTR-01 and RTR-02 between them with both
+# addresses. Fitted in the deck's 1152 x 648 Map panel at about 0.6.
+func test_the_deck_map_shows_three_subnet_boxes_with_the_routers_between() -> void:
+	assert_array(Router.of(_node("Devices/Rtr01")).addresses()).is_equal(["10.0.10.1", "10.0.20.254"])
+	assert_array(Router.of(_node("Devices/Rtr02")).addresses()).is_equal(["10.0.20.1", "10.0.30.1"])
+	var rows := MapChecks.rows_from(_node("Devices/Jack"))
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
+	var layout := result["layout"] as NetworkLayout
+	assert_int(result["crossings"]).is_equal(0)
+	assert_int(result["extra"]).is_equal(0)
+	var zoom: float = result["zoom"]
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.5)
+	var boxes: Dictionary = result["boxes"]
+	assert_array(boxes.keys()).contains_exactly([&"office", &"security", &"servers"])
+	var titles := {
+		&"office": "OFFICE 10.0.10.0/24", &"security": "SECURITY 10.0.20.0/24", &"servers": "SERVERS 10.0.30.0/24"
+	}
+	var colours: Array[Color] = []
+	for id: StringName in titles:
+		assert_str(boxes[id]["title"]).is_equal(titles[id])
+		colours.append(boxes[id]["color"])
+	# Office blue, Security orange, Servers purple: distinct hues.
+	assert_float(colours[0].h).is_between(0.55, 0.7)
+	assert_float(colours[1].h).is_between(0.0, 0.1)
+	assert_float(colours[2].h).is_between(0.72, 0.85)
+	var office: Rect2 = boxes[&"office"]["rect"]
+	var security: Rect2 = boxes[&"security"]["rect"]
+	var servers: Rect2 = boxes[&"servers"]["rect"]
+	var by_name := {}
+	for i in rows.size():
+		by_name[rows[i].name] = i
+	var rtr01 := layout.rects[by_name["RTR-01"]]
+	var rtr02 := layout.rects[by_name["RTR-02"]]
+	assert_bool(office.end.x < rtr01.position.x and rtr01.end.x < security.position.x).is_true()
+	assert_bool(security.end.x < rtr02.position.x and rtr02.end.x < servers.position.x).is_true()
+	assert_str(rows[by_name["RTR-01"]].address).is_equal("10.0.10.1 · 10.0.20.254")
+	assert_str(rows[by_name["RTR-01"]].role).is_equal("router")
 
 
 func test_every_clue_is_fair() -> void:

@@ -218,10 +218,25 @@ func map_rows() -> Array[NetworkRow]:
 		row.status = DeviceStatus.of(device.entity, row.online)
 		row.disabled = row.online and DeviceStatus.is_disabled(device.entity)
 		row.has_view = DeviceStatus.has_view(device.entity)
-		row.address = device.address
 		row.access = session.has_access(device)
+		place_in_network(row, device)
 		rows.append(row)
 	return rows
+
+
+## Fills `row`'s network place from `device`: its address, its subnet and, for a router, the
+## subnets it joins, both addresses and the word "router" (ADR 0112 amendment).
+static func place_in_network(row: NetworkRow, device: Device) -> void:
+	row.address = device.address
+	row.subnet = DeviceNetwork.subnet_of(device)
+	var router := Router.of(device.entity)
+	if router == null:
+		return
+	row.joins = router.subnets()
+	row.role = "router"
+	var addresses := router.addresses()
+	if not addresses.is_empty():
+		row.address = " · ".join(addresses)
 
 
 ## The cables between `rows`, as index pairs (lower first), each once.
@@ -388,6 +403,7 @@ func _refresh_map() -> void:
 	if signature == _signature:
 		return
 	_signature = signature
+	graph.subnets = Router.subnet_info(get_tree())
 	graph.show_network(rows, cables_of(rows))
 	if _fit_on_show and not rows.is_empty():
 		_fit_on_show = false

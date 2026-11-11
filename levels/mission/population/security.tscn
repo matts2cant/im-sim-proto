@@ -33,6 +33,9 @@
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="44_wall_jack"]
 [ext_resource type="PackedScene" path="res://objects/network/router.tscn" id="45_router"]
 [ext_resource type="Script" path="res://objects/network/tracer.gd" id="46_tracer"]
+[ext_resource type="Script" path="res://objects/network/subnet.gd" id="47_subnet"]
+[ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="47_office"]
+[ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="47_security"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -808,6 +811,10 @@ subnet = &"office"
 [node name="DeviceAccounts" parent="Network/Rtr01"]
 accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr01")])
 credentials_id = &"warehouse_rtr01"
+
+[node name="Router" parent="Network/Rtr01"]
+subnet_data = Array[ExtResource("47_subnet")]([ExtResource("47_office"), ExtResource("47_security")])
+side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.1"})
 
 [node name="Tracer" type="Node" parent="Network/Rtr01"]
 script = ExtResource("46_tracer")

@@ -11,6 +11,11 @@ extends Control
 ## wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
 ## network; it opens fitted (request_fit()). The nodes, their labels and the cables live in
 ## `content`, a child scaled and moved by the view; the menu and the Fit button stay in the panel.
+## Subnets (ADR 0112 amendment): the nodes are laid out by their row's subnet; each subnet with data
+## in `subnets` (Subnet: name, range, colour) is a flat box of its colour behind its devices (fill
+## SUBNET_FILL_ALPHA, a 1 px border) with its name and range at its top-left; a router row (it joins
+## two subnets or more) stands between the boxes, "router" after its name. A subnet shows its box
+## only while one of its devices is on the map.
 ## Clicking a node (without dragging) opens a small menu beside it, kept inside the panel: its name,
 ## status and, by default, one button per command of its row (none while offline; a button emits
 ## `command_pressed`); an owner with `menu_builder` fills the menu itself (the deck: accounts,
@@ -44,6 +49,11 @@ const NODE_FILL: Color = Color(0.04, 0.1, 0.1, 1.0)
 const DISABLED_FILL: Color = Color(0.22, 0.08, 0.08, 1.0)
 const SELECTED_FILL: Color = Color(0.13, 0.22, 0.22, 1.0)
 const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
+## A subnet box's fill and border opacity (its colour from its Subnet), its corner radius.
+const SUBNET_FILL_ALPHA: float = 0.1
+const SUBNET_BORDER_ALPHA: float = 0.55
+const SUBNET_RADIUS: int = 8
+const SUBNET_TITLE_SIZE: int = 12
 
 ## Command -> button label for the default menu (empty: the words after `command.`).
 var command_label: Callable = Callable()
@@ -54,6 +64,13 @@ var menu_builder: Callable = Callable()
 var menu_width: float = MENU_WIDTH
 var rows: Array[NetworkRow] = []
 var cables: Array[Vector2i] = []
+## Subnet id -> its data (Router.subnet_info()): the subnets drawn as boxes.
+var subnets: Dictionary[StringName, Subnet] = {}
+## The subnets of the last layout, in region order (layout.region_rects).
+var region_ids: Array[StringName] = []
+## Subnet id -> its box as drawn now (content coordinates), for each subnet with data and devices on
+## the map: {"rect": Rect2, "color": Color (its Subnet's), "title": String, "title_rect": Rect2}.
+var subnet_boxes: Dictionary[StringName, Dictionary] = {}
 ## The device whose menu is open (null: none).
 var selected: Device
 var view := NetworkView.new()
@@ -69,6 +86,8 @@ var fit_button: Button
 
 var _nodes: Array[Control] = []
 var _styles: Array[StyleBoxFlat] = []
+# Per region: its title (null for a subnet without data).
+var _titles: Array[Control] = []
 var _menu_buttons: VBoxContainer
 # Fit at the next chance (the panel has a size and a network).
 var _fit_pending: bool = true
@@ -137,8 +156,12 @@ func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = 
 		command_label = Callable(p_labels as Object, &"label_for")
 	for node in _nodes:
 		DeckStyle.discard(node)
+	for title in _titles:
+		if title != null:
+			DeckStyle.discard(title)
 	_nodes.clear()
 	_styles.clear()
+	_titles.clear()
 	for i in rows.size():
 		var node := _node(rows[i])
 		_nodes.append(node)
@@ -343,8 +366,22 @@ func _draw() -> void:
 func _draw_cables() -> void:
 	if layout == null:
 		return
+	for id: StringName in subnet_boxes:
+		var color: Color = subnet_boxes[id]["color"]
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(color, SUBNET_FILL_ALPHA)
+		box.border_color = Color(color, SUBNET_BORDER_ALPHA)
+		box.set_border_width_all(1)
+		box.set_corner_radius_all(SUBNET_RADIUS)
+		box.draw(content.get_canvas_item(), subnet_boxes[id]["rect"])
+	# Cables off the network's tree last (they may cross others).
+	var order: Array[int] = []
+	for k in mini(cables.size(), layout.routes.size()):
+		if not layout.extra.has(k):
+			order.append(k)
+	order.append_array(Array(layout.extra))
 	for pass_live: bool in [false, true]:
-		for k in mini(cables.size(), layout.routes.size()):
+		for k in order:
 			var cable := cables[k]
 			if cable.x >= rows.size() or cable.y >= rows.size():
 				continue
@@ -406,16 +443,85 @@ func _layout() -> void:
 		sizes.append(node.size)
 	var panel := _panel_size()
 	var aspect := snappedf(panel.x / panel.y, 0.1) if panel.y > 0.0 else 2.4
-	layout = NetworkLayout.arrange(positions, cables, sizes, NODE_TOP, aspect)
+	var regions := _regions()
+	var titles: Array[Vector2] = []
+	for id in region_ids:
+		var title := _title(id)
+		_titles.append(title)
+		titles.append(title.get_combined_minimum_size() if title != null else Vector2.ZERO)
+	layout = NetworkLayout.arrange(positions, cables, sizes, NODE_TOP, aspect, regions, titles)
 	for i in _nodes.size():
 		_nodes[i].position = layout.rects[i].position
 		_align(_nodes[i], layout.sides[i])
+	subnet_boxes.clear()
+	for r in _titles.size():
+		if _titles[r] == null or not layout.region_rects[r].has_area():
+			continue
+		_titles[r].position = layout.title_positions[r]
+		_titles[r].size = titles[r]
+		var words := PackedStringArray()
+		for child in _titles[r].get_children():
+			words.append((child as Label).text)
+		subnet_boxes[region_ids[r]] = {
+			"rect": layout.region_rects[r],
+			"color": subnets[region_ids[r]].map_color,
+			"title": " ".join(words),
+			"title_rect": Rect2(_titles[r].position, _titles[r].size),
+		}
 	# A Control is culled by its own rect: the content's covers everything it draws.
 	content.size = layout.bounds.size
 	content.queue_redraw()
 	view.set_content(layout.bounds)
 	if not _try_fit():
 		_apply_view()
+
+
+# Per row its region (NetworkLayout.ROUTER for a router) and `region_ids`: the subnets in order, the
+# own device's first, then as their rows come.
+func _regions() -> PackedInt32Array:
+	region_ids.clear()
+	for row in rows:
+		if row.is_self and not row.is_between():
+			region_ids.append(row.subnet)
+	for row in rows:
+		var ids: Array[StringName] = [row.subnet]
+		if row.is_between():
+			ids = row.joins
+		for id in ids:
+			if not region_ids.has(id) and (not row.is_between() or _has_members(id)):
+				region_ids.append(id)
+	var regions := PackedInt32Array()
+	for row in rows:
+		regions.append(NetworkLayout.ROUTER if row.is_between() else region_ids.find(row.subnet))
+	return regions
+
+
+func _has_members(id: StringName) -> bool:
+	for row in rows:
+		if not row.is_between() and row.subnet == id:
+			return true
+	return false
+
+
+# The title of subnet `id`'s box (its name, then its range dimmer), or null without data.
+func _title(id: StringName) -> Control:
+	var data: Subnet = subnets.get(id)
+	if data == null:
+		return null
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override(&"separation", 10)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var text_color := data.map_color.lightened(0.35)
+	var name_label := DeckStyle.mono(
+		data.label if not data.label.is_empty() else String(id).to_upper(), text_color, SUBNET_TITLE_SIZE
+	)
+	line.add_child(name_label)
+	if not data.address_range.is_empty():
+		line.add_child(DeckStyle.mono(data.address_range, Color(text_color, 0.75), SUBNET_TITLE_SIZE))
+	for child in line.get_children():
+		(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(line)
+	return line
 
 
 # Name and status aligned on the bus side of the node's box (centred on a hub).
@@ -467,7 +573,7 @@ func _node(row: NetworkRow) -> Control:
 	box.add_theme_constant_override(&"separation", 0)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var node_button := Button.new()
-	node_button.text = row.name
+	node_button.text = row.name if row.role.is_empty() else "%s · %s" % [row.name, row.role]
 	node_button.focus_mode = Control.FOCUS_NONE
 	node_button.add_theme_font_size_override(&"font_size", 13)
 	node_button.name = "Button"

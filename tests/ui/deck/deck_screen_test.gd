@@ -10,6 +10,7 @@ const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
 const DECK: ItemData = preload("res://items/deck/deck.tres")
 const LAB: String = "res://tests/ui/deck/fixtures/deck_lab.tscn"
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 
 var _runner: GdUnitSceneRunner
 var _driver: PlayerDriver
@@ -68,6 +69,15 @@ func test_lmb_on_a_jack_plugs_the_deck_in_and_esc_lowers_it() -> void:
 	assert_bool(get_tree().paused).is_false()
 	assert_array(_screen.graph.node_names()).contains(["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC", "RTR-01"])
 	assert_array(_screen.trace_texts()).has_size(1)
+	# The Map's panel in the game's 1152 x 648 window (the size the map readability checks fit in):
+	# headless runs use a taller window; the panel is the window's 85 % less a fixed frame.
+	var window := get_viewport().get_visible_rect().size
+	var frame := window.y * DeckScreen.PANEL_FRACTION - _screen.graph.size.y
+	var shown := Vector2(_screen.graph.size.x, 648.0 * DeckScreen.PANEL_FRACTION - frame)
+	assert_float(window.x).is_equal(1152.0)
+	assert_vector(shown).override_failure_message("map panel %s" % shown).is_equal_approx(
+		MapChecks.DECK_MAP_SIZE, Vector2(1, 1)
+	)
 	assert_str(_screen.trace_texts()[0]).starts_with("Sentry tracer")
 	# Esc lowers it: input back, the game menu stays shut, the deck stays plugged in.
 	_runner.simulate_action_pressed(&"ui_cancel")

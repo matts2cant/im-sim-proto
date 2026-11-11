@@ -23,6 +23,10 @@
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/office_pc2.tres" id="21_pc2_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/console.tres" id="22_console_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/file_server.tres" id="23_server_data"]
+[ext_resource type="Script" path="res://objects/network/subnet.gd" id="24_subnet"]
+[ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="24_office"]
+[ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="24_security"]
+[ext_resource type="Resource" path="res://objects/network/subnets/servers.tres" id="24_servers"]
 
 [sub_resource type="Resource" id="Opening_corridor_hub"]
 script = ExtResource("2_opening")
@@ -246,6 +250,10 @@ subnet = &"office"
 accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr01")])
 credentials_id = &"network_lab_rtr01"
 
+[node name="Router" parent="Devices/Rtr01"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_office"), ExtResource("24_security")])
+side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.254"})
+
 [node name="Tracer" type="Node" parent="Devices/Rtr01"]
 script = ExtResource("13_tracer")
 label = "Sentry tracer"
@@ -314,6 +322,10 @@ subnet = &"security"
 [node name="DeviceAccounts" parent="Devices/Rtr02"]
 accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr02")])
 credentials_id = &"network_lab_rtr02"
+
+[node name="Router" parent="Devices/Rtr02"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_security"), ExtResource("24_servers")])
+side_addresses = Dictionary[StringName, String]({&"servers": "10.0.30.1"})
 
 [node name="ServerSwitch" parent="Devices" instance=ExtResource("10_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -15.1)

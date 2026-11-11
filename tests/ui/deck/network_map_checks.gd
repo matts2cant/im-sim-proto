@@ -7,8 +7,10 @@ extends RefCounted
 ## no cable under a box other than its two ends', the fitted view shows every node inside the panel,
 ## and the same network gives the same placement.
 
-## The size the old terminal gave its map (the deck's content area is larger).
+## The size the old terminal gave its map (graph tests; the readability checks use DECK_MAP_SIZE).
 const GRAPH_SIZE := Vector2(1050, 440)
+## The deck's Map panel in the game's 1152 x 648 window (deck_screen_test.gd measures it).
+const DECK_MAP_SIZE := Vector2(829, 507)
 ## Smallest gap between two boxes (px, edge to edge, at zoom 1).
 const MIN_GAP := 8.0
 const DECK_CONFIG: DeckConfig = preload("res://items/deck/deck_config.tres")
@@ -38,6 +40,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 		row.status = DeviceStatus.of(other.entity, row.online)
 		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
+		DeckScreen.place_in_network(row, other)
 		if row.online and not row.is_self:
 			for command: StringName in DECK_CONFIG.command_labels:
 				if other.accepts(command, entity):
@@ -64,15 +67,20 @@ static func check(
 	var graph := _graph(suite, rows, cables, config)
 	var rects := graph.node_rects()
 	suite.assert_int(rects.size()).is_equal(rows.size())
-	suite.assert_bool(NetworkLayout.rects_overlap(rects, MIN_GAP)).override_failure_message("boxes overlap").is_false()
+	(
+		suite
+		. assert_bool(NetworkGeometry.rects_overlap(rects, MIN_GAP))
+		. override_failure_message("boxes overlap")
+		. is_false()
+	)
 	var routes := graph.layout.routes
-	var crossings := NetworkLayout.crossings(routes)
+	var crossings := NetworkGeometry.crossings(routes)
 	suite.assert_int(crossings).override_failure_message("cables cross %d times" % crossings).is_less_equal(
 		max_crossings
 	)
 	(
 		suite
-		. assert_int(NetworkLayout.routes_through_boxes(routes, cables, rects))
+		. assert_int(NetworkGeometry.routes_through_boxes(routes, cables, rects))
 		. override_failure_message("cables under boxes")
 		. is_equal(0)
 	)
@@ -97,7 +105,14 @@ static func check(
 			. override_failure_message("%s outside: %s" % [row.name, shown])
 			. is_true()
 		)
-	var result := {"zoom": graph.view.zoom, "layout": graph.layout, "crossings": crossings}
+	_check_subnets(suite, graph, rows)
+	var result := {
+		"zoom": graph.view.zoom,
+		"layout": graph.layout,
+		"crossings": crossings,
+		"extra": graph.layout.extra.size(),
+		"boxes": graph.subnet_boxes.duplicate(true),
+	}
 	# Deterministic: the same network again, the same picture.
 	var again := _graph(suite, rows, cables, config)
 	suite.assert_array(again.node_rects()).is_equal(rects)
@@ -107,12 +122,51 @@ static func check(
 	return result
 
 
+# Subnet boxes: apart from each other, each holds its subnet's devices, no router inside any, and
+# no device box under a title.
+static func _check_subnets(suite: GdUnitTestSuite, graph: NetworkGraph, rows: Array[NetworkRow]) -> void:
+	var boxes: Dictionary[StringName, Rect2] = {}
+	for id: StringName in graph.subnet_boxes:
+		boxes[id] = graph.subnet_boxes[id]["rect"]
+	var box_list: Array[Rect2] = []
+	box_list.assign(boxes.values())
+	(
+		suite
+		. assert_bool(NetworkGeometry.rects_overlap(box_list, MIN_GAP))
+		. override_failure_message("subnet boxes overlap")
+		. is_false()
+	)
+	var rects := graph.node_rects()
+	for i in rows.size():
+		for id: StringName in boxes:
+			var inside := boxes[id].encloses(rects[i])
+			var expected := not rows[i].is_between() and rows[i].subnet == id
+			if rows[i].is_between() or expected:
+				(
+					suite
+					. assert_bool(inside)
+					. override_failure_message("%s inside %s: %s" % [rows[i].name, id, inside])
+					. is_equal(expected)
+				)
+	for id: StringName in boxes:
+		var title: Rect2 = graph.subnet_boxes[id]["title_rect"]
+		suite.assert_bool(boxes[id].encloses(title)).override_failure_message("%s title outside" % id).is_true()
+		for i in rects.size():
+			(
+				suite
+				. assert_bool(title.intersects(rects[i]))
+				. override_failure_message("%s under a title" % rows[i].name)
+				. is_false()
+			)
+
+
 static func _graph(
 	suite: GdUnitTestSuite, rows: Array[NetworkRow], cables: Array[Vector2i], config: DeckConfig
 ) -> NetworkGraph:
 	var graph := NetworkGraph.new()
 	suite.add_child(graph)
-	graph.size = GRAPH_SIZE
+	graph.size = DECK_MAP_SIZE
+	graph.subnets = Router.subnet_info(suite.get_tree())
 	graph.request_fit()
 	graph.show_network(rows, cables, config)
 	return graph
