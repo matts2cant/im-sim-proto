@@ -9,7 +9,9 @@ extends Node3D
 ## (0.9 m). `computer`: the booth computer's Security app, logged in, with that device (a path under
 ## the wing) selected; `login`: its login screen after reading the booth login datapad (Fill in).
 ## `disable`: `command.disable` sent to those devices (under Devices/) first; `break`: those devices
-## broken first.
+## broken first. `deck`: a deck plugged into that device (a path under the wing) with its Map up,
+## after `hack` (router paths under the wing) granted their first account; the Map is fitted
+## before the shot.
 
 ## feet / look: points; space: "hub" (default the wing); wait: seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
@@ -108,7 +110,25 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"break": ["SirenCorridor"],
 		"wait": 2.5,
 	},
+	# M12b: the wing's network wall and the jack; the deck's Map from the jack before and after RTR-05.
+	"network_wall": {"feet": Vector3(4.4, 0, 2.2), "look": Vector3(4.4, 1.8, 0)},
+	"jack": {"feet": Vector3(-2.15, 0, 1.8), "look": Vector3(-2.15, 0.8, 0)},
+	"booth_switch": {"feet": Vector3(0.3, 0, 8.0), "look": Vector3(-1.5, 1.6, 8.4), "open": ["D3Keycard"]},
+	"laser_switch": {"feet": Vector3(-5.6, 0, 15.6), "look": Vector3(-6.75, 1.5, 17.5)},
+	"corridor_switch": {"feet": Vector3(8.4, 0, 8.6), "look": Vector3(10.5, 1.6, 9)},
+	"vault_switch": {"feet": Vector3(6.0, 0, 20.4), "look": Vector3(5.5, 1.6, 18.5), "open": ["VaultDoor"]},
+	"deck_map_jack":
+	{"feet": Vector3(-2.3, 0, 1.0), "look": Vector3(-2.3, 0.5, 0), "deck": "Devices/Jack", "wait": 3.0},
+	"deck_map_jack_rtr05":
+	{
+		"feet": Vector3(-2.3, 0, 1.0),
+		"look": Vector3(-2.3, 0.5, 0),
+		"deck": "Devices/Jack",
+		"hack": ["Devices/Rtr05"],
+		"wait": 3.0,
+	},
 }
+const DECK: ItemData = preload("res://items/deck/deck.tres")
 
 ## Review image size (the project's 16:9 default).
 const SHOT_SIZE := Vector2i(1152, 648)
@@ -119,6 +139,8 @@ var _time: float = 0.0
 var _opened: bool = false
 var _alarm_sent: bool = false
 var _computer_open: bool = false
+var _deck_plugged: bool = false
+var _fitted: bool = false
 
 @onready var _hub: Node3D = $Hub
 @onready var _wing: Node3D = $Hub/SecurityWing
@@ -166,6 +188,14 @@ func _process(delta: float) -> void:
 	if (_shot.has("computer") or _shot.has("login")) and _time > 0.6 and not _computer_open:
 		_computer_open = true
 		_open_computer(String(_shot.get("computer", "")))
+	if _shot.has("deck") and _time > 0.6 and not _deck_plugged:
+		_deck_plugged = true
+		_plug_deck()
+	if _shot.has("deck") and _time > float(_shot.get("wait", 2.0)) - 0.5 and not _fitted:
+		_fitted = true
+		var deck_screen := DeckScreen.of(_player)
+		deck_screen.refresh()
+		deck_screen.graph.fit_view()
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
 		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Controller")))
@@ -209,3 +239,17 @@ func _open_computer(device: String) -> void:
 	computer.open_desktop(_player, "rvoss", false)
 	screen.show_app(ComputerScreen.App.SECURITY)
 	screen.security_app.select(Computer.display_name(Device.of(_wing.get_node(device))))
+
+
+# Gives the player a deck (fast scans), grants the shot's routers and plugs it into `deck`.
+func _plug_deck() -> void:
+	var session := DeckSession.of(_player)
+	session.config = session.config.duplicate() as DeckConfig
+	session.config.scan_time = 0.1
+	for router: String in _shot.get("hack", []):
+		var accounts := DeviceAccounts.of(_wing.get_node(router))
+		accounts.grant(_player, accounts.accounts[0].user)
+	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
+		_player.inventory.give(DECK, 1)
+	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	session.plug_and_raise(Device.of(_wing.get_node(String(_shot["deck"]))))

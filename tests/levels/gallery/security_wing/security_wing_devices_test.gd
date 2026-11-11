@@ -1,17 +1,17 @@
 extends GdUnitTestSuite
-## Gallery room 5 (security wing) on its own: the security devices. The booth computer reaches the camera,
-## turret, alarm controller, both sirens, the panic button, the radio base station, the vault door
-## and the laser hall's three laser arrays (the two-beam one is a single device, ADR 0100) through
-## the network switch; with breaker B (the switch's
-## circuit) off it reaches nothing and shows every device offline, and the fail-secure vault door
-## stays locked; breaker A off unlocks the fail-safe D4. The closed vault door blocks the turret's
+## Gallery room 5 (security wing) on its own: the security devices. The booth computer (Operations
+## subnet) reaches the camera, turret, alarm controller, both sirens, the panic button, the radio
+## base station, the vault door, D4 and the laser hall's three laser arrays (the two-beam one is a
+## single device, ADR 0100) through RTR-05 and the security switches (security_wing_network_test.gd);
+## with breaker B (the main security switch's circuit) off it reaches none of them and shows every
+## device offline, and the fail-secure vault door stays locked; breaker A off unlocks the fail-safe
+## D4 (and takes it offline). The closed vault door blocks the turret's
 ## line of sight to the corridor and the entry hall. The camera covers the corridor (within 15 m and
 ## its sweep); the corridor centre line is lit (> 0.5) and both alcoves are dark (< 0.1). Room-local
 ## coordinates (origin on the hub wall's outer face, +Z south). Its Security app lists them all (ADR
-## 0114); the old network map of that network reads well (ADR 0099).
+## 0114).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const NETWORK: Array[String] = [
 	"Devices/Camera",
@@ -25,6 +25,7 @@ const NETWORK: Array[String] = [
 	"Devices/LaserLow",
 	"Devices/LaserHigh",
 	"Devices/LaserPair",
+	"Doors/D4Electronic",
 ]
 const LASERS: Array[String] = ["LaserLow", "LaserHigh", "LaserPair"]
 ## Corridor centre line (x 9), from the hall end to the guard post, and between the alcoves.
@@ -85,19 +86,35 @@ func _network() -> Array[String]:
 	return names
 
 
-func test_the_booth_computer_reaches_the_security_devices_through_the_switch() -> void:
+func test_the_booth_computer_reaches_the_security_devices_through_the_switches() -> void:
 	var booth := _device("Devices/BoothComputer")
 	for path in NETWORK:
 		assert_bool(booth.reaches(_room.get_node(path))).override_failure_message(path).is_true()
 	# The panic button and the base station take disable / enable since M12a (ADR 0113).
 	var listed: Array[String] = [
-		"Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "PanicButton", "BaseStation", "VaultDoor"
+		"Camera",
+		"Turret",
+		"Controller",
+		"SirenHall",
+		"SirenCorridor",
+		"PanicButton",
+		"BaseStation",
+		"VaultDoor",
+		"D4Electronic",
 	]
 	listed.append_array(LASERS)
 	assert_array(_listed()).contains_exactly_in_any_order(listed)
-	# The Security app never lists the switch (no security kind).
+	# The Security app never lists the switches or the router (no security kind).
 	var network: Array[String] = [
-		"Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "PanicButton", "BaseStation", "VaultDoor"
+		"Camera",
+		"Turret",
+		"Controller",
+		"SirenHall",
+		"SirenCorridor",
+		"PanicButton",
+		"BaseStation",
+		"VaultDoor",
+		"D4Electronic",
 	]
 	network.append_array(LASERS)
 	assert_array(_network()).contains_exactly_in_any_order(network)
@@ -118,19 +135,8 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switch() -
 			assert_array(row.commands).contains([Device.OPEN])
 
 
-# The old network map of the booth's network (ADR 0099, network_map_checks.gd; the deck's Map takes
-# it over): one group on the switch, boxes apart, no cable crossing or under a box, every node shown
-# when fitted at a readable zoom, deterministic.
-func test_the_network_map_is_readable() -> void:
-	var rows := MapChecks.rows_from(_room.get_node("Devices/BoothComputer"))
-	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
-	var zoom: float = result["zoom"]
-	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.9)
-	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(1)
-
-
 func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
-	var switch_power := Powered.of(_room.get_node("Devices/Switch"))
+	var switch_power := Powered.of(_room.get_node("Devices/SecuritySwitch"))
 	assert_str(String(switch_power.circuit)).is_equal(String(_breaker("BreakerB").circuit))
 
 	_breaker("BreakerB").set_closed(false)
@@ -155,11 +161,11 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 
 	_breaker("BreakerB").set_closed(true)
 
-	assert_array(_listed()).has_size(8 + LASERS.size())
+	assert_array(_listed()).has_size(9 + LASERS.size())
 
 
 func test_shooting_the_switch_cuts_the_chain_too() -> void:
-	var switch_entity := _room.get_node("Devices/Switch")
+	var switch_entity := _room.get_node("Devices/SecuritySwitch")
 	# Shot: ballistic damage at the switch (a pistol round is 25), as the weapon path delivers it.
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 200.0, switch_entity, _room))
 	await KitGeometry.settle(get_tree(), 3)
@@ -176,7 +182,9 @@ func test_breaker_a_off_unlocks_d4_only() -> void:
 
 	assert_bool(d4.is_locked()).is_false()
 	assert_bool(Door.of(_room.get_node("Doors/VaultDoor")).is_locked()).is_true()
+	# D4 is on breaker A's circuit: unpowered, it drops off the computer's list.
 	assert_array(_listed()).has_size(8 + LASERS.size())
+	assert_bool(_listed().has("D4Electronic")).is_false()
 
 
 func test_closed_vault_door_blocks_the_turrets_line_of_sight() -> void:

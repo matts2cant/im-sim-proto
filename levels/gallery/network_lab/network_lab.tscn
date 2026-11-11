@@ -27,6 +27,27 @@
 [ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="24_office"]
 [ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="24_security"]
 [ext_resource type="Resource" path="res://objects/network/subnets/servers.tres" id="24_servers"]
+[ext_resource type="PackedScene" path="res://objects/network/access_point.tscn" id="25_ap"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="26_controller"]
+[ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="27_siren"]
+[ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="28_panic"]
+[ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="29_laser"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/subnets/lab_wifi.tres" id="30_wifi"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/subnets/lab_cctv.tres" id="31_cctv"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/subnets/lab_alarm.tres" id="32_alarm"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/subnets/lab_sirens.tres" id="33_sirens"]
+[ext_resource type="Resource" path="res://objects/network/software/helix_cam3_2_1.tres" id="34_helix21"]
+[ext_resource type="Resource" path="res://objects/network/software/helix_cam3_2_0.tres" id="35_helix20"]
+[ext_resource type="Resource" path="res://objects/network/software/helix_cam3_2_4.tres" id="36_helix24"]
+[ext_resource type="Resource" path="res://objects/network/software/norsk_edgeguard_1_8.tres" id="37_norsk18"]
+[ext_resource type="Resource" path="res://objects/network/software/norsk_edgeguard_2_2.tres" id="38_norsk22"]
+[ext_resource type="Resource" path="res://objects/network/software/vigil_ac200_3_4.tres" id="39_vigil_ac"]
+[ext_resource type="Resource" path="res://objects/network/software/vigil_sr10_2_0.tres" id="40_vigil_sr"]
+[ext_resource type="Resource" path="res://objects/network/software/vigil_pb1_1_1.tres" id="41_vigil_pb"]
+[ext_resource type="Resource" path="res://objects/network/software/lumen_lz4_1_2.tres" id="42_lumen"]
+[ext_resource type="Script" path="res://objects/network/exploit.gd" id="43_exploit"]
+[ext_resource type="Resource" path="res://objects/network/exploits/helix_default_login.tres" id="44_x_helix"]
+[ext_resource type="Resource" path="res://objects/network/exploits/norsk_edge_bypass.tres" id="45_x_norsk"]
 
 [sub_resource type="Resource" id="Opening_corridor_hub"]
 script = ExtResource("2_opening")
@@ -54,11 +75,39 @@ script = ExtResource("2_opening")
 node_name = &"ToCloset"
 offset = 0.85
 
+[sub_resource type="Resource" id="Opening_hall_annex"]
+script = ExtResource("2_opening")
+node_name = &"ToAnnex"
+offset = 5.0
+width = 2.0
+height = 2.6
+
 [sub_resource type="Resource" id="Opening_closet"]
 script = ExtResource("2_opening")
 node_name = &"Doorway"
 wall = 2
 offset = -0.15
+
+[sub_resource type="Resource" id="Opening_annex"]
+script = ExtResource("2_opening")
+node_name = &"FromHall"
+wall = 2
+offset = -4.75
+width = 2.0
+height = 2.6
+
+[sub_resource type="Resource" id="Account_rtr03"]
+script = ExtResource("15_account")
+user = "admin"
+password = "Wt4mKe9r"
+strength = 1
+admin = true
+
+[sub_resource type="Resource" id="Account_rtr04"]
+script = ExtResource("15_account")
+user = "admin"
+password = "siren88"
+admin = true
 
 [sub_resource type="Resource" id="Account_achen"]
 script = ExtResource("15_account")
@@ -108,13 +157,19 @@ openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_hub"),
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -11)
 size = Vector3(14, 4, 14)
 wall_thickness = 0.5
-openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_corridor"), SubResource("Opening_hall_closet")])
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_corridor"), SubResource("Opening_hall_closet"), SubResource("Opening_hall_annex")])
 
 [node name="Closet" parent="Shell" instance=ExtResource("1_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -19.75)
 size = Vector3(2.5, 3, 2.5)
 wall_thickness = 0.5
 openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="Annex" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.75, 0, -25.5)
+size = Vector3(14, 3.5, 14)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_annex")])
 
 [node name="Furniture" type="Node3D" parent="."]
 
@@ -158,6 +213,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -20.5)
 height = 0.8
 width = 1.2
 depth = 0.5
+surface = "wood"
+
+[node name="Pillar" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -27.1)
+height = 3.45
+width = 0.8
+depth = 0.8
+
+[node name="ExploitTable" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -31.8)
+height = 1.0
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="FirewallTable" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.45, 0, -20.5)
+height = 1.0
+width = 1.2
+depth = 0.7
 surface = "wood"
 
 [node name="Doors" type="Node3D" parent="."]
@@ -352,6 +427,197 @@ label = "file server"
 [node name="Device" parent="Devices/FileServer"]
 address = "10.0.30.8"
 
+[node name="WifiSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.74, 1.6, -21.3)
+metadata/display_name = "SW-WIFI"
+
+[node name="Device" parent="Devices/WifiSwitch"]
+links = Array[NodePath]([NodePath("../../ApLab")])
+address = "10.0.40.2"
+subnet = &"lab_wifi"
+
+[node name="ApLab" parent="Devices" instance=ExtResource("25_ap")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.63, 2.6, -25.5)
+metadata/display_name = "AP-LAB"
+
+[node name="Powered" parent="Devices/ApLab"]
+circuit = &"network_lab_ap"
+
+[node name="Device" parent="Devices/ApLab"]
+address = "10.0.40.5"
+subnet = &"lab_wifi"
+
+[node name="AccessPoint" parent="Devices/ApLab"]
+key = "labwifi7"
+
+[node name="ApBreaker" parent="Devices" instance=ExtResource("9_breaker")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.75, 1.3, -22.5)
+
+[node name="CircuitBreaker" parent="Devices/ApBreaker"]
+circuit = &"network_lab_ap"
+label = "access point"
+
+[node name="WifiCamera" parent="Devices" instance=ExtResource("16_camera")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 20, 2.6, -18.51)
+metadata/display_name = "CAM-WIFI"
+
+[node name="Device" parent="Devices/WifiCamera"]
+address = "10.0.40.21"
+software = ExtResource("34_helix21")
+wireless = NodePath("../../ApLab")
+
+[node name="WifiLaser" parent="Devices" instance=ExtResource("29_laser")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.74, 0.4, -27.5)
+metadata/display_name = "LASER-WIFI"
+
+[node name="Beam1" parent="Devices/WifiLaser"]
+length = 4.33
+
+[node name="Device" parent="Devices/WifiLaser"]
+address = "10.0.40.41"
+software = ExtResource("42_lumen")
+wireless = NodePath("../../ApLab")
+
+[node name="CctvJack" parent="Devices" instance=ExtResource("11_jack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6, 0.45, -32.49)
+metadata/display_name = "CCTV-JACK"
+
+[node name="Device" parent="Devices/CctvJack"]
+address = "10.0.50.40"
+subnet = &"lab_cctv"
+
+[node name="CctvSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 1.6, -32.49)
+metadata/display_name = "SW-CCTV"
+
+[node name="Device" parent="Devices/CctvSwitch"]
+links = Array[NodePath]([NodePath("../../CctvJack"), NodePath("../../CamEx1"), NodePath("../../CamEx2"), NodePath("../../CamEx3")])
+address = "10.0.50.2"
+subnet = &"lab_cctv"
+
+[node name="Rtr03" parent="Devices" instance=ExtResource("12_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.6, 1.6, -32.49)
+metadata/display_name = "RTR-03"
+
+[node name="Device" parent="Devices/Rtr03"]
+links = Array[NodePath]([NodePath("../../CctvSwitch"), NodePath("../../WifiSwitch")])
+address = "10.0.50.1"
+subnet = &"lab_cctv"
+software = ExtResource("37_norsk18")
+
+[node name="DeviceAccounts" parent="Devices/Rtr03"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr03")])
+credentials_id = &"network_lab_rtr03"
+
+[node name="Router" parent="Devices/Rtr03"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("31_cctv"), ExtResource("30_wifi")])
+side_addresses = Dictionary[StringName, String]({&"lab_wifi": "10.0.40.1"})
+
+[node name="Tracer" type="Node" parent="Devices/Rtr03"]
+script = ExtResource("13_tracer")
+label = "Watchdog tracer"
+watched = Array[StringName]([&"lab_cctv"])
+
+[node name="CamEx1" parent="Devices" instance=ExtResource("16_camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.4, -32.49)
+metadata/display_name = "CAM-EX1"
+
+[node name="Device" parent="Devices/CamEx1"]
+address = "10.0.50.21"
+software = ExtResource("34_helix21")
+
+[node name="CamEx2" parent="Devices" instance=ExtResource("16_camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.8, 2.4, -32.49)
+metadata/display_name = "CAM-EX2"
+
+[node name="Device" parent="Devices/CamEx2"]
+address = "10.0.50.22"
+software = ExtResource("35_helix20")
+
+[node name="CamEx3" parent="Devices" instance=ExtResource("16_camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.6, 2.4, -32.49)
+metadata/display_name = "CAM-EX3"
+
+[node name="Device" parent="Devices/CamEx3"]
+address = "10.0.50.23"
+software = ExtResource("36_helix24")
+
+[node name="AlarmJack" parent="Devices" instance=ExtResource("11_jack")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 0.45, -22)
+metadata/display_name = "ALARM-JACK"
+
+[node name="Device" parent="Devices/AlarmJack"]
+address = "10.0.60.40"
+subnet = &"lab_alarm"
+
+[node name="AlarmSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -23)
+metadata/display_name = "SW-ALARM"
+
+[node name="Device" parent="Devices/AlarmSwitch"]
+links = Array[NodePath]([NodePath("../../AlarmJack"), NodePath("../../AlarmController"), NodePath("../../PanicButton")])
+address = "10.0.60.2"
+subnet = &"lab_alarm"
+
+[node name="AlarmController" parent="Devices" instance=ExtResource("26_controller")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.75, 1.5, -24.2)
+metadata/display_name = "ALARM-LAB"
+
+[node name="Device" parent="Devices/AlarmController"]
+address = "10.0.60.10"
+software = ExtResource("39_vigil_ac")
+
+[node name="PanicButton" parent="Devices" instance=ExtResource("28_panic")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.3, -25.4)
+metadata/display_name = "PANIC-LAB"
+
+[node name="Device" parent="Devices/PanicButton"]
+address = "10.0.60.12"
+software = ExtResource("41_vigil_pb")
+
+[node name="Rtr04" parent="Devices" instance=ExtResource("12_router")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -27)
+metadata/display_name = "RTR-04"
+
+[node name="Device" parent="Devices/Rtr04"]
+links = Array[NodePath]([NodePath("../../AlarmSwitch"), NodePath("../../SirenSwitch")])
+address = "10.0.60.1"
+subnet = &"lab_alarm"
+software = ExtResource("38_norsk22")
+
+[node name="DeviceAccounts" parent="Devices/Rtr04"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr04")])
+credentials_id = &"network_lab_rtr04"
+
+[node name="Router" parent="Devices/Rtr04"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("32_alarm"), ExtResource("33_sirens")])
+side_addresses = Dictionary[StringName, String]({&"lab_sirens": "10.0.70.1"})
+
+[node name="SirenSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -28.2)
+metadata/display_name = "SW-SIRENS"
+
+[node name="Device" parent="Devices/SirenSwitch"]
+links = Array[NodePath]([NodePath("../../SirenA"), NodePath("../../SirenB")])
+address = "10.0.70.2"
+subnet = &"lab_sirens"
+
+[node name="SirenA" parent="Devices" instance=ExtResource("27_siren")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 3, -29.6)
+metadata/display_name = "SIREN-A"
+
+[node name="Device" parent="Devices/SirenA"]
+address = "10.0.70.31"
+software = ExtResource("40_vigil_sr")
+
+[node name="SirenB" parent="Devices" instance=ExtResource("27_siren")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 3, -31.2)
+metadata/display_name = "SIREN-B"
+
+[node name="Device" parent="Devices/SirenB"]
+address = "10.0.70.32"
+software = ExtResource("40_vigil_sr")
+
 [node name="Items" type="Node3D" parent="."]
 
 [node name="Deck" parent="Items" instance=ExtResource("18_deck")]
@@ -381,6 +647,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0.86, -20.75)
 [node name="Biocell2" parent="Items" instance=ExtResource("19_biocell")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 0.86, -20.75)
 
+[node name="ExploitNotes" parent="Items" instance=ExtResource("17_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.03, -32.1)
+
+[node name="Readable" parent="Items/ExploitNotes"]
+entry_id = &"gallery.network_lab.exploit_notes"
+title = "Exploit notes"
+text = "Two weaknesses going round the forums:
+- Helix default service login: Helix CAM-3 cameras 2.0 to 2.1, admin.
+- EdgeGuard auth bypass: Norsk EdgeGuard routers 1.0 to 1.9, admin.
+Careful: a tracer that sees a run gets that product patched on its subnet."
+exploits = Array[ExtResource("43_exploit")]([ExtResource("44_x_helix"), ExtResource("45_x_norsk")])
+
+[node name="Rtr04Note" parent="Items" instance=ExtResource("17_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.1, 1.03, -20.5)
+
+[node name="Readable" parent="Items/Rtr04Note"]
+entry_id = &"gallery.network_lab.rtr04_note"
+title = "Sticky note"
+text = "RTR-04 (alarm to sirens): admin / siren88"
+codes = Dictionary[StringName, String]({&"network_lab_rtr04": "admin:siren88"})
+code_labels = Dictionary[StringName, String]({&"network_lab_rtr04": "RTR-04 admin login"})
+
 [node name="Lamps" type="Node3D" parent="."]
 
 [node name="LampSouthWest" parent="Lamps" instance=ExtResource("5_lamp")]
@@ -400,6 +688,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3, -19.75)
 
 [node name="Light" parent="Lamps/LampCloset"]
 light_energy = 0.8
+
+[node name="LampAnnexSouthWest" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.25, 3.5, -22)
+
+[node name="LampAnnexSouthEast" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.25, 3.5, -22)
+
+[node name="LampAnnexNorthWest" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.25, 3.5, -29)
+
+[node name="LampAnnexNorthEast" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.25, 3.5, -29)
 
 [node name="Labels" type="Node3D" parent="."]
 
@@ -481,4 +781,108 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.15, -12.5)
 pixel_size = 0.003
 text = "File server · behind RTR-02
 crack it, open its desktop"
+size = 0
+
+[node name="Annex" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.85, -17.95)
+pixel_size = 0.003
+text = "M12b: Wi-Fi, exploits, firewall"
+size = 0
+
+[node name="WifiStation" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 15.5, 2.3, -18.55)
+pixel_size = 0.0025
+text = "Wi-Fi · deck in hand, aim at AP-LAB, hold LMB:
+crack its key, then you join its subnet
+Deck range by Computer skill: 8 / 12 / 18 / 25 m
+6 m mark: Untrained reaches · 10 m mark: Trained
+Step behind the pillar: paused, line of sight lost"
+size = 0
+
+[node name="ApLab" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.7, 2.3, -23.6)
+pixel_size = 0.0025
+text = "AP-LAB · access point
+shoot it or cut its breaker:
+CAM-WIFI and LASER-WIFI
+go offline"
+size = 0
+
+[node name="Exploits" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.25, -32.45)
+pixel_size = 0.0025
+text = "Exploits · read the datapad,
+plug into the CCTV jack: a match
+shows Exploits in the device's menu
+RTR-03's Watchdog tracer watches CCTV:
+a run it sees patches that product"
+size = 0
+
+[node name="CamEx1" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1.95, -32.45)
+pixel_size = 0.0025
+text = "CAM-EX1
+Helix 2.1"
+size = 0
+
+[node name="CamEx2" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.8, 1.95, -32.45)
+pixel_size = 0.0025
+text = "CAM-EX2
+Helix 2.0"
+size = 0
+
+[node name="CamEx3" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.6, 1.95, -32.45)
+pixel_size = 0.0025
+text = "CAM-EX3
+Helix 2.4: too new"
+size = 0
+
+[node name="Rtr03" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 1.22, -32.45)
+pixel_size = 0.0025
+text = "RTR-03 · EdgeGuard 1.8
+CCTV to Wi-Fi"
+size = 0
+
+[node name="Firewall" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.8, 2.4, -25.6)
+pixel_size = 0.0025
+text = "Firewall · press the panic button: both sirens ring
+RTR-04's login is on the table. Plug into the jack,
+log in on RTR-04, open its Firewall rules and add
+ALARM-LAB to SIRENS: DENY. Silent, nothing broken"
+size = 0
+
+[node name="AlarmSide" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.8, 2.0, -22.8)
+pixel_size = 0.0025
+text = "ALARM subnet"
+size = 0
+
+[node name="SirensSide" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.8, 2.2, -30.4)
+pixel_size = 0.0025
+text = "SIRENS subnet"
+size = 0
+
+[node name="FloorMarks" type="Node3D" parent="."]
+
+[node name="Spot6" parent="FloorMarks" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 15.6, 0.01, -25.5)
+text = "[ 6 m ]
+Untrained"
+size = 1
+
+[node name="Spot10" parent="FloorMarks" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 11.6, 0.01, -25.5)
+text = "[ 10 m ]
+Trained"
+size = 1
+
+[node name="BehindPillar" parent="FloorMarks" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 15.75, 0.01, -28.35)
+text = "behind
+the pillar"
 size = 0

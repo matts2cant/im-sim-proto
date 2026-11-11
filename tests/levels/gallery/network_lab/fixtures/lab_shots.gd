@@ -8,8 +8,9 @@ extends Node3D
 ## first; `off` circuits switched off; `computer` that computer (a path under Devices/) opened on its
 ## desktop as its first account, on `app` (security, mail or files) with `select` selected; `deck`
 ## plugs a deck into that device (a path under Devices/) and raises its Map, `hack` grants those
-## routers' first account first, `menu` opens that device's menu (its display name). States last
-## for the rest of the run: put such shots last.
+## routers' first account first, `menu` opens that device's menu (its display name); `wifi` grants
+## the access point's key first (the deck joins its Wi-Fi), `aim` aims the deck at it instead and
+## starts the crack (the Wi-Fi key screen). States last for the rest of the run: put such shots last.
 
 const SHOT_SIZE := Vector2i(1152, 648)
 const WAIT := 1.2
@@ -35,6 +36,21 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"closet_inside": {"feet": Vector3(6.4, 0, -20.2), "look": Vector3(5.6, 1.5, -17.5), "open": ["ClosetDoor"]},
 	"server_corner": {"feet": Vector3(9.8, 0, -14.0), "look": Vector3(12, 1.5, -14.5)},
 	"far_wall": {"feet": Vector3(5, 0, -10), "look": Vector3(5, 2.3, -18)},
+	# M12b annex: the doorway both ways, each station, the floor marks.
+	"annex_doorway_out": {"feet": Vector3(10, 0, -14.5), "look": Vector3(10, 1.5, -20)},
+	"annex_doorway_in": {"feet": Vector3(10.6, 0, -21.5), "look": Vector3(9.8, 1.7, -17)},
+	"annex_overview": {"feet": Vector3(9.0, 0, -19.4), "look": Vector3(17, 1.0, -30)},
+	"wifi_station": {"feet": Vector3(15.6, 0, -25.5), "look": Vector3(21.6, 2.4, -25.5)},
+	"wifi_from_10": {"feet": Vector3(11.6, 0, -25.5), "look": Vector3(21.6, 2.4, -25.5)},
+	"wifi_marks": {"feet": Vector3(9.0, 0, -22.5), "look": Vector3(14, 0, -26.5)},
+	"wifi_pillar": {"feet": Vector3(16.0, 0, -27.9), "look": Vector3(21.6, 2.4, -25.5)},
+	"wifi_sign": {"feet": Vector3(15.5, 0, -21.5), "look": Vector3(15.5, 2.1, -18.5)},
+	"wifi_ap": {"feet": Vector3(19.6, 0, -24.2), "look": Vector3(21.7, 2.2, -24.4)},
+	"exploit_station": {"feet": Vector3(13.5, 0, -28.8), "look": Vector3(13.5, 1.8, -32.5)},
+	"exploit_cameras": {"feet": Vector3(16.8, 0, -29.5), "look": Vector3(16.8, 2.1, -32.5)},
+	"firewall_station": {"feet": Vector3(11.5, 0, -25.6), "look": Vector3(7.75, 1.8, -25.6)},
+	"firewall_alarm": {"feet": Vector3(10, 0, -22.8), "look": Vector3(7.75, 1.4, -22.8)},
+	"firewall_sirens": {"feet": Vector3(10.4, 0, -29.6), "look": Vector3(7.75, 2.3, -29.4)},
 	# Screens.
 	"pc1_mail":
 	{
@@ -55,6 +71,14 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"deck_map_rtr01": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01"]},
 	"deck_map_chained":
 	{"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01", "Rtr02"]},
+	"deck_map_cctv":
+	{"feet": Vector3(11.6, 0, -31.6), "look": Vector3(11.6, 0.5, -32.5), "deck": "CctvJack", "menu": "CAM-EX3"},
+	"deck_map_alarm":
+	{"feet": Vector3(8.65, 0, -22), "look": Vector3(7.75, 0.5, -22), "deck": "AlarmJack", "hack": ["Rtr04"]},
+	"deck_wifi_paused":
+	{"feet": Vector3(16.0, 0, -27.9), "look": Vector3(21.6, 2.6, -25.5), "deck": "ApLab", "aim": true, "wait": 2.0},
+	"deck_map_wifi":
+	{"feet": Vector3(15.6, 0, -25.5), "look": Vector3(21.6, 2.6, -25.5), "deck": "ApLab", "wifi": true},
 	"switch_off_console":
 	{
 		"feet": Vector3(2.6, 0, -16.9),
@@ -129,7 +153,7 @@ func _process(delta: float) -> void:
 	_time += delta
 	var wait := float(_shot.get("wait", 3.0 if _shot.has("deck") else WAIT))
 	# The Map keeps its view while devices appear: fit it (and open a menu) a moment before the shot.
-	if _shot.has("deck") and _time > wait - 0.5 and not _shot.has("fitted"):
+	if _shot.has("deck") and not _shot.has("aim") and _time > wait - 0.5 and not _shot.has("fitted"):
 		_shot["fitted"] = true
 		var screen := DeckScreen.of(_player)
 		screen.refresh()
@@ -195,4 +219,12 @@ func _plug_deck() -> void:
 	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
 		_player.inventory.give(DECK, 1)
 	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
-	session.plug_and_raise(Device.of(_lab.get_node("Devices/" + String(_shot["deck"]))))
+	var device := Device.of(_lab.get_node("Devices/" + String(_shot["deck"])))
+	if _shot.get("aim", false):
+		var wireless := WirelessTool.of(_player)
+		wireless.aim(device)
+		wireless.start()
+		return
+	if _shot.get("wifi", false):
+		AccessPoint.of(device).grant_key(_player)
+	session.plug_and_raise(device)
