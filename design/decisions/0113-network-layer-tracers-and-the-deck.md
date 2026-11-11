@@ -1,6 +1,6 @@
 # 113. Network layer, tracers and the deck: gates in the reach graph, accounts and access, a tethered deck with Map and Icebreaker
 
-Status: Accepted (builds [ADR 0112](0112-hacking-reconciled-with-the-built-game.md)'s M12a network half; extends [ADR 0077](0077-device-network-reach.md) and [ADR 0099](0099-network-map-layout-pan-zoom.md))
+Status: Accepted (builds [ADR 0112](0112-hacking-reconciled-with-the-built-game.md)'s M12a network half; extends [ADR 0077](0077-devices-cables-and-remote-commands.md) and [ADR 0099](0099-network-map-layout-pan-zoom.md))
 
 Date: 2026-11-11
 
