@@ -428,6 +428,7 @@ Take the deck from the hub's loadout table (or the network lab's entrance table)
 - [ ] Assists: Trained times, Advanced trace estimates, Master hidden routes are readable and not noisy.
 - [ ] A full trace: the alarm rings (if the tracer's host reaches the controller), the bar says "blocked N s", running tools stop with a message; plugging into another port (a new address) is a way out.
 - [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
+- [ ] Clicks with a still mouse (ADR 0099 amendment, 2026-11-11): rest the cursor on a device, on the menu's Icebreaker / Log in / Open its desktop, on Stop / Resume and on the remote desktop's Back to the map; each shows its hover while still and a slow click (hold it half a second) acts every time. Dragging from a device or a button never moves the map; dragging the background does.
 
 ### Routers and subnet boxes (ADR 0112 amendment)
 

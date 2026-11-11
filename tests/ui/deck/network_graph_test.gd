@@ -2,8 +2,9 @@ extends GdUnitTestSuite
 ## Integration (ADR 0099): NetworkGraph, the terminal's network map, on the synthetic 60-device
 ## network (fixtures/synthetic_network.gd: 4 switches) at the terminal screen's graph size, placed
 ## away from the window's corner. Readable (network_map_checks.gd); real mouse events pushed through
-## the viewport: a click after panning and zooming opens the clicked node's menu, a drag moves the
-## map without opening one, the wheel zooms around the cursor; the menu stays inside the panel
+## the viewport: a click after panning and zooming opens the clicked node's menu, a drag on the
+## background moves the map without opening one (one from a node does not drag), the wheel zooms
+## around the cursor; the menu stays inside the panel
 ## wherever its node is; Fit shows the whole network again.
 
 const Synthetic := preload("res://tests/ui/deck/fixtures/synthetic_network.gd")
@@ -66,9 +67,8 @@ func test_a_click_after_panning_and_zooming_opens_the_clicked_node() -> void:
 	assert_bool(_graph.menu.visible).is_false()
 
 
-func test_a_drag_moves_the_map_and_opens_no_menu() -> void:
-	var target := _visible_node()
-	var start := _graph.node_screen_rect(target).get_center()
+func test_a_drag_on_the_background_moves_the_map_and_opens_no_menu() -> void:
+	var start := _background_point()
 	var before := _graph.view.offset
 	_press(start, true)
 	_move(start + Vector2(30, 10))
@@ -76,6 +76,17 @@ func test_a_drag_moves_the_map_and_opens_no_menu() -> void:
 	_press(start + Vector2(90, 40), false)
 	assert_vector(_graph.view.offset).is_equal_approx(before + Vector2(90, 40), Vector2.ONE * 0.01)
 	assert_bool(_graph.menu.visible).is_false()
+
+
+func test_a_press_moved_from_a_node_does_not_drag() -> void:
+	var target := _visible_node()
+	var start := _graph.node_screen_rect(target).get_center()
+	var before := _graph.view.offset
+	_press(start, true)
+	_move(start + Vector2(30, 10))
+	_move(start + Vector2(90, 40))
+	_press(start + Vector2(90, 40), false)
+	assert_vector(_graph.view.offset).is_equal(before)
 
 
 func test_the_wheel_zooms_around_the_cursor() -> void:
