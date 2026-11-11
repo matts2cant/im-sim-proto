@@ -1,7 +1,9 @@
 class_name PauseScreens
 extends RefCounted
-## Full-screen UI that pauses the game (ADR 0052): the inventory screen, the reading overlay, the
-## log screen (ADR 0060) and the game menu (ADR 0064).
+## Full-screen UI that pauses the game (ADR 0052): only the game menu (ADR 0064), the mission
+## briefing and the end-of-mission summary (ADR 0087). Every other screen (the Tab interface, the
+## keypad, the reading overlay, the terminal, the lockpicking screen) keeps the world running and
+## turns its user's input off instead (ADR 0110).
 ## Each such CanvasLayer joins GROUP, runs with PROCESS_MODE_ALWAYS, has is_open(), and calls
 ## update() after opening or closing. While any is open the SceneTree is paused and the mouse is
 ## free; when the last one closes the pause ends and the previous mouse mode comes back.

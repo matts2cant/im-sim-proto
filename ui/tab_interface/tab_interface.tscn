@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/tab_interface/tab_interface.gd" id="1_host"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tabs/inventory_tab.tscn" id="2_inventory"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tabs/health_tab.tscn" id="3_health"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tabs/augmentations_tab.tscn" id="4_augmentations"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tabs/skills_tab.tscn" id="5_skills"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tabs/journal_tab.tscn" id="6_journal"]
+
+[node name="TabInterface" type="CanvasLayer"]
+layer = 21
+visible = false
+script = ExtResource("1_host")
+pages = Array[PackedScene]([ExtResource("2_inventory"), ExtResource("3_health"), ExtResource("4_augmentations"), ExtResource("5_skills"), ExtResource("6_journal")])
+shortcuts = Dictionary[StringName, int]({&"inventory": 0, &"personal_log": 4})
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0064): the Esc game menu on a small level made the current scene, with real
-## key events: Esc opens (paused, mouse free, Resume focused) and closes it; Esc on another pause
-## screen closes only that screen; Save writes the slot and says "Saved"; Load is disabled without a
+## key events: Esc opens (paused, mouse free, Resume focused) and closes it; Esc on the Tab
+## interface closes only it (a second Esc opens the menu, ADR 0110); Save writes the slot and says
+## "Saved"; Load is disabled without a
 ## loadable save and loads it from the death screen; Save is refused while dead; on the knocked-out
 ## screen the menu opens, Save is refused and Load works; Quit asks first and
 ## quits only on Yes. F5 is Combat Strength now and F9 does nothing.
@@ -94,28 +95,23 @@ func test_resume_closes() -> void:
 	assert_bool(get_tree().paused).is_false()
 
 
-func test_esc_on_another_pause_screen_closes_only_that_screen() -> void:
-	var inventory := _player().get_node("InventoryScreen") as InventoryScreen
-	inventory.open()
-	assert_bool(inventory.is_open()).is_true()
+func test_esc_on_the_tab_interface_closes_only_it() -> void:
+	var tabs := TabInterface.of(_player())
+	tabs.open()
+	assert_bool(tabs.is_open()).is_true()
 
 	await _press(KEY_ESCAPE)
 
-	assert_bool(inventory.is_open()).is_false()
+	assert_bool(tabs.is_open()).is_false()
 	assert_bool(_menu().is_open()).is_false()
 	assert_bool(get_tree().paused).is_false()
 
-	var log_screen := _player().get_node("LogScreen") as LogScreen
-	log_screen.open()
-	await _press(KEY_ESCAPE)
-	assert_bool(log_screen.is_open()).is_false()
-	assert_bool(_menu().is_open()).is_false()
-
-	# The next Esc opens the menu, and other screens do not open over it.
+	# The next Esc opens the menu (it pauses), and the Tab interface does not open over it.
 	await _press(KEY_ESCAPE)
 	assert_bool(_menu().is_open()).is_true()
-	inventory.open()
-	assert_bool(inventory.is_open()).is_false()
+	assert_bool(get_tree().paused).is_true()
+	tabs.open()
+	assert_bool(tabs.is_open()).is_false()
 
 
 func test_does_not_open_while_the_debug_panel_is_open() -> void:

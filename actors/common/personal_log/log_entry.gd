@@ -10,10 +10,18 @@ var text: String = ""
 var source: String = ""
 ## Keypad code id -> code.
 var codes: Dictionary[StringName, String] = {}
+## Code id -> a readable name for what the code opens ("Manager's office door"; ADR 0110). Codes
+## without one are shown by their id in words.
+var code_labels: Dictionary[StringName, String] = {}
 
 
 static func make(
-	p_id: StringName, p_title: String, p_text: String, p_source: String = "", p_codes: Dictionary = {}
+	p_id: StringName,
+	p_title: String,
+	p_text: String,
+	p_source: String = "",
+	p_codes: Dictionary = {},
+	p_code_labels: Dictionary = {}
 ) -> LogEntry:
 	var entry := LogEntry.new()
 	entry.id = p_id
@@ -22,14 +30,32 @@ static func make(
 	entry.source = p_source
 	for code_id: Variant in p_codes:
 		entry.codes[StringName(str(code_id))] = str(p_codes[code_id])
+	for code_id: Variant in p_code_labels:
+		entry.code_labels[StringName(str(code_id))] = str(p_code_labels[code_id])
 	return entry
+
+
+## The readable name of what code `code_id` opens: its label, else the id in words.
+func code_label(code_id: StringName) -> String:
+	var label: String = code_labels.get(code_id, "")
+	return label if not label.is_empty() else String(code_id).capitalize()
 
 
 func to_dict() -> Dictionary:
 	var code_data := {}
 	for code_id: StringName in codes:
 		code_data[String(code_id)] = codes[code_id]
-	return {"entry_id": String(id), "title": title, "text": text, "source": source, "codes": code_data}
+	var label_data := {}
+	for code_id: StringName in code_labels:
+		label_data[String(code_id)] = code_labels[code_id]
+	return {
+		"entry_id": String(id),
+		"title": title,
+		"text": text,
+		"source": source,
+		"codes": code_data,
+		"code_labels": label_data,
+	}
 
 
 static func from_dict(data: Dictionary) -> LogEntry:
@@ -38,5 +64,6 @@ static func from_dict(data: Dictionary) -> LogEntry:
 		str(data.get("title", "")),
 		str(data.get("text", "")),
 		str(data.get("source", "")),
-		data.get("codes", {}) as Dictionary
+		data.get("codes", {}) as Dictionary,
+		data.get("code_labels", {}) as Dictionary
 	)

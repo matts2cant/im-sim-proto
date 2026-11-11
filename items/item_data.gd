@@ -5,7 +5,7 @@ extends Resource
 ## Per-instance data (a pistol's magazine, a keycard's key_id) lives in the
 ## stack's `state` Dictionary, starting from `default_state`.
 
-## What using the item does (belt key or the inventory screen's Use). What a consumable does to its
+## What using the item does (belt key or the Inventory tab's Use). What a consumable does to its
 ## user is data (`use_stimuli`, ADR 0057); the other actions are inventory and UI verbs.
 enum UseAction {
 	## Nothing yet: shows `use_message` ("Nothing happens").
@@ -57,7 +57,7 @@ enum UseAction {
 
 @export_group("Attachment")
 ## Set on attachment items (a silencer): dragged onto a weapon whose slots accept it in the
-## inventory screen, it is fitted and used up (ADR 0085).
+## Inventory tab, it is fitted and used up (ADR 0085).
 @export var attachment: AttachmentData
 
 
