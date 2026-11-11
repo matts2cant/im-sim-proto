@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## alcoves and the vault, every connection a shared wall: ADR 0043), the doorways clear for the
 ## player capsule (doors open) and blocked by the closed doors, each lock-row door's lock type and
 ## the item that opens it present (code datapad and lockpicks on the entry table, the keycard behind
-## D1, the terminal login behind D2), the practice-lock wall left free, signs, and no coplanar faces
+## D1, the terminal login behind D2), the practice-lock wall holding only the practice locks and
+## their signs (security_wing_practice_locks_test.gd checks the locks), signs, and no coplanar faces
 ## with different materials. Room-local coordinates: origin on the hub wall's outer face, +Z away
 ## from the hub (not turned: local axes are hub axes).
 
@@ -16,7 +17,8 @@ const CAPSULE_RADIUS := 0.35
 const CAPSULE_HEIGHT := 1.8
 const CLOSETS: Array[String] = ["ClosetD1", "ClosetD2", "Booth", "ClosetD4", "ClosetD5"]
 const LOCK_ROW: Array[String] = ["D1Keypad", "D2Mechanical", "D3Keycard", "D4Electronic", "D5Breakable"]
-## Free wall area kept for the M10 practice locks: west wall (x -7.5), z 1.5..4.5, 0.5..2.5 m up.
+## The practice-lock wall: west wall (x -7.5), z 1.5..4.5, 0.5..2.5 m up, only the four practice
+## locks and their signs on it.
 const PRACTICE_WALL := AABB(Vector3(-7.5, 0.5, 1.5), Vector3(1.0, 2.0, 3.0))
 
 var _room: Node3D
@@ -247,9 +249,14 @@ func test_datapads_have_unique_entries() -> void:
 	assert_bool(_readable("ClosetCode").codes.has(&"storage_door")).is_false()
 
 
-func test_practice_lock_wall_is_free() -> void:
+func test_practice_lock_wall_holds_only_the_practice_locks() -> void:
+	var practice: Array[Node] = []
 	for child: Node in _room.find_children("*", "Node3D", true, false):
-		if child.get_parent() == _room.get_node("Shell") or child is Room:
+		if child.get_parent() == _room.get_node("Shell") or child is Room or child is Sign:
+			continue
+		if _practice_lock_of(child) != null:
+			if child == _practice_lock_of(child).entity:
+				practice.append(child)
 			continue
 		var node := child as Node3D
 		var local := _room.to_local(node.global_position)
@@ -258,6 +265,11 @@ func test_practice_lock_wall_is_free() -> void:
 			. override_failure_message("%s at %s" % [node.get_path(), local])
 			. is_false()
 		)
+	assert_int(practice.size()).is_equal(4)
+	for entity in practice:
+		# 5 cm out of the wall face (its origin is on the face, the band's edge).
+		var local := _room.to_local((entity as Node3D).global_transform * Vector3(0, 0, 0.05))
+		assert_bool(PRACTICE_WALL.has_point(local)).override_failure_message(str(entity.name)).is_true()
 
 
 func test_signs() -> void:
@@ -332,6 +344,16 @@ func test_no_coplanar_faces_with_different_materials() -> void:
 	var overlaps := KitGeometry.coplanar_material_overlaps(_room)
 
 	assert_array(Array(overlaps)).override_failure_message("\n".join(overlaps)).is_empty()
+
+
+# The practice MechanicalLock on `node`'s entity or on one of its ancestors, or null.
+func _practice_lock_of(node: Node) -> MechanicalLock:
+	while node != null and node != _room:
+		for lock in Lock.locks_of(node):
+			if lock is MechanicalLock and (lock as MechanicalLock).is_practice():
+				return lock as MechanicalLock
+		node = node.get_parent()
+	return null
 
 
 func _readable(item_name: String) -> Readable:
