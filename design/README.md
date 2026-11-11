@@ -52,8 +52,9 @@ flowchart LR
     M8 --> M9["M9 Mission"]
     M9 --> M10["M10 Lockpicking minigame"]
     M10 --> M11["M11 Tab interface"]
-    M11 --> M12["M12 Network hacking"]
-    M12 --> M13["M13 Weapon feel"]
+    M11 --> M12a["M12a Network hacking"]
+    M12a --> M12b["M12b Advanced intrusion"]
+    M12b --> M13["M13 Weapon feel"]
     M13 --> M14["M14 Explosives"]
     M14 --> M15["M15 Factions"]
     M15 --> M16["M16 AI overhaul"]
@@ -77,11 +78,12 @@ flowchart LR
 | M9 | Mission: warehouse (separate night level, objectives, summary with ghost/pacifist badges, reinforcements, weapon drops) and scenario tests ([ADR 0086](decisions/0086-warehouse-mission.md)) | Warehouse mission |
 | M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
 | M11 | Tab interface: one tabbed screen on Tab (Health, Skills, Augmentations, Logs, Inventory); the existing shortcut keys open it on their tab. Later milestones add their tabs to it (to be designed) | none |
-| M12 | Network hacking: addresses, subnets, firewalls; the deck and its tools; computers with Mail, Files, Security; intrusion (credentials, Icebreaker, exploits); tracers; Computer skill consumers ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
+| M12a | Network hacking ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)): addresses, subnets, gateways (subnets behind one hidden until it is hacked, chained), trust, power; computers (Halcyon OS overlay: Mail, Files, Security; the Security app replaces the terminal) with logins and Fill in; the deck (Map, Icebreaker, remote desktops); entry points (computer, wall jack, maintenance port, deck in a computer); tracers; Computer skill assists ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
+| M12b | Advanced intrusion: exploits (and the Journal's Exploits section), the Firewall and Logs tools, wireless and access points | Network lab; warehouse network |
 | M13 | Weapon feel: recoil, spread and impact feedback, closer to Counter-Strike (to be designed) | Shooting range |
 | M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems (to be designed) | to be designed |
 | M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
-| M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space (to be designed) | AI arena |
+| M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space; guards logging in at devices, the security operator and the deck's Sniffer (moved from M12, [ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)) (to be designed) | AI arena |
 | M17 | Dialogue: branching conversations whose choices set story flags (to be designed) | to be designed |
 | M18 | Experience: XP from objectives, dialogue, discoveries and hacks; spent on skills in the Tab interface (to be designed) | none |
 | M19 | Money and shops: currency, traders, an economy tuned with XP and loot; then a compact test area (a street with NPCs, a shop and a side quest) to try factions, dialogue, XP and money together (to be designed) | test area |
@@ -125,6 +127,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (109 decisions, 0001–0111; 0062 and 0081 unused).
+- [decisions/README.md](decisions/README.md): ADR index (110 decisions, 0001–0112; 0062 and 0081 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

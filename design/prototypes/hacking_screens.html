@@ -1,0 +1,493 @@
+<meta charset="utf-8">
+<title>Hacking Screens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: the 1280x720 game frame scaled to fit, as in the Tab interface mockup. Two overlays: a
+   computer (Halcyon OS: login, Mail, Files, Security) and the deck (Map, Icebreaker). Palette: the
+   Tab interface's slate and amber for the frame, the terminal's teal for the screens. */
+:root {
+  color-scheme: dark;
+  --page: #07090b;
+  --world-a: #1a2026; --world-b: #0b0e11;
+  --panel: rgba(13, 18, 21, 0.95); --panel-2: #12191d; --cell: #0f1417;
+  --line: rgba(140, 158, 168, 0.35); --line-strong: rgba(140, 158, 168, 0.6);
+  --fg: #e4eaee; --caption: #9eb8c2; --dim: #66808a;
+  --amber: #ffd14d; --ok: #4fd36a; --warn: #e8c547; --bad: #e5534b;
+  --os-bg: #071211; --os-panel: #0b1a19; --os-line: rgba(77, 191, 168, 0.45);
+  --teal: #8cf2d9; --teal-text: #d1f2e6; --teal-dim: #7fa8a3; --online: #73f299; --offline: #575c5c; --alert: #ffb840; --self: #73d9ff;
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--page); color: var(--fg); font: 14px var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.mockbar { width: 100%; max-width: 1280px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--caption); font-size: 12px; }
+.mockbar strong { color: var(--fg); font: 600 14px var(--font-head); margin-right: 6px; }
+.mockbar button, .mockbar select { font: inherit; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.mockbar button.on { border-color: var(--amber); color: var(--amber); }
+.mockbar .sep { flex: 1; }
+.frame-wrap { width: 100%; max-width: 1280px; position: relative; }
+.frame-wrap::before { content: ""; display: block; padding-top: 56.25%; }
+.frame { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; outline: none; }
+.world { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(255,220,160,0.10), transparent 45%), linear-gradient(180deg, var(--world-a) 0%, #14191e 55%, var(--world-b) 56%, #101418 100%); }
+.world .wall { position: absolute; left: 0; right: 0; top: 18%; height: 38%; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 120px), repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 60px); }
+.world .guard { position: absolute; bottom: 30%; width: 34px; height: 110px; left: -60px; animation: patrol 20s linear infinite; }
+.world .guard::before { content: ""; position: absolute; left: 6px; top: 0; width: 22px; height: 22px; background: #c79d78; border-radius: 3px; }
+.world .guard::after { content: ""; position: absolute; left: 0; top: 24px; width: 34px; height: 86px; background: #1d2e52; border-radius: 3px; }
+@keyframes patrol { 0% { left: -60px; } 50% { left: 1300px; } 100% { left: -60px; } }
+@media (prefers-reduced-motion: reduce) { .world .guard { animation: none; left: 75%; } }
+.dim { position: absolute; inset: 0; background: rgba(4, 6, 8, 0.55); }
+
+/* Overlay shell (shared by the computer and the deck) */
+.shell { position: absolute; left: 7.5%; top: 7.5%; width: 85%; height: 85%; background: var(--os-bg); border: 1px solid var(--os-line); border-radius: 6px; display: grid; grid-template-rows: auto 1fr; box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: var(--teal-text); overflow: hidden; }
+.bar { display: flex; align-items: center; gap: 14px; padding: 8px 12px; border-bottom: 1px solid var(--os-line); background: var(--os-panel); font: 12px var(--font-mono); }
+.bar .title { font: 600 14px var(--font-head); color: var(--teal); letter-spacing: 0.02em; }
+.bar .meta { color: var(--teal-dim); }
+.bar .grow { flex: 1; }
+.close-btn { width: 34px; height: 28px; font: 600 15px var(--font-ui); color: var(--teal-dim); background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
+.close-btn:hover { color: var(--bad); border-color: rgba(229, 83, 75, 0.5); }
+.trace { display: flex; align-items: center; gap: 8px; }
+.trace .tb { width: 120px; height: 8px; background: #031010; border: 1px solid var(--os-line); position: relative; }
+.trace .tb > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--alert); }
+.trace.hot .tb > i { background: var(--bad); }
+.trace .lbl { color: var(--teal-dim); }
+.body { min-height: 0; position: relative; }
+.btn { font: 600 12px var(--font-ui); color: var(--teal-text); background: #0c2220; border: 1px solid var(--os-line); border-radius: 4px; padding: 7px 12px; cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn.primary { border-color: var(--teal); color: var(--teal); }
+.btn.danger:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+h2 { font: 700 18px var(--font-head); margin: 0 0 6px; color: var(--teal); }
+h3 { font: 600 11px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal-dim); margin: 16px 0 8px; }
+h3:first-child { margin-top: 0; }
+p { margin: 0 0 10px; line-height: 1.5; max-width: 64ch; }
+.muted { color: var(--teal-dim); }
+.assist { font: 12px var(--font-mono); color: var(--self); border: 1px dashed rgba(115, 217, 255, 0.5); border-radius: 4px; padding: 4px 8px; display: inline-block; }
+.assist::before { content: "Computer skill · "; color: var(--teal-dim); }
+.future { font-size: 12px; color: var(--teal-dim); border: 1px dashed var(--os-line); border-radius: 4px; padding: 6px 10px; }
+input.field { font: 14px var(--font-mono); color: var(--teal-text); background: #031010; border: 1px solid var(--os-line); border-radius: 4px; padding: 8px 10px; width: 260px; }
+input.field:focus { outline: 1px solid var(--teal); }
+.toast { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: var(--fg); font: 13px var(--font-mono); padding: 6px 14px; border-radius: 4px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 30; }
+.toast.on { opacity: 1; }
+
+/* Login */
+.login { position: absolute; inset: 0; display: grid; place-items: center; }
+.login .card { width: 420px; border: 1px solid var(--os-line); background: var(--os-panel); border-radius: 6px; padding: 26px; display: grid; gap: 12px; }
+.login .os { font: 700 22px var(--font-head); color: var(--teal); letter-spacing: 0.04em; }
+.login label { display: grid; gap: 4px; font: 12px var(--font-mono); color: var(--teal-dim); }
+.fill { display: grid; gap: 6px; border-top: 1px solid var(--os-line); padding-top: 12px; }
+.fill .row { display: flex; justify-content: space-between; align-items: center; font: 13px var(--font-mono); }
+.err { color: var(--bad); font: 12px var(--font-mono); min-height: 16px; }
+
+/* Desktop */
+.desk { position: absolute; inset: 0; display: grid; grid-template-columns: 96px 1fr; }
+.dock { border-right: 1px solid var(--os-line); padding: 14px 8px; display: grid; gap: 10px; align-content: start; background: var(--os-panel); }
+.app { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border: 1px solid transparent; border-radius: 6px; background: none; color: var(--teal-text); font: 12px var(--font-ui); cursor: pointer; }
+.app svg { width: 30px; height: 30px; }
+.app:hover { border-color: var(--os-line); }
+.app.on { border-color: var(--teal); background: rgba(140, 242, 217, 0.06); }
+.dock .who { margin-top: 18px; font: 11px var(--font-mono); color: var(--teal-dim); text-align: center; line-height: 1.5; }
+.win { min-height: 0; display: grid; }
+.cols { display: grid; min-height: 0; height: 100%; }
+.col { min-height: 0; overflow: auto; padding: 16px 18px; }
+.col + .col { border-left: 1px solid var(--os-line); }
+.list { display: grid; gap: 4px; align-content: start; }
+.list button { text-align: left; background: none; border: 1px solid transparent; border-radius: 4px; padding: 8px 10px; cursor: pointer; color: var(--teal-text); font: 13px var(--font-ui); display: grid; gap: 2px; }
+.list button:hover { border-color: var(--os-line); }
+.list button.on { border-color: var(--teal); background: rgba(140, 242, 217, 0.06); }
+.list small { color: var(--teal-dim); font: 11px var(--font-mono); }
+.reader { font-size: 14px; line-height: 1.6; background: rgba(140, 242, 217, 0.03); border: 1px solid var(--os-line); border-radius: 4px; padding: 14px 16px; max-width: 64ch; white-space: pre-wrap; }
+.learned { margin-top: 10px; font: 12px var(--font-mono); color: var(--teal-dim); }
+.learned b { color: var(--amber); }
+
+/* Security app */
+.grp { font: 600 11px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-dim); margin: 14px 0 6px; }
+.grp:first-child { margin-top: 0; }
+.dev { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; text-align: left; width: 100%; background: none; border: 1px solid transparent; border-radius: 4px; padding: 7px 8px; cursor: pointer; color: var(--teal-text); font: 13px var(--font-ui); }
+.dev:hover { border-color: var(--os-line); }
+.dev.on { border-color: var(--teal); background: rgba(140, 242, 217, 0.06); }
+.dev svg { width: 22px; height: 22px; }
+.dot { font: 11px var(--font-mono); }
+.s-online { color: var(--online); } .s-disabled { color: var(--bad); } .s-offline { color: var(--offline); } .s-alert { color: var(--alert); }
+.view { width: 100%; max-width: 520px; aspect-ratio: 16 / 9; border: 1px solid var(--os-line); background: linear-gradient(180deg, #1d2629, #0d1113 60%, #151a1b); position: relative; overflow: hidden; margin-bottom: 12px; }
+.view .scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(140,242,217,0.04) 0 1px, transparent 1px 3px); }
+.view .lbl { position: absolute; left: 8px; top: 6px; font: 11px var(--font-mono); color: var(--teal); }
+.view .rec { position: absolute; right: 8px; top: 6px; font: 11px var(--font-mono); color: var(--bad); }
+.view.dark { background: #050707; }
+.view .shape { position: absolute; bottom: 18%; width: 60px; height: 40px; background: #3b2c1c; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 13px; margin-bottom: 12px; }
+.kv dt { color: var(--teal-dim); }
+.kv dd { margin: 0; font-family: var(--font-mono); }
+
+/* Deck */
+.deck { position: absolute; inset: 0; display: grid; grid-template-columns: 150px 1fr; }
+.tools { border-right: 1px solid var(--os-line); padding: 12px 8px; display: grid; gap: 4px; align-content: start; background: var(--os-panel); }
+.tool { text-align: left; background: none; border: 1px solid transparent; border-radius: 4px; padding: 9px 10px; cursor: pointer; color: var(--teal-text); font: 600 13px var(--font-ui); display: flex; justify-content: space-between; align-items: center; }
+.tool small { font: 10px var(--font-mono); color: var(--teal-dim); }
+.tool:hover:not(:disabled) { border-color: var(--os-line); }
+.tool.on { border-color: var(--teal); background: rgba(140, 242, 217, 0.06); }
+.tool:disabled { opacity: 0.4; cursor: default; }
+.tools .who { margin-top: 18px; font: 11px var(--font-mono); color: var(--teal-dim); line-height: 1.6; }
+.map { position: absolute; inset: 0; }
+.map svg { width: 100%; height: 100%; display: block; }
+.node { cursor: pointer; }
+.node text { font: 11px var(--font-mono); fill: var(--teal-text); }
+.node .addr { fill: var(--teal-dim); font-size: 10px; }
+.menu { position: absolute; z-index: 20; width: 300px; background: #061413; border: 1px solid var(--teal); border-radius: 6px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); font-size: 13px; }
+.menu h4 { margin: 0 0 6px; font: 600 14px var(--font-head); color: var(--teal); }
+.menu .acc { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid var(--os-line); font-family: var(--font-mono); font-size: 12px; }
+.ice { display: grid; gap: 14px; max-width: 760px; }
+.pw { display: flex; gap: 6px; }
+.pw span { width: 34px; height: 44px; display: grid; place-items: center; border: 1px solid var(--os-line); background: #031010; font: 600 20px var(--font-mono); color: var(--teal-dim); }
+.pw span.lock { color: var(--teal); border-color: var(--teal); }
+.prog { height: 10px; background: #031010; border: 1px solid var(--os-line); position: relative; max-width: 520px; }
+.prog > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--teal); }
+</style>
+
+<div class="mockbar">
+  <strong>Hacking Screens</strong>
+  <button type="button" id="mPc">Office PC 2</button>
+  <button type="button" id="mConsole">Security console</button>
+  <button type="button" id="mDeck">Deck on the office wall jack</button>
+  <label>Computer skill <select id="mSkill"><option value="0">Untrained</option><option value="1" selected>Trained</option><option value="2">Advanced</option><option value="3">Master</option></select></label>
+  <span class="sep"></span>
+  <button type="button" id="mReset">Reset</button>
+</div>
+
+<div class="frame-wrap" id="wrap">
+  <div class="frame" id="frame" tabindex="0" aria-label="Game view">
+    <div class="world" aria-hidden="true"><div class="wall"></div><div class="guard"></div></div>
+    <div class="dim"></div>
+    <div class="shell" id="shell"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const TIERS = ["Untrained", "Trained", "Advanced", "Master"];
+
+  // ---------- Icons (one per device kind) ----------
+  const ICON = {
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="13" height="9" rx="1.5"/><path d="M16 10l5-3v9l-5-3z"/><path d="M8 16v4h5"/></svg>',
+    turret: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="9" width="10" height="7" rx="1.5"/><path d="M15 12h7"/><path d="M8 16l-2 5h10l-2-5"/></svg>',
+    door: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="3" width="12" height="18" rx="1"/><circle cx="15" cy="12" r="1"/></svg>',
+    alarm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 16V11a6 6 0 0112 0v5"/><path d="M4 16h16v3H4z"/><path d="M12 2v2M3 6l1.5 1.5M21 6l-1.5 1.5"/></svg>',
+    siren: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/></svg>',
+    radio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 13v8M8 21h8"/><circle cx="12" cy="11" r="2"/><path d="M8 7a6 6 0 018 0M5 4a10 10 0 0114 0"/></svg>',
+    panic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4.5"/></svg>',
+    laser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4v16M20 4v16"/><path d="M4 8h16M4 13h16" stroke-dasharray="2 2"/></svg>',
+    pc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M9 20h6M12 16v4"/></svg>',
+    gateway: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 12h.01M11 12h.01M15 12h4"/></svg>',
+    sw: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="9" width="18" height="6" rx="1"/><path d="M6 15v3M10 15v3M14 15v3M18 15v3"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 7l9 6 9-6"/></svg>',
+    files: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h7l2 2h9v11H3z"/></svg>',
+    security: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>',
+  };
+
+  // ---------- Example content (warehouse, M12a) ----------
+  const COMPUTERS = {
+    pc2: { name: "Office PC 2", host: "OFFICE-PC2", addr: "10.0.10.12", account: "kbrandt", password: "ferry19", strength: "Weak",
+      known: [["kbrandt", "ferry19", "Night shift notes"]],
+      mail: [
+        { from: "E. Hale", subj: "Dock 1 tonight", text: "Klaus,\n\nThe pumps go out on the boat before dawn. Nothing about it in the system, the manifest stays on paper in my office.\n\nE. H." },
+        { from: "L. Petrova", subj: "Re: password reset", text: "Klaus, IT made me change it again. Same trick as always: the cat's name and the year we moved in. If it locks me out once more I quit.\n\nLena", clue: "Implicit clue: Lena's password is her cat's name and a year. Nothing is learned; type the guess on her PC." },
+        { from: "Facilities", subj: "Side door", text: "The side door code changed again. Stop propping it open with a pallet." },
+      ],
+      files: [
+        { name: "dock_schedule.txt", text: "Dock 1 · 14 crates 'agricultural pumps' · boat pick-up 04:30 · river pontoon" },
+        { name: "cat_rescue_2029.jpg", text: "[photo] Lena holding a grey cat. Caption: 'Mishka, our first night in the new flat, 2029.'", clue: "Implicit clue: the cat is Mishka, the year 2029." },
+      ],
+      security: [] },
+    pc1: { name: "Office PC 1", host: "OFFICE-PC1", addr: "10.0.10.11", account: "lpetrova", password: "Mishka29", strength: "Weak",
+      known: [],
+      mail: [
+        { from: "E. Hale", subj: "Vault keycard", text: "Lena, the vault keycard goes back in my desk drawer tonight, not on your desk. The client's courier collects the prototype at 04:00." },
+        { from: "IT", subj: "Password changed", text: "Your password was changed successfully. Remember: never reuse an old password." },
+      ],
+      files: [{ name: "pumps_invoice.txt", text: "Invoice 2031-117 · 14 x agricultural pump, model AP-40 · paid in cash · no delivery address" }],
+      security: [] },
+    console: { name: "Security console", host: "SEC-CONSOLE", addr: "10.0.20.5", account: "dmarsh", password: "harbor77", strength: "Medium",
+      known: [["dmarsh", "harbor77", "Console audit"]],
+      mail: [{ from: "E. Hale", subj: "Audit", text: "Change the console password after the audit. And keep the vault turret on intruders at night." }],
+      files: [{ name: "camera_positions.txt", text: "CAM-GATE: front gate · CAM-YARD: duct B forecourt (mast) · CAM-ROOF: roof, west half" }],
+      security: [
+        { kind: "camera", id: "CAM-GATE", name: "Gate camera", status: "online", sweep: true },
+        { kind: "camera", id: "CAM-YARD", name: "Yard camera", status: "online", sweep: true },
+        { kind: "turret", id: "TUR-VAULT", name: "Vault turret", status: "online", target: "Intruders" },
+        { kind: "door", id: "DOOR-VAULT", name: "Vault door", status: "online", locked: true, open: false },
+        { kind: "door", id: "DOOR-SIDE", name: "Side door", status: "online", locked: true, open: false },
+        { kind: "alarm", id: "ALARM", name: "Alarm controller", status: "online", armed: true },
+        { kind: "siren", id: "SIREN-YARD", name: "Yard siren", status: "online" },
+        { kind: "siren", id: "SIREN-HALL", name: "Hall siren", status: "online" },
+        { kind: "radio", id: "RADIO", name: "Radio base station", status: "online" },
+        { kind: "panic", id: "PANIC-SEC", name: "Panic button, security room", status: "online" },
+        { kind: "laser", id: "LASER-W", name: "Roof lasers, west stair", status: "online", beams: 2 },
+        { kind: "laser", id: "LASER-E", name: "Roof lasers, east stair", status: "online", beams: 2 },
+      ] },
+  };
+  const GROUPS = [["Cameras and turrets", ["camera", "turret"]], ["Doors", ["door"]], ["Alarm", ["alarm", "siren", "radio", "panic"]], ["Laser arrays", ["laser"]]];
+
+  // Deck map: only your own subnet and its gateway show at first. Hacking the gateway (its admin
+  // account) reveals the subnets behind it. Example addresses.
+  const NET = [
+    { id: "jack", kind: "sw", label: "Wall jack · you", addr: "10.0.10.40", x: 90, y: 110, self: true },
+    { id: "swo", kind: "sw", label: "SW-OFFICE", addr: "10.0.10.0/24", x: 250, y: 110 },
+    { id: "pc1", kind: "pc", label: "OFFICE-PC1", addr: "10.0.10.11", x: 170, y: 270, accounts: [["lpetrova", "Weak"]], computer: "pc1" },
+    { id: "pc2", kind: "pc", label: "OFFICE-PC2", addr: "10.0.10.12", x: 330, y: 270, accounts: [["kbrandt", "Weak"]], computer: "pc2" },
+    { id: "fw", kind: "gateway", label: "FW-01 · Sentry tracer", addr: "10.0.10.1", x: 470, y: 110, accounts: [["admin", "Medium"]], gateway: true },
+    { id: "sws", kind: "sw", label: "SW-SECURITY", addr: "10.0.20.0/24", x: 680, y: 110, behind: "fw" },
+    { id: "con", kind: "pc", label: "SEC-CONSOLE", addr: "10.0.20.5", x: 600, y: 270, accounts: [["dmarsh", "Medium"]], computer: "console", behind: "fw" },
+    { id: "cam", kind: "camera", label: "CAM-GATE", addr: "10.0.20.21", x: 760, y: 270, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "tur", kind: "turret", label: "TUR-VAULT", addr: "10.0.20.31", x: 880, y: 200, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "alm", kind: "alarm", label: "ALARM", addr: "10.0.20.40", x: 880, y: 60, accounts: [], trusts: "SEC-CONSOLE", behind: "fw" },
+    { id: "fw2", kind: "gateway", label: "FW-02", addr: "10.0.20.1", x: 690, y: 400, accounts: [["admin", "Medium"]], gateway: true, behind: "fw" },
+    { id: "swv", kind: "sw", label: "SW-SERVERS", addr: "10.0.30.0/24", x: 840, y: 400, behind: "fw2" },
+    { id: "srv", kind: "pc", label: "FILE-SERVER", addr: "10.0.30.8", x: 940, y: 320, accounts: [["hale", "Strong"]], behind: "fw2" },
+  ];
+  const LINKS = [["jack", "swo"], ["swo", "pc1"], ["swo", "pc2"], ["swo", "fw"], ["fw", "sws"], ["sws", "con"], ["sws", "cam"], ["sws", "tur"], ["sws", "alm"], ["sws", "fw2"], ["fw2", "swv"], ["swv", "srv"]];
+  // Logins the Journal already knows, usable from the deck without cracking
+  const KNOWN = { pc2: { kbrandt: "Night shift notes" }, con: { dmarsh: "Console audit" } };
+  const hacked = (id) => Object.keys(S.cracked).some((k) => k.startsWith(id + "|"));
+  // A subnet shows once the gateway in front of it is hacked; gateways chain, so you hack your way in
+  const visible = (n) => !n.behind || (hacked(n.behind) && visible(NET.find((q) => q.id === n.behind)));
+
+  // ---------- State ----------
+  let S;
+  function reset(mode) {
+    S = { mode: mode || "pc2", skill: Number($("mSkill").value), logged: false, user: "", pass: "", err: "",
+      app: "mail", sel: 0, dev: 0, trace: 0, lastGain: -9, tool: "map", menu: null, remote: null,
+      ice: null, cracked: {}, devs: JSON.parse(JSON.stringify(COMPUTERS.console.security)) };
+    render();
+  }
+  let toastT = 0;
+  function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1800); }
+  function addTrace(pct) { S.trace = Math.min(100, S.trace + pct * [1, 0.8, 0.6, 0.4][S.skill]); S.lastGain = performance.now(); if (S.trace >= 100) toast("Full trace: incident sent, your address is blocked for 30 s"); }
+
+  // ---------- Rendering ----------
+  function traceBar() {
+    return `<span class="trace${S.trace > 70 ? " hot" : ""}"><span class="lbl">Sentry tracer</span><span class="tb"><i style="width:${S.trace}%"></i></span><span class="lbl">${Math.round(S.trace)} %</span></span>`;
+  }
+  function render() {
+    for (const [id, m] of [["mPc", "pc2"], ["mConsole", "console"], ["mDeck", "deck"]]) $(id).classList.toggle("on", S.mode === m);
+    if (S.mode === "deck") return renderDeck();
+    const c = COMPUTERS[S.mode];
+    $("shell").innerHTML = `<div class="bar"><span class="title">Halcyon OS</span><span class="meta">${c.host} · ${c.addr}</span>
+      ${S.logged ? `<span class="meta">${c.account} · user</span>` : ""}<span class="grow"></span>${traceBar()}
+      <button type="button" class="close-btn" data-act="close" aria-label="Close" title="Close (Esc)">✕</button></div>
+      <div class="body">${S.logged ? desktop(c) : login(c)}</div>`;
+  }
+  function login(c) {
+    const known = c.known.map(([u, p, from]) => `<div class="row"><span>${u} <span class="muted">· from ${from}</span></span><button type="button" class="btn" data-fill="${u}|${p}">Fill in</button></div>`).join("");
+    return `<div class="login"><div class="card">
+      <div class="os">HALCYON OS</div><div class="muted" style="font:12px var(--font-mono)">${c.name} · ${c.host}</div>
+      <label>User <input class="field" id="lUser" value="${esc(S.user)}" autocomplete="off"></label>
+      <label>Password <input class="field" id="lPass" type="password" value="${esc(S.pass)}" autocomplete="off"></label>
+      <div class="err">${esc(S.err)}</div>
+      <div class="btns"><button type="button" class="btn primary" data-act="login">Log in</button></div>
+      <div class="fill"><h3>Logins you know for this machine</h3>${known || `<span class="muted">None. Find one, or crack it with the deck.</span>`}</div>
+    </div></div>`;
+  }
+  function desktop(c) {
+    const apps = [["mail", "Mail"], ["files", "Files"], ["security", "Security"]].map(([id, n]) =>
+      `<button type="button" class="app${S.app === id ? " on" : ""}" data-app="${id}">${ICON[id]}${n}</button>`).join("");
+    let win = "";
+    if (S.app === "mail" || S.app === "files") {
+      const items = S.app === "mail" ? c.mail : c.files; const it = items[S.sel] || items[0];
+      win = `<div class="cols" style="grid-template-columns: 300px 1fr">
+        <div class="col"><h3>${S.app === "mail" ? "Inbox" : "Files"}</h3><div class="list">${items.map((m, i) =>
+          `<button type="button" class="${i === S.sel ? "on" : ""}" data-sel="${i}">${esc(m.subj || m.name)}<small>${esc(m.from || "file")}</small></button>`).join("")}</div></div>
+        <div class="col"><h2>${esc(it.subj || it.name)}</h2>${it.from ? `<p class="muted" style="font-size:12px">From ${esc(it.from)}</p>` : ""}
+        <div class="reader">${esc(it.text)}</div>
+        <div class="learned">${it.clue ? esc(it.clue) + " · added to the Journal (Notes)" : "Added to the Journal (Notes)"}</div></div></div>`;
+    } else win = security(c);
+    return `<div class="desk"><div class="dock">${apps}<div class="who">${c.account}<br>user</div></div><div class="win">${win}</div></div>`;
+  }
+  function devStatus(d) {
+    if (d.status === "offline") return ["offline", "s-offline"];
+    if (d.disabled) return [d.kind === "alarm" ? "disarmed" : "disabled", "s-disabled"];
+    if (d.kind === "alarm" && d.ringing) return ["ringing", "s-alert"];
+    if (d.kind === "door") return [d.open ? "open" : d.locked ? "locked" : "unlocked", "s-online"];
+    return ["online", "s-online"];
+  }
+  function security(c) {
+    if (!c.security.length) return `<div class="cols"><div class="col"><h2>Security</h2>
+      <p>This computer controls no security devices.</p>
+      <p class="muted">The Security app lists only the devices that trust this machine and that it can reach. Explore the network with the deck to find out what controls them.</p></div></div>`;
+    const list = GROUPS.map(([g, kinds]) => { const ds = S.devs.map((d, i) => [d, i]).filter(([d]) => kinds.includes(d.kind)); if (!ds.length) return "";
+      return `<div class="grp">${g}</div>` + ds.map(([d, i]) => { const [st, cls] = devStatus(d);
+        return `<button type="button" class="dev${S.dev === i ? " on" : ""}" data-dev="${i}">${ICON[d.kind]}<span>${esc(d.name)}</span><span class="dot ${cls}">${st}</span></button>`; }).join(""); }).join("");
+    const d = S.devs[S.dev]; const [st, cls] = devStatus(d);
+    const acts = {
+      camera: d.disabled ? [["enable", "Enable"]] : [["pan_left", "Pan left"], ["pan_right", "Pan right"], [d.sweep ? "stop_sweep" : "resume_sweep", d.sweep ? "Stop sweep" : "Resume sweep"], ["disable", "Disable", "danger"]],
+      turret: d.disabled ? [["enable", "Enable"]] : [["t_intruders", "Target intruders"], ["t_guards", "Target guards"], ["t_everyone", "Target everyone"], ["disable", "Disable", "danger"]],
+      door: [[d.open ? "close" : "open", d.open ? "Close" : "Open"], [d.locked ? "unlock" : "lock", d.locked ? "Unlock" : "Lock"], ["grant", "Grant me access"]],
+      alarm: d.disabled ? [["arm", "Arm"]] : [["trigger", "Trigger", "danger"], ["reset", "Reset"], ["disarm", "Disarm"]],
+      siren: [["test", "Test"], ["silence", "Silence"]],
+      radio: d.disabled ? [["enable", "Enable"]] : [["disable", "Disable", "danger"]],
+      panic: d.disabled ? [["enable", "Enable"]] : [["disable", "Disable", "danger"]],
+      laser: d.disabled ? [["enable", "Enable"]] : [["disable", "Disable", "danger"]],
+    }[d.kind];
+    const detail = {
+      camera: [["Sweep", d.sweep ? "sweeping" : "held"]], turret: [["Targets", d.target]], door: [["Lock", d.locked ? "locked" : "unlocked"], ["Leaf", d.open ? "open" : "closed"]],
+      alarm: [["Rings for", "45 s"]], siren: [["Rung by", "Alarm controller"]], radio: [["Range", "40 m"]], panic: [["Reports to", "Alarm controller"]], laser: [["Beams", d.beams]],
+    }[d.kind];
+    const view = (d.kind === "camera" || d.kind === "turret") ? `<div class="view${d.disabled ? " dark" : ""}">${d.disabled ? "" : `<div class="shape" style="left:${30 + (d.pan || 0)}%"></div><div class="shape" style="left:${62 + (d.pan || 0)}%;height:60px"></div><div class="scan"></div>`}<span class="lbl">${d.id}</span>${d.disabled ? "" : `<span class="rec">● LIVE</span>`}</div>` : "";
+    return `<div class="cols" style="grid-template-columns: 330px 1fr">
+      <div class="col">${list}</div>
+      <div class="col"><h2>${esc(d.name)}</h2><p class="muted" style="font:12px var(--font-mono)">${d.id} · <span class="${cls}">${st}</span></p>
+        ${view}<dl class="kv">${detail.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+        <div class="btns">${acts.map(([a, n, kind]) => `<button type="button" class="btn${kind ? " " + kind : ""}" data-cmd="${a}">${n}</button>`).join("")}</div>
+        <p class="muted" style="margin-top:12px;font-size:12px">Commands go over the network: the device obeys this console because it trusts it, also in a remote session from the deck.</p></div></div>`;
+  }
+
+  function renderDeck() {
+    const tools = [["map", "Map"], ["ice", "Icebreaker"], ["exploits", "Exploits", "M12b"], ["firewall", "Firewall", "M12b"], ["logs", "Logs", "M12b"]].map(([id, n, later]) =>
+      `<button type="button" class="tool${S.tool === id && !S.remote ? " on" : ""}" data-tool="${id}"${later ? " disabled" : ""}>${n}${later ? `<small>${later}</small>` : ""}</button>`).join("");
+    const body = S.remote ? deckRemote() : S.tool === "map" ? deckMap() : deckIce();
+    $("shell").innerHTML = `<div class="bar"><span class="title">Deck</span><span class="meta">Plugged into the office wall jack · 10.0.10.40</span>
+      <span class="grow"></span>${traceBar()}<button type="button" class="close-btn" data-act="close" aria-label="Close" title="Close (Esc): tools keep running while you stay plugged in">✕</button></div>
+      <div class="body"><div class="deck"><div class="tools">${tools}<div class="who">Walking away unplugs the deck and stops its tools.</div></div>
+      <div style="position:relative;min-height:0">${body}</div></div></div>`;
+  }
+  function deckMap() {
+    const pos = Object.fromEntries(NET.map((n) => [n.id, n]));
+    const shown = NET.filter(visible);
+    const links = LINKS.filter(([a, b]) => visible(pos[a]) && visible(pos[b])).map(([a, b]) =>
+      `<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="rgba(77,191,168,0.5)" stroke-width="1.5"/>`).join("");
+    const nodes = shown.map((n) => { const col = n.self ? "var(--self)" : hacked(n.id) ? "var(--amber)" : "var(--online)";
+      return `<g class="node" data-node="${n.id}" transform="translate(${n.x},${n.y})"><circle r="24" fill="#061413" stroke="${col}" stroke-width="2"/>
+        <g transform="translate(-11,-11)" style="color:${col}">${ICON[n.kind].replace("<svg", '<svg width="22" height="22"')}</g>
+        <text y="42" text-anchor="middle">${esc(n.label)}</text><text class="addr" y="56" text-anchor="middle">${esc(n.addr)}</text></g>`; }).join("");
+    let menu = "";
+    if (S.menu) { const n = pos[S.menu];
+      const accts = (n.accounts || []).map(([a, s]) => { const key = n.id + "|" + a; const known = KNOWN[n.id] && KNOWN[n.id][a];
+        const est = S.skill >= 1 ? ` · ${crackTime(s)}` : ""; const can = canCrack(s);
+        const btn = S.cracked[key] ? `<span style="color:var(--amber)">access</span>`
+          : known ? `<button type="button" class="btn primary" data-known="${key}">Log in (${esc(known)})</button>`
+          : `<button type="button" class="btn" data-crack="${n.id}|${a}|${s}"${can ? "" : " disabled"}>${can ? "Icebreaker" : "too strong"}</button>`;
+        return `<div class="acc"><span>${a} <span class="muted">${s}${known ? "" : est}</span></span>${btn}</div>`; }).join("");
+      let extra = "";
+      if (n.gateway) extra = hacked(n.id) ? `<p class="muted" style="margin-top:8px;font-size:12px">Hacked: the subnets behind it are on the map.</p>`
+        : `<p class="muted" style="margin-top:8px;font-size:12px">A gateway. Hack it to see what lies behind it; a subnet behind may hide another gateway.${n.id === "fw" ? " It runs the Sentry tracer, which watches both sides." : ""}</p>${S.skill >= 3 ? `<span class="assist">Master: routes to 1 hidden subnet</span>` : ""}`;
+      if (n.computer && hacked(n.id)) extra += `<div class="btns" style="margin-top:10px"><button type="button" class="btn primary" data-remote="${n.computer}">Open its desktop (remote)</button></div>`;
+      if (n.trusts) extra += `<p class="muted" style="margin-top:8px;font-size:12px">No accounts. Trusts ${esc(n.trusts)}: control it from that computer's Security app.</p>`;
+      menu = `<div class="menu" style="left:${Math.min(n.x + 30, 640)}px;top:${Math.min(n.y + 10, 250)}px"><h4>${esc(n.label)}</h4>
+        <div class="muted" style="font:12px var(--font-mono);margin-bottom:6px">${esc(n.addr)} · online</div>
+        ${n.self ? `<p class="muted" style="font-size:12px">Your entry point.</p>` : `${accts ? `<h3 style="margin-top:8px">Accounts</h3>${accts}` : ""}${extra}`}
+      </div>`; }
+    return `<div class="map"><svg viewBox="0 0 980 470">${links}${nodes}</svg>${menu}
+      <div style="position:absolute;left:16px;bottom:12px;font:12px var(--font-mono);color:var(--teal-dim)">Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit.</div></div>`;
+  }
+  function deckRemote() {
+    const c = COMPUTERS[S.remote];
+    return `<div style="position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr">
+      <div class="bar" style="background:#08201d"><span class="title" style="font-size:13px">Remote desktop</span><span class="meta">Halcyon OS · ${c.host} · ${c.addr} · ${c.account}</span><span class="grow"></span>
+        <button type="button" class="btn" data-act="unremote">Back to the map</button></div>
+      <div style="position:relative;min-height:0">${desktop(c)}</div></div>`;
+  }
+  const BASE = { Weak: 10, Medium: 24, Strong: 50 };
+  const MULT = [1, 0.75, 0.5, 0.3];
+  const MAXS = [["Weak"], ["Weak", "Medium"], ["Weak", "Medium", "Strong"], ["Weak", "Medium", "Strong"]];
+  const canCrack = (s) => MAXS[S.skill].includes(s);
+  const crackTime = (s) => `${(BASE[s] * MULT[S.skill]).toFixed(1).replace(".0", "")} s`;
+  function deckIce() {
+    const I = S.ice;
+    if (!I) return `<div class="cols"><div class="col"><h2>Icebreaker</h2><p class="muted">Pick an account on the Map to crack its password. Progress stays on the deck if you stop.</p>
+      <p class="muted">What your Computer skill (${TIERS[S.skill]}) can crack: ${MAXS[S.skill].join(", ")}.</p></div></div>`;
+    const pw = I.password.split("").map((ch, i) => `<span class="${i < I.locked ? "lock" : ""}">${i < I.locked ? esc(ch) : "·"}</span>`).join("");
+    const total = BASE[I.strength] * MULT[S.skill];
+    const est = S.skill >= 1 ? `<span class="assist">${Math.max(0, total * (1 - I.p)).toFixed(1)} s left</span>` : "";
+    const tr = S.skill >= 2 ? `<span class="assist">about +${Math.round(total * (1 - I.p) * 4 * [1, 0.8, 0.6, 0.4][S.skill])} % trace to finish</span>` : "";
+    return `<div class="cols"><div class="col"><div class="ice">
+      <h2>Icebreaker · ${esc(I.account)}@${esc(I.host)}</h2>
+      <p class="muted" style="font:12px var(--font-mono)">Password strength ${I.strength} · base ${BASE[I.strength]} s · deterministic</p>
+      <div class="pw">${pw}</div>
+      <div class="prog"><i style="width:${I.p * 100}%"></i></div>
+      <div class="btns" style="align-items:center">${I.done ? `<span style="color:var(--amber);font:600 13px var(--font-mono)">Cracked: added to the Journal (Codes and logins)</span> <button type="button" class="btn" data-tool="map">Back to the map</button>` :
+        `<button type="button" class="btn${I.run ? "" : " primary"}" data-act="${I.run ? "stop" : "run"}">${I.run ? "Stop (keeps progress)" : I.p > 0 ? "Resume" : "Start"}</button>`} ${est} ${tr}</div>
+      <p class="muted" style="font-size:12px">Adds trace while it runs (4 %/s x your skill's trace gain) to every tracer watching ${esc(I.host)}.</p>
+    </div></div></div>`;
+  }
+
+  // ---------- Input ----------
+  const frame = $("frame");
+  frame.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-act],[data-fill],[data-app],[data-sel],[data-dev],[data-cmd],[data-tool],[data-node],[data-crack],[data-known],[data-remote]");
+    if (!t) { if (S.menu && !e.target.closest(".menu")) { S.menu = null; render(); } return; }
+    const d = t.dataset;
+    if (d.act === "close") { toast(S.mode === "deck" ? "Deck lowered: its tools keep running while you stay plugged in" : "You step away from the computer"); return; }
+    if (d.fill) { const [u, p] = d.fill.split("|"); S.user = u; S.pass = p; S.err = ""; render(); return; }
+    if (d.act === "login") { const c = COMPUTERS[S.mode]; S.user = $("lUser").value; S.pass = $("lPass").value;
+      if (S.user === c.account && S.pass === c.password) { S.logged = true; S.err = ""; S.app = S.mode === "console" ? "security" : "mail"; S.sel = 0; }
+      else { S.err = "Wrong user or password: +15 % trace"; addTrace(15); }
+      render(); return; }
+    if (d.app) { S.app = d.app; S.sel = 0; render(); return; }
+    if (d.sel) { S.sel = Number(d.sel); render(); return; }
+    if (d.dev) { S.dev = Number(d.dev); render(); return; }
+    if (d.cmd) { command(S.devs[S.dev], d.cmd); render(); return; }
+    if (d.tool) { S.tool = d.tool; S.menu = null; S.remote = null; render(); return; }
+    if (d.known) { S.cracked[d.known] = true; toast("Logged in with a login from the Journal"); if (NET.find((q) => q.id === d.known.split("|")[0]).gateway) toast("Gateway hacked: the subnets behind it appear on the map"); render(); return; }
+    if (d.remote) { S.remote = d.remote; S.menu = null; S.app = d.remote === "console" ? "security" : "mail"; S.sel = 0; S.dev = 0; render(); return; }
+    if (d.act === "unremote") { S.remote = null; render(); return; }
+    if (d.node) { S.menu = S.menu === d.node ? null : d.node; render(); return; }
+    if (d.crack) { const [id, acc, s] = d.crack.split("|"); const n = NET.find((q) => q.id === id);
+      const pw = { pc1: "Mishka29", pc2: "ferry19", con: "harbor77", fw: "Gh7vQx2e", fw2: "k3epOut9", srv: "Riverside#1" }[id];
+      S.ice = { node: id, account: acc, host: n.label.split(" ")[0], strength: s, password: pw, p: 0, locked: 0, run: true, done: false }; S.tool = "ice"; S.menu = null; render(); return; }
+    if (d.act === "run" && S.ice) { S.ice.run = true; render(); return; }
+    if (d.act === "stop" && S.ice) { S.ice.run = false; render(); return; }
+  });
+  frame.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); toast("Esc: step away"); } if (e.key === "Enter" && e.target.id === "lPass") { frame.querySelector('[data-act="login"]').click(); } });
+  function command(dv, c) {
+    const msg = { pan_left: "Pan left", pan_right: "Pan right", stop_sweep: "Sweep stopped", resume_sweep: "Sweep resumed", disable: "Disabled", enable: "Enabled",
+      t_intruders: "Targets: intruders", t_guards: "Targets: guards", t_everyone: "Targets: everyone", open: "Opened", close: "Closed", unlock: "Unlocked", lock: "Locked",
+      grant: "Access granted: the door opens for you like a keyholder", trigger: "Alarm triggered", reset: "Alarm reset", disarm: "Alarm disarmed", arm: "Alarm armed", test: "Siren test (loud)", silence: "Siren silenced" }[c];
+    if (c === "pan_left") dv.pan = (dv.pan || 0) - 8; if (c === "pan_right") dv.pan = (dv.pan || 0) + 8;
+    if (c === "stop_sweep") dv.sweep = false; if (c === "resume_sweep") dv.sweep = true;
+    if (c === "disable" || c === "disarm") dv.disabled = true; if (c === "enable" || c === "arm") dv.disabled = false;
+    if (c.startsWith("t_")) dv.target = { t_intruders: "Intruders", t_guards: "Guards", t_everyone: "Everyone" }[c];
+    if (c === "open") dv.open = true; if (c === "close") dv.open = false; if (c === "unlock") dv.locked = false; if (c === "lock") dv.locked = true;
+    if (c === "trigger") dv.ringing = true; if (c === "reset") dv.ringing = false;
+    toast(`${dv.name}: ${msg}`);
+  }
+
+  // ---------- Live: Icebreaker progress and trace drain ----------
+  let last = performance.now();
+  setInterval(() => {
+    const now = performance.now(), dt = (now - last) / 1000; last = now; let dirty = false;
+    const I = S.ice;
+    if (I && I.run && !I.done) {
+      const total = BASE[I.strength] * MULT[S.skill]; I.p = Math.min(1, I.p + dt / total);
+      I.locked = Math.floor(I.p * I.password.length); addTrace(4 * dt / [1, 0.8, 0.6, 0.4][S.skill] * [1, 0.8, 0.6, 0.4][S.skill]);
+      if (I.p >= 1) { I.done = true; I.run = false; I.locked = I.password.length; S.cracked[I.node + "|" + I.account] = true;
+        toast(NET.find((q) => q.id === I.node).gateway ? "Gateway hacked: the subnets behind it appear on the map" : `Cracked ${I.account}: added to the Journal`); }
+      dirty = true;
+    } else if (S.trace > 0 && now - S.lastGain > 2000) { S.trace = Math.max(0, S.trace - 10 * dt); dirty = true; }
+    if (dirty && !document.activeElement?.matches?.("input")) render();
+  }, 200);
+
+  // ---------- Mockbar ----------
+  $("mPc").addEventListener("click", () => reset("pc2"));
+  $("mConsole").addEventListener("click", () => reset("console"));
+  $("mDeck").addEventListener("click", () => reset("deck"));
+  $("mReset").addEventListener("click", () => reset(S.mode));
+  $("mSkill").addEventListener("change", () => { S.skill = Number($("mSkill").value); render(); });
+
+  function scale() { return $("wrap").clientWidth / 1280; }
+  function fit() { frame.style.transform = `scale(${scale()})`; }
+  new ResizeObserver(fit).observe($("wrap")); fit();
+  reset("pc2");
+})();
+</script>

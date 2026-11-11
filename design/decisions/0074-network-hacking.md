@@ -1,6 +1,6 @@
 # 74. Network hacking: a realistic network, a deck and tracers
 
-Status: Accepted (supersedes [ADR 0017](0017-hacking-placeholder.md))
+Status: Accepted (supersedes [ADR 0017](0017-hacking-placeholder.md)); amended by [ADR 0112](0112-hacking-reconciled-with-the-built-game.md)
 
 Date: 2026-11-08
 

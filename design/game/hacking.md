@@ -1,8 +1,8 @@
 # Hacking
 
-Milestone: M12 (network, deck, desktop apps, intrusion, tracers). M8 builds the security devices, the alarm devices and a remote command interface wired by physical links: see [security.md](security.md) and [ADR 0075](../decisions/0075-alarms-as-network-devices.md). Design decision: [ADR 0074](../decisions/0074-network-hacking.md). Skill: [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md).
+Milestones: M12a (network, computers, the deck's Map and Icebreaker, tracers) and M12b (exploits, Firewall, Logs, wireless) ([ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md)); guards logging in, the security operator and the Sniffer move to M16. M8 builds the security devices, the alarm devices and a remote command interface wired by physical links: see [security.md](security.md) and [ADR 0075](../decisions/0075-alarms-as-network-devices.md). Design decision: [ADR 0074](../decisions/0074-network-hacking.md). Skill: [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md).
 
-UI wireframes: [hacking UI wireframes](https://claude.ai/artifact/49sxCzMfWBQXKAtq1s6jGJ) (private artifact).
+Approved mockup: [hacking_screens.html](../prototypes/hacking_screens.html) (supersedes the old wireframes).
 
 ## Purpose
 
@@ -11,31 +11,33 @@ Hacking as a believable network, not a minigame. The level has real devices with
 ## Player-facing behaviour
 
 - **Real time**: the world keeps running while you hack. Hacking is silent (no `noise` stimulus), but guards can see you standing at a computer or holding the deck.
-- **The deck** is an inventory item (one model, no upgrades). Network discovery and hacking happen only on the deck. Computers have no network app.
-- **Computers** have a simple desktop (placeholder name "Halcyon OS") with three apps: Mail, Files, Security. You can use any computer bare-handed, but only its own desktop.
+- **Screens are overlays** like the Tab interface: an 85 % panel over the dimmed, running world; the player stands still; Esc or the ✕ leaves.
+- **The deck** is an inventory item (one model, no upgrades). Exploring the network and hacking happen only on the deck: computers have no network map.
+- **Computers** run a simple desktop (placeholder name "Halcyon OS") with three apps: Mail, Files, Security. You can use any computer bare-handed, but only its own desktop. A computer you have an account on can also be used **remotely** from the deck.
 
 ### Entry points
 
-| Entry point | Needs | Your address | Leaving it |
-|---|---|---|---|
-| Any computer, bare-handed | its credentials (or an unlocked session) | none: you use its desktop only | Running actions continue; you cannot start new ones |
-| Wall network jack | the deck | the deck's address on the jack's subnet | Tethered: walking away unplugs the deck and stops its tools |
-| Wireless, within an access point's range | the deck | the deck's address on the access point's subnet | You can lower the deck; tools keep running while you stay in range. Leaving the range stops them |
-| Autonomous device's maintenance port | the deck | a direct link to that device only | Tethered, like a jack |
-| Plugging the deck into a computer | the deck | the computer's address | Tethered, like a jack |
+| Entry point | Needs | Your address | Leaving it | Milestone |
+|---|---|---|---|---|
+| Any computer, bare-handed | its credentials (or an unlocked session) | none: you use its desktop only | Running actions continue; you cannot start new ones | M12a |
+| Wall network jack | the deck | the deck's address on the jack's subnet | Tethered: walking away unplugs the deck and stops its tools | M12a |
+| Autonomous device's maintenance port | the deck | a direct link to that device only | Tethered, like a jack | M12a |
+| Plugging the deck into a computer | the deck | the computer's address | Tethered, like a jack | M12a |
+| Wireless, within an access point's range | the deck | the deck's address on the access point's subnet | You can lower the deck; tools keep running while you stay in range. Leaving the range stops them | M12b |
 
 - "You" in a firewall rule is the address the deck currently uses (its own, or the computer's when plugged into one).
+- Lowering the deck (Esc) while plugged in keeps its tools running.
 
 ### Deck tools
 
-| Tool | What it does |
-|---|---|
-| Map | Scanner. Shows the devices you can see from your entry point (see [Discovery](#discovery)); drawn like the terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)) |
-| Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs |
-| Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace |
-| Sniffer | Wireless only. Captures the logins made on devices connected through the same access point as the deck, while it runs (see [NPCs and logs](#npcs-and-logs)) |
-| Firewall | As admin of a gateway: view and edit its rules |
-| Logs | As admin of a device: read its log and erase entries |
+| Tool | What it does | Milestone |
+|---|---|---|
+| Map | Shows the devices you can see (see [Discovery](#discovery)), drawn like the old terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)). Clicking a device opens its menu: its address, status and account names; per account "Log in" (a login the Journal knows) or the Icebreaker; on a device you have access to, its actions; on a computer you have an account on, "Open its desktop (remote)" | M12a |
+| Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs | M12a |
+| Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace | M12b |
+| Firewall | As admin of a gateway: view and edit its rules | M12b |
+| Logs | As admin of a device: read its log and erase entries | M12b |
+| Sniffer | Wireless only. Captures the logins guards make on devices connected through the same access point | M16 (needs guards logging in) |
 
 ## Network model
 
@@ -64,17 +66,17 @@ flowchart LR
 
 ### Discovery
 
-- From an entry point the Map shows every device on your own subnet, plus the gateway.
-- A subnet behind a gateway you cannot pass shows as one locked node: its address range and "? devices".
-- Gaining access to it (a firewall rule that lets you through, or a foothold on a machine inside) reveals its devices.
-- Devices once seen stay on the map, greyed out, when you lose access. Node colours follow the terminal's rule ([ADR 0099 amendment](../decisions/0099-network-map-layout-pan-zoom.md#amendment-node-colours-m9h)): grey out of reach, red disabled, else green.
+- From an entry point the Map shows every device on your own subnet, plus its gateway. **What lies behind a gateway is hidden**: no node, no count.
+- **Hacking a gateway** (gaining an account on it, by a known login or the Icebreaker) reveals the subnets behind it and their devices. A gateway inside those subnets can be hacked in turn: you hack your way through several subnets in a row.
+- Devices once seen stay on the map, greyed out, when you lose access. Node colours follow the network map's rule ([ADR 0099 amendment](../decisions/0099-network-map-layout-pan-zoom.md#amendment-node-colours-m9h)): grey out of reach, red disabled, else green; devices you have access to are drawn amber.
 
 ## Credentials and clues
 
-- **Explicit clues** (a sticky note, a datapad, an email with a password): the credential is learned automatically. It is listed in the game UI's known-credentials list with a "Fill in" button.
-- **Implicit clues** (an email "my dog's name plus the year" and a photo "Rex, 2031"): nothing is learned. The player types the guess. A wrong guess adds trace.
+- **Explicit clues** (a sticky note, a datapad, an email with a password): the credential is learned automatically and listed in the Journal's **Codes and logins** ([ADR 0110](../decisions/0110-tab-interface.md)). Login screens offer the logins known for that machine with "Fill in"; the deck's Map offers "Log in" with them.
+- **Implicit clues** (an email "my cat's name plus the year we moved in" and a photo "Mishka, 2029"): nothing is learned. They go to the Journal's Notes; the player types the guess. A wrong guess adds trace.
 - Clues never lower a password's strength.
 - Logging in with correct credentials adds no trace. Failed logins, exploits and the Icebreaker add trace.
+- The Journal is the one list of what you know: codes and logins, exploits (a section added in M12b) and notes.
 
 ## Icebreaker
 
@@ -102,6 +104,7 @@ Resulting crack times (the longest is 25 s: no crack should make the player wait
 | Advanced | 5 s | 12 s | 25 s |
 | Master | 3 s | 7 s | 15 s |
 
+- **Skill assists** (shown on the deck, tier by tier like lockpicking, [ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md)): Trained: time estimates (crack time per account, time left); Advanced: + the trace an action will add ("about +30 %"); Master: + how many hidden subnets a gateway routes to.
 - Stopping keeps the progress on the deck (saved with the game). Running it on the same account later resumes. If the password has changed since, the progress is lost.
 - The skill affects only the deck's tools. Admin access allows every admin action: no action is skill-gated.
 
@@ -142,9 +145,12 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 | Alarm controller | disarm, reset, trigger | Rings the sirens it still reaches |
 | Computer | mail, files | Its own desktop only |
 | Keypad | read its code, open its door | Accepts its code |
+| Laser array | disable, enable | Keeps tripping; its incidents reach no controller |
+| Panic button | disable, enable (M12a) | Pressing it reaches no controller |
+| Radio base station | disable, enable (M12a); the alarm controller sends it `broadcast` | Guards get no radio broadcast |
 
 - There is no camera feed loop (removed from the design).
-- **Quiet vs loud**: panning a camera away is quiet. Disabling it makes its feed go dark, and a security operator (a guard at the monitors) radios someone to check it.
+- **Quiet vs loud**: panning a camera away is quiet. Disabling it makes its feed go dark; from M16 a security operator (a guard at the monitors) radios someone to check it.
 
 ### Desktop apps
 
@@ -152,30 +158,33 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 |---|---|
 | Mail | The account's emails |
 | Files | The machine's files |
-| Security | On every computer. Lists what this machine can reach and which devices trust it, with their actions. On an office PC: "Cannot reach SEC-SERVER" |
+| Security | Replaces the old terminal's Camera tab. A list grouped by kind (cameras and turrets; doors; alarm: controller, sirens, radio base stations, panic buttons; laser arrays), an icon per device kind and its status; the selected device's detail pane with its status, actions and, for cameras and turrets, the live view. It lists **only the devices this computer controls** (they trust it and it reaches them); a computer that controls none says so and points to the deck |
 
-- Reading a mail or file adds it to the PersonalLog automatically, like a datapad ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)). Credentials, clues, exploits and codes inside are learned.
+- Reading a mail or file adds it to the Journal automatically, like a datapad ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)). Credentials, codes and (M12b) exploits inside are learned; implicit clues are kept as notes.
+- **Remote desktop**: from the deck's Map, a computer you have an account on opens its desktop inside the deck ("Back to the map" returns). Its Security app controls the devices that trust that computer, from wherever the deck is plugged in.
 - "Copy to deck" (in the game UI) exists only for objectives that need the file itself. Deleting a file can also be an objective.
 
 ### NPCs and logs
 
-- NPCs log in to devices through a "use device" action at patrol waypoints. This feeds the Sniffer and the device logs.
-- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool. An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
+- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool (M12b). An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
+- **M16** (AI overhaul): guards log in to devices through a "use device" action at patrol waypoints (feeding the Sniffer and the logs), and a security operator watches the monitors.
 
 ## UI
 
-Two in-world layers and one overlay ([wireframes](https://claude.ai/artifact/49sxCzMfWBQXKAtq1s6jGJ)):
+Overlays, like the Tab interface ([mockup](../prototypes/hacking_screens.html)):
 
-| Layer | Where | Contents |
-|---|---|---|
-| Computer screen | in the world, on the hacked computer | Halcyon OS desktop: login, Mail, Files, Security |
-| Deck screen | in the world, the player's device | Map, Icebreaker, Exploits, Sniffer, Firewall, Logs |
-| Game UI overlay | beside or below the screen | Known credentials with "Fill in"; deck actions ("Plug in deck: run Icebreaker", "Copy file to deck"); this machine's address and your access level; "Learned" toasts; control hints; "Tracers watching you" bars (one per tracer; an undiscovered one shows as "unknown tracer"); time estimates |
+| Screen | Contents |
+|---|---|
+| Computer (Halcyon OS) | Title bar (host, address, account and access level, trace bars, ✕). Login: user and password, "Fill in" for the logins known for this machine, an error line ("+15 % trace" on a wrong guess). Desktop: Mail, Files, Security in a dock |
+| Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker; M12b tools greyed until then); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
+
+- One trace bar per tracer watching you (an undiscovered tracer shows as "unknown tracer"), only inside these screens.
+- Skill assists appear on the deck (see [Icebreaker](#icebreaker)).
 
 Controls ([controls.md](controls.md)):
 
-- E on a computer uses it bare-handed. With the deck in hand (belt), LMB on a wall jack, maintenance port or computer plugs it in; LMB within an access point's range raises it ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses).
-- Esc always steps away from the screen or lowers the deck, also while typing. It never also opens the game menu.
+- E on a computer uses it bare-handed. With the deck in hand (belt), LMB on a wall jack, maintenance port or computer plugs it in; LMB within an access point's range raises it (M12b; [ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses).
+- Esc (or the ✕) always steps away from the screen or lowers the deck, also while typing. It never also opens the game menu.
 - E does not step away: only Esc leaves a computer-like screen ([ADR 0083](../decisions/0083-security-terminal-redesign.md)).
 - The mouse drives the cursor on the screen.
 
@@ -188,8 +197,8 @@ Controls ([controls.md](controls.md)):
 
 ## Levels
 
-- Gallery: a network lab room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md)).
-- Warehouse mission: a small network ([../levels/mission-warehouse.md](../levels/mission-warehouse.md)).
+- **Network lab** (gallery, M12a, [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md)): Office and Security subnets behind a gateway that runs a tracer; a wall jack on the Office subnet; an office PC with a sticky note giving its login and a mail with an implicit clue to a second account; a security console that a camera and a door trust; a switch you can unpower to cut the Security subnet; a sign at each station.
+- **Warehouse** (M12a, [../levels/mission-warehouse.md](../levels/mission-warehouse.md)): its existing office PCs, wall jack and security console become real computers on real subnets, with one tracer on the gateway between the offices and security. M12b adds exploits and wireless.
 
 ## Interactions
 
@@ -217,4 +226,4 @@ Starting values, to be checked by feel in playtest ([playtest checklist](../tech
 All trace gains are multiplied by the Computer skill's trace gain (×1 / 0.8 / 0.6 / 0.4).
 
 - **Account names**: the Map lists the account names of every device you have seen (like a login banner). Passwords are the secret; clues, the Sniffer and Icebreaker supply them.
-- **Security operator's radio call**: on a dark camera feed or "Tracer offline", the operator radios the nearest guard with `equipment.radio`, who goes to investigate the device. Other guards are not alerted.
+- **Security operator's radio call** (M16): on a dark camera feed or "Tracer offline", the operator radios the nearest guard with `equipment.radio`, who goes to investigate the device. Other guards are not alerted.
