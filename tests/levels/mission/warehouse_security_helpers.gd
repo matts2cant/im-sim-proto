@@ -89,8 +89,8 @@ func device(device_name: String) -> Device:
 	return Device.of(device_entity(device_name))
 
 
-func console() -> Terminal:
-	return Terminal.of(device_entity("SecurityConsole"))
+func console() -> Computer:
+	return Computer.of(device_entity("SecurityConsole"))
 
 
 ## Every Door under the security population.

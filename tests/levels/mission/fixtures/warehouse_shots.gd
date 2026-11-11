@@ -9,8 +9,8 @@ extends Node3D
 ## time; `flashlights=0|1` (and `flashlight_shadows=0`) sets every guard's flashlight; `lit=1` raises the
 ## ambient light and clears the fog (layout review only: it is not what the player sees).
 ## The doors and security devices' shots (M9c) live in warehouse_security_shots.gd: `view` puts the
-## free camera at a device's view node (a camera's eye), `terminal` opens that terminal logged in on
-## its Network tab.
+## free camera at a device's view node (a camera's eye), `computer` opens that computer logged in on an
+## app (ADR 0114).
 
 const SecurityShots := preload("res://tests/levels/mission/fixtures/warehouse_security_shots.gd")
 
@@ -271,7 +271,7 @@ func _next() -> void:
 	_time = 0.0
 	for path: String in _shot.get("hide", []):
 		(_level.get_node(path) as Node3D).visible = false
-	# Device states for terminal shots (they last for the rest of the run).
+	# Device states for computer shots (they last for the rest of the run).
 	for circuit: String in _shot.get("off", []):
 		Powered.set_circuit(get_tree(), StringName(circuit), false)
 	for path: String in _shot.get("disable", []):
@@ -305,22 +305,30 @@ func _physics_process(_delta: float) -> void:
 		return
 	_camera.current = false
 	_place_player()
-	if _shot.has("terminal") and not _shot.has("opened") and _time > 0.2:
+	if _shot.has("computer") and not _shot.has("opened") and _time > 0.2:
 		_shot["opened"] = true
-		var terminal := Terminal.of(_level.get_node(String(_shot["terminal"])))
-		terminal.log_in(terminal.username, terminal.password)
-		terminal.use(_player)
-		var screen := TerminalScreen.of(_player)
-		screen.show_tab(TerminalScreen.Tab.NETWORK)
-		screen.refresh_devices(true)
-	# Once the map is laid out and fitted (ADR 0099): zoom, or a node's menu.
-	if _shot.has("opened") and not _shot.has("viewed") and _time > 0.6:
-		_shot["viewed"] = true
-		var graph := TerminalScreen.of(_player).graph
-		if _shot.has("zoom"):
-			graph.zoom_at(graph.size * 0.5, float(_shot["zoom"]))
-		if _shot.has("select"):
-			graph.select(String(_shot["select"]))
+		_open_computer()
+
+
+# Opens the shot's computer logged in as its first account on its app, with `select` selected.
+func _open_computer() -> void:
+	var entity := _level.get_node(String(_shot["computer"]))
+	var computer := Computer.of(entity)
+	computer.open_desktop(_player, DeviceAccounts.of(entity).accounts[0].user, false)
+	var screen := ComputerScreen.of(_player)
+	var app := String(_shot.get("app", "security"))
+	var apps := {"mail": ComputerScreen.App.MAIL, "files": ComputerScreen.App.FILES}
+	screen.show_app(apps.get(app, ComputerScreen.App.SECURITY))
+	var select := String(_shot.get("select", ""))
+	if select.is_empty():
+		return
+	match app:
+		"mail":
+			screen.mail_app.select_title(select)
+		"files":
+			screen.files_app.select_title(select)
+		_:
+			screen.security_app.select(select)
 
 
 # The node a device sees from (a component's device_view(), DeviceStatus), else the entity.
@@ -352,7 +360,7 @@ func _process(delta: float) -> void:
 	var path := "%s/%s.png" % [_out, _shot["name"]]
 	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(path))
 	print("Saved ", path, " (player light level %.2f)" % LightExposure.of(_player).level)
-	var screen := TerminalScreen.of(_player)
+	var screen := ComputerScreen.of(_player)
 	if screen != null and screen.is_open():
 		screen.close()
 	for hidden: String in _shot.get("hide", []):

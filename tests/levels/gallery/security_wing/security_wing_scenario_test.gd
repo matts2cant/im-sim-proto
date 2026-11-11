@@ -1,10 +1,10 @@
 extends GdUnitTestSuite
 ## Scenario in the real security wing (inside the hub) with the player, one station after the other
-## as a player would do it, driving the components where a screen is involved (keypad, terminal):
+## as a player would do it, driving the components where a screen is involved (keypad, computer):
 ## read the code datapad on the entry table -> D1's keypad takes the code -> take the keycard behind
 ## D1 -> D3 opens with it; take the lockpicks -> pick D2 -> read the login datapad behind D2 -> log in
-## at the booth terminal with what the log knows -> disable the turret -> open the vault from the
-## terminal (the fail-secure door opens without unlocking). Also: the barrel beside D5 breaks it.
+## at the booth computer with what the log knows -> disable the turret -> open the vault from the
+## computer (the fail-secure door opens without unlocking). Also: the barrel beside D5 breaks it.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const HUB := "res://levels/hub/hub.tscn"
@@ -106,24 +106,24 @@ func test_code_keycard_login_turret_and_vault() -> void:
 	await _stand(Vector3(-3.25, 0, 7.6), Vector3(-3.25, 1, 8.74))
 	await _read("Items/BoothLogin")
 
-	# The booth terminal: the log knows the login ("Fill in"), the player logs in.
+	# The booth computer: the log knows the login ("Fill in"), the player logs in.
 	await _stand(Vector3(-0.25, 0, 8.1), Vector3(-0.25, 1.45, 8.99))
 	EventLog.clear()
-	var terminal := Terminal.of(_node("Devices/Terminal"))
-	var known := terminal.known_credentials(_player)
-	assert_object(known).is_not_null()
-	assert_str(terminal.credentials_source(_player)).is_equal("Booth login")
-	assert_bool(terminal.log_in(known.user, known.password, _player)).is_true()
-	assert_bool(EventLog.find(&"terminal.login")[0].data["ok"]).is_true()
+	var computer := Computer.of(_node("Devices/BoothComputer"))
+	var known := computer.known_logins(_player)
+	assert_int(known.size()).is_equal(1)
+	assert_str(known[0].source).is_equal("Booth login")
+	assert_bool(computer.log_in(known[0].user, known[0].password, _player)).is_true()
+	assert_bool(EventLog.find(&"computer.login")[0].data["ok"]).is_true()
 
 	# Disable the turret, then open the vault.
 	var turret := Turret.of(_node("Devices/Turret"))
-	assert_bool(terminal.send(Device.DISABLE, Device.of(_node("Devices/Turret")))).is_true()
+	assert_bool(computer.send(Device.DISABLE, Device.of(_node("Devices/Turret")))).is_true()
 	await _driver.frames(3)
 	assert_bool(turret.disabled).is_true()
 	assert_bool(turret.is_active()).is_false()
 	var vault := _door("VaultDoor")
-	assert_bool(terminal.send(Device.OPEN, Device.of(_node("Doors/VaultDoor")))).is_true()
+	assert_bool(computer.send(Device.OPEN, Device.of(_node("Doors/VaultDoor")))).is_true()
 	await _driver.frames(3)
 	await _wait_open(vault)
 	assert_bool(vault.is_open()).is_true()

@@ -11,6 +11,20 @@ const GRAPH_SIZE := Vector2(1050, 440)
 const MIN_GAP := 8.0
 
 
+## The old map's rows of the network `entity` (a device, now a computer) is cabled into: a legacy
+## Terminal (objects/terminal/terminal.gd) added to it for the test (M12a: the deck's Map replaces
+## these checks; ADR 0114).
+static func rows_from(entity: Node) -> Array[Terminal.Row]:
+	var source := Terminal.new()
+	source.name = "MapRows"
+	source.config = load("res://objects/terminal/terminal.tres") as TerminalConfig
+	entity.add_child(source)
+	var rows := source.devices()
+	entity.remove_child(source)
+	source.free()
+	return rows
+
+
 ## Shows the network in a fresh graph under `suite` and asserts the checks; returns
 ## {"zoom": the fitted zoom, "layout": the NetworkLayout} (the graph is freed).
 static func check(

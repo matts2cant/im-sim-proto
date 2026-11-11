@@ -13,7 +13,7 @@ const WALL_LAMP := "res://objects/light_fixture/wall_lamp.tscn"
 const CEILING_LAMP := "res://objects/light_fixture/ceiling_lamp.tscn"
 const SWITCH := "res://objects/devices/network_switch.tscn"
 const CAMERA := "res://objects/camera/security_camera.tscn"
-const TERMINAL := "res://objects/terminal/terminal.tscn"
+const COMPUTER := "res://objects/computer/computer.tscn"
 const WALL_Z := -2.0
 const BATON_SLOT := 2
 ## The wall lamp's collision box: 0.3 m cube centred on its origin's height.
@@ -89,23 +89,25 @@ func test_swing_never_hits_the_players_own_body() -> void:
 
 func test_switch_broken_by_the_baton_takes_its_network_offline() -> void:
 	await _load()
-	var terminal_entity := _spawn(TERMINAL, Vector3(-4, 1.45, WALL_Z))
+	var computer_entity := _spawn(COMPUTER, Vector3(-4, 1.45, WALL_Z))
 	var switch := _spawn(SWITCH, Vector3(0, 1.5, WALL_Z))
 	var camera := _spawn(CAMERA, Vector3(4, 2.6, WALL_Z))
-	DeviceFixtures.link(terminal_entity, switch)
+	DeviceFixtures.link(computer_entity, switch)
 	DeviceFixtures.link(switch, camera)
 	await _driver.frames(2)
-	var terminal := Terminal.of(terminal_entity)
-	assert_array(_status(terminal, switch)).contains([DeviceStatus.ONLINE])
-	assert_array(_status(terminal, camera)).contains([DeviceStatus.ONLINE])
+	var computer := Computer.of(computer_entity)
+	assert_array(_status(computer, switch)).contains([DeviceStatus.ONLINE])
+	assert_array(_status(computer, camera)).contains([DeviceStatus.ONLINE])
 
 	var feet := Vector3(0, 0, WALL_Z + 1.0)
 	for swing in 2:
 		assert_str(await _swing_at(switch, feet)).is_equal(String(switch.name))
 
 	assert_bool(Device.of(switch).broken).is_true()
-	assert_array(_status(terminal, switch)).contains_exactly([DeviceStatus.OFFLINE])
-	assert_array(_status(terminal, camera)).contains_exactly([DeviceStatus.OFFLINE])
+	assert_array(_status(computer, switch)).contains_exactly([DeviceStatus.OFFLINE])
+	assert_array(_status(computer, camera)).contains_exactly([DeviceStatus.OFFLINE])
+	# The Security app lists the camera offline too.
+	assert_array(Array(computer.devices()[0].status)).contains_exactly([DeviceStatus.OFFLINE])
 
 
 func test_baton_on_a_door_keypad_box_leaves_the_door_locked() -> void:
@@ -172,8 +174,6 @@ func _wait_ready() -> void:
 		await _driver.frames(1)
 
 
-static func _status(terminal: Terminal, entity: Node3D) -> PackedStringArray:
-	for row in terminal.devices():
-		if row.device.entity == entity:
-			return row.status
-	return PackedStringArray(["<not listed>"])
+# What a screen of `computer` shows for `entity`: its status words, online when the computer reaches it.
+static func _status(computer: Computer, entity: Node3D) -> PackedStringArray:
+	return DeviceStatus.of(entity, computer.device.reaches(entity))

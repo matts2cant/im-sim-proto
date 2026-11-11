@@ -328,10 +328,10 @@ func _key_options(level: Node, door: Door) -> Array[Array]:
 					if breaker != null and breaker.circuit == powered.circuit:
 						options.append([_area(breaker.entity.global_position)])
 			for node in _all():
-				var terminal := node as Terminal
-				if terminal != null and terminal.device != null and terminal.device.reaches(door.entity):
-					for pad in _readables_with(terminal.credentials_id):
-						options.append([_area(terminal.entity.global_position), _area(pad.global_position)])
+				var computer := node as Computer
+				if computer != null and computer.device != null and computer.device.reaches(door.entity):
+					for pad in _readables_with(computer.credentials_id):
+						options.append([_area(computer.entity.global_position), _area(pad.global_position)])
 	return options
 
 

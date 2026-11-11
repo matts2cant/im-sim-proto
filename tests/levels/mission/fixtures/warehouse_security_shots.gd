@@ -2,12 +2,14 @@ extends RefCounted
 ## Review shots of the warehouse's doors and security devices (M9c), merged into
 ## warehouse_shots.gd's list: run `warehouse_shots.tscn -- shots=<name>,... out=<folder>`. Keys as
 ## there, plus `view`: a free camera at the eye of a device's view node (a camera's point of view,
-## HUD hidden), and `terminal`: the player uses that terminal, logged in, on its Network tab (then
-## `zoom`: zoomed by that factor around the map's centre, `select`: that node's menu open). Before
-## a shot, `off` turns those circuits off and `disable` sends `command.disable` to those devices
-## (both last for the rest of the run: put such shots last).
+## HUD hidden), and `computer`: the player uses that computer, logged in as its first account, on
+## `app` (security, mail or files; default security) with `select` selected (a device's name in the
+## Security app, a mail's subject or a file's name). Before a shot, `off` turns those circuits off
+## and `disable` sends `command.disable` to those devices (both last for the rest of the run: put
+## such shots last).
 
 const DEVICES := "Population/Security/Devices/"
+const NETWORK := "Population/Security/Network/"
 
 const SHOTS: Dictionary[String, Dictionary] = {
 	# Doors.
@@ -77,42 +79,59 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"roof_camera_west": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8)},
 	"roof_camera_west_crouch": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8), "crouch": true},
 	"roof_west_arrival": {"feet": Vector3(-18.5, 9.5, 3.0), "look": Vector3(10, 10.5, -6)},
-	# The security console's Network tab.
-	"terminal_network":
-	{"feet": Vector3(16.05, 0, 1.0), "look": Vector3(16.05, 1.45, 0.25), "terminal": DEVICES + "SecurityConsole"},
-	# M9h (ADR 0099): the map zoomed in around the panel's centre, and with a node's menu open.
-	"terminal_network_zoom":
+	# M12a (ADR 0114): the security console's Security app on a camera, a door and the alarm group;
+	# the office PCs' Mail (an implicit clue), Files, and a Security app that controls nothing.
+	"console_cameras":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
-		"terminal": DEVICES + "SecurityConsole",
-		"zoom": 1.8,
+		"computer": DEVICES + "SecurityConsole",
+		"select": "Camera Hall",
 	},
-	"terminal_network_menu":
+	"console_door":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
-		"terminal": DEVICES + "SecurityConsole",
-		"select": "Vault Turret",
+		"computer": DEVICES + "SecurityConsole",
+		"select": "Vault Door",
 	},
-	# M9h (ADR 0099 amendment): node colours. Breaker A's circuit off (the yard network unreachable:
-	# grey) and the hall camera disabled (red).
-	"terminal_network_states":
+	"console_alarm":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
-		"terminal": DEVICES + "SecurityConsole",
+		"computer": DEVICES + "SecurityConsole",
+		"select": "Alarm Controller",
+	},
+	"office_pc2_mail":
+	{
+		"feet": Vector3(18, 4.5, 14.0),
+		"look": Vector3(18, 5.95, 14.74),
+		"computer": NETWORK + "OfficePc2",
+		"app": "mail",
+		"select": "Re: password reset",
+	},
+	"office_pc2_files":
+	{
+		"feet": Vector3(18, 4.5, 14.0),
+		"look": Vector3(18, 5.95, 14.74),
+		"computer": NETWORK + "OfficePc2",
+		"app": "files",
+		"select": "birthday_card_lena.jpg",
+	},
+	"office_pc1_security":
+	{
+		"feet": Vector3(14.5, 4.5, 14.0),
+		"look": Vector3(14.5, 5.95, 14.74),
+		"computer": NETWORK + "OfficePc1",
+	},
+	# Breaker A's circuit off (the yard devices unreachable: grey) and the hall camera disabled (red).
+	"console_states":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"computer": DEVICES + "SecurityConsole",
 		"off": ["warehouse_yard"],
 		"disable": [DEVICES + "CameraHall"],
-	},
-	"terminal_network_states_menu":
-	{
-		"feet": Vector3(16.05, 0, 1.0),
-		"look": Vector3(16.05, 1.45, 0.25),
-		"terminal": DEVICES + "SecurityConsole",
-		"off": ["warehouse_yard"],
-		"disable": [DEVICES + "CameraHall"],
-		"zoom": 1.6,
 		"select": "Camera Hall",
 	},
 }
