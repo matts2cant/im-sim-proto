@@ -158,15 +158,16 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 |---|---|
 | Mail | The account's emails |
 | Files | The machine's files |
-| Security | Replaces the old terminal's Camera tab. A list grouped by kind (cameras and turrets; doors; alarm: controller, sirens, radio base stations, panic buttons; laser arrays), an icon per device kind and its status; the selected device's detail pane with its status, actions and, for cameras and turrets, the live view. It lists **only the devices this computer controls** (they trust it and it reaches them); a computer that controls none says so and points to the deck |
+| Security | Only on computers that have it installed (security consoles, the booth computer). Replaces the old terminal's Camera tab. A list grouped by kind (cameras and turrets; doors; alarm: controller, sirens, radio base stations, panic buttons; laser arrays), an icon per device kind and its status; the selected device's detail pane with its status, actions and, for cameras and turrets, the live view. It lists **only the devices this computer controls** (they trust it and it reaches them); a computer that controls none says so and points to the deck |
 
+- **Apps are installed per computer** (data: its `ComputerData.apps`, in dock order); the dock shows only those. A computer whose data lists none has Mail and Files. Office PCs have no Security app.
 - Reading a mail or file adds it to the Journal automatically, like a datapad ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)). Credentials, codes and (M12b) exploits inside are learned; implicit clues are kept as notes.
 - **Remote desktop**: from the deck's Map, a computer you have an account on opens its desktop inside the deck ("Back to the map" returns). Its Security app controls the devices that trust that computer, from wherever the deck is plugged in.
 - "Copy to deck" (in the game UI) exists only for objectives that need the file itself. Deleting a file can also be an objective.
 
 #### Computers as built (M12a, [ADR 0114](../decisions/0114-computers-halcyon-os.md))
 
-- **Components**: a computer is a device entity with `Computer`, `DeviceAccounts` and `ComputerUse` (E). `objects/computer/computer.tscn` is the wall unit; per instance its accounts, its `ComputerData` `.tres` (mail and files), its `credentials_id`, host name and label; `session_user` starts it unlocked.
+- **Components**: a computer is a device entity with `Computer`, `DeviceAccounts` and `ComputerUse` (E). `objects/computer/computer.tscn` is the wall unit; per instance its accounts, its `ComputerData` `.tres` (installed apps, mail and files), its `credentials_id`, host name and label; `session_user` starts it unlocked.
 - **Mail** belongs to an account (a mail with no account is in every inbox); **files** belong to the machine. Each document is a `ComputerDocument`: title (subject or file name), sender, text, codes and code labels like a datapad, and an `implicit_clue` flag (nothing learned, kept as a note). The first item is read when the app opens; clicking another reads it. The reader's last line says what it taught ("Learned: Office PC 2 login kbrandt / ferry19 · added to the Journal.") or that a clue teaches nothing.
 - **Login**: Fill in lists every login the Journal knows under the computer's code id, one per user (the latest learned); the Journal's Codes and logins lists them the same way. A wrong guess shows "Wrong user or password." and a quiet beep (a sound, never a noise stimulus); the trace it adds is the tracers' (`DeviceAccounts.try_login()`).
 - **Title bar**: host name, the address a component offers through `device_address()`, the account and "user" or "admin", the trace bar slot (`ComputerScreen.add_trace_bar()`, filled on `opened`), ✕.
@@ -184,7 +185,7 @@ Overlays, like the Tab interface ([mockup](../prototypes/hacking_screens.html)):
 
 | Screen | Contents |
 |---|---|
-| Computer (Halcyon OS) | Title bar (host, address, account and access level, trace bars, ✕). Login: user and password, "Fill in" for the logins known for this machine, an error line ("+15 % trace" on a wrong guess). Desktop: Mail, Files, Security in a dock |
+| Computer (Halcyon OS) | Title bar (host, address, account and access level, trace bars, ✕). Login: user and password, "Fill in" for the logins known for this machine, an error line ("+15 % trace" on a wrong guess). Desktop: the apps installed on it (Mail, Files, and Security on security consoles) in a dock |
 | Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker; M12b tools greyed until then); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
 
 - One trace bar per tracer watching you (an undiscovered tracer shows as "unknown tracer"), only inside these screens.
@@ -216,7 +217,9 @@ Settled while building the network layer and the deck ([ADR 0113](../decisions/0
 - **Tracers**: trace is per user; a full trace reports once, then drains as usual; it cannot fill again while the address is locked out. A tracer whose host is cut from the watched device (a dead switch between them) does not watch it. Trace bars (deck and computer screens) show every tracer that has trace for you, blocks your address, or watches a device on your map.
 - **Icebreaker**: one account at a time; picking another stops the current one (progress kept). A password changed while it runs makes it start over on the new one.
 - **Assists** (deck only): Trained: each crackable account's crack time in its menu, time left in the Icebreaker; Advanced: + "about +N % trace" for a crack (from the highest tracer gain watching the device); Master: + "routes to N hidden subnets" on a router you have not hacked.
-- **Names**: the Map names a device by its entity's `display_name` metadata, else its node name in words.
+- **Names**: the Map and the Security app name a device by its entity's `display_name` metadata ("CAM-CLOSET"), else its node name in words (`NetworkSource.display_name()`).
+- **Routers** (renamed from gateways after the M12a levels, [ADR 0112 amendment](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)): `objects/network/router.tscn` with the `Router` component (`RouterRule` rules) and the network data of the subnets it joins: `subnet_data` (`Subnet` resources: id, name, address range, Map colour; shared ones in `objects/network/subnets/`) and `side_addresses` (its address on each subnet besides its Device's own). Routers are named `RTR-nn`.
+- **Subnets on the Map**: the Map lays the network out by subnet. Each subnet whose data a router carries is a flat box of its colour (fill 10 %, a 1 px border) behind its devices, its name and range at the top-left ("SECURITY  10.0.20.0/24"); a box appears only while a device of its subnet is on the map, so a hidden subnet has none. Boxes stand side by side along the router chain, from the deck's own subnet; a router stands between the two boxes it joins, labelled "router", with both addresses on its status line. Inside a box the switches form a tidy tree: a switch's devices hang on it as before ([ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)), the switches cabled to it stand in rows below it, so a tree network never crosses a cable; a link off the tree (a loop) runs above every box and may cross (`NetworkLayout.extra`). The layout is computed from the topology only, nothing per level. Fit zoom in the deck at 1152 x 648: about 0.48 for the whole warehouse network, 0.51 for the network lab.
 
 ## Levels
 

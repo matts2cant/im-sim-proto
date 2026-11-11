@@ -429,6 +429,16 @@ Take the deck from the hub's loadout table (or the network lab's entrance table)
 - [ ] A full trace: the alarm rings (if the tracer's host reaches the controller), the bar says "blocked N s", running tools stop with a message; plugging into another port (a new address) is a way out.
 - [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
 
+### Routers and subnet boxes (ADR 0112 amendment)
+
+Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.
+
+- [ ] Every screen, sign, note and toast says "router" (RTR-01, RTR-02), never "gateway".
+- [ ] Each subnet's box reads as a place: its colour (Office blue, Security orange, Servers purple) is clear but faint behind the devices, its name and range are readable at the fitted zoom; a router clearly stands between two boxes and its two addresses make sense.
+- [ ] Hacking a router: the new box appearing with its devices feels like the reveal; nothing about the hidden subnet shows before (no box, no count).
+- [ ] The warehouse Map after hacking RTR-01 (fit zoom about 0.48): the switch tree (main switch on top, the four area switches below) is easy to follow without crossings; zooming in to read the labels is comfortable.
+- [ ] The office PCs' dock shows Mail and Files only, bare-handed and as a remote desktop; the consoles still have Security.
+
 ## M10 Lockpicking sounds ([ADR 0108](../decisions/0108-lockpick-sounds.md))
 
 Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn` (F6), keys 1-0 or the buttons play the cues, the sliders drive the voices. Compare with the prototype (`design/prototypes/lockpicking_bench.html`, sound on).
@@ -509,5 +519,5 @@ Warehouse network:
 
 - [ ] The deck on office PC 2's desk is noticed; the office wall jack (second office, east wall, low) is easy to find and plug into; the Map shows the office, RTR-01 and nothing behind it.
 - [ ] Without the Computer skill, RTR-01 says "too strong"; the console in the security room (audit note login) is the other way. With Trained (debug panel), cracking RTR-01 (18 s, about +58 % trace) reveals the Security subnet and its five switches; the full Map is readable once zoomed (note where cables cross).
-- [ ] The office PCs' Security app controls nothing; the console's controls every camera, door, turret, laser array and alarm device as before.
+- [ ] The office PCs' dock shows Mail and Files only (no Security app); the console's Security app controls every camera, door, turret, laser array and alarm device as before, named as on the deck's Map (CAM-HALL, DOOR-VAULT).
 - [ ] Area switches: shooting the vault's switch (vault west wall) silences the vault, the upper corridor's camera and siren only; the roof's switch at the mast's foot silences the roof's camera and beams; the store's main switch still cuts the building from the yard. Breakers A and B behave as before (B also takes RTR-01 and its tracer down).

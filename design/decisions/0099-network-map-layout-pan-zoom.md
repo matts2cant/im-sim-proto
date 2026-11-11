@@ -53,3 +53,7 @@ The user asked for disabled devices to show red and unpowered or unreachable one
 Alternatives: a reserved status word "disabled" (the alarm controller says "disarmed", and colours would hang on wording); per-device checks in the UI (breaks the systemic rule); red cables to disabled devices (suggests the link is down).
 
 Tests: `tests/ui/deck/network_graph_colours_test.gd` (stand-in devices behind a powered and an unpowered switch: enabled green, disabled red, broken grey, behind the unpowered switch grey even when disabled; menu and selection colours; cable colours; brightness contrast between the three), `tests/objects/devices/device_status_test.gd` (`is_disabled`), `tests/ui/terminal/terminal_screen_test.gd` (the showcase's disabled camera and turret red, grey once the switch is cut, red again after), `tests/objects/laser/laser_array_test.gd` and `tests/objects/alarm/alarm_devices_test.gd` (the flag follows disable / disarm). Review shots: `warehouse_shots.tscn -- shots=terminal_network_states,terminal_network_states_menu` (breaker A off, Camera Hall disabled), `wing_shots.tscn -- shot=terminal_states`.
+
+## Note: layout by subnet (2026-11-11)
+
+The rows of groups and lanes between them were replaced by a layout by subnet (boxes along the router chain, a tidy tree of switches inside each, no crossings on a tree network): see the [ADR 0112 amendment](0112-hacking-reconciled-with-the-built-game.md#as-built-m12a-follow-up-2026-11-11). Combs, pan, zoom, Fit and node colours are unchanged.

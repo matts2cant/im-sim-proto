@@ -33,3 +33,7 @@ ADR 0112 decided that computers running a simple desktop replace the M8 security
 - [hacking.md](../game/hacking.md) (details settled here), [security.md](../game/security.md) (terminal section → computers and the Security app), [controls.md](../game/controls.md), [saving.md](../game/saving.md), the playtest checklist (M12a computers), the level docs (booth computer, warehouse computers).
 - Not built here: panic buttons and radio base stations gaining disable / enable (ADR 0112): they are listed with no actions until their components accept those commands. Trust lists, addresses, trace bars' contents, the deck and its Map are the network brief's.
 - Tests: `tests/objects/computer/` (rules, the computer in the showcase), `tests/ui/computer/` (the overlay, the Security app on a network of shipped device scenes); the terminal's tests ported (security wing, warehouse network, laser alarm, turret attribution, baton reach).
+
+## Note: installed apps and device names (2026-11-11)
+
+A computer's apps are data: `ComputerData.apps` (dock order; none listed: Mail and Files), and the dock shows only those (bare-handed and remote). Security is installed on the security consoles and the booth computer only. The Security app names devices by their `display_name` (as the deck's Map does). See the [ADR 0112 amendment](0112-hacking-reconciled-with-the-built-game.md#as-built-m12a-follow-up-2026-11-11).
