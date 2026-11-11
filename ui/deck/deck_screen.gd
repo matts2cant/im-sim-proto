@@ -272,20 +272,17 @@ func show_notice(text: String) -> void:
 
 ## The visible button labelled `text` anywhere on the screen (tests), or null.
 func find_button(text: String) -> Button:
-	return _find_button(root, text)
+	return UiQuery.find_button(root, text)
 
 
 ## The open device menu's button labelled `text` (tests), or null.
 func menu_button(text: String) -> Button:
-	return _find_button(graph.menu, text) if graph.menu.visible else null
+	return UiQuery.find_button(graph.menu, text) if graph.menu.visible else null
 
 
 ## Every visible button label on the open menu (tests).
 func menu_texts() -> Array[String]:
-	var found: Array[String] = []
-	if graph.menu.visible:
-		_collect_texts(graph.menu, found)
-	return found
+	return UiQuery.texts(graph.menu) if graph.menu.visible else [] as Array[String]
 
 
 ## The text of the trace bars, one "<name> <n> %" per tracer (tests).
@@ -304,9 +301,7 @@ func trace_texts() -> Array[String]:
 
 ## The Icebreaker's visible text lines (tests).
 func ice_texts() -> Array[String]:
-	var found: Array[String] = []
-	_collect_texts(ice_view.column, found)
-	return found
+	return UiQuery.texts(ice_view.column)
 
 
 ## Fills the computer overlay's trace slot (DeckTraceBars.computer_bars()).
@@ -393,36 +388,6 @@ func _open_firewall(device: Device) -> void:
 func _address_text() -> String:
 	var address := session.source.address
 	return address if not address.is_empty() else "no address"
-
-
-func _find_button(node: Node, text: String) -> Button:
-	for child in node.get_children():
-		if child.is_queued_for_deletion():
-			continue
-		var canvas := child as CanvasItem
-		if canvas != null and not canvas.visible:
-			continue
-		var button := child as Button
-		if button != null and button.text == text:
-			return button
-		var found := _find_button(child, text)
-		if found != null:
-			return found
-	return null
-
-
-func _collect_texts(node: Node, found: Array[String]) -> void:
-	for child in node.get_children():
-		if child.is_queued_for_deletion():
-			continue
-		var canvas := child as CanvasItem
-		if canvas != null and not canvas.visible:
-			continue
-		if child is Button:
-			found.append((child as Button).text)
-		elif child is Label:
-			found.append((child as Label).text)
-		_collect_texts(child, found)
 
 
 func _build() -> void:
