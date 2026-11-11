@@ -29,6 +29,11 @@ extends Node
 ##   exploit runs gave users and its log (logins, failed logins, exploit runs and the commands it
 ##   receives, with the source address). Access (has_access(), is_admin()) is an account
 ##   (DeviceAccounts) or an exploit's grant.
+## - Wireless (M12b, ADR 0115, 0117): `wireless` names an access point (an entity with an
+##   AccessPoint) this device links to by radio instead of a cable; the link holds while the device
+##   is not network gear (DeviceNetwork.is_network_gear()) and stands within the access point's
+##   `wireless_range` (wireless_link()). It is a link of the reach graph like a cable: a down access
+##   point cuts its wireless devices off. `links` stays the cables.
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
 ##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
@@ -95,6 +100,8 @@ const DECK_NODE: int = -1
 @export var deck_port: DeckPort = DeckPort.AUTO
 ## The software it runs (exploits target it; the deck's Map shows it once its subnet is scanned).
 @export var software: Software
+## The access point (its entity or Device) it links to by radio instead of a cable; empty: none.
+@export var wireless: NodePath = ^""
 
 var entity: Node3D
 var powered: Powered
@@ -123,6 +130,8 @@ func _ready() -> void:
 		breakable.depleted.connect(_on_depleted)
 		breakable.broken.connect(_on_depleted.bind(null))
 	_apply()
+	if not wireless.is_empty():
+		_check_wireless.call_deferred()
 
 
 ## The Device child of `node` (an entity), or `node` itself when it is a Device; null otherwise.
@@ -162,9 +171,15 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 		var router := Router.of(device.entity)
 		if router != null:
 			result.set_gate(id, Device._gate(router, source, result))
+	# Device -> the access point it links to by radio (valid links only).
+	var radio: Dictionary[Device, Device] = {}
 	for device in devices:
 		for other in device.linked():
 			result.link(device.get_instance_id(), other.get_instance_id())
+		var access_point := device.wireless_link()
+		if access_point != null:
+			radio[device] = access_point
+			result.link(device.get_instance_id(), access_point.get_instance_id())
 	for device in devices:
 		var id := device.get_instance_id()
 		var own := device.subnet
@@ -175,6 +190,10 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 					own = other.subnet
 					break
 		result.set_subnet(id, own)
+	# A wireless device without a subnet of its own is on its access point's.
+	for device: Device in radio:
+		if device.subnet.is_empty():
+			result.set_subnet(device.get_instance_id(), result.subnet_of(radio[device].get_instance_id()))
 	if source != null and source.start_id() == DECK_NODE and is_instance_valid(source.device):
 		result.add_node(DECK_NODE, true)
 		result.set_subnet(DECK_NODE, source.subnet)
@@ -232,6 +251,20 @@ func linked() -> Array[Device]:
 		if device != null and device != self and not found.has(device):
 			found.append(device)
 	return found
+
+
+## The access point `wireless` names when the radio link holds: that device has an AccessPoint, this
+## one is not network gear and stands within its range; else null (no link).
+func wireless_link() -> Device:
+	if wireless.is_empty():
+		return null
+	var other := Device.of(get_node_or_null(wireless))
+	if other == null or other == self or not is_instance_valid(entity):
+		return null
+	var access_point := AccessPoint.of(other)
+	if access_point == null or DeviceNetwork.is_network_gear(self):
+		return null
+	return other if access_point.covers(entity.global_position) else null
 
 
 ## True when this device reaches `target` (an entity or its Device) through up devices.
@@ -375,6 +408,17 @@ func _apply() -> void:
 		var data := {"device": _entity_name(), "up": up, "unpowered": not is_powered(), "broken": broken}
 		EventLog.record(&"device.state", _entity_name(), "", data)
 		state_changed.emit(up)
+
+
+# Level data check: a `wireless` link that cannot hold says why once.
+func _check_wireless() -> void:
+	if not is_inside_tree() or wireless_link() != null:
+		return
+	var other := Device.of(get_node_or_null(wireless))
+	var why := "names no access point"
+	if other != null and AccessPoint.of(other) != null:
+		why = "is network gear" if DeviceNetwork.is_network_gear(self) else "stands out of the access point's range"
+	push_warning("Device %s: its wireless link %s %s" % [get_path(), wireless, why])
 
 
 func _entity_name() -> String:

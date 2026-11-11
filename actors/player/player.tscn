@@ -60,6 +60,7 @@
 [ext_resource type="Script" path="res://ui/deck/deck_screen.gd" id="81_deck_screen"]
 [ext_resource type="Script" path="res://items/deck/icebreaker_tool.gd" id="82_icebreaker_tool"]
 [ext_resource type="Script" path="res://items/deck/exploit_tool.gd" id="83_exploit_tool"]
+[ext_resource type="Script" path="res://items/deck/wireless_tool.gd" id="83_wireless_tool"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -155,6 +156,8 @@ script = ExtResource("82_icebreaker_tool")
 
 [node name="ExploitTool" type="Node" parent="."]
 script = ExtResource("83_exploit_tool")
+[node name="WirelessTool" type="Node" parent="."]
+script = ExtResource("83_wireless_tool")
 
 [node name="DeckScreen" type="CanvasLayer" parent="."]
 layer = 22

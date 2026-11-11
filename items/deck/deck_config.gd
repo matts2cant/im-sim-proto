@@ -8,6 +8,9 @@ extends Resource
 ## Tethered: walking further than this from the plugged entity unplugs the deck (m, horizontal,
 ## centre to centre: the user's origin to the entity's).
 @export var tether_distance: float = 3.0
+## The deck's Wi-Fi range before the Computer skill (m, straight line: the user's eye to the access
+## point's origin); the skill's `deck_wireless_range` adds to it (8 / 12 / 18 / 25 m by tier).
+@export var wireless_range: float = 8.0
 ## Seconds a map scan of a newly reached subnet takes before its devices show.
 @export var scan_time: float = 2.0
 ## Seconds an exploit run takes (ExploitTool; the Computer skill does not change it).

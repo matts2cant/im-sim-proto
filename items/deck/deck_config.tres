@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 crack_base_times = Array[float]([10.0, 24.0, 50.0])
 tether_distance = 3.0
+wireless_range = 8.0
 scan_time = 2.0
 exploit_time = 4.0
 refresh_interval = 0.25

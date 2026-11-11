@@ -44,7 +44,7 @@ mesh = SubResource("Mesh_leds")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
-initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.router"])
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.router", &"object.network_gear"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("2_attributes")
