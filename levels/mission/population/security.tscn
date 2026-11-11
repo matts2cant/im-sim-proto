@@ -33,7 +33,6 @@
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="44_wall_jack"]
 [ext_resource type="PackedScene" path="res://objects/network/gateway.tscn" id="45_gateway"]
 [ext_resource type="Script" path="res://objects/network/tracer.gd" id="46_tracer"]
-[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="47_deck"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -904,9 +903,6 @@ title = "Sticky note"
 text = "PC login: lpetrova / tulip24"
 codes = Dictionary[StringName, String]({&"warehouse_office_pc1": "lpetrova:tulip24"})
 code_labels = Dictionary[StringName, String]({&"warehouse_office_pc1": "Office PC 1 login"})
-
-[node name="Deck" parent="Items" instance=ExtResource("47_deck")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.45, 5.27, 14.1)
 
 [node name="KeycardSecurity" parent="Items" instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.53, 10.2)

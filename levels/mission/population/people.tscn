@@ -28,6 +28,7 @@
 [ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="26_glass_bottle"]
 [ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="27_wall_lamp"]
 [ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="28_ceiling_lamp"]
+[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="29_deck"]
 
 [node name="People" type="Node3D"]
 
@@ -282,6 +283,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.5, -3.95, -0.9)
 
 [node name="Prototype" parent="Items" instance=ExtResource("17_prototype")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19, 5.385, 3.5)
+
+[node name="Deck" parent="Items" instance=ExtResource("29_deck")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.45, 5.27, 14.1)
 
 [node name="CacheMedkit" parent="Items" instance=ExtResource("16_medkit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.95, 0.05, 23.45)
