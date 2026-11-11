@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## of the jamb) closes it; each lock opens only by its own method, on its own hardware: a keypad box
 ## by its code on the keypad screen (keys or clicks; Esc leaves while typing, E does not; the reminder
 ## shows a code from the log), a card reader box by a carried card with its key id, a mechanical lock
-## (keyhole on the leaf) by holding LMB with a lockpick on the leaf for pins x 1 s x lockpick_time_mult.
+## (keyhole on the leaf) through the lockpicking minigame, started by LMB with a lockpick on the leaf
+## (ADR 0107; the minigame itself: tests/ui/lockpick/).
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -170,37 +171,27 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	assert_bool(_door.is_open()).is_true()
 
 
-func test_holding_lmb_with_a_lockpick_picks_a_mechanical_lock() -> void:
+func test_lmb_with_a_lockpick_on_the_leaf_starts_the_lockpicking_minigame() -> void:
 	var lock := Helpers.add_mechanical(_entity, 3)
 	Helpers.lock(_entity)
-	_player.skills.set_tier(&"lockpicking", 1)
-	assert_float(lock.pick_time(_player)).is_equal_approx(2.25, 0.001)
 	await _driver.frames(2)
 	assert_str(_player.interactor.prompt).is_equal("Locked: lockpick")
 	# E and LMB with empty hands do nothing.
 	await _press(&"use")
 	await _driver.hold(&"fire", 30)
+	var picking := LockpickScreen.of(_player)
+	assert_bool(picking.is_open()).is_false()
 	assert_bool(_door.is_locked()).is_true()
 
-	# 1.2 s, let go: the progress is lost.
-	await _hold_pick(1.2)
-	assert_array(EventLog.find(&"lock.pick_cancelled")).has_size(1)
-	assert_bool(_door.is_locked()).is_true()
-	# 1.5 s into a new attempt: still locked, the prompt shows the progress.
-	_driver.runner.simulate_action_press(&"fire")
-	await _driver.frames(90)
-	assert_bool(_door.is_locked()).is_true()
-	assert_str(_player.interactor.prompt).starts_with("Picking ")
-	# 2.6 s in all: picked.
-	await _driver.frames(66)
-	_driver.runner.simulate_action_release(&"fire")
-	await _driver.frames(2)
-
-	assert_bool(_door.is_locked()).is_false()
-	assert_array(EventLog.find(&"lock.picked")).has_size(1)
+	await _hold_pick(0.05)
+	assert_bool(picking.is_open()).is_true()
+	assert_object(picking.lock).is_same(lock)
+	# The minigame's success unlocks the door, which opens; success consumes nothing.
+	lock.complete_pick(_player)
+	picking.close()
 	await _driver.frames(45)
+	assert_bool(_door.is_locked()).is_false()
 	assert_bool(_door.is_open()).is_true()
-	# Success consumes nothing.
 	assert_int(_player.inventory.inventory.count_of(&"lockpick")).is_equal(1)
 
 

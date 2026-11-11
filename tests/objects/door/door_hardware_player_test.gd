@@ -94,17 +94,22 @@ func test_each_box_and_the_leaf_do_their_own_thing() -> void:
 
 
 func test_a_pin_lock_is_picked_on_the_leaf_from_either_face() -> void:
-	Helpers.add_mechanical(_entity, 3)
+	var lock := Helpers.add_mechanical(_entity, 3)
 	Helpers.lock(_entity)
 	_player.inventory.give(Items.LOCKPICK, 1)
 	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"lockpick")[0])
 	await _driver.frames(2)
+	var picking := LockpickScreen.of(_player)
 	for feet: Vector3 in [FEET_FRONT, FEET_BACK]:
 		var front := feet.z > 0.0
-		# Untrained, 3 pins: 3 s. Held 3.4 s on the handle with the keyhole.
+		# LMB on the handle with the keyhole starts the minigame; its success unlocks the door.
 		await _aim(feet, _door.hardware.handle_point(front))
 		assert_object(_player.interactor.target).override_failure_message(str(feet)).is_same(_entity)
-		await _driver.hold(&"fire", 204)
+		await _driver.hold(&"fire", 2)
+		await _driver.frames(1)
+		assert_bool(picking.is_open()).override_failure_message(str(feet)).is_true()
+		lock.complete_pick(_player)
+		picking.close()
 		await _driver.frames(2)
 		assert_bool(_door.is_locked()).override_failure_message(str(feet)).is_false()
 		await _driver.frames(SLIDE_FRAMES)

@@ -91,19 +91,14 @@ func test_code_keycard_login_turret_and_vault() -> void:
 	await _wait_open(_door("D3Keycard"))
 	assert_bool(_door("D3Keycard").is_open()).is_true()
 
-	# The lockpicks on the table, then D2: hold the pick on the lock until it gives.
+	# The lockpicks on the table, then D2: picked (the minigame's success).
 	await _stand(Vector3(-3.6, 0, 1.4), Vector3(-3.6, 1, 0.36))
 	assert_bool(_player.inventory.pick_up(ItemPickup.of(_node("Items/Lockpick")))).is_true()
 	await _stand(Vector3(-3.4, 0, 5.0), Vector3(-3.4, 1.2, 6.25))
 	var pick := _node("Doors/D2Mechanical").get_node("MechanicalLock") as MechanicalLock
 	assert_bool(pick.accepts_tool(&"lockpick")).is_true()
-	var picked := false
-	for i in 600:
-		if pick.tool_hold(_player, 1.0 / 60.0):
-			picked = true
-			break
-		await _driver.frames(1)
-	assert_bool(picked).is_true()
+	# The minigame (tests/ui/lockpick/) opens on LMB; its success unlocks the door.
+	assert_bool(pick.complete_pick(_player)).is_true()
 	await _wait_open(_door("D2Mechanical"))
 	assert_bool(_door("D2Mechanical").is_open()).is_true()
 

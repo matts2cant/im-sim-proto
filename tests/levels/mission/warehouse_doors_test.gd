@@ -270,12 +270,9 @@ func test_the_back_gate_opens_from_inside_and_needs_a_lockpick_outside() -> void
 	await _helpers.seconds(1.0)
 	gate.close(inside)
 	await _helpers.seconds(1.0)
-	# Still locked from the river side; 4 pins x 1 s of picking open it.
+	# Still locked from the river side; picking it (the minigame's success) opens it.
 	assert_bool(gate.is_open()).is_false()
-	var unlocked := false
-	for i in 270:
-		unlocked = lock.tool_hold(outside, 1.0 / 60.0) or unlocked
-	assert_bool(unlocked).is_true()
+	assert_bool(lock.complete_pick(outside)).is_true()
 	assert_bool(gate.is_locked()).is_false()
 	assert_bool(gate.is_open()).is_true()
 
