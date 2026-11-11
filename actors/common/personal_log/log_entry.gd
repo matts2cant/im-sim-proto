@@ -13,6 +13,8 @@ var codes: Dictionary[StringName, String] = {}
 ## Code id -> a readable name for what the code opens ("Manager's office door"; ADR 0110). Codes
 ## without one are shown by their id in words.
 var code_labels: Dictionary[StringName, String] = {}
+## Exploits it taught (M12b, ADR 0116): the Journal's Exploits section and the deck's Exploits tool.
+var exploits: Array[Exploit] = []
 
 
 static func make(
@@ -21,7 +23,8 @@ static func make(
 	p_text: String,
 	p_source: String = "",
 	p_codes: Dictionary = {},
-	p_code_labels: Dictionary = {}
+	p_code_labels: Dictionary = {},
+	p_exploits: Array = []
 ) -> LogEntry:
 	var entry := LogEntry.new()
 	entry.id = p_id
@@ -32,6 +35,9 @@ static func make(
 		entry.codes[StringName(str(code_id))] = str(p_codes[code_id])
 	for code_id: Variant in p_code_labels:
 		entry.code_labels[StringName(str(code_id))] = str(p_code_labels[code_id])
+	for exploit: Variant in p_exploits:
+		if exploit is Exploit:
+			entry.exploits.append(exploit as Exploit)
 	return entry
 
 
@@ -48,7 +54,7 @@ func to_dict() -> Dictionary:
 	var label_data := {}
 	for code_id: StringName in code_labels:
 		label_data[String(code_id)] = code_labels[code_id]
-	return {
+	var data := {
 		"entry_id": String(id),
 		"title": title,
 		"text": text,
@@ -56,14 +62,24 @@ func to_dict() -> Dictionary:
 		"codes": code_data,
 		"code_labels": label_data,
 	}
+	if not exploits.is_empty():
+		var exploit_data: Array[Dictionary] = []
+		for exploit in exploits:
+			exploit_data.append(exploit.to_dict())
+		data["exploits"] = exploit_data
+	return data
 
 
 static func from_dict(data: Dictionary) -> LogEntry:
+	var exploits: Array[Exploit] = []
+	for item: Variant in data.get("exploits", []) as Array:
+		exploits.append(Exploit.from_dict(item as Dictionary))
 	return make(
 		StringName(str(data.get("entry_id", ""))),
 		str(data.get("title", "")),
 		str(data.get("text", "")),
 		str(data.get("source", "")),
 		data.get("codes", {}) as Dictionary,
-		data.get("code_labels", {}) as Dictionary
+		data.get("code_labels", {}) as Dictionary,
+		exploits
 	)

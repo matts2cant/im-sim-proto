@@ -15,9 +15,12 @@ extends Node
 ##   deck), and routers at once. Devices seen once stay on the map (greyed when out of reach).
 ##   Refreshed every `config.refresh_interval` s and after every change.
 ## - Accounts: log_in() with a login the user's Journal knows (no trace when right; a wrong known
-##   password is a failed login). With an account on a device: its commands (send()), and on a
-##   computer its desktop, remotely (open_remote(): Computer.open_desktop(user, account, true);
-##   `remote` until `desktop_closed`).
+##   password is a failed login). With access to a device (an account, or an exploit's grant:
+##   ExploitTool, Device.has_access()): its commands (send()), and on a computer its desktop,
+##   remotely (open_remote(): Computer.open_desktop(user, account, true); `remote` until
+##   `desktop_closed`). As admin of a router: its firewall rules (the deck's Firewall tool). Commands
+##   and remote desktops are written to the device's log with the deck's address
+##   (Device.intrusion).
 ## - Discovery lives in the deck's stack `state` (saved with the inventory, travelling with the
 ##   item): `seen` [device paths], `scanned` [subnets].
 ## EventLog: `deck.plugged {device, port, address}`, `deck.unplugged {device, reason}`,
@@ -229,10 +232,16 @@ func is_blocked(device: Device) -> bool:
 	return is_plugged() and Tracer.blocks(device, source.address)
 
 
-## True when the user has an account on `device`.
+## True when the user has access to `device` (an account, or an exploit's grant).
 func has_access(device: Device) -> bool:
-	var accounts := DeviceAccounts.of(device.entity) if device != null else null
-	return accounts != null and accounts.has_access(entity)
+	return device != null and is_instance_valid(device) and device.has_access(entity)
+
+
+## True when `deck_stack` has scanned `subnet` (its devices' software shows on the Map).
+static func has_scanned(deck_stack: ItemStack, subnet: StringName) -> bool:
+	if deck_stack == null:
+		return false
+	return (deck_stack.state.get(SCANNED, []) as Array).has(String(subnet))
 
 
 ## True when `device` is where the deck is plugged in (a jack: the jack itself).
@@ -274,6 +283,7 @@ func send(command: StringName, device: Device) -> bool:
 		var stimulus := Device.command_stimulus(command, device, entity)
 		StimulusSystem.emit(stimulus)
 		data["stimulus"] = stimulus.id
+		device.intrusion.device_log.record(DeviceLog.REMOTE, source.address, _who(), String(command))
 	EventLog.record(&"device.command", _name_of(port), target, data)
 	return sent
 
@@ -283,10 +293,11 @@ func send(command: StringName, device: Device) -> bool:
 func open_remote(device: Device) -> bool:
 	var computer := Computer.of(device.entity) if device != null else null
 	var accounts := DeviceAccounts.of(device.entity) if device != null else null
-	if computer == null or accounts == null or not is_online(device) or not accounts.has_access(entity):
+	if computer == null or accounts == null or not is_online(device) or not has_access(device):
 		return false
 	close_remote()
-	var user := _remote_user(accounts)
+	var user := _remote_user(device, accounts)
+	device.intrusion.device_log.record(DeviceLog.LOGIN, source.address, user, "remote desktop")
 	remote = computer
 	computer.desktop_closed.connect(_on_desktop_closed, CONNECT_ONE_SHOT)
 	EventLog.record(&"deck.remote", _who(), _name_of(device), {"device": _name_of(device), "user": user})
@@ -376,13 +387,20 @@ func _list(key: String) -> Array[String]:
 	return found
 
 
-func _remote_user(accounts: DeviceAccounts) -> String:
+func _remote_user(device: Device, accounts: DeviceAccounts) -> String:
 	var names := accounts.access_of(entity)
 	for user in names:
 		var found := accounts.account(user)
 		if found != null and found.admin:
 			return user
-	return names[0] if not names.is_empty() else ""
+	if not names.is_empty():
+		return names[0]
+	# Access from an exploit: the first account of the level it granted, else the first.
+	var admin := device.is_admin(entity)
+	for each in accounts.accounts:
+		if each != null and each.admin == admin:
+			return each.user
+	return accounts.accounts[0].user if not accounts.accounts.is_empty() else ""
 
 
 func _on_desktop_closed() -> void:

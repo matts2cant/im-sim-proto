@@ -2,8 +2,9 @@ class_name ComputerDocument
 extends Resource
 ## One mail or file on a computer (ADR 0114), data in a ComputerData `.tres`. Reading it adds it to
 ## the reader's PersonalLog like a datapad (entry `id`, source "Mail" or "Files"): the codes and
-## logins in `codes` become known. An implicit clue (`implicit_clue`) teaches nothing: it is kept
-## as a note only, its codes ignored, and the player types the guess.
+## logins in `codes` and the exploits in `exploits` (ADR 0116) become known. An implicit clue
+## (`implicit_clue`) teaches nothing: it is kept as a note only, its codes and exploits ignored, and
+## the player types the guess.
 
 ## Stable and unique per document: the log keeps one entry per id.
 @export var id: StringName = &""
@@ -18,6 +19,8 @@ extends Resource
 @export var codes: Dictionary[StringName, String] = {}
 ## Code id -> what the code opens, in words (the Journal's Codes and logins).
 @export var code_labels: Dictionary[StringName, String] = {}
+## Exploits it teaches (M12b: the Journal's Exploits section).
+@export var exploits: Array[Exploit] = []
 ## A hint the player must work out (a cat's name and a year): nothing is learned.
 @export var implicit_clue: bool = false
 
@@ -29,7 +32,13 @@ func entry(source: String) -> LogEntry:
 		body = "From %s\n\n%s" % [sender, text]
 	var learned: Dictionary = {} if implicit_clue else codes
 	var labels: Dictionary = {} if implicit_clue else code_labels
-	return LogEntry.make(id, title, body, source, learned, labels)
+	var taught: Array = [] if implicit_clue else exploits
+	return LogEntry.make(id, title, body, source, learned, labels, taught)
+
+
+## True when reading it teaches something (codes, logins or exploits; never an implicit clue).
+func teaches() -> bool:
+	return not implicit_clue and (not codes.is_empty() or not exploits.is_empty())
 
 
 ## True when it holds a mail for `user` (case ignored) or for every account.

@@ -24,13 +24,18 @@ extends Node
 ##   its rules (default allow) and a user's (the deck) only once that user has an account on it.
 ##   `trusted`: the devices allowed to command this one (empty: any device that reaches it, M8's
 ##   behaviour); incidents are reports, not commands, and ignore it.
+## - Intrusion (M12b, ADR 0115, 0116): `software` (vendor, product, version) is what exploits target;
+##   `intrusion` (DeviceIntrusion, saved) holds the exploit ids it is patched against, the access
+##   exploit runs gave users and its log (logins, failed logins, exploit runs and the commands it
+##   receives, with the source address). Access (has_access(), is_admin()) is an account
+##   (DeviceAccounts) or an exploit's grant.
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
 ##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
 ##   is the deck's tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock):
 ##   holding LMB with the deck plugs it in (DeckSession) and raises its screen.
 ## EventLog: `device.command {command, from, to, sent, point}` for every attempt,
-## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`).
+## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`, `intrusion`).
 
 signal state_changed(up: bool)
 signal action_received(action: StringName, stimulus: Stimulus)
@@ -88,11 +93,15 @@ const DECK_NODE: int = -1
 ## Devices (entities or Device nodes) allowed to command it; empty: any device that reaches it.
 @export var trusted: Array[NodePath] = []
 @export var deck_port: DeckPort = DeckPort.AUTO
+## The software it runs (exploits target it; the deck's Map shows it once its subnet is scanned).
+@export var software: Software
 
 var entity: Node3D
 var powered: Powered
 var breakable: Breakable
 var broken: bool = false
+## Patches, exploit access and its log (saved).
+var intrusion: DeviceIntrusion = DeviceIntrusion.new()
 
 var _was_up: bool = true
 
@@ -246,6 +255,22 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	return found
 
 
+## True when `by` has access here: an account (DeviceAccounts) or an exploit's grant.
+func has_access(by: Node) -> bool:
+	var accounts := DeviceAccounts.of(entity)
+	if accounts != null and accounts.has_access(by):
+		return true
+	return intrusion.exploit_access(NetworkSource.user_key(by)) >= 0
+
+
+## True when `by` has admin access here: an admin account or an exploit that grants admin.
+func is_admin(by: Node) -> bool:
+	var accounts := DeviceAccounts.of(entity)
+	if accounts != null and accounts.is_admin(by):
+		return true
+	return intrusion.exploit_access(NetworkSource.user_key(by)) == Exploit.Access.ADMIN
+
+
 ## Its network address (`address`) for screens that ask any component (Computer.address(), ADR
 ## 0114): the deck's network layer offers it here. (The dead devices behind a live link:
 ## NetworkSource.connected().)
@@ -295,6 +320,8 @@ func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by:
 		var stimulus := Device.command_stimulus(command, other, entity, at)
 		StimulusSystem.emit(stimulus)
 		data["stimulus"] = stimulus.id
+		if command != INCIDENT:
+			other.intrusion.device_log.record(DeviceLog.REMOTE, address, NetworkSource.user_key(by), String(command))
 	if is_instance_valid(by):
 		data["by"] = String(by.name)
 	EventLog.record(&"device.command", _entity_name(), target_name, data)
@@ -355,9 +382,12 @@ func _entity_name() -> String:
 
 
 func save_state() -> Dictionary:
-	return {"broken": broken}
+	var data := intrusion.to_dict()
+	data["broken"] = broken
+	return data
 
 
 func load_state(data: Dictionary) -> void:
 	broken = bool(data.get("broken", broken))
+	intrusion.from_dict(data)
 	_apply()

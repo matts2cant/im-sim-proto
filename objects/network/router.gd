@@ -1,15 +1,20 @@
 class_name Router
 extends Node
-## Component (ADR 0074, 0113): makes its entity's Device a router (a firewall) between subnets. The
-## reach graph (Device.graph()) asks passes() whenever traffic enters it from one subnet and leaves
-## into another: its `rules` first (RouterRule, first match wins); without a match a device's own
-## traffic passes when `default_allow`, a user's (the deck: "you") only when that user has an account
-## on this router (DeviceAccounts.has_access(): "hacking the router"). So the subnets behind a
-## router stay out of a deck's reach, and off its map, until it is hacked.
+## Component (ADR 0074, 0113, 0116): makes its entity's Device a router (a firewall) between
+## subnets. The reach graph (Device.graph()) asks passes() whenever traffic enters it from one subnet
+## and leaves into another, so its rules decide everything sent over the network through it
+## (commands, incidents, ringing). A device's own traffic: the first of its `rules` that matches
+## (RouterRule, from a subnet, a device or any) decides, else `default_allow`. A user's (the deck:
+## "you"): only rules that name "you" apply (the first match decides), else it passes when the user
+## has access to this router (an account or an exploit's grant, Device.has_access(): "hacking the
+## router"). So the subnets behind a router stay out of a deck's reach, and off its map, until it is
+## hacked. The deck's Firewall tool edits the rules as admin (add_rule(), move_rule(), ...).
 ## Network data (ADR 0112 amendment): `subnet_data`, the Subnets it joins (names, ranges and Map
 ## colours: subnet_info() gathers them from every router), and `side_addresses`, its address on each
 ## subnet it joins besides its Device's own (addresses(): the Map shows both).
-## Saveable: the rules (M12b's Firewall edits them).
+## Saveable: the rules (the Firewall tool edits them). EventLog `router.rules {router, action,
+## index, rules}` on every edit; an edit from the deck (a `source`) is written to the router's
+## device log with its address.
 
 ## Rules, in order: the first that matches wins.
 @export var rules: Array[RouterRule] = []
@@ -28,6 +33,8 @@ var entity: Node
 func _ready() -> void:
 	add_to_group(&"saveable")
 	entity = get_node_or_null(entity_path)
+	# Its own list: the Firewall tool edits it (rules themselves are replaced, never changed).
+	rules = rules.duplicate()
 
 
 ## The Router component of `node` (an entity), or null.
@@ -44,13 +51,63 @@ static func of(node: Node) -> Router:
 
 ## True when traffic from `source` to `destination` crosses this router (see the class description).
 func passes(source: NetworkSource, destination: Device) -> bool:
+	var user := source != null and source.is_user()
 	for rule in rules:
-		if rule != null and rule.matches(source, destination):
+		if rule == null or rule.names_you() != user:
+			continue
+		if rule.matches(source, destination):
 			return rule.allow
-	if source != null and source.is_user():
-		var accounts := DeviceAccounts.of(entity)
-		return accounts != null and accounts.has_access(source.user)
+	if user:
+		var device := Device.of(entity)
+		return device != null and device.has_access(source.user)
 	return default_allow
+
+
+## Inserts `rule` at `index` (at the end when out of range); returns its index.
+func add_rule(rule: RouterRule, index: int = -1, source: NetworkSource = null) -> int:
+	var at := rules.size() if index < 0 or index > rules.size() else index
+	rules.insert(at, rule)
+	_edited(&"add", at, source)
+	return at
+
+
+## Moves rule `index` by `by` places (-1: up, 1: down), clamped; returns its new index.
+func move_rule(index: int, by: int, source: NetworkSource = null) -> int:
+	if index < 0 or index >= rules.size():
+		return index
+	var to := clampi(index + by, 0, rules.size() - 1)
+	if to != index:
+		var rule := rules[index]
+		rules.remove_at(index)
+		rules.insert(to, rule)
+		_edited(&"move", to, source)
+	return to
+
+
+## Deletes rule `index`.
+func remove_rule(index: int, source: NetworkSource = null) -> void:
+	if index < 0 or index >= rules.size():
+		return
+	rules.remove_at(index)
+	_edited(&"delete", index, source)
+
+
+## Replaces rule `index` with `rule` (an edited copy).
+func set_rule(index: int, rule: RouterRule, source: NetworkSource = null) -> void:
+	if index < 0 or index >= rules.size() or rule == null:
+		return
+	rules[index] = rule
+	_edited(&"edit", index, source)
+
+
+## Flips rule `index` between allow and deny.
+func toggle_rule(index: int, source: NetworkSource = null) -> void:
+	if index < 0 or index >= rules.size():
+		return
+	var rule := rules[index].duplicate() as RouterRule
+	rule.allow = not rule.allow
+	rules[index] = rule
+	_edited(&"toggle", index, source)
 
 
 ## Its addresses, one per subnet it joins (subnets() order; its Device's own address on its own
@@ -94,6 +151,18 @@ func subnets() -> Array[StringName]:
 		if not found.has(name):
 			found.append(name)
 	return found
+
+
+# Logs an edit; one made over the network (`source`: the deck) goes to the router's own log too.
+func _edited(action: StringName, index: int, source: NetworkSource) -> void:
+	var router_name := String(entity.name) if is_instance_valid(entity) else String(name)
+	var data := {"router": router_name, "action": action, "index": index, "rules": save_state()["rules"]}
+	var by := NetworkSource.user_key(source.user) if source != null else ""
+	EventLog.record(&"router.rules", by, router_name, data)
+	var device := Device.of(entity)
+	if source != null and device != null:
+		var detail := "firewall: %s rule %d" % [action, index + 1]
+		device.intrusion.device_log.record(DeviceLog.REMOTE, source.address, by, detail)
 
 
 func save_state() -> Dictionary:

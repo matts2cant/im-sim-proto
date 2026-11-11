@@ -3,7 +3,7 @@ extends Node
 ## the player carrying a mixed loadout, a personal log with codes and logins, and an inert Mission
 ## with the warehouse data (one secondary objective done). Opens the Tab interface on the tab of
 ## `shot` and saves the window (UI included) to reports/screenshots/m11_<shot>.png, then quits.
-## Shots: inventory, inventory_medkit, health, augmentations, skills, objectives, codes, notes, hit
+## Shots: inventory, inventory_medkit, health, augmentations, skills, objectives, codes, exploits, notes, hit
 ## (the inventory during a hit's edge flash). Command line after `--`: shot=<name>.
 ## A real-time watchdog saves what is shown and quits after WATCHDOG seconds.
 
@@ -27,7 +27,8 @@ const SHOTS := {
 	"skills": [3, -1],
 	"objectives": [4, 0],
 	"codes": [4, 1],
-	"notes": [4, 2],
+	"exploits": [4, 2],
+	"notes": [4, 3],
 	"hit": [0, -1],
 }
 
@@ -148,6 +149,32 @@ func _fill_log() -> void:
 					{&"warehouse_security_console": "Security console login"}
 				)
 			)
+		)
+	)
+	var helix := Exploit.make(
+		&"helix_default_login", "Helix default service login", "Helix", "CAM-3", "2.0", "2.1", Exploit.Access.ADMIN
+	)
+	var halcyon := Exploit.make(&"halcyon_share_overflow", "Halcyon share overflow", "Halcyon", "OS", "4.0", "4.3")
+	reader_log.add(
+		LogEntry.make(
+			&"warehouse.camera_firmware",
+			"Camera firmware",
+			"From IT\n\nThe Helix cameras still answer on the factory service login. Update them before the audit.",
+			"Mail",
+			{},
+			{},
+			[helix]
+		)
+	)
+	reader_log.add(
+		LogEntry.make(
+			&"warehouse.usb_stick",
+			"Klaus's USB stick",
+			"halcyon_smb.txt: overflow in the file share of Halcyon OS 4.0 to 4.3. Gets you a user session.",
+			"Datapad",
+			{},
+			{},
+			[halcyon]
 		)
 	)
 	reader_log.add(

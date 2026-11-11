@@ -10,6 +10,8 @@ extends Resource
 @export var tether_distance: float = 3.0
 ## Seconds a map scan of a newly reached subnet takes before its devices show.
 @export var scan_time: float = 2.0
+## Seconds an exploit run takes (ExploitTool; the Computer skill does not change it).
+@export var exploit_time: float = 4.0
 ## Seconds between refreshes of the open screen's map and statuses.
 @export var refresh_interval: float = 0.25
 ## Command type -> button label in a device's menu, in the order buttons appear (a device offers
