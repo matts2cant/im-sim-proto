@@ -107,6 +107,24 @@ func invalidate() -> void:
 	_signature = ""
 
 
+## Every visible label and button text shown, in order (tests).
+func texts() -> Array[String]:
+	var found: Array[String] = []
+	_collect(column, found)
+	return found
+
+
+static func _collect(node: Node, found: Array[String]) -> void:
+	for child in node.get_children():
+		if child.is_queued_for_deletion() or (child is CanvasItem and not (child as CanvasItem).visible):
+			continue
+		if child is Button:
+			found.append((child as Button).text)
+		elif child is Label:
+			found.append((child as Label).text)
+		_collect(child, found)
+
+
 func _on_toggle() -> void:
 	if wireless == null:
 		return
