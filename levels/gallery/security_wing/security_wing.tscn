@@ -493,7 +493,7 @@ circuit = &"security_wing_a"
 label = "D4 power"
 
 [node name="Jack" parent="Devices" instance=ExtResource("43_jack")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3, 0.45, 0.01)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 0.45, 0.01)
 metadata/display_name = "WING-JACK"
 
 [node name="Device" parent="Devices/Jack"]
@@ -883,19 +883,20 @@ D4's power"
 size = 0
 
 [node name="Network" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 2.45, 0.05)
-pixel_size = 0.0035
-text = "Network wall: SW-OPS (booth computer, jack) · RTR-05 router · SW-SECURITY
-SW-SECURITY is on breaker B (booth): every security switch hangs on it.
-Shoot it or cut B to cut them all. Panic button: rings both sirens"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 2.5, 0.05)
+pixel_size = 0.003
+text = "Network wall: SW-OPS · RTR-05 · SW-SECURITY
+SW-SECURITY is on breaker B (booth):
+every security switch hangs on it.
+Shoot it or cut B. Panic button: rings both sirens"
 size = 0
 
 [node name="Jack" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3, 1.2, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.15, 1.0, 0.05)
 pixel_size = 0.003
 text = "Wall jack · Operations subnet
 deck in hand: LMB plugs in
-RTR-05's login: the booth's mail,
+RTR-05 login: booth mail
 or crack it (Weak)"
 size = 0
 
