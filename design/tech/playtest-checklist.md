@@ -452,6 +452,10 @@ No level has software versions or exploits yet: use the review shots (`tests/ui/
 - [ ] The line under the table makes it clear that your own traffic passes with an account unless a rule names "you".
 - [ ] The Journal's Exploits section: targets and grants read easily, the "learned from" link opens the note.
 
+### M12b Map: the plugged network only ([ADR 0113 amendment](../decisions/0113-network-layer-tracers-and-the-deck.md#amendment-the-map-draws-the-plugged-network-only-2026-11-11))
+
+- [ ] Use the deck in the network lab, then plug into a device in the security wing: the Map draws only the security wing's network; plug back in the lab: its map is there at once, no new scan. Raised unplugged from the Wi-Fi key screen, the Map button shows only "Plug the deck into a device to see its network."
+
 ### Routers and subnet boxes (ADR 0112 amendment)
 
 Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.
@@ -553,3 +557,12 @@ Warehouse network:
 - [ ] Shooting AP-YARD (from the gap or the apron): the yard camera and both roof lasers go offline (grey on the console), the gate camera and the roof camera stay up; walking upright through a roof beam then rings nothing. Is that quiet route worth a pistol shot, and is the shot heard?
 - [ ] Exploits: office PC 1's mail "Camera firmware" teaches the Helix exploit; run it on CAM-YARD from AP-YARD (4 s): admin on the camera (disable it), and the Map then says the other Helix cameras are patched (the Sentry tracer saw it). CAM-ROOF (2.2) shows "no match". The field service notes on the water tower deck teach the Vigil exploit: ALARM-YARD (3.1) matches, ALARM (3.4) does not. Do the version numbers read as the reason?
 - [ ] Firewall: with admin on RTR-01 (Trained crack from the office jack), the Firewall tool lists three rules (Security -> Office allow, Office -> SEC-CONSOLE allow, Office -> Security deny) and they read sensibly. No rule there silences a siren: the alarm controllers and the sirens share the Security subnet (does a player expect otherwise?).
+
+## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md); planned, the build agents complete it)
+
+- [ ] On the shooting range, Untrained: aimed well at the 10 m dummy, the pistol still misses often; Master: the first still shot lands where the crosshair is.
+- [ ] Spraying the assault rifle and the submachine gun: the camera climbs with the pattern and returns after you stop; pulling down keeps the spray on the 10 m dummy; the submachine gun drifts more sideways.
+- [ ] Tapping the pistol needs no recoil correction; the shotgun and sniper kick hard.
+- [ ] Running, walking, crouching and jumping change accuracy as expected (running clearly worse, walking and crouching close to standing).
+- [ ] Sliders change the feel live and their values survive a restart once saved; the reset button stands every downed dummy back up.
+- [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.

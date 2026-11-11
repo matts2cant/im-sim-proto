@@ -1,7 +1,8 @@
 class_name DeviceNetwork
 extends RefCounted
-## Static helpers over a Device's network data (ADR 0113): its subnet, its cables both ways, its
-## trust list and how a deck plugs into it. Device keeps the reach and command API.
+## Static helpers over a Device's network data (ADR 0113): its subnet, its cables both ways, the
+## physical network it is on, its trust list and how a deck plugs into it. Device keeps the reach and
+## command API.
 ## Network gear (M12b, ADR 0117): a device that carries traffic for others (a switch, a router, an
 ## access point) is tagged NETWORK_GEAR or has a Router or AccessPoint component; gear never links
 ## wirelessly. A wireless device without a subnet of its own is on its access point's.
@@ -44,6 +45,23 @@ static func wireless_devices(access_point: Device) -> Array[Device]:
 		return found
 	for other in Device.all(access_point.get_tree()):
 		if other.wireless_link() == access_point:
+			found.append(other)
+	return found
+
+
+## The physical network `device` is on: `device` first, then every device that cables and holding
+## wireless links (Device.wireless_link()) join it to, both ways, breadth-first; up or down (power
+## and breakage ignored) and through routers whatever their rules (DeviceGraph.component() of
+## Device.graph()). Empty when `device` is gone or out of the tree. The deck's Map draws only this
+## network around its entry point (ADR 0113 amendment).
+static func physical_network(device: Device) -> Array[Device]:
+	var found: Array[Device] = []
+	if device == null or not is_instance_valid(device) or not device.is_inside_tree():
+		return found
+	found.append(device)
+	for id in Device.graph(device.get_tree()).component(device.get_instance_id()):
+		var other := instance_from_id(id) as Device
+		if other != null and not found.has(other):
 			found.append(other)
 	return found
 

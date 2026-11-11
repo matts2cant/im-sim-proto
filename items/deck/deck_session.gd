@@ -20,7 +20,11 @@ extends Node
 ##   hacked: Router), plus the dead ones right behind them, once its subnet has been scanned
 ##   (`config.scan_time` s, +10 % trace on the tracers watching it, once per subnet: kept on the
 ##   deck), and routers at once. Devices seen once stay on the map (greyed when out of reach).
-##   Refreshed every `config.refresh_interval` s and after every change.
+##   Refreshed every `config.refresh_interval` s and after every change. The Map draws only the
+##   seen devices on the physical network of the entry point (the jack, the access point joined, the
+##   port's device: DeviceNetwork.physical_network(), cables and holding wireless links, up or down,
+##   whatever the routers' rules): another network the deck has seen stays remembered and shows
+##   again once the deck is plugged in there. Unplugged: nothing.
 ## - Accounts: log_in() with a login the user's Journal knows (no trace when right; a wrong known
 ##   password is a failed login). With access to a device (an account, or an exploit's grant:
 ##   ExploitTool, Device.has_access()): its commands (send()), and on a computer its desktop,
@@ -250,16 +254,21 @@ func refresh() -> void:
 				seen_changed = true
 	if seen_changed:
 		stack.state[SEEN] = seen
+	# Only the seen devices on the entry point's physical network: the deck remembers the others.
+	var network := DeviceNetwork.physical_network(source.device)
 	_map.clear()
 	for path: String in seen:
 		var device := Device.of(get_node_or_null(NodePath(path)))
-		if device != null and not _map.has(device):
+		if device != null and network.has(device) and not _map.has(device):
 			_map.append(device)
 	changed.emit()
 
 
-## Every device on the map (seen, in the order first seen).
+## Every device on the map: seen (in the order first seen) and on the entry point's physical
+## network; empty while unplugged.
 func map_devices() -> Array[Device]:
+	if not is_plugged():
+		return [] as Array[Device]
 	return _map.duplicate()
 
 

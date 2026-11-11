@@ -115,7 +115,9 @@ func test_aiming_the_deck_at_an_access_point_cracks_its_key_and_joins_its_subnet
 	assert_int(screen.tool).is_equal(DeckScreen.Tool.WIFI)
 	assert_object(wireless.target).is_same(lab.device("ApYard"))
 	assert_str(screen.title_meta.text).is_equal("Aimed at AP-YARD · access point · 6.1 m")
-	assert_bool(screen.map_button.disabled).is_true()
+	# The Map stays open to the user unplugged (it says to plug the deck in).
+	assert_bool(screen.map_button.disabled).is_false()
+	assert_bool(screen.exploits_button.disabled).is_true()
 	var texts := screen.wifi_view.texts()
 	assert_array(texts).contains(["Wi-Fi key · AP-YARD", "Crack the key", "clear"])
 	assert_array(texts).contains(["key strength Weak · your range 8 m (Computer skill: Untrained)"])
