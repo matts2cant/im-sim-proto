@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://objects/locks/lockable.gd" id="1_lockable"]
 [ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="2_mechanical"]
 [ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="3_data"]
+[ext_resource type="Script" path="res://objects/locks/practice_lock/practice_lock_pins.gd" id="4_pins"]
 
 [sub_resource type="Resource" id="Data_practice"]
 script = ExtResource("3_data")
@@ -101,46 +102,9 @@ mesh = SubResource("Mesh_keyway")
 
 [node name="Pins" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.047)
-
-[node name="KeyPin1" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, -0.01, 0)
-mesh = SubResource("Mesh_pin")
-
-[node name="KeyPin2" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, -0.004, 0)
-mesh = SubResource("Mesh_pin")
-
-[node name="KeyPin3" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.014, 0)
-mesh = SubResource("Mesh_pin")
-
-[node name="KeyPin4" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0, 0)
-mesh = SubResource("Mesh_pin")
-
-[node name="KeyPin5" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, -0.008, 0)
-mesh = SubResource("Mesh_pin")
-
-[node name="Driver1" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, 0.04, 0)
-mesh = SubResource("Mesh_driver")
-
-[node name="Driver2" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.046, 0)
-mesh = SubResource("Mesh_driver")
-
-[node name="Driver3" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.036, 0)
-mesh = SubResource("Mesh_driver")
-
-[node name="Driver4" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0.05, 0)
-mesh = SubResource("Mesh_driver")
-
-[node name="Driver5" type="MeshInstance3D" parent="Pins"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0.042, 0)
-mesh = SubResource("Mesh_driver")
+script = ExtResource("4_pins")
+key_pin_mesh = SubResource("Mesh_pin")
+driver_mesh = SubResource("Mesh_driver")
 
 [node name="Lockable" type="Node" parent="."]
 script = ExtResource("1_lockable")

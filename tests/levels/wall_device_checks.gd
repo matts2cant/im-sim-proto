@@ -3,6 +3,7 @@ extends RefCounted
 ## signs. problems() lists every overlap, empty when none:
 ## - devices: every entity with a Device that is not a door (sirens, cameras, laser arrays, alarm
 ##   controllers, panic buttons, switches, terminals, turrets), boxed by its visible geometry;
+## - wall locks: every entity with a Lock that is not a door (the practice locks), boxed the same way;
 ## - wall boxes: every door's keypads, card readers and control panels (DoorHardware), boxed by their
 ##   collision shape (their own door is door_hardware_checks.gd's business);
 ## against
@@ -10,7 +11,7 @@ extends RefCounted
 ##   faces (a siren hanging in front of a door leaf);
 ## - every door leaf's sweep, closed to open, with its handle (DoorLayout.sweep);
 ## - every sign's text (a camera drawn over FIRE EXIT), grown by SIGN_MARGIN.
-## Rules are about components (Device, Door, Sign), never about names (AGENTS.md "Systemic design").
+## Rules are about components (Device, Lock, Door, Sign), never about names (AGENTS.md "Systemic design").
 
 ## How far in front of each wall face a doorway's opening counts (m): a device closer than this to
 ## the wall, over the opening, hangs in front of the door.
@@ -25,14 +26,21 @@ static func problems(root: Node) -> PackedStringArray:
 	var signs: Array[Sign] = []
 	# Each item: {"name": String, "box": AABB (world), "door": the Door it belongs to, or null}.
 	var items: Array[Dictionary] = []
+	# Entities already boxed (one entity may have several devices or locks).
+	var boxed: Dictionary[Node, bool] = {}
 	for node in root.find_children("*", "", true, false):
 		if node is Door:
 			doors.append(node as Door)
 		elif node is Sign:
 			signs.append(node as Sign)
-		elif node is Device:
-			var entity := (node as Device).entity
-			if entity != null and Door.of(entity) == null:
+		elif node is Device or node is Lock:
+			var entity: Node3D = null
+			if node is Device:
+				entity = (node as Device).entity
+			else:
+				entity = (node as Lock).entity as Node3D
+			if entity != null and Door.of(entity) == null and not boxed.has(entity):
+				boxed[entity] = true
 				items.append({"name": _label(root, entity), "box": visual_box(entity), "door": null})
 	for door in doors:
 		for box: StaticBody3D in door.hardware.controls(true) + door.hardware.controls(false):
