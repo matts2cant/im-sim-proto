@@ -4,6 +4,33 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M12b — Intrusion (2026-11-11)
+
+The user and I settled M12b and M12c in a design review (ADR 0115), with an approved mockup (`design/prototypes/intrusion_screens.html`). Five agents built it:
+- In parallel, on a shared contract:
+  - wireless: access points, radio links, the deck's Wi-Fi crack (ADR 0117), merged first;
+  - exploits, the Firewall tool and device logs (ADR 0116), which merged master and wrote four tests across both features.
+- Then three in parallel: the deck Map fix (the user's report), the hub (the security wing in subnets, a network lab annex with Wi-Fi, exploits and firewall stations), the warehouse (AP-YARD, exploits in a mail and a datapad, router rules).
+
+Final suite on master: 1865 tests, 0 failures, 1 skipped, lint clean, twice; 57.8 s on the second run (64.7 s recorded after the M12a click fix).
+
+- **Went well:**
+  - **Merge the first, the second integrates** worked a fifth time. One of the cross-feature tests proved a case I had guessed moot: a "you" deny rule still cuts a Wi-Fi deck that has an account on the router.
+  - **Agents measured before sizing.** The hub agent probed every room's footprint, found the lab hall too small for a 12 m sight line and built an annex; the warehouse agent checked guards' sight and light at each cracking spot.
+  - **The bug-fix brief made the agent reproduce the user's exact steps first** (8 failing tests before the fix).
+- **Went wrong:**
+  - **The hub's security wing stayed in the M8 format through M12a.** The M12a level brief named the lab and the warehouse only; the user found the wing with one switch and no subnets.
+  - **The Map remembered every network the deck had seen** and drew them all. The mockup and every test had one network, so nobody saw it.
+  - **`ui/deck/deck_screen.gd` reached gdlint's 1000-line limit three times.** Each agent moved code out its own way (`wifi_panel.gd`, `intrusion_menu.gd`, helpers into `DeckStyle`), and it is at 997 lines again.
+  - **A navigation timing test failed once under load** (`guard_helpers_test.gd`, "the switch recovers when worker threads are busy", 190 > 5) while four agents ran suites; it passed on replay and in both of my runs.
+- **Changes:**
+  - CLAUDE.md: when a milestone changes a system's data format, the level brief lists every level and gallery room that uses the system (grep `levels/` for its components) and updates them in the same milestone.
+  - CLAUDE.md: tests and mockups of anything that remembers state across places (a deck's map, a Journal, a trace) include a second, unconnected place.
+  - CLAUDE.md: a brief that adds to a file near a lint size limit names the split first (M12c's first step: split `deck_screen.gd` by tool before adding the AR view).
+- **Open for the user:**
+  - AP-YARD is a small silhouette against the night sky. Is it findable in play before M12c's status lights?
+  - Still open from M12a: the warehouse generator (retire or update), the lab wall seen through the mission doorway, and the warehouse Map's Fit zoom (now about 0.45 with AP-YARD).
+
 ## M12a — Network hacking (2026-11-11)
 
 The old spec (ADR 0074) was reviewed against the game, then reconciled with the user in a design review (ADR 0112). An HTML mockup was iterated four times: hidden subnets until a router is hacked, chained routers, remote desktops, subnet boxes. Four agents built it:

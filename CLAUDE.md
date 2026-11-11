@@ -17,6 +17,9 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Parallel briefs give each agent its own scratch subfolder name (M12a: two agents both used `m12a` and one overwrote the other's script).
 - Parallel agents without a shared contract: only the last to finish merges master before its final run (each extra merge costs it a full run); parallel briefs leave design/README.md's ADR count line to the chief engineer.
 - Parallel agents sharing a contract: merge whichever finishes first, then message the other to merge master, switch to the real API and write the cross-feature integration test itself (worked well in M7).
+- When a milestone changes a system's data format (M12a: subnets and routers), the level brief lists every level and gallery room that uses the system (grep `levels/` for its components) and updates them in the same milestone (M12b: the hub's security wing kept one switch through M12a).
+- Tests and mockups of anything that remembers state across places (the deck's map, the Journal, a trace) include a second, unconnected place (M12b: the Map drew every network the deck had ever seen).
+- A brief that adds to a file near a lint size limit (1000 lines) names the split first; don't let each agent move code out its own way (M12b: `deck_screen.gd` hit the limit three times).
 - Before giving a room size in a brief, measure the free space between the neighbouring rooms' footprints (from the layout docs or the scenes, not the hub tests, which do not list them); do not guess.
 - Level briefs ask passage tests to step off every climb (stair, ladder, mantle) onto the destination floor, not only reach its top (M9: a stair top 0.65 m wide for a 0.7 m capsule went unnoticed for four waves).
 - Level briefs ask for noise spot checks: the player's movement noise at each spot the design calls quiet reaches no guard post (M9: three guards heard every duct B entry through walls).
