@@ -417,3 +417,13 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 - [ ] Warehouse wall devices clear of doors and signs (M9h; review shots: `warehouse_shots.tscn` with `-- shots=siren_office_ground,fire_exit_sign,view_camera_office out=res://reports/screenshots/m9h_after`):
   - [ ] Ground corridor west end: the siren hangs on the north wall east of the office entrance, not over the door leaf; the alarm is still heard in the break room and the security room.
   - [ ] Upper corridor east end: FIRE EXIT reads in full; the office camera hangs on the north wall and still sweeps the corridor from the vault door to the manager's door.
+
+## M10 Lockpicking sounds ([ADR 0108](../decisions/0108-lockpick-sounds.md))
+
+Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn` (F6), keys 1-0 or the buttons play the cues, the sliders drive the voices. Compare with the prototype (`design/prototypes/lockpicking_bench.html`, sound on).
+- [ ] Each cue sounds like the prototype's: a crisp set click, a quieter muffled click, a tiny tick, a deep clunk, a low creak, a dull jam, a loud snap, two short blips for the drop, the open's clack and thump. Pressing a noisy cue several times varies it slightly without changing pitch or level.
+- [ ] Relock: the creak, then three quick pin settles falling in pitch, at the level of the other cues.
+- [ ] Mashing keys quickly: overlapping cues all ring out; none cuts another off.
+- [ ] Scraping slider up: a hiss that rises in pitch as Tension goes up, with no clicks or zipper noise while sweeping; back to 0 fades out quickly.
+- [ ] Strain slider: silent up to about 0.12, then a buzzing tone that rises in pitch and level towards 1; Stop all (Space) fades everything out at once, without a click.
+- [ ] The voices follow the sliders without a noticeable lag.

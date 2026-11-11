@@ -20,3 +20,4 @@ Use assets/audio/sfx_starter_pack_v1 and the Kenney CC0 packs. Missing sounds ar
 
 - License PDF stays with the starter pack.
 - Guard barks are text plus a placeholder sound.
+- Generated sounds, no third-party audio: placeholder beeps (`PlaceholderBeep`) and the lockpicking sounds baked by `tools/sfx_gen/lockpick_sfx.py` into `items/lockpick/audio/sfx/` ([ADR 0108](0108-lockpick-sounds.md)).
