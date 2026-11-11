@@ -138,6 +138,26 @@ func test_dead_cannot_heal() -> void:
 	assert_float(_model.health(&"head")).is_equal(0.0)
 
 
+func test_heal_part_heals_only_that_part_up_to_its_max() -> void:
+	_model.damage_part(&"arm_l", &"damage.blunt", 50.0)
+	_model.damage_part(&"torso", &"damage.blunt", 30.0)
+
+	assert_float(_model.heal_part(&"arm_l", 30.0)).is_equal_approx(30.0, 0.0001)
+	assert_float(_model.health(&"arm_l")).is_equal_approx(40.0, 0.0001)
+	assert_float(_model.health(&"torso")).is_equal_approx(70.0, 0.0001)
+	assert_float(_model.heal_part(&"arm_l", 30.0)).is_equal_approx(20.0, 0.0001)
+	assert_float(_model.heal_part(&"arm_l", 30.0)).is_equal(0.0)
+	assert_float(_model.heal_part(&"wing", 30.0)).is_equal(0.0)
+
+
+func test_heal_part_heals_a_disabled_limb_but_not_the_dead() -> void:
+	_model.damage_part(&"leg_l", &"damage.blunt", 70.0)
+	assert_float(_model.heal_part(&"leg_l", 30.0)).is_equal_approx(30.0, 0.0001)
+
+	_model.damage_part(&"head", &"damage.blunt", 60.0)
+	assert_float(_model.heal_part(&"head", 30.0)).is_equal(0.0)
+
+
 # Fall damage = the fall_damage receptron's effect (impact speed -> damage) shared by the profile.
 func test_fall_damage_formula() -> void:
 	var effect := FALL_DAMAGE.effects[0] as BodyDamageEffect
