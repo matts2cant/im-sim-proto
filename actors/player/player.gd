@@ -497,7 +497,8 @@ func _handle_actions() -> void:
 
 
 # Holding LMB with a tool in hand works it on what the crosshair is on (ToolUse: a lockpick on a
-# mechanical lock, ADR 0078); letting go, looking away or carrying something stops.
+# mechanical lock, ADR 0078; from afar, a ranged target such as an access point for the deck, ADR
+# 0117); letting go, looking away or carrying something stops.
 func _step_tool(delta: float) -> void:
 	if _tool_latched and not Input.is_action_pressed(&"fire"):
 		_tool_latched = false
@@ -509,7 +510,13 @@ func _step_tool(delta: float) -> void:
 		and not carry.is_carrying()
 		and Input.is_action_pressed(&"fire")
 	)
-	tool_use.step(interactor.looked_at, inventory.held_tool(), holding, delta)
+	var tool := inventory.held_tool()
+	# Ranged tool targets (the deck aimed at an access point): only looked for while working a tool
+	# that nothing within reach takes.
+	var aimed: Node = null
+	if holding and not tool.is_empty() and ToolUse.find_target(interactor.looked_at, tool) == null:
+		aimed = interactor.aimed_at(tool_use.aim_reach)
+	tool_use.step(interactor.looked_at, tool, holding, delta, aimed)
 
 
 # LMB held with a weapon in hand (nothing carried, able to act): an automatic weapon keeps firing

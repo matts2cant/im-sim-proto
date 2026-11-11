@@ -196,12 +196,23 @@ label = "Assists"
 tier_texts = Array[String](["-", "+ time estimates", "+ trace estimates", "+ hidden routes"])
 tier_values = Array[float]([0.0, 1.0, 2.0, 3.0])
 
+[sub_resource type="Resource" id="Effect_deck_wireless_range"]
+script = ExtResource("3_effect")
+attribute = &"deck_wireless_range"
+op = 0
+label = "Wi-Fi range"
+shows_value = true
+display_base = 8.0
+display_unit = " m"
+display_decimals = 0
+tier_values = Array[float]([0.0, 4.0, 10.0, 17.0])
+
 [sub_resource type="Resource" id="Skill_computer"]
 script = ExtResource("2_skill")
 id = &"computer"
 display_name = "Computer"
-description = "The deck's tools: Icebreaker crack time and the strongest password it cracks, trace gain; assists (Trained: time estimates, Advanced: + trace estimates, Master: + hidden routes)."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_deck_crack_time_mult"), SubResource("Effect_deck_trace_gain_mult"), SubResource("Effect_deck_max_strength"), SubResource("Effect_deck_assist")])
+description = "The deck's tools: Icebreaker crack time and the strongest password it cracks, trace gain, Wi-Fi range; assists (Trained: time estimates, Advanced: + trace estimates, Master: + hidden routes)."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_deck_crack_time_mult"), SubResource("Effect_deck_trace_gain_mult"), SubResource("Effect_deck_max_strength"), SubResource("Effect_deck_assist"), SubResource("Effect_deck_wireless_range")])
 
 [sub_resource type="Resource" id="Effect_lockpick_window_low"]
 script = ExtResource("3_effect")

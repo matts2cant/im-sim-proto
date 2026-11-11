@@ -23,7 +23,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 | Wall network jack | the deck | the deck's address on the jack's subnet | Tethered: walking away unplugs the deck and stops its tools | M12a |
 | Autonomous device's maintenance port | the deck | a direct link to that device only | Tethered, like a jack | M12a |
 | Plugging the deck into a computer | the deck | the computer's address | Tethered, like a jack | M12a |
-| Wireless, within an access point's range | the deck, and the access point's Wi-Fi key (aim the deck at the access point and crack the key with the Icebreaker; deck range by Computer skill: 8 / 12 / 18 / 25 m) | the deck's address on the access point's subnet | You can lower the deck; tools keep running while you stay in range. Leaving the range stops them | M12b |
+| Wireless, within an access point's range | the deck, and the access point's Wi-Fi key (aim the deck at the access point and crack the key with the Icebreaker; deck range by Computer skill: 8 / 12 / 18 / 25 m) | the deck's address on the access point's subnet (its client address) | You can lower the deck; tools keep running while you stay in range. Leaving the range drops the Wi-Fi and stops them | M12b (built: [Wireless as built](#wireless-as-built-m12b)) |
 
 - "You" in a firewall rule is the address the deck currently uses (its own, or the computer's when plugged into one).
 - Lowering the deck (Esc) while plugged in keeps its tools running.
@@ -193,7 +193,7 @@ Overlays, like the Tab interface ([mockup](../prototypes/hacking_screens.html)):
 
 Controls ([controls.md](controls.md)):
 
-- E on a computer uses it bare-handed. With the deck in hand (belt), LMB on a wall jack, maintenance port or computer plugs it in; LMB within an access point's range raises it (M12b; [ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses).
+- E on a computer uses it bare-handed. With the deck in hand (belt), LMB on a wall jack, maintenance port or computer plugs it in; LMB aimed at an access point within the deck's Wi-Fi range raises it on the Wi-Fi key screen (M12b, [ADR 0117](../decisions/0117-wireless-access-points-and-the-decks-wifi.md); [ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses).
 - Esc (or the ✕) always steps away from the screen or lowers the deck, also while typing. It never also opens the game menu.
 - E does not step away: only Esc leaves a computer-like screen ([ADR 0083](../decisions/0083-security-terminal-redesign.md)).
 - The mouse drives the cursor on the screen.
@@ -203,7 +203,7 @@ Controls ([controls.md](controls.md)):
 - **Systemic**: every behaviour comes from components and data on devices (address, subnet, links, accounts, trust list, software vendor/product/version, `Powered`, `Breakable`, tags). A new device that combines existing behaviours is a scene and `.tres`, no new code. Remote commands are stimuli delivered to the device; its receptrons decide what they do ([ADR 0075](../decisions/0075-alarms-as-network-devices.md)).
 - **Skill**: the deck reads its user's Computer skill attributes, so any actor with the skill gets the same tool timings ([abilities.md](abilities.md)).
 - **Deterministic**: no randomness anywhere in hacking.
-- **Saving** ([saving.md](saving.md)): network state (device power and links, firewall rules, patched devices, logs, discovered devices), known credentials and exploits (PersonalLog), the deck's contents (copied files, crack progress), tracer trace and lockouts.
+- **Saving** ([saving.md](saving.md)): network state (device power and links, firewall rules, patched devices, logs, discovered devices, who knows each Wi-Fi key), known credentials and exploits (PersonalLog), the deck's contents (copied files, crack progress, Wi-Fi crack progress), tracer trace and lockouts. Wireless links come from level data.
 
 ## M12a implementation details
 
@@ -220,6 +220,18 @@ Settled while building the network layer and the deck ([ADR 0113](../decisions/0
 - **Names**: the Map and the Security app name a device by its entity's `display_name` metadata ("CAM-CLOSET"), else its node name in words (`NetworkSource.display_name()`).
 - **Routers** (renamed from gateways after the M12a levels, [ADR 0112 amendment](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)): `objects/network/router.tscn` with the `Router` component (`RouterRule` rules) and the network data of the subnets it joins: `subnet_data` (`Subnet` resources: id, name, address range, Map colour; shared ones in `objects/network/subnets/`) and `side_addresses` (its address on each subnet besides its Device's own). Routers are named `RTR-nn`.
 - **Subnets on the Map**: the Map lays the network out by subnet. Each subnet whose data a router carries is a flat box of its colour (fill 10 %, a 1 px border) behind its devices, its name and range at the top-left ("SECURITY  10.0.20.0/24"); a box appears only while a device of its subnet is on the map, so a hidden subnet has none. Boxes stand side by side along the router chain, from the deck's own subnet; a router stands between the two boxes it joins, labelled "router", with both addresses on its status line. Inside a box the switches form a tidy tree: a switch's devices hang on it as before ([ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)), the switches cabled to it stand in rows below it, so a tree network never crosses a cable; a link off the tree (a loop) runs above every box and may cross (`NetworkLayout.extra`). The layout is computed from the topology only, nothing per level. Fit zoom in the deck at 1152 x 648: about 0.48 for the whole warehouse network, 0.51 for the network lab.
+
+## Wireless as built (M12b)
+
+Settled while building it ([ADR 0117](../decisions/0117-wireless-access-points-and-the-decks-wifi.md)):
+
+- **Access points**: `objects/network/access_point.tscn` (`AccessPoint` on a device: `wireless_range` 15 m by default, the Wi-Fi `key` and its strength, `client_address`), powered and breakable like a switch, cabled into one subnet. Network gear (switches, routers, access points: the `object.network_gear` tag or a `Router` / `AccessPoint` component) never links wirelessly.
+- **Wireless links** are level data on the device: `Device.wireless` names its access point; the link holds while the device stands within the access point's range (centre to centre). It is a link of the reach graph: a broken or unpowered access point takes its wireless devices offline (their incidents reach no one) while a cabled device beside it stays online. A wireless device takes its access point's subnet and has no maintenance port.
+- **Aiming the deck**: with the deck in hand, LMB on an access point you can see, up to 40 m away. Beyond the deck's range (8 / 12 / 18 / 25 m by Computer skill, straight line from the eye) the HUD says so; in range the deck rises on the **Wi-Fi key** screen (or, with the key known, joins at once and shows the Map).
+- **Cracking the key**: Crack the key runs the Icebreaker on it (the account base times: Weak 10 s, Medium 24 s, Strong 50 s, times the skill; only keys the skill cracks). It advances only while the access point is in range, in sight (a ray from the eye blocked by world geometry, not by props or people), up and your would-be address is not locked out; otherwise it **pauses** ("Paused: line of sight lost", "out of range", "no signal", "blocked by a tracer") and goes on by itself. It adds trace like any tool on the tracers watching the access point's subnet, keeps running with the deck lowered, and its progress stays on the deck (saved; a changed key starts over).
+- **Joined**: a cracked key joins the deck to the access point's subnet over Wi-Fi with the access point's client address (an entry point like a wall jack: the access point is "your entry point", a full trace reports there). Discovery, the Map, the tools and remote desktops work from it. You can lower the deck and walk around; leaving the deck's range of the access point drops the connection and stops its tools; aiming at the access point again in range rejoins (the key is known, saved).
+- **On the Map** wireless links are dashed light blue (#7fd4ff), dashed grey with an end offline; wireless devices hang on their access point in the tidy tree (computed from the topology, no crossings); an access point reads "AP-YARD · access point" and a wireless device's menu says "wireless via AP-YARD".
+- Levels: none yet; a later brief places access points in the lab and the warehouse.
 
 ## Levels
 

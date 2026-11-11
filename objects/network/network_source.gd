@@ -8,9 +8,11 @@ extends RefCounted
 ## - PORT: a deck on a device's maintenance port: a direct link to that device only.
 ## - HOST: a deck plugged into a computer: the computer's address, from the computer's node.
 ## - BARE: a user at a computer bare-handed (its own desktop only): the computer's address.
+## - WIRELESS (M12b): a deck joined to an access point's Wi-Fi: like a jack, its own graph node on
+##   the access point's subnet, linked to the access point; the address AccessPoint.deck_address().
 ## "You" (a user) is any source with a user.
 
-enum Kind { DEVICE, JACK, PORT, HOST, BARE }
+enum Kind { DEVICE, JACK, PORT, HOST, BARE, WIRELESS }
 
 var kind: Kind = Kind.DEVICE
 ## The device the traffic starts at or enters through (the sender, the jack, the port's device, the
@@ -43,6 +45,15 @@ static func for_user(p_user: Node, p_device: Device, p_kind: Kind) -> NetworkSou
 	return source
 
 
+## `p_user`'s deck joined to the Wi-Fi of `access_point` (a Device with an AccessPoint).
+static func wireless(p_user: Node, access_point: Device) -> NetworkSource:
+	var source := NetworkSource.for_user(p_user, access_point, Kind.WIRELESS)
+	var radio := AccessPoint.of(access_point)
+	if radio != null:
+		source.address = radio.deck_address()
+	return source
+
+
 ## The key a user is known by (accounts, traces): its node name.
 static func user_key(p_user: Node) -> String:
 	return String(p_user.name) if p_user != null and is_instance_valid(p_user) else ""
@@ -65,9 +76,16 @@ func is_user() -> bool:
 	return user != null and is_instance_valid(user)
 
 
-## The graph node the traffic starts at (Device.graph()): DECK_NODE on a jack, else the device's.
+## True when the traffic starts at a graph node of its own (Device.DECK_NODE) linked to `device`: a
+## deck on a wall jack or joined over Wi-Fi.
+func has_own_node() -> bool:
+	return kind == Kind.JACK or kind == Kind.WIRELESS
+
+
+## The graph node the traffic starts at (Device.graph()): DECK_NODE on a jack or over Wi-Fi, else
+## the device's.
 func start_id() -> int:
-	if kind == Kind.JACK:
+	if has_own_node():
 		return Device.DECK_NODE
 	return device.get_instance_id() if is_instance_valid(device) else 0
 
@@ -80,8 +98,8 @@ func entry_point() -> Vector3:
 
 
 ## The devices this traffic reaches now (breadth-first; a maintenance port: its device only, while
-## up). The start device itself is included unless it is a jack's switch reached by the deck node
-## (then it is just the first hop).
+## up). The start device itself is included unless the deck has a node of its own (a jack's switch
+## or the access point is then just the first hop).
 func reached(tree: SceneTree) -> Array[Device]:
 	return _devices(tree, false)
 
@@ -98,7 +116,7 @@ func reaches(tree: SceneTree, target: Device) -> bool:
 		return false
 	if kind == Kind.PORT:
 		return target == device and device.is_up()
-	if target == device and kind != Kind.JACK:
+	if target == device and not has_own_node():
 		return device.is_up()
 	return Device.graph(tree, self).reaches(start_id(), target.get_instance_id())
 
@@ -111,7 +129,7 @@ func _devices(tree: SceneTree, with_down: bool) -> Array[Device]:
 		if device.is_up() or with_down:
 			found.append(device)
 		return found
-	if kind != Kind.JACK:
+	if not has_own_node():
 		if not device.is_up():
 			return found
 		found.append(device)

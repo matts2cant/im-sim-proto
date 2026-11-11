@@ -18,6 +18,11 @@ extends RefCounted
 ## kiosk1 Weak. OfficePc and Console are computers (Computer component; Security installed on the
 ## Console only). Rtr01 and Rtr02 carry the subnets' data (objects/network/subnets/). Screens show
 ## the mockup's names (SHOWN: `display_name` metadata).
+## add_wireless() (M12b) adds the mockup's access point AP-YARD on the security switch, its wireless
+## camera and laser, and a cabled camera beside it (positions from `origin`):
+##
+##   SecuritySwitch (8,0) ── ApYard (12,3) ┄┄ CamYard (14,7), LaserRoof (15,5)   (radio, 15 m range)
+##          └── CamDock (11,2): cabled, beside the access point
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -27,6 +32,9 @@ const ROUTER: PackedScene = preload("res://objects/network/router.tscn")
 const OFFICE: Subnet = preload("res://objects/network/subnets/office.tres")
 const SECURITY: Subnet = preload("res://objects/network/subnets/security.tres")
 const SERVERS: Subnet = preload("res://objects/network/subnets/servers.tres")
+const ACCESS_POINT: PackedScene = preload("res://objects/network/access_point.tscn")
+## AP-YARD's key: Weak (the Icebreaker cracks it Untrained), deck address 10.0.20.90.
+const WIFI_KEY := "yard2031"
 ## Added to the alarm stand-in by every incident it receives.
 const ALARMED: StringName = &"test.alarmed"
 const WEAK := DeviceAccount.Strength.WEAK
@@ -46,6 +54,10 @@ const SHOWN: Dictionary[String, String] = {
 	"ServerSwitch": "SW-SERVERS",
 	"FileServer": "FILE-SERVER",
 	"Kiosk": "KIOSK",
+	"ApYard": "AP-YARD",
+	"CamYard": "CAM-YARD",
+	"LaserRoof": "LASER-ROOF",
+	"CamDock": "CAM-DOCK",
 }
 
 
@@ -216,15 +228,51 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	link(n["ServerSwitch"], n["FileServer"])
 	var camera := Device.of(n["Camera"])
 	camera.trusted.append(camera.get_path_to(n["Console"]))
-	for entity_name: String in SHOWN:
+	for entity_name: String in n:
 		n[entity_name].set_meta(&"display_name", SHOWN[entity_name])
 	for entity_name: String in ["OfficePc", "Console"]:
 		Computer.of(n[entity_name]).host_name = SHOWN[entity_name]
 	return n
 
 
-## A user entity (Node3D with Tags, Attributes, a PersonalLog, a DeckSession and an
-## IcebreakerTool) under `parent` at `position`, its Computer skill attributes at `tier`
+## Adds the access point AP-YARD (the shipped scene) cabled to the lab's security switch, the
+## wireless camera CAM-YARD and laser LASER-ROOF linked to it by radio (minimal devices with a
+## disable / enable receptron pair), and the cabled camera CAM-DOCK beside it (see the class
+## description). Returns the new entities by name.
+static func add_wireless(n: Dictionary[String, Node3D], parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
+	var added: Dictionary[String, Node3D] = {}
+	added["ApYard"] = instance(parent, ACCESS_POINT, "ApYard", origin + Vector3(12, 2.6, 3), &"", "10.0.20.60")
+	var radio := AccessPoint.of(added["ApYard"])
+	radio.key = WIFI_KEY
+	radio.key_strength = WEAK
+	radio.client_address = "10.0.20.90"
+	link(n["SecuritySwitch"], added["ApYard"])
+	var receptrons: Array[Receptron] = [
+		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+	]
+	added["CamYard"] = body_device(parent, "CamYard", origin + Vector3(14, 2.5, 7), receptrons)
+	_address(added["CamYard"], &"", "10.0.20.22")
+	added["LaserRoof"] = body_device(parent, "LaserRoof", origin + Vector3(15, 1.0, 5), receptrons)
+	_address(added["LaserRoof"], &"", "10.0.20.61")
+	added["CamDock"] = body_device(parent, "CamDock", origin + Vector3(11, 2.5, 2), receptrons)
+	_address(added["CamDock"], &"", "10.0.20.23")
+	link(n["SecuritySwitch"], added["CamDock"])
+	for entity_name: String in ["CamYard", "LaserRoof"]:
+		link_wireless(added[entity_name], added["ApYard"])
+	for entity_name: String in added:
+		added[entity_name].set_meta(&"display_name", SHOWN[entity_name])
+		n[entity_name] = added[entity_name]
+	return added
+
+
+## Links `device_entity` to the access point `access_point` by radio (its Device's `wireless`).
+static func link_wireless(device_entity: Node3D, access_point: Node3D) -> void:
+	var device := Device.of(device_entity)
+	device.wireless = device.get_path_to(access_point)
+
+
+## A user entity (Node3D with Tags, Attributes, a PersonalLog, a DeckSession, an IcebreakerTool and
+## a WirelessTool) under `parent` at `position`, its Computer skill attributes at `tier`
 ## (0 Untrained .. 3 Master: crack time, trace gain, strongest password, assist).
 static func user(parent: Node, position: Vector3, tier: int = 0) -> Node3D:
 	var root := Node3D.new()
@@ -237,6 +285,9 @@ static func user(parent: Node, position: Vector3, tier: int = 0) -> Node3D:
 	var ice := IcebreakerTool.new()
 	ice.name = "IcebreakerTool"
 	root.add_child(ice)
+	var wireless := WirelessTool.new()
+	wireless.name = "WirelessTool"
+	root.add_child(wireless)
 	var entity := Fixtures.compose(root, parent, "Hacker", position, [])
 	set_tier(entity, tier)
 	return entity

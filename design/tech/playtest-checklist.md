@@ -430,6 +430,17 @@ Take the deck from the hub's loadout table (or the network lab's entrance table)
 - [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
 - [ ] Clicks with a still mouse (ADR 0099 amendment, 2026-11-11): rest the cursor on a device, on the menu's Icebreaker / Log in / Open its desktop, on Stop / Resume and on the remote desktop's Back to the map; each shows its hover while still and a slow click (hold it half a second) acts every time. Dragging from a device or a button never moves the map; dragging the background does.
 
+### M12b Wireless ([ADR 0117](../decisions/0117-wireless-access-points-and-the-decks-wifi.md))
+
+No level has an access point yet: use the review shots (`tests/ui/deck/fixtures/wireless_shots.tscn` with `SHOT=map|crack|paused|joined|joined_map|world`, run through `tools/run_windowed.sh`) until the levels brief places them, then check in the lab and the warehouse.
+
+- [ ] Aiming the deck at an access point across a room and pressing LMB feels like pointing an antenna: the Wi-Fi key screen rises at once in range; out of range the HUD message says how far it is and your range.
+- [ ] The Wi-Fi key screen reads at a glance: signal bars fall as you step back (lower the deck, walk, aim again), "Line of sight blocked" and "Paused: line of sight lost" show the moment a door or a wall cuts the view, and the crack goes on by itself when you can see it again.
+- [ ] The ranges by skill (8 / 12 / 18 / 25 m) feel right: Untrained has to come close and be seen; Master cracks from across a yard.
+- [ ] Joined: the Map from the Wi-Fi reads like one from a wall jack (the access point outlined as your entry point); walking with the deck lowered keeps the tools running; stepping out of range drops it with a message and stops the Icebreaker.
+- [ ] Dashed light-blue wireless links read apart from green cables and from grey dashed dead cables; breaking or unpowering the access point turns its wireless devices offline on the Map and their links grey.
+- [ ] The trace while cracking a key (the access point's subnet's tracers) feels fair next to cracking an account.
+
 ### Routers and subnet boxes (ADR 0112 amendment)
 
 Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.

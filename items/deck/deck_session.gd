@@ -9,6 +9,13 @@ extends Node
 ##   computer lends its address. Tethered: the deck unplugs when its user walks further than
 ##   `config.tether_distance` from the plugged entity (horizontal), can no longer act, or the deck
 ##   leaves the user's inventory; unplugging stops its tools.
+## - Wi-Fi (M12b, ADR 0117): plug() on an access point (a Device with an AccessPoint) joins the deck
+##   to its subnet over Wi-Fi once the user knows its key (WirelessTool cracks it) and stands within
+##   range: its traffic starts at a node of its own linked to the access point (NetworkSource
+##   WIRELESS, the access point's client address), and it stays joined, screen lowered or not, while
+##   the user's eye stays within the deck's Wi-Fi range of the access point (wireless_range():
+##   DeckConfig.wireless_range plus the Computer skill's `deck_wireless_range`, straight line); out of
+##   range it drops (`out_of_range`) like a pulled plug.
 ## - Map (discovery, ADR 0112): every device the deck's traffic reaches (through the routers it has
 ##   hacked: Router), plus the dead ones right behind them, once its subnet has been scanned
 ##   (`config.scan_time` s, +10 % trace on the tracers watching it, once per subnet: kept on the
@@ -34,6 +41,8 @@ signal notice(text: String)
 signal remote_changed(computer: Computer)
 
 const SEEN: String = "seen"
+## The Computer skill's addition to the deck's Wi-Fi range (m).
+const WIRELESS_RANGE_ATTRIBUTE: StringName = &"deck_wireless_range"
 const SCANNED: String = "scanned"
 const DEFAULT_CONFIG: DeckConfig = preload("res://items/deck/deck_config.tres")
 
@@ -82,6 +91,40 @@ func is_plugged() -> bool:
 	return port != null and is_instance_valid(port)
 
 
+## True when the deck is joined to an access point's Wi-Fi (not plugged into a port).
+func is_wireless() -> bool:
+	return is_plugged() and source != null and source.kind == NetworkSource.Kind.WIRELESS
+
+
+## The deck's Wi-Fi range for `user` (m): `config`'s base plus the user's Computer skill.
+static func wireless_range(user: Node, p_config: DeckConfig) -> float:
+	var base := p_config.wireless_range if p_config != null else 8.0
+	return Attributes.read(user, WIRELESS_RANGE_ATTRIBUTE, base)
+
+
+## Where `user` looks from: its eye (an `eye_transform()` method, the Player's), else its origin.
+static func eye_of(user: Node) -> Vector3:
+	if user == null or not is_instance_valid(user):
+		return Vector3.ZERO
+	if user.has_method(&"eye_transform"):
+		return (user.call(&"eye_transform") as Transform3D).origin
+	return (user as Node3D).global_position if user is Node3D else Vector3.ZERO
+
+
+## Straight-line distance from `user`'s eye to `device`'s entity (m; INF when either is gone).
+static func distance(user: Node, device: Device) -> float:
+	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
+		return INF
+	if user == null or not is_instance_valid(user) or not device.entity.is_inside_tree():
+		return INF
+	return eye_of(user).distance_to(device.entity.global_position)
+
+
+## True when `device` stands within `user`'s deck Wi-Fi range (`p_config`'s base plus the skill).
+static func in_range(user: Node, device: Device, p_config: DeckConfig) -> bool:
+	return distance(user, device) <= wireless_range(user, p_config)
+
+
 ## Plugs the held deck into `device` (unless already there) and raises the screen.
 func plug_and_raise(device: Device) -> void:
 	if port != device and not plug(device):
@@ -92,12 +135,15 @@ func plug_and_raise(device: Device) -> void:
 
 
 ## Plugs `deck_stack` (default: the deck in the user's hand) into `device`. False without a deck or
-## a port.
+## a port. An access point: joins its Wi-Fi (only with its key, within range; already joined there:
+## true, nothing changes).
 func plug(device: Device, deck_stack: ItemStack = null) -> bool:
 	if deck_stack == null:
 		deck_stack = held_deck()
 	if deck_stack == null or device == null or not is_instance_valid(device):
 		return false
+	if AccessPoint.of(device) != null:
+		return _join_wireless(device, deck_stack)
 	var kind := DeviceNetwork.port_kind(device)
 	if kind == Device.DeckPort.NONE or kind == Device.DeckPort.AUTO:
 		return false
@@ -114,7 +160,7 @@ func plug(device: Device, deck_stack: ItemStack = null) -> bool:
 	return true
 
 
-## Unplugs the deck (`reason`: walked_away, cannot_act, no_deck, gone, replugged): its tools stop,
+## Unplugs the deck (`reason`: walked_away, out_of_range (Wi-Fi), cannot_act, no_deck, gone, replugged): its tools stop,
 ## the screen closes. Lowering the screen never unplugs.
 func unplug(reason: StringName = &"unplugged") -> void:
 	if port == null:
@@ -169,6 +215,8 @@ func _unplug_check() -> StringName:
 	var hands := _inventory()
 	if hands != null and not hands.inventory.stacks.has(stack):
 		return &"no_deck"
+	if is_wireless():
+		return &"" if in_range(entity, port, config) else &"out_of_range"
 	var flat := entity.global_position - port.entity.global_position
 	flat.y = 0.0
 	if flat.length() > config.tether_distance:
@@ -248,7 +296,7 @@ func log_in(device: Device, user: String) -> bool:
 		return false
 	var ok := accounts.login_from(user, accounts.known_password(entity, user), entity, source)
 	if ok:
-		notice.emit(access_notice(device, "Logged in as %s" % user))
+		notice.emit(DeckSession.access_notice(device, "Logged in as %s" % user))
 	refresh()
 	return ok
 
@@ -332,7 +380,7 @@ func tracers() -> Array[Tracer]:
 
 
 ## `text`, plus the router note when `device` is a router (its subnets now show on the map).
-func access_notice(device: Device, text: String) -> String:
+static func access_notice(device: Device, text: String) -> String:
 	if Router.of(device.entity) != null:
 		return "%s. Router hacked: the subnets behind it appear on the map" % text
 	return text
@@ -343,6 +391,25 @@ static func path_of(device: Device) -> String:
 	if device == null or not is_instance_valid(device) or not device.is_inside_tree():
 		return ""
 	return String(device.entity.get_path()) if is_instance_valid(device.entity) else String(device.get_path())
+
+
+func _join_wireless(access_point: Device, deck_stack: ItemStack) -> bool:
+	var radio := AccessPoint.of(access_point)
+	if not radio.knows_key(entity) or not in_range(entity, access_point, config):
+		return false
+	if is_wireless() and port == access_point:
+		return true
+	if is_plugged():
+		unplug(&"replugged")
+	port = access_point
+	stack = deck_stack
+	unplug_reason = &""
+	source = NetworkSource.wireless(entity, access_point)
+	var data := {"device": _name_of(access_point), "port": "WIRELESS", "address": source.address}
+	EventLog.record(&"deck.plugged", _who(), _name_of(access_point), data)
+	plugged_changed.emit(true)
+	refresh()
+	return true
 
 
 func _step_scans(delta: float) -> bool:

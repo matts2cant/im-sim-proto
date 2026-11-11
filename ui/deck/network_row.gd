@@ -47,6 +47,23 @@ func position() -> Vector3:
 	)
 
 
+## The indices of `cables` (index pairs into `rows`) whose two devices are linked by radio
+## (Device.wireless_link(), M12b): the Map draws them as wireless links.
+static func wireless_cables(rows: Array[NetworkRow], cables: Array[Vector2i]) -> PackedInt32Array:
+	var found := PackedInt32Array()
+	for k in cables.size():
+		var cable := cables[k]
+		if cable.x >= rows.size() or cable.y >= rows.size():
+			continue
+		var a := rows[cable.x].device
+		var b := rows[cable.y].device
+		if not is_instance_valid(a) or not is_instance_valid(b):
+			continue
+		if a.wireless_link() == b or b.wireless_link() == a:
+			found.append(k)
+	return found
+
+
 ## `rows` (any array of NetworkRow, typed or not) as an Array[NetworkRow].
 static func list(rows: Array) -> Array[NetworkRow]:
 	var found: Array[NetworkRow] = []

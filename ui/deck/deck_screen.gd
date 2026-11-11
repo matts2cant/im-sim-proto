@@ -25,13 +25,16 @@ extends CanvasLayer
 ## - Trace bars in the computer overlay too (ADR 0114's slot): while the user's ComputerScreen is
 ##   open, one bar per tracer watching the user there (remote: the deck's; bare-handed: the
 ##   computer's own device and address), refreshed with the screen.
+## - Wi-Fi (M12b, ADR 0117): open_wifi() raises it on the Wi-Fi key screen (WifiPanel), plugged in or
+##   not; the Map draws wireless links (NetworkGraph); a wireless device's menu names its access point.
 
-enum Tool { MAP, ICEBREAKER }
+enum Tool { MAP, ICEBREAKER, WIFI }
 
 const PANEL_FRACTION: float = 0.85
 const TOAST_TIME: float = 2.5
 const HINT: String = "Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit. Esc: lower the deck"
 const TETHER_NOTE: String = "Walking away unplugs the deck and stops its tools."
+const WIRELESS_NOTE: String = "Leaving the access point's range drops the Wi-Fi and stops its tools."
 const ASSIST_PREFIX: String = "Computer skill · "
 ## Bars above this trace (%) turn red.
 const HOT_TRACE: float = 70.0
@@ -44,6 +47,7 @@ const MENU_WIDTH: float = 300.0
 var session: DeckSession
 ## The deck's Icebreaker (beside the session).
 var ice: IcebreakerTool
+var wireless: WirelessTool
 var player: Player
 var tool: Tool = Tool.MAP
 
@@ -57,6 +61,8 @@ var graph: NetworkGraph
 var map_view: Control
 var ice_view: MarginContainer
 var ice_column: VBoxContainer
+var wifi_view: WifiPanel
+var tether_label: Label
 ## The area right of the tools and under the bar (the Map, the Icebreaker, a remote desktop).
 var content_area: Control
 ## The user's computer overlay (trace bars, remote desktops), or null.
@@ -82,6 +88,8 @@ func _ready() -> void:
 	computer_screen = ComputerScreen.of(get_parent())
 	if computer_screen != null:
 		computer_screen.opened.connect(_on_computer_opened)
+	if DeckSession.of(get_parent()) != null:  # Notices reach the HUD before a first raise.
+		DeckSession.of(get_parent()).notice.connect(_on_notice)
 
 
 ## The anchors (fractions of the viewport) of the deck's content area: where a remote desktop shows.
@@ -116,12 +124,26 @@ func is_open() -> bool:
 func open_for(p_session: DeckSession) -> void:
 	if visible or p_session == null or not p_session.is_plugged():
 		return
+	_raise(p_session, Tool.MAP)
+
+
+## Raises the deck on the Wi-Fi key screen of the access point `p_session`'s WirelessTool aims at
+## (plugged in or not).
+func open_wifi(p_session: DeckSession) -> void:
+	if visible or p_session == null or WirelessTool.of(p_session.get_parent()) == null:
+		return
+	_raise(p_session, Tool.WIFI)
+
+
+func _raise(p_session: DeckSession, which: Tool) -> void:
 	session = p_session
 	ice = IcebreakerTool.of(session.get_parent())
+	wireless = WirelessTool.of(session.get_parent())
 	if not session.changed.is_connected(_on_changed):
 		session.changed.connect(_on_changed)
-		session.notice.connect(_on_notice)
 		session.remote_changed.connect(_on_remote_changed)
+	if not session.notice.is_connected(_on_notice):
+		session.notice.connect(_on_notice)
 	visible = true
 	if player != null:
 		_input_before = player.input_enabled
@@ -139,7 +161,9 @@ func open_for(p_session: DeckSession) -> void:
 	graph.close_menu()
 	_fit_on_show = true
 	graph.request_fit()
-	show_tool(Tool.ICEBREAKER if ice != null and ice.is_running() else Tool.MAP)
+	if which == Tool.MAP and ice != null and ice.is_running():
+		which = Tool.ICEBREAKER
+	show_tool(which)
 	_on_remote_changed(session.remote)
 	refresh()
 
@@ -164,6 +188,7 @@ func show_tool(which: Tool) -> void:
 	tool = which
 	map_view.visible = tool == Tool.MAP
 	ice_view.visible = tool == Tool.ICEBREAKER
+	wifi_view.visible = tool == Tool.WIFI
 	map_button.set_pressed_no_signal(tool == Tool.MAP)
 	ice_button.set_pressed_no_signal(tool == Tool.ICEBREAKER)
 	if tool != Tool.MAP:
@@ -174,15 +199,25 @@ func show_tool(which: Tool) -> void:
 
 ## Brings the title bar, the map and the Icebreaker up to date (also every refresh interval).
 func refresh() -> void:
-	if session == null or not session.is_plugged():
+	if session == null or (not session.is_plugged() and tool != Tool.WIFI):
 		return
 	_refresh_left = session.config.refresh_interval
-	title_meta.text = "Plugged into %s · %s" % [entry_label(), _address_text()]
-	_refresh_traces()
-	if tool == Tool.MAP:
-		_refresh_map()
+	map_button.disabled = not session.is_plugged()
+	ice_button.disabled = not session.is_plugged()
+	tether_label.text = WIRELESS_NOTE if session.is_wireless() else TETHER_NOTE
+	if tool == Tool.WIFI:
+		title_meta.text = WifiPanel.title_text(wireless)
 	else:
-		_refresh_ice()
+		var verb := "Joined" if session.is_wireless() else "Plugged into"
+		title_meta.text = "%s %s · %s" % [verb, entry_label(), _address_text()]
+	_refresh_traces()
+	match tool:
+		Tool.MAP:
+			_refresh_map()
+		Tool.ICEBREAKER:
+			_refresh_ice()
+		Tool.WIFI:
+			wifi_view.show_for(wireless)
 
 
 ## How the title bar names the entry point ("Office Jack (wall jack)").
@@ -195,6 +230,8 @@ func entry_label() -> String:
 			return "%s (wall jack)" % name
 		NetworkSource.Kind.PORT:
 			return "%s (maintenance port)" % name
+		NetworkSource.Kind.WIRELESS:
+			return "%s (Wi-Fi)" % name
 	return "%s (computer)" % name
 
 
@@ -233,6 +270,8 @@ func map_rows() -> Array[NetworkRow]:
 static func place_in_network(row: NetworkRow, device: Device) -> void:
 	row.address = device.address
 	row.subnet = DeviceNetwork.subnet_of(device)
+	if AccessPoint.of(device.entity) != null:
+		row.role = "access point"
 	var router := Router.of(device.entity)
 	if router == null:
 		return
@@ -243,14 +282,17 @@ static func place_in_network(row: NetworkRow, device: Device) -> void:
 		row.address = " · ".join(addresses)
 
 
-## The cables between `rows`, as index pairs (lower first), each once.
+## The cables and wireless links between `rows`, as index pairs (lower first), each once.
 static func cables_of(rows: Array[NetworkRow]) -> Array[Vector2i]:
 	var index_of: Dictionary[Device, int] = {}
 	for i in rows.size():
 		index_of[rows[i].device] = i
 	var pairs: Array[Vector2i] = []
 	for i in rows.size():
-		for other in rows[i].device.linked():
+		var ends := rows[i].device.linked()
+		if rows[i].device.wireless_link() != null:
+			ends.append(rows[i].device.wireless_link())
+		for other in ends:
 			if not index_of.has(other):
 				continue
 			var pair := Vector2i(mini(i, index_of[other]), maxi(i, index_of[other]))
@@ -304,7 +346,7 @@ func _process(delta: float) -> void:
 		refresh_computer_traces()
 	if not visible:
 		return
-	if session == null or not session.is_plugged():
+	if session == null or (not session.is_plugged() and tool != Tool.WIFI):
 		close()
 		return
 	if _toast_left > 0.0:
@@ -445,8 +487,10 @@ func _signature_of(rows: Array[NetworkRow]) -> String:
 
 func _refresh_traces() -> void:
 	var bars: Array[HBoxContainer] = []
-	for tracer in session.tracers():
-		var left := tracer.model.lockout_left(session.source.address)
+	var wifi := tool == Tool.WIFI
+	var address := WifiPanel.aim_address(wireless) if wifi else session.source.address
+	for tracer in WifiPanel.tracers(wireless) if wifi else session.tracers():
+		var left := tracer.model.lockout_left(address)
 		bars.append(trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
 	show_bars(trace_box, bars)
 
@@ -516,6 +560,9 @@ static func trace_bar(
 # The deck's menu for `row` (NetworkGraph.menu_builder).
 func _build_menu(row: NetworkRow, column: VBoxContainer) -> void:
 	var device := row.device
+	if device.wireless_link() != null:
+		var via := "wireless via %s" % NetworkSource.display_name(device.wireless_link())
+		column.add_child(DeckStyle.mono(via, NetworkGraph.WIRELESS_COLOR, 12))
 	if row.is_self and session.source.kind == NetworkSource.Kind.JACK:
 		column.add_child(DeckStyle.paragraph("Your entry point.", DeckStyle.DIM_COLOR, 12, MENU_WIDTH - 24.0))
 		return
@@ -829,6 +876,9 @@ func _build() -> void:
 	body.add_child(content)
 	_build_map(content)
 	_build_ice(content)
+	wifi_view = WifiPanel.new()
+	wifi_view.map_requested.connect(show_tool.bind(Tool.MAP))
+	content.add_child(wifi_view)
 	toast_label = DeckStyle.mono("", DeckStyle.TEXT_COLOR, 13)
 	toast_label.name = "Toast"
 	toast_label.visible = false
@@ -895,9 +945,9 @@ func _build_tools() -> Control:
 		var button := _tool_button("%s  (M12b)" % later)
 		button.disabled = true
 		column.add_child(button)
-	var who := DeckStyle.paragraph(TETHER_NOTE, DeckStyle.DIM_COLOR, 11, 130.0)
-	who.custom_minimum_size.y = 40.0
-	column.add_child(who)
+	tether_label = DeckStyle.paragraph(TETHER_NOTE, DeckStyle.DIM_COLOR, 11, 130.0)
+	tether_label.custom_minimum_size.y = 40.0
+	column.add_child(tether_label)
 	return tools
 
 
