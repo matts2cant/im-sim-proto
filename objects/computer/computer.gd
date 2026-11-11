@@ -222,12 +222,12 @@ func read(document: ComputerDocument, reader: Node, source: String) -> bool:
 	return reader_log.add(document.entry(source), _name())
 
 
-## True when this computer controls `other` (lists it in its Security app and sends it commands).
-## M12a stand-in until the network's trust lists exist: every device on this computer's cabled
-## network (DeviceGraph.component(): reached now, or cut off and shown offline). The network
-## integration extends this one function: "and `other` trusts this computer".
+## True when this computer controls `other` (lists it in its Security app and sends it commands):
+## a device on this computer's cabled network (DeviceGraph.component(): reached now, or cut off and
+## shown offline) that trusts it (DeviceNetwork.trusts(): on its trust list, or it has none; ADR
+## 0113).
 func controls(other: Device) -> bool:
-	return other != null and other != device
+	return other != null and other != device and DeviceNetwork.trusts(other, device)
 
 
 ## The devices the Security app lists: on this computer's network, controlled (controls()) and of

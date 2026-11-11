@@ -56,6 +56,9 @@
 [ext_resource type="PackedScene" path="res://ui/computer/computer_screen.tscn" id="62_computer_screen"]
 [ext_resource type="Script" path="res://actors/common/weapon_drop/weapon_drop.gd" id="63_weapon_drop"]
 [ext_resource type="PackedScene" path="res://ui/lockpick/lockpick_screen.tscn" id="64_lockpick_screen"]
+[ext_resource type="Script" path="res://items/deck/deck_session.gd" id="80_deck_session"]
+[ext_resource type="Script" path="res://ui/deck/deck_screen.gd" id="81_deck_screen"]
+[ext_resource type="Script" path="res://items/deck/icebreaker_tool.gd" id="82_icebreaker_tool"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -142,6 +145,17 @@ script = ExtResource("22_interactor")
 script = ExtResource("51_tool_use")
 
 [node name="ComputerScreen" parent="." instance=ExtResource("62_computer_screen")]
+
+[node name="DeckSession" type="Node" parent="."]
+script = ExtResource("80_deck_session")
+
+[node name="IcebreakerTool" type="Node" parent="."]
+script = ExtResource("82_icebreaker_tool")
+
+[node name="DeckScreen" type="CanvasLayer" parent="."]
+layer = 22
+visible = false
+script = ExtResource("81_deck_screen")
 
 [node name="PersonalLog" type="Node" parent="."]
 script = ExtResource("33_personal_log")

@@ -12,7 +12,7 @@ extends GdUnitTestSuite
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 ## Devices on the building's switch, SecuritySwitch (besides the switches and the console itself).
 const BUILDING: Array[String] = [
 	"CameraHall",
@@ -171,7 +171,7 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 # deterministic; two groups (one per switch) and a fitted zoom that keeps labels readable.
 func _assert_graph_readable(console: Computer) -> void:
 	var rows := MapChecks.rows_from(console.entity)
-	var result := MapChecks.check(self, rows, Terminal.cables(rows), load("res://objects/terminal/terminal.tres"))
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var zoom: float = result["zoom"]
 	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.8)
 	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(2)

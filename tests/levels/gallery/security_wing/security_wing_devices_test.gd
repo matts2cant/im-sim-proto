@@ -11,7 +11,7 @@ extends GdUnitTestSuite
 ## 0114); the old network map of that network reads well (ADR 0099).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const NETWORK: Array[String] = [
 	"Devices/Camera",
@@ -89,11 +89,13 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switch() -
 	var booth := _device("Devices/BoothComputer")
 	for path in NETWORK:
 		assert_bool(booth.reaches(_room.get_node(path))).override_failure_message(path).is_true()
-	var listed: Array[String] = ["Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "VaultDoor"]
+	# The panic button and the base station take disable / enable since M12a (ADR 0113).
+	var listed: Array[String] = [
+		"Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "PanicButton", "BaseStation", "VaultDoor"
+	]
 	listed.append_array(LASERS)
 	assert_array(_listed()).contains_exactly_in_any_order(listed)
-	# The Security app also lists the panic button and the base station (no commands yet), never the
-	# switch (no security kind).
+	# The Security app never lists the switch (no security kind).
 	var network: Array[String] = [
 		"Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "PanicButton", "BaseStation", "VaultDoor"
 	]
@@ -121,7 +123,7 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switch() -
 # when fitted at a readable zoom, deterministic.
 func test_the_network_map_is_readable() -> void:
 	var rows := MapChecks.rows_from(_room.get_node("Devices/BoothComputer"))
-	var result := MapChecks.check(self, rows, Terminal.cables(rows), load("res://objects/terminal/terminal.tres"))
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var zoom: float = result["zoom"]
 	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.9)
 	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(1)
@@ -153,7 +155,7 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 
 	_breaker("BreakerB").set_closed(true)
 
-	assert_array(_listed()).has_size(6 + LASERS.size())
+	assert_array(_listed()).has_size(8 + LASERS.size())
 
 
 func test_shooting_the_switch_cuts_the_chain_too() -> void:
@@ -174,7 +176,7 @@ func test_breaker_a_off_unlocks_d4_only() -> void:
 
 	assert_bool(d4.is_locked()).is_false()
 	assert_bool(Door.of(_room.get_node("Doors/VaultDoor")).is_locked()).is_true()
-	assert_array(_listed()).has_size(6 + LASERS.size())
+	assert_array(_listed()).has_size(8 + LASERS.size())
 
 
 func test_closed_vault_door_blocks_the_turrets_line_of_sight() -> void:

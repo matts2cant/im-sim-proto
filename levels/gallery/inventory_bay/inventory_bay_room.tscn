@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="25_rifle_rounds"]
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="26_silencer"]
 [ext_resource type="PackedScene" path="res://items/prototype/prototype.tscn" id="27_prototype"]
+[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="28_deck"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -115,6 +116,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0555, -14.44)
 
 [node name="Prototype" parent="ItemTable" instance=ExtResource("27_prototype")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.08, -14.88)
+
+[node name="Deck" parent="ItemTable" instance=ExtResource("28_deck")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.02, -7.7)
 
 [node name="Stacks" type="Node3D" parent="."]
 
@@ -416,6 +420,13 @@ pixel_size = 0.0025
 [node name="Prototype" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -14.88)
 text = "Prototype
+2×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="Deck" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.92, -7.7)
+text = "Deck
 2×1"
 size = 0
 pixel_size = 0.0025

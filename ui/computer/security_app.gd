@@ -7,7 +7,9 @@ extends HBoxContainer
 ## - the selected device's detail pane: its name, kind and status, the live view when it has one
 ##   (DeviceStatus.has_view(): a FEED_SIZE SubViewport whose camera follows the device's view node,
 ##   rendered only while shown; "No signal" when offline or blind), its status words and address,
-##   and one button per command it accepts (labels and danger style from the config's table).
+##   and one button per command it accepts that applies now (DeviceStatus.applicable(): Enable only
+##   while disabled; Stop or Resume sweep, Lock or Unlock, Open or Close by state; labels and
+##   danger style from the config's table).
 ## Offline devices stay listed, greyed, without actions. A computer that controls none says so and
 ## points to the deck. refresh() rebuilds what changed; the screen calls it a few times a second.
 
@@ -324,7 +326,7 @@ func _rebuild_detail() -> void:
 	detail_address.visible = not address.is_empty()
 	feed_frame.visible = row.has_view
 	view_label.text = row.name.to_upper()
-	for command in row.commands:
+	for command in DeviceStatus.applicable(row.commands, row.status, row.disabled):
 		var danger := computer.config.danger_commands.has(command)
 		var button := HalcyonStyle.button(computer.config.label_for(command), false, danger)
 		button.pressed.connect(press.bind(command, row.device))

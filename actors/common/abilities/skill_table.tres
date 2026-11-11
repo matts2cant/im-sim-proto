@@ -162,12 +162,46 @@ display_name = "Medicine"
 description = "Health restored by the medkits this character uses (on itself or, later, on others)."
 effects = Array[ExtResource("3_effect")]([SubResource("Effect_medical_heal_mult")])
 
+[sub_resource type="Resource" id="Effect_deck_crack_time_mult"]
+script = ExtResource("3_effect")
+attribute = &"deck_crack_time_mult"
+op = 1
+label = "Crack time"
+shows_value = true
+display_base = 24.0
+display_unit = " s (Medium)"
+display_decimals = 1
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.3])
+
+[sub_resource type="Resource" id="Effect_deck_trace_gain_mult"]
+script = ExtResource("3_effect")
+attribute = &"deck_trace_gain_mult"
+op = 1
+label = "Trace gain"
+tier_values = Array[float]([1.0, 0.8, 0.6, 0.4])
+
+[sub_resource type="Resource" id="Effect_deck_max_strength"]
+script = ExtResource("3_effect")
+attribute = &"deck_max_strength"
+op = 0
+label = "Cracks up to"
+tier_texts = Array[String](["Weak", "Medium", "Strong", "Strong"])
+tier_values = Array[float]([0.0, 1.0, 2.0, 2.0])
+
+[sub_resource type="Resource" id="Effect_deck_assist"]
+script = ExtResource("3_effect")
+attribute = &"deck_assist"
+op = 0
+label = "Assists"
+tier_texts = Array[String](["-", "+ time estimates", "+ trace estimates", "+ hidden routes"])
+tier_values = Array[float]([0.0, 1.0, 2.0, 3.0])
+
 [sub_resource type="Resource" id="Skill_computer"]
 script = ExtResource("2_skill")
 id = &"computer"
 display_name = "Computer"
-description = "The deck's tools: crack time, trace gain, Icebreaker strength (consumer: M12)."
-effects = Array[ExtResource("3_effect")]([])
+description = "The deck's tools: Icebreaker crack time and the strongest password it cracks, trace gain; assists (Trained: time estimates, Advanced: + trace estimates, Master: + hidden routes)."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_deck_crack_time_mult"), SubResource("Effect_deck_trace_gain_mult"), SubResource("Effect_deck_max_strength"), SubResource("Effect_deck_assist")])
 
 [sub_resource type="Resource" id="Effect_lockpick_window_low"]
 script = ExtResource("3_effect")

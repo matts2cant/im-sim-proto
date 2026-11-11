@@ -15,6 +15,9 @@
 [ext_resource type="Script" path="res://objects/alarm/radio_base_station.gd" id="20_station"]
 [ext_resource type="Resource" path="res://objects/alarm/radio_base_station.tres" id="21_config"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_broadcast.tres" id="30_command_broadcast"]
+[ext_resource type="Script" path="res://objects/devices/device_switch.gd" id="40_switch"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="41_disable"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="42_enable"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
 size = Vector3(0.4, 0.45, 0.2)
@@ -73,7 +76,7 @@ base_values = Dictionary[StringName, float]({&"health": 30.0})
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
 script = ExtResource("3_receiver")
-receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_broadcast")])
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_broadcast"), ExtResource("41_disable"), ExtResource("42_enable")])
 
 [node name="Breakable" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
@@ -90,6 +93,9 @@ targets = Array[NodePath]([NodePath("../Indicator")])
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
 broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../Antenna")])
+
+[node name="DeviceSwitch" type="Node" parent="."]
+script = ExtResource("40_switch")
 
 [node name="RadioBaseStationBehaviour" type="Node" parent="."]
 script = ExtResource("20_station")

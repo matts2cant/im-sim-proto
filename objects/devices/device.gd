@@ -18,11 +18,25 @@ extends Node
 ##   on what a device is: a device accepts a command when one of its receivers wants that type.
 ## - Incidents: report_incident() sends `device.incident` (origin = the incident location) to every
 ##   device this one reaches that accepts it (alarm controllers).
+## - Network (M12a, ADR 0113): `address` and `subnet` (empty: the subnet of a cabled device that
+##   names one, else the implicit &"" every level without network data is on); a device with a
+##   Gateway component is a gate between subnets (DeviceGraph): it lets a device's traffic through by
+##   its rules (default allow) and a user's (the deck) only once that user has an account on it.
+##   `trusted`: the devices allowed to command this one (empty: any device that reaches it, M8's
+##   behaviour); incidents are reports, not commands, and ignore it.
+## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
+##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
+##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
+##   is the deck's tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock):
+##   holding LMB with the deck plugs it in (DeckSession) and raises its screen.
 ## EventLog: `device.command {command, from, to, sent, point}` for every attempt,
 ## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`).
 
 signal state_changed(up: bool)
 signal action_received(action: StringName, stimulus: Stimulus)
+
+## How a deck plugs into this device (see the class description).
+enum DeckPort { AUTO, NONE, JACK, MAINTENANCE, HOST }
 
 const GROUP: StringName = &"device"
 const UNPOWERED: StringName = &"state.unpowered"
@@ -55,12 +69,25 @@ const TARGET_GUARDS: StringName = &"command.target_guards"
 const TARGET_EVERYONE: StringName = &"command.target_everyone"
 ## send_command() without a point: the stimulus origin is the target's position.
 const NO_POINT: Vector3 = Vector3.INF
+## ItemData.tool_kind of the deck.
+const DECK_TOOL: StringName = &"deck"
+## Graph id of a deck plugged into a wall jack (a node of its own, cabled to the jack).
+const DECK_NODE: int = -1
 
 ## Devices this one is cabled to: paths to their entities (or their Device nodes).
 @export var links: Array[NodePath] = []
 ## Nodes hidden once the device is broken (a siren's horn, an indicator).
 @export var broken_hide: Array[NodePath] = []
 @export var entity_path: NodePath = ^".."
+
+@export_group("Network")
+## Its IP address as screens show it ("10.0.10.12"); empty: none shown.
+@export var address: String = ""
+## Its subnet; empty: the subnet of a cabled device that names one (a switch), else the implicit one.
+@export var subnet: StringName = &""
+## Devices (entities or Device nodes) allowed to command it; empty: any device that reaches it.
+@export var trusted: Array[NodePath] = []
+@export var deck_port: DeckPort = DeckPort.AUTO
 
 var entity: Node3D
 var powered: Powered
@@ -113,16 +140,68 @@ static func all(tree: SceneTree) -> Array[Device]:
 	return found
 
 
-## The reach graph of every device in `tree` (ids: Device instance ids).
-static func graph(tree: SceneTree) -> DeviceGraph:
+## The reach graph of every device in `tree` (ids: Device instance ids), with subnets and gateways.
+## `source`: the user traffic comes from (a deck, ADR 0113): its start node (source.start_id())
+## speaks with its user's rights at the gates; a deck on a wall jack is a node of its own (DECK_NODE)
+## cabled to the jack. Without a source every node speaks for its own device.
+static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 	var result := DeviceGraph.new()
 	var devices := all(tree)
 	for device in devices:
-		result.add_node(device.get_instance_id(), device.is_up())
+		var id := device.get_instance_id()
+		result.add_node(id, device.is_up())
+		var gateway := Gateway.of(device.entity)
+		if gateway != null:
+			result.set_gate(id, Device._gate(gateway, source, result))
 	for device in devices:
 		for other in device.linked():
 			result.link(device.get_instance_id(), other.get_instance_id())
+	for device in devices:
+		var id := device.get_instance_id()
+		var own := device.subnet
+		if own.is_empty():
+			for next in result.neighbours(id):
+				var other := instance_from_id(next) as Device
+				if other != null and not other.subnet.is_empty() and not result.is_gate(next):
+					own = other.subnet
+					break
+		result.set_subnet(id, own)
+	if source != null and source.start_id() == DECK_NODE and is_instance_valid(source.device):
+		result.add_node(DECK_NODE, true)
+		result.set_subnet(DECK_NODE, source.subnet)
+		result.link(DECK_NODE, source.device.get_instance_id())
 	return result
+
+
+# The gate of `gateway`: Gateway.passes() for the traffic's source (the user's at the source's start
+# node, else the sending device's) and its final destination.
+static func _gate(gateway: Gateway, source: NetworkSource, network: DeviceGraph) -> Callable:
+	var senders: Dictionary[int, NetworkSource] = {}
+	return func(from: int, to: int) -> bool:
+		var sender := source if source != null and from == source.start_id() else null
+		if sender == null:
+			sender = senders.get(from, null)
+		if sender == null:
+			sender = NetworkSource.of_device(instance_from_id(from) as Device, network.subnet_of(from))
+			senders[from] = sender
+		return gateway.passes(sender, instance_from_id(to) as Device)
+
+
+## Tool interface (ToolUse): a deck plugs in when this device has a port for it.
+func accepts_tool(tool: StringName) -> bool:
+	return tool == DECK_TOOL and DeviceNetwork.port_kind(self) != DeckPort.NONE
+
+
+## Working it with the deck plugs the user's deck in here and raises its screen (DeckSession).
+func tool_hold(user: Node, _delta: float) -> bool:
+	var session := DeckSession.of(user)
+	if session != null:
+		session.plug_and_raise(self)
+	return false
+
+
+func tool_release(_user: Node) -> void:
+	pass
 
 
 ## Powered and unbroken (and its entity still in the level).
@@ -167,18 +246,11 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	return found
 
 
-## Every device this one is cabled to through up devices, the last one up or down (DeviceGraph
-## .connected()): reached() without a type, plus the down devices right behind a reached one or
-## cabled to this one (a computer lists those as unpowered or broken). Nearest first.
-func connected_devices() -> Array[Device]:
-	var found: Array[Device] = []
-	if not is_inside_tree():
-		return found
-	for id in Device.graph(get_tree()).connected(get_instance_id()):
-		var device := instance_from_id(id) as Device
-		if device != null:
-			found.append(device)
-	return found
+## Its network address (`address`) for screens that ask any component (Computer.address(), ADR
+## 0114): the deck's network layer offers it here. (The dead devices behind a live link:
+## NetworkSource.connected().)
+func device_address() -> String:
+	return address
 
 
 ## True when a receiver of this device's entity wants stimuli of `type` (has a receptron for it)
@@ -208,12 +280,13 @@ static func command_stimulus(
 
 ## Sends `command` to `target` (an entity or its Device) when this device reaches it: a CONTACT
 ## stimulus at the target's entity, origin `at` (NO_POINT: the target's position), emitted through
-## StimulusSystem (delivered on the next tick). Logged either way. True when sent.
+## StimulusSystem (delivered on the next tick), and only when the target trusts this device (an
+## incident needs no trust). Logged either way. True when sent.
 ## `by`: who operated this device to send it (a computer's user), logged with the stimulus id as
 ## `by` and `stimulus` so what the command starts traces back to them (mission tallies, ADR 0087).
 func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by: Node = null) -> bool:
 	var other := Device.of(target)
-	var sent := other != null and reaches(other)
+	var sent := other != null and reaches(other) and (command == INCIDENT or DeviceNetwork.trusts(other, self))
 	var target_name := String(other.entity.name) if other != null and is_instance_valid(other.entity) else ""
 	var data := {"command": command, "from": _entity_name(), "to": target_name, "sent": sent}
 	if at != NO_POINT:

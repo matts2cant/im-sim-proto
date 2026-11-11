@@ -68,8 +68,12 @@ func test_low_tech_and_medicine_per_tier() -> void:
 
 
 func test_tool_skills_only_write_attributes() -> void:
-	# Computer has no effects until M12 (ADR 0076).
-	assert_array(TABLE.find(&"computer").effects).is_empty()
+	# Computer: the deck's tools (M12a, ADR 0113).
+	var computer := _values(TABLE.find(&"computer"), 1)
+	assert_float(computer[&"deck_crack_time_mult"]).is_equal_approx(0.75, 0.0001)
+	assert_float(computer[&"deck_trace_gain_mult"]).is_equal_approx(0.8, 0.0001)
+	assert_float(computer[&"deck_max_strength"]).is_equal_approx(1.0, 0.0001)
+	assert_float(computer[&"deck_assist"]).is_equal_approx(1.0, 0.0001)
 	var lockpicking := _values(TABLE.find(&"lockpicking"), 1)
 	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.03, 0.0001)
 	assert_float(lockpicking[&"lockpick_assist"]).is_equal_approx(1.0, 0.0001)
@@ -109,7 +113,11 @@ func test_tier_rows_read_the_display_data() -> void:
 	assert_array(Array(lockpicking[7])).is_equal(
 		["Assists", "Sound only", "+ tension gauge", "+ captions", "+ clear lock"]
 	)
-	assert_array(TABLE.find(&"computer").tier_rows(4)).is_empty()
+	var computer := TABLE.find(&"computer").tier_rows(4)
+	assert_array(Array(computer[0])).is_equal(
+		["Crack time", "24 s (Medium)", "18 s (Medium)", "12 s (Medium)", "7.2 s (Medium)"]
+	)
+	assert_array(Array(computer[2])).is_equal(["Cracks up to", "Weak", "Medium", "Strong", "Strong"])
 
 
 func test_every_shipped_effect_has_a_label() -> void:

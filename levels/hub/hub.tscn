@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://levels/gallery/security_wing/security_wing.tscn" id="20_security_wing"]
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="21_silencer"]
 [ext_resource type="PackedScene" path="res://levels/kit/level_exit.tscn" id="22_level_exit"]
+[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="23_deck"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -238,6 +239,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.88, 1.06, 8.05)
 
 [node name="ItemPickup" parent="Loadout/Biocell"]
 count = 2
+
+[node name="Deck" parent="Loadout" instance=ExtResource("23_deck")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.02, 7.82)
 
 [node name="Sign" parent="Loadout" instance=ExtResource("5_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.6, 7.72)

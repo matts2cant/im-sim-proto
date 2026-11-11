@@ -92,17 +92,18 @@ func test_devices_are_grouped_by_kind_with_an_icon_per_kind() -> void:
 
 func test_actions_are_the_commands_each_device_accepts_and_send_them() -> void:
 	assert_bool(_app.select("Camera")).is_true()
-	assert_array(_app.action_labels()).contains_exactly(
-		["Enable", "Disable", "Stop sweep", "Resume sweep", "Pan left", "Pan right"]
-	)
+	# Only the commands that apply now (DeviceStatus.applicable(), ADR 0113): enabled and sweeping.
+	assert_array(_app.action_labels()).contains_exactly(["Disable", "Stop sweep", "Pan left", "Pan right"])
 	await _press("Disable")
 	assert_str(_app.status_of("Camera")).contains("disabled")
 	assert_str(_app.result_label.text).is_equal("Camera: Disable sent.")
+	assert_array(_app.action_labels()).contains_exactly(["Enable"])
 	# A door locked, then unlocked.
 	_app.select("Door")
-	assert_array(_app.action_labels()).contains_exactly(["Open", "Close", "Lock", "Unlock"])
+	assert_array(_app.action_labels()).contains_exactly(["Open", "Lock"])
 	await _press("Lock")
 	assert_str(_app.status_of("Door")).contains("locked")
+	assert_array(_app.action_labels()).contains_exactly(["Open", "Unlock"])
 	await _press("Unlock")
 	assert_str(_app.status_of("Door")).contains("unlocked")
 	# The alarm disarmed.
@@ -110,9 +111,10 @@ func test_actions_are_the_commands_each_device_accepts_and_send_them() -> void:
 	await _press("Disarm")
 	assert_str(_app.status_of("Controller")).contains("disarmed")
 	assert_bool(DeviceStatus.is_disabled(_nodes["Controller"])).is_true()
+	assert_bool(_app.action_labels().has("Disarm")).is_false()
 	# A laser array disabled.
 	_app.select("Laser")
-	assert_array(_app.action_labels()).contains_exactly(["Enable", "Disable"])
+	assert_array(_app.action_labels()).contains_exactly(["Disable"])
 	await _press("Disable")
 	assert_bool(DeviceStatus.is_disabled(_nodes["Laser"])).is_true()
 	# Every press went over the network from the console.

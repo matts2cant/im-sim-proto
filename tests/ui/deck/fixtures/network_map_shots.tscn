@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/ui/deck/fixtures/network_map_shots.gd" id="1_shots"]
+
+[node name="NetworkMapShots" type="Node3D"]
+script = ExtResource("1_shots")
+
+[node name="Camera3D" type="Camera3D" parent="."]
