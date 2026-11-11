@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="LockpickSounds" format=3]
+
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_1.wav" id="1_ekk74"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_2.wav" id="2_5xaw5"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_3.wav" id="3_f4hpm"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_muted_1.wav" id="4_vwhqh"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_muted_2.wav" id="5_tuo55"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/click_muted_3.wav" id="6_oahsv"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/tick_1.wav" id="7_cpoha"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/tick_2.wav" id="8_3q5a3"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/tick_3.wav" id="9_mte7x"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/clunk_1.wav" id="10_aqc6d"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/clunk_2.wav" id="11_5yynj"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/clunk_3.wav" id="12_nq4d1"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/creak.wav" id="13_1apha"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/jam_1.wav" id="14_eeso2"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/jam_2.wav" id="15_oet6x"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/jam_3.wav" id="16_yppau"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/snap_1.wav" id="17_marvy"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/snap_2.wav" id="18_giv6v"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/snap_3.wav" id="19_0lxqt"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/drop.wav" id="20_eqb3j"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/open_1.wav" id="21_8uj7j"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/open_2.wav" id="22_cowj7"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/open_3.wav" id="23_duf6c"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/relock_1.wav" id="24_iaw86"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/relock_2.wav" id="25_8ck10"]
+[ext_resource type="AudioStream" path="res://items/lockpick/audio/sfx/relock_3.wav" id="26_7jccr"]
+[ext_resource type="Script" path="res://items/lockpick/audio/lockpick_sounds.gd" id="27_b3iga"]
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_kg7nr"]
+streams_count = 3
+stream_0/stream = ExtResource("1_ekk74")
+stream_1/stream = ExtResource("2_5xaw5")
+stream_2/stream = ExtResource("3_f4hpm")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_u7pbk"]
+streams_count = 3
+stream_0/stream = ExtResource("4_vwhqh")
+stream_1/stream = ExtResource("5_tuo55")
+stream_2/stream = ExtResource("6_oahsv")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_wfsxw"]
+streams_count = 3
+stream_0/stream = ExtResource("7_cpoha")
+stream_1/stream = ExtResource("8_3q5a3")
+stream_2/stream = ExtResource("9_mte7x")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_m7x0f"]
+streams_count = 3
+stream_0/stream = ExtResource("10_aqc6d")
+stream_1/stream = ExtResource("11_5yynj")
+stream_2/stream = ExtResource("12_nq4d1")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_ij8ix"]
+streams_count = 3
+stream_0/stream = ExtResource("14_eeso2")
+stream_1/stream = ExtResource("15_oet6x")
+stream_2/stream = ExtResource("16_yppau")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_pq06p"]
+streams_count = 3
+stream_0/stream = ExtResource("17_marvy")
+stream_1/stream = ExtResource("18_giv6v")
+stream_2/stream = ExtResource("19_0lxqt")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_0jufr"]
+streams_count = 3
+stream_0/stream = ExtResource("21_8uj7j")
+stream_1/stream = ExtResource("22_cowj7")
+stream_2/stream = ExtResource("23_duf6c")
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_iqvf8"]
+streams_count = 3
+stream_0/stream = ExtResource("24_iaw86")
+stream_1/stream = ExtResource("25_8ck10")
+stream_2/stream = ExtResource("26_7jccr")
+
+[resource]
+script = ExtResource("27_b3iga")
+cues = Dictionary[StringName, AudioStream]({
+&"click": SubResource("AudioStreamRandomizer_kg7nr"),
+&"click_muted": SubResource("AudioStreamRandomizer_u7pbk"),
+&"clunk": SubResource("AudioStreamRandomizer_m7x0f"),
+&"creak": ExtResource("13_1apha"),
+&"drop": ExtResource("20_eqb3j"),
+&"jam": SubResource("AudioStreamRandomizer_ij8ix"),
+&"open": SubResource("AudioStreamRandomizer_0jufr"),
+&"relock": SubResource("AudioStreamRandomizer_iqvf8"),
+&"snap": SubResource("AudioStreamRandomizer_pq06p"),
+&"tick": SubResource("AudioStreamRandomizer_wfsxw")
+})
