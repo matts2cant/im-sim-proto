@@ -65,7 +65,7 @@ Times are for a player who understands the mechanic.
 
 ### Feedback
 
-- **Sounds**: binding scrape, crisp set click, duller and bigger false-set clunk, counter-rotation creak, serrated ticks, rising strain before a break, overset jam. Placeholder sounds first; a real sound pass later.
+- **Sounds**: binding scrape, crisp set click, duller and bigger false-set clunk, counter-rotation creak, serrated ticks, rising strain before a break, overset jam. Placeholder sounds first (the prototype's synth sounds: one-shots baked to WAV, the scrape and strain synthesised live; `LockpickAudio`, [ADR 0108](../decisions/0108-lockpick-sounds.md)); a real sound pass later.
 - **Tool motion**: the wrench turns with the plug and kicks back on counter-rotation; the pick bends with force; the plug turns a hair per set and noticeably on a false set.
 - **Camera**: tiny nudges on clicks.
 - **Practice locks**: clear acrylic locks (one per tier) in the Security wing show the pins. They are the tutorial. The final game will likely have a Deus Ex-style training course ([../backlog.md](../backlog.md)).
