@@ -29,8 +29,8 @@ var _row_plain := CharacterTabStyle.row_style(false)
 var _row_selected := CharacterTabStyle.row_style(true)
 var _pip_on := CharacterTabStyle.box(CharacterTabStyle.AMBER, CharacterTabStyle.AMBER, 0)
 var _pip_off := CharacterTabStyle.box(CharacterTabStyle.WELL, CharacterTabStyle.LINE_STRONG, 0)
-var _cell_current := CharacterTabStyle.box(CharacterTabStyle.SELECTED_BG, CharacterTabStyle.CLEAR, 0)
-var _cell_plain := CharacterTabStyle.box(CharacterTabStyle.CLEAR, CharacterTabStyle.CLEAR, 0)
+var _cell_current := _cell_style(CharacterTabStyle.SELECTED_BG)
+var _cell_plain := _cell_style(CharacterTabStyle.CLEAR)
 
 
 func tab_title() -> String:
@@ -136,7 +136,7 @@ func _show_details(tier: int) -> void:
 			var text := CharacterTabStyle.label(rows[r][c], 12 if r == 0 else 13, color)
 			if c == 0:
 				text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				text.custom_minimum_size.x = 120.0
+				text.custom_minimum_size.x = 128.0
 			cell.add_child(text)
 			_table.add_child(cell)
 
@@ -148,7 +148,7 @@ func _build() -> void:
 	columns.add_theme_constant_override(&"separation", 0)
 	add_child(columns)
 
-	var left := CharacterTabStyle.column(columns, 400.0)
+	var left := CharacterTabStyle.column(columns, 340.0)
 	left.add_child(CharacterTabStyle.heading("Skills"))
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override(&"separation", 2)
@@ -240,6 +240,15 @@ func _skill_row(skill: StringName) -> PanelContainer:
 	_pips[skill] = pip_nodes
 	_tier_labels[skill] = tier
 	return row
+
+
+static func _cell_style(bg: Color) -> StyleBoxFlat:
+	var style := CharacterTabStyle.box(bg, CharacterTabStyle.CLEAR, 0)
+	style.content_margin_left = 6.0
+	style.content_margin_right = 6.0
+	style.content_margin_top = 4.0
+	style.content_margin_bottom = 4.0
+	return style
 
 
 func _on_row_input(event: InputEvent, skill: StringName) -> void:

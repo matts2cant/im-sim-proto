@@ -4,7 +4,7 @@ Milestone: M6 (Inventory and abilities bay). Model: [ADR 0061](../decisions/0061
 
 ## Purpose
 
-A basic ability system without leveling. Values are edited in the debug panel's Stats tab. Built on modifiers so progression can be added later ([../backlog.md](../backlog.md)).
+A basic ability system without leveling. Values are edited in the debug panel's Stats tab (and, until M18, the Tab interface's Skills page TESTING buttons). Built on modifiers so progression can be added later ([../backlog.md](../backlog.md)).
 
 ## Model
 
@@ -73,6 +73,13 @@ Every switch is logged (`augmentation.activated`, `augmentation.deactivated` {re
 - Crouching (`stance.crouch`) settles the aim cone faster (×0.6 settle time), stacking with Pistols ([weapons-and-aiming.md](weapons-and-aiming.md)).
 - Saving: `Skills` (tiers) and `Augmentations` (installed, active) are saveable; the energy is in the attributes; modifiers and tags are re-derived on load ([saving.md](saving.md)).
 - No difficulty settings in v0.
+
+## Tab interface pages (M11, [ADR 0111](../decisions/0111-character-tabs-and-per-part-medkit.md))
+
+The Tab interface (the world keeps running behind it) has two pages for abilities; both update live while shown and work for any character with the components (`ui/tab_interface/tabs/`).
+
+- **Augmentations** (`augmentations_tab.tscn`): the energy bar and charge ("41 / 100"), the total drain of what is on and the seconds left at that drain ("10 s left at 4 / s", "No drain"); one card per key slot F1-F5 (the key bound to `aug_<n>`): name, description, drain per second and a switch. The switch goes through `Augmentations.toggle_slot()`, the F-keys' path, so switching on at 0 energy is refused with "Energy depleted" (shown on the page). While on, the card turns blue and shows "N s alone" (the charge / its own drain). A slot whose augmentation is not installed is greyed: "Not installed.", "needs an augmentation canister", no switch. Installed passive augmentations (none ship) are listed below without a switch.
+- **Skills** (`skills_tab.tscn`): each skill with three tier pips and its tier name; the selected skill shows its description and "What each tier gives", a table built from the skill data (`SkillData.tier_rows()`): one row per `SkillEffect`, its `label` and per-tier text from its Display group (the modifier itself, "x0.8" / "+1.2 %", or the value it gives a stated base, settle "0.6 s", medkit "45", or one text per tier, Lockpicking's assists), the current tier's column highlighted. The base values shown (`display_base`) repeat the consumers' tuning for reading only. TESTING controls − / + change the tier through `Skills.set_tier()` (the Stats tab's path, clamped Untrained..Master) until M18 replaces them with experience; the Experience box is a placeholder until then.
 
 ## Interactions
 
