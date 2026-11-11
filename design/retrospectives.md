@@ -10,7 +10,7 @@ The user and I agreed a roadmap (M11 to M20, design/README.md; network hacking w
 - M11b: the Health, Augmentations and Skills tabs, and a medkit on a chosen body part (ADR 0111). Merged first.
 - M11a: the host, the Inventory and Journal tabs, and keypad and datapad reading in real time (ADR 0110). It merged master, kept the real pages and added the integration test through the host.
 
-Final suite on master: 1680 tests, 0 failures, 1 skipped, lint clean, twice. The second run took 105.5 s with no other Godot process running (about 50 s after M10a). The slowest shard (101 s) holds nine warehouse suites, 39 s of them `warehouse_patrol_timing_test`; the other shards finish far earlier. To investigate (below).
+Final suite on master: 1680 tests, 0 failures, 1 skipped, lint clean, twice. The second run took 105.5 s with no other Godot process running (about 50 s after M10a). The slowest shard (101 s) holds nine warehouse suites, 39 s of them `warehouse_patrol_timing_test`; the other shards finish far earlier. The user had ComfyUI running at the time, which explains it: not investigated further (user, 2026-11-11).
 
 - **Went well:**
   - **The settled-parts-only rule from M10 held.** The mockup was approved before any agent started, and neither agent's work was thrown away.
@@ -27,7 +27,7 @@ Final suite on master: 1680 tests, 0 failures, 1 skipped, lint clean, twice. The
 - **Changes:**
   - None to the process: the M10 rules worked.
   - Watch the guard-helpers worker-thread test when agents run in parallel. If it fails again, give it a longer real-time cap or serialise the two agents' full runs.
-  - **Suite time doubled** (about 50 s to 105 s) somewhere in M10c, M10d or M11, unnoticed because the agents' runs overlapped and I read slow runs as load. Next: find which suites got slower and why, and spread the warehouse suites over shards. Rule: when a quiet second run is more than 20 % slower than the last recorded one, investigate before handing over.
+  - **Suite time doubled** (about 50 s to 105 s) somewhere in M10c, M10d or M11, unnoticed because the agents' runs overlapped and I read slow runs as load. It turned out the user had ComfyUI running (GPU and CPU load), not a regression. Rule: when a quiet second run is more than 20 % slower than the last recorded one, investigate before handing over.
 - **Open for the user:**
   - Hover + belt key no longer assigns an item to a belt slot inside the Tab interface (drag it onto a slot, or use the belt picker). Is that fine?
   - Using a medkit from the Inventory tab heals at once (spread over the body), instead of switching to the Health tab as in the mockup. Which do you prefer?
