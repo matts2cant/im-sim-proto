@@ -1,10 +1,10 @@
 extends GdUnitTestSuite
-## Integration (ADR 0085): fitting the silencer in the inventory screen. While it is dragged, every
+## Integration (ADR 0085): fitting the silencer in the Inventory tab. While it is dragged, every
 ## weapon it fits is highlighted (grid and belt), never the shotgun; dropped on the pistol (grid) or
 ## the sniper rifle (belt slot) it is fitted: the silencer stack is used up, the weapon's state
 ## records it, its shots are a quarter as loud (pistol 25 -> 6.25). Dropped on the shotgun it is just
 ## a refused move. It stays fitted through save/load and drop/pick-up (the pickup shows it). Mouse
-## events are sent to the InventoryView like the viewport would (inventory_screen_test.gd).
+## events are sent to the Inventory tab's InventoryView like the viewport would (inventory_tab_test.gd).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -18,7 +18,7 @@ const AMMO: ItemData = preload("res://items/pistol_ammo/pistol_ammo.tres")
 
 var _driver: PlayerDriver
 var _player: Player
-var _screen: InventoryScreen
+var _screen: TabInterface
 var _view: InventoryView
 var _pistol: ItemStack
 var _shotgun: ItemStack
@@ -194,8 +194,8 @@ func _press(action: StringName) -> void:
 func _load() -> void:
 	_driver = PlayerDriver.new(scene_runner(ROOM))
 	_player = _driver.player
-	_screen = _player.get_node("InventoryScreen") as InventoryScreen
-	_view = _screen.view
+	_screen = TabInterface.of(_player)
+	_view = (_screen.page(0) as InventoryTab).view
 	await _driver.settle()
 	await _driver.place(Vector3.ZERO)
 	var inventory := _player.inventory
