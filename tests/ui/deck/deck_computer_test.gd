@@ -74,6 +74,13 @@ func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back
 	assert_float(area.position.y).is_greater(0.075)
 	assert_float(area.end.x).is_less_equal(0.925 + 0.001)
 	assert_float(area.end.y).is_less_equal(0.925 + 0.001)
+	# The desktop really fits there (its title bar holds the compact trace bars).
+	_deck.refresh_computer_traces()
+	await _driver.frames(2)
+	var shown := _desktop.panel.get_global_rect()
+	var room := _deck.content_area.get_global_rect()
+	assert_float(shown.end.x).override_failure_message("%s in %s" % [shown, room]).is_less_equal(room.end.x + 1.0)
+	assert_float(shown.end.y).is_less_equal(room.end.y + 1.0)
 	# The address in its title bar comes from the network layer.
 	assert_str(Computer.of(_lab.node("Console")).address()).is_equal("10.0.20.5")
 	# Its Security app lists the camera (it trusts the console) with only the commands that apply.

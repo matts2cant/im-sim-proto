@@ -32,6 +32,9 @@ const ASSIST_PREFIX: String = "Computer skill · "
 ## Bars above this trace (%) turn red.
 const HOT_TRACE: float = 70.0
 const TRACE_BAR_WIDTH: float = 120.0
+## A remote desktop's title bar is narrower: its bars go without a name (the deck's own bar above
+## shows the named ones).
+const COMPACT_BAR_WIDTH: float = 48.0
 const MENU_WIDTH: float = 300.0
 
 var session: DeckSession
@@ -333,9 +336,10 @@ func _on_notice(text: String) -> void:
 func _on_remote_changed(computer: Computer) -> void:
 	if computer != null and computer_screen != null:
 		computer_screen.set_remote_area(content_anchors())
-	elif computer == null:
+	elif computer == null and is_inside_tree():
+		# Deferred: a desktop also closes while the level leaves the tree.
 		_signature = ""
-		refresh()
+		refresh.call_deferred()
 
 
 func _on_computer_opened(_computer: Computer, _remote: bool) -> void:
@@ -362,7 +366,15 @@ func refresh_computer_traces() -> void:
 	for tracer in tracers:
 		var known := tracer.device == computer.device or (session != null and session.map_devices().has(tracer.device))
 		var label := tracer.label if known else "unknown tracer"
-		computer_screen.add_trace_bar(trace_bar(label, tracer.trace_of(viewer), tracer.model.lockout_left(address)))
+		var left := tracer.model.lockout_left(address)
+		var bar: HBoxContainer
+		if computer_screen.is_remote():
+			# Compact: the deck's own bar right above names it.
+			bar = trace_bar("", tracer.trace_of(viewer), left, COMPACT_BAR_WIDTH)
+			bar.tooltip_text = label
+		else:
+			bar = trace_bar(label, tracer.trace_of(viewer), left)
+		computer_screen.add_trace_bar(bar)
 
 
 func _address_text() -> String:
@@ -417,21 +429,24 @@ func _refresh_traces() -> void:
 		trace_box.add_child(trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
 
 
-## One trace bar: `label`, a bar of `value` % (red above HOT_TRACE), "N %" and "blocked N s" while
+## One trace bar: `label`, a `width` px bar of `value` % (red above HOT_TRACE), "N %" and "blocked N s" while
 ## `lockout_left` > 0. The deck's title bar and the computer overlay use it.
-static func trace_bar(label: String, value: float, lockout_left: float) -> HBoxContainer:
+static func trace_bar(
+	label: String, value: float, lockout_left: float, width: float = TRACE_BAR_WIDTH
+) -> HBoxContainer:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override(&"separation", 8)
-	bar.add_child(DeckStyle.mono(label, DeckStyle.DIM_COLOR, 12))
+	if not label.is_empty():
+		bar.add_child(DeckStyle.mono(label, DeckStyle.DIM_COLOR, 12))
 	var track := Panel.new()
-	track.custom_minimum_size = Vector2(TRACE_BAR_WIDTH, 8.0)
+	track.custom_minimum_size = Vector2(width, 8.0)
 	track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	track.add_theme_stylebox_override(
 		&"panel", DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 0.0, 0.0, 0.0)
 	)
 	var fill := ColorRect.new()
 	fill.color = DeckStyle.ERROR_COLOR if value > HOT_TRACE else DeckStyle.ALERT_COLOR
-	fill.size = Vector2(TRACE_BAR_WIDTH * clampf(value / 100.0, 0.0, 1.0), 8.0)
+	fill.size = Vector2(width * clampf(value / 100.0, 0.0, 1.0), 8.0)
 	track.add_child(fill)
 	bar.add_child(track)
 	var text := "%d %%" % roundi(value)

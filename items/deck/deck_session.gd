@@ -338,8 +338,10 @@ func access_notice(device: Device, text: String) -> String:
 	return text
 
 
-## Where the deck keeps state about `device` (its entity's node path).
+## Where the deck keeps state about `device` (its entity's node path; "" once out of the tree).
 static func path_of(device: Device) -> String:
+	if device == null or not is_instance_valid(device) or not device.is_inside_tree():
+		return ""
 	return String(device.entity.get_path()) if is_instance_valid(device.entity) else String(device.get_path())
 
 
