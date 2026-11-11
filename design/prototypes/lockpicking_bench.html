@@ -1,0 +1,794 @@
+<meta charset="utf-8">
+<title>Lockpicking Bench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a locksmith's bench. The lock fills the left column; the right column is the designer's tray (lock setup, picks, controls, noise log). Single dark look on purpose: it is a game screen. */
+:root {
+  --bg: #0e1216;
+  --panel: #151b21;
+  --panel-2: #1b232b;
+  --line: #2a3540;
+  --fg: #e4e8ec;
+  --muted: #8d99a5;
+  --brass: #c9a24a;
+  --brass-dim: #8a6f33;
+  --steel: #a9b5c0;
+  --ok: #7fd6a2;
+  --warn: #e6b45a;
+  --bad: #e2786b;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body { font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+.app { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px; max-width: 1240px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 70ch; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+@media (max-width: 880px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage-col { display: grid; gap: 12px; min-width: 0; }
+.stage { position: relative; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0b0e11; outline: none; touch-action: none; cursor: ns-resize; }
+.stage:focus-visible { box-shadow: 0 0 0 2px var(--brass); }
+.stage canvas, .side canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(8, 10, 13, 0.72); text-align: center; padding: 24px; }
+.overlay[hidden] { display: none; }
+.overlay-box { display: grid; gap: 12px; max-width: 46ch; justify-items: center; }
+.overlay h2 { font-family: var(--font-display); font-size: 22px; margin: 0; }
+.overlay p { margin: 0; color: var(--muted); }
+.caption { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 13px; color: var(--fg); background: rgba(10, 12, 15, 0.78); border: 1px solid var(--line); padding: 4px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; transition: opacity 0.25s; }
+.tag { position: absolute; left: 12px; top: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; pointer-events: none; }
+.side { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0b0e11; aspect-ratio: 16 / 6; position: relative; max-width: 100%; }
+.side .tag { color: #9fc3d6; }
+button { font: inherit; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+button:hover { border-color: var(--brass-dim); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+button.primary { background: var(--brass); color: #1a1406; border-color: var(--brass); font-weight: 600; }
+.touchpad { display: none; gap: 8px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.touchpad button { padding: 12px 6px; user-select: none; -webkit-user-select: none; touch-action: none; }
+@media (pointer: coarse) { .touchpad { display: grid; } }
+aside { display: grid; gap: 12px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label.field { display: grid; gap: 4px; font-size: 12px; color: var(--muted); flex: 1 1 120px; min-width: 0; }
+select, input[type=number] { font: inherit; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; width: 100%; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.check input { accent-color: var(--brass); width: 16px; height: 16px; }
+.status { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.status dt { color: var(--muted); }
+.status dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.picks span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--steel); margin-right: 4px; }
+.picks span.gone { background: transparent; border: 1px solid var(--line); }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; font-size: 13px; }
+kbd { font-family: var(--font-mono); font-size: 12px; background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+.keys span { color: var(--muted); }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-family: var(--font-mono); font-size: 12px; max-height: 170px; overflow-y: auto; }
+.log li { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); }
+.log li b { color: var(--fg); font-weight: 400; }
+.log .empty { color: var(--muted); font-family: var(--font-body); }
+pre.readout { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.55; color: #c9d3dc; white-space: pre-wrap; }
+.note { font-size: 12px; color: var(--muted); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .caption { transition: none; } }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Lockpicking Bench</h1>
+    <p>A standalone prototype of the M10 pin-tumbler minigame (ADR 0073). Nothing here touches the game code.</p>
+  </header>
+
+  <div class="layout">
+    <section class="stage-col">
+      <div class="stage" id="stage" tabindex="0" aria-label="Lock view. Mouse up and down lifts the pick.">
+        <canvas id="front"></canvas>
+        <div class="tag" id="stageTag">Standard lock</div>
+        <div class="caption" id="caption" style="opacity:0"></div>
+        <div class="overlay" id="overlay">
+          <div class="overlay-box">
+            <h2 id="ovTitle">Pick this lock</h2>
+            <p id="ovText">Hold tension with W, find the binding pin with A / D, lift it with the mouse until it clicks. Too little tension and set pins drop; too much and they jam or the pick snaps.</p>
+            <button class="primary" id="ovBtn" type="button">Take the tools</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="touchpad" aria-label="Touch controls">
+        <button type="button" id="tDown">Tension −</button>
+        <button type="button" id="tUp">Tension +</button>
+        <button type="button" id="pPrev">◀ Pin</button>
+        <button type="button" id="pNext">Pin ▶</button>
+      </div>
+
+      <div class="side" id="sideWrap">
+        <canvas id="side"></canvas>
+        <div class="tag">Practice lock · clear acrylic</div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h3>Lock</h3>
+        <div class="row">
+          <label class="field">Tier
+            <select id="tier">
+              <option value="simple">Simple · 3 pins</option>
+              <option value="standard" selected>Standard · 5 pins</option>
+              <option value="secure">Secure · 5 pins, 2 spools</option>
+              <option value="high">High-security · 6 pins</option>
+            </select>
+          </label>
+          <label class="field">Lockpicking skill
+            <select id="skill">
+              <option value="0" selected>Untrained</option>
+              <option value="1">Trained</option>
+              <option value="2">Advanced</option>
+              <option value="3">Master</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label class="field">Pin seed
+            <input type="number" id="seed" value="4127" min="1" max="99999">
+          </label>
+          <button type="button" id="newLock">New lock</button>
+          <button type="button" id="retry">Retry</button>
+        </div>
+        <p class="note" id="target">Target: about 15 s untrained, 7 s at Master.</p>
+      </div>
+
+      <div class="card">
+        <h3>Attempt</h3>
+        <dl class="status">
+          <dt>Lockpicks</dt><dd class="picks" id="picks"></dd>
+          <dt>Time</dt><dd id="time">0.0 s</dd>
+          <dt>Result</dt><dd id="result">Not started</dd>
+        </dl>
+        <div class="row">
+          <button type="button" id="restock">Restock picks</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="keys">
+          <kbd>W</kbd><span>more tension (it holds where you leave it)</span>
+          <kbd>S</kbd><span>less tension</span>
+          <kbd>Shift</kbd><span>hold for fine tension steps</span>
+          <kbd>A</kbd> <span>pick to the previous pin</span>
+          <kbd>D</kbd><span>pick to the next pin</span>
+          <kbd>Mouse ↑↓</kbd><span>lift the pick (over the lock)</span>
+          <kbd>R</kbd><span>hold to rake (Master, Simple locks)</span>
+          <kbd>E</kbd><span>leave the lock (progress is lost)</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Bench options</h3>
+        <label class="check"><input type="checkbox" id="gauge" checked> Tension gauge (shows the sweet spot)</label>
+        <label class="check"><input type="checkbox" id="practice" checked> Practice lock (show the pins)</label>
+        <label class="check"><input type="checkbox" id="captions" checked> Sound captions</label>
+        <label class="check"><input type="checkbox" id="sound" checked> Sound</label>
+        <label class="check"><input type="checkbox" id="readoutOn"> Designer readout</label>
+        <pre class="readout" id="readout" hidden></pre>
+      </div>
+
+      <div class="card">
+        <h3>Noise heard by guards</h3>
+        <ul class="log" id="log"><li class="empty">Nothing yet. Clicks carry about 1 m, a snapped pick about 5 m.</li></ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // ---------- Data ----------
+  const TIERS = {
+    simple:   { name: "Simple",        pins: ["std", "std", "std"],                                 tol: 1.1, target: "about 5 s untrained; Master rakes it" },
+    standard: { name: "Standard",      pins: ["std", "std", "std", "std", "std"],                   tol: 1.0, target: "about 15 s untrained, 7 s at Master" },
+    secure:   { name: "Secure",        pins: ["std", "std", "std", "spool", "spool"],               tol: 0.9, target: "about 30 s untrained, 15 s at Master" },
+    high:     { name: "High-security", pins: ["std", "std", "spool", "spool", "serrated", "serrated"], tol: 0.7, target: "about 60 s untrained, 25 s at Master" },
+  };
+  const BASE_TOL = 0.045;
+  const NOISE = { click: 2, scrape: 2, tick: 2, jam: 3, clunk: 3, open: 4, snap: 6 };
+
+  function skillParams(t) {
+    return {
+      lo: 0.30 - 0.04 * t,        // working window, tension 0..1
+      hi: 0.60 + 0.04 * t,
+      drop: 0.15 - 0.03 * t,      // below this, set pins start to drop
+      dropDelay: 0.3 + 0.15 * t,  // seconds per dropped pin
+      tolBonus: 0.012 * t,        // lift tolerance around the shear line
+      hint: t >= 2,               // stronger scrape and tremor on the binding pin
+      rake: t >= 3,
+    };
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffle(arr, rng) {
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    return arr;
+  }
+
+  // ---------- State ----------
+  const cfg = { tier: "standard", seed: 4127, skill: 0, gauge: true, practice: true, captions: true, sound: true, readout: false };
+  let lock = null;
+  const st = {
+    started: false, tension: 0, tip: 0, target: 0, pick: 0, picks: 2,
+    strain: 0, force: 0, dropTimer: 0, falseExtra: 0, tickAngle: 0, setStack: [],
+    opened: false, openT: 0, t0: null, elapsed: 0, nudge: 0, rake: 0, tremor: 0,
+    lastScrapeLog: -9, lastCreak: 0, scraping: 0, outOfPicks: false,
+  };
+  const keys = {};
+  const touch = { up: false, down: false };
+
+  function buildLock() {
+    const T = TIERS[cfg.tier];
+    const rng = mulberry32(cfg.seed * 7919 + Object.keys(TIERS).indexOf(cfg.tier));
+    const types = shuffle(T.pins.slice(), rng);
+    const pins = types.map((type) => {
+      const s = 0.44 + rng() * 0.30;
+      return { type, s, fs: s - 0.12, levels: [s - 0.18, s - 0.09], h: 0, set: false, overset: false, spool: "none", tFalse: 0, ticks: 0, bump: 0 };
+    });
+    lock = { tier: cfg.tier, name: T.name, pins, order: shuffle(pins.map((_, i) => i), rng), tolMult: T.tol };
+    st.pick = 0;
+    resetProgress();
+    st.t0 = null; st.elapsed = 0; st.opened = false; st.openT = 0;
+    $("stageTag").textContent = T.name + " lock";
+    $("target").textContent = "Target: " + T.target + ".";
+    setResult("Not started");
+  }
+
+  function resetProgress() {
+    for (const p of lock.pins) { p.h = 0; p.set = false; p.overset = false; p.spool = "none"; p.tFalse = 0; p.ticks = 0; p.bump = 0; }
+    st.setStack = []; st.strain = 0; st.dropTimer = 0; st.falseExtra = 0; st.tickAngle = 0; st.rake = 0;
+  }
+
+  function bindingIndex() {
+    for (const i of lock.order) if (!lock.pins[i].set) return i;
+    return -1;
+  }
+  const setCount = () => lock.pins.filter((p) => p.set).length;
+  const anyProgress = () => lock.pins.some((p) => p.set || p.overset || p.spool === "false" || p.ticks);
+
+  // ---------- Audio (placeholder synth) ----------
+  let AC = null, master, noiseBuf, scrapeGain, scrapeFilter, strainOsc, strainGain;
+  function initAudio() {
+    if (AC) { if (AC.state === "suspended") AC.resume(); return; }
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = cfg.sound ? 0.7 : 0; master.connect(AC.destination);
+      noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      scrapeFilter = AC.createBiquadFilter(); scrapeFilter.type = "bandpass"; scrapeFilter.frequency.value = 2600; scrapeFilter.Q.value = 3;
+      scrapeGain = AC.createGain(); scrapeGain.gain.value = 0;
+      src.connect(scrapeFilter); scrapeFilter.connect(scrapeGain); scrapeGain.connect(master); src.start();
+      strainOsc = AC.createOscillator(); strainOsc.type = "triangle"; strainOsc.frequency.value = 300;
+      strainGain = AC.createGain(); strainGain.gain.value = 0;
+      strainOsc.connect(strainGain); strainGain.connect(master); strainOsc.start();
+    } catch (e) { AC = null; }
+  }
+  function tone(freq, dur, vol, type = "sine", endFreq = null, delay = 0) {
+    if (!AC) return;
+    const t = AC.currentTime + delay;
+    const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+    const g = AC.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function burst(dur, vol, ftype, freq, q = 1, delay = 0) {
+    if (!AC) return;
+    const t = AC.currentTime + delay;
+    const s = AC.createBufferSource(); s.buffer = noiseBuf;
+    const f = AC.createBiquadFilter(); f.type = ftype; f.frequency.value = freq; f.Q.value = q;
+    const g = AC.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+  }
+  const SFX = {
+    click(muted) { burst(0.03, muted ? 0.12 : 0.45, "highpass", 3200); tone(muted ? 1800 : 3400, 0.04, muted ? 0.05 : 0.18, "square"); },
+    tick() { burst(0.02, 0.22, "highpass", 4200); },
+    clunk() { tone(170, 0.14, 0.45, "sine", 110); burst(0.08, 0.3, "lowpass", 900); },
+    creak() { tone(140, 0.28, 0.12, "sawtooth", 95); },
+    jam() { tone(95, 0.16, 0.5, "sine", 70); burst(0.1, 0.35, "lowpass", 600); },
+    snap() { burst(0.12, 0.7, "highpass", 1800); tone(1500, 0.18, 0.3, "square", 260); },
+    drop() { tone(2400, 0.03, 0.12, "square"); tone(1900, 0.03, 0.1, "square", null, 0.05); },
+    open() { tone(420, 0.09, 0.4, "square", 300); burst(0.1, 0.4, "bandpass", 1200, 2, 0.07); tone(260, 0.16, 0.35, "sine", 180, 0.08); },
+  };
+
+  // ---------- Feedback ----------
+  let capTimer = 0;
+  function caption(text) {
+    if (!cfg.captions) return;
+    const c = $("caption"); c.textContent = text; c.style.opacity = "1"; capTimer = 1.6;
+  }
+  const logEntries = [];
+  function logNoise(name, kind) {
+    const loud = NOISE[kind];
+    logEntries.unshift({ name, loud, t: st.t0 ? (performance.now() - st.t0) / 1000 : 0 });
+    if (logEntries.length > 30) logEntries.pop();
+    $("log").innerHTML = logEntries.map((e) =>
+      `<li><b>${e.name}</b><span>${e.loud} · ~${e.loud - 1} m · ${e.t.toFixed(1)} s</span></li>`).join("");
+  }
+  function setResult(t) { $("result").textContent = t; }
+  function renderPicks() {
+    $("picks").innerHTML = [0, 1].map((i) => `<span class="${i < st.picks ? "" : "gone"}"></span>`).join("") + `${st.picks} left`;
+  }
+
+  // ---------- Actions ----------
+  function setPin(i) {
+    const p = lock.pins[i];
+    const P = skillParams(cfg.skill);
+    p.set = true; p.spool = p.type === "spool" ? "set" : p.spool; p.bump = 0;
+    st.setStack.push(i); st.falseExtra = 0;
+    const muted = st.tension > P.hi;
+    SFX.click(muted); st.nudge = muted ? 0.15 : 0.45;
+    caption(muted ? "(muffled click)" : "click");
+    logNoise("Set click", "click");
+    if (setCount() === lock.pins.length) openLock();
+  }
+  function oversetPin(i) {
+    lock.pins[i].overset = true;
+    SFX.jam(); st.nudge = 0.6; caption("clunk, the pick hits a hard stop");
+    logNoise("Overset jam", "jam");
+  }
+  function falseSet(i) {
+    const p = lock.pins[i];
+    p.spool = "false"; p.tFalse = st.tension; st.falseExtra = 3.2;
+    SFX.clunk(); st.nudge = 0.7; caption("deep clunk, the plug turns further");
+    logNoise("False set", "clunk");
+  }
+  function dropAll(silent) {
+    if (!anyProgress()) return;
+    resetProgress();
+    if (!silent) { SFX.drop(); caption("pins drop"); }
+  }
+  function dropLast() {
+    const i = st.setStack.pop();
+    if (i === undefined) return;
+    lock.pins[i].set = false; lock.pins[i].spool = "none"; lock.pins[i].ticks = 0;
+    SFX.drop(); caption("a pin drops");
+  }
+  function breakPick() {
+    SFX.snap(); st.nudge = 1; caption("SNAP, the pick breaks");
+    logNoise("Pick breaks", "snap");
+    st.picks = Math.max(0, st.picks - 1); renderPicks();
+    st.tension = 0; st.target = 0; st.tip = 0; resetProgress();
+    if (st.picks === 0) { st.outOfPicks = true; showOverlay("Out of lockpicks", "Both picks are broken. Restock to try again.", "Restock picks"); st.started = false; }
+    setResult(st.picks ? "Pick broke" : "Out of picks");
+  }
+  function openLock() {
+    st.opened = true; st.openT = 0;
+    st.elapsed = st.t0 ? (performance.now() - st.t0) / 1000 : 0;
+    setTimeout(() => { SFX.open(); caption("the plug turns, unlocked"); logNoise("Lock opens", "open"); }, 120);
+    setResult(`Unlocked in ${st.elapsed.toFixed(1)} s`);
+  }
+  function leave() {
+    st.tension = 0; st.target = 0; st.tip = 0;
+    if (lock && !st.opened) resetProgress();
+    st.started = false;
+    showOverlay("You stepped away", "Leaving releases tension and every set pin drops. The pins stay the same on the next try.", "Pick again");
+    if (!st.opened) setResult("Left the lock");
+  }
+  function showOverlay(title, text, btn) {
+    $("ovTitle").textContent = title; $("ovText").textContent = text; $("ovBtn").textContent = btn;
+    $("overlay").hidden = false;
+  }
+  function start() {
+    initAudio();
+    if (st.outOfPicks) { st.picks = 2; st.outOfPicks = false; renderPicks(); }
+    if (st.opened) { buildLock(); }
+    st.started = true; $("overlay").hidden = true; $("stage").focus({ preventScroll: true });
+  }
+
+  // ---------- Simulation ----------
+  function step(dt) {
+    if (capTimer > 0) { capTimer -= dt; if (capTimer <= 0) $("caption").style.opacity = "0"; }
+    st.nudge = Math.max(0, st.nudge - dt * 4);
+    if (st.opened) { st.openT = Math.min(1, st.openT + dt * 1.8); return; }
+    if (!st.started) return;
+
+    const P = skillParams(cfg.skill);
+    const rate = keys.ShiftLeft || keys.ShiftRight ? 0.15 : 0.5;
+    if (keys.KeyW || touch.up) st.tension = clamp(st.tension + rate * dt, 0, 1);
+    if (keys.KeyS || touch.down) st.tension = clamp(st.tension - rate * dt, 0, 1);
+    if (!st.t0 && (st.tension > 0 || st.target > 0.05)) st.t0 = performance.now();
+
+    const p = lock.pins[st.pick];
+    const overIdx = lock.pins.findIndex((q) => q.overset);
+    const bIdx = bindingIndex();
+    const isBinding = overIdx < 0 && bIdx === st.pick;
+    const bindingActive = st.tension >= P.drop;
+    const prevTip = st.tip;
+    const ease = Math.min(1, 18 * dt);
+    st.force = 0;
+
+    if (p.overset) {
+      // Jammed: the pick cannot lift the pin further. Prying it strains the pick.
+      st.tip = st.target < st.tip ? st.tip + (st.target - st.tip) * ease : Math.min(p.h, st.tip + (st.target - st.tip) * ease);
+      st.force = Math.max(0, st.target - st.tip);
+      if (st.force > 0.3) st.strain += (st.force - 0.3) * 2.5 * dt; else st.strain = Math.max(0, st.strain - 0.8 * dt);
+    } else if (isBinding && bindingActive && !p.set) {
+      const stuckSpool = p.type === "spool" && p.spool === "false" && st.tension > p.tFalse - 0.06;
+      const req = 0.04 + 0.5 * st.tension * st.tension + p.bump;
+      if (st.target > st.tip) {
+        st.force = st.target - st.tip;
+        if (!stuckSpool) st.tip = Math.min(st.target, st.tip + Math.max(0, st.force - req) * 7 * dt);
+      } else {
+        st.tip += (st.target - st.tip) * ease;
+      }
+      p.h = st.tip;
+      const hard = st.tension > P.hi - 0.05 || stuckSpool;
+      if (st.force > 0.3 && hard) st.strain += (st.force - 0.3) * 3 * dt * (1 + Math.max(0, st.tension - P.hi) * 4);
+      else st.strain = Math.max(0, st.strain - 0.8 * dt);
+      p.bump = Math.max(0, p.bump - dt * 0.5);
+    } else {
+      st.tip += (st.target - st.tip) * ease;
+      st.strain = Math.max(0, st.strain - 0.8 * dt);
+      p.h = p.set ? Math.min(st.tip, p.s - 0.02) : st.tip;
+    }
+    for (let i = 0; i < lock.pins.length; i++) {
+      const q = lock.pins[i];
+      if (i !== st.pick && !q.overset) q.h = Math.max(0, q.h - 3 * dt);
+    }
+
+    // Binding pin events
+    if (isBinding && bindingActive && !p.set && !p.overset) {
+      const over = st.tension > P.hi ? Math.max(0.35, 1 - 1.4 * (st.tension - P.hi) / (1 - P.hi)) : 1;
+      const tol = (BASE_TOL + P.tolBonus) * lock.tolMult * over;
+      const h = p.h;
+      if (p.type === "spool" && p.spool === "none" && st.tension >= P.lo && h >= p.fs - tol) falseSet(st.pick);
+      if (p.type === "serrated") {
+        p.levels.forEach((lv, k) => {
+          if (!(p.ticks & (1 << k)) && h >= lv && st.tension >= P.lo) {
+            p.ticks |= 1 << k; p.bump = 0.12; st.tickAngle += 0.35; SFX.tick(); st.nudge = 0.2;
+            caption("tick"); logNoise("Serrated tick", "tick");
+          }
+        });
+      }
+      if (p.spool === "false") {
+        const prog = clamp((h - p.fs) / (p.s - p.fs), 0, 1);
+        const extra = 3.2 * (1 - prog);
+        if (extra < st.falseExtra - 0.25) { const now = performance.now(); if (now - st.lastCreak > 220) { SFX.creak(); caption("creak, the plug pushes back"); st.lastCreak = now; } }
+        st.falseExtra = Math.min(st.falseExtra, extra);
+      }
+      const canTrue = p.type !== "spool" ? st.tension >= P.lo : p.spool === "false";
+      if (canTrue && h >= p.s - tol) {
+        if (h <= p.s + tol) setPin(st.pick); else oversetPin(st.pick);
+      }
+    }
+
+    // Scrape: the binding pin rubs while it moves
+    const speed = Math.abs(st.tip - prevTip) / Math.max(dt, 1e-3);
+    const rubbing = isBinding && bindingActive && !p.set && !p.overset && speed > 0.05;
+    st.scraping = rubbing ? Math.min(1, speed * 2) : 0;
+    st.tremor = rubbing && P.hint ? 1 : 0;
+    if (rubbing && performance.now() - st.lastScrapeLog > 1200) { st.lastScrapeLog = performance.now(); logNoise("Binding scrape", "scrape"); }
+
+    // Too little tension: set pins drop
+    if (st.tension <= 0.004) { if (anyProgress()) dropAll(false); st.dropTimer = 0; }
+    else if (st.tension < P.drop) {
+      st.dropTimer += dt;
+      if (st.dropTimer >= P.dropDelay && st.setStack.length) { dropLast(); st.dropTimer = 0; }
+    } else st.dropTimer = 0;
+
+    // Master rakes Simple locks
+    if (P.rake && lock.tier === "simple" && keys.KeyR && st.tension >= P.lo && st.tension <= P.hi) {
+      st.rake += dt; st.target = 0.3 + 0.25 * Math.abs(Math.sin(performance.now() / 70));
+      if (st.rake >= 0.65) { st.rake = 0; const b = bindingIndex(); if (b >= 0) { st.pick = b; setPin(b); } }
+    } else st.rake = 0;
+
+    if (st.strain >= 1) breakPick();
+    if (st.t0 && !st.opened) st.elapsed = (performance.now() - st.t0) / 1000;
+  }
+
+  function audioFrame() {
+    if (!AC) return;
+    const P = skillParams(cfg.skill);
+    const t = AC.currentTime;
+    scrapeGain.gain.setTargetAtTime(st.scraping * (P.hint ? 0.32 : 0.16), t, 0.03);
+    scrapeFilter.frequency.setTargetAtTime(2000 + st.tension * 1600, t, 0.05);
+    const s = st.strain > 0.12 ? st.strain : 0;
+    strainGain.gain.setTargetAtTime(s * 0.09, t, 0.04);
+    strainOsc.frequency.setTargetAtTime(260 + s * 900, t, 0.05);
+  }
+
+  function plugAngleDeg() {
+    if (st.opened) { const e = 1 - Math.pow(1 - st.openT, 3); return 6 + e * 84; }
+    return st.tension * 1.4 + setCount() * 0.9 + st.falseExtra + st.tickAngle;
+  }
+
+  // ---------- Drawing ----------
+  const front = $("front"), side = $("side");
+  const fctx = front.getContext("2d"), sctx = side.getContext("2d");
+  let dpr = 1;
+  function fit(c) {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  }
+
+  function drawFront() {
+    fit(front);
+    const g = fctx, W = front.clientWidth, H = front.clientHeight;
+    if (!W || !H) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bg = g.createRadialGradient(W * 0.5, H * 0.45, 10, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
+    bg.addColorStop(0, "#222a32"); bg.addColorStop(1, "#0b0e11");
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+    const shake = st.nudge * 3;
+    g.save(); g.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    const cx = W * 0.5, cy = H * 0.45, R = Math.min(W, H) * 0.3, r = R * 0.62;
+
+    // Door plate
+    g.fillStyle = "#1a2027"; roundRect(g, cx - R * 1.35, cy - R * 1.55, R * 2.7, R * 3.2, R * 0.12); g.fill();
+    g.strokeStyle = "#2c3640"; g.lineWidth = 1; g.stroke();
+    // Housing
+    let grad = g.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R * 1.05);
+    grad.addColorStop(0, "#e7c672"); grad.addColorStop(0.6, "#b58d3c"); grad.addColorStop(1, "#6e5424");
+    g.fillStyle = grad; g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "rgba(0,0,0,0.45)"; g.lineWidth = R * 0.03; g.stroke();
+    g.strokeStyle = "rgba(255,240,200,0.25)"; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, R * 0.97, Math.PI * 1.1, Math.PI * 1.7); g.stroke();
+
+    const ang = plugAngleDeg() * Math.PI / 180;
+    g.save(); g.translate(cx, cy); g.rotate(ang);
+    grad = g.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+    grad.addColorStop(0, "#d9b865"); grad.addColorStop(1, "#8f6f2e");
+    g.fillStyle = grad; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "rgba(0,0,0,0.55)"; g.lineWidth = R * 0.025; g.stroke();
+    // Keyway (warded slot)
+    g.fillStyle = "#07090b"; g.beginPath();
+    const kw = r * 0.085;
+    g.moveTo(-kw * 0.6, -r * 0.8);
+    g.lineTo(kw * 0.6, -r * 0.8);
+    g.lineTo(kw * 0.9, -r * 0.45); g.lineTo(kw * 0.2, -r * 0.3); g.lineTo(kw * 1.0, -r * 0.1);
+    g.lineTo(kw * 0.4, r * 0.15); g.lineTo(kw * 1.1, r * 0.4); g.lineTo(kw * 1.4, r * 0.72);
+    g.lineTo(-kw * 1.4, r * 0.72); g.lineTo(-kw * 1.1, r * 0.45); g.lineTo(-kw * 0.3, r * 0.25);
+    g.lineTo(-kw * 1.0, r * 0.0); g.lineTo(-kw * 0.3, -r * 0.2); g.lineTo(-kw * 0.9, -r * 0.5);
+    g.closePath(); g.fill();
+    g.restore();
+
+    // Tension wrench: bottom of the keyway, turning with the plug and flexing with tension
+    const wAng = ang + st.tension * 0.12;
+    g.save(); g.translate(cx, cy); g.rotate(wAng);
+    g.fillStyle = "#c6d0d8"; g.fillRect(-kw * 1.1, r * 0.6, kw * 2.2, r * 0.1);
+    g.strokeStyle = "#aab6c1"; g.lineWidth = R * 0.07; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.moveTo(0, r * 0.66); g.lineTo(R * 1.55, r * 0.66); g.lineTo(R * 1.62, r * 0.66 + R * 0.55); g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(kw, r * 0.63); g.lineTo(R * 1.52, r * 0.63); g.stroke();
+    g.restore();
+
+    // Pick: shaft into the keyway; the tip height is the lift, the bow is the force
+    const tipLocalY = r * 0.5 - st.tip * r * 1.05;
+    const jitter = st.tremor ? (Math.random() - 0.5) * R * 0.012 : 0;
+    const tx = cx + Math.cos(ang) * (jitter) - Math.sin(ang) * tipLocalY;
+    const ty = cy + Math.sin(ang) * (jitter) + Math.cos(ang) * tipLocalY;
+    const n = lock.pins.length;
+    const depth = (n - 1 - st.pick) / Math.max(1, n - 1);
+    const hx = cx - R * (1.1 + depth * 0.45), hy = cy + R * (1.05 + depth * 0.2);
+    const bow = Math.min(0.5, st.force) * R * 0.9;
+    const mx = (hx + tx) / 2 + bow * 0.3, my = (hy + ty) / 2 + bow;
+    g.strokeStyle = st.strain > 0.5 ? "#e0d3c7" : "#cfd8e0"; g.lineWidth = R * 0.03; g.lineCap = "round";
+    g.beginPath(); g.moveTo(hx, hy); g.quadraticCurveTo(mx, my, tx, ty); g.stroke();
+    g.fillStyle = "#e8eef3"; g.beginPath(); g.arc(tx, ty, R * 0.022, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#5a3f33"; g.lineWidth = R * 0.11;
+    const hdx = hx - (tx - hx) * 0.25, hdy = hy - (ty - hy) * 0.25;
+    g.beginPath(); g.moveTo(hx, hy); g.lineTo(hdx, hdy); g.stroke();
+    g.restore();
+
+    // Pick depth notches (how far the pick is in), under the plate
+    const dy = cy + R * 1.75, gap = Math.min(22, R * 0.3), x0 = cx - gap * (n - 1) / 2;
+    for (let i = 0; i < n; i++) {
+      g.fillStyle = i === st.pick ? "#c9a24a" : "#33404c";
+      g.beginPath(); g.arc(x0 + gap * i, dy, i === st.pick ? 4 : 3, 0, Math.PI * 2); g.fill();
+    }
+    g.fillStyle = "#6f7c88"; g.font = "11px " + getComputedStyle(document.body).getPropertyValue("--font-mono");
+    g.textAlign = "center"; g.fillText("pick depth", cx, dy + 18);
+    if (cfg.gauge) drawGauge(g, W, H, cy, R);
+  }
+
+  // Tension gauge: a vertical bar at the right edge, 0 % at the bottom. Its bands are the current
+  // skill's real thresholds (drop zone, too low, sweet spot, too high), so it moves with the skill.
+  function drawGauge(g, W, H, cy, R) {
+    const P = skillParams(cfg.skill);
+    const mono = getComputedStyle(document.body).getPropertyValue("--font-mono");
+    const w = 14, h = Math.min(H - 70, R * 2.6), x = W - w - 26, y0 = Math.max(34, cy - h / 2), y1 = y0 + h;
+    const yAt = (v) => y1 - v * h;
+    const bands = [
+      [0, P.drop, "#e2786b"], [P.drop, P.lo, "#e6b45a"], [P.lo, P.hi, "#7fd6a2"], [P.hi, 1, "#e2786b"],
+    ];
+    const t = st.tension;
+    g.fillStyle = "#0b0e11"; roundRect(g, x - 3, y0 - 3, w + 6, h + 6, 5); g.fill();
+    g.strokeStyle = "#2c3640"; g.lineWidth = 1; g.stroke();
+    for (const [a, b, col] of bands) {
+      const inBand = t >= a && (t < b || b === 1);
+      g.globalAlpha = 0.22; g.fillStyle = col; g.fillRect(x, yAt(b), w, yAt(a) - yAt(b));
+      // The filled part, up to the current tension, in the colour of each band it covers
+      if (t > a) { g.globalAlpha = inBand ? 0.95 : 0.55; g.fillRect(x, yAt(Math.min(t, b)), w, yAt(a) - yAt(Math.min(t, b))); }
+    }
+    g.globalAlpha = 1;
+    // Sweet-spot edges, drawn across the bar
+    g.strokeStyle = "#7fd6a2"; g.lineWidth = 1.5;
+    for (const v of [P.lo, P.hi]) { g.beginPath(); g.moveTo(x - 5, yAt(v)); g.lineTo(x + w + 5, yAt(v)); g.stroke(); }
+    // Needle at the current tension
+    const ny = yAt(t);
+    g.fillStyle = "#e4e8ec"; g.beginPath(); g.moveTo(x - 4, ny); g.lineTo(x - 11, ny - 5); g.lineTo(x - 11, ny + 5); g.closePath(); g.fill();
+    g.fillRect(x - 2, ny - 1, w + 4, 2);
+    // Labels
+    g.font = "10px " + mono; g.textAlign = "center"; g.fillStyle = "#6f7c88";
+    g.fillText("TENSION", x + w / 2, y0 - 10);
+    const zone = t < P.drop ? ["drop", "#e2786b"] : t < P.lo ? ["low", "#e6b45a"] : t <= P.hi ? ["sweet", "#7fd6a2"] : ["high", "#e2786b"];
+    g.font = "11px " + mono; g.fillStyle = zone[1];
+    g.fillText((t * 100).toFixed(0) + "%", x + w / 2, y1 + 16);
+    g.font = "10px " + mono; g.fillText(zone[0], x + w / 2, y1 + 28);
+  }
+
+  function drawSide() {
+    if (!cfg.practice) return;
+    fit(side);
+    const g = sctx, W = side.clientWidth, H = side.clientHeight;
+    if (!W || !H) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = "#0b0e11"; g.fillRect(0, 0, W, H);
+    const n = lock.pins.length;
+    const x0 = W * 0.08, x1 = W * 0.94, top = H * 0.1, shear = H * 0.52, bottom = H * 0.86;
+    const keyBase = bottom - 6, Lpx = (bottom - shear) * 0.78;
+    // Acrylic body
+    g.fillStyle = "rgba(160, 205, 228, 0.07)"; g.strokeStyle = "rgba(160, 205, 228, 0.35)"; g.lineWidth = 1;
+    g.fillRect(x0, top, x1 - x0, shear - top); g.strokeRect(x0, top, x1 - x0, shear - top);
+    const plugTint = st.opened ? "rgba(127, 214, 162, 0.10)" : "rgba(160, 205, 228, 0.12)";
+    g.fillStyle = plugTint; g.fillRect(x0, shear, x1 - x0, bottom - shear); g.strokeRect(x0, shear, x1 - x0, bottom - shear);
+    // Shear line
+    g.setLineDash([5, 4]); g.strokeStyle = "rgba(201, 162, 74, 0.6)";
+    g.beginPath(); g.moveTo(x0 - 6, shear); g.lineTo(x1 + 6, shear); g.stroke(); g.setLineDash([]);
+    g.fillStyle = "rgba(201, 162, 74, 0.8)"; g.font = "10px " + getComputedStyle(document.body).getPropertyValue("--font-mono");
+    g.textAlign = "right"; g.fillText("shear line", x1, shear - 4);
+
+    const spacing = (x1 - x0) / n, pw = Math.min(spacing * 0.42, 24);
+    for (let i = 0; i < n; i++) {
+      const p = lock.pins[i];
+      const cxp = x0 + spacing * (i + 0.5);
+      // chamber
+      g.strokeStyle = "rgba(160, 205, 228, 0.25)";
+      g.strokeRect(cxp - pw / 2 - 2, top + 3, pw + 4, keyBase - top - 3);
+      const keyLen = Math.max(10, keyBase - p.s * Lpx - shear);
+      const kb = keyBase - p.h * Lpx, kt = kb - keyLen;
+      // key pin (brass, pointed tip)
+      g.fillStyle = "#c9a24a";
+      g.beginPath(); g.moveTo(cxp - pw / 2, kt); g.lineTo(cxp + pw / 2, kt); g.lineTo(cxp + pw / 2, kb - 5); g.lineTo(cxp, kb); g.lineTo(cxp - pw / 2, kb - 5); g.closePath(); g.fill();
+      // driver (steel); held above the shear line once set
+      const dLen = (shear - top) * 0.34;
+      let db = p.set ? Math.min(kt, shear) : kt;
+      if (p.spool === "false") db = Math.min(db, shear + 3);
+      const dt = db - dLen;
+      g.fillStyle = "#aab6c1";
+      if (p.type === "spool") {
+        const wst = pw * 0.28;
+        g.beginPath(); g.moveTo(cxp - pw / 2, dt); g.lineTo(cxp + pw / 2, dt); g.lineTo(cxp + pw / 2, dt + dLen * 0.25);
+        g.lineTo(cxp + wst, dt + dLen * 0.4); g.lineTo(cxp + wst, dt + dLen * 0.6); g.lineTo(cxp + pw / 2, dt + dLen * 0.75);
+        g.lineTo(cxp + pw / 2, db); g.lineTo(cxp - pw / 2, db); g.lineTo(cxp - pw / 2, dt + dLen * 0.75);
+        g.lineTo(cxp - wst, dt + dLen * 0.6); g.lineTo(cxp - wst, dt + dLen * 0.4); g.lineTo(cxp - pw / 2, dt + dLen * 0.25); g.closePath(); g.fill();
+      } else {
+        g.fillRect(cxp - pw / 2, dt, pw, dLen);
+        if (p.type === "serrated") { g.strokeStyle = "#5d6974"; for (let k = 1; k < 5; k++) { g.beginPath(); g.moveTo(cxp - pw / 2, dt + dLen * k / 5); g.lineTo(cxp - pw / 2 + 4, dt + dLen * k / 5); g.moveTo(cxp + pw / 2, dt + dLen * k / 5); g.lineTo(cxp + pw / 2 - 4, dt + dLen * k / 5); g.stroke(); } }
+      }
+      // spring
+      g.strokeStyle = "rgba(200, 210, 220, 0.6)"; g.beginPath();
+      const s0 = top + 4, s1 = dt, coils = 7;
+      for (let k = 0; k <= coils * 2; k++) { const y = s0 + (s1 - s0) * k / (coils * 2); const x = cxp + (k % 2 ? pw / 2 - 2 : -pw / 2 + 2); k ? g.lineTo(x, y) : g.moveTo(cxp, y); }
+      g.stroke();
+      // label
+      g.fillStyle = "#6f7c88"; g.textAlign = "center";
+      g.fillText(p.type === "std" ? String(i + 1) : `${i + 1} ${p.type}`, cxp, H - 4);
+    }
+    // pick from the left, hooked up under the current pin
+    const px = x0 + spacing * (st.pick + 0.5), tipY = keyBase - st.tip * Lpx;
+    g.strokeStyle = "#cfd8e0"; g.lineWidth = 3; g.lineCap = "round";
+    g.beginPath(); g.moveTo(0, keyBase + 3); g.lineTo(px - 10, keyBase + 3); g.quadraticCurveTo(px - 2, keyBase + 3, px, tipY + 2); g.stroke();
+    g.lineWidth = 1;
+    // wrench at the plug's front
+    g.fillStyle = "#aab6c1"; g.fillRect(x0 - 3, bottom - 12, 8, 10);
+  }
+
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+
+  function renderPanel() {
+    $("time").textContent = st.elapsed.toFixed(1) + " s";
+    if (cfg.readout) {
+      const P = skillParams(cfg.skill);
+      const b = bindingIndex();
+      const zone = st.tension < P.drop ? "drop zone" : st.tension < P.lo ? "too low" : st.tension <= P.hi ? "sweet spot" : "too high";
+      $("readout").textContent =
+        `tension   ${(st.tension * 100).toFixed(0).padStart(3)} %  (${zone})\n` +
+        `window    ${(P.lo * 100).toFixed(0)}–${(P.hi * 100).toFixed(0)} %, drop < ${(P.drop * 100).toFixed(0)} %\n` +
+        `lift      ${(st.tip * 100).toFixed(0).padStart(3)} %  target ${(st.target * 100).toFixed(0)} %\n` +
+        `force     ${st.force.toFixed(2)}   strain ${(st.strain * 100).toFixed(0)} %\n` +
+        `pick at   pin ${st.pick + 1}   binding pin ${b >= 0 ? b + 1 : "-"}\n` +
+        `set       ${setCount()} / ${lock.pins.length}   plug ${plugAngleDeg().toFixed(1)}°`;
+    }
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    step(dt); audioFrame(); drawFront(); drawSide(); renderPanel();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- Input ----------
+  const isField = (el) => el && (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA");
+  window.addEventListener("keydown", (e) => {
+    if (isField(document.activeElement)) return;
+    keys[e.code] = true;
+    if (!st.started) return;
+    if (e.repeat) return;
+    if (e.code === "KeyA") st.pick = Math.max(0, st.pick - 1);
+    if (e.code === "KeyD") st.pick = Math.min(lock.pins.length - 1, st.pick + 1);
+    if (e.code === "KeyE" || e.code === "Escape") { e.preventDefault(); leave(); }
+  });
+  window.addEventListener("keyup", (e) => { keys[e.code] = false; });
+  window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; touch.up = touch.down = false; });
+
+  const stage = $("stage");
+  function liftFromPointer(e) {
+    const rct = stage.getBoundingClientRect();
+    const yn = (e.clientY - rct.top) / rct.height;
+    st.target = clamp((0.8 - yn) / 0.65, 0, 1);
+  }
+  stage.addEventListener("pointermove", (e) => { if (st.started && !st.opened && (e.pointerType === "mouse" || e.buttons)) liftFromPointer(e); });
+  stage.addEventListener("pointerdown", (e) => { if (st.started && e.pointerType !== "mouse") liftFromPointer(e); });
+
+  function hold(btn, key) {
+    const on = (e) => { e.preventDefault(); initAudio(); touch[key] = true; };
+    const off = () => { touch[key] = false; };
+    btn.addEventListener("pointerdown", on); btn.addEventListener("pointerup", off);
+    btn.addEventListener("pointerleave", off); btn.addEventListener("pointercancel", off);
+  }
+  hold($("tUp"), "up"); hold($("tDown"), "down");
+  $("pPrev").addEventListener("click", () => { if (st.started) st.pick = Math.max(0, st.pick - 1); });
+  $("pNext").addEventListener("click", () => { if (st.started) st.pick = Math.min(lock.pins.length - 1, st.pick + 1); });
+
+  $("ovBtn").addEventListener("click", start);
+  $("tier").addEventListener("change", (e) => { cfg.tier = e.target.value; buildLock(); leaveQuiet(); });
+  $("skill").addEventListener("change", (e) => { cfg.skill = Number(e.target.value); });
+  $("seed").addEventListener("change", (e) => { cfg.seed = clamp(Math.round(Number(e.target.value) || 1), 1, 99999); e.target.value = cfg.seed; buildLock(); leaveQuiet(); });
+  $("newLock").addEventListener("click", () => { cfg.seed = 1 + Math.floor(Math.random() * 99998); $("seed").value = cfg.seed; buildLock(); leaveQuiet(); });
+  $("retry").addEventListener("click", () => { buildLock(); leaveQuiet(); });
+  $("restock").addEventListener("click", () => { st.picks = 2; st.outOfPicks = false; renderPicks(); if (!st.started) showOverlay("Pick this lock", "Fresh picks in hand.", "Take the tools"); });
+  $("gauge").addEventListener("change", (e) => { cfg.gauge = e.target.checked; });
+  $("practice").addEventListener("change", (e) => { cfg.practice = e.target.checked; $("sideWrap").hidden = !cfg.practice; });
+  $("captions").addEventListener("change", (e) => { cfg.captions = e.target.checked; if (!cfg.captions) $("caption").style.opacity = "0"; });
+  $("sound").addEventListener("change", (e) => { cfg.sound = e.target.checked; if (master) master.gain.value = cfg.sound ? 0.7 : 0; });
+  $("readoutOn").addEventListener("change", (e) => { cfg.readout = e.target.checked; $("readout").hidden = !cfg.readout; });
+
+  function leaveQuiet() {
+    st.tension = 0; st.target = 0; st.tip = 0; st.started = false;
+    showOverlay("Pick this lock", `${lock.name} lock, seed ${cfg.seed}. The pins are the same every retry.`, "Take the tools");
+  }
+
+  buildLock();
+  renderPicks();
+  requestAnimationFrame(frame);
+})();
+</script>
