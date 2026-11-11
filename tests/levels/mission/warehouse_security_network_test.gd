@@ -50,8 +50,6 @@ const YARD: Array[String] = [
 	"SirenWestYard",
 	"FrontGate",
 ]
-## Cable crossings the deck's Map layout leaves on this network (see _assert_graph_readable()).
-const MAP_CROSSINGS := 3
 const HEARD: StringName = &"test.heard_siren"
 ## A siren is heard at intensity 35 x (1 - d / 35): 4 or more means 31 m of path or less.
 const EARSHOT_MIN_INTENSITY := 4.0
@@ -177,18 +175,21 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 
 
 # The deck's Map of the console's whole network (ADR 0099, network_map_checks.gd): boxes apart, no cable
-# under a box, every node shown when fitted, deterministic; six groups (one per switch: the main one,
-# the security room, the vault, the yard, the roof and, through FW-01, the office; M12a). Known
-# layout limit (open question for the deck's Map, M12a levels report): the main switch's cables to
-# four area switches in the other row share lanes and cross (MAP_CROSSINGS), and the fitted zoom of
-# this 45-device network in the old 1050 x 440 panel drops to about 0.68 (the deck's panel is larger;
-# the player zooms).
+# under a box, every node shown when fitted, deterministic, no cable crossing, nothing off the tree;
+# six groups (one per switch: the main one, the security room, the vault, the yard, the roof and,
+# through RTR-01, the office; M12a); two subnet boxes (Security with the main switch's tree, the
+# four area switches in two rows under it; Office) with RTR-01 between them. Fitted in the deck's
+# Map panel at 1152 x 648 the 45-device network shows at about 0.48 (the player zooms in).
 func _assert_graph_readable(console: Computer) -> void:
 	var rows := MapChecks.rows_from(console.entity)
-	var result := MapChecks.check(self, rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG, MAP_CROSSINGS)
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var zoom: float = result["zoom"]
-	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.6)
-	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(6)
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.45)
+	var layout := result["layout"] as NetworkLayout
+	assert_int(layout.hubs.size()).is_equal(6)
+	assert_int(layout.extra.size()).is_equal(0)
+	assert_array((result["boxes"] as Dictionary).keys()).contains_exactly_in_any_order([&"office", &"security"])
+	assert_int(layout.routers.size()).is_equal(1)
 
 
 # The yard's part on its own: the yard cameras reach the yard's controller and it a yard siren.

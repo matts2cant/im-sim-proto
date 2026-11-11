@@ -50,7 +50,7 @@ func test_a_star_hangs_west_devices_left_and_east_devices_right_north_first() ->
 	assert_float(layout.rects[2].position.y).is_equal_approx(layout.rects[1].end.y + NetworkLayout.ROW_GAP, 0.001)
 	assert_float(layout.rects[3].position.y).is_equal_approx(layout.rects[1].position.y, 0.001)
 	assert_float(layout.rects[4].position.y).is_greater(layout.rects[3].position.y)
-	assert_bool(NetworkLayout.rects_overlap(layout.rects, 8.0)).is_false()
+	assert_bool(NetworkGeometry.rects_overlap(layout.rects, 8.0)).is_false()
 
 
 func test_cables_run_down_the_bus_and_across_without_crossing() -> void:
@@ -62,9 +62,9 @@ func test_cables_run_down_the_bus_and_across_without_crossing() -> void:
 	assert_array(Array(route)).is_equal(
 		[Vector2(bus, layout.rects[0].position.y + ANCHOR), Vector2(bus, y), Vector2(layout.rects[2].end.x, y)]
 	)
-	assert_int(NetworkLayout.crossings(layout.routes)).is_equal(0)
+	assert_int(NetworkGeometry.crossings(layout.routes)).is_equal(0)
 	var cables := _cables([[0, 1], [0, 2], [0, 3], [0, 4]])
-	assert_int(NetworkLayout.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
+	assert_int(NetworkGeometry.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
 	assert_bool(layout.bounds.encloses(layout.rects[2])).is_true()
 
 
@@ -84,9 +84,9 @@ func test_a_device_hanging_on_another_sits_one_column_out_on_its_row() -> void:
 	assert_float(layout.rects[5].position.x).is_greater(layout.rects[4].end.x)
 	# 3 (the next device on the bus) comes below 1's subtree.
 	assert_float(layout.rects[3].position.y).is_greater_equal(layout.rects[1].end.y + NetworkLayout.ROW_GAP - 0.001)
-	assert_int(NetworkLayout.crossings(layout.routes)).is_equal(0)
-	assert_int(NetworkLayout.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
-	assert_bool(NetworkLayout.rects_overlap(layout.rects, 8.0)).is_false()
+	assert_int(NetworkGeometry.crossings(layout.routes)).is_equal(0)
+	assert_int(NetworkGeometry.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
+	assert_bool(NetworkGeometry.rects_overlap(layout.rects, 8.0)).is_false()
 
 
 func test_a_network_without_hubs_hangs_on_its_most_cabled_device() -> void:
@@ -95,7 +95,7 @@ func test_a_network_without_hubs_hangs_on_its_most_cabled_device() -> void:
 	var layout := NetworkLayout.arrange(positions, _cables([[0, 1], [1, 2]]), _sizes(4), ANCHOR)
 	assert_array(Array(layout.hubs)).contains_exactly_in_any_order([1, 3])
 	assert_array(Array(layout.hub_of)).is_equal([1, 1, 1, 3])
-	assert_bool(NetworkLayout.rects_overlap(layout.rects, 8.0)).is_false()
+	assert_bool(NetworkGeometry.rects_overlap(layout.rects, 8.0)).is_false()
 	assert_array(NetworkLayout.arrange([], [], [], ANCHOR).rects).is_empty()
 	var single := NetworkLayout.arrange([Vector3(4, 0, 4)], [], [BOX], ANCHOR)
 	assert_array(Array(single.hubs)).is_equal([0])
@@ -104,8 +104,8 @@ func test_a_network_without_hubs_hangs_on_its_most_cabled_device() -> void:
 	assert_bool(single.bounds.encloses(single.rects[0])).is_true()
 
 
-func test_groups_stand_apart_west_to_east_and_neighbouring_hubs_join_straight() -> void:
-	# Hub 0 east with 3 devices, hub 4 west with 3 devices, cabled to each other.
+func test_a_child_hub_hangs_below_its_parent_down_its_bus() -> void:
+	# Hub 0 east with 3 devices, hub 4 west with 3 devices, cabled to each other: 4 (west) is the root.
 	var positions: Array[Vector3] = [Vector3(20, 0, 0)]
 	var pairs: Array = []
 	for i in 3:
@@ -119,17 +119,20 @@ func test_groups_stand_apart_west_to_east_and_neighbouring_hubs_join_straight() 
 	var cables := _cables(pairs)
 	var layout := NetworkLayout.arrange(positions, cables, _sizes(8), ANCHOR)
 	assert_array(Array(layout.hubs)).is_equal([4, 0])
-	var west := _group_rect(layout, 4)
-	var east := _group_rect(layout, 0)
-	assert_float(east.position.x - west.end.x).is_greater_equal(NetworkLayout.GROUP_GAP - 0.001)
-	# Hubs top-aligned, the cable between them one straight line.
-	assert_float(layout.rects[0].position.y).is_equal_approx(layout.rects[4].position.y, 0.001)
-	assert_int(layout.routes[6].size()).is_equal(2)
-	assert_int(NetworkLayout.crossings(layout.routes)).is_equal(0)
-	assert_int(NetworkLayout.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
+	# Hub 0's group starts below hub 4's; the cable runs down 4's bus, across and down onto 0's top.
+	var upper := _group_rect(layout, 4)
+	assert_float(layout.rects[0].position.y).is_greater(upper.end.y + NetworkLayout.LANE_GAP)
+	var route := layout.routes[6]
+	var bus := layout.rects[4].get_center().x
+	assert_float(route[0].x).is_equal_approx(bus, 0.001)
+	assert_float(route[1].x).is_equal_approx(bus, 0.001)
+	assert_float(route[1].y).is_greater(upper.end.y)
+	assert_vector(route[route.size() - 2]).is_equal(Vector2(layout.rects[0].get_center().x, layout.rects[0].position.y))
+	assert_int(NetworkGeometry.crossings(layout.routes)).is_equal(0)
+	assert_int(NetworkGeometry.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
 
 
-func test_cables_between_distant_groups_run_in_lanes_above_them() -> void:
+func test_child_hubs_stand_in_a_row_centred_under_their_parent() -> void:
 	# Three hubs west to east (0, 4, 8), each with three devices; 0 cabled to 4 and to 8.
 	var positions: Array[Vector3] = []
 	var pairs: Array = []
@@ -143,14 +146,20 @@ func test_cables_between_distant_groups_run_in_lanes_above_them() -> void:
 	var cables := _cables(pairs)
 	var layout := NetworkLayout.arrange(positions, cables, _sizes(12), ANCHOR, 10.0)
 	assert_array(Array(layout.hubs)).is_equal([0, 4, 8])
-	var lane := layout.routes[10]
-	# Up from hub 0's top, along a lane above every box, down into hub 8's top.
-	var top := layout.rects[0].position.y
-	assert_float(lane[1].y).is_equal_approx(top, 0.001)
-	assert_float(lane[2].y).is_less(top - NetworkLayout.LANE_GAP + 0.001)
-	assert_float(lane[lane.size() - 1].x).is_equal_approx(layout.rects[8].get_center().x, 0.001)
-	assert_int(NetworkLayout.crossings(layout.routes)).is_equal(0)
-	assert_int(NetworkLayout.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
+	# 4 west of 8 on one row, the row centred under 0 (equal groups).
+	assert_float(layout.rects[4].position.y).is_equal_approx(layout.rects[8].position.y, 0.001)
+	assert_float(layout.rects[4].position.x).is_less(layout.rects[8].position.x)
+	var middle := (layout.rects[4].get_center().x + layout.rects[8].get_center().x) * 0.5
+	assert_float(middle).is_equal_approx(layout.rects[0].get_center().x, 0.001)
+	assert_float(_group_rect(layout, 8).position.x - _group_rect(layout, 4).end.x).is_greater_equal(
+		NetworkLayout.GROUP_GAP - 0.001
+	)
+	# Both cables share the line under 0's group and drop onto their hub's top.
+	assert_float(layout.routes[9][1].y).is_equal_approx(layout.routes[10][1].y, 0.001)
+	var last := layout.routes[10][layout.routes[10].size() - 1]
+	assert_float(last.x).is_equal_approx(layout.rects[8].get_center().x, 0.001)
+	assert_int(NetworkGeometry.crossings(layout.routes)).is_equal(0)
+	assert_int(NetworkGeometry.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
 
 
 func test_many_groups_wrap_into_rows_for_a_narrow_panel() -> void:
@@ -172,8 +181,8 @@ func test_many_groups_wrap_into_rows_for_a_narrow_panel() -> void:
 		rows_of_hubs[tall.rects[hub].position.y] = true
 	assert_int(rows_of_hubs.size()).is_greater(1)
 	for layout: NetworkLayout in [wide, tall]:
-		assert_bool(NetworkLayout.rects_overlap(layout.rects, 8.0)).is_false()
-		assert_int(NetworkLayout.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
+		assert_bool(NetworkGeometry.rects_overlap(layout.rects, 8.0)).is_false()
+		assert_int(NetworkGeometry.routes_through_boxes(layout.routes, cables, layout.rects)).is_equal(0)
 
 
 func test_the_same_network_gives_the_same_placement() -> void:
@@ -192,8 +201,8 @@ func test_the_same_network_gives_the_same_placement() -> void:
 	var second := NetworkLayout.arrange(positions.duplicate(), cables.duplicate(), sizes.duplicate(), ANCHOR)
 	assert_array(second.rects).is_equal(first.rects)
 	assert_array(second.routes).is_equal(first.routes)
-	assert_bool(NetworkLayout.rects_overlap(first.rects, 8.0)).is_false()
-	assert_int(NetworkLayout.crossings(first.routes)).is_equal(0)
+	assert_bool(NetworkGeometry.rects_overlap(first.rects, 8.0)).is_false()
+	assert_int(NetworkGeometry.crossings(first.routes)).is_equal(0)
 
 
 func test_a_wider_status_within_the_column_step_moves_nothing_else() -> void:
@@ -215,19 +224,19 @@ func test_crossings_and_boxes_count_only_real_ones() -> void:
 	var cross: Array[PackedVector2Array] = [
 		PackedVector2Array([Vector2(0, 0), Vector2(10, 10)]), PackedVector2Array([Vector2(0, 10), Vector2(10, 0)])
 	]
-	assert_int(NetworkLayout.crossings(cross)).is_equal(1)
+	assert_int(NetworkGeometry.crossings(cross)).is_equal(1)
 	# Touching ends, a T and a shared collinear bus do not count.
 	var touching: Array[PackedVector2Array] = [
 		PackedVector2Array([Vector2(0, 0), Vector2(0, 20), Vector2(10, 20)]),
 		PackedVector2Array([Vector2(0, 0), Vector2(0, 10), Vector2(-10, 10)]),
 		PackedVector2Array([Vector2(0, 10), Vector2(10, 10)]),
 	]
-	assert_int(NetworkLayout.crossings(touching)).is_equal(0)
+	assert_int(NetworkGeometry.crossings(touching)).is_equal(0)
 	var rects: Array[Rect2] = [Rect2(-5, -5, 10, 10), Rect2(20, 20, 10, 10), Rect2(40, -5, 10, 10)]
 	var routes: Array[PackedVector2Array] = [PackedVector2Array([Vector2(0, 0), Vector2(45, 0)])]
-	assert_int(NetworkLayout.routes_through_boxes(routes, [Vector2i(0, 2)], rects)).is_equal(0)
+	assert_int(NetworkGeometry.routes_through_boxes(routes, [Vector2i(0, 2)], rects)).is_equal(0)
 	routes[0] = PackedVector2Array([Vector2(0, 0), Vector2(25, 25)])
-	assert_int(NetworkLayout.routes_through_boxes(routes, [Vector2i(0, 2)], rects)).is_equal(1)
+	assert_int(NetworkGeometry.routes_through_boxes(routes, [Vector2i(0, 2)], rects)).is_equal(1)
 
 
 func _group_rect(layout: NetworkLayout, hub: int) -> Rect2:

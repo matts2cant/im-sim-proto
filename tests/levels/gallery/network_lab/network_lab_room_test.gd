@@ -3,12 +3,13 @@ extends GdUnitTestSuite
 ## (a 3.5 m corridor from the hub wall, a 14 x 14 m hall, a closet behind the far wall, walls shared
 ## as in ADR 0043), clear doorways, no coplanar faces, wall devices clear of doorways, door sweeps
 ## and signs and flush on their walls, signs inside their walls; the network data (three subnets,
-## FW-01 with the Sentry tracer between Office and Security, FW-02 between Security and Servers, the
+## RTR-01 with the Sentry tracer between Office and Security, RTR-02 between Security and Servers, the
 ## closet's room switch on the Security subnet, trust, accounts) and fair clues. The room is loaded
 ## once (its tests only query it).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/network_lab/network_lab.tscn")
 const ORIGIN := Vector3(-300, 0, -500)
 ## Hall interior (lab-local): x -2..12, z -18..-4, 4 m high.
@@ -22,13 +23,13 @@ const NETWORK: Dictionary[String, Array] = {
 	"Devices/OfficeSwitch": [&"office", "10.0.10.2"],
 	"Devices/OfficePc1": [&"office", "10.0.10.11"],
 	"Devices/OfficePc2": [&"office", "10.0.10.12"],
-	"Devices/Fw01": [&"office", "10.0.10.1"],
+	"Devices/Rtr01": [&"office", "10.0.10.1"],
 	"Devices/SecuritySwitch": [&"security", "10.0.20.2"],
 	"Devices/ClosetSwitch": [&"security", "10.0.20.3"],
 	"Devices/Console": [&"security", "10.0.20.5"],
 	"Devices/ClosetCamera": [&"security", "10.0.20.21"],
 	"Doors/ClosetDoor": [&"security", "10.0.20.51"],
-	"Devices/Fw02": [&"security", "10.0.20.1"],
+	"Devices/Rtr02": [&"security", "10.0.20.1"],
 	"Devices/ServerSwitch": [&"servers", "10.0.30.2"],
 	"Devices/FileServer": [&"servers", "10.0.30.8"],
 }
@@ -37,8 +38,8 @@ const ACCOUNTS: Dictionary[String, Array] = {
 	"Devices/OfficePc1": ["achen", WEAK, false],
 	"Devices/OfficePc2": ["jnovak", WEAK, false],
 	"Devices/Console": ["ops", MEDIUM, false],
-	"Devices/Fw01": ["admin", WEAK, true],
-	"Devices/Fw02": ["admin", MEDIUM, true],
+	"Devices/Rtr01": ["admin", WEAK, true],
+	"Devices/Rtr02": ["admin", MEDIUM, true],
 	"Devices/FileServer": ["archive", WEAK, false],
 }
 
@@ -166,7 +167,7 @@ func test_signs_fit_their_walls_and_do_not_overlap() -> void:
 				)
 
 
-func test_three_subnets_behind_two_gateways_with_trust_and_accounts() -> void:
+func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	for path: String in NETWORK:
 		var device := Device.of(_node(path))
 		assert_str(String(DeviceNetwork.subnet_of(device))).override_failure_message(path).is_equal(
@@ -174,14 +175,14 @@ func test_three_subnets_behind_two_gateways_with_trust_and_accounts() -> void:
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
 		assert_bool(_node(path).has_meta(&"display_name")).override_failure_message(path).is_true()
-	assert_array(Gateway.of(_node("Devices/Fw01")).subnets()).contains_exactly_in_any_order([&"office", &"security"])
-	assert_array(Gateway.of(_node("Devices/Fw02")).subnets()).contains_exactly_in_any_order([&"security", &"servers"])
+	assert_array(Router.of(_node("Devices/Rtr01")).subnets()).contains_exactly_in_any_order([&"office", &"security"])
+	assert_array(Router.of(_node("Devices/Rtr02")).subnets()).contains_exactly_in_any_order([&"security", &"servers"])
 	assert_int(DeviceNetwork.port_kind(Device.of(_node("Devices/Jack")))).is_equal(Device.DeckPort.JACK)
-	# One tracer, default tuning, on FW-01, watching Office and Security (not Servers).
+	# One tracer, default tuning, on RTR-01, watching Office and Security (not Servers).
 	var tracers := Tracer.all(get_tree()).filter(func(t: Tracer) -> bool: return _room.is_ancestor_of(t))
 	assert_int(tracers.size()).is_equal(1)
 	var tracer := tracers[0] as Tracer
-	assert_object(tracer.entity).is_same(_node("Devices/Fw01"))
+	assert_object(tracer.entity).is_same(_node("Devices/Rtr01"))
 	assert_array(tracer.watched).contains_exactly_in_any_order([&"office", &"security"])
 	assert_object(tracer.config).is_same(Tracer.DEFAULT_CONFIG)
 	# The camera and the door trust the console only.
@@ -210,6 +211,47 @@ func test_three_subnets_behind_two_gateways_with_trust_and_accounts() -> void:
 	assert_bool(ActorState.has(_node("Doors/ClosetDoor"), ElectronicLock.FAIL_SECURE)).is_true()
 
 
+# The deck's Map of the whole lab network from the jack (network_map_checks.gd: readable, no cable
+# crossing, nothing off the tree): three subnet boxes left to right (Office, Security, Servers) in
+# their data's colours with their names and ranges, RTR-01 and RTR-02 between them with both
+# addresses. Fitted in the deck's 1152 x 648 Map panel at about 0.51.
+func test_the_deck_map_shows_three_subnet_boxes_with_the_routers_between() -> void:
+	assert_array(Router.of(_node("Devices/Rtr01")).addresses()).is_equal(["10.0.10.1", "10.0.20.254"])
+	assert_array(Router.of(_node("Devices/Rtr02")).addresses()).is_equal(["10.0.20.1", "10.0.30.1"])
+	var rows := MapChecks.rows_from(_node("Devices/Jack"))
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
+	var layout := result["layout"] as NetworkLayout
+	assert_int(result["crossings"]).is_equal(0)
+	assert_int(result["extra"]).is_equal(0)
+	var zoom: float = result["zoom"]
+	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.45)
+	var boxes: Dictionary = result["boxes"]
+	assert_array(boxes.keys()).contains_exactly([&"office", &"security", &"servers"])
+	var titles := {
+		&"office": "OFFICE 10.0.10.0/24", &"security": "SECURITY 10.0.20.0/24", &"servers": "SERVERS 10.0.30.0/24"
+	}
+	var colours: Array[Color] = []
+	for id: StringName in titles:
+		assert_str(boxes[id]["title"]).is_equal(titles[id])
+		colours.append(boxes[id]["color"])
+	# Office blue, Security orange, Servers purple: distinct hues.
+	assert_float(colours[0].h).is_between(0.55, 0.7)
+	assert_float(colours[1].h).is_between(0.0, 0.1)
+	assert_float(colours[2].h).is_between(0.72, 0.85)
+	var office: Rect2 = boxes[&"office"]["rect"]
+	var security: Rect2 = boxes[&"security"]["rect"]
+	var servers: Rect2 = boxes[&"servers"]["rect"]
+	var by_name := {}
+	for i in rows.size():
+		by_name[rows[i].name] = i
+	var rtr01 := layout.rects[by_name["RTR-01"]]
+	var rtr02 := layout.rects[by_name["RTR-02"]]
+	assert_bool(office.end.x < rtr01.position.x and rtr01.end.x < security.position.x).is_true()
+	assert_bool(security.end.x < rtr02.position.x and rtr02.end.x < servers.position.x).is_true()
+	assert_str(rows[by_name["RTR-01"]].address).is_equal("10.0.10.1 · 10.0.20.254")
+	assert_str(rows[by_name["RTR-01"]].role).is_equal("router")
+
+
 func test_every_clue_is_fair() -> void:
 	var note := _node("Items/StickyNote").get_node("Readable") as Readable
 	assert_str(note.codes[&"network_lab_office_pc1"]).is_equal("achen:otter61")
@@ -223,13 +265,13 @@ func test_every_clue_is_fair() -> void:
 	var photo := (_node("Items/Photo").get_node("Readable") as Readable).text
 	assert_str(photo).contains("Mishka").contains("2029").contains("new flat")
 	assert_str(_password("Devices/OfficePc2")).is_equal("mishka" + "2029")
-	# PC 2's mail teaches the console's login; the console's file FW-02's.
+	# PC 2's mail teaches the console's login; the console's file RTR-02's.
 	var pc2_mail := Computer.of(_node("Devices/OfficePc2")).data.mail[0]
 	assert_str(pc2_mail.codes[&"network_lab_console"]).is_equal("ops:" + _password("Devices/Console"))
-	var fw02_file := Computer.of(_node("Devices/Console")).data.files[0]
-	assert_str(fw02_file.codes[&"network_lab_fw02"]).is_equal("admin:" + _password("Devices/Fw02"))
-	assert_str(String(DeviceAccounts.of(_node("Devices/Fw02")).credentials_id)).is_equal("network_lab_fw02")
-	# FW-01 and the file server are cracked: their passwords are written nowhere.
+	var rtr02_file := Computer.of(_node("Devices/Console")).data.files[0]
+	assert_str(rtr02_file.codes[&"network_lab_rtr02"]).is_equal("admin:" + _password("Devices/Rtr02"))
+	assert_str(String(DeviceAccounts.of(_node("Devices/Rtr02")).credentials_id)).is_equal("network_lab_rtr02")
+	# RTR-01 and the file server are cracked: their passwords are written nowhere.
 	var texts: Array[String] = []
 	for node in _room.find_children("*", "Readable", true, false):
 		texts.append((node as Readable).text + str((node as Readable).codes))
@@ -237,7 +279,7 @@ func test_every_clue_is_fair() -> void:
 		var data := (node as Computer).data
 		for document in data.mail + data.files:
 			texts.append(document.text + str(document.codes))
-	for path: String in ["Devices/Fw01", "Devices/FileServer"]:
+	for path: String in ["Devices/Rtr01", "Devices/FileServer"]:
 		for text in texts:
 			assert_str(text).override_failure_message(path + "'s password is written").not_contains(_password(path))
 

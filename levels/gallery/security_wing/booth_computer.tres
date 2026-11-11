@@ -29,5 +29,6 @@ text = "On switch B: hall camera, vault turret, vault door, alarm controller, tw
 
 [resource]
 script = ExtResource("1_data")
+apps = Array[StringName]([&"mail", &"files", &"security"])
 mail = Array[ExtResource("2_document")]([SubResource("Mail_handover"), SubResource("Mail_lasers")])
 files = Array[ExtResource("2_document")]([SubResource("File_devices")])

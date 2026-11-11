@@ -111,6 +111,38 @@ func test_mail_and_files_are_read_into_the_journal() -> void:
 	assert_str(_screen.files_app.learned_label.text).is_equal(DocumentApp.NOTE_ONLY)
 
 
+func test_the_dock_shows_only_the_apps_installed() -> void:
+	# The console has Security installed: three apps, Security works.
+	_computer.session_user = "jmercer"
+	_computer.use_by(_show.player)
+	assert_array(_dock()).is_equal(["Mail", "Files", "Security"])
+	_screen.dock_buttons[ComputerScreen.App.SECURITY].pressed.emit()
+	assert_bool(_screen.security_app.is_visible_in_tree()).is_true()
+	assert_array(_screen.security_app.device_names()).is_not_empty()
+	_screen.close()
+	# The same computer without a list of apps: Mail and Files only, bare-handed and remote, and
+	# asking for Security shows Mail.
+	_computer.data = _computer.data.duplicate()
+	_computer.data.apps = []
+	assert_array(_computer.apps()).is_equal([Computer.MAIL, Computer.FILES])
+	for remote: bool in [false, true]:
+		_computer.open_desktop(_show.player, "jmercer", remote)
+		assert_array(_dock()).is_equal(["Mail", "Files"])
+		_screen.show_app(ComputerScreen.App.SECURITY)
+		assert_int(_screen.app).is_equal(ComputerScreen.App.MAIL)
+		assert_bool(_screen.security_app.is_visible_in_tree()).is_false()
+		_screen.close()
+
+
+# The dock's visible app buttons.
+func _dock() -> Array[String]:
+	var names: Array[String] = []
+	for button in _screen.dock_buttons:
+		if button.visible:
+			names.append(String(button.name))
+	return names
+
+
 func test_the_world_keeps_running_and_esc_leaves_without_the_game_menu() -> void:
 	var runner := _show.runner
 	_show.player.input_enabled = true

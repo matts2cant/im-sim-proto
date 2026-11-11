@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0113): a Tracer component on the lab network (network_fixtures.gd: the "Sentry
-## tracer" on gateway Fw01 watches office and security). It watches a device on a watched subnet
+## tracer" on router Rtr01 watches office and security). It watches a device on a watched subnet
 ## while its host is up, not disabled and reaches the device; gains are scaled by the user's trace
 ## gain; a full trace reports an incident at the user's entry point to the alarm controller its
 ## host reaches and blocks the user's address for the lockout.
@@ -28,7 +28,7 @@ func after_test() -> void:
 
 
 func _tracer() -> Tracer:
-	return _n["Fw01"].get_node("Tracer") as Tracer
+	return _n["Rtr01"].get_node("Tracer") as Tracer
 
 
 func _dev(entity_name: String) -> Device:
@@ -52,9 +52,9 @@ func test_it_watches_its_subnets_while_its_host_runs_and_reaches_them() -> void:
 	assert_bool(tracer.watches(_dev("OfficePc"))).is_true()
 	Powered.of(_n["SecuritySwitch"]).on = true
 	# Host unpowered: nothing is watched.
-	Powered.of(_n["Fw01"]).on = false
+	Powered.of(_n["Rtr01"]).on = false
 	assert_bool(tracer.watches(_dev("OfficePc"))).is_false()
-	Powered.of(_n["Fw01"]).on = true
+	Powered.of(_n["Rtr01"]).on = true
 	# The app stopped (an admin of its host, M12b).
 	tracer.running = false
 	assert_bool(tracer.watches(_dev("OfficePc"))).is_false()

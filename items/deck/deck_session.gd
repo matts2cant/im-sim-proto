@@ -9,10 +9,10 @@ extends Node
 ##   computer lends its address. Tethered: the deck unplugs when its user walks further than
 ##   `config.tether_distance` from the plugged entity (horizontal), can no longer act, or the deck
 ##   leaves the user's inventory; unplugging stops its tools.
-## - Map (discovery, ADR 0112): every device the deck's traffic reaches (through the gateways it has
-##   hacked: Gateway), plus the dead ones right behind them, once its subnet has been scanned
+## - Map (discovery, ADR 0112): every device the deck's traffic reaches (through the routers it has
+##   hacked: Router), plus the dead ones right behind them, once its subnet has been scanned
 ##   (`config.scan_time` s, +10 % trace on the tracers watching it, once per subnet: kept on the
-##   deck), and gateways at once. Devices seen once stay on the map (greyed when out of reach).
+##   deck), and routers at once. Devices seen once stay on the map (greyed when out of reach).
 ##   Refreshed every `config.refresh_interval` s and after every change.
 ## - Accounts: log_in() with a login the user's Journal knows (no trace when right; a wrong known
 ##   password is a failed login). With an account on a device: its commands (send()), and on a
@@ -189,7 +189,7 @@ func refresh() -> void:
 	var seen_changed := false
 	for device in _connected:
 		var subnet := DeviceNetwork.subnet_of(device)
-		var shown := scanned.has(String(subnet)) or Gateway.of(device.entity) != null
+		var shown := scanned.has(String(subnet)) or Router.of(device.entity) != null
 		if not shown and not scans.has(subnet):
 			_start_scan(subnet)
 		if shown:
@@ -310,14 +310,14 @@ func close_remote() -> void:
 	remote_changed.emit(null)
 
 
-## The subnets the gateway `device` joins that are not on the map yet (the Master assist).
+## The subnets the router `device` joins that are not on the map yet (the Master assist).
 func hidden_routes(device: Device) -> int:
-	var gateway := Gateway.of(device.entity) if device != null else null
-	if gateway == null:
+	var router := Router.of(device.entity) if device != null else null
+	if router == null:
 		return 0
 	var scanned := _list(SCANNED)
 	var count := 0
-	for subnet in gateway.subnets():
+	for subnet in router.subnets():
 		if not scanned.has(String(subnet)) and not scans.has(subnet):
 			count += 1
 	return count
@@ -331,10 +331,10 @@ func tracers() -> Array[Tracer]:
 	return Tracer.bars_for(get_tree(), entity, _connected, source.address)
 
 
-## `text`, plus the gateway note when `device` is a gateway (its subnets now show on the map).
+## `text`, plus the router note when `device` is a router (its subnets now show on the map).
 func access_notice(device: Device, text: String) -> String:
-	if Gateway.of(device.entity) != null:
-		return "%s. Gateway hacked: the subnets behind it appear on the map" % text
+	if Router.of(device.entity) != null:
+		return "%s. Router hacked: the subnets behind it appear on the map" % text
 	return text
 
 

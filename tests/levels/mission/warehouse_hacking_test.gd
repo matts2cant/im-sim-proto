@@ -2,11 +2,11 @@ extends GdUnitTestSuite
 ## Warehouse network (M12a, design/levels/mission-warehouse.md "Network", hacking.md "Levels"): two
 ## subnets, Office 10.0.10.0/24 (the office switch, both office PCs, the office wall jack) and
 ## Security 10.0.20.0/24 (both security switches, the console and every security device), joined by
-## the gateway FW-01 in the basement store, which runs the one tracer (default tuning) watching both.
-## FW-01's admin login (Medium) is written nowhere in the level. Security devices trust the console
+## the router RTR-01 in the basement store, which runs the one tracer (default tuning) watching both.
+## RTR-01's admin login (Medium) is written nowhere in the level. Security devices trust the console
 ## (sirens and the radio base station also their alarm controllers): its Security app lists them all,
 ## the office PCs' list none. A deck (minimal user entity, network_fixtures.gd) plugs into the office
-## jack and sees the office and FW-01 only; hacking FW-01 reveals the Security subnet. The level is
+## jack and sees the office and RTR-01 only; hacking RTR-01 reveals the Security subnet. The level is
 ## loaded once (the tests leave it as they found it, design/tech/testing.md "Writing fast tests").
 
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
@@ -77,11 +77,11 @@ func _device(path: String) -> Device:
 	return Device.of(_entity(path))
 
 
-func _gateway() -> Node3D:
-	return _entity("Network/Fw01")
+func _router() -> Node3D:
+	return _entity("Network/Rtr01")
 
 
-func test_two_subnets_with_addresses_and_names_joined_by_fw01() -> void:
+func test_two_subnets_with_addresses_and_names_joined_by_rtr01() -> void:
 	var addresses: Dictionary[String, String] = {}
 	for group: Array[String] in [OFFICE, SECURITY_DEVICES]:
 		var subnet := &"office" if group == OFFICE else &"security"
@@ -93,35 +93,35 @@ func test_two_subnets_with_addresses_and_names_joined_by_fw01() -> void:
 			assert_bool(addresses.has(device.address)).override_failure_message(path + " shares an address").is_false()
 			addresses[device.address] = path
 			assert_bool(device.entity.has_meta(&"display_name")).override_failure_message(path).is_true()
-	# The gateway joins exactly the two subnets; it is on the office side (10.0.10.1).
-	var gateway := Gateway.of(_gateway())
-	assert_object(gateway).is_not_null()
-	assert_array(gateway.subnets()).contains_exactly_in_any_order([&"office", &"security"])
-	assert_str(Device.of(_gateway()).address).is_equal("10.0.10.1")
-	assert_str(NetworkSource.display_name(Device.of(_gateway()))).is_equal("FW-01")
+	# The router joins exactly the two subnets; it is on the office side (10.0.10.1).
+	var router := Router.of(_router())
+	assert_object(router).is_not_null()
+	assert_array(router.subnets()).contains_exactly_in_any_order([&"office", &"security"])
+	assert_str(Device.of(_router()).address).is_equal("10.0.10.1")
+	assert_str(NetworkSource.display_name(Device.of(_router()))).is_equal("RTR-01")
 	# The office jack is a real wall jack: the deck plugs in there.
 	var jack := _device("Network/OfficeWallJack")
 	assert_int(DeviceNetwork.port_kind(jack)).is_equal(Device.DeckPort.JACK)
 	assert_bool(jack.accepts_tool(Device.DECK_TOOL)).is_true()
 
 
-func test_fw01_runs_the_one_tracer_and_its_medium_admin_login_is_written_nowhere() -> void:
+func test_rtr01_runs_the_one_tracer_and_its_medium_admin_login_is_written_nowhere() -> void:
 	var tracers := Tracer.all(get_tree())
 	assert_int(tracers.size()).is_equal(1)
 	var tracer := tracers[0]
-	assert_object(tracer.entity).is_same(_gateway())
+	assert_object(tracer.entity).is_same(_router())
 	assert_array(tracer.watched).contains_exactly_in_any_order([&"office", &"security"])
 	assert_object(tracer.config).is_same(Tracer.DEFAULT_CONFIG)
 	for path: String in ["Network/OfficePc1", "Devices/SecurityConsole", "Devices/CameraYard"]:
 		assert_array(Tracer.watching(_device(path))).override_failure_message(path).contains([tracer])
-	var accounts := DeviceAccounts.of(_gateway()).accounts
+	var accounts := DeviceAccounts.of(_router()).accounts
 	assert_int(accounts.size()).is_equal(1)
 	assert_int(accounts[0].strength).is_equal(DeviceAccount.Strength.MEDIUM)
 	assert_bool(accounts[0].admin).is_true()
 	# No datapad, mail or file in the level gives the password away.
 	var password := accounts[0].password
 	for text in _level_texts():
-		assert_str(text).override_failure_message("FW-01's password is written in: " + text).not_contains(password)
+		assert_str(text).override_failure_message("RTR-01's password is written in: " + text).not_contains(password)
 
 
 func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing() -> void:
@@ -138,7 +138,7 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 	for path: String in ["Network/OfficePc1", "Network/OfficePc2"]:
 		var pc := Computer.of(_entity(path))
 		assert_array(pc.devices()).override_failure_message(path).is_empty()
-		# It reaches the vault door through FW-01 (device traffic passes), but the door obeys the console only.
+		# It reaches the vault door through RTR-01 (device traffic passes), but the door obeys the console only.
 		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor"))).is_true()
 		assert_bool(pc.send(Device.OPEN, _device("Doors/VaultDoor"))).is_false()
 	# The console's known login (the audit note) works bare-handed; it opens the vault door remotely.
@@ -189,7 +189,7 @@ func _assert_reached(console: Computer, paths: Array[String], expected: bool) ->
 		)
 
 
-func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_fw01_reveals_security() -> void:
+func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_rtr01_reveals_security() -> void:
 	var user := Net.user(_level, AT_JACK)
 	var session := DeckSession.of(user)
 	session.config = session.config.duplicate() as DeckConfig
@@ -198,19 +198,19 @@ func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_fw01_reveals_s
 	assert_str(session.source.address).is_equal("10.0.10.40")
 	await _frames(15)
 	var seen := _map(session)
-	assert_array(seen).contains_exactly_in_any_order(OFFICE + ["Network/Fw01"])
-	# Hacking the gateway (an account on it: the Icebreaker at Trained, or a login) opens Security.
-	DeviceAccounts.of(_gateway()).grant(user, "admin")
+	assert_array(seen).contains_exactly_in_any_order(OFFICE + ["Network/Rtr01"])
+	# Hacking the router (an account on it: the Icebreaker at Trained, or a login) opens Security.
+	DeviceAccounts.of(_router()).grant(user, "admin")
 	session.refresh()
 	await _frames(15)
 	seen = _map(session)
 	for path: String in SECURITY_DEVICES:
 		assert_array(seen).override_failure_message(path + " not on the map").contains([path])
 	# The scans added trace on the Sentry tracer (both subnets are watched).
-	var tracer := _gateway().get_node("Tracer") as Tracer
+	var tracer := _router().get_node("Tracer") as Tracer
 	assert_float(tracer.trace_of(user)).is_greater(15.0)
 	session.unplug()
-	DeviceAccounts.of(_gateway()).set_password("admin", DeviceAccounts.of(_gateway()).account("admin").password)
+	DeviceAccounts.of(_router()).set_password("admin", DeviceAccounts.of(_router()).account("admin").password)
 	user.free()
 
 

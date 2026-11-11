@@ -2,7 +2,8 @@ class_name Computer
 extends Node
 ## Component (ADR 0114; replaces the security terminal of ADR 0080 and 0083): a computer running
 ## Halcyon OS, on a device entity beside its Device and its DeviceAccounts. Its desktop opens in the
-## user's ComputerScreen (an overlay: the world keeps running) with three apps:
+## user's ComputerScreen (an overlay: the world keeps running) with the apps installed on it (apps():
+## its data's list, else Mail and Files; the security consoles also have Security):
 ## - Mail and Files: `data` (ComputerData .tres). Reading one adds it to the reader's PersonalLog
 ##   like a datapad (read()): its codes and logins become known; an implicit clue is a note only.
 ## - Security: devices() lists the devices this computer controls (controls()), each with its kind
@@ -31,6 +32,8 @@ const ADDRESS_METHOD: StringName = &"device_address"
 const MAIL: StringName = &"mail"
 const FILES: StringName = &"files"
 const SECURITY: StringName = &"security"
+## The apps of a computer whose data lists none.
+const DEFAULT_APPS: Array[StringName] = [MAIL, FILES]
 
 @export var config: ComputerConfig
 @export var data: ComputerData
@@ -206,6 +209,13 @@ func known_logins(viewer: Node) -> Array[LoginCredentials]:
 	return found
 
 
+## The apps installed on it, in dock order: its data's `apps`, else Mail and Files.
+func apps() -> Array[StringName]:
+	if data != null and not data.apps.is_empty():
+		return data.apps.duplicate()
+	return DEFAULT_APPS.duplicate()
+
+
 ## What app `app` (MAIL or FILES) lists for account `user`: the mails in their inbox, or the files.
 func documents(app: StringName, user: String) -> Array[ComputerDocument]:
 	if data == null:
@@ -268,9 +278,10 @@ func send(command: StringName, target: Device, by: Node = null) -> bool:
 	return device.send_command(command, target, Device.NO_POINT, by)
 
 
-## How screens name a device: its entity's node name in words ("CameraNorth" -> "Camera North").
+## How screens name a device: its `display_name` (the deck's Map uses the same), else its entity's node
+## name in words ("CameraNorth" -> "Camera North"; NetworkSource.display_name()).
 static func display_name(other: Device) -> String:
-	return String(other.entity.name).capitalize() if is_instance_valid(other.entity) else String(other.name)
+	return NetworkSource.display_name(other)
 
 
 # The table's commands `other` accepts, in table order.

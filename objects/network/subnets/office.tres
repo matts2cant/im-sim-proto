@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Subnet" format=3]
+
+[ext_resource type="Script" path="res://objects/network/subnet.gd" id="1_subnet"]
+
+[resource]
+script = ExtResource("1_subnet")
+id = &"office"
+label = "OFFICE"
+address_range = "10.0.10.0/24"
+map_color = Color(0.353, 0.627, 1, 1)

@@ -420,7 +420,7 @@ def build():
     s.override("Devices/YardSwitch/Powered", {"circuit": sname(YARD)})
     s.override("Devices/YardSwitch/Device", {"links": node_paths(["../../../" + p for p in yard])})
 
-    # --- M11 hooks (separate networks until M11's gateway joins them) ---------------------------
+    # --- M11 hooks (separate networks until M11's router joins them) ---------------------------
     s.add("Network", ".", "Node3D")
     pos, yaw = ACCESS_POINT
     s.add("AccessPointGuest", "Network", instance=scene["switch"], props={"transform": Raw(transform(pos, yaw_basis(yaw)))})

@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="9_breaker"]
 [ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="10_switch"]
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="11_jack"]
-[ext_resource type="PackedScene" path="res://objects/network/gateway.tscn" id="12_gateway"]
+[ext_resource type="PackedScene" path="res://objects/network/router.tscn" id="12_router"]
 [ext_resource type="Script" path="res://objects/network/tracer.gd" id="13_tracer"]
 [ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="14_computer"]
 [ext_resource type="Script" path="res://objects/network/device_account.gd" id="15_account"]
@@ -23,6 +23,10 @@
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/office_pc2.tres" id="21_pc2_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/console.tres" id="22_console_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/file_server.tres" id="23_server_data"]
+[ext_resource type="Script" path="res://objects/network/subnet.gd" id="24_subnet"]
+[ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="24_office"]
+[ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="24_security"]
+[ext_resource type="Resource" path="res://objects/network/subnets/servers.tres" id="24_servers"]
 
 [sub_resource type="Resource" id="Opening_corridor_hub"]
 script = ExtResource("2_opening")
@@ -72,13 +76,13 @@ user = "ops"
 password = "relay52"
 strength = 1
 
-[sub_resource type="Resource" id="Account_fw01"]
+[sub_resource type="Resource" id="Account_rtr01"]
 script = ExtResource("15_account")
 user = "admin"
 password = "gate42"
 admin = true
 
-[sub_resource type="Resource" id="Account_fw02"]
+[sub_resource type="Resource" id="Account_rtr02"]
 script = ExtResource("15_account")
 user = "admin"
 password = "k3epOut9"
@@ -233,20 +237,24 @@ label = "office PC 2"
 [node name="Device" parent="Devices/OfficePc2"]
 address = "10.0.10.12"
 
-[node name="Fw01" parent="Devices" instance=ExtResource("12_gateway")]
+[node name="Rtr01" parent="Devices" instance=ExtResource("12_router")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -15.7)
-metadata/display_name = "FW-01"
+metadata/display_name = "RTR-01"
 
-[node name="Device" parent="Devices/Fw01"]
+[node name="Device" parent="Devices/Rtr01"]
 links = Array[NodePath]([NodePath("../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
 address = "10.0.10.1"
 subnet = &"office"
 
-[node name="DeviceAccounts" parent="Devices/Fw01"]
-accounts = Array[ExtResource("15_account")]([SubResource("Account_fw01")])
-credentials_id = &"network_lab_fw01"
+[node name="DeviceAccounts" parent="Devices/Rtr01"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr01")])
+credentials_id = &"network_lab_rtr01"
 
-[node name="Tracer" type="Node" parent="Devices/Fw01"]
+[node name="Router" parent="Devices/Rtr01"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_office"), ExtResource("24_security")])
+side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.254"})
+
+[node name="Tracer" type="Node" parent="Devices/Rtr01"]
 script = ExtResource("13_tracer")
 label = "Sentry tracer"
 watched = Array[StringName]([&"office", &"security"])
@@ -256,7 +264,7 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -16.8)
 metadata/display_name = "SW-SECURITY"
 
 [node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Fw02"), NodePath("../../ClosetSwitch")])
+links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Rtr02"), NodePath("../../ClosetSwitch")])
 address = "10.0.20.2"
 subnet = &"security"
 
@@ -303,24 +311,28 @@ metadata/display_name = "CAM-CLOSET"
 address = "10.0.20.21"
 trusted = Array[NodePath]([NodePath("../../Console")])
 
-[node name="Fw02" parent="Devices" instance=ExtResource("12_gateway")]
+[node name="Rtr02" parent="Devices" instance=ExtResource("12_router")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -16.2)
-metadata/display_name = "FW-02"
+metadata/display_name = "RTR-02"
 
-[node name="Device" parent="Devices/Fw02"]
+[node name="Device" parent="Devices/Rtr02"]
 address = "10.0.20.1"
 subnet = &"security"
 
-[node name="DeviceAccounts" parent="Devices/Fw02"]
-accounts = Array[ExtResource("15_account")]([SubResource("Account_fw02")])
-credentials_id = &"network_lab_fw02"
+[node name="DeviceAccounts" parent="Devices/Rtr02"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr02")])
+credentials_id = &"network_lab_rtr02"
+
+[node name="Router" parent="Devices/Rtr02"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_security"), ExtResource("24_servers")])
+side_addresses = Dictionary[StringName, String]({&"servers": "10.0.30.1"})
 
 [node name="ServerSwitch" parent="Devices" instance=ExtResource("10_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -15.1)
 metadata/display_name = "SW-SERVERS"
 
 [node name="Device" parent="Devices/ServerSwitch"]
-links = Array[NodePath]([NodePath("../../Fw02"), NodePath("../../FileServer")])
+links = Array[NodePath]([NodePath("../../Rtr02"), NodePath("../../FileServer")])
 address = "10.0.30.2"
 subnet = &"servers"
 
@@ -427,10 +439,10 @@ guess its login from
 PC 1's mail and the photo"
 size = 0
 
-[node name="Fw01" parent="Labels" instance=ExtResource("3_sign")]
+[node name="Rtr01" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.3, -15.7)
 pixel_size = 0.003
-text = "FW-01 · gateway, Sentry tracer
+text = "RTR-01 · router, Sentry tracer
 between the office and security
 switches: hack it from the deck"
 size = 0
@@ -457,16 +469,16 @@ text = "Closet · electronic, fail-secure
 open it from the console"
 size = 0
 
-[node name="Fw02" parent="Labels" instance=ExtResource("3_sign")]
+[node name="Rtr02" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.3, -16.2)
 pixel_size = 0.003
-text = "FW-02 · gateway inside Security
+text = "RTR-02 · router inside Security
 login: the console's files"
 size = 0
 
 [node name="FileServer" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.15, -12.5)
 pixel_size = 0.003
-text = "File server · behind FW-02
+text = "File server · behind RTR-02
 crack it, open its desktop"
 size = 0

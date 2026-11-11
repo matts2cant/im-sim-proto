@@ -417,17 +417,27 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 
 ## M12a Network and deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md))
 
-Take the deck from the hub's loadout table (or the network lab's entrance table). The deck lab fixture's review shots stay useful (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_gateway|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
+Take the deck from the hub's loadout table (or the network lab's entrance table). The deck lab fixture's review shots stay useful (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_router|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
 
 - [ ] LMB with the deck on a wall jack: the screen rises at once; nothing else in the world stops (guards keep walking). Esc and ✕ lower it without opening the game menu; LMB on the jack raises it again.
-- [ ] The 2 s scan when you plug in reads as "the deck is working", not as lag. The gateway shows at once, the rest after the scan.
+- [ ] The 2 s scan when you plug in reads as "the deck is working", not as lag. The router shows at once, the rest after the scan.
 - [ ] Walking away unplugs the deck at a sensible distance (3 m): not so short that a step sideways unplugs it, not so long that it looks like a wireless deck.
 - [ ] The Map's amber (access) reads apart from the orange of devices doing something (ringing, firing) and from the online green.
-- [ ] Hacking a gateway: the subnet behind it appearing after its scan feels like a reveal; a second gateway inside it is clearly the next step.
+- [ ] Hacking a router: the subnet behind it appearing after its scan feels like a reveal; a second router inside it is clearly the next step.
 - [ ] The Icebreaker's letters locking in feel like progress; Stop / Resume keep the progress; the menu's "Icebreaker (40 %)" makes a saved crack easy to find again.
 - [ ] Assists: Trained times, Advanced trace estimates, Master hidden routes are readable and not noisy.
 - [ ] A full trace: the alarm rings (if the tracer's host reaches the controller), the bar says "blocked N s", running tools stop with a message; plugging into another port (a new address) is a way out.
 - [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
+
+### Routers and subnet boxes (ADR 0112 amendment)
+
+Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.
+
+- [ ] Every screen, sign, note and toast says "router" (RTR-01, RTR-02), never "gateway".
+- [ ] Each subnet's box reads as a place: its colour (Office blue, Security orange, Servers purple) is clear but faint behind the devices, its name and range are readable at the fitted zoom; a router clearly stands between two boxes and its two addresses make sense.
+- [ ] Hacking a router: the new box appearing with its devices feels like the reveal; nothing about the hidden subnet shows before (no box, no count).
+- [ ] The warehouse Map after hacking RTR-01 (fit zoom about 0.48): the switch tree (main switch on top, the four area switches below) is easy to follow without crossings; zooming in to read the labels is comfortable.
+- [ ] The office PCs' dock shows Mail and Files only, bare-handed and as a remote desktop; the consoles still have Security.
 
 ## M10 Lockpicking sounds ([ADR 0108](../decisions/0108-lockpick-sounds.md))
 
@@ -483,7 +493,7 @@ Open the Tab interface on its Health, Augmentations and Skills pages (the world 
 
 ## M12a Computers ([ADR 0114](../decisions/0114-computers-halcyon-os.md), [hacking.md](../game/hacking.md))
 
-In the gallery's security wing booth and the warehouse (security console, the two office PCs upstairs in the second office). Compare with the mockup (`design/prototypes/hacking_screens.html`, "Office PC 2" and "Security console"). Review shots: `wing_shots.tscn -- shot=computer_login|computer_camera|computer_door|computer_states`, `warehouse_shots.tscn -- shots=console_cameras,console_door,console_alarm,office_pc2_mail,office_pc2_files,office_pc1_security`, `tests/objects/fixtures/showcase/security_shots.tscn` with `SHOT=console_login|console_camera|console_mail|console_files|console_cut|console_remote`.
+In the gallery's security wing booth and the warehouse (security console, the two office PCs upstairs in the second office). Compare with the mockup (`design/prototypes/hacking_screens.html`, "Office PC 2" and "Security console"). Review shots: `wing_shots.tscn -- shot=computer_login|computer_camera|computer_door|computer_states`, `warehouse_shots.tscn -- shots=console_cameras,console_door,console_alarm,office_pc2_mail,office_pc2_files,office_pc1_dock`, `tests/objects/fixtures/showcase/security_shots.tscn` with `SHOT=console_login|console_camera|console_mail|console_files|console_cut|console_remote`.
 - [ ] E on a computer opens Halcyon OS over the dimmed world (about 85 % of the screen); guards keep moving behind it, the player stands still, the mouse is free and the HUD is hidden; on close everything comes back.
 - [ ] Login: the title bar shows the host name; "Logins you know for this machine" lists only this computer's logins (a keypad code or another PC's login never shows), each with Fill in; Fill in then Enter logs in. A wrong guess shows "Wrong user or password." in red with a quiet beep; a guard in the next room does not hear it. With no login known it says so and points to the deck.
 - [ ] Esc or ✕ leaves at once, also while typing in a field, and never opens the game menu; E never leaves; walking away (pushed) closes it; being knocked out or killed closes it and gives the controls back.
@@ -498,16 +508,16 @@ In the gallery's security wing booth and the warehouse (security console, the tw
 Network lab (hub doorway "8 Network Lab", west wall), Computer skill Untrained unless noted:
 
 - [ ] The lab is found easily from the hub (the sign over the new west doorway; the mission doorway beside it now shows the lab's outer wall behind it: does that read as odd?). Each station's sign is readable from where you stand to use it, and says what to do next.
-- [ ] Deck table: E takes the deck; selecting it on the belt and LMB on the wall jack (0.45 m up) is easy to aim; the Map shows the office and FW-01 only.
+- [ ] Deck table: E takes the deck; selecting it on the belt and LMB on the wall jack (0.45 m up) is easy to aim; the Map shows the office and RTR-01 only.
 - [ ] Office PC 1: the sticky note, then Fill in, logs in; the "Re: my password" mail reads as a fair clue. Office PC 2: after reading the photo on its desk, the guess (`jnovak` / `mishka2029`) feels findable, not a riddle; a wrong guess shows the Sentry tracer's bar rising.
-- [ ] FW-01: cracking it Untrained (10 s) from the Map, then the Security subnet appearing after its scan, feels like the payoff; the trace bar (about 60 % at the peak) teaches the tracer without locking you out.
+- [ ] RTR-01: cracking it Untrained (10 s) from the Map, then the Security subnet appearing after its scan, feels like the payoff; the trace bar (about 60 % at the peak) teaches the tracer without locking you out.
 - [ ] Security console (login from PC 2's mail): its Security app shows only the closet camera and the closet door; Disable the camera and Open the closet; the biocells inside are a fair reward. The same from the console's remote desktop on the deck.
-- [ ] Breaker beside the closet switch: off, the camera and the door go grey (offline) in the console and on the Map while the console and FW-02 stay up; the closet stays shut (fail-secure); on again, everything returns.
-- [ ] FW-02: "Log in (from fw02.txt)" after reading the console's file; the server subnet appears; cracking the file server and opening its desktop remotely shows `well_done.txt`. The chain office -> FW-01 -> Security -> FW-02 -> servers reads on the Map.
+- [ ] Breaker beside the closet switch: off, the camera and the door go grey (offline) in the console and on the Map while the console and RTR-02 stay up; the closet stays shut (fail-secure); on again, everything returns.
+- [ ] RTR-02: "Log in (from rtr02.txt)" after reading the console's file; the server subnet appears; cracking the file server and opening its desktop remotely shows `well_done.txt`. The chain office -> RTR-01 -> Security -> RTR-02 -> servers reads on the Map.
 
 Warehouse network:
 
-- [ ] The deck on office PC 2's desk is noticed; the office wall jack (second office, east wall, low) is easy to find and plug into; the Map shows the office, FW-01 and nothing behind it.
-- [ ] Without the Computer skill, FW-01 says "too strong"; the console in the security room (audit note login) is the other way. With Trained (debug panel), cracking FW-01 (18 s, about +58 % trace) reveals the Security subnet and its five switches; the full Map is readable once zoomed (note where cables cross).
-- [ ] The office PCs' Security app controls nothing; the console's controls every camera, door, turret, laser array and alarm device as before.
-- [ ] Area switches: shooting the vault's switch (vault west wall) silences the vault, the upper corridor's camera and siren only; the roof's switch at the mast's foot silences the roof's camera and beams; the store's main switch still cuts the building from the yard. Breakers A and B behave as before (B also takes FW-01 and its tracer down).
+- [ ] The deck on office PC 2's desk is noticed; the office wall jack (second office, east wall, low) is easy to find and plug into; the Map shows the office, RTR-01 and nothing behind it.
+- [ ] Without the Computer skill, RTR-01 says "too strong"; the console in the security room (audit note login) is the other way. With Trained (debug panel), cracking RTR-01 (18 s, about +58 % trace) reveals the Security subnet and its five switches; the full Map is readable once zoomed (note where cables cross).
+- [ ] The office PCs' dock shows Mail and Files only (no Security app); the console's Security app controls every camera, door, turret, laser array and alarm device as before, named as on the deck's Map (CAM-HALL, DOOR-VAULT).
+- [ ] Area switches: shooting the vault's switch (vault west wall) silences the vault, the upper corridor's camera and siren only; the roof's switch at the mast's foot silences the roof's camera and beams; the store's main switch still cuts the building from the yard. Breakers A and B behave as before (B also takes RTR-01 and its tracer down).

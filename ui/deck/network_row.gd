@@ -21,6 +21,17 @@ var is_self: bool = false
 var address: String = ""
 ## The viewer has an account on it (drawn amber on the deck's Map).
 var access: bool = false
+## Its subnet (DeviceNetwork.subnet_of()): the Map groups it in that subnet's box.
+var subnet: StringName = &""
+## The subnets it joins when it is a router (two or more: the Map puts it between their boxes).
+var joins: Array[StringName] = []
+## A word shown after its name on the Map ("router"), or "".
+var role: String = ""
+
+
+## True when it stands between subnets on the Map (a router).
+func is_between() -> bool:
+	return joins.size() >= 2
 
 
 func is_online() -> bool:

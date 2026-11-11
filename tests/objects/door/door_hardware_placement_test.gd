@@ -79,7 +79,7 @@ func test_an_electronic_door_gets_a_status_box() -> void:
 
 
 func test_a_fence_gate_on_its_posts() -> void:
-	# 0.3 m posts either side of the 1.2 m gateway (the warehouse's back gate), 3.2 m high.
+	# 0.3 m posts either side of the 1.2 m gate opening (the warehouse's back gate), 3.2 m high.
 	for side: float in [1.0, -1.0]:
 		_block(Vector3(side * 0.75, 1.6, 0), Vector3(0.3, 3.2, 0.3))
 	var door := _door(FENCE_GATE, Vector3.ZERO, 0.3, [&"keypad", &"mechanical"])
@@ -89,7 +89,7 @@ func test_a_fence_gate_on_its_posts() -> void:
 
 
 func test_a_vehicle_gate_on_its_posts() -> void:
-	# 0.4 m posts either side of the 6 m gateway (the warehouse's front gate), 3.4 m high.
+	# 0.4 m posts either side of the 6 m gate opening (the warehouse's front gate), 3.4 m high.
 	for side: float in [1.0, -1.0]:
 		_block(Vector3(side * 3.2, 1.7, 0), Vector3(0.4, 3.4, 0.4))
 	var door := _door(VEHICLE_GATE, Vector3.ZERO, 0.4, [&"electronic"])

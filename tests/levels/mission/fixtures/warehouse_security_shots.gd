@@ -7,7 +7,7 @@ extends RefCounted
 ## Security app, a mail's subject or a file's name). Before a shot, `off` turns those circuits off
 ## and `disable` sends `command.disable` to those devices (both last for the rest of the run: put
 ## such shots last). `deck` (M12a): a deck plugged into that device, its Map shown (`hack`: those
-## gateways hacked first; the access lasts for the rest of the run).
+## routers hacked first; the access lasts for the rest of the run).
 
 const DEVICES := "Population/Security/Devices/"
 const NETWORK := "Population/Security/Network/"
@@ -81,27 +81,27 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"roof_camera_west_crouch": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8), "crouch": true},
 	"roof_west_arrival": {"feet": Vector3(-18.5, 9.5, 3.0), "look": Vector3(10, 10.5, -6)},
 	# M12a (ADR 0114): the security console's Security app on a camera, a door and the alarm group;
-	# the office PCs' Mail (an implicit clue), Files, and a Security app that controls nothing.
+	# the office PCs' Mail (an implicit clue) and Files; their dock has no Security app (office_pc1_dock).
 	"console_cameras":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Camera Hall",
+		"select": "CAM-HALL",
 	},
 	"console_door":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Vault Door",
+		"select": "DOOR-VAULT",
 	},
 	"console_alarm":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Alarm Controller",
+		"select": "ALARM",
 	},
 	"office_pc2_mail":
 	{
@@ -119,14 +119,14 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"app": "files",
 		"select": "birthday_card_lena.jpg",
 	},
-	"office_pc1_security":
+	"office_pc1_dock":
 	{
 		"feet": Vector3(14.5, 4.5, 14.0),
 		"look": Vector3(14.5, 5.95, 14.74),
 		"computer": NETWORK + "OfficePc1",
 	},
-	# M12a network: the office wall jack, the network closet in the basement store (FW-01 between the
-	# office and security switches), the deck's Map from the jack before and after hacking FW-01.
+	# M12a network: the office wall jack, the network closet in the basement store (RTR-01 between the
+	# office and security switches), the deck's Map from the jack before and after hacking RTR-01.
 	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
 	"network_closet": {"feet": Vector3(17.0, -4, 7.0), "look": Vector3(19.49, -2.5, 7.0)},
 	# The Security subnet's area switches (a subnet can span several switches).
@@ -145,7 +145,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(18.9, 4.5, 10),
 		"look": Vector3(19.74, 4.9, 10),
 		"deck": NETWORK + "OfficeWallJack",
-		"hack": [NETWORK + "Fw01"],
+		"hack": [NETWORK + "Rtr01"],
 		"wait": 3.0,
 	},
 	# Breaker A's circuit off (the yard devices unreachable: grey) and the hall camera disabled (red).
@@ -156,6 +156,6 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"computer": DEVICES + "SecurityConsole",
 		"off": ["warehouse_yard"],
 		"disable": [DEVICES + "CameraHall"],
-		"select": "Camera Hall",
+		"select": "CAM-HALL",
 	},
 }

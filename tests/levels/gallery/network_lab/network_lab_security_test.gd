@@ -4,10 +4,10 @@ extends GdUnitTestSuite
 ## (its login learned from PC 2's mail, Fill in) lists only the camera and the closet door, which
 ## trust it, and its Security app disables the camera and opens the door to the closet's biocells;
 ## the breaker beside the closet's room switch cuts only that switch (the camera and the door
-## offline, the fail-secure door shut; the console and FW-02 on the same subnet stay reachable);
-## from the wall jack the deck's Icebreaker cracks FW-01 (Weak, Untrained), the console's file gives
-## FW-02's login, and the file server
-## behind FW-02 appears, is cracked and opens remotely on its one file.
+## offline, the fail-secure door shut; the console and RTR-02 on the same subnet stay reachable);
+## from the wall jack the deck's Icebreaker cracks RTR-01 (Weak, Untrained), the console's file gives
+## RTR-02's login, and the file server
+## behind RTR-02 appears, is cracked and opens remotely on its one file.
 
 const Helpers := preload("res://tests/levels/gallery/network_lab/network_lab_helpers.gd")
 
@@ -55,12 +55,12 @@ func test_the_console_disables_the_camera_and_opens_the_closet_that_trust_it() -
 	var screen := await _console_desktop()
 	assert_bool(screen.desktop_shown()).is_true()
 	var app := screen.security_app
-	assert_array(app.device_names()).contains_exactly_in_any_order(["Closet Camera", "Closet Door"])
-	assert_bool(app.select("Closet Camera")).is_true()
+	assert_array(app.device_names()).contains_exactly_in_any_order(["CAM-CLOSET", "DOOR-CLOSET"])
+	assert_bool(app.select("CAM-CLOSET")).is_true()
 	app.action_button("Disable").pressed.emit()
 	await _lab.driver.frames(3)
 	assert_bool(SecurityCamera.of(_lab.node("Devices/ClosetCamera")).disabled).is_true()
-	assert_bool(app.select("Closet Door")).is_true()
+	assert_bool(app.select("DOOR-CLOSET")).is_true()
 	app.action_button("Open").pressed.emit()
 	var door := Door.of(_lab.node("Doors/ClosetDoor"))
 	for i in 90:
@@ -92,16 +92,16 @@ func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays
 	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_false()
 	await _lab.driver.frames(3)
 	assert_bool(Door.of(_lab.node("Doors/ClosetDoor")).is_locked()).is_true()
-	assert_bool(console.device.reaches(_lab.node("Devices/Fw02"))).is_true()
+	assert_bool(console.device.reaches(_lab.node("Devices/Rtr02"))).is_true()
 	assert_bool(console.device.reaches(_lab.node("Devices/SecuritySwitch"))).is_true()
-	# The deck on the jack, FW-01 hacked: the console is online, the closet's devices are not.
+	# The deck on the jack, RTR-01 hacked: the console is online, the closet's devices are not.
 	assert_bool(await _lab.take_deck()).is_true()
 	await _lab.click(Helpers.AT_JACK, "Devices/Jack")
 	var session := DeckSession.of(_lab.player)
-	DeviceAccounts.of(_lab.node("Devices/Fw01")).grant(_lab.player, "admin")
+	DeviceAccounts.of(_lab.node("Devices/Rtr01")).grant(_lab.player, "admin")
 	session.refresh()
 	assert_bool(session.is_online(_lab.device("Devices/Console"))).is_true()
-	assert_bool(session.is_online(_lab.device("Devices/Fw02"))).is_true()
+	assert_bool(session.is_online(_lab.device("Devices/Rtr02"))).is_true()
 	assert_bool(session.is_online(_lab.device("Devices/ClosetCamera"))).is_false()
 	# The breaker back on: online again.
 	breaker.use(_lab.player)
@@ -111,33 +111,33 @@ func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays
 	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_true()
 
 
-func test_cracking_fw01_then_logging_in_on_fw02_reveals_the_file_server() -> void:
+func test_cracking_rtr01_then_logging_in_on_rtr02_reveals_the_file_server() -> void:
 	assert_bool(await _lab.take_deck()).is_true()
 	await _lab.click(Helpers.AT_JACK, "Devices/Jack")
 	await _lab.seconds(2.2)
 	var screen := DeckScreen.of(_lab.player)
 	screen.refresh()
 	assert_bool(screen.graph.node_names().has("SEC-CONSOLE")).is_false()
-	# FW-01: the Icebreaker cracks its Weak admin password Untrained (10 s, +40 % trace).
-	assert_bool(screen.graph.select("FW-01")).is_true()
+	# RTR-01: the Icebreaker cracks its Weak admin password Untrained (10 s, +40 % trace).
+	assert_bool(screen.graph.select("RTR-01")).is_true()
 	_press(screen, "Icebreaker")
 	await _lab.seconds(10.2)
 	assert_bool(IcebreakerTool.of(_lab.player).job.is_done()).is_true()
-	assert_bool(DeviceAccounts.of(_lab.node("Devices/Fw01")).has_access(_lab.player)).is_true()
+	assert_bool(DeviceAccounts.of(_lab.node("Devices/Rtr01")).has_access(_lab.player)).is_true()
 	_press(screen, "Back to the map")
 	await _lab.seconds(2.2)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains(
-		["SW-SECURITY", "SEC-CONSOLE", "CAM-CLOSET", "DOOR-CLOSET", "FW-02"]
+		["SW-SECURITY", "SEC-CONSOLE", "CAM-CLOSET", "DOOR-CLOSET", "RTR-02"]
 	)
 	assert_bool(screen.graph.node_names().has("FILE-SERVER")).is_false()
 	assert_array(EventLog.find(&"tracer.full")).is_empty()
-	# FW-02: the console's file teaches its login; the Map logs in with it.
+	# RTR-02: the console's file teaches its login; the Map logs in with it.
 	var console := _lab.computer("Devices/Console")
 	console.read(console.data.files[0], _lab.player, "Files")
 	screen.refresh()
-	assert_bool(screen.graph.select("FW-02")).is_true()
-	_press(screen, "Log in (from fw02.txt)")
+	assert_bool(screen.graph.select("RTR-02")).is_true()
+	_press(screen, "Log in (from rtr02.txt)")
 	await _lab.seconds(2.2)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains(["SW-SERVERS", "FILE-SERVER"])

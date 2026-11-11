@@ -1,6 +1,6 @@
 class_name Tracer
 extends Node
-## Component (ADR 0074, 0113): a tracer app running on its entity (a computer, server or gateway
+## Component (ADR 0074, 0113): a tracer app running on its entity (a computer, server or router
 ## with a Device). It watches the subnets in `watched`: a device there is watched while the tracer
 ## runs (`running`, its host's Device up and not disabled by a command) and its host reaches the
 ## device (a cut cable or a dead switch between them: unwatched). Activity against a watched device

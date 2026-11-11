@@ -27,4 +27,4 @@ func device(entity_name: String) -> Device:
 
 
 func tracer() -> Tracer:
-	return network["Fw01"].get_node("Tracer") as Tracer
+	return network["Rtr01"].get_node("Tracer") as Tracer

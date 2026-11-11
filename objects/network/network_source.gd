@@ -1,6 +1,6 @@
 class_name NetworkSource
 extends RefCounted
-## Pure-ish: where network traffic comes from (ADR 0113). Gateways judge traffic by it (GatewayRule:
+## Pure-ish: where network traffic comes from (ADR 0113). Routers judge traffic by it (RouterRule:
 ## from a subnet, a device or "you"), tracers block its address and report its entry point.
 ## - DEVICE: a device speaking for itself (an alarm controller ringing a siren); no user.
 ## - JACK: a deck on a wall jack: its own graph node (Device.DECK_NODE) on the jack's subnet; the
@@ -48,7 +48,7 @@ static func user_key(p_user: Node) -> String:
 	return String(p_user.name) if p_user != null and is_instance_valid(p_user) else ""
 
 
-## How screens name a device: its entity's `display_name` metadata ("FW-01"), else its node name in
+## How screens name a device: its entity's `display_name` metadata ("RTR-01"), else its node name in
 ## words ("OfficePc2" -> "Office Pc 2").
 static func display_name(p_device: Device) -> String:
 	if p_device == null or not is_instance_valid(p_device):
@@ -60,7 +60,7 @@ static func display_name(p_device: Device) -> String:
 	return String(p_device.entity.name).capitalize()
 
 
-## A user's traffic ("you" in a gateway rule).
+## A user's traffic ("you" in a router rule).
 func is_user() -> bool:
 	return user != null and is_instance_valid(user)
 

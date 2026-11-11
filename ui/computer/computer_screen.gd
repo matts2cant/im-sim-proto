@@ -13,7 +13,8 @@ extends CanvasLayer
 ## - Login: user and password fields, an error line, and every login the user's PersonalLog knows
 ##   for this computer with a "Fill in" button; Enter in either field logs in
 ##   (Computer.log_in() -> DeviceAccounts.try_login()).
-## - Desktop: a dock with Mail, Files and Security (DocumentApp, SecurityApp), the account, Log out.
+## - Desktop: a dock with the apps installed on the computer (Computer.apps(): Mail, Files, Security;
+##   DocumentApp, SecurityApp), the account, Log out.
 ## - Remote (from the deck): the same desktop inside the deck's panel area (`remote_area`, above
 ##   the deck's layer), "Remote desktop" in its bar and "Back to the map", which closes it (so does
 ##   Esc) and emits the computer's `desktop_closed`. Walking away does not close it (the deck's
@@ -238,8 +239,11 @@ func log_out() -> void:
 	_show_view()
 
 
-## Shows `which` app on the desktop.
+## Shows `which` app on the desktop (an app not installed on the computer: its first app).
 func show_app(which: App) -> void:
+	var installed := computer.apps() if computer != null else Computer.DEFAULT_APPS
+	if not installed.has(APP_IDS[which]):
+		which = APP_IDS.find(installed[0]) as App if not installed.is_empty() else App.MAIL
 	app = which
 	for i in dock_buttons.size():
 		dock_buttons[i].set_pressed_no_signal(i == app)
@@ -318,7 +322,9 @@ func _show_view() -> void:
 		logout_button.visible = not remote
 		(logout_button.get_parent().get_node(^"Hint") as Label).text = REMOTE_HINT if remote else HINT
 		security_app.set_view_size(SecurityApp.FEED_SHOWN_COMPACT if remote else SecurityApp.FEED_SHOWN)
+		# The dock shows the apps installed on this computer only.
 		for i in dock_buttons.size():
+			dock_buttons[i].visible = computer.apps().has(APP_IDS[i])
 			var icon := dock_buttons[i].get_node(^"Column/Icon") as DeviceIcon
 			icon.strokes = computer.config.app_icons.get(APP_IDS[i], PackedStringArray())
 		show_app(app)
