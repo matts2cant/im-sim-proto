@@ -395,7 +395,7 @@ select it on the belt"
 size = 0
 
 [node name="Jack" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 1.2, -6)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 1.35, -6)
 pixel_size = 0.003
 text = "Wall jack · Office subnet
 deck in hand: LMB plugs in
