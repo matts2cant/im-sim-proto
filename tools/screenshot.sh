@@ -3,6 +3,8 @@
 # Usage: tools/screenshot.sh <res://path/scene.tscn> [frames=15] [out_png]
 #   Default output: reports/screenshots/<scene_basename>.png
 # Window size: $SHOT_SIZE=WxH (default 1152x648); forced via --resolution.
+# Time limit: $SHOT_TIMEOUT seconds (default 60), enforced by tools/run_windowed.sh, which closes
+# the window (plain `timeout` would leave it open on Windows).
 # Godot binary: $GODOT_BIN, defaulting to the project's standard install path.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -32,7 +34,8 @@ rm -rf "$tmp"
 mkdir -p "$tmp"
 mkdir -p "$(dirname "$out")"
 
-"$GODOT_BIN" --path . --resolution "${SHOT_SIZE:-1152x648}" --write-movie "$tmp/frame.png" --fixed-fps 30 --quit-after "$frames" "$scene"
+# Time limit ($SHOT_TIMEOUT seconds, default 60): a scene that never quits has its window closed.
+tools/run_windowed.sh "${SHOT_TIMEOUT:-60}" --path . --resolution "${SHOT_SIZE:-1152x648}" --write-movie "$tmp/frame.png" --fixed-fps 30 --quit-after "$frames" "$scene" || true
 
 last="$(find "$tmp" -name 'frame*.png' | sort | tail -n 1)"
 if [ -z "$last" ]; then

@@ -133,7 +133,7 @@ A task is done only when all of these hold:
 
 - When engine behaviour is uncertain (CSG timing, navigation map sync, physics frame order), write a 10–20 line `--script` probe **before** building on an assumption. It is far cheaper than debugging the full feature.
 - Probes live in the scratchpad, not in `res://`, end with `quit()`, and run under `timeout 60 "$GODOT_BIN" --headless ...`. Never leave a Godot process running when you finish: check with `tasklist | grep -i godot`, but only stop processes you started (note their PIDs): other agents' test runs may be in progress and slow yours down.
-- Windowed runs (screenshots): `timeout` only kills the `_console.exe` wrapper, not the Godot window, so a fixture that never quits leaves a window on the user's screen. Every screenshot fixture quits itself on every path (shot saved, the scene closed before the shot, unknown shot name) and has a real-time watchdog (about 25 s) that saves what is shown and quits. After each windowed run, check `tasklist | grep -i godot` and stop the processes you started.
+- Windowed runs (screenshots, review shots): run them through `tools/run_windowed.sh <seconds> <godot args...>` (or `tools/screenshot.sh`, which uses it), never plain `timeout`: `timeout` only kills the `_console.exe` wrapper and leaves the Godot window open on the user's screen. Every screenshot fixture also quits itself on every path (shot saved, the scene closed before the shot, unknown shot name) and has a real-time watchdog (about 25 s) that saves what is shown and quits. After each windowed run, check `tasklist | grep -i godot` and stop the processes you started.
 - Scratch files go in a private subfolder of the scratchpad named after your task (other agents share the scratchpad).
 - After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports when a `class_name`/`extends` line or a non-script file changed; for ad-hoc runs use `--headless --import`.
 - In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
@@ -160,7 +160,8 @@ TEST_FIXED_FPS=0 tools/run_tests.sh ... # real-time frames instead of simulated 
 tools/lint.sh                           # gdformat --check + gdlint, addons excluded
 tools/lint.sh --fix                     # format in place
 tools/gen_api_docs.sh                   # local Godot 4.7.2 API reference into .api-docs/
-tools/screenshot.sh res://levels/hub/hub.tscn [frames] [out.png]  # render last frame to reports/screenshots/
+tools/screenshot.sh res://levels/hub/hub.tscn [frames] [out.png]  # render last frame to reports/screenshots/ (SHOT_TIMEOUT=60)
+tools/run_windowed.sh 60 --path . res://path/fixture.tscn -- shot=x  # any windowed run: closes the window on timeout (exit 124)
 ```
 
 Godot binary: env var `GODOT_BIN`, default `C:\Program Files\Godot\Godot_v4.7.2-stable_win64_console.exe`.

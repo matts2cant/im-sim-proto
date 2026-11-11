@@ -44,7 +44,7 @@ Final suite on master: 1639 tests, 0 failures, 1 skipped, lint clean, twice. The
   - Process: while the user is still iterating on a prototype, brief only the parts that are settled (the sounds were). Brief the screen and controls once the user calls the prototype done.
   - Bench checks before publishing: also hold still after each event, watch the sounds after the end state, and draw the state after each transition.
 - **Open for the user:**
-  - Should `tools/screenshot.sh` kill the Godot window itself when its timeout expires? It would catch any fixture that forgets to quit.
+  - Should `tools/screenshot.sh` kill the Godot window itself when its timeout expires? → **Yes** (user). New `tools/run_windowed.sh <seconds> <args>` kills the whole process tree (`taskkill /T`) at the limit and exits 124; `screenshot.sh` uses it (`SHOT_TIMEOUT`, default 60 s). AGENTS.md now says to use it for every windowed run. Checked with a probe that never quits: its window closed after the limit and no process was left.
   - The panel is wider than tall at 55 % of the screen and opaque. The lock sits right of centre to leave room for the pick handle, so is it big enough in game?
 
 ## M9 — Warehouse mission (2026-11-09, autonomous night)
