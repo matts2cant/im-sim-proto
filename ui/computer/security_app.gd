@@ -24,7 +24,7 @@ const NOTE := (
 )
 ## Render size of the live view (shown scaled to FEED_SHOWN).
 const FEED_SIZE: Vector2i = Vector2i(480, 270)
-const FEED_SHOWN: Vector2 = Vector2(512, 288)
+const FEED_SHOWN: Vector2 = Vector2(448, 252)
 const FEED_FOV: float = 70.0
 const FEED_NEAR: float = 0.05
 const FEED_FAR: float = 80.0
@@ -51,6 +51,7 @@ var feed_camera: Camera3D
 var feed_rect: TextureRect
 var no_signal_label: Label
 var live_label: Label
+var view_label: Label
 
 var _list: VBoxContainer
 var _list_column: MarginContainer
@@ -312,6 +313,7 @@ func _rebuild_detail() -> void:
 	detail_address.text = "Address  " + address
 	detail_address.visible = not address.is_empty()
 	feed_frame.visible = row.has_view
+	view_label.text = row.name.to_upper()
 	for command in row.commands:
 		var danger := computer.config.danger_commands.has(command)
 		var button := HalcyonStyle.button(computer.config.label_for(command), false, danger)
@@ -409,11 +411,22 @@ func _build_feed(detail: VBoxContainer) -> void:
 	no_signal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	no_signal_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	feed_frame.add_child(no_signal_label)
+	# The view's caption row, top of the frame: the device's name left, LIVE right.
+	var caption_margin := MarginContainer.new()
+	caption_margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	caption_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side: String in ["left", "right", "top"]:
+		caption_margin.add_theme_constant_override("margin_" + side, 8)
+	feed_frame.add_child(caption_margin)
+	var caption := HBoxContainer.new()
+	caption.name = "Caption"
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	caption_margin.add_child(caption)
+	view_label = HalcyonStyle.label("", 11, HalcyonStyle.TEAL, true)
+	view_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	caption.add_child(view_label)
 	live_label = HalcyonStyle.label("● LIVE", 11, HalcyonStyle.BAD, true)
-	live_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	live_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	live_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	feed_frame.add_child(live_label)
+	caption.add_child(live_label)
 	feed_viewport = SubViewport.new()
 	feed_viewport.size = FEED_SIZE
 	feed_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
