@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/objects/fixtures/carry_room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://tests/ui/tab_interface/fixtures/character_tab_shots.gd" id="2_shots"]
+
+[node name="CharacterTabShots" type="Node"]
+
+[node name="Room" parent="." instance=ExtResource("1_room")]
+
+[node name="Shots" type="Node" parent="."]
+script = ExtResource("2_shots")

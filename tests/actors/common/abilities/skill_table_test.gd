@@ -95,6 +95,29 @@ func test_skill_effect_skips_identity_values_but_not_overrides() -> void:
 	assert_object(effect.modifier_for(0, &"s")).is_not_null()
 
 
+func test_tier_rows_read_the_display_data() -> void:
+	# The Skills tab's table (ADR 0111): labels, multipliers, values on a base with units, tier texts.
+	var pistols := TABLE.find(&"pistols").tier_rows(4)
+	assert_array(Array(pistols[0])).is_equal(["Spread", "x1", "x0.8", "x0.6", "x0.4"])
+	assert_array(Array(pistols[1])).is_equal(["Settle", "0.8 s", "0.6 s", "0.4 s", "0.2 s"])
+	assert_array(Array(pistols[3])).is_equal(["Damage (pistol 25)", "25", "27.5", "30", "32.5"])
+	var medicine := TABLE.find(&"medicine").tier_rows(4)
+	assert_array(Array(medicine[0])).is_equal(["Medkit heals", "30", "45", "60", "90"])
+	var lockpicking := TABLE.find(&"lockpicking").tier_rows(4)
+	assert_array(Array(lockpicking[0])).is_equal(["Sweet spot from", "40 %", "37 %", "34 %", "31 %"])
+	assert_array(Array(lockpicking[4])).is_equal(["Lift tolerance", "+0 %", "+1.2 %", "+2.4 %", "+3.6 %"])
+	assert_array(Array(lockpicking[7])).is_equal(
+		["Assists", "Sound only", "+ tension gauge", "+ captions", "+ clear lock"]
+	)
+	assert_array(TABLE.find(&"computer").tier_rows(4)).is_empty()
+
+
+func test_every_shipped_effect_has_a_label() -> void:
+	for skill in TABLE.skills:
+		for effect in skill.effects:
+			assert_str(effect.label).override_failure_message(String(effect.attribute)).is_not_empty()
+
+
 func _values(skill: SkillData, tier: int) -> Dictionary:
 	var values := {}
 	for modifier in skill.modifiers_for(tier):

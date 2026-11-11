@@ -24,3 +24,17 @@ func modifiers_for(tier: int) -> Array[Modifier]:
 		if modifier != null:
 			result.append(modifier)
 	return result
+
+
+## What every tier gives, for the Skills tab: one row per effect, its label then one cell per tier
+## (SkillEffect.display_text(), ADR 0111).
+func tier_rows(tier_count: int) -> Array[PackedStringArray]:
+	var rows: Array[PackedStringArray] = []
+	for effect in effects:
+		if effect == null:
+			continue
+		var row := PackedStringArray([effect.display_label()])
+		for tier in tier_count:
+			row.append(effect.display_text(tier))
+		rows.append(row)
+	return rows
