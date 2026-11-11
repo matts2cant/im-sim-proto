@@ -72,6 +72,18 @@ Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "W
 - Shards run in parallel processes: write files only under `user://`, reset autoloads in `before_test`, restore engine-wide settings in `after_test`.
 - Iterate on a subset, run the full suite once at the end (once: each suite's own time is measured on that run and written to `reports/suite_times.tsv`; only the total wall time is skewed by new suites, so never rerun the suite to measure times); for a failure seen only in a full run, replay its shard (`-j 1 $(cat reports/shards/<n>/suites.txt)`) and fix the root cause, never retry.
 
+## Tool use (right first time)
+
+Measured over 14 agents (4288 tool calls, 62 failed, retrospective 2026-11-12): half the failures were the worktree sandbox refusing compound shell commands. Each failure costs a call and a retry.
+
+- **One plain command per Bash call in a worktree.** The sandbox refuses what it cannot verify: heredocs (`python - <<'EOF'`, `cat <<EOF`), `for` loops, `cd`, `$(...)`, `&&`/`;` chains, `sed -i` with escapes. Use `git -C <absolute path>` instead of `cd`; create folders with a plain `mkdir -p <path>` call of its own.
+- **Edit files with Read/Edit/Write**, not shell edits. For a scripted or repeated edit, Write a `.py` file into your scratch subfolder and run `py -3.12 -I <file>` (open files with `encoding='utf-8'`, write with `newline='\n'`); never inline Python in Bash (quotes like `'''` also break the shell).
+- **Re-Read before Write or Edit** when a formatter (`tools/lint.sh --fix`), a generator or another process may have touched the file since you read it.
+- **Lint before staging, as its own call**: `tools/lint.sh --fix`, then `tools/lint.sh`; never chain lint with `git add`/`git commit`. Watch the limits as you write: 1000 lines per file, 120 characters per line, gdlint's class order.
+- **Read a non-zero exit before retrying**: `grep` with no match, `git commit` with nothing staged and a screenshot run that saved its PNG can all exit non-zero. Check `git status --short` before committing.
+- **Never `sleep` in the foreground** to wait: run long commands with `run_in_background` and wait for the notification.
+- **Sub-agents never call `update_plan` or `wrap_up`** (the main session's task list); report in your final message.
+
 ## Godot version
 
 - The engine is Godot 4.7.2. Your training data mixes Godot 3.x and older 4.x APIs and settings.
@@ -112,7 +124,7 @@ A task is done only when all of these hold:
 - `find_children(..., owned=true)` on a freshly instanced scene still returns nodes of instanced sub-scenes.
 - `.tscn` `Transform3D(...)` lists the basis **row by row** then origin: `Transform3D(x.x, y.x, z.x, x.y, y.y, z.y, x.z, y.z, z.z, ox, oy, oz)` where x/y/z are the basis axes (verified on 4.7.2). Prefer building one CSG root per surface/material.
 - Level geometry must respect [design/levels/metrics.md](design/levels/metrics.md) (player size, clearances, jump and mantle limits).
-- Git Bash: long multi-file heredoc chains can fail to parse; write files with the Write tool or one per command.
+- Git Bash: heredocs can fail to parse; write files with the Write tool (see "Tool use").
 - Props scan world, objects and `static_actors` (layer 7), never the player or actors layers: a character whose body never moves by script (training dummy) also goes on layer 7 so props bounce off it; moving characters stay off it and push props through `BodyPusher` ([ADR 0070](design/decisions/0070-guard-combat-and-loadouts.md)).
 - Fixtures freed with `auto_free` can still be in the tree during the next suite (a stale navigation region answers path queries): reuse `tests/actors/guard/guard_helpers.gd`, which waits for old fixtures and disables other regions. `PlayerDriver.place()` clears the EventLog after landing, so events during the landing are lost; the EventLog is a 2000-entry ring buffer.
 - HUD/UI labels refresh in `_process`, which lags physics frames under a time factor: call the component's refresh (`Hud.refresh_overlay()`, `refresh_weapon()`, ...) before asserting, never rely on a bare `process_frame` await.
@@ -136,7 +148,7 @@ A task is done only when all of these hold:
 - Windowed runs (screenshots, review shots): run them through `tools/run_windowed.sh <seconds> <godot args...>` (or `tools/screenshot.sh`, which uses it), never plain `timeout`: `timeout` only kills the `_console.exe` wrapper and leaves the Godot window open on the user's screen. Every screenshot fixture also quits itself on every path (shot saved, the scene closed before the shot, unknown shot name) and has a real-time watchdog (about 25 s) that saves what is shown and quits. After each windowed run, check `tasklist | grep -i godot` and stop the processes you started.
 - Scratch files go in a private subfolder of the scratchpad named after your task (other agents share the scratchpad).
 - After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports when a `class_name`/`extends` line or a non-script file changed; for ad-hoc runs use `--headless --import`.
-- In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
+- In an isolated worktree, compound shell commands are refused: see "Tool use".
 
 ## Workflow
 
