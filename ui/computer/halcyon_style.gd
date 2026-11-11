@@ -1,17 +1,13 @@
 class_name HalcyonStyle
 extends RefCounted
 ## Look of the Halcyon OS overlay (ADR 0114, design/prototypes/hacking_screens.html): the teal
-## screen palette inside the Tab interface's frame, and small builders for its labels, buttons and
-## boxes. Status colours depend on what a device reports (DeviceStatus words and its disabled flag),
-## never on what it is: offline grey, disabled red, alert words amber, else green.
+## screen palette and small builders for its labels, buttons and fields. Boxes, buttons and fields
+## are type variations of ui/window/window_theme.tres (HalcyonButton, HalcyonListEntry, HalcyonField,
+## HalcyonCard, ...): the overlay's WindowFrame carries that theme. Status colours depend on what a
+## device reports (DeviceStatus words and its disabled flag), never on what it is: offline grey,
+## disabled red, alert words amber, else green.
 
-const OS_BG := Color("071211")
-const OS_PANEL := Color("0b1a19")
 const LINE := Color(77.0 / 255.0, 191.0 / 255.0, 168.0 / 255.0, 0.45)
-const FIELD_BG := Color("031010")
-const BUTTON_BG := Color("0c2220")
-const SELECTED_BG := Color(140.0 / 255.0, 242.0 / 255.0, 217.0 / 255.0, 0.06)
-const REMOTE_BAR := Color("08201d")
 const TEAL := Color("8cf2d9")
 const TEXT := Color("d1f2e6")
 const DIM := Color("7fa8a3")
@@ -79,75 +75,37 @@ static func caption(text: String) -> Label:
 	return label(text.to_upper(), 11, DIM, true)
 
 
-static func box(bg: Color, border: Color, width: int = 1, radius: int = 4, margin: float = 0.0) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.set_border_width_all(width)
-	style.set_corner_radius_all(radius)
-	style.set_content_margin_all(margin)
-	return style
-
-
-## A button that never takes keyboard focus (Esc and typing stay with the screen). `danger`: red
-## on hover.
+## A button that never takes keyboard focus (Esc and typing stay with the screen): HalcyonButton,
+## HalcyonButtonPrimary (`primary`) or HalcyonButtonDanger (`danger`: red on hover).
 static func button(text: String, primary: bool = false, danger: bool = false) -> Button:
 	var node := Button.new()
 	node.text = text
 	node.focus_mode = Control.FOCUS_NONE
-	node.add_theme_font_size_override(&"font_size", 13)
-	var border := TEAL if primary else LINE
-	var normal := box(BUTTON_BG, border, 1, 4)
-	normal.content_margin_left = 12
-	normal.content_margin_right = 12
-	normal.content_margin_top = 6
-	normal.content_margin_bottom = 6
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.border_color = BAD if danger else TEAL
-	node.add_theme_stylebox_override(&"normal", normal)
-	node.add_theme_stylebox_override(&"hover", hover)
-	node.add_theme_stylebox_override(&"pressed", hover)
-	node.add_theme_stylebox_override(&"disabled", normal)
-	node.add_theme_color_override(&"font_color", TEAL if primary else TEXT)
-	node.add_theme_color_override(&"font_hover_color", BAD if danger else TEAL)
-	node.add_theme_color_override(&"font_pressed_color", TEAL)
+	node.theme_type_variation = (
+		&"HalcyonButtonPrimary" if primary else (&"HalcyonButtonDanger" if danger else &"HalcyonButton")
+	)
 	return node
 
 
-## A flat list entry (Mail, Files, Security lists): a toggle with a teal border when selected.
+## A flat list entry (Mail, Files, Security lists, the dock): a toggle with a teal border when
+## selected (HalcyonListEntry).
 static func list_entry(text: String = "") -> Button:
 	var node := Button.new()
 	node.text = text
 	node.focus_mode = Control.FOCUS_NONE
 	node.toggle_mode = true
 	node.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	node.add_theme_font_size_override(&"font_size", 13)
-	var normal := box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 1, 4, 8)
-	var hover := box(Color(0, 0, 0, 0), LINE, 1, 4, 8)
-	var chosen := box(SELECTED_BG, TEAL, 1, 4, 8)
-	node.add_theme_stylebox_override(&"normal", normal)
-	node.add_theme_stylebox_override(&"hover", hover)
-	node.add_theme_stylebox_override(&"pressed", chosen)
-	node.add_theme_stylebox_override(&"hover_pressed", chosen)
-	node.add_theme_color_override(&"font_color", TEXT)
-	node.add_theme_color_override(&"font_hover_color", TEXT)
-	node.add_theme_color_override(&"font_pressed_color", TEXT)
-	node.add_theme_color_override(&"font_hover_pressed_color", TEXT)
+	node.theme_type_variation = &"HalcyonListEntry"
 	return node
 
 
-## A text field.
+## A text field (HalcyonField).
 static func field(secret: bool) -> LineEdit:
 	var node := LineEdit.new()
 	node.secret = secret
 	node.custom_minimum_size = Vector2(260, 0)
 	node.add_theme_font_override(&"font", TabStyle.mono_font())
-	node.add_theme_font_size_override(&"font_size", 14)
-	node.add_theme_color_override(&"font_color", TEXT)
-	var normal := box(FIELD_BG, LINE, 1, 4, 8)
-	var focused := box(FIELD_BG, TEAL, 1, 4, 8)
-	node.add_theme_stylebox_override(&"normal", normal)
-	node.add_theme_stylebox_override(&"focus", focused)
+	node.theme_type_variation = &"HalcyonField"
 	return node
 
 

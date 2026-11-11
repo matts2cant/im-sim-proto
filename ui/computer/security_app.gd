@@ -351,7 +351,7 @@ func _build() -> void:
 	_list_column = MarginContainer.new()
 	_list_column.name = "List"
 	_list_column.custom_minimum_size = Vector2(LIST_WIDTH, 0)
-	DocumentApp._margins(_list_column, 14)
+	_list_column.theme_type_variation = &"WindowBody"
 	add_child(_list_column)
 	var scroll := ScrollContainer.new()
 	_list_scroll = scroll
@@ -364,7 +364,7 @@ func _build() -> void:
 	_detail_column = MarginContainer.new()
 	_detail_column.name = "Detail"
 	_detail_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	DocumentApp._margins(_detail_column, 18)
+	_detail_column.theme_type_variation = &"WindowBody"
 	add_child(_detail_column)
 	var detail_scroll := ScrollContainer.new()
 	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -396,7 +396,7 @@ func _build() -> void:
 	none_box.add_theme_constant_override(&"separation", 10)
 	_none_column = MarginContainer.new()
 	_none_column.name = "NoDevices"
-	DocumentApp._margins(_none_column, 18)
+	_none_column.theme_type_variation = &"WindowBody"
 	_none_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_none_column.visible = false
 	_none_column.add_child(none_box)
@@ -411,7 +411,7 @@ func _build() -> void:
 func _build_feed(detail: VBoxContainer) -> void:
 	feed_frame = PanelContainer.new()
 	feed_frame.name = "View"
-	feed_frame.add_theme_stylebox_override(&"panel", HalcyonStyle.box(Color(0.0, 0.02, 0.02), HalcyonStyle.LINE, 1, 0))
+	feed_frame.theme_type_variation = &"HalcyonFeed"
 	feed_frame.custom_minimum_size = FEED_SHOWN
 	feed_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	detail.add_child(feed_frame)
