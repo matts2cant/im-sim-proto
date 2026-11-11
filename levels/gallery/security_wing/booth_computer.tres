@@ -21,14 +21,28 @@ title = "Laser hall maintenance"
 sender = "Facilities"
 text = "The beams in the laser hall ring the alarm. Disable an array from the Security app before anyone walks through, and enable it again afterwards."
 
+[sub_resource type="Resource" id="Mail_router"]
+script = ExtResource("2_document")
+id = &"gallery.security_wing.mail_router"
+title = "RTR-05 login"
+sender = "IT"
+text = "Roman,
+
+The wing's router RTR-05 (hall network wall) now keeps the booth's operations network apart from the security devices. Admin login: admin / wingate3. Keep it off sticky notes.
+
+IT"
+codes = Dictionary[StringName, String]({&"security_wing_rtr05": "admin:wingate3"})
+code_labels = Dictionary[StringName, String]({&"security_wing_rtr05": "RTR-05 admin login"})
+
 [sub_resource type="Resource" id="File_devices"]
 script = ExtResource("2_document")
 id = &"gallery.security_wing.file_devices"
 title = "booth_devices.txt"
-text = "On switch B: hall camera, vault turret, vault door, alarm controller, two sirens, radio base station, panic button, three laser arrays. Booth computer controls all of them."
+text = "Operations (10.0.15.0/24, SW-OPS on the hall network wall): this computer and the hall's wall jack.
+RTR-05 joins it to Security (10.0.25.0/24). SW-SECURITY (hall network wall, breaker B) carries the panic button, the hall siren and D4, and the area switches: SW-BOOTH (alarm controller, radio base station), SW-LASERS (three laser arrays), SW-CORRIDOR (camera, corridor siren), SW-VAULT (turret, vault door). The security devices trust this computer."
 
 [resource]
 script = ExtResource("1_data")
 apps = Array[StringName]([&"mail", &"files", &"security"])
-mail = Array[ExtResource("2_document")]([SubResource("Mail_handover"), SubResource("Mail_lasers")])
+mail = Array[ExtResource("2_document")]([SubResource("Mail_handover"), SubResource("Mail_lasers"), SubResource("Mail_router")])
 files = Array[ExtResource("2_document")]([SubResource("File_devices")])
