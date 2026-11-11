@@ -14,6 +14,9 @@ extends Node
 ## its software line and "Exploits (1)"), exploits (Advanced: the Exploits tool on CAM-GATE, one
 ## match and three that do not), exploits_patched (the same after a seen run burned it), firewall
 ## (RTR-01's rules with a deny rule selected).
+## M12b map fix (ADR 0113 amendment): map_second (RTR-01 hacked on the lab's jack, then plugged into
+## a second network with no link to it, network_fixtures.gd annex(), its printer broken: only the
+## annex is drawn).
 ## It always quits: after saving, on an unknown shot name, and after WATCHDOG real seconds.
 
 const SIZE := Vector2i(1152, 648)
@@ -36,6 +39,7 @@ const TIERS: Dictionary[String, int] = {
 	"exploits": 2,
 	"exploits_patched": 1,
 	"firewall": 1,
+	"map_second": 1,
 }
 
 @export var lab_path: NodePath = ^"../DeckLab"
@@ -103,6 +107,8 @@ func _stage() -> void:
 		Net.learn(_player, [x["helix"], x["vigil"], x["halcyon"], x["norsk"]])
 		_session.refresh()
 	match _shot:
+		"map_second":
+			await _plug_second_network()
 		"menu_software":
 			_screen.graph.select("CAM-GATE")
 		"exploits", "exploits_patched":
@@ -164,6 +170,20 @@ func _stage() -> void:
 			await _seconds(0.3)
 			_screen.refresh()
 			_screen.graph.select("SEC-CONSOLE")
+
+
+# Unplugs from the lab, builds the annex network beside it and plugs into its jack.
+func _plug_second_network() -> void:
+	_session.unplug()
+	var annex := Net.annex(_lab, Lab.ORIGIN)
+	Breakable.of(annex["PrinterB"]).take_damage(&"damage.ballistic", 100.0)
+	var feet := Lab.ORIGIN + Vector3(-4, 0, 1.2)
+	_player.load_state({"position": feet, "yaw": 0.0, "pitch": -0.35, "crouched": false, "velocity": Vector3.ZERO})
+	await _seconds(0.1)
+	_session.plug_and_raise(Device.of(annex["JackB"]))
+	await _seconds(0.4)
+	_screen.refresh()
+	_screen.graph.fit_view()
 
 
 func _seconds(seconds: float) -> void:
