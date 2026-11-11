@@ -2,7 +2,7 @@ class_name NetworkOverlay
 extends Node3D
 ## Debug overlay (ADR 0083): the device network drawn over the world, through walls. A Label3D above
 ## every Device (any entity with the component) with its name and status words: DeviceStatus, the
-## same query the terminal uses, "online" plus its components' words while the device is up, else
+## same query the computers use, "online" plus its components' words while the device is up, else
 ## "offline" and, as this is a developer view, why (unpowered, broken). A line along every cable
 ## (Device.links, each once): green while both ends are up, red otherwise. Shows every device
 ## whatever the player knows. Toggled by the Overlays tab's "Network" checkbox; refreshed every
@@ -81,7 +81,7 @@ func refresh() -> void:
 			label = _make_label()
 			_labels[id] = label
 		label.global_position = device.entity.global_position + LABEL_OFFSET
-		label.text = "%s\n%s" % [Terminal.display_name(device), status_text(device)]
+		label.text = "%s\n%s" % [Computer.display_name(device), status_text(device)]
 		label.modulate = LABEL_COLOR if device.is_up() else OFFLINE_LABEL_COLOR
 	for id: int in _labels.keys():
 		if not seen.has(id):
@@ -94,7 +94,7 @@ func refresh() -> void:
 ## The status line of `device`: DeviceStatus words, with the reason when it is down.
 static func status_text(device: Device) -> String:
 	var up := device.is_up()
-	var text := TerminalStyle.status_text(DeviceStatus.of(device.entity, up))
+	var text := HalcyonStyle.status_text(DeviceStatus.of(device.entity, up))
 	if up:
 		return text
 	var reasons := PackedStringArray()

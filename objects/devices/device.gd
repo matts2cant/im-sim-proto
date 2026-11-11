@@ -169,7 +169,7 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 
 ## Every device this one is cabled to through up devices, the last one up or down (DeviceGraph
 ## .connected()): reached() without a type, plus the down devices right behind a reached one or
-## cabled to this one (a terminal lists those as unpowered or broken). Nearest first.
+## cabled to this one (a computer lists those as unpowered or broken). Nearest first.
 func connected_devices() -> Array[Device]:
 	var found: Array[Device] = []
 	if not is_inside_tree():
@@ -209,7 +209,7 @@ static func command_stimulus(
 ## Sends `command` to `target` (an entity or its Device) when this device reaches it: a CONTACT
 ## stimulus at the target's entity, origin `at` (NO_POINT: the target's position), emitted through
 ## StimulusSystem (delivered on the next tick). Logged either way. True when sent.
-## `by`: who operated this device to send it (a terminal's user), logged with the stimulus id as
+## `by`: who operated this device to send it (a computer's user), logged with the stimulus id as
 ## `by` and `stimulus` so what the command starts traces back to them (mission tallies, ADR 0087).
 func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by: Node = null) -> bool:
 	var other := Device.of(target)

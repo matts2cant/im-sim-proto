@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Scenario (ADR 0087): a turret the player retargets kills a guard, and that death is the player's.
-## The player sends `command.target_guards` from the security showcase's terminal (Terminal.send()
-## with the player as the operator, as the terminal screen does); the turret makes that command the
+## The player sends `command.target_guards` from the security showcase's computer (Computer.send()
+## with the player as the operator, as the Security app does); the turret makes that command the
 ## cause of its shots (WeaponHolder.cause_id), so a MissionTally fed the EventLog counts the guard's
 ## death as a kill. The same command sent by nobody in particular kills nobody of the player's.
 
@@ -21,7 +21,7 @@ func before_test() -> void:
 	await _show.setup(scene_runner(Showcase.SHOWCASE))
 	await _show.command(Device.DISABLE, "Camera")
 	_show.turret().holder.seed_rng(7)
-	# The player out of the turret's way, beside the terminal.
+	# The player out of the turret's way, beside the console.
 	await _show.place_player(Vector3(12, 0, 1), PI / 2.0)
 	var names: Array[String] = [String(_show.player.name)]
 	_tally = MissionTally.new(names)
@@ -53,9 +53,8 @@ func _wait_for_death(body: BodyParts, limit: float) -> void:
 
 
 func test_a_guard_killed_by_a_turret_the_player_retargeted_is_the_players_kill() -> void:
-	var terminal := _show.terminal()
-	terminal.logged_in = true
-	assert_bool(terminal.send(Device.TARGET_GUARDS, _show.turret().device, _show.player)).is_true()
+	var computer := _show.computer()
+	assert_bool(computer.send(Device.TARGET_GUARDS, _show.turret().device, _show.player)).is_true()
 	await _show.frames(2)
 	var body := _guard()
 

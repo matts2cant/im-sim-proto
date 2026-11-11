@@ -164,6 +164,15 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 - **Remote desktop**: from the deck's Map, a computer you have an account on opens its desktop inside the deck ("Back to the map" returns). Its Security app controls the devices that trust that computer, from wherever the deck is plugged in.
 - "Copy to deck" (in the game UI) exists only for objectives that need the file itself. Deleting a file can also be an objective.
 
+#### Computers as built (M12a, [ADR 0114](../decisions/0114-computers-halcyon-os.md))
+
+- **Components**: a computer is a device entity with `Computer`, `DeviceAccounts` and `ComputerUse` (E). `objects/computer/computer.tscn` is the wall unit; per instance its accounts, its `ComputerData` `.tres` (mail and files), its `credentials_id`, host name and label; `session_user` starts it unlocked.
+- **Mail** belongs to an account (a mail with no account is in every inbox); **files** belong to the machine. Each document is a `ComputerDocument`: title (subject or file name), sender, text, codes and code labels like a datapad, and an `implicit_clue` flag (nothing learned, kept as a note). The first item is read when the app opens; clicking another reads it. The reader's last line says what it taught ("Learned: Office PC 2 login kbrandt / ferry19 · added to the Journal.") or that a clue teaches nothing.
+- **Login**: Fill in lists every login the Journal knows under the computer's code id, one per user (the latest learned); the Journal's Codes and logins lists them the same way. A wrong guess shows "Wrong user or password." and a quiet beep (a sound, never a noise stimulus); the trace it adds is the tracers' (`DeviceAccounts.try_login()`).
+- **Title bar**: host name, the address a component offers through `device_address()`, the account and "user" or "admin", the trace bar slot (`ComputerScreen.add_trace_bar()`, filled on `opened`), ✕.
+- **Security app**: kinds, groups and icons are data (`ComputerConfig.kinds`, by entity tag); the list is `Computer.devices()`, filtered by `Computer.controls()` (trust, at the network integration). Offline devices stay listed, grey, without actions. Panic buttons and radio base stations are listed but have no disable / enable yet (their components do not accept those commands).
+- **Remote**: the desktop draws above the deck in its content area (`ComputerScreen.remote_area`); Esc or Back to the map closes it (the deck stays open) and emits `Computer.desktop_closed`.
+
 ### NPCs and logs
 
 - Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address. An admin can erase entries with the deck's Logs tool (M12b). An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).

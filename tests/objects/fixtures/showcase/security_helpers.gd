@@ -1,14 +1,14 @@
 extends RefCounted
 ## Test helper (not a suite): loads the security showcase (security_showcase.tscn, its root 200 m
 ## west of the origin so leftovers of other suites never come into view; showcase-local coordinates)
-## in a scene runner. Back wall face at z -8 (x -12..24); on it: Terminal (-6, 1.45), Switch (-4, 1.6,
+## in a scene runner. Back wall face at z -8 (x -12..24); on it: Console (-6, 1.45, a computer), Switch (-4, 1.6,
 ## circuit `showcase_net`), Controller (-2.5, 1.5), Siren (-1, 2.6), Camera (4, 2.6) facing +Z
 ## (lens about 0.47 m out, 2.47 m up). Turret at (8, 0, -3) facing +X (eye 1.21 m up, 0.27 m in
 ## front of its pivot). A door (door.tscn) at (-10.5, 0, -3) in a partition wall across x -12..-8.4
-## (it slides +X). The switch carries terminal, camera, turret, controller, siren and door. Lamps on
+## (it slides +X). The switch carries console, camera, turret, controller, siren and door. Lamps on
 ## circuit `showcase_lights` light the camera spot (4, 0, -1.5) (6 m in front of the lens, 0 degrees)
 ## and the turret spot (14.3, 0, -3) (6 m in front of its eye). The datapad on the desk carries the
-## terminal's credentials (`showcase_terminal`: "jmercer:falcon7").
+## console's login (`showcase_console`: "jmercer:falcon7"; its account in its DeviceAccounts).
 
 const SHOWCASE := "res://tests/objects/fixtures/showcase/security_showcase.tscn"
 const TIME_FACTOR := 9.0
@@ -49,8 +49,8 @@ func turret() -> Turret:
 	return Turret.of(node("Turret"))
 
 
-func terminal() -> Terminal:
-	return Terminal.of(node("Terminal"))
+func computer() -> Computer:
+	return Computer.of(node("Console"))
 
 
 ## A showcase-local point in world space.

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_handover"]
+script = ExtResource("2_document")
+id = &"gallery.security_wing.mail_handover"
+title = "Shift handover"
+sender = "M. Ortiz"
+text = "Roman,
+
+The turret is back on intruders after the drill. If it acts up, retarget or disable it from the Security app; don't cut breaker B, the vault door is fail-secure and stays shut without power.
+
+M."
+
+[sub_resource type="Resource" id="Mail_lasers"]
+script = ExtResource("2_document")
+id = &"gallery.security_wing.mail_lasers"
+title = "Laser hall maintenance"
+sender = "Facilities"
+text = "The beams in the laser hall ring the alarm. Disable an array from the Security app before anyone walks through, and enable it again afterwards."
+
+[sub_resource type="Resource" id="File_devices"]
+script = ExtResource("2_document")
+id = &"gallery.security_wing.file_devices"
+title = "booth_devices.txt"
+text = "On switch B: hall camera, vault turret, vault door, alarm controller, two sirens, radio base station, panic button, three laser arrays. Booth computer controls all of them."
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_handover"), SubResource("Mail_lasers")])
+files = Array[ExtResource("2_document")]([SubResource("File_devices")])

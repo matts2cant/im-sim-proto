@@ -25,7 +25,7 @@ script = ExtResource("4_pick_up")
 item_id = &"prototype"
 id = &"prototype"
 title = "Take the prototype from the vault"
-description = "The prototype is kept in the vault next to the manager's office. A turret guards it: find a keycard or use the security terminal."
+description = "The prototype is kept in the vault next to the manager's office. A turret guards it: find a keycard or use the security console."
 optional = true
 
 [sub_resource type="Resource" id="Objective_shipment"]

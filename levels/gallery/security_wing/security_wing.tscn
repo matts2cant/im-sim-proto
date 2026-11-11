@@ -23,7 +23,9 @@
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="21_base_station"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="22_camera"]
 [ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="23_turret"]
-[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="24_terminal"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="24_computer"]
+[ext_resource type="Script" path="res://objects/network/device_account.gd" id="40_account"]
+[ext_resource type="Resource" path="res://levels/gallery/security_wing/booth_computer.tres" id="41_booth_data"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="25_datapad"]
 [ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="26_keycard"]
 [ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="27_lockpick"]
@@ -141,6 +143,11 @@ code = "5309"
 [sub_resource type="Resource" id="Mechanical_data"]
 script = ExtResource("11_mechanical_data")
 pins = Array[StringName]([&"standard", &"standard", &"standard"])
+
+[sub_resource type="Resource" id="Account_rvoss"]
+script = ExtResource("40_account")
+user = "rvoss"
+password = "kestrel4"
 
 [sub_resource type="Resource" id="Keycard_data"]
 script = ExtResource("13_keycard_data")
@@ -459,7 +466,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.6, 0.01)
 circuit = &"security_wing_b"
 
 [node name="Device" parent="Devices/Switch"]
-links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../SirenHall"), NodePath("../../SirenCorridor"), NodePath("../../PanicButton"), NodePath("../../BaseStation"), NodePath("../../../Doors/VaultDoor"), NodePath("../../LaserLow"), NodePath("../../LaserHigh"), NodePath("../../LaserPair")])
+links = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../SirenHall"), NodePath("../../SirenCorridor"), NodePath("../../PanicButton"), NodePath("../../BaseStation"), NodePath("../../../Doors/VaultDoor"), NodePath("../../LaserLow"), NodePath("../../LaserHigh"), NodePath("../../LaserPair")])
 
 [node name="PanicButton" parent="Devices" instance=ExtResource("20_panic_button")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1.3, 0.01)
@@ -483,14 +490,17 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.5, 1.3, 7.75)
 circuit = &"security_wing_b"
 label = "network power"
 
-[node name="Terminal" parent="Devices" instance=ExtResource("24_terminal")]
+[node name="BoothComputer" parent="Devices" instance=ExtResource("24_computer")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 1.45, 8.99)
 
-[node name="TerminalUse" parent="Devices/Terminal"]
-credentials_id = &"security_wing_terminal"
-username = "rvoss"
-password = "kestrel4"
-label = "security terminal"
+[node name="Accounts" parent="Devices/BoothComputer"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_rvoss")])
+
+[node name="Computer" parent="Devices/BoothComputer"]
+data = ExtResource("41_booth_data")
+credentials_id = &"security_wing_booth_computer"
+host_name = "BOOTH-PC"
+label = "security booth computer"
 
 [node name="Camera" parent="Devices" instance=ExtResource("22_camera")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 2.6, 17.99)
@@ -576,9 +586,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 1.03, 8.74)
 [node name="Readable" parent="Items/BoothLogin"]
 entry_id = &"gallery.security_wing.booth_login"
 title = "Booth login"
-text = "Security booth terminal: user rvoss, password kestrel4. It runs the camera, the turret and the vault door. - R. Voss"
-codes = Dictionary[StringName, String]({&"security_wing_terminal": "rvoss:kestrel4"})
-code_labels = Dictionary[StringName, String]({&"security_wing_terminal": "Security booth terminal login"})
+text = "Security booth computer: user rvoss, password kestrel4. Its Security app runs the camera, the turret and the vault door. - R. Voss"
+codes = Dictionary[StringName, String]({&"security_wing_booth_computer": "rvoss:kestrel4"})
+code_labels = Dictionary[StringName, String]({&"security_wing_booth_computer": "Security booth computer login"})
 
 [node name="BiocellsD4" parent="Items" instance=ExtResource("28_biocell")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 1.06, 8.74)
@@ -704,14 +714,14 @@ size = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 2.35, 0.05)
 pixel_size = 0.0035
 text = "Network switch, on breaker B (booth): carries the camera,
-turret, lasers, alarm, vault door and terminal. Shoot it or cut B.
+turret, lasers, alarm, vault door and computer. Shoot it or cut B.
 Panic button: rings both sirens"
 size = 0
 
 [node name="Booth" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 2.3, 8.95)
 pixel_size = 0.003
-text = "Security terminal
+text = "Security computer
 login: datapad behind D2
 disable turret, open vault"
 size = 0
@@ -756,13 +766,13 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 3.1, 17.95)
 pixel_size = 0.003
 text = "Vault · fail-secure
 no power, no entry
-open it from the terminal"
+open it from the computer"
 size = 0
 
 [node name="Vault" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.5, 2.4, 21.95)
 pixel_size = 0.0035
-text = "Vault: the terminal disables or retargets the turret"
+text = "Vault: the booth computer disables or retargets the turret"
 size = 0
 
 [node name="LaserHallDoor" parent="Labels" instance=ExtResource("3_sign")]
@@ -800,7 +810,7 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -4.55, 2.3, 16.3)
 pixel_size = 0.003
 text = "Two-beam array: no jump
 or crouch gets past. Disable
-it at the terminal, cut
+it at the computer, cut
 breaker B or shoot its emitter"
 size = 0
 

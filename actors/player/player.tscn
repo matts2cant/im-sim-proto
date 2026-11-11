@@ -53,7 +53,7 @@
 [ext_resource type="Script" path="res://actors/common/awareness/alarm_hearing.gd" id="61_alarm_hearing"]
 [ext_resource type="Script" path="res://actors/common/tool_use/tool_use.gd" id="51_tool_use"]
 [ext_resource type="PackedScene" path="res://ui/keypad/keypad_screen.tscn" id="52_keypad_screen"]
-[ext_resource type="PackedScene" path="res://ui/terminal/terminal_screen.tscn" id="62_terminal_screen"]
+[ext_resource type="PackedScene" path="res://ui/computer/computer_screen.tscn" id="62_computer_screen"]
 [ext_resource type="Script" path="res://actors/common/weapon_drop/weapon_drop.gd" id="63_weapon_drop"]
 [ext_resource type="PackedScene" path="res://ui/lockpick/lockpick_screen.tscn" id="64_lockpick_screen"]
 
@@ -141,7 +141,7 @@ script = ExtResource("22_interactor")
 [node name="ToolUse" type="Node" parent="."]
 script = ExtResource("51_tool_use")
 
-[node name="TerminalScreen" parent="." instance=ExtResource("62_terminal_screen")]
+[node name="ComputerScreen" parent="." instance=ExtResource("62_computer_screen")]
 
 [node name="PersonalLog" type="Node" parent="."]
 script = ExtResource("33_personal_log")

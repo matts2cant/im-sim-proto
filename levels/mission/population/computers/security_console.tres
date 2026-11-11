@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_audit"]
+script = ExtResource("2_document")
+id = &"warehouse.console.mail_audit"
+title = "Audit"
+sender = "E. Hale"
+text = "Change the console password after the audit. And keep the vault turret on intruders at night."
+
+[sub_resource type="Resource" id="Mail_keycard"]
+script = ExtResource("2_document")
+id = &"warehouse.console.mail_keycard"
+title = "Vault keycard"
+sender = "E. Hale"
+text = "The vault keycard stays on the security room desk, nowhere else. The vault door opens from this console too, but only while the building has power: it is fail-secure."
+
+[sub_resource type="Resource" id="File_cameras"]
+script = ExtResource("2_document")
+id = &"warehouse.console.file_cameras"
+title = "camera_positions.txt"
+text = "Gate camera: front gate. Yard camera: duct B forecourt (mast). Roof camera: roof, west half. Hall and office cameras: inside. All on this console's switches."
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_audit"), SubResource("Mail_keycard")])
+files = Array[ExtResource("2_document")]([SubResource("File_cameras")])

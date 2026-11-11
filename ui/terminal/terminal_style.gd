@@ -1,6 +1,8 @@
 class_name TerminalStyle
 extends RefCounted
-## Colours and small widget helpers shared by the terminal screen and its network graph (ADR 0083).
+## LEGACY (M12a, ADR 0114): only the old network map (ui/terminal/network_graph.gd) uses it now;
+## delete with objects/terminal/terminal.gd. Colours and small widget helpers of the terminal's
+## network graph (ADR 0083).
 ## Status colours depend on what the device reports (DeviceStatus words and its disabled flag), never
 ## on what the device is. Offline grey, disabled red and the default green differ in brightness too
 ## (relative luminance about 0.1, 0.3 and 0.7), so they stay apart without hue.

@@ -1,5 +1,7 @@
 class_name TerminalConfig
 extends Resource
+## LEGACY (M12a, ADR 0114): kept only for the old network map's files and tests (see terminal.gd);
+## computers use ComputerConfig. Delete with terminal.gd.
 ## Tuning of a Terminal (ADR 0080): `objects/terminal/terminal.tres`. The command table is data: the
 ## terminal offers, for each device it reaches, one button per command in `command_labels` that the
 ## device accepts (a receptron for that type), in the table's order. A command missing from the table

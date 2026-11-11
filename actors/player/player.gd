@@ -384,7 +384,7 @@ func _update_stance_tags() -> void:
 
 
 # Crouch is held. Standing up waits until there is headroom. Both legs disabled: always crouched.
-# While a screen holds the input (lockpicking, a terminal) the stance stays as it was.
+# While a screen holds the input (lockpicking, a computer) the stance stays as it was.
 func _update_crouch() -> void:
 	if ActorState.legs_disabled(self):
 		if not crouched:

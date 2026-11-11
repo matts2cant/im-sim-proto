@@ -13,7 +13,7 @@ Break into a logistics company's warehouse at night. Read the shipment manifest 
 - **Start**: at a van on the north road. A short briefing (text overlay, dismissed by a key) names the objectives. Objectives are listed in the personal log; there are no on-screen waypoint markers.
 - **Objectives**
   - Main: read the shipment manifest, a datapad read in place ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)), in the manager's office on the upper floor of the office block.
-  - Optional A: take the prototype from the vault next to the manager's office (turret; keycard or terminal).
+  - Optional A: take the prototype from the vault next to the manager's office (turret; keycard or the security console).
   - Optional B: sabotage the outgoing shipment on the loading dock (blow it up or set it on fire).
 - **Extraction**: a boat on the riverside behind the back gate (the back gate opens from inside). Extraction needs the main objective.
 - **Summary** at extraction: time, alarms raised, kills, knockouts, optional objectives done, badges. Then "Restart mission" or "Return to hub". No route-used stat ([backlog](../backlog.md)).
@@ -161,7 +161,7 @@ All 1.2 x 2.2 m unless noted, each with at least 1.35 m of wall (or another room
 | StairsGround, LockerRoom | (10.65, 0, 6.88), (16.5, 0, 6.88) | Plain |
 | BridgeDoor | (8.13, 4.5, 6) | Plain (catwalk bridge) |
 | ManagerDoor | (11, 4.5, 5.13) | Keypad (the manifest) |
-| VaultDoor | (16.9, 4.5, 5.13) | Electronic fail-secure (terminal) + keycard |
+| VaultDoor | (16.9, 4.5, 5.13) | Electronic fail-secure (security console) + keycard |
 | StairsUpper, CatwalkStairsDoor | (10.65, 4.5, 6.88), (8.13, 4.5, 14.1) | Plain |
 | OfficeTwo | (16.5, 4.5, 6.88) | Mechanical (office PCs) |
 | BoilerStore, BoilerTunnel | (12, -4, -0.25), (19.75, -4, -5) | Plain |
@@ -298,7 +298,7 @@ No two patrols share a crossing (two guards with different laps drift in and out
 
 ### Devices
 
-Cameras (gate, yard, hall, office), the vault turret, a security terminal, an alarm controller with sirens and panic buttons, a radio base station, breakers A (yard) and B (building), and two network switches (building, yard) whose breaking cuts each part of the alarm network ([../game/security.md](../game/security.md), [ADR 0075](../decisions/0075-alarms-as-network-devices.md)). Placed in M9 wave 2: [Security network](#security-network-m9-wave-2).
+Cameras (gate, yard, hall, office), the vault turret, a security console (a computer), an alarm controller with sirens and panic buttons, a radio base station, breakers A (yard) and B (building), and two network switches (building, yard) whose breaking cuts each part of the alarm network ([../game/security.md](../game/security.md), [ADR 0075](../decisions/0075-alarms-as-network-devices.md)). Placed in M9 wave 2: [Security network](#security-network-m9-wave-2).
 
 ### Systems used for a purpose
 
@@ -397,7 +397,7 @@ With both up, a camera's incident reaches both controllers and each rings every 
 | CameraRoof | Roof, the mast's south face in the north-east corner (17, 12.3, -9.69), rest yaw -20 | Sweeps over duct B's lit forecourt at the west end of its sweep (M9g, [Roof security](#roof-security-m9g)) |
 | LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | One-beam laser arrays (`laser_array.tscn`, `Beam1.length` 1.2; [ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)): high beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
 | VaultTurret | Vault (16.9, 4.5, 1.0) | Faces the vault door (intruders) |
-| SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Terminal "security console", credentials `warehouse_security_console`; M12's SEC-SERVER |
+| SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Computer "security console" (host SEC-CONSOLE, account `dmarsh` / `harbor77`, medium; mail and files in `population/computers/security_console.tres`; [ADR 0114](../decisions/0114-computers-halcyon-os.md)), credentials `warehouse_security_console`; its Security app controls both switches' devices |
 | AlarmController, RadioBaseStation | Security room east wall, over the desk | The building's controller |
 | AlarmControllerYard, YardSwitch | Booth east wall inside, south and north of the door | The yard's controller and switch |
 | PanicButtonSecurity, PanicButtonBooth | Security room west wall; booth west wall (-12.49, 1.3, -20.6) | Where G5 and G1 stand |
@@ -455,7 +455,7 @@ M8 devices standing in for M12's network, named so M12 upgrades them in place (s
 |---|---|---|
 | `Network/AccessPointGuest` | A switch device on the hall's west wall outside (-20.52, 6, -2), circuit `warehouse_yard`: the wireless access point covering the west yard, side door and dumpster | None (M12 gives it a range and the Guest subnet) |
 | `Network/OfficeWallJack` | A switch device on the second office's east wall (19.74, 4.9, 10) | Cabled to the two office PCs (Office subnet) |
-| `Network/OfficePc1`, `OfficePc2` | Terminals ("office PC") on the second office's south wall over their desks; credentials `warehouse_office_pc1` / `warehouse_office_pc2` on clues (the sticky note on desk 1, the night shift notes) | The office network only: they see the PCs and the jack, not the security devices |
+| `Network/OfficePc1`, `OfficePc2` | Computers ("office PC 1" / "office PC 2", hosts OFFICE-PC1 / OFFICE-PC2, accounts `lpetrova` / `tulip24` and `kbrandt` / `ferry19`; mail and files in `population/computers/office_pc1.tres` / `office_pc2.tres`) on the second office's south wall over their desks; credentials `warehouse_office_pc1` / `warehouse_office_pc2` on clues (the sticky note on desk 1, the night shift notes). PC 2's mail from L. Petrova and its birthday card file are implicit clues to PC 1's password (flower and age: tulip24) | The office network only: they see the PCs and the jack; their Security apps control nothing |
 | `Devices/SecurityConsole` | The security console | The security switch |
 
 M12's FW-01 gateway joins the three networks; until then the office PCs and the access point cannot reach the security devices.

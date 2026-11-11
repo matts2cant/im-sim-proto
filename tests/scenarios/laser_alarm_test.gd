@@ -1,11 +1,11 @@
 extends GdUnitTestSuite
 ## Scenario (EventLog, ADR 0096, ADR 0100): the shipped laser array with three beams on a network
 ## built in code at (400, 0, -400): a switch cabled to the array (beams at 0.4, 0.9 and 1.4 m, each
-## 3 m along +X from x -1.5, at z 0), an alarm controller, a siren and a terminal (all shipped
+## 3 m along +X from x -1.5, at z 0), an alarm controller, a siren and a computer (all shipped
 ## scenes). A walker (1.8 m) tagged `actor.player` crosses the beams at 4 m/s: one incident goes
-## through the switch to the controller, which rings the siren through the same switch. The terminal
-## lists the array as one device with its status words and its commands, one Disable darkens every
-## beam, and it shows offline once the switch loses power.
+## through the switch to the controller, which rings the siren through the same switch. The
+## computer's Security app lists the array as one device with its status words and its commands, one
+## Disable darkens every beam, and it shows offline once the switch loses power.
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
@@ -13,13 +13,13 @@ const LASER: PackedScene = preload("res://objects/laser/laser_array.tscn")
 const BEAM: PackedScene = preload("res://objects/laser/laser_beam.tscn")
 const CONTROLLER: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN: PackedScene = preload("res://objects/alarm/siren.tscn")
-const TERMINAL: PackedScene = preload("res://objects/terminal/terminal.tscn")
+const COMPUTER: PackedScene = preload("res://objects/computer/computer.tscn")
 const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
 
 var _root: Node3D
 var _laser: Node3D
 var _switch: Node3D
-var _terminal: Terminal
+var _computer: Computer
 
 
 func before_test() -> void:
@@ -44,14 +44,16 @@ func before_test() -> void:
 	_switch = _place(SWITCH, "Switch", Transform3D(Basis.IDENTITY, Vector3(3, 1.4, -3)))
 	var controller := _place(CONTROLLER, "Controller", Transform3D(Basis.IDENTITY, Vector3(4, 1.4, -3)))
 	var siren := _place(SIREN, "Siren", Transform3D(Basis.IDENTITY, Vector3(5, 2.5, -3)))
-	var terminal := TERMINAL.instantiate() as Node3D
-	terminal.name = "Terminal"
-	terminal.position = Vector3(6, 1.45, -3)
-	_terminal = Terminal.of(terminal)
-	_terminal.username = "tester"
-	_terminal.password = "pass"
-	_root.add_child(terminal)
-	for device: Node3D in [_laser, controller, siren, terminal]:
+	var computer := COMPUTER.instantiate() as Node3D
+	computer.name = "Computer"
+	computer.position = Vector3(6, 1.45, -3)
+	_computer = Computer.of(computer)
+	var account := DeviceAccount.new()
+	account.user = "tester"
+	account.password = "pass"
+	DeviceAccounts.of(computer).accounts = [account]
+	_root.add_child(computer)
+	for device: Node3D in [_laser, controller, siren, computer]:
 		Devices.link(_switch, device)
 	await _frames(3)
 	EventLog.clear()
@@ -78,15 +80,17 @@ func test_crossing_the_beam_rings_the_siren_through_the_controller() -> void:
 	assert_int(started[0].tick).is_greater_equal(raised[0].tick)
 
 
-func test_the_terminal_lists_its_status_and_commands_and_disables_it() -> void:
+func test_the_computer_lists_its_status_and_commands_and_disables_it() -> void:
 	assert_int(LaserArray.of(_laser).beams.size()).is_equal(3)
-	# One row for the array (and one per other device), not one per beam.
-	var listed := _terminal.devices().filter(func(entry: Terminal.Row) -> bool: return entry.device.entity == _laser)
+	# One row for the array (and one per other security device), not one per beam.
+	var listed := _computer.devices().filter(
+		func(entry: Computer.DeviceRow) -> bool: return entry.device.entity == _laser
+	)
 	assert_array(listed).has_size(1)
 	var names: Array[String] = []
-	for entry in _terminal.devices():
+	for entry in _computer.devices():
 		names.append(String(entry.device.entity.name))
-	assert_array(names).contains_exactly_in_any_order(["Switch", "Laser", "Controller", "Siren", "Terminal"])
+	assert_array(names).contains_exactly_in_any_order(["Laser", "Controller", "Siren"])
 	var row := _row()
 	assert_bool(row.online).is_true()
 	assert_array(Array(row.status)).contains_exactly(["online", "enabled", "clear"])
@@ -94,8 +98,8 @@ func test_the_terminal_lists_its_status_and_commands_and_disables_it() -> void:
 	assert_bool(row.has_view).is_false()
 	await _cross()
 	assert_array(Array(_row().status)).contains_exactly(["online", "enabled", "tripped"])
-	assert_bool(_terminal.log_in("tester", "pass")).is_true()
-	assert_bool(_terminal.send(Device.DISABLE, Device.of(_laser))).is_true()
+	assert_bool(_computer.log_in("tester", "pass")).is_true()
+	assert_bool(_computer.send(Device.DISABLE, Device.of(_laser))).is_true()
 	await _frames(3)
 	assert_array(Array(_row().status)).contains_exactly(["online", "disabled"])
 	for beam in LaserArray.of(_laser).beams:
@@ -122,8 +126,8 @@ func _cross(direction: int = 1) -> void:
 	await _frames(3)
 
 
-func _row() -> Terminal.Row:
-	for row in _terminal.devices():
+func _row() -> Computer.DeviceRow:
+	for row in _computer.devices():
 		if row.device == Device.of(_laser):
 			return row
 	return null
