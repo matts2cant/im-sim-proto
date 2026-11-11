@@ -93,8 +93,9 @@ func test_from_dict_replaces_what_was_there() -> void:
 func test_entry_dict_uses_plain_strings() -> void:
 	var data := LogEntry.make(&"a", "Note", "x", "Datapad", {&"door": "12"}).to_dict()
 
-	assert_dict(data).is_equal(
-		{"entry_id": "a", "title": "Note", "text": "x", "source": "Datapad", "codes": {"door": "12"}}
-	)
+	var expected := {"entry_id": "a", "title": "Note", "text": "x", "source": "Datapad"}
+	expected["codes"] = {"door": "12"}
+	expected["code_labels"] = {}
+	assert_dict(data).is_equal(expected)
 	var entry := LogEntry.from_dict(data)
 	assert_str(entry.codes[&"door"]).is_equal("12")
