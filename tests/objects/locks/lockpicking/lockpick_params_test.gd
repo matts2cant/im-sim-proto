@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
-## Unit (ADR 0107): the Lockpicking skill as attributes. Each tier's params equal the prototype's
-## skillParams(t) (window 30-4t .. 60+4t %, drop below 15-3t %, 0.3+0.15t s per dropped pin,
-## +0.012t lift tolerance, rake at Master); assists are cumulative from the assist attribute and a
-## practice lock shows all of them; an augmentation-like modifier on the assist attribute raises it.
+## Unit (ADR 0107, 0109): the Lockpicking skill as attributes. Each tier's params equal the final
+## prototype's skillParams(t) (sweet spot 40-3t .. 55+3t %, drop below 15-3t %, 0.3+0.15t s per
+## dropped pin, +0.012t lift tolerance, 0.08-0.012t s set dwell, rake at Master); assists are
+## cumulative from the assist attribute and a practice lock shows all of them; an augmentation-like
+## modifier on the assist attribute raises it.
 
 const LockpickHelpers := preload("res://tests/objects/locks/lockpicking/lockpick_helpers.gd")
 const TUNING: LockpickTuning = preload("res://objects/locks/lockpicking/lockpick_tuning.tres")
@@ -11,13 +12,27 @@ const TUNING: LockpickTuning = preload("res://objects/locks/lockpicking/lockpick
 func test_each_tier_matches_the_prototype_skill_params() -> void:
 	for t in 4:
 		var params := LockpickHelpers.params(t)
-		assert_float(params.low).override_failure_message("tier %d" % t).is_equal_approx(0.30 - 0.04 * t, 0.0001)
-		assert_float(params.high).is_equal_approx(0.60 + 0.04 * t, 0.0001)
+		assert_float(params.low).override_failure_message("tier %d" % t).is_equal_approx(0.40 - 0.03 * t, 0.0001)
+		assert_float(params.high).is_equal_approx(0.55 + 0.03 * t, 0.0001)
 		assert_float(params.drop).is_equal_approx(0.15 - 0.03 * t, 0.0001)
 		assert_float(params.drop_delay).is_equal_approx(0.3 + 0.15 * t, 0.0001)
 		assert_float(params.tolerance_bonus).is_equal_approx(0.012 * t, 0.0001)
+		assert_float(params.set_dwell).is_equal_approx(0.08 - 0.012 * t, 0.0001)
 		assert_bool(params.rake).is_equal(t >= 3)
 		assert_int(params.assist).is_equal(t)
+
+
+func test_the_sweet_spot_widens_from_40_55_to_31_64_percent() -> void:
+	var untrained := LockpickHelpers.params(0)
+	var master := LockpickHelpers.params(3)
+	assert_str(untrained.zone(0.38)).is_equal("low")
+	assert_str(untrained.zone(0.42)).is_equal("sweet")
+	assert_str(untrained.zone(0.53)).is_equal("sweet")
+	assert_str(untrained.zone(0.57)).is_equal("high")
+	assert_str(master.zone(0.33)).is_equal("sweet")
+	assert_str(master.zone(0.62)).is_equal("sweet")
+	assert_str(master.zone(0.66)).is_equal("high")
+	assert_str(master.zone(0.04)).is_equal("drop")
 
 
 func test_assists_are_cumulative() -> void:

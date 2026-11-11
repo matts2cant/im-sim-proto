@@ -71,7 +71,7 @@ func test_tool_skills_only_write_attributes() -> void:
 	# Computer has no effects until M11 (ADR 0076).
 	assert_array(TABLE.find(&"computer").effects).is_empty()
 	var lockpicking := _values(TABLE.find(&"lockpicking"), 1)
-	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.04, 0.0001)
+	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.03, 0.0001)
 	assert_float(lockpicking[&"lockpick_assist"]).is_equal_approx(1.0, 0.0001)
 
 
