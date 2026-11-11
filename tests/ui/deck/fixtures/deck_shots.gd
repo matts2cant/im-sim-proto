@@ -100,6 +100,10 @@ func _stage() -> void:
 			desktop.security_app.select("Camera")
 		"login_trace":
 			_screen.close()
+			_session.unplug()
+			var at := Lab.ORIGIN + Vector3(7, 0, 4.2)
+			_player.load_state({"position": at, "yaw": 0.0, "pitch": -0.2, "crouched": false, "velocity": Vector3.ZERO})
+			await _seconds(0.1)
 			var console := Computer.of(_lab.node("Console"))
 			console.use_by(_player)
 			var screen := ComputerScreen.of(_player)

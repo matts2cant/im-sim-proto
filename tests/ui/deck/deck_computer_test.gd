@@ -68,6 +68,12 @@ func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back
 	assert_str(_desktop.account).is_equal("dmarsh")
 	# Over the deck's content area.
 	assert_bool(_desktop.remote_area.is_equal_approx(_deck.content_anchors())).is_true()
+	# Inside the deck's 85 % panel, right of its tools column and under its bar.
+	var area := _desktop.remote_area
+	assert_float(area.position.x).is_greater(0.075)
+	assert_float(area.position.y).is_greater(0.075)
+	assert_float(area.end.x).is_less_equal(0.925 + 0.001)
+	assert_float(area.end.y).is_less_equal(0.925 + 0.001)
 	# The address in its title bar comes from the network layer.
 	assert_str(Computer.of(_lab.node("Console")).address()).is_equal("10.0.20.5")
 	# Its Security app lists the camera (it trusts the console) with only the commands that apply.

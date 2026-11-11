@@ -83,7 +83,7 @@ func content_anchors() -> Rect2:
 	var rect := content_area.get_global_rect()
 	if view.x <= 0.0 or view.y <= 0.0 or rect.size.x <= 0.0:
 		return ComputerScreen.REMOTE_AREA
-	return Rect2(rect.position / view, rect.end / view)
+	return Rect2(rect.position / view, rect.size / view)
 
 
 func _exit_tree() -> void:
