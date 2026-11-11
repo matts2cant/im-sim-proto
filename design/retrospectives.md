@@ -4,6 +4,34 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M11 — Tab interface (2026-11-11)
+
+The user and I agreed a roadmap (M11 to M20, design/README.md; network hacking was renumbered from M11 to M12) and grilled the Tab interface in three rounds. I built an HTML mockup of all five tabs from real game content (`design/prototypes/tab_interface.html`); the user approved it after four small removals and a close button. Two agents worked in parallel on a shared `TabPage` contract:
+- M11b: the Health, Augmentations and Skills tabs, and a medkit on a chosen body part (ADR 0111). Merged first.
+- M11a: the host, the Inventory and Journal tabs, and keypad and datapad reading in real time (ADR 0110). It merged master, kept the real pages and added the integration test through the host.
+
+Final suite on master: 1680 tests, 0 failures, 1 skipped, lint clean, twice. The second run took 105.5 s with no other Godot process running (about 50 s after M10a). The slowest shard (101 s) holds nine warehouse suites, 39 s of them `warehouse_patrol_timing_test`; the other shards finish far earlier. To investigate (below).
+
+- **Went well:**
+  - **The settled-parts-only rule from M10 held.** The mockup was approved before any agent started, and neither agent's work was thrown away.
+  - **The mockup was built from real data.** A survey agent gathered the real skills, augmentations, body parts, items, datapads and objectives first, so the mockup doubled as the content spec. The agents matched it closely.
+  - **The shared contract worked a third time:** each agent shipped placeholder scenes at the other's paths, the first finisher was merged, and the second resolved the placeholders and wrote the test across both.
+  - **Systemic choices without prompting:**
+    - The per-part heal goes through the existing heal receptron, via contact with the body part's hitbox, so it works on any character with no core change.
+    - Code labels are data on the readable, not a branch on the code id.
+    - The skill tier tables are built from the skill data.
+- **Went wrong:**
+  - **One guard-helpers test failed in a full run while the other agent's suite was running.** It waits on navigation worker threads with a real-time cap, and passed alone and on the next run. Running two full suites at once still starves that cap.
+  - **The skill table now holds copies of base tuning values for display** (pistol damage 25, medkit 30, the lockpick tuning). They will drift if the tuning changes. ADR 0111 records it.
+  - **The belt shortcut changed:** hovering an item and pressing a belt key used to assign it, but 1–5 now select tabs, so the agent dropped that. It's documented, but the user wasn't asked.
+- **Changes:**
+  - None to the process: the M10 rules worked.
+  - Watch the guard-helpers worker-thread test when agents run in parallel. If it fails again, give it a longer real-time cap or serialise the two agents' full runs.
+  - **Suite time doubled** (about 50 s to 105 s) somewhere in M10c, M10d or M11, unnoticed because the agents' runs overlapped and I read slow runs as load. Next: find which suites got slower and why, and spread the warehouse suites over shards. Rule: when a quiet second run is more than 20 % slower than the last recorded one, investigate before handing over.
+- **Open for the user:**
+  - Hover + belt key no longer assigns an item to a belt slot inside the Tab interface (drag it onto a slot, or use the belt picker). Is that fine?
+  - Using a medkit from the Inventory tab heals at once (spread over the body), instead of switching to the Health tab as in the mockup. Which do you prefer?
+
 ## M10 — Lockpicking (2026-11-11)
 
 The design was iterated on the HTML Lockpicking Bench (`design/prototypes/lockpicking_bench.html`) with the user, then built in two waves:
