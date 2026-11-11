@@ -23,8 +23,14 @@ winpid="$(cat "/proc/$pid/winpid" 2>/dev/null || true)"
 flag="$(mktemp)"
 rm -f "$flag"
 
+# Watchdog: polls every 0.25 s, so it ends as soon as Godot does (a single long `sleep` would
+# outlive Godot and hold the caller's pipes open until the limit).
 (
-	sleep "$limit"
+	ticks=$((limit * 4))
+	while [ "$ticks" -gt 0 ] && kill -0 "$pid" 2>/dev/null; do
+		sleep 0.25
+		ticks=$((ticks - 1))
+	done
 	if kill -0 "$pid" 2>/dev/null; then
 		touch "$flag"
 		echo "run_windowed: no exit after ${limit} s, closing Godot (PID $pid, Windows PID ${winpid:-?})" >&2
