@@ -20,5 +20,6 @@ code_labels = Dictionary[StringName, String]({&"network_lab_rtr02": "RTR-02 logi
 
 [resource]
 script = ExtResource("1_data")
+apps = Array[StringName]([&"mail", &"files", &"security"])
 mail = Array[ExtResource("2_document")]([SubResource("Mail_closet")])
 files = Array[ExtResource("2_document")]([SubResource("File_rtr02")])

@@ -55,12 +55,12 @@ func test_the_console_disables_the_camera_and_opens_the_closet_that_trust_it() -
 	var screen := await _console_desktop()
 	assert_bool(screen.desktop_shown()).is_true()
 	var app := screen.security_app
-	assert_array(app.device_names()).contains_exactly_in_any_order(["Closet Camera", "Closet Door"])
-	assert_bool(app.select("Closet Camera")).is_true()
+	assert_array(app.device_names()).contains_exactly_in_any_order(["CAM-CLOSET", "DOOR-CLOSET"])
+	assert_bool(app.select("CAM-CLOSET")).is_true()
 	app.action_button("Disable").pressed.emit()
 	await _lab.driver.frames(3)
 	assert_bool(SecurityCamera.of(_lab.node("Devices/ClosetCamera")).disabled).is_true()
-	assert_bool(app.select("Closet Door")).is_true()
+	assert_bool(app.select("DOOR-CLOSET")).is_true()
 	app.action_button("Open").pressed.emit()
 	var door := Door.of(_lab.node("Doors/ClosetDoor"))
 	for i in 90:

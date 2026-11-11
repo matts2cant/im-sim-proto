@@ -97,7 +97,7 @@ func _stage() -> void:
 			var desktop := ComputerScreen.of(_player)
 			desktop.show_app(ComputerScreen.App.SECURITY)
 			desktop.security_app.refresh(true)
-			desktop.security_app.select("Camera")
+			desktop.security_app.select("CAM-GATE")
 		"login_trace":
 			_screen.close()
 			_session.unplug()

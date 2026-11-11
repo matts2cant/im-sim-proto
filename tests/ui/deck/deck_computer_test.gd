@@ -86,14 +86,14 @@ func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back
 	# Its Security app lists the camera (it trusts the console) with only the commands that apply.
 	_desktop.show_app(ComputerScreen.App.SECURITY)
 	_desktop.security_app.refresh(true)
-	assert_array(_desktop.security_app.device_names()).contains(["Camera"])
-	assert_bool(_desktop.security_app.select("Camera")).is_true()
+	assert_array(_desktop.security_app.device_names()).contains(["CAM-GATE"])
+	assert_bool(_desktop.security_app.select("CAM-GATE")).is_true()
 	assert_array(_desktop.security_app.action_labels()).is_equal(["Disable"])
 	_desktop.security_app.action_button("Disable").pressed.emit()
 	await _driver.frames(3)
 	assert_bool(DeviceSwitch.of(_lab.node("Camera")).disabled).is_true()
 	_desktop.security_app.refresh(true)
-	_desktop.security_app.select("Camera")
+	_desktop.security_app.select("CAM-GATE")
 	assert_array(_desktop.security_app.action_labels()).is_equal(["Enable"])
 	# Back to the map: the desktop closes, the deck shows its Map again.
 	_desktop.back_button.pressed.emit()
@@ -152,7 +152,7 @@ func test_a_device_that_trusts_another_computer_is_not_listed() -> void:
 	var names: Array[String] = []
 	for row in console.devices():
 		names.append(row.name)
-	assert_array(names).contains(["Camera"])
+	assert_array(names).contains(["CAM-GATE"])
 	assert_bool(names.has("Yard Cam")).is_false()
 	assert_bool(console.controls(yard_device)).is_false()
 	assert_bool(Computer.of(_lab.node("OfficePc")).controls(yard_device)).is_true()

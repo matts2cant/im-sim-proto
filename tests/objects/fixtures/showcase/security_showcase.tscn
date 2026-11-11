@@ -34,6 +34,7 @@ text = "One switch carries everything here: console, camera, turret, alarm contr
 
 [sub_resource type="Resource" id="Console_data"]
 script = ExtResource("12_data")
+apps = Array[StringName]([&"mail", &"files", &"security"])
 mail = Array[ExtResource("13_document")]([SubResource("Mail_rounds")])
 files = Array[ExtResource("13_document")]([SubResource("File_notes")])
 

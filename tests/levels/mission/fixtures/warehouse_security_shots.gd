@@ -81,27 +81,27 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"roof_camera_west_crouch": {"feet": Vector3(9.4, 9.5, -3.0), "look": Vector3(13.5, 10.8, -8.8), "crouch": true},
 	"roof_west_arrival": {"feet": Vector3(-18.5, 9.5, 3.0), "look": Vector3(10, 10.5, -6)},
 	# M12a (ADR 0114): the security console's Security app on a camera, a door and the alarm group;
-	# the office PCs' Mail (an implicit clue), Files, and a Security app that controls nothing.
+	# the office PCs' Mail (an implicit clue) and Files; their dock has no Security app (office_pc1_dock).
 	"console_cameras":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Camera Hall",
+		"select": "CAM-HALL",
 	},
 	"console_door":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Vault Door",
+		"select": "DOOR-VAULT",
 	},
 	"console_alarm":
 	{
 		"feet": Vector3(16.05, 0, 1.0),
 		"look": Vector3(16.05, 1.45, 0.25),
 		"computer": DEVICES + "SecurityConsole",
-		"select": "Alarm Controller",
+		"select": "ALARM",
 	},
 	"office_pc2_mail":
 	{
@@ -119,7 +119,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"app": "files",
 		"select": "birthday_card_lena.jpg",
 	},
-	"office_pc1_security":
+	"office_pc1_dock":
 	{
 		"feet": Vector3(14.5, 4.5, 14.0),
 		"look": Vector3(14.5, 5.95, 14.74),
@@ -156,6 +156,6 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"computer": DEVICES + "SecurityConsole",
 		"off": ["warehouse_yard"],
 		"disable": [DEVICES + "CameraHall"],
-		"select": "Camera Hall",
+		"select": "CAM-HALL",
 	},
 }

@@ -49,7 +49,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(2.6, 0, -16.9),
 		"look": Vector3(2.6, 1.4, -18),
 		"computer": "Console",
-		"select": "Closet Camera",
+		"select": "CAM-CLOSET",
 	},
 	"deck_map_start": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack"},
 	"deck_map_rtr01": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01"]},
@@ -60,7 +60,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(2.6, 0, -16.9),
 		"look": Vector3(2.6, 1.4, -18),
 		"computer": "Console",
-		"select": "Closet Camera",
+		"select": "CAM-CLOSET",
 		"off": ["network_lab_closet"],
 	},
 }

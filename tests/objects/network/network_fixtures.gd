@@ -15,14 +15,18 @@ extends RefCounted
 ## and security. Camera trusts Console. Accounts (user, password, strength, admin):
 ## OfficePc kbrandt / ferry19 Weak; Rtr01 admin / Gh7vQx2e Medium admin; Console dmarsh / harbor77
 ## Medium; Rtr02 admin / k3epOut9 Medium admin; FileServer hale / Riverside#1 Strong; Kiosk service /
-## kiosk1 Weak. OfficePc and Console are computers (Computer component). Screens show the mockup's
-## names (SHOWN: `display_name` metadata).
+## kiosk1 Weak. OfficePc and Console are computers (Computer component; Security installed on the
+## Console only). Rtr01 and Rtr02 carry the subnets' data (objects/network/subnets/). Screens show
+## the mockup's names (SHOWN: `display_name` metadata).
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
 const JACK: PackedScene = preload("res://objects/network/wall_jack.tscn")
 const ROUTER: PackedScene = preload("res://objects/network/router.tscn")
+const OFFICE: Subnet = preload("res://objects/network/subnets/office.tres")
+const SECURITY: Subnet = preload("res://objects/network/subnets/security.tres")
+const SERVERS: Subnet = preload("res://objects/network/subnets/servers.tres")
 ## Added to the alarm stand-in by every incident it receives.
 const ALARMED: StringName = &"test.alarmed"
 const WEAK := DeviceAccount.Strength.WEAK
@@ -123,6 +127,13 @@ static func add_accounts(entity: Node, accounts: Array) -> DeviceAccounts:
 
 
 ## A Tracer on `entity` watching `watched`.
+## Gives the router `entity` its subnets' data and its addresses on its other subnets.
+static func add_subnets(entity: Node, subnets: Array[Subnet], addresses: Dictionary[StringName, String]) -> void:
+	var router := Router.of(entity)
+	router.subnet_data = subnets
+	router.side_addresses = addresses
+
+
 static func add_tracer(entity: Node, label: String, watched: Array[StringName], config: TracerConfig = null) -> Tracer:
 	var tracer := Tracer.new()
 	tracer.name = "Tracer"
@@ -133,12 +144,15 @@ static func add_tracer(entity: Node, label: String, watched: Array[StringName], 
 	return tracer
 
 
-## A Computer component on `entity`.
-static func add_computer(entity: Node) -> Computer:
+## A Computer component on `entity` with `apps` installed (empty: no data, Mail and Files).
+static func add_computer(entity: Node, apps: Array[StringName] = []) -> Computer:
 	var computer := Computer.new()
 	computer.name = "Computer"
 	computer.config = load("res://objects/computer/computer.tres") as ComputerConfig
 	computer.label = "computer"
+	if not apps.is_empty():
+		computer.data = ComputerData.new()
+		computer.data.apps = apps
 	entity.add_child(computer)
 	return computer
 
@@ -160,12 +174,13 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	n["Rtr01"] = instance(parent, ROUTER, "Rtr01", origin + Vector3(5, 1.2, 0), &"office", "10.0.10.1")
 	add_accounts(n["Rtr01"], [["admin", "Gh7vQx2e", MEDIUM, true]])
 	add_tracer(n["Rtr01"], "Sentry tracer", [&"office", &"security"])
+	add_subnets(n["Rtr01"], [OFFICE, SECURITY], {&"security": "10.0.20.254"})
 	n["SecuritySwitch"] = instance(
 		parent, SWITCH, "SecuritySwitch", origin + Vector3(8, 1.2, 0), &"security", "10.0.20.2"
 	)
 	n["Console"] = body_device(parent, "Console", origin + Vector3(7, 1, 3))
 	_address(n["Console"], &"", "10.0.20.5")
-	add_computer(n["Console"])
+	add_computer(n["Console"], [Computer.MAIL, Computer.FILES, Computer.SECURITY])
 	add_accounts(n["Console"], [["dmarsh", "harbor77", MEDIUM]])
 	var camera_receptrons: Array[Receptron] = [
 		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
@@ -181,6 +196,7 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	_address(n["Alarm"], &"", "10.0.20.40")
 	n["Rtr02"] = instance(parent, ROUTER, "Rtr02", origin + Vector3(8, 1.2, -3), &"security", "10.0.20.1")
 	add_accounts(n["Rtr02"], [["admin", "k3epOut9", MEDIUM, true]])
+	add_subnets(n["Rtr02"], [SECURITY, SERVERS], {&"servers": "10.0.30.1"})
 	n["ServerSwitch"] = instance(parent, SWITCH, "ServerSwitch", origin + Vector3(11, 1.2, -3), &"servers", "10.0.30.2")
 	n["FileServer"] = body_device(parent, "FileServer", origin + Vector3(12, 1, -5))
 	_address(n["FileServer"], &"", "10.0.30.8")

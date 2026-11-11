@@ -25,5 +25,6 @@ text = "Gate camera: front gate. Yard camera: duct B forecourt (mast). Roof came
 
 [resource]
 script = ExtResource("1_data")
+apps = Array[StringName]([&"mail", &"files", &"security"])
 mail = Array[ExtResource("2_document")]([SubResource("Mail_audit"), SubResource("Mail_keycard")])
 files = Array[ExtResource("2_document")]([SubResource("File_cameras")])
