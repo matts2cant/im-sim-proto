@@ -52,16 +52,24 @@ static func cables(rows: Array[NetworkRow]) -> Array[Vector2i]:
 
 
 ## Shows the network in a fresh graph under `suite` and asserts the checks; returns
-## {"zoom": the fitted zoom, "layout": the NetworkLayout} (the graph is freed).
+## {"zoom": the fitted zoom, "layout": the NetworkLayout, "crossings": cable crossings} (the graph
+## is freed). `max_crossings`: crossings tolerated (a known layout limit, see the caller).
 static func check(
-	suite: GdUnitTestSuite, rows: Array[NetworkRow], cables: Array[Vector2i], config: DeckConfig = DECK_CONFIG
+	suite: GdUnitTestSuite,
+	rows: Array[NetworkRow],
+	cables: Array[Vector2i],
+	config: DeckConfig = DECK_CONFIG,
+	max_crossings: int = 0,
 ) -> Dictionary:
 	var graph := _graph(suite, rows, cables, config)
 	var rects := graph.node_rects()
 	suite.assert_int(rects.size()).is_equal(rows.size())
 	suite.assert_bool(NetworkLayout.rects_overlap(rects, MIN_GAP)).override_failure_message("boxes overlap").is_false()
 	var routes := graph.layout.routes
-	suite.assert_int(NetworkLayout.crossings(routes)).override_failure_message("cables cross").is_equal(0)
+	var crossings := NetworkLayout.crossings(routes)
+	suite.assert_int(crossings).override_failure_message("cables cross %d times" % crossings).is_less_equal(
+		max_crossings
+	)
 	(
 		suite
 		. assert_int(NetworkLayout.routes_through_boxes(routes, cables, rects))
@@ -89,7 +97,7 @@ static func check(
 			. override_failure_message("%s outside: %s" % [row.name, shown])
 			. is_true()
 		)
-	var result := {"zoom": graph.view.zoom, "layout": graph.layout}
+	var result := {"zoom": graph.view.zoom, "layout": graph.layout, "crossings": crossings}
 	# Deterministic: the same network again, the same picture.
 	var again := _graph(suite, rows, cables, config)
 	suite.assert_array(again.node_rects()).is_equal(rects)

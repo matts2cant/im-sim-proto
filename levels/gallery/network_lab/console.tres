@@ -8,7 +8,7 @@ script = ExtResource("2_document")
 id = &"gallery.network_lab.console_mail_closet"
 title = "Closet"
 sender = "M. Ortiz"
-text = "The spare biocells are in the closet under the camera. Its door has an electronic lock, fail-secure: open it from the Security app. Cut the security switch's breaker and it stays shut."
+text = "The spare biocells are in the closet under the camera. Its door has an electronic lock, fail-secure: open it from the Security app. Cut the closet switch's breaker and it stays shut."
 
 [sub_resource type="Resource" id="File_fw02"]
 script = ExtResource("2_document")

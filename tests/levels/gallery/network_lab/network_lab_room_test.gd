@@ -3,8 +3,9 @@ extends GdUnitTestSuite
 ## (a 3.5 m corridor from the hub wall, a 14 x 14 m hall, a closet behind the far wall, walls shared
 ## as in ADR 0043), clear doorways, no coplanar faces, wall devices clear of doorways, door sweeps
 ## and signs and flush on their walls, signs inside their walls; the network data (three subnets,
-## FW-01 with the Sentry tracer between Office and Security, FW-02 between Security and Servers,
-## trust, accounts) and fair clues. The room is loaded once (its tests only query it).
+## FW-01 with the Sentry tracer between Office and Security, FW-02 between Security and Servers, the
+## closet's room switch on the Security subnet, trust, accounts) and fair clues. The room is loaded
+## once (its tests only query it).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
@@ -23,6 +24,7 @@ const NETWORK: Dictionary[String, Array] = {
 	"Devices/OfficePc2": [&"office", "10.0.10.12"],
 	"Devices/Fw01": [&"office", "10.0.10.1"],
 	"Devices/SecuritySwitch": [&"security", "10.0.20.2"],
+	"Devices/ClosetSwitch": [&"security", "10.0.20.3"],
 	"Devices/Console": [&"security", "10.0.20.5"],
 	"Devices/ClosetCamera": [&"security", "10.0.20.21"],
 	"Doors/ClosetDoor": [&"security", "10.0.20.51"],
@@ -192,9 +194,18 @@ func test_three_subnets_behind_two_gateways_with_trust_and_accounts() -> void:
 		assert_str(accounts[0].user).override_failure_message(path).is_equal(ACCOUNTS[path][0])
 		assert_int(accounts[0].strength).override_failure_message(path).is_equal(ACCOUNTS[path][1])
 		assert_bool(accounts[0].admin).override_failure_message(path).is_equal(ACCOUNTS[path][2])
-	# The breaker beside the security switch cuts its circuit; the closet door is fail-secure on it.
+	# A subnet can span several switches: the closet's room switch carries the camera and the door and
+	# hangs on the main security switch (on no circuit); the breaker beside it cuts its circuit and
+	# the closet door is fail-secure on it.
+	assert_array(Device.of(_node("Devices/ClosetSwitch")).linked()).contains_exactly_in_any_order(
+		[Device.of(_node("Devices/ClosetCamera")), Device.of(_node("Doors/ClosetDoor"))]
+	)
+	assert_array(Device.of(_node("Devices/SecuritySwitch")).linked()).contains(
+		[Device.of(_node("Devices/ClosetSwitch"))]
+	)
+	assert_str(String(Powered.of(_node("Devices/SecuritySwitch")).circuit)).is_empty()
 	var circuit := (_node("Devices/Breaker").get_node("CircuitBreaker") as CircuitBreaker).circuit
-	assert_str(String(Powered.of(_node("Devices/SecuritySwitch")).circuit)).is_equal(String(circuit))
+	assert_str(String(Powered.of(_node("Devices/ClosetSwitch")).circuit)).is_equal(String(circuit))
 	assert_str(String(Powered.of(_node("Doors/ClosetDoor")).circuit)).is_equal(String(circuit))
 	assert_bool(ActorState.has(_node("Doors/ClosetDoor"), ElectronicLock.FAIL_SECURE)).is_true()
 

@@ -19,6 +19,9 @@ const OFFICE: Array[String] = [
 const SECURITY_DEVICES: Array[String] = [
 	"Devices/SecuritySwitch",
 	"Devices/YardSwitch",
+	"Devices/SecurityRoomSwitch",
+	"Devices/VaultSwitch",
+	"Devices/RoofSwitch",
 	"Devices/SecurityConsole",
 	"Devices/CameraGate",
 	"Devices/CameraYard",
@@ -147,6 +150,43 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 	await _frames(3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_true()
 	console.log_out()
+
+
+func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() -> void:
+	var console := Computer.of(_entity("Devices/SecurityConsole"))
+	var vault: Array[String] = ["Devices/VaultTurret", "Doors/VaultDoor", "Doors/BridgeDoor", "Devices/CameraOffice"]
+	var roof: Array[String] = ["Devices/CameraRoof", "Devices/LaserRoofWest", "Devices/LaserRoofEast"]
+	var others: Array[String] = [
+		"Devices/AlarmController", "Devices/CameraHall", "Devices/CameraGate", "Doors/FrontGate"
+	]
+	# The vault's switch unpowered: the vault and upper corridor devices go offline, the rest of the
+	# subnet (the security room, the hall, the yard and the roof) stays reachable.
+	var powered := Powered.of(_entity("Devices/VaultSwitch"))
+	powered.on = false
+	await _frames(2)
+	_assert_reached(console, vault, false)
+	_assert_reached(console, roof + others, true)
+	powered.on = true
+	await _frames(2)
+	_assert_reached(console, vault, true)
+	# The roof's switch broken: the roof's devices go offline, the yard's switch above it does not.
+	var roof_switch := _device("Devices/RoofSwitch")
+	roof_switch.load_state({"broken": true})
+	await _frames(2)
+	_assert_reached(console, roof, false)
+	_assert_reached(console, vault + others, true)
+	roof_switch.load_state({"broken": false})
+	await _frames(2)
+	_assert_reached(console, roof, true)
+
+
+func _assert_reached(console: Computer, paths: Array[String], expected: bool) -> void:
+	for path: String in paths:
+		(
+			assert_bool(console.device.reaches(_entity(path)))
+			. override_failure_message("console reaches %s: %s" % [path, not expected])
+			. is_equal(expected)
+		)
 
 
 func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_fw01_reveals_security() -> void:

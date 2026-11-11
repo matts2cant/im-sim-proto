@@ -177,7 +177,7 @@ trusted = Array[NodePath]([NodePath("../../../Devices/Console")])
 
 [node name="Powered" type="Node" parent="Doors/ClosetDoor"]
 script = ExtResource("8_powered")
-circuit = &"network_lab_security"
+circuit = &"network_lab_closet"
 
 [node name="ElectronicLock" type="Node3D" parent="Doors/ClosetDoor"]
 script = ExtResource("7_electronic")
@@ -252,23 +252,32 @@ label = "Sentry tracer"
 watched = Array[StringName]([&"office", &"security"])
 
 [node name="SecuritySwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.6, -17.99)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -16.8)
 metadata/display_name = "SW-SECURITY"
 
-[node name="Powered" parent="Devices/SecuritySwitch"]
-circuit = &"network_lab_security"
-
 [node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../Console"), NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor"), NodePath("../../Fw02")])
+links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Fw02"), NodePath("../../ClosetSwitch")])
 address = "10.0.20.2"
+subnet = &"security"
+
+[node name="ClosetSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.6, -17.99)
+metadata/display_name = "SW-CLOSET"
+
+[node name="Powered" parent="Devices/ClosetSwitch"]
+circuit = &"network_lab_closet"
+
+[node name="Device" parent="Devices/ClosetSwitch"]
+links = Array[NodePath]([NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor")])
+address = "10.0.20.3"
 subnet = &"security"
 
 [node name="Breaker" parent="Devices" instance=ExtResource("9_breaker")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.3, -17.99)
 
 [node name="CircuitBreaker" parent="Devices/Breaker"]
-circuit = &"network_lab_security"
-label = "security switch"
+circuit = &"network_lab_closet"
+label = "closet switch"
 
 [node name="Console" parent="Devices" instance=ExtResource("14_computer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.45, -17.99)
@@ -422,15 +431,16 @@ size = 0
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.3, -15.7)
 pixel_size = 0.003
 text = "FW-01 · gateway, Sentry tracer
-hack it from the deck's Map
-to see the Security subnet"
+between the office and security
+switches: hack it from the deck"
 size = 0
 
-[node name="SecuritySwitch" parent="Labels" instance=ExtResource("3_sign")]
+[node name="ClosetSwitch" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 2.3, -17.95)
 pixel_size = 0.003
-text = "Security switch · breaker
-cuts the Security subnet"
+text = "Closet switch · breaker cuts it
+camera and door go offline,
+the rest of Security stays up"
 size = 0
 
 [node name="Console" parent="Labels" instance=ExtResource("3_sign")]

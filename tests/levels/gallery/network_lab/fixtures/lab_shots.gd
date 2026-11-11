@@ -61,7 +61,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"look": Vector3(2.6, 1.4, -18),
 		"computer": "Console",
 		"select": "Closet Camera",
-		"off": ["network_lab_security"],
+		"off": ["network_lab_closet"],
 	},
 }
 

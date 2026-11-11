@@ -10,7 +10,8 @@ extends Node3D
 ## ambient light and clears the fog (layout review only: it is not what the player sees).
 ## The doors and security devices' shots (M9c) live in warehouse_security_shots.gd: `view` puts the
 ## free camera at a device's view node (a camera's eye), `computer` opens that computer logged in on an
-## app (ADR 0114).
+## app (ADR 0114), `deck` plugs a deck into that device and shows its Map, after granting the `hack`
+## gateways' first account (M12a). `wait`: seconds before the shot (default WAIT).
 
 const SecurityShots := preload("res://tests/levels/mission/fixtures/warehouse_security_shots.gd")
 
@@ -206,6 +207,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 ## Review image size (the project's 16:9 default).
 const SHOT_SIZE := Vector2i(1152, 648)
 const WAIT := 1.2
+const DECK: ItemData = preload("res://items/deck/deck.tres")
 
 var _queue: Array[String] = []
 var _shots: Dictionary = SHOTS.merged(SecurityShots.SHOTS)
@@ -295,7 +297,9 @@ func _physics_process(_delta: float) -> void:
 		return
 	ActorState.set_tag(_player, &"actor.player", false)
 	# A computer shot keeps the HUD hidden (its overlay hides it).
-	(_player.get_node("Hud") as CanvasLayer).visible = not _shot.get("cam", false) and not _shot.has("computer")
+	(_player.get_node("Hud") as CanvasLayer).visible = (
+		not _shot.get("cam", false) and not _shot.has("computer") and not _shot.has("deck")
+	)
 	if _shot.get("cam", false):
 		_camera.current = true
 		if _shot.has("view"):
@@ -309,6 +313,9 @@ func _physics_process(_delta: float) -> void:
 	if _shot.has("computer") and not _shot.has("opened") and _time > 0.2:
 		_shot["opened"] = true
 		_open_computer()
+	if _shot.has("deck") and not _shot.has("opened") and _time > 0.2:
+		_shot["opened"] = true
+		_plug_deck()
 
 
 # Opens the shot's computer logged in as its first account on its app, with `select` selected.
@@ -332,6 +339,21 @@ func _open_computer() -> void:
 			screen.security_app.select(select)
 
 
+# Gives the player a deck (fast scans), grants the shot's `hack` gateways their first account and
+# plugs the deck into the shot's `deck` device, raising its Map (M12a, ADR 0113).
+func _plug_deck() -> void:
+	var session := DeckSession.of(_player)
+	session.config = session.config.duplicate() as DeckConfig
+	session.config.scan_time = 0.1
+	for path: String in _shot.get("hack", []):
+		var accounts := DeviceAccounts.of(_level.get_node(path))
+		accounts.grant(_player, accounts.accounts[0].user)
+	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
+		_player.inventory.give(DECK, 1)
+	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	session.plug_and_raise(Device.of(_level.get_node(String(_shot["deck"]))))
+
+
 # The node a device sees from (a component's device_view(), DeviceStatus), else the entity.
 func _device_view(entity: Node) -> Node3D:
 	for child in entity.get_children():
@@ -351,7 +373,14 @@ func _process(delta: float) -> void:
 	if _time > 0.5:
 		_frames += 1
 		_physics_ms += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
-	if _time < WAIT:
+	var wait := float(_shot.get("wait", WAIT))
+	# A deck shot: its Map keeps its view while devices appear, so fit it a moment before the shot.
+	if _shot.has("deck") and _time > wait - 0.4 and not _shot.has("fitted"):
+		_shot["fitted"] = true
+		var deck_screen := DeckScreen.of(_player)
+		deck_screen.refresh()
+		deck_screen.graph.fit_view()
+	if _time < wait:
 		return
 	if _perf:
 		var physics := _physics_ms / maxf(_frames, 1)

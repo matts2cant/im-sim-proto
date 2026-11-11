@@ -713,7 +713,7 @@ metadata/display_name = "SW-SECURITY"
 circuit = &"warehouse_building"
 
 [node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/SecurityDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/VaultTurret"), NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenOfficeUpper"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/YardSwitch")])
+links = Array[NodePath]([NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/SecurityRoomSwitch"), NodePath("../../../Devices/VaultSwitch"), NodePath("../../../Devices/YardSwitch"), NodePath("../../../Devices/RoofSwitch")])
 address = "10.0.20.2"
 subnet = &"security"
 
@@ -725,8 +725,44 @@ metadata/display_name = "SW-YARD"
 circuit = &"warehouse_yard"
 
 [node name="Device" parent="Devices/YardSwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/CameraRoof"), NodePath("../../../Devices/LaserRoofWest"), NodePath("../../../Devices/LaserRoofEast"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
+links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
 address = "10.0.20.3"
+subnet = &"security"
+
+[node name="SecurityRoomSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 1.6, 3.6)
+metadata/display_name = "SW-SEC-ROOM"
+
+[node name="Powered" parent="Devices/SecurityRoomSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Devices/SecurityRoomSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Doors/SecurityDoor")])
+address = "10.0.20.4"
+subnet = &"security"
+
+[node name="VaultSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 6.1, 1.5)
+metadata/display_name = "SW-VAULT"
+
+[node name="Powered" parent="Devices/VaultSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Devices/VaultSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/VaultTurret"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/SirenOfficeUpper")])
+address = "10.0.20.6"
+subnet = &"security"
+
+[node name="RoofSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.9, 10.05, -9.99)
+metadata/display_name = "SW-ROOF"
+
+[node name="Powered" parent="Devices/RoofSwitch"]
+circuit = &"warehouse_yard"
+
+[node name="Device" parent="Devices/RoofSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/CameraRoof"), NodePath("../../../Devices/LaserRoofWest"), NodePath("../../../Devices/LaserRoofEast")])
+address = "10.0.20.7"
 subnet = &"security"
 
 [node name="Network" type="Node3D" parent="."]

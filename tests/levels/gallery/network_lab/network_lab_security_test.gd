@@ -3,9 +3,10 @@ extends GdUnitTestSuite
 ## server stations with the real Player in the room fixture (fixtures/lab_player.tscn): the console
 ## (its login learned from PC 2's mail, Fill in) lists only the camera and the closet door, which
 ## trust it, and its Security app disables the camera and opens the door to the closet's biocells;
-## the breaker beside the security switch cuts the Security subnet (everything offline, the
-## fail-secure door stays shut, the deck loses the subnet); from the wall jack the deck's Icebreaker
-## cracks FW-01 (Weak, Untrained), the console's file gives FW-02's login, and the file server
+## the breaker beside the closet's room switch cuts only that switch (the camera and the door
+## offline, the fail-secure door shut; the console and FW-02 on the same subnet stay reachable);
+## from the wall jack the deck's Icebreaker cracks FW-01 (Weak, Untrained), the console's file gives
+## FW-02's login, and the file server
 ## behind FW-02 appears, is cracked and opens remotely on its one file.
 
 const Helpers := preload("res://tests/levels/gallery/network_lab/network_lab_helpers.gd")
@@ -77,33 +78,36 @@ func test_the_console_disables_the_camera_and_opens_the_closet_that_trust_it() -
 	assert_bool(pc1.send(Device.CLOSE, _lab.device("Doors/ClosetDoor"))).is_false()
 
 
-func test_the_breaker_cuts_the_security_subnet_and_the_fail_secure_door_stays_shut() -> void:
+func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays_shut() -> void:
 	var console := _lab.computer("Devices/Console")
 	assert_bool(console.log_in("ops", "relay52")).is_true()
 	var breaker := _lab.node("Devices/Breaker").get_node("CircuitBreaker") as CircuitBreaker
 	await _lab.stand(Helpers.AT_BREAKER, _lab.node("Devices/Breaker").position)
 	assert_bool(breaker.use(_lab.player)).is_true()
 	await _lab.driver.frames(2)
-	assert_bool(_lab.device("Devices/SecuritySwitch").is_up()).is_false()
+	assert_bool(_lab.device("Devices/ClosetSwitch").is_up()).is_false()
+	# The closet's camera and door go offline; the rest of the Security subnet stays reachable.
 	for row in console.devices():
 		assert_bool(row.online).override_failure_message(row.name + " still online").is_false()
 	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_false()
 	await _lab.driver.frames(3)
 	assert_bool(Door.of(_lab.node("Doors/ClosetDoor")).is_locked()).is_true()
-	assert_bool(console.device.reaches(_lab.node("Devices/Fw02"))).is_false()
-	# The deck on the jack, FW-01 hacked: the Security subnet is cut off (not online).
+	assert_bool(console.device.reaches(_lab.node("Devices/Fw02"))).is_true()
+	assert_bool(console.device.reaches(_lab.node("Devices/SecuritySwitch"))).is_true()
+	# The deck on the jack, FW-01 hacked: the console is online, the closet's devices are not.
 	assert_bool(await _lab.take_deck()).is_true()
 	await _lab.click(Helpers.AT_JACK, "Devices/Jack")
 	var session := DeckSession.of(_lab.player)
 	DeviceAccounts.of(_lab.node("Devices/Fw01")).grant(_lab.player, "admin")
 	session.refresh()
-	assert_bool(session.is_online(_lab.device("Devices/Fw01"))).is_true()
-	assert_bool(session.is_online(_lab.device("Devices/Console"))).is_false()
+	assert_bool(session.is_online(_lab.device("Devices/Console"))).is_true()
+	assert_bool(session.is_online(_lab.device("Devices/Fw02"))).is_true()
+	assert_bool(session.is_online(_lab.device("Devices/ClosetCamera"))).is_false()
 	# The breaker back on: online again.
 	breaker.use(_lab.player)
 	await _lab.driver.frames(2)
 	session.refresh()
-	assert_bool(session.is_online(_lab.device("Devices/Console"))).is_true()
+	assert_bool(session.is_online(_lab.device("Devices/ClosetCamera"))).is_true()
 	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_true()
 
 
