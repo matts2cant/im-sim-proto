@@ -4,6 +4,49 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M10 — Lockpicking (2026-11-11)
+
+The design was iterated on the HTML Lockpicking Bench (`design/prototypes/lockpicking_bench.html`) with the user, then built in two waves:
+- Wave 1, in parallel:
+  - M10a: the minigame from the first approved bench (ADR 0107);
+  - M10b: the bench's WebAudio sounds rebuilt and baked to WAV, with live scrape and strain (ADR 0108).
+- Meanwhile the user kept iterating on the bench:
+  - wheel tension, and the mouse moving the pick tip;
+  - pins change only in the bottom 10 % of the lift;
+  - a side cutaway with a rigid hook pick;
+  - a narrower sweet spot;
+  - dwell, bias and overset rules;
+  - physical raking.
+- Wave 2, in parallel:
+  - M10c: ported the final bench (ADR 0109);
+  - M10d: placed the four practice locks on the Security wing's west wall.
+
+Final suite on master: 1639 tests, 0 failures, 1 skipped, lint clean, twice. The second run took 110 s (55 s before M10c), but two other Godot processes (about 2 GB) were running, so the time needs a quiet rerun.
+
+- **Went well:**
+  - **A throwaway HTML bench was the right tool for game feel.** The user tried each idea within minutes: mouse-X tension, horizontal gauge, wheel tension, side view, rigid pick, overset tuning, raking. That took about fifteen iterations, none of which cost an agent run. The agents ported a design that had already been played.
+  - **The sounds were reproduced from the bench's own formulas,** checked against Chrome's OfflineAudioContext. The one-shots match closely, and the generator is deterministic.
+  - **The shared sound API worked again:** the sound agent finished first and was merged, then the lock agent swapped its stub for the real class and added the cross-API test.
+  - **M10c found two bench quirks and fixed them in the port:**
+    - A / D did nothing in the wheel scheme, because the mouse aim snapped the pin back.
+    - The sideways aim needed clamping once the mouse is captured.
+- **Went wrong:**
+  - **Wave 1 built a design the user was still changing.** M10a launched on the first bench, and the user then reworked the controls and view while it ran, so M10a's screen and controls were thrown away by M10c. Starting M10a later would have saved a full agent run. The sound agent's work survived unchanged.
+  - **Bench bugs I shipped, each found by the user:**
+    - The start overlay never hid: CSS `display: grid` beat the `hidden` attribute.
+    - Every pin oversets right after setting: the tip sprang up by the binding lag.
+    - A set pin's key pin hung at the shear line instead of resting on the tip.
+    - The scrape kept playing after the lock opened.
+    My checks stepped the simulation by hand and asserted on outcomes, but missed cases a player hits in the first minute (hold still after the click, listen after opening).
+  - **Godot windows stayed open on the user's screen.** A screenshot fixture whose capture condition was never met (the lock opened first) returned early forever. `timeout` only killed the console wrapper, not the window.
+- **Changes:**
+  - AGENTS.md "Engine probes": screenshot fixtures quit on every path and have a real-time watchdog; `timeout` does not close the window; check for leftover windowed processes after each run.
+  - Process: while the user is still iterating on a prototype, brief only the parts that are settled (the sounds were). Brief the screen and controls once the user calls the prototype done.
+  - Bench checks before publishing: also hold still after each event, watch the sounds after the end state, and draw the state after each transition.
+- **Open for the user:**
+  - Should `tools/screenshot.sh` kill the Godot window itself when its timeout expires? It would catch any fixture that forgets to quit.
+  - The panel is wider than tall at 55 % of the screen and opaque. The lock sits right of centre to leave room for the pick handle, so is it big enough in game?
+
 ## M9 — Warehouse mission (2026-11-09, autonomous night)
 
 Six agents in four waves, from the grilled design (3 rounds, ADR 0086, design/levels/mission-warehouse.md):

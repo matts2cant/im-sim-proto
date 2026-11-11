@@ -133,6 +133,7 @@ A task is done only when all of these hold:
 
 - When engine behaviour is uncertain (CSG timing, navigation map sync, physics frame order), write a 10–20 line `--script` probe **before** building on an assumption. It is far cheaper than debugging the full feature.
 - Probes live in the scratchpad, not in `res://`, end with `quit()`, and run under `timeout 60 "$GODOT_BIN" --headless ...`. Never leave a Godot process running when you finish: check with `tasklist | grep -i godot`, but only stop processes you started (note their PIDs): other agents' test runs may be in progress and slow yours down.
+- Windowed runs (screenshots): `timeout` only kills the `_console.exe` wrapper, not the Godot window, so a fixture that never quits leaves a window on the user's screen. Every screenshot fixture quits itself on every path (shot saved, the scene closed before the shot, unknown shot name) and has a real-time watchdog (about 25 s) that saves what is shown and quits. After each windowed run, check `tasklist | grep -i godot` and stop the processes you started.
 - Scratch files go in a private subfolder of the scratchpad named after your task (other agents share the scratchpad).
 - After adding or renaming a `class_name`, the class cache must be refreshed: `tools/run_tests.sh` re-imports when a `class_name`/`extends` line or a non-script file changed; for ad-hoc runs use `--headless --import`.
 - In an isolated worktree, shell commands with variables or `&&` chains may be refused: put multi-step commands in a scratch script and run that.
