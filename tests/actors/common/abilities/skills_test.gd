@@ -72,7 +72,7 @@ func test_save_and_load_round_trip_re_derive_the_modifiers() -> void:
 	assert_int(_skills.tier(&"computer")).is_equal(1)
 	assert_int(_skills.tier(&"lockpicking")).is_equal(0)
 	assert_float(_attributes.evaluate(&"medical_heal_mult", 1.0)).is_equal_approx(2.0, 0.0001)
-	assert_float(_attributes.evaluate(&"lockpick_time_mult", 1.0)).is_equal(1.0)
+	assert_float(_attributes.evaluate(&"lockpick_assist", 0.0)).is_equal(0.0)
 	assert_array(_attributes.modifiers(&"medical_heal_mult")).has_size(1)
 
 
