@@ -70,7 +70,7 @@ Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "W
 - Switch navigation maps to synchronous iterations only with `GuardHelpers.use_sync_iterations()`, and `isolate_region()` against earlier suites' floors.
 - Collect events that can happen inside a helper that clears the EventLog (`PlayerDriver.place()`) from `EventLog.entry_added`.
 - Shards run in parallel processes: write files only under `user://`, reset autoloads in `before_test`, restore engine-wide settings in `after_test`.
-- Iterate on a subset, run the full suite once at the end; for a failure seen only in a full run, replay its shard (`-j 1 $(cat reports/shards/<n>/suites.txt)`) and fix the root cause, never retry.
+- Iterate on a subset, run the full suite once at the end (once: each suite's own time is measured on that run and written to `reports/suite_times.tsv`; only the total wall time is skewed by new suites, so never rerun the suite to measure times); for a failure seen only in a full run, replay its shard (`-j 1 $(cat reports/shards/<n>/suites.txt)`) and fix the root cause, never retry.
 
 ## Godot version
 
