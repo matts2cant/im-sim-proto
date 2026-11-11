@@ -6,8 +6,8 @@ extends GdUnitTestSuite
 ## map without opening one, the wheel zooms around the cursor; the menu stays inside the panel
 ## wherever its node is; Fit shows the whole network again.
 
-const Synthetic := preload("res://tests/ui/terminal/fixtures/synthetic_network.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const Synthetic := preload("res://tests/ui/deck/fixtures/synthetic_network.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const GRAPH_AT := Vector2(40, 60)
 
 var _network: Synthetic

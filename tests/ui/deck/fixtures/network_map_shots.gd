@@ -5,7 +5,7 @@ extends Node3D
 ## it fits the map, then zooms around the map's centre and / or opens a node's menu, saves the
 ## window image and quits.
 
-const Synthetic := preload("res://tests/ui/terminal/fixtures/synthetic_network.gd")
+const Synthetic := preload("res://tests/ui/deck/fixtures/synthetic_network.gd")
 const SHOT_SIZE := Vector2i(1152, 648)
 ## The Network tab's graph size on the terminal screen.
 const GRAPH_SIZE := Vector2(1054, 440)

@@ -7,7 +7,9 @@ extends Node
 ## `heard_dispatch` receptron (requires `equipment.radio`) search there. The command arrives
 ## through its receptron (DeviceActionEffect, blocked while unpowered or broken).
 ## Security screens (ADR 0083): device_status() says "broadcasting" for `broadcast_shown` seconds
-## after a dispatch, else "idle".
+## after a dispatch, else "idle" (nothing while switched off).
+## Switched off by a remote `command.disable` (its DeviceSwitch, M12a) it ignores broadcasts until
+## `command.enable`.
 ## EventLog: `radio.dispatch {station, point, range}`.
 
 @export var config: RadioBaseStationConfig
@@ -31,6 +33,8 @@ func _ready() -> void:
 
 ## Status words for security screens (DeviceStatus): broadcasting / idle.
 func device_status() -> PackedStringArray:
+	if not DeviceSwitch.is_enabled(entity):
+		return PackedStringArray()
 	return PackedStringArray(["broadcasting" if broadcast_left > 0.0 else "idle"])
 
 
@@ -50,5 +54,5 @@ func dispatch(at: Vector3) -> void:
 
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
-	if action == Device.BROADCAST:
+	if action == Device.BROADCAST and DeviceSwitch.is_enabled(entity):
 		dispatch(stimulus.origin)

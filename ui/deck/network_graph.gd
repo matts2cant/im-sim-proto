@@ -1,20 +1,24 @@
 class_name NetworkGraph
 extends Control
-## The terminal screen's Network tab (ADR 0083, map redesigned by ADR 0099): one node per device of
-## the terminal's physical network (Terminal.devices()), grouped by the hub it hangs on and placed by
-## NetworkLayout, the cables along the layout's routes (solid green between two online devices, also
-## when one is disabled: the link works; dashed grey otherwise), the terminal itself outlined. Each
-## node shows its name and its status words; its outline and status line take the device's colour
-## (TerminalStyle.row_color(): offline grey, disabled red, alert words amber, else green).
+## A network map (ADR 0083, 0099; the deck's Map since ADR 0113, moved from ui/terminal/): one node
+## per NetworkRow its owner gives it (the deck's discovered devices; the M8 terminal's network), grouped
+## by the hub it hangs on and placed by NetworkLayout, the cables along the layout's routes (solid
+## green between two online devices, also when one is disabled: the link works; dashed grey
+## otherwise), the owner's own device outlined. Each node shows its name and its address and status
+## words; its outline and status line take the device's colour (DeckStyle.row_color(): offline
+## grey, disabled red, access amber, alert words orange, else green).
 ## The map pans and zooms (NetworkView): drag with the left or middle mouse button to move it, the
 ## wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
 ## network; it opens fitted (request_fit()). The nodes, their labels and the cables live in
 ## `content`, a child scaled and moved by the view; the menu and the Fit button stay in the panel.
 ## Clicking a node (without dragging) opens a small menu beside it, kept inside the panel: its name,
-## status and one button per command it accepts (none while offline); a button emits
-## `command_pressed`. Clicking the background closes it.
+## status and, by default, one button per command of its row (none while offline; a button emits
+## `command_pressed`); an owner with `menu_builder` fills the menu itself (the deck: accounts,
+## Icebreaker, actions). Clicking the background closes it; `menu_closed` tells the owner.
 
 signal command_pressed(command: StringName, target: Device)
+## The menu was opened on `target` (null: it closed).
+signal selection_changed(target: Device)
 
 ## Space kept around the network when fitted (px).
 const FIT_MARGIN: float = 24.0
@@ -41,8 +45,14 @@ const DISABLED_FILL: Color = Color(0.22, 0.08, 0.08, 1.0)
 const SELECTED_FILL: Color = Color(0.13, 0.22, 0.22, 1.0)
 const LIVE_CABLE_COLOR: Color = Color(0.3375, 0.7125, 0.45)
 
-var config: TerminalConfig
-var rows: Array[Terminal.Row] = []
+## Command -> button label for the default menu (empty: the words after `command.`).
+var command_label: Callable = Callable()
+## Fills the menu below its title and status: Callable(row: NetworkRow, column: VBoxContainer);
+## empty: one button per command of the row.
+var menu_builder: Callable = Callable()
+## The menu's width (px).
+var menu_width: float = MENU_WIDTH
+var rows: Array[NetworkRow] = []
 var cables: Array[Vector2i] = []
 ## The device whose menu is open (null: none).
 var selected: Device
@@ -82,27 +92,28 @@ func _ready() -> void:
 	add_child(content)
 	menu = PanelContainer.new()
 	menu.visible = false
-	menu.custom_minimum_size.x = MENU_WIDTH
+	menu.custom_minimum_size.x = menu_width
 	menu.z_index = 1
-	menu.add_theme_stylebox_override(&"panel", TerminalStyle.panel_style(TerminalStyle.BORDER_COLOR, 1, 10.0))
+	menu.add_theme_stylebox_override(&"panel", DeckStyle.panel_style(DeckStyle.BORDER_COLOR, 1, 10.0))
+	menu.mouse_filter = Control.MOUSE_FILTER_STOP
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 6)
 	menu.add_child(column)
-	menu_title = TerminalStyle.label("", TerminalStyle.TITLE_COLOR, 16)
+	menu_title = DeckStyle.label("", DeckStyle.TITLE_COLOR, 16)
 	column.add_child(menu_title)
-	menu_status = TerminalStyle.label("", TerminalStyle.TEXT_COLOR, 13)
+	menu_status = DeckStyle.label("", DeckStyle.TEXT_COLOR, 13)
 	menu_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	menu_status.custom_minimum_size.x = MENU_WIDTH - 20.0
+	menu_status.custom_minimum_size.x = menu_width - 20.0
 	column.add_child(menu_status)
 	_menu_buttons = VBoxContainer.new()
 	_menu_buttons.add_theme_constant_override(&"separation", 4)
 	column.add_child(_menu_buttons)
 	add_child(menu)
-	fit_button = TerminalStyle.button("Fit", 13)
+	fit_button = DeckStyle.button("Fit", 13)
 	fit_button.name = "Fit"
 	fit_button.tooltip_text = "Show the whole network (F)"
 	fit_button.z_index = 1
-	var fit_style := TerminalStyle.panel_style(TerminalStyle.BORDER_COLOR, 1, 6.0)
+	var fit_style := DeckStyle.panel_style(DeckStyle.BORDER_COLOR, 1, 6.0)
 	fit_style.content_margin_left = 12.0
 	fit_style.content_margin_right = 12.0
 	for state: StringName in [&"normal", &"hover", &"pressed"]:
@@ -113,14 +124,19 @@ func _ready() -> void:
 	add_child(fit_button)
 
 
-## Shows `p_rows` (Terminal.devices()) and their `p_cables` (Terminal.cables()); an open menu stays
-## open on the same device and shows its new status. The view stays where it is (see request_fit()).
-func show_network(p_rows: Array[Terminal.Row], p_cables: Array[Vector2i], p_config: TerminalConfig) -> void:
-	rows = p_rows
+## Shows `p_rows` (NetworkRow, typed or not: the deck's rows, Terminal.devices()) and their
+## `p_cables` (index pairs into them); `p_labels`: the default menu's command labels (a Callable, or
+## an object with `label_for(command)` such as a TerminalConfig; null: keep). An open menu stays open
+## on the same device and shows its new status. The view stays where it is (see request_fit()).
+func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = null) -> void:
+	rows = NetworkRow.list(p_rows)
 	cables = p_cables
-	config = p_config
+	if p_labels is Callable:
+		command_label = p_labels as Callable
+	elif p_labels is Object and (p_labels as Object).has_method(&"label_for"):
+		command_label = Callable(p_labels as Object, &"label_for")
 	for node in _nodes:
-		TerminalStyle.discard(node)
+		DeckStyle.discard(node)
 	_nodes.clear()
 	_styles.clear()
 	for i in rows.size():
@@ -171,8 +187,11 @@ func select(device_name: String) -> bool:
 
 
 func close_menu() -> void:
+	var was := selected
 	selected = null
 	_update_menu()
+	if was != null:
+		selection_changed.emit(null)
 
 
 ## The node names, in row order.
@@ -317,7 +336,7 @@ func _click(point: Vector2) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND)
-	draw_rect(Rect2(Vector2.ZERO, size), TerminalStyle.BORDER_COLOR.darkened(0.5), false, 1.0)
+	draw_rect(Rect2(Vector2.ZERO, size), DeckStyle.BORDER_COLOR.darkened(0.5), false, 1.0)
 
 
 # The cables, in content coordinates: dashed ones first, so a live bus shared with them stays solid.
@@ -352,7 +371,7 @@ func cable_live(k: int) -> bool:
 
 ## The colour cable `k` is drawn in: green while live, the offline grey otherwise.
 func cable_color(k: int) -> Color:
-	return LIVE_CABLE_COLOR if cable_live(k) else TerminalStyle.OFFLINE_COLOR
+	return LIVE_CABLE_COLOR if cable_live(k) else DeckStyle.OFFLINE_COLOR
 
 
 ## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs.
@@ -443,15 +462,18 @@ func _apply_view() -> void:
 	_place_menu()
 
 
-func _node(row: Terminal.Row) -> Control:
+func _node(row: NetworkRow) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(&"separation", 0)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var node_button := TerminalStyle.button(row.name, 13)
+	var node_button := Button.new()
+	node_button.text = row.name
+	node_button.focus_mode = Control.FOCUS_NONE
+	node_button.add_theme_font_size_override(&"font_size", 13)
 	node_button.name = "Button"
 	# Pass: a drag that starts on a node moves the map, the wheel over a node zooms.
 	node_button.mouse_filter = Control.MOUSE_FILTER_PASS
-	var color := TerminalStyle.row_color(row)
+	var color := DeckStyle.row_color(row)
 	var style := StyleBoxFlat.new()
 	style.bg_color = NODE_FILL
 	style.set_corner_radius_all(4)
@@ -462,11 +484,11 @@ func _node(row: Terminal.Row) -> Control:
 	_styles.append(style)
 	for state: StringName in [&"normal", &"hover", &"pressed"]:
 		node_button.add_theme_stylebox_override(state, style)
-	node_button.add_theme_color_override(&"font_color", TerminalStyle.TEXT_COLOR if row.online else color)
-	node_button.add_theme_color_override(&"font_hover_color", TerminalStyle.TITLE_COLOR)
+	node_button.add_theme_color_override(&"font_color", DeckStyle.TEXT_COLOR if row.online else color)
+	node_button.add_theme_color_override(&"font_hover_color", DeckStyle.TITLE_COLOR)
 	node_button.pressed.connect(_on_node_pressed.bind(row.device))
 	box.add_child(node_button)
-	var status := TerminalStyle.label(_short_status(row), color, 11)
+	var status := DeckStyle.label(_short_status(row), color, 11)
 	status.name = "Status"
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Cables pass under the nodes: the status line hides them.
@@ -478,13 +500,18 @@ func _node(row: Terminal.Row) -> Control:
 	return box
 
 
-# The node's status line: its words without "online" (offline devices say "offline").
-func _short_status(row: Terminal.Row) -> String:
+# The node's status line: its address (if any), then its words without "online" (offline devices
+# say "offline").
+func _short_status(row: NetworkRow) -> String:
 	var words := PackedStringArray()
+	if not row.address.is_empty():
+		words.append(row.address)
+	var states := PackedStringArray()
 	for word in row.status:
 		if word != DeviceStatus.ONLINE:
-			words.append(word)
-	return TerminalStyle.status_text(words) if not words.is_empty() else DeviceStatus.ONLINE
+			states.append(word)
+	words.append(DeckStyle.status_text(states) if not states.is_empty() else DeviceStatus.ONLINE)
+	return DeckStyle.status_text(words)
 
 
 func _on_node_pressed(device: Device) -> void:
@@ -498,6 +525,7 @@ func _on_node_pressed(device: Device) -> void:
 func _open_menu(index: int) -> void:
 	selected = rows[index].device
 	_update_menu()
+	selection_changed.emit(selected)
 
 
 func _update_menu() -> void:
@@ -507,28 +535,39 @@ func _update_menu() -> void:
 	if index < 0:
 		return
 	var row := rows[index]
+	menu.custom_minimum_size.x = menu_width
+	menu_status.custom_minimum_size.x = menu_width - 20.0
 	menu_title.text = row.name
-	menu_status.text = TerminalStyle.status_text(row.status)
-	menu_status.add_theme_color_override(&"font_color", TerminalStyle.row_color(row))
+	var words := PackedStringArray([row.address]) if not row.address.is_empty() else PackedStringArray()
+	words.append_array(row.status)
+	menu_status.text = DeckStyle.status_text(words)
+	menu_status.add_theme_color_override(&"font_color", DeckStyle.row_color(row))
 	for child in _menu_buttons.get_children():
-		TerminalStyle.discard(child)
+		DeckStyle.discard(child)
+	if menu_builder.is_valid():
+		menu_builder.call(row, _menu_buttons)
+		_place_menu()
+		return
 	for command in row.commands:
-		var command_button := TerminalStyle.button(config.label_for(command) if config != null else String(command), 14)
+		var text := String(command.trim_prefix("command.")).capitalize()
+		if command_label.is_valid():
+			text = str(command_label.call(command))
+		var command_button := DeckStyle.button(text, 14)
 		command_button.pressed.connect(func() -> void: command_pressed.emit(command, row.device))
 		_menu_buttons.add_child(command_button)
 	if row.commands.is_empty():
 		var reason := "No connection." if not row.online else "No commands."
-		_menu_buttons.add_child(TerminalStyle.label(reason, TerminalStyle.DIM_COLOR, 13))
+		_menu_buttons.add_child(DeckStyle.label(reason, DeckStyle.DIM_COLOR, 13))
 	_place_menu()
 
 
-# Node outlines: the terminal thick blue, the others their row colour (a disabled one red-tinted
-# inside); the selected one white and lighter inside (readable on every colour).
+# Node outlines: the owner's own device thick blue, the others their row colour (a disabled one
+# red-tinted inside); the selected one white and lighter inside (readable on every colour).
 func _restyle(selected_index: int) -> void:
 	for i in mini(_styles.size(), rows.size()):
 		var style := _styles[i]
 		var row := rows[i]
-		style.border_color = TerminalStyle.SELF_COLOR if row.is_self else TerminalStyle.row_color(row)
+		style.border_color = DeckStyle.SELF_COLOR if row.is_self else DeckStyle.row_color(row)
 		style.set_border_width_all(3 if row.is_self else 1)
 		style.bg_color = DISABLED_FILL if row.disabled else NODE_FILL
 		if i == selected_index:

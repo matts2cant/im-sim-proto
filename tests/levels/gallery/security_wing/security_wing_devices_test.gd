@@ -11,7 +11,7 @@ extends GdUnitTestSuite
 ## (ADR 0099).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const NETWORK: Array[String] = [
 	"Devices/Camera",

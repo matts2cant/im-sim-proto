@@ -11,7 +11,7 @@ extends GdUnitTestSuite
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 ## Devices on the building's switch, SecuritySwitch (besides the switches and the console itself).
 const BUILDING: Array[String] = [
 	"CameraHall",

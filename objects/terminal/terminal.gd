@@ -37,31 +37,10 @@ var device: Device
 var logged_in: bool = false
 
 
-## One device of the terminal's network.
+## One device of the terminal's network (the map's NetworkRow: online when the terminal reaches it,
+## commands from the table it accepts, is_self on the terminal's own row).
 class Row:
-	extends RefCounted
-	var device: Device
-	var name: String
-	## The terminal reaches it (or it is the terminal).
-	var online: bool = false
-	## DeviceStatus words: "offline", or "online" then its components' words.
-	var status: PackedStringArray
-	## Online and switched off by a command (DeviceStatus.is_disabled()); never while offline (the
-	## terminal cannot see it).
-	var disabled: bool = false
-	## The table's commands it accepts; empty while offline.
-	var commands: Array[StringName] = []
-	## A component offers a view (DeviceStatus.has_view()).
-	var has_view: bool = false
-	## The terminal's own row.
-	var is_self: bool = false
-
-	func is_online() -> bool:
-		return online
-
-	## Its entity's world position (zero once freed).
-	func position() -> Vector3:
-		return device.entity.global_position if is_instance_valid(device.entity) else Vector3.ZERO
+	extends NetworkRow
 
 
 func _init() -> void:

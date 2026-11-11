@@ -9,7 +9,7 @@ extends GdUnitTestSuite
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const DisableStandIn := preload("res://tests/objects/devices/fixtures/disable_stand_in.gd")
-const MapChecks := preload("res://tests/ui/terminal/network_map_checks.gd")
+const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const CONFIG: TerminalConfig = preload("res://objects/terminal/terminal.tres")
 
 var _root: Node3D
