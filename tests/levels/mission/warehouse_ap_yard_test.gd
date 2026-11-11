@@ -91,6 +91,15 @@ func test_ap_yard_links_the_yard_camera_and_roof_lasers_by_radio() -> void:
 			radio.wireless_range - 2.0
 		)
 		assert_bool(Tracer.watching(device).has(_tracer())).override_failure_message(path).is_true()
+	# Its bracket (a mesh: KitGeometry's CSG check does not see it) reaches from the box down into the
+	# hall wall (outer face z -10.5) and below the parapet's top (10.5), with no face on the wall's.
+	var bracket := _entity(AP).get_node("Bracket") as MeshInstance3D
+	var box := bracket.global_transform * bracket.get_aabb()
+	var ap_bottom := _entity(AP).global_position.y - 0.025
+	assert_float(box.end.y).is_equal_approx(ap_bottom, 0.002)
+	assert_float(box.position.y).is_less(10.5)
+	assert_float(box.position.z).is_less(-10.5 - 0.02)
+	assert_float(box.end.z).is_greater(-10.5 + 0.005)
 
 
 func test_both_cracking_spots_are_in_range_in_sight_dark_and_quiet() -> void:

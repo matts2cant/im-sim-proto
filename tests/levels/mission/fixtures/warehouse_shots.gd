@@ -340,7 +340,8 @@ func _open_computer() -> void:
 
 
 # Gives the player a deck (fast scans), grants the shot's `hack` routers their first account and
-# plugs the deck into the shot's `deck` device, raising its Map (M12a, ADR 0113).
+# plugs the deck into the shot's `deck` device (an access point: joins its Wi-Fi, the key known),
+# raising its Map (M12a, ADR 0113; M12b, ADR 0117).
 func _plug_deck() -> void:
 	var session := DeckSession.of(_player)
 	session.config = session.config.duplicate() as DeckConfig
@@ -348,6 +349,10 @@ func _plug_deck() -> void:
 	for path: String in _shot.get("hack", []):
 		var accounts := DeviceAccounts.of(_level.get_node(path))
 		accounts.grant(_player, accounts.accounts[0].user)
+	# An access point (M12b): its Wi-Fi key is known, the deck joins it.
+	var radio := AccessPoint.of(_level.get_node(String(_shot["deck"])))
+	if radio != null:
+		radio.grant_key(_player)
 	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
 		_player.inventory.give(DECK, 1)
 	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
