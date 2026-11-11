@@ -7,7 +7,9 @@ extends Node
 ## servers), menu (Advanced: the console's menu with crack time and trace estimates), menu_gateway
 ## (Master: Fw02's menu with its hidden routes), ice_trained / ice_advanced (the Icebreaker part way
 ## through the console's Medium password, with that tier's assists), full_trace (the tracer full: the
-## address blocked, the incident sent, the console's menu says so).
+## address blocked, the incident sent, the console's menu says so), remote (the console's desktop
+## opened from the Map over the deck, its Security app on the camera), login_trace (the console
+## bare-handed after a wrong password: the tracer's bar in the computer overlay).
 ## It always quits: after saving, on an unknown shot name, and after WATCHDOG real seconds.
 
 const SIZE := Vector2i(1152, 648)
