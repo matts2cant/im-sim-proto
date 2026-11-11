@@ -97,6 +97,35 @@ flowchart TD
     T -->|no| W["stays up"]
 ```
 
+## M13 weapon feel (designed, not built yet: [ADR 0120](../decisions/0120-weapon-feel.md))
+
+What M13 changes in the rules above, once built. M13a (the feel loop) comes first, then the user's playtest, then M13b (feedback).
+
+**M13a**
+
+- **Skill and aim blend.** An Untrained character misses often even with a good aim (the cone stays large); each tier moves closer to Counter-Strike, where the player's aim and recoil control decide. Only Master's first shot is exact when standing still.
+- **Targets** (tests measure them on the shooting range; the user tunes them). A still player at 10 m from a standing guard's torso:
+
+  | | Untrained | Trained | Advanced | Master |
+  |---|---|---|---|---|
+  | Pistol, shots after a short pause, hit share | ~55 % | ~75 % | ~90 % | ~100 % |
+  | Assault rifle, 10-shot spray, recoil pulled well, hit share | ~30 % | ~50 % | ~70 % | ~85 % |
+
+  Kept: the shotgun's one-shot kill at 5 m, the scoped sniper's one torso shot at 40 m, the assault rifle's ~0.6 s kill at 10 m (Master, recoil controlled).
+- **Recoil.** Automatic weapons (assault rifle, submachine gun): a fixed pattern per weapon plus a little noise; the camera climbs with the whole pattern and returns by itself after firing stops; the player pulls down during a spray. Semi-automatic weapons: one kick per shot (up, a little sideways), recovered in ~0.2 s; the shotgun and sniper kick hard, the scope blacks out briefly.
+- **Skill scales recoil**: pattern size and noise (Untrained ×1.5 and ×2, Master ×1 and ×0.5) and recovery speed.
+- **Spread** still grows per shot and with movement (moderate: running hurts, walking and crouching near-accurate, airborne bad), retuned. No aiming down the sights; the sniper keeps its scope.
+- **Submachine gun** (Kenney `blaster-a`): damage 9, 0.07 s cycle, 30 rounds, 1.8 s reload, 40 m range, sideways-drifting pattern, silencer slot, noise 22 m, pistol ammo, Pistols skill. Target: 0.6–0.7 s kill at 5 m, clearly worse than the rifle past 15 m. Weapons rack in the hub; one or two warehouse guards carry it.
+- **Shooting range** (hub gallery room): dummies at 5, 10, 20 and 40 m plus one walking side to side, a spray wall keeping every hole, a stats panel (hit share, group size), live per-weapon tuning sliders saved to the weapon's tuning file, a Weapons tier switch, a reset button for downed dummies.
+- **Settings** in the Esc menu (paused; Back or Esc returns): mouse sensitivity, invert Y, field of view 70–100°, camera motion 0–100 % (shake, bob and the camera's recoil climb; never the bullets), master/effects/music volume, fullscreen, vsync; saved in `user://`, not in save games.
+
+**M13b**
+
+- Hit markers (subtle; distinct for a headshot and a kill), impacts by material (metal, concrete, wood, glass; capped, fading), a small dark-red puff on body hits, a blue-white spark for stun hits, tracers on automatic weapons and guards' shots.
+- Getting hit: the view kicks and spread grows for ~0.3 s; a guard flinches (next shot ~0.3 s later), a limb hit staggers it.
+- Guards obey weapon spread and recoil, compensating ~70 %, retuned so the ADR 0070 survival targets hold (at least 3 s at 10 m, about 2 s at 4 m).
+- Weapon motion by code (kick, sway, bob, reload, draw; no arms), a slight camera shake on firing, per-weapon sounds layered from the packs in the project with an indoor/outdoor echo tail.
+
 ## Interactions
 
 - Skills: Pistols (cone, settle, reload, damage), Rifles (assault rifle and shotgun: cone and pellet cone, reload, damage), Sniper (cone, settle, sway, reload, damage), Low-Tech (baton damage and swing speed): [abilities.md](abilities.md). Cloak (`state.cloaked`) draws the view model at 30 % opacity.
@@ -110,5 +139,5 @@ flowchart TD
 - Auto-reload on an empty magazine (DX1 does it): v0 clicks dry until R.
 - The baton and the guards' pistol are still placeholder boxes; the muzzle flash is a placeholder box and light.
 - The Rifles skill scales the assault rifle and the shotgun (`attribute_class` `rifle`), the Sniper skill the sniper rifle (`sniper`), like Pistols: spread, reload, damage; Sniper also settle and sway ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md), [abilities.md](abilities.md)).
-- All loud guns share the one gunshot sound in the project (Titan Handgun) at different volumes; real per-weapon sounds later.
+- All loud guns share the one gunshot sound in the project (Titan Handgun) at different volumes; per-weapon sounds come in M13b ([ADR 0120](../decisions/0120-weapon-feel.md)).
 - Detaching attachments: not possible by design (user decision); other attachments (scopes, extended magazines) would be new `AttachmentData` with modifiers.

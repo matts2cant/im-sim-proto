@@ -55,8 +55,9 @@ flowchart LR
     M11 --> M12a["M12a Network hacking"]
     M12a --> M12b["M12b Intrusion"]
     M12b --> M12c["M12c Network consequences"]
-    M12c --> M13["M13 Weapon feel"]
-    M13 --> M14["M14 Explosives"]
+    M12c --> M13a["M13a Weapon feel loop"]
+    M13a --> M13b["M13b Weapon feedback"]
+    M13b --> M14["M14 Explosives"]
     M14 --> M15["M15 Factions"]
     M15 --> M16["M16 AI overhaul"]
     M16 --> M17["M17 Dialogue"]
@@ -82,7 +83,8 @@ flowchart LR
 | M12a | Network hacking ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)): addresses, subnets, routers (subnets behind one hidden until it is hacked, chained), trust, power; computers (Halcyon OS overlay: Mail, Files, Security; the Security app replaces the terminal) with logins and Fill in; the deck (Map, Icebreaker, remote desktops); entry points (computer, wall jack, maintenance port, deck in a computer); tracers; Computer skill assists ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
 | M12b | Intrusion ([ADR 0115](decisions/0115-m12b-intrusion-and-m12c-consequences.md)): exploits (the Journal's Exploits section, software versions on the Map, burned per subnet when detected), the Firewall tool (rules decide which devices reach which), wireless (access points, wireless devices, Wi-Fi keys cracked by aiming the deck, range by Computer skill) | Network lab; warehouse network |
 | M12c | Network consequences ([ADR 0115](decisions/0115-m12b-intrusion-and-m12c-consequences.md)): status LEDs, plates and closets, the deck's AR cable view, feedback after an action; mail needs a route to its server, loss-of-signal alarms, fail-secure vaults, the "Clean hands" badge | Network lab; warehouse |
-| M13 | Weapon feel: recoil, spread and impact feedback, closer to Counter-Strike (to be designed) | Shooting range |
+| M13a | Weapon feel loop ([ADR 0120](decisions/0120-weapon-feel.md)): accuracy blending skill and aim (closer to Counter-Strike with each tier), recoil patterns with the camera climbing, skill-scaled recoil, the submachine gun, the shooting range with live tuning sliders, a settings menu in the Esc menu | Shooting range |
+| M13b | Weapon feedback ([ADR 0120](decisions/0120-weapon-feel.md)): hit markers, impacts by material, tracers, aim punch and guard flinch, guards obeying recoil, weapon motion, per-weapon sounds | Shooting range |
 | M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems, and a jamming grenade that drops wireless links ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)) (to be designed) | to be designed |
 | M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
 | M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space; guards logging in at devices, the security operator and the deck's Sniffer (moved from M12, [ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)) (to be designed) | AI arena |
@@ -129,6 +131,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (113 decisions, 0001–0115; 0062 and 0081 unused).
+- [decisions/README.md](decisions/README.md): ADR index (116 decisions, 0001–0120; 0062 and 0081 unused, 0118 and 0119 reserved).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

@@ -548,3 +548,12 @@ Warehouse network:
 - [ ] Without the Computer skill, RTR-01 says "too strong"; the console in the security room (audit note login) is the other way. With Trained (debug panel), cracking RTR-01 (18 s, about +58 % trace) reveals the Security subnet and its five switches; the full Map is readable once zoomed (note where cables cross).
 - [ ] The office PCs' dock shows Mail and Files only (no Security app); the console's Security app controls every camera, door, turret, laser array and alarm device as before, named as on the deck's Map (CAM-HALL, DOOR-VAULT).
 - [ ] Area switches: shooting the vault's switch (vault west wall) silences the vault, the upper corridor's camera and siren only; the roof's switch at the mast's foot silences the roof's camera and beams; the store's main switch still cuts the building from the yard. Breakers A and B behave as before (B also takes RTR-01 and its tracer down).
+
+## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md); planned, the build agents complete it)
+
+- [ ] On the shooting range, Untrained: aimed well at the 10 m dummy, the pistol still misses often; Master: the first still shot lands where the crosshair is.
+- [ ] Spraying the assault rifle and the submachine gun: the camera climbs with the pattern and returns after you stop; pulling down keeps the spray on the 10 m dummy; the submachine gun drifts more sideways.
+- [ ] Tapping the pistol needs no recoil correction; the shotgun and sniper kick hard.
+- [ ] Running, walking, crouching and jumping change accuracy as expected (running clearly worse, walking and crouching close to standing).
+- [ ] Sliders change the feel live and their values survive a restart once saved; the reset button stands every downed dummy back up.
+- [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.
