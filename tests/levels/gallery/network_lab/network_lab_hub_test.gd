@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
 ## Network lab inside the hub (behind doorway "8 Network Lab" on the west wall, hub z -2, between the
 ## mission doorway (z -7.5) and room 7's (z 7.5)): its rooms keep 0.5 m of void to every other
-## gallery room (room 7's hall north of it from hub z 1, the movement course's hall from z -19), the
-## room sits on its doorway turned west, the player walks in from the hub and the navmesh reaches
-## the stations (design/levels/hub-and-gallery.md "8 Network lab").
+## gallery room (room 7's hall north of it from hub z 1, the movement course's hall from z -19; the
+## M12b annex west of the closet, hub x -33.5 to -48.5, z -9.25 to -24.25), the room sits on its
+## doorway turned west, the player walks in from the hub and the navmesh reaches the stations, the
+## annex's included (design/levels/hub-and-gallery.md "8 Network lab").
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
@@ -21,6 +22,14 @@ const NAV_POINTS: Array[Vector3] = [
 	Vector3(2.6, 0, -16.4),
 	Vector3(10.6, 0, -15.6),
 	Vector3(2.6, 0, -5.6),
+	# The M12b annex: through its doorway, the Wi-Fi marks, behind the pillar, the exploit and
+	# firewall stations.
+	Vector3(10, 0, -19.5),
+	Vector3(15.6, 0, -25.5),
+	Vector3(11.6, 0, -25.5),
+	Vector3(16.0, 0, -27.9),
+	Vector3(15, 0, -31.4),
+	Vector3(8.9, 0, -25.4),
 ]
 
 
@@ -48,7 +57,7 @@ func test_the_lab_keeps_clear_of_every_other_gallery_room() -> void:
 			ours[String(hub.get_path_to(room))] = rect
 		else:
 			theirs[String(hub.get_path_to(room))] = rect
-	assert_int(ours.size()).is_equal(3)
+	assert_int(ours.size()).is_equal(4)
 	for a: String in ours:
 		# West of the hub's west wall: the corridor's hub-side wall is that wall (x -15.5 to -15).
 		assert_float(ours[a].end.x).override_failure_message(a).is_less_equal(-15.0)

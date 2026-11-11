@@ -1,11 +1,11 @@
 extends GdUnitTestSuite
 ## Network lab (gallery room 8) alone, design/levels/hub-and-gallery.md "8 Network lab": the shell
 ## (a 3.5 m corridor from the hub wall, a 14 x 14 m hall, a closet behind the far wall, walls shared
-## as in ADR 0043), clear doorways, no coplanar faces, wall devices clear of doorways, door sweeps
-## and signs and flush on their walls, signs inside their walls; the network data (three subnets,
-## RTR-01 with the Sentry tracer between Office and Security, RTR-02 between Security and Servers, the
-## closet's room switch on the Security subnet, trust, accounts) and fair clues. The room is loaded
-## once (its tests only query it).
+## as in ADR 0043; the M12b annex: network_lab_annex_test.gd), clear doorways, no coplanar faces,
+## wall devices clear of doorways, door sweeps and signs and flush on their walls, signs inside their
+## walls; the M12a network data (three subnets, RTR-01 with the Sentry tracer between Office and
+## Security, RTR-02 between Security and Servers, the closet's room switch on the Security subnet,
+## trust, accounts) and fair clues. The room is loaded once (its tests only query it).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
@@ -15,6 +15,9 @@ const ORIGIN := Vector3(-300, 0, -500)
 ## Hall interior (lab-local): x -2..12, z -18..-4, 4 m high.
 const HALL := Rect2(-2, -18, 14, 14)
 const HALL_HEIGHT := 4.0
+## The M12b annex's interior (lab-local): x 7.75..21.75, z -32.5..-18.5, 3.5 m high.
+const ANNEX := Rect2(7.75, -32.5, 14, 14)
+const ANNEX_HEIGHT := 3.5
 const WEAK := DeviceAccount.Strength.WEAK
 const MEDIUM := DeviceAccount.Strength.MEDIUM
 ## Entity path -> [subnet, address].
@@ -138,24 +141,27 @@ func test_signs_fit_their_walls_and_do_not_overlap() -> void:
 	var signs: Array[Sign] = []
 	for node in _node("Labels").get_children():
 		signs.append(node as Sign)
-	assert_int(signs.size()).is_equal(11)
+	assert_int(signs.size()).is_equal(22)
 	for sign in signs:
 		var box := _room.global_transform.affine_inverse() * WallDeviceChecks.sign_box(sign)
 		var where := String(sign.name)
-		# Inside the hall's walls (5 cm margin), under the ceiling and above the stations.
-		assert_float(box.position.x).override_failure_message(where).is_greater(HALL.position.x - 0.1)
-		assert_float(box.end.x).override_failure_message(where).is_less(HALL.end.x + 0.1)
-		assert_float(box.position.z).override_failure_message(where).is_greater(HALL.position.y - 0.1)
-		assert_float(box.end.z).override_failure_message(where).is_less(HALL.end.y + 0.1)
+		# Inside the hall's or the annex's walls (5 cm margin), under the ceiling, above the floor.
+		var in_annex := ANNEX.has_point(Vector2(sign.position.x, sign.position.z))
+		var room := ANNEX if in_annex else HALL
+		var height := ANNEX_HEIGHT if in_annex else HALL_HEIGHT
+		assert_float(box.position.x).override_failure_message(where).is_greater(room.position.x - 0.1)
+		assert_float(box.end.x).override_failure_message(where).is_less(room.end.x + 0.1)
+		assert_float(box.position.z).override_failure_message(where).is_greater(room.position.y - 0.1)
+		assert_float(box.end.z).override_failure_message(where).is_less(room.end.y + 0.1)
 		var along := sign.basis.x
 		var start := box.position.x if absf(along.x) > 0.5 else box.position.z
 		var end := box.end.x if absf(along.x) > 0.5 else box.end.z
 		var span := (
-			Vector2(HALL.position.x, HALL.end.x) if absf(along.x) > 0.5 else Vector2(HALL.position.y, HALL.end.y)
+			Vector2(room.position.x, room.end.x) if absf(along.x) > 0.5 else Vector2(room.position.y, room.end.y)
 		)
 		assert_float(start).override_failure_message(where).is_greater(span.x + 0.05)
 		assert_float(end).override_failure_message(where).is_less(span.y - 0.05)
-		assert_float(box.end.y).override_failure_message(where).is_less(HALL_HEIGHT - 0.1)
+		assert_float(box.end.y).override_failure_message(where).is_less(height - 0.1)
 		assert_float(box.position.y).override_failure_message(where).is_greater(1.0)
 		for other in signs:
 			if other != sign:
@@ -178,8 +184,11 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	assert_array(Router.of(_node("Devices/Rtr01")).subnets()).contains_exactly_in_any_order([&"office", &"security"])
 	assert_array(Router.of(_node("Devices/Rtr02")).subnets()).contains_exactly_in_any_order([&"security", &"servers"])
 	assert_int(DeviceNetwork.port_kind(Device.of(_node("Devices/Jack")))).is_equal(Device.DeckPort.JACK)
-	# One tracer, default tuning, on RTR-01, watching Office and Security (not Servers).
-	var tracers := Tracer.all(get_tree()).filter(func(t: Tracer) -> bool: return _room.is_ancestor_of(t))
+	# One tracer on the M12a network, default tuning, on RTR-01, watching Office and Security (not
+	# Servers); the annex's RTR-03 runs the other (network_lab_annex_test.gd).
+	var tracers := Tracer.all(get_tree()).filter(
+		func(t: Tracer) -> bool: return _room.is_ancestor_of(t) and t.entity != _node("Devices/Rtr03")
+	)
 	assert_int(tracers.size()).is_equal(1)
 	var tracer := tracers[0] as Tracer
 	assert_object(tracer.entity).is_same(_node("Devices/Rtr01"))
