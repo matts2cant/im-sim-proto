@@ -89,6 +89,27 @@ func test_the_room_sits_on_doorway_eight_the_player_walks_in_and_the_navmesh_rea
 		var target := lab.to_global(local)
 		var path := NavigationServer3D.map_get_path(nav.get_navigation_map(), spawn, target, true)
 		assert_float(path[-1].distance_to(target)).override_failure_message(str(local)).is_less(0.3)
+	# Noise spot check: the annex's panic button rings its sirens (carried along the navmesh); no one
+	# with an awareness in the hub (guards, dummies) hears them.
+	var heard: Array[String] = []
+	var listeners: Array[String] = []
+	for awareness: Node in scene.find_children("*", "GradedAwareness", true, false):
+		listeners.append(String(awareness.get_parent().name))
+	var collect := func(entry: EventLogEntry) -> void:
+		if entry.kind == &"stimulus.received" and entry.data.get("type", &"") == &"alarm.siren":
+			heard.append(entry.target)
+	EventLog.entry_added.connect(collect)
+	var panic := lab.get_node("Devices/PanicButton").find_children("*", "PanicButton", false, false)[0] as PanicButton
+	panic.use(driver.player)
+	await driver.frames(90)
+	EventLog.entry_added.disconnect(collect)
+	for siren_path: String in ["Devices/SirenA", "Devices/SirenB"]:
+		var siren := lab.get_node(siren_path).find_children("*", "Siren", false, false)[0] as Siren
+		assert_bool(siren.is_sounding()).override_failure_message(siren_path).is_true()
+	for target in heard:
+		assert_bool(listeners.has(target)).override_failure_message("%s hears the annex sirens" % target).is_false()
+	var controller := lab.get_node("Devices/AlarmController").find_children("*", "AlarmController", false, false)[0]
+	(controller as AlarmController).stop("reset")
 	# From 3 m in front of the doorway, walking west: through the corridor into the hall.
 	await driver.place(Vector3(-12, 0, -2), PI / 2.0)
 	await driver.hold(&"move_forward", 150)
