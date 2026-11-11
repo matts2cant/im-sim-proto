@@ -13,6 +13,10 @@ extends CanvasLayer
 ##   strong"), a router's note, "Open its desktop (remote)" on a computer with an account, its
 ##   commands with an account, else who it trusts. Drag pans, the wheel zooms, F fits.
 ## - Icebreaker: the picked account's letters locking in, the progress bar, Start / Stop / Resume.
+## - Refreshes (every refresh interval, every session change) keep the buttons under the cursor: the
+##   Map rebuilds its nodes only when they change, the menu and the Icebreaker are filled aside and
+##   reconciled (DeckStyle.reconcile()), the trace bars update in place, so a still cursor keeps its
+##   hover and a still click held across a refresh lands.
 ## - Skill assists (Icebreaker.assist()): Trained crack times and time left; Advanced + the trace an
 ##   action adds; Master + how many hidden subnets a router routes to.
 ## - A remote desktop (DeckSession.open_remote()): the user's ComputerScreen draws it over the deck's
@@ -367,7 +371,6 @@ func refresh_computer_traces() -> void:
 	_computer_left = 0.25
 	if computer_screen == null or not computer_screen.is_open() or computer_screen.computer == null:
 		return
-	computer_screen.clear_trace_bars()
 	var computer := computer_screen.computer
 	var viewer := get_parent()
 	var address := computer.address()
@@ -378,6 +381,7 @@ func refresh_computer_traces() -> void:
 	elif computer.device != null:
 		var seen: Array[Device] = [computer.device]
 		tracers = Tracer.bars_for(get_tree(), viewer, seen, address)
+	var bars: Array[HBoxContainer] = []
 	for tracer in tracers:
 		var known := tracer.device == computer.device or (session != null and session.map_devices().has(tracer.device))
 		var label := tracer.label if known else "unknown tracer"
@@ -389,7 +393,9 @@ func refresh_computer_traces() -> void:
 			bar.tooltip_text = label
 		else:
 			bar = trace_bar(label, tracer.trace_of(viewer), left)
-		computer_screen.add_trace_bar(bar)
+		bars.append(bar)
+	# In place while the tracers stay the same: the overlay's bar (and its Back button) stay put.
+	show_bars(computer_screen.trace_bars(), bars)
 
 
 func _address_text() -> String:
@@ -438,11 +444,46 @@ func _signature_of(rows: Array[NetworkRow]) -> String:
 
 
 func _refresh_traces() -> void:
-	for child in trace_box.get_children():
-		DeckStyle.discard(child)
+	var bars: Array[HBoxContainer] = []
 	for tracer in session.tracers():
 		var left := tracer.model.lockout_left(session.source.address)
-		trace_box.add_child(trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
+		bars.append(trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
+	show_bars(trace_box, bars)
+
+
+## Shows the new trace `bars` in `box`: the bars already there take their texts, fills and tooltips
+## in place when they match one for one (one bar per tracer, the same parts), else `box` is refilled.
+## A trace that rises adds and frees nothing, so the controls around a still cursor stay put.
+static func show_bars(box: Node, bars: Array[HBoxContainer]) -> void:
+	var olds: Array[Node] = []
+	for child in box.get_children():
+		if not child.is_queued_for_deletion():
+			olds.append(child)
+	var same := olds.size() == bars.size()
+	if same:
+		for i in olds.size():
+			same = same and olds[i].get_child_count() == bars[i].get_child_count()
+	if not same:
+		for child in olds:
+			DeckStyle.discard(child)
+		for bar in bars:
+			box.add_child(bar)
+		return
+	for i in olds.size():
+		var old := olds[i] as Control
+		old.tooltip_text = bars[i].tooltip_text
+		for j in old.get_child_count():
+			var part := old.get_child(j)
+			var fresh := bars[i].get_child(j)
+			if part is Label and fresh is Label:
+				(part as Label).text = (fresh as Label).text
+			elif part.get_child_count() > 0 and fresh.get_child_count() > 0:
+				var fill := part.get_child(0) as ColorRect
+				var fresh_fill := fresh.get_child(0) as ColorRect
+				if fill != null and fresh_fill != null:
+					fill.color = fresh_fill.color
+					fill.size = fresh_fill.size
+		bars[i].free()
 
 
 ## One trace bar: `label`, a `width` px bar of `value` % (red above HOT_TRACE), "N %" and "blocked N s" while
@@ -593,11 +634,16 @@ func _refresh_ice() -> void:
 	if signature == _ice_signature:
 		return
 	_ice_signature = signature
-	for child in ice_column.get_children():
-		DeckStyle.discard(child)
+	# Filled aside, then reconciled: Start / Stop keeps its node while the crack runs.
+	var fresh := VBoxContainer.new()
+	_fill_ice(fresh, job, assist, mult)
+	DeckStyle.reconcile(ice_column, fresh)
+
+
+func _fill_ice(column: VBoxContainer, job: Icebreaker, assist: int, mult: float) -> void:
 	if job == null:
-		ice_column.add_child(DeckStyle.label("Icebreaker", DeckStyle.TITLE_COLOR, 20))
-		ice_column.add_child(
+		column.add_child(DeckStyle.label("Icebreaker", DeckStyle.TITLE_COLOR, 20))
+		column.add_child(
 			DeckStyle.paragraph(
 				"Pick an account on the Map to crack its password. Progress stays on the deck if you stop.",
 				DeckStyle.DIM_COLOR,
@@ -608,18 +654,18 @@ func _refresh_ice() -> void:
 		var names := PackedStringArray()
 		for strength in range(Icebreaker.max_strength(session.entity) + 1):
 			names.append(DeviceAccount.strength_name(strength as DeviceAccount.Strength))
-		ice_column.add_child(
+		column.add_child(
 			DeckStyle.paragraph(
 				"What your Computer skill can crack: %s." % ", ".join(names), DeckStyle.DIM_COLOR, 14, 480.0
 			)
 		)
 		return
-	ice_column.add_child(DeckStyle.label("Icebreaker · %s@%s" % [job.user, job.host], DeckStyle.TITLE_COLOR, 20))
+	column.add_child(DeckStyle.label("Icebreaker · %s@%s" % [job.user, job.host], DeckStyle.TITLE_COLOR, 20))
 	var strength_line := (
 		"Password strength %s · base %s · deterministic"
 		% [DeviceAccount.strength_name(job.strength as DeviceAccount.Strength), _seconds(job.base_time)]
 	)
-	ice_column.add_child(DeckStyle.mono(strength_line, DeckStyle.DIM_COLOR, 12))
+	column.add_child(DeckStyle.mono(strength_line, DeckStyle.DIM_COLOR, 12))
 	var letters := HBoxContainer.new()
 	letters.name = "Letters"
 	letters.add_theme_constant_override(&"separation", 6)
@@ -633,7 +679,7 @@ func _refresh_ice() -> void:
 		var border := DeckStyle.TITLE_COLOR if i < locked else DeckStyle.LINE_COLOR
 		cell.add_theme_stylebox_override(&"normal", DeckStyle.box(DeckStyle.FIELD_COLOR, border, 2.0, 0.0, 0.0))
 		letters.add_child(cell)
-	ice_column.add_child(letters)
+	column.add_child(letters)
 	var track := Panel.new()
 	track.custom_minimum_size = Vector2(520, 10)
 	track.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -644,7 +690,7 @@ func _refresh_ice() -> void:
 	fill.color = DeckStyle.TITLE_COLOR
 	fill.size = Vector2(520.0 * job.progress, 10.0)
 	track.add_child(fill)
-	ice_column.add_child(track)
+	column.add_child(track)
 	var actions := HFlowContainer.new()
 	actions.add_theme_constant_override(&"h_separation", 8)
 	actions.add_theme_constant_override(&"v_separation", 8)
@@ -667,7 +713,7 @@ func _refresh_ice() -> void:
 				Tracer.highest_gain(ice.device), mult, Icebreaker.trace_mult(session.entity)
 			)
 			actions.add_child(_assist("about +%d %% trace to finish" % roundi(trace)))
-	ice_column.add_child(actions)
+	column.add_child(actions)
 	var note := "Adds trace while it runs (4 %%/s x your skill's trace gain) to every tracer watching %s." % job.host
 	if is_instance_valid(ice.device):
 		var gain := Tracer.highest_gain(ice.device)
@@ -676,7 +722,7 @@ func _refresh_ice() -> void:
 				"Adds trace while it runs (%s %%/s x your skill's trace gain) to every tracer watching %s."
 				% [_number(gain), job.host]
 			)
-	ice_column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, 480.0))
+	column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, 480.0))
 
 
 func _on_crack(device: Device, user: String) -> void:

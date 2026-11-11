@@ -7,8 +7,9 @@ extends Control
 ## otherwise), the owner's own device outlined. Each node shows its name and its address and status
 ## words; its outline and status line take the device's colour (DeckStyle.row_color(): offline
 ## grey, disabled red, access amber, alert words orange, else green).
-## The map pans and zooms (NetworkView): drag with the left or middle mouse button to move it, the
-## wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
+## The map pans and zooms (NetworkView): drag the background with the left or middle mouse button
+## to move it (a press on a node or the menu never drags; a press becomes a drag past DRAG_THRESHOLD
+## px), the wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
 ## network; it opens fitted (request_fit()). The nodes, their labels and the cables live in
 ## `content`, a child scaled and moved by the view; the menu and the Fit button stay in the panel.
 ## Subnets (ADR 0112 amendment): the nodes are laid out by their row's subnet; each subnet with data
@@ -20,6 +21,9 @@ extends Control
 ## status and, by default, one button per command of its row (none while offline; a button emits
 ## `command_pressed`); an owner with `menu_builder` fills the menu itself (the deck: accounts,
 ## Icebreaker, actions). Clicking the background closes it; `menu_closed` tells the owner.
+## Refreshes keep the widgets under the cursor: show_network() rebuilds the nodes only when what they
+## draw changed, and the menu is filled aside and reconciled (DeckStyle.reconcile()), so a button
+## that looks the same keeps its node, its hover and a click held on it across the owner's refresh.
 
 signal command_pressed(command: StringName, target: Device)
 ## The menu was opened on `target` (null: it closed).
@@ -98,6 +102,8 @@ var _fitted: bool = false
 var _press_at: Vector2 = Vector2.INF
 var _drag_last: Vector2 = Vector2.ZERO
 var _dragging: bool = false
+# What the nodes, cables and subnet boxes show (show_network() rebuilds them only when it changes).
+var _drawn: String = ""
 
 
 func _ready() -> void:
@@ -154,6 +160,15 @@ func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = 
 		command_label = p_labels as Callable
 	elif p_labels is Object and (p_labels as Object).has_method(&"label_for"):
 		command_label = Callable(p_labels as Object, &"label_for")
+	# Nothing drawn changed (an owner's periodic refresh): the nodes stay, so a click held on one
+	# survives it.
+	var key := _drawn_key()
+	if key == _drawn and _nodes.size() == rows.size():
+		if is_instance_valid(selected) and _index_of(selected) < 0:
+			selected = null
+		_update_menu()
+		return
+	_drawn = key
 	for node in _nodes:
 		DeckStyle.discard(node)
 	for title in _titles:
@@ -338,7 +353,8 @@ func _mouse_button(button: InputEventMouseButton) -> void:
 			accept_event()
 		MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE:
 			if button.pressed:
-				_press_at = button.position
+				# Only the background drags: a press on a node is its button's click.
+				_press_at = button.position if _index_at(button.position) < 0 else Vector2.INF
 				_dragging = false
 			else:
 				if not _dragging and _press_at != Vector2.INF and button.button_index == MOUSE_BUTTON_LEFT:
@@ -540,6 +556,38 @@ func _align(node: Control, side: int) -> void:
 	status.horizontal_alignment = alignment
 
 
+# Everything the nodes, cables and subnet boxes are built from: the rows as drawn, the cables, the
+# subnets' data and the panel's shape (the layout's aspect).
+func _drawn_key() -> String:
+	var parts := PackedStringArray()
+	for row in rows:
+		var fields: Array = [
+			row.device.get_instance_id() if is_instance_valid(row.device) else 0,
+			row.name,
+			row.role,
+			row.address,
+			" ".join(row.status),
+			row.online,
+			row.disabled,
+			row.is_self,
+			row.access,
+			row.has_view,
+			row.subnet,
+			row.joins,
+			row.position().snapped(Vector3.ONE * 0.01),
+			row.commands,
+		]
+		parts.append(str(fields))
+	parts.append(str(cables))
+	for id: StringName in subnets:
+		var data := subnets[id]
+		if data != null:
+			parts.append(str([id, data.label, data.address_range, data.map_color]))
+	var panel := _panel_size()
+	parts.append(str(snappedf(panel.x / panel.y, 0.1) if panel.y > 0.0 else 0.0))
+	return "\n".join(parts)
+
+
 func _try_fit() -> bool:
 	if not _fit_pending or layout == null or rows.is_empty() or _panel_size().x <= 0.0:
 		return false
@@ -577,7 +625,7 @@ func _node(row: NetworkRow) -> Control:
 	node_button.focus_mode = Control.FOCUS_NONE
 	node_button.add_theme_font_size_override(&"font_size", 13)
 	node_button.name = "Button"
-	# Pass: a drag that starts on a node moves the map, the wheel over a node zooms.
+	# Pass: the wheel over a node zooms (a press on it is its click, never a drag: _mouse_button()).
 	node_button.mouse_filter = Control.MOUSE_FILTER_PASS
 	var color := DeckStyle.row_color(row)
 	var style := StyleBoxFlat.new()
@@ -648,11 +696,17 @@ func _update_menu() -> void:
 	words.append_array(row.status)
 	menu_status.text = DeckStyle.status_text(words)
 	menu_status.add_theme_color_override(&"font_color", DeckStyle.row_color(row))
-	for child in _menu_buttons.get_children():
-		DeckStyle.discard(child)
+	# Filled aside, then reconciled: a button that looks the same keeps its node (a click held on it
+	# survives the owner's refreshes).
+	var fresh := VBoxContainer.new()
+	_fill_menu(row, fresh)
+	DeckStyle.reconcile(_menu_buttons, fresh)
+	_place_menu()
+
+
+func _fill_menu(row: NetworkRow, column: VBoxContainer) -> void:
 	if menu_builder.is_valid():
-		menu_builder.call(row, _menu_buttons)
-		_place_menu()
+		menu_builder.call(row, column)
 		return
 	for command in row.commands:
 		var text := String(command.trim_prefix("command.")).capitalize()
@@ -660,11 +714,10 @@ func _update_menu() -> void:
 			text = str(command_label.call(command))
 		var command_button := DeckStyle.button(text, 14)
 		command_button.pressed.connect(func() -> void: command_pressed.emit(command, row.device))
-		_menu_buttons.add_child(command_button)
+		column.add_child(command_button)
 	if row.commands.is_empty():
 		var reason := "No connection." if not row.online else "No commands."
-		_menu_buttons.add_child(DeckStyle.label(reason, DeckStyle.DIM_COLOR, 13))
-	_place_menu()
+		column.add_child(DeckStyle.label(reason, DeckStyle.DIM_COLOR, 13))
 
 
 # Node outlines: the owner's own device thick blue, the others their row colour (a disabled one

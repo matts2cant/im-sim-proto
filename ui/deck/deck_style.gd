@@ -72,6 +72,87 @@ static func discard(node: Node) -> void:
 	node.queue_free()
 
 
+## Makes `target`'s children show what `fresh`'s do (both filled by the same code, `fresh` out of the
+## tree) and frees `fresh`: a refresh that keeps the buttons under the cursor. A button with the same
+## place, class and look keeps its node (a press held on it and its hover survive the refresh) and
+## takes the fresh one's signal connections; a container holding buttons is matched child by child;
+## everything else is swapped for its fresh copy. Children of another number or class are all
+## replaced.
+static func reconcile(target: Node, fresh: Node) -> void:
+	_reconcile_children(target, fresh)
+	fresh.free()
+
+
+static func _reconcile_children(target: Node, fresh: Node) -> void:
+	var olds: Array[Node] = []
+	for child in target.get_children():
+		if not child.is_queued_for_deletion():
+			olds.append(child)
+	var news := fresh.get_children()
+	var same := olds.size() == news.size()
+	if same:
+		for i in olds.size():
+			if olds[i].get_class() != news[i].get_class() or olds[i].get_script() != news[i].get_script():
+				same = false
+				break
+	if not same:
+		for child in olds:
+			discard(child)
+		for child in news:
+			fresh.remove_child(child)
+			target.add_child(child)
+		return
+	for i in olds.size():
+		var old := olds[i]
+		var new := news[i]
+		if old is BaseButton and _button_key(old as BaseButton) == _button_key(new as BaseButton):
+			_take_connections(old, new)
+			_reconcile_children(old, new)
+		elif not old is BaseButton and _has_button(new) and _has_button(old):
+			_reconcile_children(old, new)
+		else:
+			fresh.remove_child(new)
+			target.add_child(new)
+			target.move_child(new, old.get_index())
+			discard(old)
+
+
+# What a button shows and does when pressed, apart from its connections and a press held on it (a
+# plain button reports a held press as `button_pressed`).
+static func _button_key(button: BaseButton) -> Array:
+	var key: Array = [
+		button.disabled,
+		button.toggle_mode,
+		button.toggle_mode and button.button_pressed,
+		button.tooltip_text,
+		button.mouse_filter,
+		button.get_theme_color(&"font_color"),
+		button.get_theme_font_size(&"font_size"),
+	]
+	var text_button := button as Button
+	if text_button != null:
+		key.append(text_button.text)
+	var style := button.get_theme_stylebox(&"normal") as StyleBoxFlat
+	if style != null:
+		key.append_array([style.bg_color, style.border_color, style.border_width_left])
+	return key
+
+
+static func _take_connections(old: Node, new: Node) -> void:
+	for signal_name: StringName in [&"pressed", &"toggled", &"button_down", &"button_up"]:
+		for connection: Dictionary in old.get_signal_connection_list(signal_name):
+			old.disconnect(signal_name, connection["callable"] as Callable)
+		for connection: Dictionary in new.get_signal_connection_list(signal_name):
+			old.connect(signal_name, connection["callable"] as Callable, connection["flags"] as int)
+
+
+static func _has_button(node: Node) -> bool:
+	for child in node.get_children():
+		if child is BaseButton or _has_button(child):
+			return true
+	return false
+
+
 static func mono_font() -> Font:
 	if _mono == null:
 		_mono = SystemFont.new()

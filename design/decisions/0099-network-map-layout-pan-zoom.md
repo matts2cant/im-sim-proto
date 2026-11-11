@@ -57,3 +57,13 @@ Tests: `tests/ui/deck/network_graph_colours_test.gd` (stand-in devices behind a 
 ## Note: layout by subnet (2026-11-11)
 
 The rows of groups and lanes between them were replaced by a layout by subnet (boxes along the router chain, a tidy tree of switches inside each, no crossings on a tree network): see the [ADR 0112 amendment](0112-hacking-reconciled-with-the-built-game.md#as-built-m12a-follow-up-2026-11-11). Combs, pan, zoom, Fit and node colours are unchanged.
+
+## Amendment: stable widgets and background-only drags (2026-11-11)
+
+Playtest: on the deck's Map, a menu button (Icebreaker) clicked with the cursor held still often did nothing, and a click sometimes moved the map instead. Cause: the deck session reports a change every refresh (0.25 s) and the deck screen rebuilt the map's nodes, the device menu, the Icebreaker view and the trace bars each time, so a button pressed and released across a refresh was freed in between and the release was lost (a moving cursor only made clicks shorter). Node buttons also passed presses to the map, so a press on a node could become a drag.
+
+- `NetworkGraph.show_network()` rebuilds the nodes only when what they draw changes (rows as drawn, cables, subnets, the panel's aspect).
+- The menu (and the deck's Icebreaker view) is filled into a fresh container and reconciled into the shown one (`DeckStyle.reconcile()`): a button with the same place, class and look keeps its node and takes the fresh one's signal connections; other widgets are swapped. A held press and a hover survive refreshes; a button whose label changes is replaced.
+- Trace bars (deck title bar, computer overlay) update their texts and fills in place while the tracers stay the same.
+- Drags start only on the background: a press on a node (or on the menu, the Fit button) never pans; a background press becomes a drag past 4 px; a still click on the background closes the menu.
+- Tests: `tests/ui/deck/deck_menu_click_test.gd` (still clicks held across refreshes on Icebreaker, Log in, Open its desktop, a device, Stop / Resume, a Security action while the trace rises; hover kept across refreshes and trace updates; background drag pans, a press moved on a device or a menu button does not), `tests/ui/deck/network_graph_test.gd` (drag on the background, none from a node).
