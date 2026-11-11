@@ -456,6 +456,16 @@ No level has software versions or exploits yet: use the review shots (`tests/ui/
 
 - [ ] Use the deck in the network lab, then plug into a device in the security wing: the Map draws only the security wing's network; plug back in the lab: its map is there at once, no new scan. Raised unplugged from the Wi-Fi key screen, the Map button shows only "Plug the deck into a device to see its network."
 
+### M12b gallery: the lab annex stations and the security wing's network ([hub-and-gallery.md](../levels/hub-and-gallery.md#m12b-annex))
+
+Review shots: `lab_shots.tscn -- shots=annex_overview,wifi_station,wifi_pillar,exploit_station,firewall_station` (the deck shots one per run: `deck_map_wifi`, `deck_wifi_paused`, `deck_map_cctv`, `deck_map_alarm`), `wing_shots.tscn -- shot=deck_map_jack_rtr05` (also `network_wall`, `jack`).
+
+- [ ] Wi-Fi station: with the lab's deck, Untrained, stand on the 6 m mark, aim at AP-LAB and hold LMB: the Wi-Fi key screen, Crack the key runs (about 10 s). Step behind the pillar: "Paused: line of sight lost"; step out: it goes on. From the 10 m mark it says out of range; with the Computer skill Trained (debug panel) it is in range. Joined, the Map shows AP-LAB with CAM-WIFI and LASER-WIFI dashed, SW-WIFI and RTR-03.
+- [ ] Shoot AP-LAB, or cut its breaker: CAM-WIFI and LASER-WIFI turn grey on the Map and the deck's Wi-Fi drops; the breaker back on brings them back. The marks and the pillar read clearly from the doorway.
+- [ ] Exploits station: read the datapad, plug into the CCTV jack: CAM-EX1 and CAM-EX2 offer Exploits (1), CAM-EX3 (2.4) shows no match. Run it on CAM-EX1: the Watchdog trace rises, then CAM-EX2 reads "patched on this subnet". Join AP-LAB's Wi-Fi and run it on CAM-WIFI: unwatched, nothing is patched. The EdgeGuard exploit on RTR-03 from the Wi-Fi side reveals CCTV.
+- [ ] Firewall station: press PANIC-LAB: both sirens ring. Read the note, plug into the alarm jack, log in on RTR-04 from the Map, Firewall: add ALARM-LAB → SIRENS (or SIREN-A, SIREN-B) DENY; press the button again: silence, the controller still shows ringing. Is the sign enough to find the rule without help?
+- [ ] Security wing: the entry hall's network wall (SW-OPS, RTR-05, SW-SECURITY) and the wall jack read as network gear; plugged into the jack the Map shows Operations and RTR-05 only; the booth computer's mail "RTR-05 login" (or a 10 s crack) reveals the Security subnet: SW-SECURITY with its booth, lasers, vault and corridor switches, no crossing. Every station works as before (D4 now also opens from the booth computer).
+
 ### Routers and subnet boxes (ADR 0112 amendment)
 
 Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.
