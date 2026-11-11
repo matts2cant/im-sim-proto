@@ -30,4 +30,4 @@ Up to M10 the inventory (I), the personal log (L), the datapad reading overlay a
 
 - Tests: `tests/ui/tab_interface/` (open / close / switch rules, input and mouse, the world running, death and knockout, other screens, the debug key, the hit flash, the inventory tab's details and actions, the journal), and the keypad and datapad tests assert the world runs.
 - The number keys no longer assign a hovered item to a belt slot.
-- The Health, Augmentations and Skills tabs are built in parallel against `TabPage` (placeholders until then).
+- The Health, Augmentations and Skills tabs ([ADR 0111](0111-character-tabs-and-per-part-medkit.md)) are built against `TabPage`; `character_tabs_host_test.gd` drives them through this host (click and number keys, bound to the player, live energy drain and hits, a per-part medkit while the world runs). Pages show their own result messages, since the HUD is hidden while the interface is open.
