@@ -41,7 +41,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 
 ## Network model
 
-- **Devices** have IP addresses and are grouped into **subnets** (never "segments"). One switch carries one subnet. No VLANs.
+- **Devices** have IP addresses and are grouped into **subnets** (never "segments"). A subnet is a logical address range; **switches are the physical wiring**: a subnet can span several switches, cabled up to one another, and how many depends on the building (a switch per room or area, one large switch per floor in a wiring closet, or one for a small office). A device can also plug straight into a gateway port. Losing one switch cuts only the devices behind it. No VLANs.
 - **Physical links**: cable or wireless. An access point has a range. A device can also be **autonomous** (no link at all); it has a maintenance port.
 - **Gateways** (firewalls) are nodes between subnets. Rules are an ordered list of from / to / allow or deny; the first match wins. From and To are a subnet, a device or "you". No ports.
 - **Power and damage**: switches, access points and gateways have `Powered` and `Breakable` like any prop ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)). Unpowering or breaking one cuts everything behind it. A device that loses its link falls back to standalone behaviour (see [Devices](#devices-and-their-remote-actions)).
