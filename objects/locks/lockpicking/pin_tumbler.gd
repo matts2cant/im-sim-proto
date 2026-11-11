@@ -1,21 +1,27 @@
 class_name PinTumbler
 extends RefCounted
-## Pure model of a pin-tumbler lock being picked (ADR 0073, 0107): a faithful port of the approved
-## prototype's simulation (design/prototypes/lockpicking_bench.html `step()`). Under tension one pin
-## binds at a time (the seeded binding order); the pick tip follows the lift target like a spring and,
-## on a binding pin, lags behind it: that lag is the force. Lifting the binding pin to its shear line
-## sets it (click), past it oversets it (jam, until tension is released); spools false-set (the plug
-## turns further) and need tension eased while lifting (counter-rotation); serrated pins tick. Too
-## little tension drops set pins (the last one every `drop_delay` s below the drop threshold, all at
-## 0 %); forcing a bound pin at high tension or prying an overset strains the pick until it snaps.
-## A Master rakes rakeable (Simple) locks by holding LMB.
-## Changing pins (ADR 0107) drops the lift target to the bottom, lets the tip fall below the pins,
-## then moves the pick across; lift input is ignored until it arrives and further presses queue.
-## Events (set, overset, false_set, tick, creak, drop, snap, open, scrape) collect in `events` for
-## the adapter (sound cue, caption, noise), which takes them with take_events().
+## Pure model of a pin-tumbler lock being picked (ADR 0073, 0107, 0109): a faithful port of the final
+## prototype's simulation (design/prototypes/lockpicking_bench.html `step()`, `setPick()`, the wheel
+## and pointer handlers). Under tension one pin binds at a time (the seeded binding order); the pick
+## tip follows the lift target like a spring and, on a binding pin, lags behind it: that lag is the
+## force. The binding pin sets (click) after staying at its shear line for the picker's `set_dwell`;
+## lifted through it, it oversets (jam, until tension is released); set and loose pins overset only
+## when shoved well past it. Spools false-set (the plug turns further) and need tension eased while
+## lifting (counter-rotation); serrated pins tick. Too little tension drops set pins (the last one every
+## `drop_delay` s below the drop threshold, all at 0 %); forcing a bound pin at high tension or prying
+## an overset strains the pick until it snaps.
+## The pick (ADR 0109): `aim` is the lift the mouse asks for (0..1) and `aim_x` where along the keyway
+## the tip should go (in pin slots). The tip slides along the keyway only while tip and aim are both
+## in the bottom band; above it the tip stays under its pin, which is the nearest slot once the tip is
+## more than `slot_hysteresis` from it. When a pin sets the tip stays put: the aim's lead becomes a
+## bias that lowering the aim wears off. Fast sideways strokes in the bottom band rake: every lock
+## rattles; a raking picker (`rake`) on a rakeable lock (a property: few pins, all standard) sets the
+## binding pin every `rake_strokes` reversals with light tension.
+## Events (set, overset, false_set, tick, creak, drop, snap, open, scrape, rake_stroke, rake,
+## rake_hint) collect in `events` for the adapter (sound cue, caption, noise), which takes them with
+## take_events().
 
 enum Spool { NONE, FALSE_SET, SET }
-enum Phase { NONE, DROP, MOVE }
 
 const STANDARD: StringName = &"standard"
 const SPOOL: StringName = &"spool"
@@ -33,7 +39,7 @@ class Pin:
 	var false_lift: float = 0.38
 	## A serrated pin's tick lifts.
 	var levels: Array[float] = []
-	## Current lift.
+	## Current lift of the key pin (it rests on the tip while the pick is under it).
 	var height: float = 0.0
 	var is_set: bool = false
 	var overset: bool = false
@@ -44,6 +50,8 @@ class Pin:
 	var ticks: int = 0
 	## Extra force a tick needs, decaying.
 	var bump: float = 0.0
+	## Seconds this binding pin has stayed at its shear line.
+	var dwell: float = 0.0
 	## Drawn shear lift: eases to `shear` after a re-layout.
 	var shown_shear: float = 0.5
 	## Drawn shear lift when the re-layout started.
@@ -57,6 +65,7 @@ class Pin:
 		false_tension = 0.0
 		ticks = 0
 		bump = 0.0
+		dwell = 0.0
 
 
 ## Something the player hears or sees: a sound cue (LockpickAudio), a caption, a noise loudness.
@@ -84,16 +93,21 @@ var tolerance_mult: float = 1.0
 ## A rakeable lock (at most `rake_max_pins` pins, all standard).
 var rakeable: bool = false
 var tension: float = 0.0
-## Pick tip lift and its target (mouse).
+## Lift the mouse asks for (0..1), and how far below it the tip is held after a set (the bias).
+var aim: float = 0.0
+var aim_bias: float = 0.0
+## Where along the keyway the mouse asks the tip to go (pin slots, 0 = the front pin).
+var aim_x: float = 0.0
+## Pick tip lift and its target (aim minus bias).
 var tip: float = 0.0
 var target: float = 0.0
-## Pin under the pick, and its drawn position (eases across during a pin change).
+## Pick tip position along the keyway (pin slots), and the pin it is under.
+var tip_x: float = 0.0
 var pick: int = 0
-var pick_shown: float = 0.0
 var strain: float = 0.0
 ## Tip lag on a binding or jammed pin (the bow of the pick).
 var force: float = 0.0
-## Rub of the binding pin, 0..1 (the scrape sound).
+## Rub of the binding pin or the rake, 0..1 (the scrape sound).
 var scraping: float = 0.0
 var nudge: float = 0.0
 ## Extra plug turn of a false set (degrees), and of serrated ticks.
@@ -110,16 +124,16 @@ var events: Array[Event] = []
 
 var _set_stack: Array[int] = []
 var _drop_timer: float = 0.0
-var _rake: float = 0.0
+## Rake strokes counted towards the next set, the last stroke's direction and the time since it.
+var _rake: int = 0
+var _rake_dir: int = 0
+var _rake_gap: float = 0.0
 var _clock: float = 0.0
 var _last_scrape: float = -INF
 var _last_creak: float = -INF
+var _last_rake_hint: float = -INF
 var _open_delay: float = -1.0
 var _started: bool = false
-var _phase: Phase = Phase.NONE
-var _goal: int = 0
-var _move_from: int = 0
-var _move_t: float = 0.0
 ## Plug angle when the last re-layout started (it turns back from there).
 var _relock_angle: float = 0.0
 
@@ -158,9 +172,8 @@ func build(types: Array[StringName], pin_seed: int, p_tolerance_mult: float = 1.
 		pins.size() <= tuning.rake_max_pins and kinds.all(func(kind: StringName) -> bool: return kind == STANDARD)
 	)
 	pick = clampi(pick, 0, maxi(pins.size() - 1, 0))
-	pick_shown = pick
-	_goal = pick
-	_phase = Phase.NONE
+	tip_x = pick
+	aim_x = pick
 	_reset_progress()
 
 
@@ -173,8 +186,7 @@ func relock(types: Array[StringName], pin_seed: int, p_tolerance_mult: float, sh
 	open_t = 0.0
 	_open_delay = -1.0
 	tension = 0.0
-	target = 0.0
-	tip = 0.0
+	_release_pick()
 	build(types, pin_seed, p_tolerance_mult, shuffle_types)
 	# The old pins drop from where they were; the drawn shear lines ease to the new heights.
 	for i in mini(old.size(), pins.size()):
@@ -186,34 +198,36 @@ func relock(types: Array[StringName], pin_seed: int, p_tolerance_mult: float, sh
 	elapsed = 0.0
 
 
-## Mouse lift: moves the lift target by `amount` (0..1 of the range; up is positive). Ignored while
-## the pick changes pins or the lock is open.
-func add_lift(amount: float) -> void:
-	if opened or is_changing_pin():
+## Mouse wheel: `notches` of tension (up is positive), `fine` (Shift) for the small step. It holds
+## where it is left.
+func turn_wrench(notches: float, fine: bool) -> void:
+	if opened:
 		return
-	target = clampf(target + amount, 0.0, 1.0)
+	var step_size := tuning.wheel_fine_step if fine else tuning.wheel_step
+	tension = clampf(tension + notches * step_size, 0.0, 1.0)
 
 
-## A / D: moves the pick `direction` pins (queued while a change is under way).
-func move_pick(direction: int) -> void:
-	if opened or pins.is_empty() or direction == 0:
+## Mouse motion: moves the aim `slots` pin slots along the keyway (positive: deeper) and `lift` up
+## (0..1 of the range). Ignored once the lock is open.
+func move_aim(slots: float, lift: float) -> void:
+	if opened or pins.is_empty():
 		return
-	var goal := clampi(_goal + signi(direction), 0, pins.size() - 1)
-	if goal == _goal:
+	aim = clampf(aim + lift, 0.0, 1.0)
+	aim_x = clampf(aim_x + slots, -tuning.aim_x_margin, pins.size() - 1 + tuning.aim_x_margin)
+
+
+## A / D: aims the tip at the previous (-1) or next (+1) pin slot, only while tip and aim are in the
+## bottom band (the tip then slides there like a mouse move).
+func step_pin(direction: int) -> void:
+	if opened or pins.is_empty() or direction == 0 or not in_bottom_band():
 		return
-	_goal = goal
-	target = 0.0
-	if _phase == Phase.NONE:
-		_phase = Phase.DROP
+	var from := clampi(roundi(aim_x), 0, pins.size() - 1)
+	aim_x = clampi(from + signi(direction), 0, pins.size() - 1)
 
 
-func is_changing_pin() -> bool:
-	return _phase != Phase.NONE
-
-
-## The pin the pick is heading to (the queued destination).
-func goal() -> int:
-	return _goal
+## Tip and aim both in the bottom band: the tip can slide between pins and rake.
+func in_bottom_band() -> bool:
+	return tip <= tuning.bottom_band and aim <= tuning.bottom_band
 
 
 ## The pin binding now (the first unset one in the binding order), or -1.
@@ -232,6 +246,10 @@ func any_progress() -> bool:
 	return pins.any(
 		func(pin: Pin) -> bool: return pin.is_set or pin.overset or pin.spool == Spool.FALSE_SET or pin.ticks != 0
 	)
+
+
+func any_overset() -> bool:
+	return pins.any(func(pin: Pin) -> bool: return pin.overset)
 
 
 ## The plug's turn in degrees (it shows tension, sets, false sets; the open turn; a re-lock turning
@@ -253,41 +271,57 @@ func take_events() -> Array[Event]:
 	return out
 
 
-## One tick: `tension_input` -1 / 0 / +1 (S / W), `fine` (Shift), `raking` (LMB held).
-func step(dt: float, tension_input: int, fine: bool, raking: bool) -> void:
+## One tick.
+func step(dt: float) -> void:
 	_clock += dt
 	nudge = maxf(0.0, nudge - dt * tuning.nudge_decay)
 	_step_relayout(dt)
 	if opened:
+		# The continuous sounds fall silent once the lock opens.
+		scraping = 0.0
+		strain = 0.0
+		force = 0.0
 		open_t = minf(1.0, open_t + dt * tuning.open_rate)
 		if _open_delay >= 0.0:
 			_open_delay -= dt
 			if _open_delay < 0.0:
 				_emit(&"open", &"open", "the plug turns, unlocked")
 		return
-	var rate := tuning.tension_fine_rate if fine else tuning.tension_rate
-	tension = clampf(tension + signi(tension_input) * rate * dt, 0.0, 1.0)
+	if pins.is_empty():
+		return
+	# When a pin sets the tip stays where it was instead of springing up to the aim: the aim's lead
+	# becomes a bias, which lowering the aim wears off.
+	aim_bias = minf(aim_bias, aim)
+	target = maxf(0.0, aim - aim_bias)
+	var prev_tip_x := tip_x
+	_step_slide(dt)
 	if not _started and (tension > 0.0 or target > 0.05):
 		_started = true
 	if _started:
 		elapsed += dt
-	if pins.is_empty():
-		return
-	var pin := pins[pick]
-	if is_changing_pin():
-		_step_pin_change(dt, pin)
-		_fall_others(dt)
-		scraping = 0.0
-	else:
-		_step_lift(dt, pin)
+	_step_lift(dt, pins[pick])
 	_step_drops(dt)
-	_step_rake(dt, raking)
+	_step_rake(dt, prev_tip_x)
 	if strain >= tuning.break_strain:
 		_break_pick()
 
 
-# The pick on `pin`: the prototype's three cases (jammed, binding, free), the other pins falling,
-# the binding pin's events and the scrape.
+# The tip slides along the keyway only while it is in the bottom band; lifted higher, it stays under
+# its pin. Its pin is the nearest slot once the tip is more than `slot_hysteresis` from it.
+func _step_slide(dt: float) -> void:
+	var count := pins.size()
+	var down := in_bottom_band()
+	var goal := clampf(aim_x, -tuning.aim_x_margin, count - 1 + tuning.aim_x_margin) if down else float(pick)
+	var rate := tuning.slide_ease if down else tuning.settle_ease
+	tip_x += (goal - tip_x) * minf(1.0, rate * dt)
+	if down:
+		var near := clampi(roundi(tip_x), 0, count - 1)
+		if near != pick and absf(tip_x - pick) > tuning.slot_hysteresis:
+			pick = near
+
+
+# The pick on `pin`: the prototype's three cases (jammed, binding, free), the other pins falling, the
+# overset check, the binding pin's events and the scrape.
 func _step_lift(dt: float, pin: Pin) -> void:
 	var binding := _binding_here()
 	var active := tension >= params.drop
@@ -323,10 +357,13 @@ func _step_lift(dt: float, pin: Pin) -> void:
 	else:
 		tip += (target - tip) * ease
 		strain = maxf(0.0, strain - tuning.strain_relief * dt)
-		pin.height = minf(tip, pin.shear - tuning.set_pin_margin) if pin.is_set else tip
+		# The key pin rests on the tip, set or not (a set pin's driver stays caught above the shear line).
+		pin.height = tip
 	_fall_others(dt)
+	var tol := _tolerance()
+	_check_overset(pin, binding, tol)
 	if binding and active and not pin.is_set and not pin.overset:
-		_pin_events(pin)
+		_pin_events(pin, tol, dt)
 	var speed := absf(tip - prev_tip) / maxf(dt, 0.001)
 	var rubbing := binding and active and not pin.is_set and not pin.overset and speed > tuning.scrape_speed
 	scraping = minf(1.0, speed * tuning.scrape_gain) if rubbing else 0.0
@@ -350,15 +387,34 @@ func _fall_others(dt: float) -> void:
 
 
 func _binding_here() -> bool:
-	return not pins.any(func(pin: Pin) -> bool: return pin.overset) and binding_index() == pick
+	return not any_overset() and binding_index() == pick
 
 
-# The binding pin's false set, ticks, counter-rotation, set and overset.
-func _pin_events(pin: Pin) -> void:
+# The lift tolerance around the shear line: the picker's, the lock's, narrower above the sweet spot.
+func _tolerance() -> float:
 	var over := 1.0
 	if tension > params.high:
 		over = maxf(tuning.over_floor, 1.0 - tuning.over_slope * (tension - params.high) / (1.0 - params.high))
-	var tol := (tuning.base_tolerance + params.tolerance_bonus) * tolerance_mult * over
+	return (tuning.base_tolerance + params.tolerance_bonus) * tolerance_mult * over
+
+
+# Overset: with the plug turning (tension at the sweet spot's low edge or above), the binding pin's
+# key pin pushed past the shear line (beyond the tolerance) jams in the housing. Set and loose pins
+# overset only when shoved `set_overset` further; a set pin that oversets is no longer set.
+func _check_overset(pin: Pin, binding: bool, tol: float) -> void:
+	if tension < params.low or pin.overset:
+		return
+	if (pin.is_set or not binding) and pin.height > pin.shear + tol + tuning.set_overset:
+		if pin.is_set:
+			pin.is_set = false
+			_set_stack.erase(pick)
+		_overset(pin)
+	elif not pin.is_set and binding and pin.height > pin.shear + tol:
+		_overset(pin)
+
+
+# The binding pin's false set, ticks, counter-rotation and set (after the dwell).
+func _pin_events(pin: Pin, tol: float, dt: float) -> void:
 	var height := pin.height
 	if pin.type == SPOOL and pin.spool == Spool.NONE and tension >= params.low and height >= pin.false_lift - tol:
 		_false_set(pin)
@@ -378,11 +434,14 @@ func _pin_events(pin: Pin) -> void:
 			_emit(&"creak", &"creak", "creak, the plug pushes back")
 		false_turn = minf(false_turn, extra)
 	var can_set := tension >= params.low if pin.type != SPOOL else pin.spool == Spool.FALSE_SET
-	if can_set and height >= pin.shear - tol:
-		if height <= pin.shear + tol:
+	# It sets only after staying at the shear line for the dwell: lifted through it too fast, the key
+	# pin is carried past it (the overset above).
+	if can_set and height >= pin.shear - tol and height <= pin.shear + tol:
+		pin.dwell += dt
+		if pin.dwell >= params.set_dwell:
 			_set_pin(pick)
-		else:
-			_overset(pin)
+	else:
+		pin.dwell = 0.0
 
 
 func _set_pin(index: int) -> void:
@@ -391,6 +450,8 @@ func _set_pin(index: int) -> void:
 	if pin.type == SPOOL:
 		pin.spool = Spool.SET
 	pin.bump = 0.0
+	pin.dwell = 0.0
+	aim_bias += maxf(0.0, target - tip)
 	_set_stack.append(index)
 	false_turn = 0.0
 	var muted := tension > params.high
@@ -405,7 +466,7 @@ func _set_pin(index: int) -> void:
 func _overset(pin: Pin) -> void:
 	pin.overset = true
 	nudge = tuning.nudge_overset
-	_emit(&"overset", &"jam", "clunk, the pick hits a hard stop")
+	_emit(&"overset", &"jam", "clunk, a pin is overset: release the tension to reset")
 
 
 func _false_set(pin: Pin) -> void:
@@ -442,66 +503,67 @@ func _drop_last() -> void:
 	_emit(&"drop", &"drop", "a pin drops")
 
 
-# A Master rakes a rakeable lock while LMB is held in the working window: a pin sets every
-# `rake_time` seconds, the pick bouncing under it.
-func _step_rake(dt: float, raking: bool) -> void:
-	if not (params.rake and rakeable and raking and tension >= params.low and tension <= params.high):
-		_rake = 0.0
+# Raking: fast back-and-forth strokes of the tip in the bottom band. Each reversal of a stroke faster
+# than `rake_speed` is one stroke: a tick, the scrape, a rake noise (throttled). Every lock rattles; on
+# a rakeable lock a raking picker with tension from the drop threshold to the sweet spot's top and no
+# pin overset sets the binding pin every `rake_strokes` strokes; otherwise a caption says why.
+func _step_rake(dt: float, prev_tip_x: float) -> void:
+	var speed_x := (tip_x - prev_tip_x) / maxf(dt, 0.001)
+	_rake_gap += dt
+	if _rake_gap > tuning.rake_gap:
+		_rake_dir = 0
+		_rake = 0
+	if not in_bottom_band() or absf(speed_x) <= tuning.rake_speed:
 		return
-	_phase = Phase.NONE
-	_rake += dt
-	target = tuning.rake_base + tuning.rake_amplitude * absf(sin(_clock / tuning.rake_period))
-	if _rake < tuning.rake_time:
+	scraping = maxf(scraping, minf(1.0, absf(speed_x) / tuning.rake_scrape_speed))
+	var direction := 1 if speed_x > 0.0 else -1
+	if direction == _rake_dir:
 		return
-	_rake = 0.0
-	var index := binding_index()
-	if index >= 0:
-		pick = index
-		pick_shown = index
-		_goal = index
-		_set_pin(index)
+	if _rake_dir != 0:
+		_rake_stroke()
+	_rake_dir = direction
+	_rake_gap = 0.0
+
+
+func _rake_stroke() -> void:
+	nudge = maxf(nudge, tuning.nudge_rake)
+	_emit(&"rake_stroke", &"tick", "")
+	if _clock - _last_scrape > tuning.rake_noise_interval:
+		_last_scrape = _clock
+		_emit(&"rake", &"", "")
+	if not (params.rake and rakeable):
+		return
+	var jammed := any_overset()
+	if tension >= params.drop and tension <= params.high and not jammed:
+		_rake += 1
+		if _rake >= tuning.rake_strokes:
+			_rake = 0
+			var index := binding_index()
+			if index >= 0:
+				_set_pin(index)
+	elif _clock - _last_rake_hint > tuning.rake_hint_interval:
+		_last_rake_hint = _clock
+		var hint := "rattle: too much tension, the pins bind"
+		if jammed:
+			hint = "rattle: a pin is overset, release the tension"
+		elif tension < params.drop:
+			hint = "rattle: the pins bounce back, add a little tension"
+		_emit(&"rake_hint", &"", hint)
 
 
 func _break_pick() -> void:
 	nudge = tuning.nudge_snap
 	_emit(&"snap", &"snap", "SNAP, the pick breaks")
 	tension = 0.0
-	target = 0.0
-	tip = 0.0
+	_release_pick()
 	_reset_progress()
 
 
-# A pin change: the tip falls to the bottom (the pin under it follows, an overset stays jammed), then
-# the pick moves across one pin per `pin_change_move_time` until it reaches the queued goal.
-func _step_pin_change(dt: float, pin: Pin) -> void:
+func _release_pick() -> void:
+	aim = 0.0
+	aim_bias = 0.0
 	target = 0.0
-	force = 0.0
-	strain = maxf(0.0, strain - tuning.strain_relief * dt)
-	if _phase == Phase.DROP:
-		var drop_time := maxf(tuning.pin_change_drop_time, 0.001)
-		tip = maxf(0.0, tip - dt / drop_time)
-		if not pin.overset:
-			pin.height = minf(pin.height, tip)
-		if tip <= 0.0:
-			_start_move()
-		return
-	_move_t += dt
-	var move_time := maxf(tuning.pin_change_move_time, 0.001)
-	pick_shown = lerpf(_move_from, pick, minf(1.0, _move_t / move_time))
-	if _move_t < move_time:
-		return
-	pick_shown = pick
-	if pick != _goal:
-		_start_move()
-	else:
-		_phase = Phase.NONE
-
-
-func _start_move() -> void:
-	_phase = Phase.MOVE
-	_move_t = 0.0
-	_move_from = pick
-	pick += signi(_goal - pick)
+	tip = 0.0
 
 
 func _step_relayout(dt: float) -> void:
@@ -521,7 +583,7 @@ func _reset_progress() -> void:
 	_drop_timer = 0.0
 	false_turn = 0.0
 	tick_turn = 0.0
-	_rake = 0.0
+	_rake = 0
 
 
 func _emit(kind: StringName, cue: StringName, caption: String) -> void:

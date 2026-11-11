@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
-## Integration (ADR 0107): the minigame on locks that are not doors (lockpick_ui_helpers.gd has the
-## fixture). A minimal entity with a Lockable and a MechanicalLock is picked like a door (generality);
-## the assists follow the picker's Lockpicking tier (Untrained sound only, Trained + gauge, Advanced +
-## captions, Master + pins view); a practice lock shows them all whatever the skill, breaks picks like
+## Integration (ADR 0107, 0109): the minigame on locks that are not doors (lockpick_ui_helpers.gd has
+## the fixture). A minimal entity with a Lockable and a MechanicalLock is picked like a door
+## (generality); the assists follow the picker's Lockpicking tier (Untrained sound only and a brass
+## lock, Trained + gauge, Advanced + captions, Master + the clear lock); a practice lock draws the clear
+## lock with every assist whatever the skill, breaks picks like
 ## any lock, and once opened re-locks about 3 s later with a new layout and counter (the screen stays
 ## open: "new pin layout"), also when the picker has left. Its noises reach a listener entity like
 ## any noise: a snapped pick (6) carries, a click (2) does not, 2.4 m away.
@@ -48,11 +49,12 @@ func test_assists_follow_the_lockpicking_tier() -> void:
 		await _ui.click_at(UiHelpers.WALL_FEET, UiHelpers.WALL_LOCK)
 		assert_bool(await _ui.set_pins(1)).is_true()
 		_ui.screen.refresh()
+		await get_tree().process_frame
 		var at := "tier %d" % tier
-		assert_bool(_ui.screen.shows_gauge()).override_failure_message(at).is_equal(tier >= 1)
+		assert_bool(_ui.screen.view.drawn_gauge).override_failure_message(at).is_equal(tier >= 1)
 		assert_bool(_ui.screen.caption_panel.visible).override_failure_message(at).is_equal(tier >= 2)
 		assert_str(_ui.screen.caption_label.text).is_equal("click")
-		assert_bool(_ui.screen.pins_view.visible).override_failure_message(at).is_equal(tier >= 3)
+		assert_bool(_ui.screen.view.drawn_clear).override_failure_message(at).is_equal(tier >= 3)
 		_ui.screen.leave()
 		await _ui.driver.frames(2)
 
@@ -65,6 +67,10 @@ func test_a_practice_lock_shows_every_assist_and_relocks_with_a_new_layout() -> 
 	assert_bool(_ui.screen.is_open()).is_true()
 	assert_int(_ui.screen.assist).is_equal(LockpickParams.ASSIST_PINS)
 	assert_int(_ui.screen.model.pins.size()).is_equal(3)
+	_ui.screen.refresh()
+	await get_tree().process_frame
+	assert_bool(_ui.screen.view.drawn_clear).is_true()
+	assert_bool(_ui.screen.view.drawn_gauge).is_true()
 	assert_int(lock.layout_number()).is_equal(1)
 	var before := _shears()
 

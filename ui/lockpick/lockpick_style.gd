@@ -69,20 +69,58 @@ func radial(key: String, colours: PackedColorArray, offsets: PackedFloat32Array)
 	return texture
 
 
-## Points of a circle of `radius` around `center`.
-static func circle(center: Vector2, radius: float, segments: int = 48) -> PackedVector2Array:
+## A vertical linear gradient texture (top to bottom) through `colours` at `offsets`, cached by `key`.
+func linear(key: String, colours: PackedColorArray, offsets: PackedFloat32Array) -> GradientTexture2D:
+	if _textures.has(key):
+		return _textures[key]
+	var gradient := Gradient.new()
+	gradient.colors = colours
+	gradient.offsets = offsets
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_LINEAR
+	texture.fill_from = Vector2(0.5, 0.0)
+	texture.fill_to = Vector2(0.5, 1.0)
+	texture.width = 4
+	texture.height = 128
+	_textures[key] = texture
+	return texture
+
+
+## Draws `points` on `canvas` filled with the vertical gradient `texture` running from `y0` to `y1`
+## (clamped past them), tinted by `modulate`.
+static func fill_vertical(
+	canvas: CanvasItem, points: PackedVector2Array, texture: Texture2D, y0: float, y1: float, modulate: Color
+) -> void:
+	var uvs := PackedVector2Array()
+	var span := maxf(y1 - y0, 0.001)
+	for point in points:
+		uvs.append(Vector2(0.5, clampf((point.y - y0) / span, 0.0, 1.0)))
+	canvas.draw_colored_polygon(points, modulate, uvs, texture)
+
+
+## Points of `rect` with corners rounded by `radius` (clockwise from the top-left corner's end).
+static func rounded_rect(rect: Rect2, radius: float, segments: int = 6) -> PackedVector2Array:
+	var r := minf(radius, minf(rect.size.x, rect.size.y) / 2.0)
 	var points := PackedVector2Array()
-	for i in segments:
-		points.append(center + Vector2.from_angle(TAU * i / segments) * radius)
+	var corners: Array[Vector2] = [
+		Vector2(rect.end.x - r, rect.position.y + r),
+		Vector2(rect.end.x - r, rect.end.y - r),
+		Vector2(rect.position.x + r, rect.end.y - r),
+		Vector2(rect.position.x + r, rect.position.y + r),
+	]
+	for c in 4:
+		var start := -PI / 2.0 + c * PI / 2.0
+		for k in segments + 1:
+			points.append(corners[c] + Vector2.from_angle(start + PI / 2.0 * k / segments) * r)
 	return points
 
 
-## UVs mapping `points` into a radial gradient centred on `focus` with radius `reach`.
-static func radial_uvs(points: PackedVector2Array, focus: Vector2, reach: float) -> PackedVector2Array:
-	var uvs := PackedVector2Array()
-	for point in points:
-		uvs.append((point - focus) / (2.0 * reach) + Vector2(0.5, 0.5))
-	return uvs
+## The corners of `rect` as a polygon.
+static func rect_points(rect: Rect2) -> PackedVector2Array:
+	return PackedVector2Array(
+		[rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
+	)
 
 
 ## Points of the quadratic curve from `a` to `b` with control point `control`.

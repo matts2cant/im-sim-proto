@@ -140,13 +140,13 @@ effects = Array[ExtResource("3_effect")]([])
 script = ExtResource("3_effect")
 attribute = &"lockpick_window_low"
 op = 0
-tier_values = Array[float]([0.0, -0.04, -0.08, -0.12])
+tier_values = Array[float]([0.0, -0.03, -0.06, -0.09])
 
 [sub_resource type="Resource" id="Effect_lockpick_window_high"]
 script = ExtResource("3_effect")
 attribute = &"lockpick_window_high"
 op = 0
-tier_values = Array[float]([0.0, 0.04, 0.08, 0.12])
+tier_values = Array[float]([0.0, 0.03, 0.06, 0.09])
 
 [sub_resource type="Resource" id="Effect_lockpick_drop_threshold"]
 script = ExtResource("3_effect")
@@ -166,6 +166,12 @@ attribute = &"lockpick_lift_tolerance"
 op = 0
 tier_values = Array[float]([0.0, 0.012, 0.024, 0.036])
 
+[sub_resource type="Resource" id="Effect_lockpick_set_dwell"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_set_dwell"
+op = 0
+tier_values = Array[float]([0.0, -0.012, -0.024, -0.036])
+
 [sub_resource type="Resource" id="Effect_lockpick_rake"]
 script = ExtResource("3_effect")
 attribute = &"lockpick_rake"
@@ -182,8 +188,8 @@ tier_values = Array[float]([0.0, 1.0, 2.0, 3.0])
 script = ExtResource("2_skill")
 id = &"lockpicking"
 display_name = "Lockpicking"
-description = "Lockpicking minigame: a wider tension window and lift tolerance, a lower drop threshold, slower pin drops; assists (Trained: tension gauge, Advanced: + captions, Master: + pins view); Master rakes simple locks."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_window_low"), SubResource("Effect_lockpick_window_high"), SubResource("Effect_lockpick_drop_threshold"), SubResource("Effect_lockpick_drop_delay"), SubResource("Effect_lockpick_lift_tolerance"), SubResource("Effect_lockpick_rake"), SubResource("Effect_lockpick_assist")])
+description = "Lockpicking minigame: a wider sweet spot and lift tolerance, a shorter set dwell, a lower drop threshold, slower pin drops; assists (Trained: tension gauge, Advanced: + captions, Master: + clear lock view); Master rakes Simple and Standard locks."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_window_low"), SubResource("Effect_lockpick_window_high"), SubResource("Effect_lockpick_drop_threshold"), SubResource("Effect_lockpick_drop_delay"), SubResource("Effect_lockpick_lift_tolerance"), SubResource("Effect_lockpick_set_dwell"), SubResource("Effect_lockpick_rake"), SubResource("Effect_lockpick_assist")])
 
 [resource]
 script = ExtResource("1_table")

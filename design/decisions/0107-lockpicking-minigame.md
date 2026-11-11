@@ -1,6 +1,6 @@
 # 107. Lockpicking minigame: the prototype's model, an assist ladder by skill, pin changes that reset the lift, practice locks that re-lay their pins
 
-Status: Accepted
+Status: Accepted, amended by [ADR 0109](0109-lockpicking-side-view-and-mouse-pick.md) (side view and rigid pick, mouse-driven tip with a bottom band instead of pin changes that reset the lift, wheel tension, sweet spot, dwell / bias / overset rules, physical raking)
 
 Date: 2026-11-11
 

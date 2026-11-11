@@ -3,13 +3,14 @@ extends RefCounted
 ## door_wall_player.tscn: a wall along z = 0 at Helpers.ORIGIN, 0.25 m thick, a doorway at x = 0)
 ## picking locks through its LockpickScreen. Adds a door lock, a practice lock or a minimal lock
 ## entity (Node3D + Lockable + MechanicalLock, no door) on the wall, and solves a lock through the
-## running screen like a careful player (the screen steps the model; the helper only moves the pick
-## and the lift target, tension held at a set value).
+## running screen like a careful player (the screen steps the model; the helper only moves the aim,
+## as the mouse does, tension held at a set value).
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
+const LockpickHelpers := preload("res://tests/objects/locks/lockpicking/lockpick_helpers.gd")
 const PRACTICE: PackedScene = preload("res://objects/locks/practice_lock/practice_lock.tscn")
 ## In front of the door (relative to Helpers.ORIGIN), facing its panel.
 const DOOR_FEET := Vector3(0, 0, 1.2)
@@ -107,13 +108,7 @@ func set_pins(count: int, tension: float = 0.45, limit: int = 900) -> bool:
 		if model.opened or model.set_count() >= count:
 			return true
 		model.tension = tension
-		var index := model.binding_index()
-		if model.goal() != index:
-			model.move_pick(signi(index - model.goal()))
-		elif not model.is_changing_pin():
-			var tuning := model.tuning
-			var required := tuning.lift_required_base + tuning.lift_required_tension * tension * tension
-			model.target = model.pins[index].shear + required + 0.01
+		LockpickHelpers.drive(model, model.binding_index())
 		await driver.frames(1)
 	return false
 
@@ -128,11 +123,11 @@ func force_snap(limit: int = 240) -> bool:
 			break
 		var index := model.binding_index()
 		model.pins[index].shear = 0.74
-		if model.goal() != index:
-			model.move_pick(signi(index - model.goal()))
-		elif not model.is_changing_pin():
+		if not LockpickHelpers.at_pin(model, index):
+			LockpickHelpers.drive(model, index)
+		else:
 			model.tension = 0.9
-			model.target = 1.0
+			model.aim = 1.0
 		await driver.frames(1)
 	return EventLog.find(&"lock.pick_broke").size() > before
 
