@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 ## Gallery room 5 (security wing): the practice-lock wall (ADR 0107, lockpicking.md). Four acrylic
 ## practice locks (objects/locks/practice_lock/practice_lock.tscn) hang on the entry hall's west wall
-## face (x -7.5) at 1.3 m, one per tier from low z to high z: Simple (3 pins), Standard (5), Secure
-## (5), High-security (6), centres 0.75 m apart (z 1.9, 2.65, 3.4, 4.15). Each is flush on the wall,
+## face (x -7.5) at 1.3 m, one per tier, reading left to right when facing the wall (from high z to
+## low z): Simple (3 pins, z 4.15), Standard (5, z 3.4), Secure (5, z 2.65), High-security (6, z 1.9),
+## centres 0.75 m apart. Each is flush on the wall,
 ## shows as many pins as its tier has, and has a small sign above it naming its tier and pin count;
 ## one header sign above them all says what practice locks do. The player stands 0.8 m out from the
 ## wall face (capsule centre at x -6.7) in front of each, clear of the table, the doorways and the
@@ -19,10 +20,10 @@ const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/secu
 const FIXTURE := "res://tests/levels/gallery/security_wing/fixtures/wing_player.tscn"
 ## Node name, tier, pin count, tier name, centre z.
 const LOCKS: Array[Array] = [
-	["PracticeSimple", MechanicalLockData.Tier.SIMPLE, 3, "Simple", 1.9],
-	["PracticeStandard", MechanicalLockData.Tier.STANDARD, 5, "Standard", 2.65],
-	["PracticeSecure", MechanicalLockData.Tier.SECURE, 5, "Secure", 3.4],
-	["PracticeHighSecurity", MechanicalLockData.Tier.HIGH_SECURITY, 6, "High-security", 4.15],
+	["PracticeSimple", MechanicalLockData.Tier.SIMPLE, 3, "Simple", 4.15],
+	["PracticeStandard", MechanicalLockData.Tier.STANDARD, 5, "Standard", 3.4],
+	["PracticeSecure", MechanicalLockData.Tier.SECURE, 5, "Secure", 2.65],
+	["PracticeHighSecurity", MechanicalLockData.Tier.HIGH_SECURITY, 6, "High-security", 1.9],
 ]
 ## The west wall's face and the lock band on it (z 1.5..4.5, 0.5..2.5 m up).
 const WALL_X := -7.5
@@ -49,7 +50,7 @@ func after_test() -> void:
 func test_one_practice_lock_per_tier_flush_on_the_west_wall() -> void:
 	var room := _room()
 	await KitGeometry.settle(get_tree(), 5)
-	var last_z := -INF
+	var last_z := INF
 	for spec: Array in LOCKS:
 		var where := String(spec[0])
 		var body := room.get_node("PracticeLocks/" + where) as StaticBody3D
@@ -63,12 +64,13 @@ func test_one_practice_lock_per_tier_flush_on_the_west_wall() -> void:
 		assert_int((body.get_node("Pins") as PracticeLockPins).shown_count()).override_failure_message(where).is_equal(
 			int(spec[2])
 		)
-		# On the west wall face, facing into the hall, at its height, in order along z.
+		# On the west wall face, facing into the hall, at its height, in order: facing the wall, the
+		# reader's right is -z, so left to right is decreasing z.
 		assert_vector(body.position).override_failure_message(where).is_equal_approx(
 			Vector3(WALL_X, LOCK_HEIGHT, float(spec[4])), Vector3.ONE * 0.001
 		)
 		assert_vector(body.basis.z).override_failure_message(where).is_equal_approx(Vector3.RIGHT, Vector3.ONE * 0.001)
-		assert_float(body.position.z - last_z).override_failure_message(where).is_greater(0.6)
+		assert_float(last_z - body.position.z).override_failure_message(where).is_greater(0.6)
 		last_z = body.position.z
 		var box := room.global_transform.affine_inverse() * WallDeviceChecks.visual_box(body)
 		assert_bool(BAND.encloses(box)).override_failure_message("%s %s" % [where, box]).is_true()
@@ -101,6 +103,7 @@ func test_signs_name_each_tier_above_its_lock() -> void:
 		spans.append(Vector2(box.position.z, box.end.z))
 		labels_top = maxf(labels_top, box.end.y)
 	# The labels do not touch each other.
+	spans.sort_custom(func(a: Vector2, b: Vector2) -> bool: return a.x < b.x)
 	for index in range(1, spans.size()):
 		assert_float(spans[index].x - spans[index - 1].y).override_failure_message(str(index)).is_greater(0.05)
 	# The header: what practice locks do, above the labels, inside the wall and under the ceiling.
