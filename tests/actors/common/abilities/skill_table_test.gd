@@ -68,7 +68,7 @@ func test_low_tech_and_medicine_per_tier() -> void:
 
 
 func test_tool_skills_only_write_attributes() -> void:
-	# Computer has no effects until M11 (ADR 0076).
+	# Computer has no effects until M12 (ADR 0076).
 	assert_array(TABLE.find(&"computer").effects).is_empty()
 	var lockpicking := _values(TABLE.find(&"lockpicking"), 1)
 	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.03, 0.0001)

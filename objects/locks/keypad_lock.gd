@@ -4,7 +4,7 @@ extends Lock
 ## keypad of the locked entity opens the user's KeypadScreen (a
 ## user without one cannot type). The screen shows a reminder when the user's PersonalLog knows the
 ## code (reminder()), and submits what was typed: the right code unlocks it for the user (who wants
-## it open); a wrong one beeps (`noise` 4). Until M11 a keypad accepts only its code (ADR 0076).
+## it open); a wrong one beeps (`noise` 4). Until M12 a keypad accepts only its code (ADR 0076).
 ## EventLog `lock.code_entered {entity, code_id, correct}`.
 
 signal code_entered(correct: bool)

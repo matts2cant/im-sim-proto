@@ -1,6 +1,6 @@
 # Hacking
 
-Milestone: M11 (network, deck, desktop apps, intrusion, tracers). M8 builds the security devices, the alarm devices and a remote command interface wired by physical links: see [security.md](security.md) and [ADR 0075](../decisions/0075-alarms-as-network-devices.md). Design decision: [ADR 0074](../decisions/0074-network-hacking.md). Skill: [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md).
+Milestone: M12 (network, deck, desktop apps, intrusion, tracers). M8 builds the security devices, the alarm devices and a remote command interface wired by physical links: see [security.md](security.md) and [ADR 0075](../decisions/0075-alarms-as-network-devices.md). Design decision: [ADR 0074](../decisions/0074-network-hacking.md). Skill: [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md).
 
 UI wireframes: [hacking UI wireframes](https://claude.ai/artifact/49sxCzMfWBQXKAtq1s6jGJ) (private artifact).
 

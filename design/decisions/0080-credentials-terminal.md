@@ -1,6 +1,6 @@
 # 80. The credentials terminal (M8 placeholder)
 
-Status: Accepted (M11 replaces it with computers and the deck, [ADR 0074](0074-network-hacking.md)); the screen, the device view and the E rule are amended by [ADR 0083](0083-security-terminal-redesign.md)
+Status: Accepted (M12 replaces it with computers and the deck, [ADR 0074](0074-network-hacking.md)); the screen, the device view and the E rule are amended by [ADR 0083](0083-security-terminal-redesign.md)
 
 Date: 2026-11-08
 
@@ -20,7 +20,7 @@ M8 keeps a placeholder terminal: credentials found in the world log you in, and 
 
 ## Alternatives considered
 
-- **A pause screen** like the reading overlay: safe, but M11's computers keep the world running, and guards walking in on you at a terminal is part of the risk.
+- **A pause screen** like the reading overlay: safe, but M12's computers keep the world running, and guards walking in on you at a terminal is part of the risk.
 - **Listing only reached devices**: reach requires the target to be up, so an unpowered camera would vanish instead of showing "unpowered"; showing dead devices behind a live link tells the player why a command will not work.
 - **Commands from a device-type table** ("cameras have pan"): identity code; the receptron list already says what each device takes.
 
@@ -28,6 +28,6 @@ M8 keeps a placeholder terminal: credentials found in the world log you in, and 
 
 - Doors ([ADR 0078](0078-doors-locks-and-door-navigation.md)) carry `command.open/close/lock/unlock` receptrons and a Device, so a cabled door appears with Open, Close, Lock and Unlock buttons with no door code in the terminal (tested: the showcase door opens from the terminal).
 - A new command type needs a label in `terminal.tres` to be offered (a test checks every `command.*` constant on `Device` has one).
-- M11 replaces the terminal and its screen; `Device.connected_devices()` and the label table can serve its Security app.
+- M12 replaces the terminal and its screen; `Device.connected_devices()` and the label table can serve its Security app.
 - Tests: `tests/objects/terminal/terminal_rules_test.gd` (credentials, labels), `terminal_test.gd` (login with the datapad's credentials, commands reach devices, walking away); the screen's tests moved to `tests/ui/terminal/` with ADR 0083.
 - See [security](../game/security.md), [controls](../game/controls.md).

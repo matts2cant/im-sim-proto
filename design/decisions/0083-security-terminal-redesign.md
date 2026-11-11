@@ -36,6 +36,6 @@ The terminal must still not know device types ([ADR 0080](0080-credentials-termi
 
 - A new device shows a status and, with a view node, appears on the Camera tab with no terminal change: implement `device_status()` / `device_view()` on its behaviour component.
 - Pause behaviour is unchanged (the terminal keeps the game running; the keypad pauses); the user has not decided yet.
-- [ADR 0080](0080-credentials-terminal.md)'s "E leaves only when no text field has focus" and "Device view" bullets are superseded by this ADR, and so is [ADR 0074](0074-network-hacking.md)'s E rule for M11 computers.
+- [ADR 0080](0080-credentials-terminal.md)'s "E leaves only when no text field has focus" and "Device view" bullets are superseded by this ADR, and so is [ADR 0074](0074-network-hacking.md)'s E rule for M12 computers.
 - Tests: `tests/objects/devices/device_status_test.gd` (stand-in components), `tests/objects/devices/device_graph_test.gd` (component), `tests/ui/terminal/network_layout_test.gd`, `tests/objects/terminal/terminal_test.gd` (devices, statuses, offline never broken), `tests/ui/terminal/terminal_screen_test.gd` (Camera tab feed and No signal, Network tab nodes, cables and menu commands, cut switch, Esc / E), `tests/objects/door/door_player_test.gd` (E does not leave the keypad), `tests/ui/debug_panel/network_overlay_test.gd` (labels, cables up and down, off draws nothing), `tests/levels/gallery/security_wing/security_wing_test.gd` (booth signs).
 - See [security](../game/security.md), [controls](../game/controls.md).

@@ -6,7 +6,7 @@ extends Node
 ##   `state.broken` once its Breakable is depleted (device scenes keep the broken husk:
 ##   `break_on_depleted` off). No Powered: always powered; no Breakable: never broken. It is up
 ##   while powered and unbroken; `state_changed` reports every change.
-## - Cables (M8; addresses, subnets and firewalls are M11): `links` lists the devices this one is
+## - Cables (M8; addresses, subnets and firewalls are M12): `links` lists the devices this one is
 ##   cabled to (their entities or Device nodes); links are undirected, so listing a cable on one end
 ##   is enough. Reach is pure logic in DeviceGraph: X reaches Y when a path of links exists whose
 ##   every node (X, Y and every switch between) is up.
@@ -29,7 +29,7 @@ const UNPOWERED: StringName = &"state.unpowered"
 const BROKEN: StringName = &"state.broken"
 ## Sensor -> alarm controller: an intruder was detected; origin = where.
 const INCIDENT: StringName = &"device.incident"
-## Remote commands (the shared contract of M8; who may send which is M11).
+## Remote commands (the shared contract of M8; who may send which is M12).
 const OPEN: StringName = &"command.open"
 const CLOSE: StringName = &"command.close"
 const LOCK: StringName = &"command.lock"

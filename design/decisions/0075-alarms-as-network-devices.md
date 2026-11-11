@@ -17,14 +17,14 @@ ADR 0072 made the alarm one `LevelAlarm` node per level: any `alarm.raise` stimu
 - **Remote command interface**: a command (ring, open, disable, ...) is a stimulus delivered to the target device; the device's receptrons run the action, blocked while it is unpowered or broken. Any entity with the right receptrons is a device; no command branches on a device's identity.
 - **Milestone split** (confirmed when M8 was planned; M8 build: [ADR 0077](0077-devices-cables-and-remote-commands.md)):
   - **M8** builds the alarm controller, sirens and radio base station as devices with the stimulus-based remote command interface, wired by a simple physical link graph: a device reaches another when every link and node between them is powered and unbroken.
-  - **M11** replaces plain reachability with the logical network: addresses, subnets and firewall rules ([ADR 0074](0074-network-hacking.md)).
+  - **M12** replaces plain reachability with the logical network: addresses, subnets and firewall rules ([ADR 0074](0074-network-hacking.md)).
 - The HUD "ALARM" label shows while the player can hear a ringing siren. The debug panel's "Raise alarm" and "Clear alarm" trigger and reset the level's alarm controllers.
 
 ## Alternatives considered
 
 - **Keep the global LevelAlarm**: nothing for the player to disable; a camera behind a cut switch would still ring every guard in the level.
 - **Guards react to the controller directly**: bypasses hearing; a siren in another building would alert guards who cannot hear it.
-- **Build the full network in M8**: M8 is already large; physical reachability gives the systemic hooks (power, breaking, links) now and M11 adds addressing on top without changing the devices.
+- **Build the full network in M8**: M8 is already large; physical reachability gives the systemic hooks (power, breaking, links) now and M12 adds addressing on top without changing the devices.
 
 ## Consequences
 

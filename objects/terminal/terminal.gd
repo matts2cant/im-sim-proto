@@ -1,6 +1,6 @@
 class_name Terminal
 extends Usable
-## Component (ADR 0080): the M8 credentials terminal, beside the entity's Device (M11 replaces it
+## Component (ADR 0080): the M8 credentials terminal, beside the entity's Device (M12 replaces it
 ## with computers and the deck). Using it (E: "use terminal") opens the user's TerminalScreen (a
 ## user without one cannot use it); the game keeps running.
 ## - Login: one account (`username`, `password`). The user's PersonalLog may know it: a datapad's

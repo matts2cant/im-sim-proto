@@ -1,7 +1,7 @@
 class_name ElectronicLock
 extends Lock
 ## Lock component: an electronic lock, a network device (ADR 0078). Opened remotely (the entity's
-## `command.unlock` / `command.open` device actions; from M11 with network access) or by losing power
+## `command.unlock` / `command.open` device actions; from M12 with network access) or by losing power
 ## when the entity is tagged `door.fail_safe`; a `door.fail_secure` entity (or one with neither tag)
 ## stays as it was. Power loss is the entity's Powered switching off, or the entity gaining
 ## `state.unpowered` (its Device mirrors its Powered into that tag; anything else may set it too).

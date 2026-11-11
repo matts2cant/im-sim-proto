@@ -1,6 +1,6 @@
 # Security
 
-Milestone: M8 (Security wing). Network hacking (the deck, computers, firewalls, tracers) is M11: [hacking.md](hacking.md).
+Milestone: M8 (Security wing). Network hacking (the deck, computers, firewalls, tracers) is M12: [hacking.md](hacking.md).
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Electronic and mechanical obstacles that offer several ways through.
 - **Alarms are devices** ([ADR 0075](../decisions/0075-alarms-as-network-devices.md), replaces the global `LevelAlarm`): see [Alarm devices](#alarm-devices).
 - **Turret** guards an area; Cloak does not hide the player from it. Who it shoots is a preset a terminal can change (intruders, guards, everyone).
 - **Breaker panel** cuts lights ([light-and-visibility.md](light-and-visibility.md)). Built in M7 ([ADR 0066](../decisions/0066-power-circuits-shootable-lights.md)): `objects/breaker_panel/breaker_panel.tscn`, a `CircuitBreaker` (a `Usable`, "E: switch off <label>" / "switch on") that switches every `Powered` on its `circuit` through the circuit's group, clunks (noise 6) and logs `power.switched`. Lamps opt in with their `Powered.circuit`; the breaker names none. The perception lab has one (circuit `perception_lab`).
-- **Terminals** (M8) keep the credentials placeholder: they unlock with credentials found in the world (a datapad), then show the security network they are cabled to (a Camera tab with live views, a Network tab with a graph) with each device's status and a button per command: see [Terminal](#terminal-m8-placeholder). M11 replaces them with computers (Halcyon OS desktop, Mail, Files, Security) and the deck ([hacking.md](hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)).
+- **Terminals** (M8) keep the credentials placeholder: they unlock with credentials found in the world (a datapad), then show the security network they are cabled to (a Camera tab with live views, a Network tab with a graph) with each device's status and a button per command: see [Terminal](#terminal-m8-placeholder). M12 replaces them with computers (Halcyon OS desktop, Mail, Files, Security) and the deck ([hacking.md](hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)).
 
 ## Devices
 
@@ -23,7 +23,7 @@ Cameras, laser arrays, turrets, doors, keypads, sirens, alarm controllers, radio
 - **Standalone behaviour** when a device loses its link: a door still works locally (key, keycard, keypad) but cannot be opened remotely; a camera keeps watching but its incidents reach no controller; a turret keeps its target tags; a siren cannot be rung; a keypad accepts its code.
 - **Doors on power loss**: a tag says fail-safe (unlocks) or fail-secure (stays locked). Breaking a switch can disable security but also stop you opening a door remotely.
 - **Remote command interface** (M8): a command (open, lock, ring, disable, ...) is a stimulus delivered to the target device; the device's receptrons run it, blocked while it is unpowered or broken (`state.unpowered`, `state.broken`). Nothing branches on a device's identity. Doors: [Remote commands](#remote-commands).
-- **Reach**: in M8 a device reaches another when every link and node between them is powered and unbroken (a simple physical link graph). M11 adds addresses, subnets and firewall rules on top ([hacking.md](hacking.md)).
+- **Reach**: in M8 a device reaches another when every link and node between them is powered and unbroken (a simple physical link graph). M12 adds addresses, subnets and firewall rules on top ([hacking.md](hacking.md)).
 
 ### Built in M8 ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md))
 
@@ -35,7 +35,7 @@ Cameras, laser arrays, turrets, doors, keypads, sirens, alarm controllers, radio
 - Command types (constants on `Device`): `command.open`, `command.close`, `command.lock`, `command.unlock`, `command.ring`, `command.silence`, `command.test`, `command.disarm`, `command.reset`, `command.trigger`, `command.disable`, `command.enable`, `command.broadcast` (controller to base station); `device.incident` (sensor to controller). Cameras and turrets ([ADR 0079](../decisions/0079-security-cameras-and-turret.md)): `command.stop_sweep`, `command.resume_sweep`, `command.pan_left`, `command.pan_right`, `command.target_intruders`, `command.target_guards`, `command.target_everyone`.
 - `Device.connected_devices()` ([ADR 0080](../decisions/0080-credentials-terminal.md)): the reached devices plus the dead ones right behind a live link (`DeviceGraph.connected()`). `DeviceGraph.component()` ([ADR 0083](../decisions/0083-security-terminal-redesign.md)): every device the cables join, up or down (the terminal's network view).
 - **Status** ([ADR 0083](../decisions/0083-security-terminal-redesign.md), `DeviceStatus`): a device's behaviour components may implement `device_status() -> PackedStringArray` (their state in words) and `device_view() -> Node3D` (the node they see from, null while blind). Screens show "offline" for any device they cannot reach (unpowered, broken or behind a dead switch: never "broken"), else "online" and the components' words. A component that a command can switch off also implements `device_disabled() -> bool` (camera, turret and laser array while disabled, alarm controller while disarmed); `DeviceStatus.is_disabled()` is true when one says so, and `Terminal.Row.disabled` carries it for reachable devices only ([ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md#amendment-node-colours-m9h)).
-- Remote actions per device (open, close, lock, unlock, grant access; view feed, stop sweep, pan, disable; ...): [hacking.md](hacking.md#devices-and-their-remote-actions). M8 builds the interface; who may send which command over the network is M11.
+- Remote actions per device (open, close, lock, unlock, grant access; view feed, stop sweep, pan, disable; ...): [hacking.md](hacking.md#devices-and-their-remote-actions). M8 builds the interface; who may send which command over the network is M12.
 
 ## Alarm devices
 
@@ -43,7 +43,7 @@ Cameras, laser arrays, turrets, doors, keypads, sirens, alarm controllers, radio
 
 | Device | Behaviour |
 |---|---|
-| Alarm controller | Receives incidents from sensors (cameras, laser arrays, panic buttons; tracers from M11) and sends "ring" to every siren it reaches. Rings for 45 s ([ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md); 90 s before M9h); another incident restarts it. Remote actions: disarm, reset, trigger |
+| Alarm controller | Receives incidents from sensors (cameras, laser arrays, panic buttons; tracers from M12) and sends "ring" to every siren it reaches. Rings for 45 s ([ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md); 90 s before M9h); another incident restarts it. Remote actions: disarm, reset, trigger |
 | Siren | While rung, emits a loud siren stimulus. Guards who hear it go into Searching around where they stand. Remote actions: silence, test |
 | Radio base station | If the controller reaches it, broadcasts the incident location; guards with `equipment.radio` in its range search there first |
 | Panic button | The old alarm panel: using it sends an incident to the controller it reaches |
@@ -152,15 +152,15 @@ Built in M8 ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). 
 
 | Component | Data | Opens by | Notes |
 |---|---|---|---|
-| `KeypadLock` | `KeypadLockData`: `code_id`, `code`, `max_digits` 8, `wrong_noise` 4, `accept_noise` 2 | E on the keypad box opens the user's keypad screen; the right code unlocks it for good | A wrong code beeps (noise 4) and clears the entry. The screen shows "Note: 2817, from 'Storage access'" when the user's PersonalLog knows the code (`known_code(code_id)`, `code_source(code_id)`); the user still types it. Only the code opens it until M11 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)) |
+| `KeypadLock` | `KeypadLockData`: `code_id`, `code`, `max_digits` 8, `wrong_noise` 4, `accept_noise` 2 | E on the keypad box opens the user's keypad screen; the right code unlocks it for good | A wrong code beeps (noise 4) and clears the entry. The screen shows "Note: 2817, from 'Storage access'" when the user's PersonalLog knows the code (`known_code(code_id)`, `code_source(code_id)`); the user still types it. Only the code opens it until M12 ([ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)) |
 | `MechanicalLock` | `MechanicalLockData`: `pins` (one type per pin: `standard`, `spool`, `serrated`), `pin_seed`, `tolerance_mult` 1.0, `tool` (`lockpick`), `practice` / `practice_tier` (practice locks) | LMB with a lockpick in hand, looking at the door leaf (its keyhole is on the handle, both faces) | M10: the lockpicking minigame ([lockpicking.md](lockpicking.md), [ADR 0107](../decisions/0107-lockpicking-minigame.md)). The `Lock` tool interface (`accepts_tool`, `tool_hold`) driven by the user's `ToolUse` opens the user's `LockpickScreen`; `complete_pick()` unlocks it for the user (the door opens); its noises come from the lock (`pick_noise()`). Picks break only on failure, success consumes nothing. EventLog `lock.pick_started`, `lock.pick_cancelled {reason}`, `lock.pick_broke`, `lock.picked`, `lock.relocked {layout}` (practice locks) |
 | `KeycardLock` | `KeycardLockData`: `access_id`, `accept_noise` 2 | E on the reader box while carrying a keycard whose `key_id` is the access id: the door opens and stays locked (locked again once closed: the card is needed every time) | A character tagged `access.<access_id>` has the same access: guards with it path through and open the door while it stays locked (locked again once someone closes it) |
 | `ElectronicLock` | the entity's tags | Remote unlock or open; power loss when fail-safe | `door.fail_safe` unlocks on power loss (its `Powered` switching off, or `state.unpowered` added); `door.fail_secure` (or no tag) stays as it is |
 
 - **Free side** (any lock, [ADR 0090](../decisions/0090-door-size-free-side-locks-warehouse-security.md)): `Lock.free_side` names a side of the entity (FRONT: its +Z, BACK: its -Z) from which it opens without that lock's key, like an exit handle or a push bar. There the door prompts "E: open" and makes an authorised open (it stays locked, so it is locked again once closed; `door.opened_freely`); `Lockable.grants_passage()` lets a character on that side through. The door's main navigation link stays on the lock's layers; a second, one-way link (`FreeSideLink`, on the walk layer while the door is locked) runs from the free side through the doorway, so any guard plans out through it but never in ([ADR 0092](../decisions/0092-warehouse-polish.md)). The warehouse's back gate, tunnel gate, side door, roof doors and office doors use it.
-- Keypad: code found in world notes. Datapads are read in place and copied to the player's personal log ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)); a datapad's `Readable.codes` maps the keypad's code id to the code. A code learned any other way (a conversation, a log entry) feeds the same reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`. From M11 a keypad is also hackable ("read its code", [hacking.md](hacking.md)).
+- Keypad: code found in world notes. Datapads are read in place and copied to the player's personal log ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)); a datapad's `Readable.codes` maps the keypad's code id to the code. A code learned any other way (a conversation, a log entry) feeds the same reminder. The gallery's "Storage access" datapad carries `storage_door: 2817`. From M12 a keypad is also hackable ("read its code", [hacking.md](hacking.md)).
 - Mechanical lock: the pin-tumbler minigame replaced the M8 placeholder in M10 ([lockpicking.md](lockpicking.md)). Practice locks (clear acrylic, every assist, a new layout after each opening) hang on the west wall of the security wing's hall, one per tier (M10d).
-- Electronic: the lock is a network device: opened remotely (from M11 with access to a machine it trusts or to the door itself), or by power loss when it is fail-safe.
+- Electronic: the lock is a network device: opened remotely (from M12 with access to a machine it trusts or to the door itself), or by power loss when it is fail-safe.
 
 ### Remote commands
 
@@ -174,9 +174,9 @@ The doorway is carved out of the navmesh and bridged by the door's `NavigationLi
 flowchart TD
     D["Locked door"] --> K{"Lock type"}
     K -->|keypad| K1["Find code on a note"]
-    K -->|keypad| K2["Hack: read its code (M11)"]
+    K -->|keypad| K2["Hack: read its code (M12)"]
     K -->|mechanical| L1["Lockpick"]
-    K -->|electronic| E1["Remote unlock (M11) or power loss (fail-safe)"]
+    K -->|electronic| E1["Remote unlock (M12) or power loss (fail-safe)"]
     K -->|keycard| C1["Find keycard"]
     K -->|breakable| B1["Explosives (loud)"]
     K1 --> O["Open"]
@@ -189,7 +189,7 @@ flowchart TD
 
 ## Rules
 
-- Skills: Computer (the deck's tools, M11; replaces Electronics), Lockpicking (tension window, tolerances, drop threshold, rake, assists; picks break only on failure): [abilities.md](abilities.md).
+- Skills: Computer (the deck's tools, M12; replaces Electronics), Lockpicking (tension window, tolerances, drop threshold, rake, assists; picks break only on failure): [abilities.md](abilities.md).
 - Closed doors attenuate noise along the path (+6 m); doors are navigation links for guards, locked ones only for guards with the access ([perception-and-ai.md](perception-and-ai.md), [stimulus-response.md](stimulus-response.md), [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)).
 - From M10 lockpicks break only on failure, success consumes nothing ([inventory.md](inventory.md), [lockpicking.md](lockpicking.md)). There is no multitool.
 - Cameras and turrets use the same perception and receiver framework.
@@ -202,5 +202,5 @@ flowchart TD
 ## Open questions
 
 - Settled in M8: camera field of view and sweep, turret damage and behaviour ([ADR 0079](../decisions/0079-security-cameras-and-turret.md)); what M8 terminals do ([ADR 0080](../decisions/0080-credentials-terminal.md)); siren loudness (35) and radio base station range (40 m) ([ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)).
-- Terminal content beyond the device list (mail, files) is M11. Cameras do not track a moving target beyond holding their sweep; turrets do not lead moving targets.
+- Terminal content beyond the device list (mail, files) is M12. Cameras do not track a moving target beyond holding their sweep; turrets do not lead moving targets.
 - Guards running to panic buttons.

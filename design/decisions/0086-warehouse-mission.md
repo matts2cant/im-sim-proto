@@ -18,7 +18,7 @@ M9 builds the one mission of v0. It should use every system for a real purpose, 
 - **Reinforcements**: 30 s after the first alarm, two guards enter through the front gate, once per mission.
 - **Weapon drops**: any character with a weapon drops it as a pickup beside the body when knocked out or killed (a property of the weapon holder, not of guards).
 - **Level targets**: about 70 x 50 m night compound with four layers, about 8 guards, many entry routes. Ghost run 10-15 min, loud about 5 min; no precise jumps or tight timing; hiding spots below 0.1 light; patrol crossing gaps of at least 4 s. Every main route is covered by scenario tests.
-- **M11 hooks**: a wireless access point spot over the yard, an office wall jack, two office computers and the security console are placed now as M8 devices.
+- **M12 hooks**: a wireless access point spot over the yard, an office wall jack, two office computers and the security console are placed now as M8 devices.
 
 ## Alternatives considered
 

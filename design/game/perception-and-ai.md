@@ -12,7 +12,7 @@ Guards that see, hear, communicate and escalate in graded steps.
 - Feedback: Metal Gear Solid style `?` / `!` icons above guards (toggleable) plus text barks with a placeholder sound. Voiced barks are parked.
 - Guards discover bodies (dead or unconscious) and raise the alert. Guards wake unconscious guards. Unconscious guards never wake on their own in v0. The player can carry and drop bodies.
 - Guards communicate (shouts are noise stimuli; radio within range). The alarm is made of devices (alarm controller, sirens, radio base station: [security.md](security.md), [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md)); guards react to the sirens they hear.
-- From M11 guards log in to devices at patrol waypoints, and a security operator watches the monitors ([hacking.md](hacking.md)).
+- From M12 guards log in to devices at patrol waypoints, and a security operator watches the monitors ([hacking.md](hacking.md)).
 
 ## Awareness states
 
@@ -54,8 +54,8 @@ stateDiagram-v2
 - **Radio**: on entering Alerted a guard tagged `equipment.radio` (guard.tscn has it) emits `alert.radio`, 30 m straight-line radius (walls do not matter). Allies' `heard_radio` receptron (requires `equipment.radio`) makes them search at the sender's position (reason `radio`). Searchers neither shout nor radio, so calls do not cascade.
 - **Sirens** (M8, [ADR 0075](../decisions/0075-alarms-as-network-devices.md), [ADR 0077](../decisions/0077-devices-cables-and-remote-commands.md); replace M7's level-wide `LevelAlarm`): a sounding siren emits `alarm.siren` every second, loudness 35 along the navmesh like noise, its own type so it is not ignored as an ally's noise. The `heard_siren` receptron on the guard's `Ears` (perceived >= 1: up to 34 m of path) runs `HeardAlarmEffect`, which tells the guard's `AlarmHearing`; on each pulse `AlertComms.answer_alarm()` keeps the guard wary (60 s, `guard_comms.tres` `alarm_wary`) and, when Unaware or Suspicious, starts a search around where it stands (reason `alarm`); Alerted and Searching guards carry on, and a finished search starts again while the siren is heard. A guard out of earshot does not react. The player carries the same receptron and `AlarmHearing`: the HUD shows "ALARM" while the player hears a siren (1.5 s after the last pulse).
 - **Radio dispatch**: a radio base station the alarm controller reaches emits `alert.dispatch` (40 m straight from the station) about the incident location (`Stimulus.about_point`). The `heard_dispatch` receptron (requires `equipment.radio`) runs `AwarenessEffect` SEARCH: the guard searches at the incident (reason `radio`), even when Searching after a siren. If no siren rings and no base station is reached, nobody reacts. Guards do not run to panic buttons yet.
-- **Security operator** (M11): a guard posted at the security console's monitors. When a camera feed goes dark (disabled, unpowered or broken) or the console shows "Tracer offline", the operator radios someone to check it. Panning a camera away is not noticed.
-- **"Use device"** (M11): a patrol waypoint can name a device; the guard stops there and logs in. The login goes to the device's log and can be captured by the player's Sniffer ([hacking.md](hacking.md)).
+- **Security operator** (M12): a guard posted at the security console's monitors. When a camera feed goes dark (disabled, unpowered or broken) or the console shows "Tracer offline", the operator radios someone to check it. Panning a camera away is not noticed.
+- **"Use device"** (M12): a patrol waypoint can name a device; the guard stops there and logs in. The login goes to the device's log and can be captured by the player's Sniffer ([hacking.md](hacking.md)).
 - EventLog: `actor.shout {actor, reason, point}`, `actor.radio {actor, point}`, `actor.heard_call {actor, from, kind, point}`, `actor.heard_alarm {actor, point}` (when it starts hearing a siren); the devices' entries are in [security.md](security.md#alarm-devices).
 
 ## Vision ([ADR 0067](../decisions/0067-vision-and-detection.md))
@@ -157,7 +157,7 @@ Measured against the player's body (25 a hit, x2 head; dead after 4 torso or 2 h
 
 ## Open questions
 
-- Guards running to panic buttons (M8, [security.md](security.md)); how the operator's "check it" call is modelled (M11).
+- Guards running to panic buttons (M8, [security.md](security.md)); how the operator's "check it" call is modelled (M12).
 - Two guards may both go to wake the same body; the second gives up once it stands.
 - Combat tactics beyond keeping range: cover, flanking, strafing while firing, leading a moving target, grenades.
 - Vertical limits of the cones (guards on balconies), if levels get tall.

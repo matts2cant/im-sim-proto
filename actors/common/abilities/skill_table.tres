@@ -133,7 +133,7 @@ effects = Array[ExtResource("3_effect")]([SubResource("Effect_medical_heal_mult"
 script = ExtResource("2_skill")
 id = &"computer"
 display_name = "Computer"
-description = "The deck's tools: crack time, trace gain, Icebreaker strength (consumer: M11)."
+description = "The deck's tools: crack time, trace gain, Icebreaker strength (consumer: M12)."
 effects = Array[ExtResource("3_effect")]([])
 
 [sub_resource type="Resource" id="Effect_lockpick_window_low"]

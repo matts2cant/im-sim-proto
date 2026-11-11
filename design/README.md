@@ -51,7 +51,16 @@ flowchart LR
     M7 --> M8["M8 Security"]
     M8 --> M9["M9 Mission"]
     M9 --> M10["M10 Lockpicking minigame"]
-    M10 --> M11["M11 Network hacking"]
+    M10 --> M11["M11 Tab interface"]
+    M11 --> M12["M12 Network hacking"]
+    M12 --> M13["M13 Weapon feel"]
+    M13 --> M14["M14 Explosives"]
+    M14 --> M15["M15 Factions"]
+    M15 --> M16["M16 AI overhaul"]
+    M16 --> M17["M17 Dialogue"]
+    M17 --> M18["M18 Experience"]
+    M18 --> M19["M19 Money and shops"]
+    M19 --> M20["M20 Open map and story"]
 ```
 
 | # | Milestone | Gallery room |
@@ -67,7 +76,16 @@ flowchart LR
 | M8 | Security: cameras, turret, doors/locks/keypads, terminals (credentials placeholder); security devices with a stimulus-based remote command interface over a physical link graph; alarm controller, sirens and radio base station replace the global LevelAlarm; multitool and Electronics removed ([ADR 0075](decisions/0075-alarms-as-network-devices.md), [ADR 0076](decisions/0076-computer-skill-multitool-removed.md)) | Security wing |
 | M9 | Mission: warehouse (separate night level, objectives, summary with ghost/pacifist badges, reinforcements, weapon drops) and scenario tests ([ADR 0086](decisions/0086-warehouse-mission.md)) | Warehouse mission |
 | M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
-| M11 | Network hacking: addresses, subnets, firewalls; the deck and its tools; computers with Mail, Files, Security; intrusion (credentials, Icebreaker, exploits); tracers; Computer skill consumers ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
+| M11 | Tab interface: one tabbed screen on Tab (Health, Skills, Augmentations, Logs, Inventory); the existing shortcut keys open it on their tab. Later milestones add their tabs to it (to be designed) | none |
+| M12 | Network hacking: addresses, subnets, firewalls; the deck and its tools; computers with Mail, Files, Security; intrusion (credentials, Icebreaker, exploits); tracers; Computer skill consumers ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
+| M13 | Weapon feel: recoil, spread and impact feedback, closer to Counter-Strike (to be designed) | Shooting range |
+| M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems (to be designed) | to be designed |
+| M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
+| M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space (to be designed) | AI arena |
+| M17 | Dialogue: branching conversations whose choices set story flags (to be designed) | to be designed |
+| M18 | Experience: XP from objectives, dialogue, discoveries and hacks; spent on skills in the Tab interface (to be designed) | none |
+| M19 | Money and shops: currency, traders, an economy tuned with XP and loot; then a compact test area (a street with NPCs, a shop and a side quest) to try factions, dialogue, XP and money together (to be designed) | test area |
+| M20 | Open map and story: a large map, a 30-minute story, side quests, places to discover, NPCs to meet; starts with a layout and scale prototype (frame rate, navigation) (to be designed) | the map |
 
 Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](tech/playtest-checklist.md).
 
@@ -95,7 +113,7 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 ### Levels
 
 - [levels/metrics.md](levels/metrics.md): player size, clearances, jump/mantle limits, noise numbers for level building.
-- [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms; a network lab planned for M11.
+- [levels/hub-and-gallery.md](levels/hub-and-gallery.md): hub and seven test rooms; a network lab planned for M12.
 - [levels/mission-warehouse.md](levels/mission-warehouse.md): warehouse mission: night compound, many routes, objectives, badges.
 
 ### Tech

@@ -401,7 +401,7 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 - [ ] Knock a guard out (baton from behind while it is still Unaware): it drops its weapon box from view and never fires again.
 - [ ] Throw the small crate at the training dummy: it bounces off (no longer passes through) and the dummy shows about 12 damage once. The guards still push crates gently out of their way.
 
-## M11 Hacking feel ([ADR 0074](../decisions/0074-network-hacking.md), tuning in [hacking.md](../game/hacking.md#tuning))
+## M12 Hacking feel ([ADR 0074](../decisions/0074-network-hacking.md), tuning in [hacking.md](../game/hacking.md#tuning))
 
 - [ ] No crack feels like dead waiting: Trained on a Medium password (18 s) and Advanced on a Strong one (25 s). Note any wait that drags.
 - [ ] One crack against a default tracer leaves room to spare; two in a row without a pause trip it; a short pause (about 8 s) drains it.

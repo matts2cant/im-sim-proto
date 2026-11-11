@@ -15,7 +15,7 @@ graph TD
     H --> R5["5 Security wing"]
     H --> R6["6 AI arena"]
     H --> R7["7 Inventory and abilities bay"]
-    H --> R8["8 Network lab (M11)"]
+    H --> R8["8 Network lab (M12)"]
     H --> M["Warehouse mission (separate scene, M9)"]
 ```
 
@@ -30,7 +30,7 @@ graph TD
 | 5 | Security wing | Camera corridor with dark alcoves, laser hall (low and high one-beam arrays, a two-beam array), alarm devices (controller, sirens, radio base station, panic button), a switch on a breaker, turret in a vault, keypad / pin-lock / keycard / electronic (fail-safe, fail-secure) / breakable doors, credentials terminal, a guard; practice locks (M10) | M8, M10 | [security](../game/security.md) |
 | 6 | AI arena | Guard group, patrols, escalation, body discovery, waking | M7 | [perception](../game/perception-and-ai.md) |
 | 7 | Inventory and abilities bay | Items of every footprint, stats menu | M5, M6 | [inventory](../game/inventory.md), [abilities](../game/abilities.md) |
-| 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M11 | [hacking](../game/hacking.md) |
+| 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M12 | [hacking](../game/hacking.md) |
 
 The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described in [mission-warehouse.md](mission-warehouse.md). The hub's west wall north doorway loads it when the player walks through: `MissionExit`, a kit `LevelExit` (1 x 3 x 2 m box at (-15.7, 0, -7.5), from x -16.2 to -15.2, so the player triggers it once its capsule (radius 0.35) reaches 0.2 m into the doorway, its centre 0.15 m short of the wall's inner face at x -15; [ADR 0087](../decisions/0087-mission-systems.md)); the mission offers a way back to the hub after extraction ([ADR 0086](../decisions/0086-warehouse-mission.md)). Nothing the player carries in the hub comes along. Tests: `tests/levels/mission/mission_kit/mission_level_change_test.gd`.
 
@@ -315,7 +315,7 @@ Tests (`tests/levels/gallery/inventory_bay/`): `inventory_bay_room_test.gd` (she
 
 ## 8 Network lab
 
-Not built yet (M11). Size and position: measure the free space between neighbouring rooms when M11 is planned. Teaches hacking one idea per station ([hacking](../game/hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)):
+Not built yet (M12). Size and position: measure the free space between neighbouring rooms when M12 is planned. Teaches hacking one idea per station ([hacking](../game/hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)):
 
 - Every entry point: a computer used bare-handed, a wall jack, an access point area (its range marked on the floor), an autonomous device with a maintenance port, a computer to plug the deck into.
 - Two or three subnets behind one gateway with a tracer, so the locked-subnet node, a firewall rule and a foothold can each be tried.

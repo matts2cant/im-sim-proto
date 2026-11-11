@@ -25,7 +25,7 @@ ADR 0017 parked hacking behind a placeholder (multitools and credentials) until 
 - **NPCs** log in to devices through a "use device" action at patrol waypoints; devices keep logs.
 - **UI**: the computer screen and the deck screen are in the world; a game UI overlay holds known credentials, deck actions, address and access level, toasts, hints, one trace bar per tracer and time estimates. Esc always steps away or lowers the deck; E does not ([ADR 0083](0083-security-terminal-redesign.md): Esc only).
 - **Everything is deterministic and saved**: network state, deck contents, crack progress, trace and lockouts.
-- **Milestone**: M11. M8 builds the devices and the alarm devices ([ADR 0075](0075-alarms-as-network-devices.md)); the Computer skill and the multitool's removal are [ADR 0076](0076-computer-skill-multitool-removed.md).
+- **Milestone**: M12. M8 builds the devices and the alarm devices ([ADR 0075](0075-alarms-as-network-devices.md)); the Computer skill and the multitool's removal are [ADR 0076](0076-computer-skill-multitool-removed.md).
 
 ## Alternatives considered
 
@@ -41,7 +41,7 @@ ADR 0017 parked hacking behind a placeholder (multitools and credentials) until 
 ## Consequences
 
 - New doc [hacking](../game/hacking.md); the gallery gets a network lab ([hub-and-gallery](../levels/hub-and-gallery.md)) and the warehouse a small network ([mission-warehouse](../levels/mission-warehouse.md)).
-- The terminals of M8 keep the credentials placeholder until M11 replaces them with computers ([security](../game/security.md)).
+- The terminals of M8 keep the credentials placeholder until M12 replaces them with computers ([security](../game/security.md)).
 - New inventory item: the deck ([inventory](../game/inventory.md)). New controls for the screens ([controls](../game/controls.md)).
 - Guards get a "use device" waypoint action and a security operator role ([perception-and-ai](../game/perception-and-ai.md)).
 - Saving grows: network, deck and tracer state ([saving](../game/saving.md)).

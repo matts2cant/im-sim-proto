@@ -15,8 +15,8 @@ The Electronics skill scaled `bypass_time_mult` for the multitool, a consumable 
   - trace gain ×1 / 0.8 / 0.6 / 0.4;
   - strongest password the Icebreaker cracks: Weak / Medium / Strong / Strong.
 - Like every skill these are attributes with modifiers; the deck reads its user's attributes ([ADR 0061](0061-abilities-model.md)). Admin access allows every admin action: nothing is skill-gated beyond the Icebreaker's strength limit.
-- **The multitool is removed altogether.** M8 drops the item, its pickups and `bypass_time_mult`; M8 swaps Electronics for Computer in the skill table (no consumer until M11).
-- **Keypads** accept only their code until M11; then they are also hackable ("read its code").
+- **The multitool is removed altogether.** M8 drops the item, its pickups and `bypass_time_mult`; M8 swaps Electronics for Computer in the skill table (no consumer until M12).
+- **Keypads** accept only their code until M12; then they are also hackable ("read its code").
 
 ## Alternatives considered
 
