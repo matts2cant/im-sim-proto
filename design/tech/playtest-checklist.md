@@ -441,6 +441,17 @@ No level has an access point yet: use the review shots (`tests/ui/deck/fixtures/
 - [ ] Dashed light-blue wireless links read apart from green cables and from grey dashed dead cables; breaking or unpowering the access point turns its wireless devices offline on the Map and their links grey.
 - [ ] The trace while cracking a key (the access point's subnet's tracers) feels fair next to cracking an account.
 
+### M12b Intrusion: exploits, Firewall, logs ([ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md))
+
+No level has software versions or exploits yet: use the review shots (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=menu_software|exploits|exploits_patched|firewall`, and `tests/ui/tab_interface/fixtures/tab_shots.tscn -- shot=exploits`, through `tools/run_windowed.sh`) until the levels brief places them, then check in the lab and the warehouse.
+
+- [ ] A device's menu reads at a glance: the software line under the address, "Exploits (n)" only when something matches; matching versions is a quick read, finding the exploit is the challenge.
+- [ ] The Exploits tool: the one match stands out from the dimmed "no match" rows; 4 s and +10 % trace feel like the fast route next to the Icebreaker; "patched on this subnet" after a run a tracer saw is clear about why the exploit stopped working there, and an unwatched subnet keeping it usable feels fair.
+- [ ] An admin exploit on a router reveals the subnets behind it like a cracked login (the toast says so).
+- [ ] The Firewall table is readable and editable with the mouse alone: selecting a row by its number, the From / To lists, ALLOW / DENY in green / red, Move up / down, Delete. "ALARM → SIREN · DENY" above the rest silences that siren when the alarm rings; deleting it lets it ring again.
+- [ ] The line under the table makes it clear that your own traffic passes with an account unless a rule names "you".
+- [ ] The Journal's Exploits section: targets and grants read easily, the "learned from" link opens the note.
+
 ### Routers and subnet boxes (ADR 0112 amendment)
 
 Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.
