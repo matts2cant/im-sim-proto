@@ -27,6 +27,7 @@ Final suite on master: 1865 tests, 0 failures, 1 skipped, lint clean; 76.2 s on 
   - CLAUDE.md: when a milestone changes a system's data format, the level brief lists every level and gallery room that uses the system (grep `levels/` for its components) and updates them in the same milestone.
   - CLAUDE.md: tests and mockups of anything that remembers state across places (a deck's map, a Journal, a trace) include a second, unconnected place.
   - **One full run after merging, not two** (the user: correctness first, no second run without a change in between). `tools/run_tests.sh` now prints a `suite time` line comparing the suites also in the last run against their recorded times, which one run can judge; CLAUDE.md's timing rule uses it.
+  - **Failed tool calls** (the user asked): over 14 agents, 62 of 4288 calls failed (1.4 %). Half were the worktree sandbox refusing compound shell commands (inline Python heredocs, `cd`/`&&` chains, git in loops, `sed -i`); then `update_plan` called by sub-agents (once each), lint chained with commits, benign non-zero exits retried, foreground `sleep`. AGENTS.md gained a "Tool use (right first time)" section; the two older, weaker lines now point to it.
   - CLAUDE.md: a brief that adds to a file near a lint size limit names the split first (M12c's first step: split `deck_screen.gd` by tool before adding the AR view).
 - **Open for the user:**
   - AP-YARD is a small silhouette against the night sky. Is it findable in play before M12c's status lights?
