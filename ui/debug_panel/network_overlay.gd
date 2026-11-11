@@ -3,7 +3,8 @@ extends Node3D
 ## Debug overlay (ADR 0083): the device network drawn over the world, through walls. A Label3D above
 ## every Device (any entity with the component) with its name and status words: DeviceStatus, the
 ## same query the computers use, "online" plus its components' words while the device is up, else
-## "offline" and, as this is a developer view, why (unpowered, broken). A line along every cable
+## "offline" and, as this is a developer view, why (unpowered, broken), then the size of its device
+## log and its newest entry (M12b: logins, exploit runs, remote actions). A line along every cable
 ## (Device.links, each once): green while both ends are up, red otherwise. Shows every device
 ## whatever the player knows. Toggled by the Overlays tab's "Network" checkbox; refreshed every
 ## REFRESH seconds while on; off, it holds no labels, draws nothing and does not process.
@@ -82,6 +83,9 @@ func refresh() -> void:
 			_labels[id] = label
 		label.global_position = device.entity.global_position + LABEL_OFFSET
 		label.text = "%s\n%s" % [Computer.display_name(device), status_text(device)]
+		var last := device.intrusion.device_log.last()
+		if not last.is_empty():
+			label.text += "\nlog %d: %s" % [device.intrusion.device_log.size(), DeviceLog.line(last)]
 		label.modulate = LABEL_COLOR if device.is_up() else OFFLINE_LABEL_COLOR
 	for id: int in _labels.keys():
 		if not seen.has(id):
