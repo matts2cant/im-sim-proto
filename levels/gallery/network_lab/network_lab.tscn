@@ -1,0 +1,462 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="4_ledge"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="5_lamp"]
+[ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="6_door"]
+[ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="7_electronic"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="8_powered"]
+[ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="9_breaker"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="10_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="11_jack"]
+[ext_resource type="PackedScene" path="res://objects/network/gateway.tscn" id="12_gateway"]
+[ext_resource type="Script" path="res://objects/network/tracer.gd" id="13_tracer"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="14_computer"]
+[ext_resource type="Script" path="res://objects/network/device_account.gd" id="15_account"]
+[ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="16_camera"]
+[ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="17_datapad"]
+[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="18_deck"]
+[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="19_biocell"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/office_pc1.tres" id="20_pc1_data"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/office_pc2.tres" id="21_pc2_data"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/console.tres" id="22_console_data"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/file_server.tres" id="23_server_data"]
+
+[sub_resource type="Resource" id="Opening_corridor_hub"]
+script = ExtResource("2_opening")
+node_name = &"FromHub"
+wall = 2
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_corridor_hall"]
+script = ExtResource("2_opening")
+node_name = &"ToHall"
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_corridor"]
+script = ExtResource("2_opening")
+node_name = &"FromCorridor"
+wall = 2
+offset = -5.0
+width = 2.0
+height = 3.0
+
+[sub_resource type="Resource" id="Opening_hall_closet"]
+script = ExtResource("2_opening")
+node_name = &"ToCloset"
+offset = 0.85
+
+[sub_resource type="Resource" id="Opening_closet"]
+script = ExtResource("2_opening")
+node_name = &"Doorway"
+wall = 2
+offset = -0.15
+
+[sub_resource type="Resource" id="Account_achen"]
+script = ExtResource("15_account")
+user = "achen"
+password = "otter61"
+
+[sub_resource type="Resource" id="Account_jnovak"]
+script = ExtResource("15_account")
+user = "jnovak"
+password = "mishka2029"
+
+[sub_resource type="Resource" id="Account_ops"]
+script = ExtResource("15_account")
+user = "ops"
+password = "relay52"
+strength = 1
+
+[sub_resource type="Resource" id="Account_fw01"]
+script = ExtResource("15_account")
+user = "admin"
+password = "gate42"
+admin = true
+
+[sub_resource type="Resource" id="Account_fw02"]
+script = ExtResource("15_account")
+user = "admin"
+password = "k3epOut9"
+strength = 1
+admin = true
+
+[sub_resource type="Resource" id="Account_archive"]
+script = ExtResource("15_account")
+user = "archive"
+password = "files7"
+
+[node name="NetworkLab" type="Node3D"]
+
+[node name="Shell" type="Node3D" parent="."]
+
+[node name="Corridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.75)
+size = Vector3(2, 3, 3.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_hub"), SubResource("Opening_corridor_hall")])
+
+[node name="Hall" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -11)
+size = Vector3(14, 4, 14)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_corridor"), SubResource("Opening_hall_closet")])
+
+[node name="Closet" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -19.75)
+size = Vector3(2.5, 3, 2.5)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_closet")])
+
+[node name="Furniture" type="Node3D" parent="."]
+
+[node name="DeckTable" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.6, 0, -4.7)
+height = 1.0
+width = 1.6
+depth = 0.7
+surface = "wood"
+
+[node name="Desk1" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.3, 0, -8.5)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="Desk2" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.3, 0, -12)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="ConsoleDesk" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, -17.3)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="ServerDesk" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -12.5)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="ClosetShelf" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -20.5)
+height = 0.8
+width = 1.2
+depth = 0.5
+surface = "wood"
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="ClosetDoor" parent="Doors" instance=ExtResource("6_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, 0, -18.25)
+metadata/display_name = "DOOR-CLOSET"
+
+[node name="Tags" parent="Doors/ClosetDoor"]
+initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_secure"])
+
+[node name="Lockable" parent="Doors/ClosetDoor"]
+locked = true
+
+[node name="Door" parent="Doors/ClosetDoor"]
+wall_thickness = 0.5
+
+[node name="Device" parent="Doors/ClosetDoor"]
+address = "10.0.20.51"
+trusted = Array[NodePath]([NodePath("../../../Devices/Console")])
+
+[node name="Powered" type="Node" parent="Doors/ClosetDoor"]
+script = ExtResource("8_powered")
+circuit = &"network_lab_security"
+
+[node name="ElectronicLock" type="Node3D" parent="Doors/ClosetDoor"]
+script = ExtResource("7_electronic")
+
+[node name="Devices" type="Node3D" parent="."]
+
+[node name="Jack" parent="Devices" instance=ExtResource("11_jack")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 0.45, -6)
+metadata/display_name = "OFFICE-JACK"
+
+[node name="Device" parent="Devices/Jack"]
+address = "10.0.10.40"
+subnet = &"office"
+
+[node name="OfficeSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -14.6)
+metadata/display_name = "SW-OFFICE"
+
+[node name="Device" parent="Devices/OfficeSwitch"]
+links = Array[NodePath]([NodePath("../../Jack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
+address = "10.0.10.2"
+subnet = &"office"
+
+[node name="OfficePc1" parent="Devices" instance=ExtResource("14_computer")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.45, -8.5)
+metadata/display_name = "OFFICE-PC1"
+
+[node name="Accounts" parent="Devices/OfficePc1"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_achen")])
+
+[node name="Computer" parent="Devices/OfficePc1"]
+data = ExtResource("20_pc1_data")
+credentials_id = &"network_lab_office_pc1"
+host_name = "OFFICE-PC1"
+label = "office PC 1"
+
+[node name="Device" parent="Devices/OfficePc1"]
+address = "10.0.10.11"
+
+[node name="OfficePc2" parent="Devices" instance=ExtResource("14_computer")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.45, -12)
+metadata/display_name = "OFFICE-PC2"
+
+[node name="Accounts" parent="Devices/OfficePc2"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_jnovak")])
+
+[node name="Computer" parent="Devices/OfficePc2"]
+data = ExtResource("21_pc2_data")
+credentials_id = &"network_lab_office_pc2"
+host_name = "OFFICE-PC2"
+label = "office PC 2"
+
+[node name="Device" parent="Devices/OfficePc2"]
+address = "10.0.10.12"
+
+[node name="Fw01" parent="Devices" instance=ExtResource("12_gateway")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -15.7)
+metadata/display_name = "FW-01"
+
+[node name="Device" parent="Devices/Fw01"]
+links = Array[NodePath]([NodePath("../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
+address = "10.0.10.1"
+subnet = &"office"
+
+[node name="DeviceAccounts" parent="Devices/Fw01"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_fw01")])
+credentials_id = &"network_lab_fw01"
+
+[node name="Tracer" type="Node" parent="Devices/Fw01"]
+script = ExtResource("13_tracer")
+label = "Sentry tracer"
+watched = Array[StringName]([&"office", &"security"])
+
+[node name="SecuritySwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.6, -17.99)
+metadata/display_name = "SW-SECURITY"
+
+[node name="Powered" parent="Devices/SecuritySwitch"]
+circuit = &"network_lab_security"
+
+[node name="Device" parent="Devices/SecuritySwitch"]
+links = Array[NodePath]([NodePath("../../Console"), NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor"), NodePath("../../Fw02")])
+address = "10.0.20.2"
+subnet = &"security"
+
+[node name="Breaker" parent="Devices" instance=ExtResource("9_breaker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.3, -17.99)
+
+[node name="CircuitBreaker" parent="Devices/Breaker"]
+circuit = &"network_lab_security"
+label = "security switch"
+
+[node name="Console" parent="Devices" instance=ExtResource("14_computer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.45, -17.99)
+metadata/display_name = "SEC-CONSOLE"
+
+[node name="Accounts" parent="Devices/Console"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_ops")])
+
+[node name="Computer" parent="Devices/Console"]
+data = ExtResource("22_console_data")
+credentials_id = &"network_lab_console"
+host_name = "SEC-CONSOLE"
+label = "security console"
+
+[node name="Device" parent="Devices/Console"]
+address = "10.0.20.5"
+
+[node name="ClosetCamera" parent="Devices" instance=ExtResource("16_camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, 2.6, -17.99)
+metadata/display_name = "CAM-CLOSET"
+
+[node name="Device" parent="Devices/ClosetCamera"]
+address = "10.0.20.21"
+trusted = Array[NodePath]([NodePath("../../Console")])
+
+[node name="Fw02" parent="Devices" instance=ExtResource("12_gateway")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -16.2)
+metadata/display_name = "FW-02"
+
+[node name="Device" parent="Devices/Fw02"]
+address = "10.0.20.1"
+subnet = &"security"
+
+[node name="DeviceAccounts" parent="Devices/Fw02"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_fw02")])
+credentials_id = &"network_lab_fw02"
+
+[node name="ServerSwitch" parent="Devices" instance=ExtResource("10_switch")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -15.1)
+metadata/display_name = "SW-SERVERS"
+
+[node name="Device" parent="Devices/ServerSwitch"]
+links = Array[NodePath]([NodePath("../../Fw02"), NodePath("../../FileServer")])
+address = "10.0.30.2"
+subnet = &"servers"
+
+[node name="FileServer" parent="Devices" instance=ExtResource("14_computer")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.45, -12.5)
+metadata/display_name = "FILE-SERVER"
+
+[node name="Accounts" parent="Devices/FileServer"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_archive")])
+
+[node name="Computer" parent="Devices/FileServer"]
+data = ExtResource("23_server_data")
+credentials_id = &"network_lab_file_server"
+host_name = "FILE-SERVER"
+label = "file server"
+
+[node name="Device" parent="Devices/FileServer"]
+address = "10.0.30.8"
+
+[node name="Items" type="Node3D" parent="."]
+
+[node name="Deck" parent="Items" instance=ExtResource("18_deck")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.02, -4.35)
+
+[node name="StickyNote" parent="Items" instance=ExtResource("17_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0.78, -7.95)
+
+[node name="Readable" parent="Items/StickyNote"]
+entry_id = &"gallery.network_lab.sticky_note"
+title = "Sticky note"
+text = "PC 1 login: achen / otter61"
+codes = Dictionary[StringName, String]({&"network_lab_office_pc1": "achen:otter61"})
+code_labels = Dictionary[StringName, String]({&"network_lab_office_pc1": "Office PC 1 login"})
+
+[node name="Photo" parent="Items" instance=ExtResource("17_datapad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0.78, -11.45)
+
+[node name="Readable" parent="Items/Photo"]
+entry_id = &"gallery.network_lab.photo"
+title = "Photo"
+text = "A grey cat asleep in a moving box. On the back: \"Mishka, our first night in the new flat, 2029. Jan\""
+
+[node name="Biocell1" parent="Items" instance=ExtResource("19_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0.86, -20.75)
+
+[node name="Biocell2" parent="Items" instance=ExtResource("19_biocell")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 0.86, -20.75)
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="LampSouthWest" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 4, -7.5)
+
+[node name="LampSouthEast" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 4, -7.5)
+
+[node name="LampNorthWest" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 4, -14.5)
+
+[node name="LampNorthEast" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 4, -14.5)
+
+[node name="LampCloset" parent="Lamps" instance=ExtResource("5_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3, -19.75)
+
+[node name="Light" parent="Lamps/LampCloset"]
+light_energy = 0.8
+
+[node name="Labels" type="Node3D" parent="."]
+
+[node name="Room" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.6, 3.4, -17.95)
+text = "8 Network lab"
+size = 2
+
+[node name="DeckTable" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.6, 1.75, -4.05)
+pixel_size = 0.003
+text = "Deck · take it (E)
+select it on the belt"
+size = 0
+
+[node name="Jack" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 1.2, -6)
+pixel_size = 0.003
+text = "Wall jack · Office subnet
+deck in hand: LMB plugs in
+3 m away unplugs it"
+size = 0
+
+[node name="OfficePc1" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.15, -8.5)
+pixel_size = 0.003
+text = "Office PC 1 · E uses it
+login: the sticky note
+read its mail"
+size = 0
+
+[node name="OfficePc2" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.15, -12)
+pixel_size = 0.003
+text = "Office PC 2 · no note here
+guess its login from
+PC 1's mail and the photo"
+size = 0
+
+[node name="Fw01" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.3, -15.7)
+pixel_size = 0.003
+text = "FW-01 · gateway, Sentry tracer
+hack it from the deck's Map
+to see the Security subnet"
+size = 0
+
+[node name="SecuritySwitch" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 2.3, -17.95)
+pixel_size = 0.003
+text = "Security switch · breaker
+cuts the Security subnet"
+size = 0
+
+[node name="Console" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 2.3, -17.95)
+pixel_size = 0.003
+text = "Security console
+camera and door trust it"
+size = 0
+
+[node name="Closet" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, 3.25, -17.95)
+pixel_size = 0.003
+text = "Closet · electronic, fail-secure
+open it from the console"
+size = 0
+
+[node name="Fw02" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.3, -16.2)
+pixel_size = 0.003
+text = "FW-02 · gateway inside Security
+login: the console's files"
+size = 0
+
+[node name="FileServer" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.15, -12.5)
+pixel_size = 0.003
+text = "File server · behind FW-02
+crack it, open its desktop"
+size = 0

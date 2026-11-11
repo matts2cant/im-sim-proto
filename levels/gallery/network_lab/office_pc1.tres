@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_password"]
+script = ExtResource("2_document")
+id = &"gallery.network_lab.pc1_mail_password"
+title = "Re: my password"
+sender = "J. Novak"
+text = "Ana,
+
+IT reset my password on PC 2 again. I put it straight back to what it always is: my cat's name and the year we moved in, all lower case, no spaces. If IT asks, you know nothing.
+
+Jan (jnovak)"
+implicit_clue = true
+
+[sub_resource type="Resource" id="Mail_network"]
+script = ExtResource("2_document")
+id = &"gallery.network_lab.pc1_mail_network"
+title = "Office network"
+sender = "IT"
+text = "PC 1 and PC 2 are on the Office subnet (10.0.10.0/24), behind the gateway FW-01. FW-01 runs the Sentry tracer: wrong passwords, scans and cracking tools on office or security machines add trace, and a full trace locks the address out."
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_password"), SubResource("Mail_network")])
