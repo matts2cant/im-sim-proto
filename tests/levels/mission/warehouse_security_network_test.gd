@@ -168,13 +168,14 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 
 # The old network map of the console's network (ADR 0099, network_map_checks.gd; the deck's Map takes
 # it over): boxes apart, no cable crossing or under a box, every node shown when fitted,
-# deterministic; two groups (one per switch) and a fitted zoom that keeps labels readable.
+# deterministic; three groups (one per switch: security, yard and, through FW-01, office; M12a) and a
+# fitted zoom that keeps labels readable.
 func _assert_graph_readable(console: Computer) -> void:
 	var rows := MapChecks.rows_from(console.entity)
 	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var zoom: float = result["zoom"]
 	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.8)
-	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(2)
+	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(3)
 
 
 # The yard's part on its own: the yard cameras reach the yard's controller and it a yard siren.

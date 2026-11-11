@@ -17,6 +17,13 @@ title = "Password changed"
 sender = "IT"
 text = "Your password was changed successfully. Remember: never write your password down."
 
+[sub_resource type="Resource" id="Mail_network"]
+script = ExtResource("2_document")
+id = &"warehouse.pc1.mail_network"
+title = "Office network"
+sender = "IT"
+text = "The office network now sits behind the gateway FW-01 in the basement store. Its Sentry tracer watches the office and security subnets: failed logins get reported. The security devices only take orders from the security console; nothing on this PC can reach them."
+
 [sub_resource type="Resource" id="File_invoice"]
 script = ExtResource("2_document")
 id = &"warehouse.pc1.file_invoice"
@@ -25,5 +32,5 @@ text = "Invoice 2031-117 · 14 x agricultural pump, model AP-40 · paid in cash 
 
 [resource]
 script = ExtResource("1_data")
-mail = Array[ExtResource("2_document")]([SubResource("Mail_courier"), SubResource("Mail_it")])
+mail = Array[ExtResource("2_document")]([SubResource("Mail_courier"), SubResource("Mail_it"), SubResource("Mail_network")])
 files = Array[ExtResource("2_document")]([SubResource("File_invoice")])
