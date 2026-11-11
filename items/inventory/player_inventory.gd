@@ -123,7 +123,7 @@ func use_held() -> bool:
 	return use_stack(held)
 
 
-## Uses `stack` (the inventory screen's Use, LMB on a held item): weapon / tool toggles in hand, a
+## Uses `stack` (the Inventory tab's Use, LMB on a held item): weapon / tool toggles in hand, a
 ## consumable (medkit) sends its stimuli to the player, others show their message. Returns true when
 ## something happened. With `part`, a consumable is used on that body part (the Health tab's "Use a
 ## medkit on the <part>"): its stimuli touch the part's hitbox instead of the whole player, so a
@@ -247,7 +247,7 @@ func can_attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
 	return Attachments.can_attach(weapon_stack.item, weapon_stack.state, attachment.item)
 
 
-## The weapon stacks `attachment` can be fitted to (the inventory screen highlights them).
+## The weapon stacks `attachment` can be fitted to (the Inventory tab highlights them).
 func attach_targets(attachment: ItemStack) -> Array[ItemStack]:
 	var result: Array[ItemStack] = []
 	for stack in inventory.stacks:
@@ -302,9 +302,9 @@ func _toggle(stack: ItemStack) -> void:
 		hold(stack)
 
 
-# Consumable: its stimuli go to the player (CONTACT, delivered at once: the inventory screen pauses
-# the game), or to `target` inside it (a body part's hitbox), and one is used up. Refused (kept) when
-# none of them would do anything (a medkit when unhurt).
+# Consumable: its stimuli go to the player (CONTACT, delivered at once, also while the Tab interface
+# is open over the running world), or to `target` inside it (a body part's hitbox), and one is used
+# up. Refused (kept) when none of them would do anything (a medkit when unhurt).
 func _consume(stack: ItemStack, target: Node = null) -> bool:
 	var touched: Node = target if target != null else player
 	var stimuli: Array[Stimulus] = []

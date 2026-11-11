@@ -1,6 +1,7 @@
 class_name InventoryView
 extends Control
-## Custom-drawn grid (64 px cells) and belt row of the inventory screen. Left-drag moves a stack:
+## Custom-drawn grid (64 px cells) and belt row of the Inventory tab (ADR 0110). Left-click selects a
+## stack (amber outline, `stack_selected`: the tab shows its details). Left-drag moves a stack:
 ## a green / red footprint shows whether it fits; dropping it on a belt slot assigns it there;
 ## releasing outside this control drops it into the world. Dragging a belt slot's item off the belt
 ## (anywhere but another slot) clears that slot. Dragging an attachment (a silencer) highlights every
@@ -10,6 +11,8 @@ extends Control
 
 signal context_requested(stack: ItemStack, at: Vector2)
 signal drop_requested(stack: ItemStack)
+## A left press on a stack (grid or belt) selected it.
+signal stack_selected(stack: ItemStack)
 
 const CELL := 64.0
 const BELT_SLOT := 56.0
@@ -28,6 +31,10 @@ const TOOLTIP_BG := Color(0.04, 0.05, 0.06, 0.95)
 const TOOLTIP_WIDTH := 260.0
 
 var player_inventory: PlayerInventory
+## Edge of a belt slot (px).
+var belt_slot: float = BELT_SLOT
+## The stack outlined as selected (null: none).
+var selected: ItemStack = null
 
 var _hover: Vector2 = Vector2(-1, -1)
 var _drag: ItemStack = null
@@ -37,14 +44,14 @@ var _drag_from_belt: int = -1
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	custom_minimum_size = Vector2(_width(), belt_top() + BELT_SLOT)
+	custom_minimum_size = Vector2(_width(), belt_top() + belt_slot)
 
 
 func bind(p_inventory: PlayerInventory) -> void:
 	player_inventory = p_inventory
 	player_inventory.inventory.changed.connect(queue_redraw)
 	player_inventory.belt.changed.connect(queue_redraw)
-	custom_minimum_size = Vector2(_width(), belt_top() + BELT_SLOT)
+	custom_minimum_size = Vector2(_width(), belt_top() + belt_slot)
 	queue_redraw()
 
 
@@ -81,8 +88,8 @@ func stack_rect(stack: ItemStack) -> Rect2:
 
 func belt_slot_rect(index: int) -> Rect2:
 	var count := player_inventory.belt.size()
-	var left := floorf((_width() - (count * BELT_SLOT + (count - 1) * BELT_GAP)) * 0.5)
-	return Rect2(left + index * (BELT_SLOT + BELT_GAP), belt_top(), BELT_SLOT, BELT_SLOT)
+	var left := floorf((_width() - (count * belt_slot + (count - 1) * BELT_GAP)) * 0.5)
+	return Rect2(left + index * (belt_slot + BELT_GAP), belt_top(), belt_slot, belt_slot)
 
 
 ## Belt slot under a local point, -1 when none.
@@ -100,7 +107,13 @@ func stack_at_point(point: Vector2) -> ItemStack:
 	return player_inventory.belt.stack_in(belt_slot_at(point))
 
 
-## The stack under the mouse (the screen assigns belt keys to it).
+## Outlines `stack` and tells the tab (a null stack keeps the selection).
+func select(stack: ItemStack) -> void:
+	selected = stack
+	queue_redraw()
+
+
+## The stack under the mouse.
 func hovered_stack() -> ItemStack:
 	return stack_at_point(_hover) if _drag == null else null
 
@@ -129,6 +142,7 @@ func _gui_input(event: InputEvent) -> void:
 	_hover = button.position
 	if button.button_index == MOUSE_BUTTON_LEFT:
 		if button.pressed:
+			_select(stack_at_point(button.position))
 			_start_drag(button.position)
 		elif _drag != null:
 			_finish_drag(button.position)
@@ -145,6 +159,13 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_MOUSE_EXIT and _drag == null:
 		_hover = Vector2(-1, -1)
 		queue_redraw()
+
+
+func _select(stack: ItemStack) -> void:
+	if stack == null:
+		return
+	select(stack)
+	stack_selected.emit(stack)
 
 
 func _start_drag(point: Vector2) -> void:
@@ -191,6 +212,8 @@ func _draw() -> void:
 	for stack in inventory().stacks:
 		var alpha := 0.35 if stack == _drag else 1.0
 		ItemIcon.draw(self, stack_rect(stack), stack, 14, alpha)
+	if selected != null and inventory().stacks.has(selected):
+		draw_rect(stack_rect(selected).grow(-1.0), SELECTED, false, 2.0)
 	draw_string(
 		font,
 		Vector2(belt_slot_rect(0).position.x, belt_top() - 10.0),
@@ -225,7 +248,8 @@ func _draw_belt_slot(index: int, font: Font) -> void:
 	draw_rect(rect, CELL_FILL)
 	var stack := belt.stack_in(index)
 	if stack != null:
-		ItemIcon.draw(self, rect, stack, 11, 0.35 if stack == _drag else 1.0)
+		var font_size := maxi(roundi(11.0 * belt_slot / BELT_SLOT), 8)
+		ItemIcon.draw(self, rect, stack, font_size, 0.35 if stack == _drag else 1.0)
 	var selected := index == belt.selected
 	draw_rect(rect, SELECTED if selected else LINE, false, 2.0 if selected else 1.0)
 	draw_string(font, rect.position + Vector2(4, 12), Belt.key_label(index), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, CAPTION)
@@ -307,4 +331,4 @@ static func tooltip_text(stack: ItemStack) -> String:
 func _width() -> float:
 	var slots := player_inventory.belt.size() if player_inventory != null else 10
 	var columns := inventory().size.x if player_inventory != null else 6
-	return maxf(columns * CELL, slots * BELT_SLOT + (slots - 1) * BELT_GAP)
+	return maxf(columns * CELL, slots * belt_slot + (slots - 1) * BELT_GAP)

@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: choosing the item in hand from the belt (ADR 0059): the mouse wheel steps through
 ## the non-empty slots without using anything, H holsters, the HUD's highlight and item name follow,
-## and the wheel is ignored while the inventory screen is open or the player is dead.
+## and the wheel is ignored while the Tab interface is open or the player is dead.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
@@ -113,10 +113,10 @@ func test_item_name_hides_after_its_time() -> void:
 	assert_int(_player.inventory.belt.selected).is_equal(0)
 
 
-func test_wheel_is_ignored_while_the_inventory_screen_is_open() -> void:
+func test_wheel_is_ignored_while_the_tab_interface_is_open() -> void:
 	await _load()
 	_loadout_with_gap()
-	var screen := _player.get_node("InventoryScreen") as InventoryScreen
+	var screen := TabInterface.of(_player)
 	await _press(&"inventory")
 	assert_bool(screen.is_open()).is_true()
 

@@ -228,6 +228,7 @@ entry_id = &"showcase.door.storage_access"
 title = "Storage access"
 text = "New code for the storage room keypad: 2817. Learn it and wipe this pad. - R."
 codes = Dictionary[StringName, String]({&"storage_door": "2817"})
+code_labels = Dictionary[StringName, String]({&"storage_door": "Storage door"})
 
 [node name="Keycard" parent="." instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, 5)

@@ -19,10 +19,9 @@
 [ext_resource type="Resource" path="res://items/inventory/inventory_config.tres" id="20_inventory_config"]
 [ext_resource type="Resource" path="res://items/item_catalog.tres" id="21_catalog"]
 [ext_resource type="Script" path="res://actors/player/interactor.gd" id="22_interactor"]
-[ext_resource type="PackedScene" path="res://ui/inventory/inventory_screen.tscn" id="23_inventory_screen"]
+[ext_resource type="PackedScene" path="res://ui/tab_interface/tab_interface.tscn" id="23_tab_interface"]
 [ext_resource type="PackedScene" path="res://ui/log/reading_overlay.tscn" id="24_reading_overlay"]
 [ext_resource type="Script" path="res://actors/common/personal_log/personal_log.gd" id="33_personal_log"]
-[ext_resource type="PackedScene" path="res://ui/log/log_screen.tscn" id="34_log_screen"]
 [ext_resource type="Resource" path="res://actors/common/body/receptrons/heal.tres" id="heal_receptron"]
 [ext_resource type="Resource" path="res://actors/player/player_movement_noise.tres" id="25_movement_noise"]
 [ext_resource type="Script" path="res://actors/common/movement/fall_impact.gd" id="26_fall_impact"]
@@ -131,11 +130,9 @@ script = ExtResource("22_interactor")
 
 [node name="Hud" parent="." instance=ExtResource("17_hud")]
 
-[node name="InventoryScreen" parent="." instance=ExtResource("23_inventory_screen")]
+[node name="TabInterface" parent="." instance=ExtResource("23_tab_interface")]
 
 [node name="ReadingOverlay" parent="." instance=ExtResource("24_reading_overlay")]
-
-[node name="LogScreen" parent="." instance=ExtResource("34_log_screen")]
 
 [node name="KeypadScreen" parent="." instance=ExtResource("52_keypad_screen")]
 

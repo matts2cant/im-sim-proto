@@ -10,6 +10,9 @@ extends Usable
 @export_multiline var text: String = ""
 ## Keypad code id -> code (M8 keypads ask PersonalLog.known_code(code_id)).
 @export var codes: Dictionary[StringName, String] = {}
+## Code id -> what the code opens, in words ("Manager's office door"): the Journal's Codes and
+## logins list names it so (ADR 0110). Without one the id is shown in words.
+@export var code_labels: Dictionary[StringName, String] = {}
 ## What the log says it was read from; empty: the owner's node name in words.
 @export var source: String = ""
 
@@ -32,7 +35,7 @@ func entry() -> LogEntry:
 	var from := source
 	if from.is_empty() and get_parent() != null:
 		from = String(get_parent().name).capitalize()
-	return LogEntry.make(entry_id, title, text, from, codes)
+	return LogEntry.make(entry_id, title, text, from, codes, code_labels)
 
 
 func use(user: Node) -> bool:

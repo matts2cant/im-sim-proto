@@ -73,19 +73,19 @@ func _process(delta: float) -> void:
 
 
 func _act() -> void:
-	var screen := _player.get_node("InventoryScreen") as InventoryScreen
+	var screen := TabInterface.of(_player)
+	var view := (screen.page(0) as InventoryTab).view
 	match mode:
 		"inventory":
-			screen.open()
-			_mouse(screen.view, screen.view.cell_center(Vector2i(4, 0)), false)
+			screen.open(0)
+			_mouse(view, view.cell_center(Vector2i(4, 0)), false)
 		"drag":
-			screen.open()
-			var view := screen.view
+			screen.open(0)
 			_mouse(view, view.cell_center(Vector2i(2, 0)), true)
 			_mouse(view, view.cell_center(Vector2i(4, 1)), false)
 		"attach":
-			screen.open()
-			var grid := screen.view
+			screen.open(0)
+			var grid := view
 			var silencer := _player.inventory.inventory.stacks[-1]
 			_mouse(grid, grid.cell_center(silencer.cell), true)
 			_mouse(grid, grid.cell_center(Vector2i(5, 3)), false)

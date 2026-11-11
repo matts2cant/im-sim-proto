@@ -642,6 +642,7 @@ entry_id = &"warehouse.side_door_code"
 title = "Crumpled note"
 text = "Side door code changed again: 2390. Stop propping it open with a pallet. - Facilities"
 codes = Dictionary[StringName, String]({&"warehouse_side_door": "2390"})
+code_labels = Dictionary[StringName, String]({&"warehouse_side_door": "Side door"})
 
 [node name="ShiftNotes" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.78, 2.4)
@@ -651,6 +652,7 @@ entry_id = &"warehouse.shift_notes"
 title = "Night shift notes"
 text = "Hale wants his office kept shut: the door code is 4471, don't leave it open. Klaus, your office PC login is kbrandt / ferry19, write it somewhere better than the break room."
 codes = Dictionary[StringName, String]({&"warehouse_manager_office": "4471", &"warehouse_office_pc2": "kbrandt:ferry19"})
+code_labels = Dictionary[StringName, String]({&"warehouse_manager_office": "Manager's office door", &"warehouse_office_pc2": "Office PC 2 login"})
 
 [node name="ManifestDatapad" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, 5.33, 0.7)
@@ -668,6 +670,7 @@ entry_id = &"warehouse.console_audit"
 title = "Console audit"
 text = "Security console in the ground-floor security room: user dmarsh, password harbor77. It runs the cameras, the vault door and the vault turret. Change it after the audit. - E. Hale"
 codes = Dictionary[StringName, String]({&"warehouse_security_console": "dmarsh:harbor77"})
+code_labels = Dictionary[StringName, String]({&"warehouse_security_console": "Security console login"})
 
 [node name="Pc1Note" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.1, 5.28, 14.3)
@@ -677,6 +680,7 @@ entry_id = &"warehouse.pc1_note"
 title = "Sticky note"
 text = "PC login: lpetrova / tulip24"
 codes = Dictionary[StringName, String]({&"warehouse_office_pc1": "lpetrova:tulip24"})
+code_labels = Dictionary[StringName, String]({&"warehouse_office_pc1": "Office PC 1 login"})
 
 [node name="KeycardSecurity" parent="Items" instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.53, 10.2)

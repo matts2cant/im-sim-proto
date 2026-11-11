@@ -1,15 +1,14 @@
 class_name TabPage
 extends Control
-## One page of the Tab interface. The host calls bind() once with the player, then on_shown() each
-## time the page becomes the visible tab; pages update themselves in their own _process while visible.
+## One tab of the Tab interface.
 
 
-## The tab's title in the tab bar.
+## Title shown in the tab bar.
 func tab_title() -> String:
-	return ""
+	return name
 
 
-## Called once with the player the interface belongs to.
+## Called once by the host after the page enters the tree, with the player.
 func bind(_player: Node) -> void:
 	pass
 

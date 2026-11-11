@@ -137,6 +137,7 @@ entry_id = &"showcase_security_login"
 title = "Security login"
 text = "Night shift: the security terminal login is jmercer / falcon7. Do not write it down. -- J."
 codes = Dictionary[StringName, String]({&"showcase_terminal": "jmercer:falcon7"})
+code_labels = Dictionary[StringName, String]({&"showcase_terminal": "Security terminal login"})
 
 [node name="Player" parent="." instance=ExtResource("8_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6.2)

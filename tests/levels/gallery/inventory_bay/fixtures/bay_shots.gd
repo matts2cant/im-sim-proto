@@ -141,7 +141,7 @@ func _act() -> void:
 				_player.inventory.pick_up(pickup)
 	if _shot.get("inventory", false):
 		_player.input_enabled = true
-		(_player.get_node("InventoryScreen") as InventoryScreen).open()
+		TabInterface.of(_player).open(0)
 	if _shot.get("read_pads", false):
 		for child: Node in _room.get_node("DatapadPedestal").get_children():
 			var readable := Usable.of(child) as Readable
@@ -150,7 +150,7 @@ func _act() -> void:
 		(_player.get_node("ReadingOverlay") as ReadingOverlay).close()
 	if _shot.get("log", false):
 		_player.input_enabled = true
-		(_player.get_node("LogScreen") as LogScreen).open()
+		TabInterface.of(_player).open(4)
 	_act_abilities()
 
 

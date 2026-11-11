@@ -1,6 +1,6 @@
 # 52. Inventory pauses the game
 
-Status: Accepted
+Status: Superseded by [ADR 0110](0110-tab-interface.md) (the inventory is a tab of the Tab interface over the running world; only the game menu, briefing and summary pause)
 
 Date: 2026-11-06
 

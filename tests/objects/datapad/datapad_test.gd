@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0060): the player reads a world datapad in place with E. The prompt names it,
-## the reading overlay shows its text (paused), the player's PersonalLog gets the entry once (HUD
-## "Added to log"), its code becomes known, and the datapad stays in the world while the inventory
-## is unchanged. E closing the overlay is not a second read.
+## the reading overlay shows its text (the world keeps running, the player's input is off and the
+## mouse free: ADR 0110), the player's PersonalLog gets the entry once (HUD "Added to log"), its code
+## becomes known, and the datapad stays in the world while the inventory is unchanged. E closing the
+## overlay is not a second read. The overlay closes when the player is knocked out.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -44,7 +45,9 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 	await _press(&"use")
 
 	assert_bool(_overlay.is_open()).is_true()
-	assert_bool(get_tree().paused).is_true()
+	assert_bool(get_tree().paused).is_false()
+	assert_bool(_player.input_enabled).is_false()
+	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_str(_overlay.title_label.text).is_equal("Storage access")
 	assert_str(_overlay.text_label.text).is_equal("Code 2817.")
 	assert_int(_log.entries().size()).is_equal(1)
@@ -59,8 +62,8 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 
 	await _press(&"use")
 	assert_bool(_overlay.is_open()).is_false()
-	assert_bool(get_tree().paused).is_false()
-	# The HUD says it was added (shown once the game runs again).
+	assert_bool(_player.input_enabled).is_true()
+	# The HUD says it was added.
 	var hud := _player.get_node("Hud") as Hud
 	assert_str(hud.message_label.text).is_equal("Added to log: Storage access")
 	# The E that closed the overlay is not a new read.
@@ -140,6 +143,18 @@ func _spawn_pad(entry_id: StringName, title: String, text: String, codes: Dictio
 	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, pad.global_position))
 	await _driver.frames(3)
 	return pad
+
+
+func test_the_overlay_closes_when_the_player_is_knocked_out() -> void:
+	await _load()
+	_log.read(LogEntry.make(&"test.note", "Note", "Text.", "Datapad"))
+	assert_bool(_overlay.is_open()).is_true()
+
+	_player.body.take_damage(&"damage.stun", 1000.0)
+	await _driver.frames(2)
+
+	assert_bool(_overlay.is_open()).is_false()
+	assert_bool(_player.input_enabled).is_true()
 
 
 func _press(action: StringName) -> void:
