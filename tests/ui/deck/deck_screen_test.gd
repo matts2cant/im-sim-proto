@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## LMB with the deck in hand on the wall jack plugs it in and raises the screen (input off, mouse
 ## free, HUD hidden, the world running); Esc lowers it without opening the game menu and the deck
 ## stays plugged in, its scan still running; LMB on the jack raises it again; walking away unplugs
-## it; LMB on an autonomous device plugs into its maintenance port.
+## it; LMB on an autonomous device plugs into its maintenance port. The Map's subnet boxes (ADR 0112
+## amendment) appear with their subnets, router by router, titled and coloured from their data.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -136,3 +137,54 @@ func test_lmb_on_an_autonomous_device_plugs_into_its_maintenance_port() -> void:
 	await _click(Vector3(9, 0, 4.2), "Camera")
 	assert_bool(_session.is_plugged()).is_false()
 	assert_bool(_screen.is_open()).is_false()
+
+
+func test_subnet_boxes_appear_with_their_subnets_router_by_router() -> void:
+	# Fast scans; plugged into the jack: the Office box only (its name, range and data colour),
+	# RTR-01 outside it.
+	_session.config = _session.config.duplicate() as DeckConfig
+	_session.config.scan_time = 0.1
+	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
+	await _driver.frames(2)
+	_session.plug_and_raise(_lab.device("Jack"))
+	await _driver.frames(45)
+	_screen.refresh()
+	_assert_boxes([&"office"])
+	# RTR-01 hacked: Security appears after its scan, RTR-02 beside it; Servers stays hidden.
+	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
+	_session.refresh()
+	await _driver.frames(45)
+	_screen.refresh()
+	_assert_boxes([&"office", &"security"])
+	assert_array(_screen.graph.node_names()).contains(["RTR-02"])
+	# RTR-02 hacked: Servers appears too.
+	DeviceAccounts.of(_lab.node("Rtr02")).grant(_player, "admin")
+	_session.refresh()
+	await _driver.frames(45)
+	_screen.refresh()
+	_assert_boxes([&"office", &"security", &"servers"])
+
+
+# The Map shows a box for exactly `ids`, each titled and coloured from its Subnet data, holding its
+# devices; every router (both addresses on its status line) outside every box.
+func _assert_boxes(ids: Array[StringName]) -> void:
+	var graph := _screen.graph
+	(
+		assert_array(graph.subnet_boxes.keys())
+		. override_failure_message("boxes %s, nodes %s" % [graph.subnet_boxes.keys(), graph.node_names()])
+		. contains_exactly(ids)
+	)
+	for id in ids:
+		var data: Subnet = graph.subnets[id]
+		assert_str(graph.subnet_boxes[id]["title"]).is_equal("%s %s" % [data.label, data.address_range])
+		assert_object(graph.subnet_boxes[id]["color"]).is_equal(data.map_color)
+	var rects := graph.node_rects()
+	for i in graph.rows.size():
+		var row := graph.rows[i]
+		for id in ids:
+			var inside := (graph.subnet_boxes[id]["rect"] as Rect2).encloses(rects[i])
+			assert_bool(inside).override_failure_message("%s in %s" % [row.name, id]).is_equal(
+				not row.is_between() and row.subnet == id
+			)
+	assert_str(graph.node_status("RTR-01")).starts_with("10.0.10.1 · 10.0.20.254")
+	assert_str(graph.node_button("RTR-01").text).is_equal("RTR-01 · router")

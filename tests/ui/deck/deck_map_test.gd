@@ -88,49 +88,6 @@ func test_a_known_login_logs_in_without_trace_and_hacking_the_router_reveals_its
 	)
 
 
-func test_subnet_boxes_appear_with_their_subnets_router_by_router() -> void:
-	# From the jack: the Office box only (its name, range and data colour), RTR-01 outside it.
-	_assert_boxes([&"office"])
-	# RTR-01 hacked: Security appears after its scan, RTR-02 beside it; Servers stays hidden.
-	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
-	_session.refresh()
-	await _driver.frames(130)
-	_screen.refresh()
-	_assert_boxes([&"office", &"security"])
-	assert_array(_screen.graph.node_names()).contains(["RTR-02"])
-	# RTR-02 hacked: Servers appears too.
-	DeviceAccounts.of(_lab.node("Rtr02")).grant(_player, "admin")
-	_session.refresh()
-	await _driver.frames(130)
-	_screen.refresh()
-	_assert_boxes([&"office", &"security", &"servers"])
-
-
-# The Map shows a box for exactly `ids`, each titled and coloured from its Subnet data, holding its
-# devices; every router (both addresses on its status line) outside every box.
-func _assert_boxes(ids: Array[StringName]) -> void:
-	var graph := _screen.graph
-	(
-		assert_array(graph.subnet_boxes.keys())
-		. override_failure_message("boxes %s, nodes %s" % [graph.subnet_boxes.keys(), graph.node_names()])
-		. contains_exactly(ids)
-	)
-	for id in ids:
-		var data: Subnet = graph.subnets[id]
-		assert_str(graph.subnet_boxes[id]["title"]).is_equal("%s %s" % [data.label, data.address_range])
-		assert_object(graph.subnet_boxes[id]["color"]).is_equal(data.map_color)
-	var rects := graph.node_rects()
-	for i in graph.rows.size():
-		var row := graph.rows[i]
-		for id in ids:
-			var inside := (graph.subnet_boxes[id]["rect"] as Rect2).encloses(rects[i])
-			assert_bool(inside).override_failure_message("%s in %s" % [row.name, id]).is_equal(
-				not row.is_between() and row.subnet == id
-			)
-	assert_str(graph.node_status("RTR-01")).starts_with("10.0.10.1 · 10.0.20.254")
-	assert_str(graph.node_button("RTR-01").text).is_equal("RTR-01 · router")
-
-
 func test_the_icebreaker_cracks_an_account_into_the_journal() -> void:
 	_player.skills.set_tier(&"computer", 3)
 	_screen.graph.select("OFFICE-PC")
