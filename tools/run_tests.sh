@@ -321,10 +321,18 @@ gawk -v times_out="$times_file.new" -v times_old="$times_file" -f tools/test_tim
 [ -s "$times_file.new" ] && mv "$times_file.new" "$times_file"
 slowest=""
 overhead=""
+load=""
 while read -r kind a b c rest; do
 	case "$kind" in
 	slowest) slowest="slowest shard $a ($(secs "$b")): $c $rest" ;;
 	overhead) overhead="fit over the shards: start-up, scan and shutdown ~${a}s per shard + ~${b}s per suite" ;;
+	load)
+		if [ "$c" -gt 0 ]; then
+			read -r new_n new_s <<< "$rest"
+			load="$(awk -v now="$a" -v old="$b" -v n="$c" -v nn="$new_n" -v ns="$new_s" 'BEGIN {
+				printf "suite time: %d suites %.1fs (last run %.1fs, %+.0f%%); %d new suites %.1fs", n, now, old, (old > 0 ? (now - old) * 100 / old : 0), nn, ns }')"
+		fi
+		;;
 	esac
 done < "$shard_root/timing.txt"
 stamp_ms t_end
@@ -333,6 +341,7 @@ echo "Timing: total $(secs $((t_end - t_start))) = before shards $(secs $((t_sha
 	"+ shards $(secs $((t_post - t_shards))) + after $(secs $((t_end - t_post)))"
 [ -n "$slowest" ] && echo "  $slowest"
 [ -n "$overhead" ] && echo "  $overhead"
+[ -n "$load" ] && echo "  $load"
 echo "Overall Summary: $t_cases test cases | $t_errors errors | $t_failures failures | $t_flaky flaky | $t_skipped skipped | $t_orphans orphans | $crashed crashed shard(s) | ${#suites[@]} suites in $jobs shard(s), $(secs $((t_end - t_start))) | exit $rc"
 echo "Reports: reports/shards/<n>/ (output.log, suites.txt, report_1/index.html and results.xml); all output: $log"
 exit "$rc"

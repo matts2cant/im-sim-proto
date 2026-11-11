@@ -12,7 +12,7 @@ The user and I settled M12b and M12c in a design review (ADR 0115), with an appr
   - exploits, the Firewall tool and device logs (ADR 0116), which merged master and wrote four tests across both features.
 - Then three in parallel: the deck Map fix (the user's report), the hub (the security wing in subnets, a network lab annex with Wi-Fi, exploits and firewall stations), the warehouse (AP-YARD, exploits in a mail and a datapad, router rules).
 
-Final suite on master: 1865 tests, 0 failures, 1 skipped, lint clean, twice; 57.8 s on the second run (64.7 s recorded after the M12a click fix).
+Final suite on master: 1865 tests, 0 failures, 1 skipped, lint clean; 76.2 s on the first run, 57.8 s on a second run made only for timing (64.7 s recorded after the M12a click fix).
 
 - **Went well:**
   - **Merge the first, the second integrates** worked a fifth time. One of the cross-feature tests proved a case I had guessed moot: a "you" deny rule still cuts a Wi-Fi deck that has an account on the router.
@@ -26,6 +26,7 @@ Final suite on master: 1865 tests, 0 failures, 1 skipped, lint clean, twice; 57.
 - **Changes:**
   - CLAUDE.md: when a milestone changes a system's data format, the level brief lists every level and gallery room that uses the system (grep `levels/` for its components) and updates them in the same milestone.
   - CLAUDE.md: tests and mockups of anything that remembers state across places (a deck's map, a Journal, a trace) include a second, unconnected place.
+  - **One full run after merging, not two** (the user: correctness first, no second run without a change in between). `tools/run_tests.sh` now prints a `suite time` line comparing the suites also in the last run against their recorded times, which one run can judge; CLAUDE.md's timing rule uses it.
   - CLAUDE.md: a brief that adds to a file near a lint size limit names the split first (M12c's first step: split `deck_screen.gd` by tool before adding the AR view).
 - **Open for the user:**
   - AP-YARD is a small silhouette against the night sky. Is it findable in play before M12c's status lights?

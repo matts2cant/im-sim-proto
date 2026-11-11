@@ -8,6 +8,10 @@
 # (engine start-up, GdUnit's scan of the suite scripts, loading each suite, reports, shutdown); then
 #   slowest <shard> <wall ms> <text>      (the same line for the shard that took longest)
 #   overhead <per shard s> <per suite s> <shards fitted>
+#   load <now s> <last run s> <suites> <new suites> <new suites s>
+# (load: the suites this run shares with times_old, their summed times now and as recorded, then the
+# suites times_old did not have and their summed time; independent of how the shards were balanced,
+# so one run tells whether the machine or the code got slower).
 # from a least-squares fit of (wall - suite times) = per shard + per suite x suites over the shards.
 # times_out gets "<res://suite path>\t<seconds>" per suite: its GdUnit time plus the per-suite
 # overhead, i.e. its share of a shard's wall time (tools/run_tests.sh balances shards on it),
@@ -65,10 +69,14 @@ END {
 		if (times_old != "") {
 			while ((getline line < times_old) > 0) {
 				split(line, f, "\t")
-				if (!(f[1] in suite_time) && f[1] != "") print line > times_out
+				if (f[1] == "") continue
+				if (f[1] in suite_time) { same_new += suite_time[f[1]] + b; same_old += f[2]; same_n++; in_old[f[1]] = 1 }
+				else print line > times_out
 			}
 			close(times_old)
 		}
 		close(times_out)
+		for (p in suite_time) if (!(p in in_old)) { new_n++; new_sum += suite_time[p] + b }
+		printf "load %.1f %.1f %d %d %.1f\n", same_new, same_old, same_n, new_n, new_sum
 	}
 }
