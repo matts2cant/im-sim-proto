@@ -452,6 +452,10 @@ No level has software versions or exploits yet: use the review shots (`tests/ui/
 - [ ] The line under the table makes it clear that your own traffic passes with an account unless a rule names "you".
 - [ ] The Journal's Exploits section: targets and grants read easily, the "learned from" link opens the note.
 
+### M12b Map: the plugged network only ([ADR 0113 amendment](../decisions/0113-network-layer-tracers-and-the-deck.md#amendment-the-map-draws-the-plugged-network-only-2026-11-11))
+
+- [ ] Use the deck in the network lab, then plug into a device in the security wing: the Map draws only the security wing's network; plug back in the lab: its map is there at once, no new scan. Raised unplugged from the Wi-Fi key screen, the Map button shows only "Plug the deck into a device to see its network."
+
 ### Routers and subnet boxes (ADR 0112 amendment)
 
 Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_chained,console_security`, `warehouse_shots.tscn -- shots=deck_map_office,deck_map_hacked,office_pc1_dock`.

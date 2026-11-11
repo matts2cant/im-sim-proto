@@ -8,7 +8,9 @@ extends CanvasLayer
 ## - Title bar: "Deck", the entry point and address, one trace bar per tracer watching the user
 ##   (DeckSession.tracers(); "unknown tracer" until its host is on the map), ✕.
 ## - Tools on the left: Map, Icebreaker, Exploits, Firewall; Logs greyed (M16).
-## - Map: NetworkGraph of DeckSession.map_devices() (amber: access, grey: out of reach); a node's
+## - Map: NetworkGraph of DeckSession.map_devices() (amber: access, grey: out of reach): the network
+##   the deck is plugged into only; unplugged (from the Wi-Fi key screen) it draws nothing and says
+##   UNPLUGGED_NOTE. A node's
 ##   menu: address and status, its software once its subnet is scanned (M12b), "Exploits (n)" when
 ##   known exploits match it (opens the Exploits tool on it), "Firewall rules" on a router the user
 ##   is admin of, its accounts (access / "Log in (from <note>)" / Icebreaker / "too strong"), the
@@ -39,6 +41,8 @@ const HINT: String = "Click a device. Amber: you have access. Drag to pan, wheel
 const TETHER_NOTE: String = "Walking away unplugs the deck and stops its tools."
 const WIRELESS_NOTE: String = "Leaving the access point's range drops the Wi-Fi and stops its tools."
 const ASSIST_PREFIX: String = "Computer skill · "
+## What the Map says while the deck is not plugged in (it draws nothing).
+const UNPLUGGED_NOTE: String = "Plug the deck into a device to see its network."
 ## A remote desktop's title bar is narrower: its bars go without a name (the deck's own bar above
 ## shows the named ones).
 const COMPACT_BAR_WIDTH: float = 48.0
@@ -63,6 +67,8 @@ var exploits_button: Button
 var firewall_button: Button
 var graph: NetworkGraph
 var map_view: Control
+## The Map's line while unplugged (UNPLUGGED_NOTE).
+var unplugged_label: Label
 var ice_view: MarginContainer
 var ice_column: VBoxContainer
 var exploits_view: ExploitsView
@@ -219,16 +225,17 @@ func show_tool(which: Tool) -> void:
 
 ## Brings the title bar, the map and the Icebreaker up to date (also every refresh interval).
 func refresh() -> void:
-	if session == null or (not session.is_plugged() and tool != Tool.WIFI):
+	if session == null or (not session.is_plugged() and tool != Tool.WIFI and tool != Tool.MAP):
 		return
 	_refresh_left = session.config.refresh_interval
-	map_button.disabled = not session.is_plugged()
 	ice_button.disabled = not session.is_plugged()
 	exploits_button.disabled = not session.is_plugged()
 	firewall_button.disabled = not session.is_plugged()
 	tether_label.text = WIRELESS_NOTE if session.is_wireless() else TETHER_NOTE
 	if tool == Tool.WIFI:
 		title_meta.text = WifiPanel.title_text(wireless)
+	elif not session.is_plugged():
+		title_meta.text = "Not plugged in"
 	else:
 		var verb := "Joined" if session.is_wireless() else "Plugged into"
 		title_meta.text = "%s %s · %s" % [verb, entry_label(), _address_text()]
@@ -472,6 +479,7 @@ func _address_text() -> String:
 
 
 func _refresh_map() -> void:
+	unplugged_label.visible = not session.is_plugged()
 	var rows := map_rows()
 	var signature := _signature_of(rows)
 	if signature == _signature:
@@ -525,7 +533,8 @@ func _signature_of(rows: Array[NetworkRow]) -> String:
 func _refresh_traces() -> void:
 	var bars: Array[HBoxContainer] = []
 	var wifi := tool == Tool.WIFI
-	var address := WifiPanel.aim_address(wireless) if wifi else session.source.address
+	var plugged := session.source.address if session.is_plugged() else ""
+	var address := WifiPanel.aim_address(wireless) if wifi else plugged
 	for tracer in WifiPanel.tracers(wireless) if wifi else session.tracers():
 		var left := tracer.model.lockout_left(address)
 		bars.append(DeckStyle.trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
@@ -966,6 +975,14 @@ func _build_map(content: Control) -> void:
 	hint.offset_top = -28.0
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	map_view.add_child(hint)
+	unplugged_label = DeckStyle.label(UNPLUGGED_NOTE, DeckStyle.DIM_COLOR, 15)
+	unplugged_label.name = "Unplugged"
+	unplugged_label.set_anchors_preset(Control.PRESET_CENTER)
+	unplugged_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	unplugged_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+	unplugged_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	unplugged_label.visible = false
+	map_view.add_child(unplugged_label)
 
 
 func _build_ice(content: Control) -> void:
