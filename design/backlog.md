@@ -21,7 +21,7 @@ Parked items, out of scope for v0.
 | Gamepad and rebinding | Input options | Keyboard and mouse only for v0 ([ADR 0028](decisions/0028-input-physical-keys.md)) |
 | Gamepad lockpicking mapping | L2 tension (analog: tension follows trigger depth), R2 lift (same spring/lag model), right stick changes pins; built-in rumble for clicks and strain (Godot 4.7 has rumble, light bar and motion sensors) | Part of the gamepad milestone ([ADR 0073](decisions/0073-realistic-lockpicking.md)) |
 | DualSense adaptive triggers (stretch) | Trigger resistance for tension and strain; Godot has no adaptive-trigger API, so it needs a GDExtension | Needs the user's approval before adding any dependency |
-| Lockpicking training course | A Deus Ex-style training level for the final game; v0 has acrylic practice locks | Needs a real level ([lockpicking](game/lockpicking.md)) |
+| Training level | A Deus Ex-style training level for the final game, teaching each system in turn: lockpicking (v0 has acrylic practice locks), the network rules (switches, routers, trust, tracers, loss-of-signal, the mail server; v0 has the network lab) and the rest | Needs a real level ([lockpicking](game/lockpicking.md), [hacking](game/hacking.md#m12b-design-notes-to-be-designed)) |
 | Other lock types | Safe dials, disc detainers, etc. | Pin-tumbler only for now |
 | Terrain3D | Outdoor levels; addon removed | No outdoor terrain in v0 |
 | Difficulty settings | Tuning via `.tres` and debug panel instead | Not needed for a prototype ([ADR 0029](decisions/0029-docs-english-no-difficulty.md)) |
