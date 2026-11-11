@@ -1,32 +1,27 @@
 class_name NetworkGraph
 extends Control
 ## A network map (ADR 0083, 0099; the deck's Map since ADR 0113, moved from ui/terminal/): one node
-## per NetworkRow its owner gives it (the deck's discovered devices; the M8 terminal's network), grouped
-## by the hub it hangs on and placed by NetworkLayout, the cables along the layout's routes (solid
-## green between two online devices, also when one is disabled: the link works; dashed grey
-## otherwise), the owner's own device outlined. Each node shows its name and its address and status
-## words; its outline and status line take the device's colour (DeckStyle.row_color(): offline
-## grey, disabled red, access amber, alert words orange, else green).
+## (NetworkNodeBox) per NetworkRow its owner gives it (the deck's discovered devices; the M8
+## terminal's network), grouped by the hub it hangs on and placed by NetworkLayout; the subnet boxes
+## and cables behind them (NetworkMapPainter), the owner's own device outlined.
 ## The map pans and zooms (NetworkView): drag the background with the left or middle mouse button
 ## to move it (a press on a node or the menu never drags; a press becomes a drag past DRAG_THRESHOLD
 ## px), the wheel zooms around the cursor, fit_view() (the Fit button, F on the screen) shows the whole
 ## network; it opens fitted (request_fit()). The nodes, their labels and the cables live in
 ## `content`, a child scaled and moved by the view; the menu and the Fit button stay in the panel.
 ## Subnets (ADR 0112 amendment): the nodes are laid out by their row's subnet; each subnet with data
-## in `subnets` (Subnet: name, range, colour) is a flat box of its colour behind its devices (fill
-## SUBNET_FILL_ALPHA, a 1 px border) with its name and range at its top-left; a router row (it joins
+## in `subnets` (Subnet: name, range, colour) is a box behind its devices; a router row (it joins
 ## two subnets or more) stands between the boxes, "router" after its name. A subnet shows its box
 ## only while one of its devices is on the map.
 ## Wireless links (M12b, ADR 0117): a cable whose rows' devices are linked by radio
 ## (Device.wireless_link(): `wireless`) is laid out like a cable (so wireless devices sit with their
-## access point) and always drawn dashed in WIRELESS_COLOR (the offline grey while an end is offline).
-## Clicking a node (without dragging) opens a small menu beside it, kept inside the panel: its name,
-## status and, by default, one button per command of its row (none while offline; a button emits
-## `command_pressed`); an owner with `menu_builder` fills the menu itself (the deck: accounts,
-## Icebreaker, actions). Clicking the background closes it; `menu_closed` tells the owner.
+## access point) and drawn dashed in WIRELESS_COLOR.
+## Clicking a node (without dragging) opens its menu (NetworkMenu) beside it: by default one button
+## per command of its row (`command_pressed`); an owner with `menu_builder` fills it itself (the
+## deck). Clicking the background closes it; `selection_changed` tells the owner.
 ## Refreshes keep the widgets under the cursor: show_network() rebuilds the nodes only when what they
-## draw changed, and the menu is filled aside and reconciled (DeckStyle.reconcile()), so a button
-## that looks the same keeps its node, its hover and a click held on it across the owner's refresh.
+## draw changed, and the menu reconciles its buttons, so a click held on one survives the owner's
+## refresh.
 
 signal command_pressed(command: StringName, target: Device)
 ## The menu was opened on `target` (null: it closed).
@@ -92,16 +87,15 @@ var layout: NetworkLayout
 ## Holds the nodes and draws the cables; moved and scaled by `view`.
 var content: Control
 
-var menu: PanelContainer
+## The device menu (a PanelContainer); its title and status labels.
+var menu: NetworkMenu
 var menu_title: Label
 var menu_status: Label
 var fit_button: Button
 
-var _nodes: Array[Control] = []
-var _styles: Array[StyleBoxFlat] = []
+var _nodes: Array[NetworkNodeBox] = []
 # Per region: its title (null for a subnet without data).
 var _titles: Array[Control] = []
-var _menu_buttons: VBoxContainer
 # Fit at the next chance (the panel has a size and a network).
 var _fit_pending: bool = true
 # The view is as fit_view() left it: a resize fits again.
@@ -122,26 +116,12 @@ func _ready() -> void:
 	content = Control.new()
 	content.name = "Content"
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.draw.connect(_draw_cables)
+	content.draw.connect(func() -> void: NetworkMapPainter.paint(self))
 	add_child(content)
-	menu = PanelContainer.new()
-	menu.visible = false
-	menu.custom_minimum_size.x = menu_width
-	menu.z_index = 1
-	menu.add_theme_stylebox_override(&"panel", DeckStyle.panel_style(DeckStyle.BORDER_COLOR, 1, 10.0))
-	menu.mouse_filter = Control.MOUSE_FILTER_STOP
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 6)
-	menu.add_child(column)
-	menu_title = DeckStyle.label("", DeckStyle.TITLE_COLOR, 16)
-	column.add_child(menu_title)
-	menu_status = DeckStyle.label("", DeckStyle.TEXT_COLOR, 13)
-	menu_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	menu_status.custom_minimum_size.x = menu_width - 20.0
-	column.add_child(menu_status)
-	_menu_buttons = VBoxContainer.new()
-	_menu_buttons.add_theme_constant_override(&"separation", 4)
-	column.add_child(_menu_buttons)
+	menu = NetworkMenu.new(menu_width)
+	menu.command_pressed.connect(command_pressed.emit)
+	menu_title = menu.title
+	menu_status = menu.status
 	add_child(menu)
 	fit_button = DeckStyle.button("Fit", 13)
 	fit_button.name = "Fit"
@@ -172,7 +152,7 @@ func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = 
 		command_label = Callable(p_labels as Object, &"label_for")
 	# Nothing drawn changed (an owner's periodic refresh): the nodes stay, so a click held on one
 	# survives it.
-	var key := _drawn_key()
+	var key := NetworkMapInputs.drawn_key(rows, cables, wireless, subnets, _panel_size())
 	if key == _drawn and _nodes.size() == rows.size():
 		if is_instance_valid(selected) and _index_of(selected) < 0:
 			selected = null
@@ -185,10 +165,10 @@ func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = 
 		if title != null:
 			DeckStyle.discard(title)
 	_nodes.clear()
-	_styles.clear()
 	_titles.clear()
 	for i in rows.size():
-		var node := _node(rows[i])
+		var node := NetworkNodeBox.new(rows[i])
+		node.button.pressed.connect(_on_node_pressed.bind(rows[i].device))
 		_nodes.append(node)
 		content.add_child(node)
 	_layout()
@@ -253,19 +233,19 @@ func node_names() -> Array[String]:
 ## The node button of `device_name`, or null.
 func node_button(device_name: String) -> Button:
 	var index := _index_by_name(device_name)
-	return _nodes[index].get_node(^"Button") as Button if index >= 0 else null
+	return _nodes[index].button if index >= 0 else null
 
 
 ## The status line under the node of `device_name` ("" when there is none).
 func node_status(device_name: String) -> String:
 	var index := _index_by_name(device_name)
-	return (_nodes[index].get_node(^"Status") as Label).text if index >= 0 else ""
+	return _nodes[index].status.text if index >= 0 else ""
 
 
 ## The outline colour of the node of `device_name` as drawn (white while selected), or black.
 func node_color(device_name: String) -> Color:
 	var index := _index_by_name(device_name)
-	return _styles[index].border_color if index >= 0 else Color.BLACK
+	return _nodes[index].style.border_color if index >= 0 else Color.BLACK
 
 
 ## The colour of the status line under the node of `device_name`, or black.
@@ -273,28 +253,17 @@ func node_status_color(device_name: String) -> Color:
 	var index := _index_by_name(device_name)
 	if index < 0:
 		return Color.BLACK
-	return (_nodes[index].get_node(^"Status") as Label).get_theme_color(&"font_color")
+	return _nodes[index].status.get_theme_color(&"font_color")
 
 
 ## The open menu's command button `label`, or null.
 func menu_button(label: String) -> Button:
-	if not menu.visible:
-		return null
-	for child in _menu_buttons.get_children():
-		var command_button := child as Button
-		if command_button != null and not command_button.is_queued_for_deletion() and command_button.text == label:
-			return command_button
-	return null
+	return menu.button(label)
 
 
 ## The open menu's command button labels.
 func menu_labels() -> Array[String]:
-	var labels: Array[String] = []
-	if menu.visible:
-		for child in _menu_buttons.get_children():
-			if child is Button and not child.is_queued_for_deletion():
-				labels.append((child as Button).text)
-	return labels
+	return menu.labels()
 
 
 ## Each node's box (name and status line) in content coordinates (zoom 1), in row order (tests).
@@ -388,46 +357,6 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), DeckStyle.BORDER_COLOR.darkened(0.5), false, 1.0)
 
 
-# The cables, in content coordinates: dashed ones first, so a live bus shared with them stays solid.
-func _draw_cables() -> void:
-	if layout == null:
-		return
-	for id: StringName in subnet_boxes:
-		var color: Color = subnet_boxes[id]["color"]
-		var box := StyleBoxFlat.new()
-		box.bg_color = Color(color, SUBNET_FILL_ALPHA)
-		box.border_color = Color(color, SUBNET_BORDER_ALPHA)
-		box.set_border_width_all(1)
-		box.set_corner_radius_all(SUBNET_RADIUS)
-		box.draw(content.get_canvas_item(), subnet_boxes[id]["rect"])
-	# Cables off the network's tree last (they may cross others).
-	var order: Array[int] = []
-	for k in mini(cables.size(), layout.routes.size()):
-		if not layout.extra.has(k):
-			order.append(k)
-	order.append_array(Array(layout.extra))
-	for pass_live: bool in [false, true]:
-		for k in order:
-			var cable := cables[k]
-			if cable.x >= rows.size() or cable.y >= rows.size():
-				continue
-			var live := cable_live(k)
-			if live != pass_live:
-				continue
-			var route := layout.routes[k]
-			if route.size() < 2:
-				continue
-			if wireless.has(k):
-				for dash in dashes(route, WIRELESS_DASH, WIRELESS_GAP):
-					content.draw_line(dash[0], dash[1], cable_color(k), CABLE_WIDTH, true)
-				continue
-			if live:
-				content.draw_polyline(route, cable_color(k), CABLE_WIDTH, true)
-				continue
-			for dash in dashes(route, DASH, DASH_GAP):
-				content.draw_line(dash[0], dash[1], cable_color(k), CABLE_WIDTH, true)
-
-
 ## True when cable `k` joins two online devices (drawn solid; else dashed). A disabled end does not
 ## matter: the link works (commands reach the device, the player can enable it again).
 func cable_live(k: int) -> bool:
@@ -446,24 +375,7 @@ func cable_color(k: int) -> Color:
 
 ## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs.
 static func dashes(route: PackedVector2Array, dash: float, gap: float) -> Array[PackedVector2Array]:
-	var found: Array[PackedVector2Array] = []
-	var period := dash + gap
-	var walked := 0.0
-	for i in route.size() - 1:
-		var from := route[i]
-		var length := from.distance_to(route[i + 1])
-		if length <= 0.0:
-			continue
-		var direction := (route[i + 1] - from) / length
-		var along := 0.0
-		while along < length:
-			var phase := fmod(walked + along, period)
-			var step := minf((dash - phase) if phase < dash else (period - phase), length - along)
-			if phase < dash:
-				found.append(PackedVector2Array([from + direction * along, from + direction * (along + step)]))
-			along += maxf(step, 0.001)
-		walked += length
-	return found
+	return NetworkMapPainter.dashes(route, dash, gap)
 
 
 func _layout() -> void:
@@ -476,7 +388,7 @@ func _layout() -> void:
 		sizes.append(node.size)
 	var panel := _panel_size()
 	var aspect := snappedf(panel.x / panel.y, 0.1) if panel.y > 0.0 else 2.4
-	var regions := _regions()
+	var regions := NetworkMapInputs.regions(rows, region_ids)
 	var titles: Array[Vector2] = []
 	for id in region_ids:
 		var title := _title(id)
@@ -485,7 +397,7 @@ func _layout() -> void:
 	layout = NetworkLayout.arrange(positions, cables, sizes, NODE_TOP, aspect, regions, titles)
 	for i in _nodes.size():
 		_nodes[i].position = layout.rects[i].position
-		_align(_nodes[i], layout.sides[i])
+		_nodes[i].align(layout.sides[i])
 	subnet_boxes.clear()
 	for r in _titles.size():
 		if _titles[r] == null or not layout.region_rects[r].has_area():
@@ -509,101 +421,14 @@ func _layout() -> void:
 		_apply_view()
 
 
-# Per row its region (NetworkLayout.ROUTER for a router) and `region_ids`: the subnets in order, the
-# own device's first, then as their rows come.
-func _regions() -> PackedInt32Array:
-	region_ids.clear()
-	for row in rows:
-		if row.is_self and not row.is_between():
-			region_ids.append(row.subnet)
-	for row in rows:
-		var ids: Array[StringName] = [row.subnet]
-		if row.is_between():
-			ids = row.joins
-		for id in ids:
-			if not region_ids.has(id) and (not row.is_between() or _has_members(id)):
-				region_ids.append(id)
-	var regions := PackedInt32Array()
-	for row in rows:
-		regions.append(NetworkLayout.ROUTER if row.is_between() else region_ids.find(row.subnet))
-	return regions
-
-
-func _has_members(id: StringName) -> bool:
-	for row in rows:
-		if not row.is_between() and row.subnet == id:
-			return true
-	return false
-
-
-# The title of subnet `id`'s box (its name, then its range dimmer), or null without data.
+# The title of subnet `id`'s box (in the content), or null without data.
 func _title(id: StringName) -> Control:
 	var data: Subnet = subnets.get(id)
 	if data == null:
 		return null
-	var line := HBoxContainer.new()
-	line.add_theme_constant_override(&"separation", 10)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var text_color := data.map_color.lightened(0.5)
-	var name_label := DeckStyle.mono(
-		data.label if not data.label.is_empty() else String(id).to_upper(), text_color, SUBNET_TITLE_SIZE
-	)
-	line.add_child(name_label)
-	if not data.address_range.is_empty():
-		line.add_child(DeckStyle.mono(data.address_range, Color(text_color, 0.8), SUBNET_TITLE_SIZE))
-	for child in line.get_children():
-		(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var line := NetworkMapPainter.subnet_title(id, data)
 	content.add_child(line)
 	return line
-
-
-# Name and status aligned on the bus side of the node's box (centred on a hub).
-func _align(node: Control, side: int) -> void:
-	var flags := Control.SIZE_SHRINK_CENTER
-	var alignment := HORIZONTAL_ALIGNMENT_CENTER
-	if side < 0:
-		flags = Control.SIZE_SHRINK_END
-		alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	elif side > 0:
-		flags = Control.SIZE_SHRINK_BEGIN
-		alignment = HORIZONTAL_ALIGNMENT_LEFT
-	var status := node.get_node(^"Status") as Label
-	(node.get_node(^"Button") as Control).size_flags_horizontal = flags
-	status.size_flags_horizontal = flags
-	status.horizontal_alignment = alignment
-
-
-# Everything the nodes, cables and subnet boxes are built from: the rows as drawn, the cables, the
-# subnets' data and the panel's shape (the layout's aspect).
-func _drawn_key() -> String:
-	var parts := PackedStringArray()
-	for row in rows:
-		var fields: Array = [
-			row.device.get_instance_id() if is_instance_valid(row.device) else 0,
-			row.name,
-			row.role,
-			row.address,
-			" ".join(row.status),
-			row.online,
-			row.disabled,
-			row.is_self,
-			row.access,
-			row.has_view,
-			row.subnet,
-			row.joins,
-			row.position().snapped(Vector3.ONE * 0.01),
-			row.commands,
-		]
-		parts.append(str(fields))
-	parts.append(str(cables))
-	parts.append(str(wireless))
-	for id: StringName in subnets:
-		var data := subnets[id]
-		if data != null:
-			parts.append(str([id, data.label, data.address_range, data.map_color]))
-	var panel := _panel_size()
-	parts.append(str(snappedf(panel.x / panel.y, 0.1) if panel.y > 0.0 else 0.0))
-	return "\n".join(parts)
 
 
 func _try_fit() -> bool:
@@ -634,58 +459,6 @@ func _apply_view() -> void:
 	_place_menu()
 
 
-func _node(row: NetworkRow) -> Control:
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override(&"separation", 0)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var node_button := Button.new()
-	node_button.text = row.name if row.role.is_empty() else "%s · %s" % [row.name, row.role]
-	node_button.focus_mode = Control.FOCUS_NONE
-	node_button.add_theme_font_size_override(&"font_size", 13)
-	node_button.name = "Button"
-	# Pass: the wheel over a node zooms (a press on it is its click, never a drag: _mouse_button()).
-	node_button.mouse_filter = Control.MOUSE_FILTER_PASS
-	var color := DeckStyle.row_color(row)
-	var style := StyleBoxFlat.new()
-	style.bg_color = NODE_FILL
-	style.set_corner_radius_all(4)
-	style.content_margin_left = 6.0
-	style.content_margin_right = 6.0
-	style.content_margin_top = 3.0
-	style.content_margin_bottom = 3.0
-	_styles.append(style)
-	for state: StringName in [&"normal", &"hover", &"pressed"]:
-		node_button.add_theme_stylebox_override(state, style)
-	node_button.add_theme_color_override(&"font_color", DeckStyle.TEXT_COLOR if row.online else color)
-	node_button.add_theme_color_override(&"font_hover_color", DeckStyle.TITLE_COLOR)
-	node_button.pressed.connect(_on_node_pressed.bind(row.device))
-	box.add_child(node_button)
-	var status := DeckStyle.label(_short_status(row), color, 11)
-	status.name = "Status"
-	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Cables pass under the nodes: the status line hides them.
-	var backing := StyleBoxFlat.new()
-	backing.bg_color = BACKGROUND
-	backing.set_content_margin_all(1)
-	status.add_theme_stylebox_override(&"normal", backing)
-	box.add_child(status)
-	return box
-
-
-# The node's status line: its address (if any), then its words without "online" (offline devices
-# say "offline").
-func _short_status(row: NetworkRow) -> String:
-	var words := PackedStringArray()
-	if not row.address.is_empty():
-		words.append(row.address)
-	var states := PackedStringArray()
-	for word in row.status:
-		if word != DeviceStatus.ONLINE:
-			states.append(word)
-	words.append(DeckStyle.status_text(states) if not states.is_empty() else DeviceStatus.ONLINE)
-	return DeckStyle.status_text(words)
-
-
 func _on_node_pressed(device: Device) -> void:
 	if _dragging:
 		return
@@ -702,89 +475,23 @@ func _open_menu(index: int) -> void:
 
 func _update_menu() -> void:
 	var index := _index_of(selected) if is_instance_valid(selected) else -1
-	_restyle(index)
+	for i in mini(_nodes.size(), rows.size()):
+		_nodes[i].restyle(rows[i], i == index)
 	menu.visible = index >= 0
 	if index < 0:
 		return
-	var row := rows[index]
-	menu.custom_minimum_size.x = menu_width
-	menu_status.custom_minimum_size.x = menu_width - 20.0
-	menu_title.text = row.name
-	var words := PackedStringArray([row.address]) if not row.address.is_empty() else PackedStringArray()
-	words.append_array(row.status)
-	menu_status.text = DeckStyle.status_text(words)
-	menu_status.add_theme_color_override(&"font_color", DeckStyle.row_color(row))
-	# Filled aside, then reconciled: a button that looks the same keeps its node (a click held on it
-	# survives the owner's refreshes).
-	var fresh := VBoxContainer.new()
-	_fill_menu(row, fresh)
-	DeckStyle.reconcile(_menu_buttons, fresh)
+	menu.show_row(rows[index], menu_width, menu_builder, command_label)
 	_place_menu()
 
 
-func _fill_menu(row: NetworkRow, column: VBoxContainer) -> void:
-	if menu_builder.is_valid():
-		menu_builder.call(row, column)
-		return
-	for command in row.commands:
-		var text := String(command.trim_prefix("command.")).capitalize()
-		if command_label.is_valid():
-			text = str(command_label.call(command))
-		var command_button := DeckStyle.button(text, 14)
-		command_button.pressed.connect(func() -> void: command_pressed.emit(command, row.device))
-		column.add_child(command_button)
-	if row.commands.is_empty():
-		var reason := "No connection." if not row.online else "No commands."
-		column.add_child(DeckStyle.label(reason, DeckStyle.DIM_COLOR, 13))
-
-
-# Node outlines: the owner's own device thick blue, the others their row colour (a disabled one
-# red-tinted inside); the selected one white and lighter inside (readable on every colour).
-func _restyle(selected_index: int) -> void:
-	for i in mini(_styles.size(), rows.size()):
-		var style := _styles[i]
-		var row := rows[i]
-		style.border_color = DeckStyle.SELF_COLOR if row.is_self else DeckStyle.row_color(row)
-		style.set_border_width_all(3 if row.is_self else 1)
-		style.bg_color = DISABLED_FILL if row.disabled else NODE_FILL
-		if i == selected_index:
-			style.border_color = Color.WHITE
-			style.set_border_width_all(3 if row.is_self else 2)
-			style.bg_color = SELECTED_FILL
-
-
 # Beside the selected node as shown, inside the panel; it follows the node when the view moves.
-# Places, each slid inside the panel: the node's outer side (away from its bus, where its column has
-# no neighbours), below, above, the bus side (a hub: below, right, left, above); the first that does
-# not cover the node wins, else the first.
 func _place_menu() -> void:
 	var index := _index_of(selected) if is_instance_valid(selected) else -1
 	if index < 0 or index >= _nodes.size():
 		return
-	menu.reset_size()
-	var panel := _panel_size()
-	var menu_size := menu.get_combined_minimum_size()
-	menu.size = menu_size
 	var box := view.rect_to_screen(Rect2(_nodes[index].position, _nodes[index].size))
-	var middle := box.get_center()
-	var below := Vector2(middle.x - menu_size.x * 0.5, box.end.y + MENU_GAP)
-	var above := Vector2(middle.x - menu_size.x * 0.5, box.position.y - MENU_GAP - menu_size.y)
-	var right := Vector2(box.end.x + MENU_GAP, box.position.y)
-	var left := Vector2(box.position.x - MENU_GAP - menu_size.x, box.position.y)
 	var side := layout.sides[index] if layout != null and index < layout.sides.size() else 0
-	var candidates: Array[Vector2] = [below, right, left, above]
-	if side > 0:
-		candidates = [right, below, above, left]
-	elif side < 0:
-		candidates = [left, below, above, right]
-	var limit := (panel - menu_size).max(Vector2.ZERO)
-	var at := candidates[0].clamp(Vector2.ZERO, limit)
-	for candidate in candidates:
-		var slid := candidate.clamp(Vector2.ZERO, limit)
-		if not Rect2(slid, menu_size).intersects(box):
-			at = slid
-			break
-	menu.position = at
+	menu.place(box, side, _panel_size())
 
 
 func _index_at(point: Vector2) -> int:
