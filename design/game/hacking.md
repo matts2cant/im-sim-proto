@@ -254,7 +254,9 @@ All trace gains are multiplied by the Computer skill's trace gain (×1 / 0.8 / 0
 - **Account names**: the Map lists the account names of every device you have seen (like a login banner). Passwords are the secret; clues, the Sniffer and Icebreaker supply them.
 - **Security operator's radio call** (M16): on a dark camera feed or "Tracer offline", the operator radios the nearest guard with `equipment.radio`, who goes to investigate the device. Other guards are not alerted.
 
-## M12b design notes (to be designed)
+## M12b and M12c design notes
+
+Settled in [ADR 0115](../decisions/0115-m12b-intrusion-and-m12c-consequences.md) (M12b: exploits, Firewall rules, wireless; M12c: readability and the tradeoffs: mail server routes, loss-of-signal alarms, fail-secure vaults, "Clean hands"). The notes below are the readability details and the candidates as first discussed.
 
 Agreed with the user (2026-11-11), to design with M12b:
 

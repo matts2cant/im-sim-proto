@@ -53,8 +53,9 @@ flowchart LR
     M9 --> M10["M10 Lockpicking minigame"]
     M10 --> M11["M11 Tab interface"]
     M11 --> M12a["M12a Network hacking"]
-    M12a --> M12b["M12b Advanced intrusion"]
-    M12b --> M13["M13 Weapon feel"]
+    M12a --> M12b["M12b Intrusion"]
+    M12b --> M12c["M12c Network consequences"]
+    M12c --> M13["M13 Weapon feel"]
     M13 --> M14["M14 Explosives"]
     M14 --> M15["M15 Factions"]
     M15 --> M16["M16 AI overhaul"]
@@ -79,7 +80,8 @@ flowchart LR
 | M10 | Lockpicking minigame: pin-tumbler locks, skill rework ([game/lockpicking.md](game/lockpicking.md)) | Security wing (practice locks) |
 | M11 | Tab interface: one tabbed screen on Tab (Health, Skills, Augmentations, Logs, Inventory); the existing shortcut keys open it on their tab. Later milestones add their tabs to it (to be designed) | none |
 | M12a | Network hacking ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)): addresses, subnets, routers (subnets behind one hidden until it is hacked, chained), trust, power; computers (Halcyon OS overlay: Mail, Files, Security; the Security app replaces the terminal) with logins and Fill in; the deck (Map, Icebreaker, remote desktops); entry points (computer, wall jack, maintenance port, deck in a computer); tracers; Computer skill assists ([game/hacking.md](game/hacking.md), [ADR 0074](decisions/0074-network-hacking.md)) | Network lab; warehouse network |
-| M12b | Advanced intrusion: exploits (and the Journal's Exploits section), the Firewall and Logs tools, wireless: access points with Wi-Fi keys cracked from a distance (range by Computer skill), wireless devices (dashed light-blue on the Map) | Network lab; warehouse network |
+| M12b | Intrusion ([ADR 0115](decisions/0115-m12b-intrusion-and-m12c-consequences.md)): exploits (the Journal's Exploits section, software versions on the Map, burned per subnet when detected), the Firewall tool (rules decide which devices reach which), wireless (access points, wireless devices, Wi-Fi keys cracked by aiming the deck, range by Computer skill) | Network lab; warehouse network |
+| M12c | Network consequences ([ADR 0115](decisions/0115-m12b-intrusion-and-m12c-consequences.md)): status LEDs, plates and closets, the deck's AR cable view, feedback after an action; mail needs a route to its server, loss-of-signal alarms, fail-secure vaults, the "Clean hands" badge | Network lab; warehouse |
 | M13 | Weapon feel: recoil, spread and impact feedback, closer to Counter-Strike (to be designed) | Shooting range |
 | M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems, and a jamming grenade that drops wireless links ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)) (to be designed) | to be designed |
 | M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
@@ -127,6 +129,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (112 decisions, 0001–0114; 0062 and 0081 unused).
+- [decisions/README.md](decisions/README.md): ADR index (113 decisions, 0001–0115; 0062 and 0081 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.
