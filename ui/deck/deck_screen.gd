@@ -223,6 +223,11 @@ func find_button(text: String) -> Button:
 	return _find_button(root, text)
 
 
+## The open device menu's button labelled `text` (tests), or null.
+func menu_button(text: String) -> Button:
+	return _find_button(graph.menu, text) if graph.menu.visible else null
+
+
 ## Every visible button label on the open menu (tests).
 func menu_texts() -> Array[String]:
 	var found: Array[String] = []
