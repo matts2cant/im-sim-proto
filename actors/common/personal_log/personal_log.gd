@@ -68,6 +68,11 @@ func code_source(code_id: StringName) -> String:
 	return entry.title if entry != null else ""
 
 
+## Every entry that carried a code for `code_id`, oldest first.
+func code_entries(code_id: StringName) -> Array[LogEntry]:
+	return book.code_entries(code_id)
+
+
 func known_code_ids() -> Array[StringName]:
 	return book.known_code_ids()
 

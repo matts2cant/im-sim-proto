@@ -1,6 +1,6 @@
 class_name Readable
 extends Usable
-## Component: text read in place (ADR 0060), on anything (a datapad, a note, a terminal). Using it
+## Component: text read in place (ADR 0060), on anything (a datapad, a note, a sticky note). Using it
 ## (E, prompt "E: read <title>") passes its entry to the user's PersonalLog, which shows it and logs
 ## it once per `entry_id`. It never enters an inventory. A user without a PersonalLog cannot read.
 

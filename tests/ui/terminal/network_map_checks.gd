@@ -6,7 +6,7 @@ extends RefCounted
 ## shows every node inside the panel, and the same network gives the same placement.
 
 ## The Network tab's graph on the terminal screen.
-const GRAPH_SIZE := Vector2(1050, TerminalScreen.TAB_HEIGHT)
+const GRAPH_SIZE := Vector2(1050, 440)
 ## Smallest gap between two boxes (px, edge to edge, at zoom 1).
 const MIN_GAP := 8.0
 

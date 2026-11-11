@@ -3,7 +3,7 @@ extends RefCounted
 ## Pure: a mission's tallies and badges from EventLog entries (ADR 0087), no scene tree.
 ## - Attribution: a stimulus is the player's when its source is a player (`player_names`) or its
 ##   cause (`cause_id`) is one of the player's: so the blast of a barrel the player shot, the fire it
-##   lit and that fire's pulses are the player's too. A device command a player operated (a terminal:
+##   lit and that fire's pulses are the player's too. A device command a player operated (a computer:
 ##   `device.command` with `by`) is the player's, and so is what it starts (a turret's shots name the
 ##   command that retargeted it as their cause, WeaponHolder.cause_id). Noise never harms and is not
 ##   tracked.

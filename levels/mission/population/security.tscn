@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="2_security_camera"]
 [ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="3_laser_array"]
 [ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="4_turret"]
-[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="5_terminal"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="5_computer"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="6_alarm_controller"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="7_siren"]
 [ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="8_panic_button"]
@@ -26,6 +26,26 @@
 [ext_resource type="Resource" path="res://objects/door/vehicle_gate_settings.tres" id="24_vehicle_gate_settings"]
 [ext_resource type="Resource" path="res://objects/door/fence_gate_settings.tres" id="25_fence_gate_settings"]
 [ext_resource type="Resource" path="res://objects/door/roller_door_settings.tres" id="26_roller_door_settings"]
+[ext_resource type="Script" path="res://objects/network/device_account.gd" id="40_account"]
+[ext_resource type="Resource" path="res://levels/mission/population/computers/security_console.tres" id="41_console_data"]
+[ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc1.tres" id="42_pc1_data"]
+[ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc2.tres" id="43_pc2_data"]
+
+[sub_resource type="Resource" id="Account_dmarsh"]
+script = ExtResource("40_account")
+user = "dmarsh"
+password = "harbor77"
+strength = 1
+
+[sub_resource type="Resource" id="Account_lpetrova"]
+script = ExtResource("40_account")
+user = "lpetrova"
+password = "tulip24"
+
+[sub_resource type="Resource" id="Account_kbrandt"]
+script = ExtResource("40_account")
+user = "kbrandt"
+password = "ferry19"
 
 [sub_resource type="Resource" id="Pins_1"]
 script = ExtResource("19_mechanical_lock_data")
@@ -473,13 +493,16 @@ circuit = &"warehouse_yard"
 [node name="VaultTurret" parent="Devices" instance=ExtResource("4_turret")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 4.5, 1)
 
-[node name="SecurityConsole" parent="Devices" instance=ExtResource("5_terminal")]
+[node name="SecurityConsole" parent="Devices" instance=ExtResource("5_computer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.05, 1.47, 0.26)
 
-[node name="TerminalUse" parent="Devices/SecurityConsole"]
+[node name="Accounts" parent="Devices/SecurityConsole"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_dmarsh")])
+
+[node name="Computer" parent="Devices/SecurityConsole"]
+data = ExtResource("41_console_data")
 credentials_id = &"warehouse_security_console"
-username = "dmarsh"
-password = "harbor77"
+host_name = "SEC-CONSOLE"
 label = "security console"
 
 [node name="AlarmController" parent="Devices" instance=ExtResource("6_alarm_controller")]
@@ -570,23 +593,29 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 4.9, 10)
 [node name="Device" parent="Network/OfficeWallJack"]
 links = Array[NodePath]([NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
 
-[node name="OfficePc1" parent="Network" instance=ExtResource("5_terminal")]
+[node name="OfficePc1" parent="Network" instance=ExtResource("5_computer")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 5.95, 14.74)
 
-[node name="TerminalUse" parent="Network/OfficePc1"]
-credentials_id = &"warehouse_office_pc1"
-username = "lpetrova"
-password = "tulip24"
-label = "office PC"
+[node name="Accounts" parent="Network/OfficePc1"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_lpetrova")])
 
-[node name="OfficePc2" parent="Network" instance=ExtResource("5_terminal")]
+[node name="Computer" parent="Network/OfficePc1"]
+data = ExtResource("42_pc1_data")
+credentials_id = &"warehouse_office_pc1"
+host_name = "OFFICE-PC1"
+label = "office PC 1"
+
+[node name="OfficePc2" parent="Network" instance=ExtResource("5_computer")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 5.95, 14.74)
 
-[node name="TerminalUse" parent="Network/OfficePc2"]
+[node name="Accounts" parent="Network/OfficePc2"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_kbrandt")])
+
+[node name="Computer" parent="Network/OfficePc2"]
+data = ExtResource("43_pc2_data")
 credentials_id = &"warehouse_office_pc2"
-username = "kbrandt"
-password = "ferry19"
-label = "office PC"
+host_name = "OFFICE-PC2"
+label = "office PC 2"
 
 [node name="Furniture" type="Node3D" parent="."]
 

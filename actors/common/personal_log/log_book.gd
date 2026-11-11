@@ -49,6 +49,16 @@ func code_entry(code_id: StringName) -> LogEntry:
 	return _code_entries.get(code_id)
 
 
+## Every entry that carried `code_id`, in the order they were added (a computer's code id can
+## carry several logins, one per entry: ADR 0114).
+func code_entries(code_id: StringName) -> Array[LogEntry]:
+	var found: Array[LogEntry] = []
+	for entry in entries:
+		if entry.codes.has(code_id):
+			found.append(entry)
+	return found
+
+
 ## Known code ids, in the order they were first learned.
 func known_code_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []

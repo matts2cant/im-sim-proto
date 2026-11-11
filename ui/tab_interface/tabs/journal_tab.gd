@@ -13,7 +13,7 @@ extends TabPage
 enum Section { OBJECTIVES, CODES, NOTES }
 
 const SECTION_NAMES: Array[String] = ["Objectives", "Codes and logins", "Notes"]
-const CODES_HINT := "Keypads and terminals fill these in for you when you know them."
+const CODES_HINT := "Keypads and computers fill these in for you when you know them."
 const NAV_WIDTH := 210.0
 const LIST_WIDTH := 300.0
 

@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_dock"]
+script = ExtResource("2_document")
+id = &"warehouse.pc2.mail_dock"
+title = "Dock 1 tonight"
+sender = "E. Hale"
+text = "Klaus,
+
+The pumps go out on the boat before dawn. Nothing about it in the system, the manifest stays on paper in my office.
+
+E. H."
+
+[sub_resource type="Resource" id="Mail_reset"]
+script = ExtResource("2_document")
+id = &"warehouse.pc2.mail_password_reset"
+title = "Re: password reset"
+sender = "L. Petrova"
+text = "Klaus, IT made me change it again. Same trick as always: my favourite flower and how old I am. If it locks me out once more I quit.
+
+Lena"
+implicit_clue = true
+
+[sub_resource type="Resource" id="Mail_side_door"]
+script = ExtResource("2_document")
+id = &"warehouse.pc2.mail_side_door"
+title = "Side door"
+sender = "Facilities"
+text = "The side door code changed again. Stop propping it open with a pallet."
+
+[sub_resource type="Resource" id="File_schedule"]
+script = ExtResource("2_document")
+id = &"warehouse.pc2.file_dock_schedule"
+title = "dock_schedule.txt"
+text = "Dock 1 · 14 crates 'agricultural pumps' · boat pick-up before dawn · river pontoon"
+
+[sub_resource type="Resource" id="File_card"]
+script = ExtResource("2_document")
+id = &"warehouse.pc2.file_birthday_card"
+title = "birthday_card_lena.jpg"
+text = "[scan] A card covered in tulips: 'Happy 24th, Lena! From all of us on the night shift.'"
+implicit_clue = true
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_dock"), SubResource("Mail_reset"), SubResource("Mail_side_door")])
+files = Array[ExtResource("2_document")]([SubResource("File_schedule"), SubResource("File_card")])

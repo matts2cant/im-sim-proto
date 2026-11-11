@@ -2,7 +2,7 @@ class_name KeypadScreen
 extends CanvasLayer
 ## Keypad entry screen (child of the Player, ADR 0078): a KeypadLock opens it for its user (E on a
 ## locked door with a keypad). The world keeps running (ADR 0110): while it is open its user's input
-## is off and the mouse is free, like the terminal; it closes when the user can no longer act. Digits by the
+## is off and the mouse is free, like a computer; it closes when the user can no longer act. Digits by the
 ## number keys (keypad too) or by clicking the buttons; Backspace deletes, C clears, Enter / OK
 ## submits; Esc always leaves, also halfway through typing. Shows the user's reminder when its
 ## PersonalLog knows the code ("Note: 2817, from 'Storage access'"). The right code closes the screen
