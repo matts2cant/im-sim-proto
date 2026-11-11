@@ -688,7 +688,7 @@ size = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.7, 0.05)
 pixel_size = 0.0035
 text = "Datapads: E to read, codes go to your log (L)
-Lockpicks for D2"
+Lockpicks for D2 and the practice locks"
 size = 0
 
 [node name="BreakerA" parent="Labels" instance=ExtResource("3_sign")]
