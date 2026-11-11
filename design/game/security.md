@@ -45,8 +45,8 @@ Cameras, laser arrays, turrets, doors, keypads, sirens, alarm controllers, radio
 |---|---|
 | Alarm controller | Receives incidents from sensors (cameras, laser arrays, panic buttons; tracers from M12) and sends "ring" to every siren it reaches. Rings for 45 s ([ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md); 90 s before M9h); another incident restarts it. Remote actions: disarm, reset, trigger |
 | Siren | While rung, emits a loud siren stimulus. Guards who hear it go into Searching around where they stand. Remote actions: silence, test |
-| Radio base station | If the controller reaches it, broadcasts the incident location; guards with `equipment.radio` in its range search there first |
-| Panic button | The old alarm panel: using it sends an incident to the controller it reaches |
+| Radio base station | If the controller reaches it, broadcasts the incident location; guards with `equipment.radio` in its range search there first. Remote actions (M12a): disable, enable (switched off it ignores broadcasts) |
+| Panic button | The old alarm panel: using it sends an incident to the controller it reaches. Remote actions (M12a): disable, enable (switched off, pressing it tells nobody) |
 
 - If every siren is broken, disabled or disconnected, nothing rings.
 - The HUD shows "ALARM" while the player can hear a ringing siren.
@@ -58,7 +58,7 @@ Scenes (graybox, wall-mounted: origin on the wall face, +Z out; each has `Tags`,
 | `objects/alarm/alarm_controller.tscn` | `AlarmController`, `alarm_controller.tres` (duration 90 s, ring refresh 1 s); group `alarm_controller` | `device.incident`, `command.trigger`, `reset`, `disarm`, `disable`, `enable` | An incident or a trigger rings it for 90 s (another restarts it; `AlarmTimer`). While ringing it sends `command.ring` to every reached device that accepts it, again every second, and `command.silence` when it stops; on an incident it also sends `command.broadcast` at the incident location. `reset` stops it. `disarm` (or `disable`) stops it and makes it ignore incidents and triggers until `enable` re-arms it (a power cycle does not). Losing power or breaking stops it. Saveable |
 | `objects/alarm/siren.tscn` | `Siren`, `siren.tres` (loudness 35, every 1 s, ring hold 2.5 s, test 3 s) | `command.ring`, `silence`, `test` | `ring` sounds it for 2.5 s (the controller's refresh keeps it going; cut off, it falls silent within 2.5 s), `test` for 3 s, `silence` stops it. While sounding: `alarm.siren` every second (RADIUS, PATH, loudness 35: heard up to 34 m of path), a red beacon, a placeholder tone. Unpowered or broken: silent. Saveable |
 | `objects/alarm/radio_base_station.tscn` | `RadioBaseStation`, `radio_base_station.tres` (range 40 m) | `command.broadcast` | Emits `alert.dispatch`, 40 m straight from the station, `about_point` = the incident; guards' `heard_dispatch` (radios) search there |
-| `objects/alarm/panic_button.tscn` | `PanicButton` (a `Usable`, "E: press panic button") | | Reports an incident at the button (silent) |
+| `objects/alarm/panic_button.tscn` | `PanicButton` (a `Usable`, "E: press panic button"), `DeviceSwitch` (M12a) | `command.disable`, `command.enable` | Reports an incident at the button (silent), unless switched off |
 | `objects/devices/network_switch.tscn` | | | Carries links; the level sets its `Powered.circuit` |
 
 EventLog: `device.command {command, from, to, sent, point, stimulus, by}`, `device.state {device, up, unpowered, broken}`, `device.panic {button, by, controllers}`, `alarm.raised {by, point, duration, again}`, `alarm.ended {reason}` (timeout, reset, disarmed, unpowered, broken), `alarm.armed {armed}`, `alarm.ignored {by, point}`, `siren.started {siren, by}`, `siren.stopped {siren, reason}` (silenced, timeout, unpowered, broken), `radio.dispatch {station, point, range}`.
@@ -91,6 +91,16 @@ EventLog: `camera.detected {camera, target, point, controllers}`, `turret.detect
 - EventLog: `laser.tripped {laser, beam, by, point, controllers}`, `laser.toggled {laser, enabled}`.
 
 In the gallery: the security wing's laser hall behind closet D1 has a low one-beam array, a high one and a two-beam array, cabled to the wing's switch ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)). In the warehouse: two high one-beam arrays across the roof's arrivals, with a camera over duct B's lit forecourt, on the yard network ([mission-warehouse.md](../levels/mission-warehouse.md#roof-security-m9g), [ADR 0097](../decisions/0097-warehouse-roof-security.md)).
+
+## Network (M12a)
+
+[ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md), player-facing rules in [hacking.md](hacking.md):
+
+- **Addresses and subnets** are `Device` exports (`address`, `subnet`); a device without a subnet takes the subnet of a cabled device that names one (its switch). Levels without network data stay one open network, as in M8.
+- **Gateways** (`objects/network/gateway.tscn`: `Gateway` + `DeviceAccounts`) sit between subnets: their ordered rules first, else devices' traffic passes (cameras still report to a controller behind a gateway) and a user's only once that user has an account on the gateway.
+- **Trust**: a device's `trusted` list names the devices allowed to command it (a camera trusting the security console); without a list any device that reaches it may (M8). A session on the device itself (the deck with an account on it) may too. Incidents are reports: trust does not stop them.
+- **Ports**: a wall jack (`objects/network/wall_jack.tscn`, `deck_port` JACK) puts the deck on its subnet; an autonomous device (no cables) has a maintenance port (the deck reaches that device only); a computer lends the deck its address.
+- **DeviceSwitch** (`objects/devices/device_switch.gd`): `command.disable` / `enable` for devices without a switch of their own (panic buttons, radio base stations), status enabled / disabled, saved.
 
 ## Terminal (M8 placeholder)
 

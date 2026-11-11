@@ -132,7 +132,7 @@ func test_a_crack_gives_the_account_and_is_learned_into_the_journal() -> void:
 	assert_int(codes.size()).is_equal(1)
 	assert_str(String(codes[0]["code_id"])).is_equal("office_pc.kbrandt")
 	assert_str(str(codes[0]["value"])).is_equal("kbrandt / ferry19")
-	assert_str(str(codes[0]["label"])).is_equal("Office Pc (kbrandt)")
+	assert_str(str(codes[0]["label"])).is_equal("OFFICE-PC (kbrandt)")
 	assert_bool(DeviceAccounts.of(_n["OfficePc"]).knows_login(_user, "kbrandt")).is_true()
 	assert_int(EventLog.find(&"deck.cracked").size()).is_equal(1)
 	# Nothing left to crack there.

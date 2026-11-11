@@ -64,10 +64,10 @@ func test_a_known_login_logs_in_without_trace_and_hacking_the_gateway_reveals_it
 	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"fw01.admin": "admin:Gh7vQx2e"})
 	DeviceAccounts.of(_lab.node("Fw01")).credentials_id = &"fw01"
 	PersonalLog.of(_player).add(note)
-	assert_bool(_screen.graph.select("Fw 01")).is_true()
+	assert_bool(_screen.graph.select("FW-01")).is_true()
 	var texts := _screen.menu_texts()
 	assert_array(texts).contains(["ACCOUNTS", "admin", "Medium", "Log in (from Router notes)"])
-	assert_bool(texts.has("Console")).is_false()
+	assert_bool(texts.has("SEC-CONSOLE")).is_false()
 	var trace := _lab.tracer().trace_of(_player)
 	_press("Log in (from Router notes)")
 	# No trace for the login; the scan of the revealed subnet adds its 10 %.
@@ -75,29 +75,29 @@ func test_a_known_login_logs_in_without_trace_and_hacking_the_gateway_reveals_it
 	assert_bool(DeviceAccounts.of(_lab.node("Fw01")).has_access(_player)).is_true()
 	await _driver.frames(130)
 	_screen.refresh()
-	assert_array(_screen.graph.node_names()).contains(["Security Switch", "Console", "Camera", "Fw 02"])
-	assert_bool(_screen.graph.node_names().has("File Server")).is_false()
+	assert_array(_screen.graph.node_names()).contains(["SW-SECURITY", "SEC-CONSOLE", "CAM-GATE", "FW-02"])
+	assert_bool(_screen.graph.node_names().has("FILE-SERVER")).is_false()
 	# The hacked gateway is amber; the console's menu offers the Icebreaker; the camera says who it
 	# trusts.
-	assert_bool(_screen.graph.node_color("Fw 01").is_equal_approx(Color.WHITE)).is_true()
+	assert_bool(_screen.graph.node_color("FW-01").is_equal_approx(Color.WHITE)).is_true()
 	_screen.graph.close_menu()
-	assert_bool(_screen.graph.node_color("Fw 01").is_equal_approx(DeckStyle.ACCESS_COLOR)).is_true()
-	_screen.graph.select("Camera")
+	assert_bool(_screen.graph.node_color("FW-01").is_equal_approx(DeckStyle.ACCESS_COLOR)).is_true()
+	_screen.graph.select("CAM-GATE")
 	assert_array(_screen.menu_texts()).contains(
-		["No accounts. Trusts Console: control it from that computer's Security app."]
+		["No accounts. Trusts SEC-CONSOLE: control it from that computer's Security app."]
 	)
 
 
 func test_the_icebreaker_cracks_an_account_into_the_journal() -> void:
 	_player.skills.set_tier(&"computer", 3)
-	_screen.graph.select("Office Pc")
+	_screen.graph.select("OFFICE-PC")
 	_press("Icebreaker")
 	assert_int(_screen.tool).is_equal(DeckScreen.Tool.ICEBREAKER)
 	assert_bool(_ice.is_running()).is_true()
 	await _driver.frames(60)
 	_screen.refresh()
 	var texts := _screen.ice_texts()
-	assert_array(texts).contains(["Icebreaker · kbrandt@Office Pc", "Stop (keeps progress)"])
+	assert_array(texts).contains(["Icebreaker · kbrandt@OFFICE-PC", "Stop (keeps progress)"])
 	# Master: Weak in 3 s.
 	await _driver.frames(130)
 	_screen.refresh()
@@ -109,7 +109,7 @@ func test_the_icebreaker_cracks_an_account_into_the_journal() -> void:
 	# Back on the map, the PC is amber with its account and offers its desktop remotely.
 	_press("Back to the map")
 	_screen.refresh()
-	_screen.graph.select("Office Pc")
+	_screen.graph.select("OFFICE-PC")
 	assert_array(_screen.menu_texts()).contains(["access", "Open its desktop (remote)"])
 	_press("Open its desktop (remote)")
 	assert_object(_session.remote).is_same(Computer.of(_lab.node("OfficePc")))
@@ -125,13 +125,13 @@ func test_the_skill_assists_by_tier() -> void:
 	await _driver.frames(130)
 	_screen.refresh()
 	# Untrained: no estimates; Medium is too strong.
-	_screen.graph.select("Console")
+	_screen.graph.select("SEC-CONSOLE")
 	var texts := _screen.menu_texts()
 	assert_array(texts).contains(["dmarsh", "Medium", "too strong"])
 	# Trained: crack time per account; time left while cracking.
 	_player.skills.set_tier(&"computer", 1)
-	_screen.graph.select("Office Pc")
-	_screen.graph.select("Console")
+	_screen.graph.select("OFFICE-PC")
+	_screen.graph.select("SEC-CONSOLE")
 	assert_array(_screen.menu_texts()).contains(["Medium · 18 s", "Icebreaker"])
 	_press("Icebreaker")
 	_screen.refresh()
@@ -140,13 +140,13 @@ func test_the_skill_assists_by_tier() -> void:
 	# Advanced: + the trace an action adds (12 s x 4 %/s x 0.6 = 29 %).
 	_player.skills.set_tier(&"computer", 2)
 	_screen.show_tool(DeckScreen.Tool.MAP)
-	_screen.graph.select("Office Pc")
-	_screen.graph.select("Console")
+	_screen.graph.select("OFFICE-PC")
+	_screen.graph.select("SEC-CONSOLE")
 	var advanced := _screen.menu_texts()
 	assert_bool(advanced.any(func(text: String) -> bool: return text.begins_with("Computer skill · about +"))).is_true()
 	# Master: + the hidden subnets a gateway routes to.
 	_player.skills.set_tier(&"computer", 3)
-	_screen.graph.select("Fw 02")
+	_screen.graph.select("FW-02")
 	assert_array(_screen.menu_texts()).contains(["Computer skill · routes to 1 hidden subnet"])
 
 

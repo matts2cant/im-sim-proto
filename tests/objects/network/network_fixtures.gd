@@ -15,7 +15,8 @@ extends RefCounted
 ## and security. Camera trusts Console. Accounts (user, password, strength, admin):
 ## OfficePc kbrandt / ferry19 Weak; Fw01 admin / Gh7vQx2e Medium admin; Console dmarsh / harbor77
 ## Medium; Fw02 admin / k3epOut9 Medium admin; FileServer hale / Riverside#1 Strong; Kiosk service /
-## kiosk1 Weak. OfficePc and Console are computers (Computer component).
+## kiosk1 Weak. OfficePc and Console are computers (Computer component). Screens show the mockup's
+## names (SHOWN: `display_name` metadata).
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -27,6 +28,21 @@ const ALARMED: StringName = &"test.alarmed"
 const WEAK := DeviceAccount.Strength.WEAK
 const MEDIUM := DeviceAccount.Strength.MEDIUM
 const STRONG := DeviceAccount.Strength.STRONG
+## The names screens show (`display_name` metadata), as in the mockup.
+const SHOWN: Dictionary[String, String] = {
+	"Jack": "OFFICE-JACK",
+	"OfficeSwitch": "SW-OFFICE",
+	"OfficePc": "OFFICE-PC",
+	"Fw01": "FW-01",
+	"SecuritySwitch": "SW-SECURITY",
+	"Console": "SEC-CONSOLE",
+	"Camera": "CAM-GATE",
+	"Alarm": "ALARM",
+	"Fw02": "FW-02",
+	"ServerSwitch": "SW-SERVERS",
+	"FileServer": "FILE-SERVER",
+	"Kiosk": "KIOSK",
+}
 
 
 ## A device entity on a StaticBody3D root (a 0.4 m box collider, so a crosshair can target it) under
@@ -181,6 +197,8 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	link(n["ServerSwitch"], n["FileServer"])
 	var camera := Device.of(n["Camera"])
 	camera.trusted.append(camera.get_path_to(n["Console"]))
+	for entity_name: String in SHOWN:
+		n[entity_name].set_meta(&"display_name", SHOWN[entity_name])
 	return n
 
 

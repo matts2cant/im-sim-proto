@@ -48,11 +48,16 @@ static func user_key(p_user: Node) -> String:
 	return String(p_user.name) if p_user != null and is_instance_valid(p_user) else ""
 
 
-## How screens name a device: its entity's node name in words ("OfficePc2" -> "Office Pc 2").
+## How screens name a device: its entity's `display_name` metadata ("FW-01"), else its node name in
+## words ("OfficePc2" -> "Office Pc 2").
 static func display_name(p_device: Device) -> String:
 	if p_device == null or not is_instance_valid(p_device):
 		return ""
-	return String(p_device.entity.name).capitalize() if is_instance_valid(p_device.entity) else String(p_device.name)
+	if not is_instance_valid(p_device.entity):
+		return String(p_device.name)
+	if p_device.entity.has_meta(&"display_name"):
+		return str(p_device.entity.get_meta(&"display_name"))
+	return String(p_device.entity.name).capitalize()
 
 
 ## A user's traffic ("you" in a gateway rule).

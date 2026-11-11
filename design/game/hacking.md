@@ -195,6 +195,20 @@ Controls ([controls.md](controls.md)):
 - **Deterministic**: no randomness anywhere in hacking.
 - **Saving** ([saving.md](saving.md)): network state (device power and links, firewall rules, patched devices, logs, discovered devices), known credentials and exploits (PersonalLog), the deck's contents (copied files, crack progress), tracer trace and lockouts.
 
+## M12a implementation details
+
+Settled while building the network layer and the deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md)):
+
+- **Discovery is reach.** A gateway passes a user's traffic only once the user has an account on it (its rules first: M12b's Firewall). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a gateway (a known login or the Icebreaker) is what reveals the subnets behind it; a gateway inside them is hacked in turn. Gateways show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
+- **Addresses**: a wall jack gives the deck the jack's address on its subnet; a maintenance port `port:<device address>` (that device only); a computer its own address. A tracer blocks the address it caught: plugging in elsewhere is a new address.
+- **Tethered**: more than 3 m (horizontal, the player's origin to the plugged entity) unplugs the deck; so do being unable to act and losing the deck. The screen lowers with Esc or ✕; LMB on the port raises it again.
+- **Accounts**: logging in gives the account until its password changes. The Journal files a device's logins as codes `<credentials_id>.<user>` = "user:password" (`credentials_id` defaults to the device's node name in snake_case); a cracked login is learned that way, in an entry "Cracked: user@HOST".
+- **Commands with an account**: the deck sends a device's commands (its menu) as a session on the device itself, from wherever it is plugged in; trust lists do not apply to it. No trace (logging in with the right password adds none either).
+- **Tracers**: trace is per user; a full trace reports once, then drains as usual; it cannot fill again while the address is locked out. A tracer whose host is cut from the watched device (a dead switch between them) does not watch it. Trace bars (deck and computer screens) show every tracer that has trace for you, blocks your address, or watches a device on your map.
+- **Icebreaker**: one account at a time; picking another stops the current one (progress kept). A password changed while it runs makes it start over on the new one.
+- **Assists** (deck only): Trained: each crackable account's crack time in its menu, time left in the Icebreaker; Advanced: + "about +N % trace" for a crack (from the highest tracer gain watching the device); Master: + "routes to N hidden subnets" on a gateway you have not hacked.
+- **Names**: the Map names a device by its entity's `display_name` metadata, else its node name in words.
+
 ## Levels
 
 - **Network lab** (gallery, M12a, [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md)): Office and Security subnets behind a gateway that runs a tracer; a wall jack on the Office subnet; an office PC with a sticky note giving its login and a mail with an implicit clue to a second account; a security console that a camera and a door trust; a switch you can unpower to cut the Security subnet; a sign at each station.

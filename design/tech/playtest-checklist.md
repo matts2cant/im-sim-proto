@@ -418,6 +418,20 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
   - [ ] Ground corridor west end: the siren hangs on the north wall east of the office entrance, not over the door leaf; the alarm is still heard in the break room and the security room.
   - [ ] Upper corridor east end: FIRE EXIT reads in full; the office camera hangs on the north wall and still sweeps the corridor from the vault door to the manager's door.
 
+## M12a Network and deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md))
+
+Take the deck from the hub's loadout table. Until the network lab room exists (a later brief), use the deck lab fixture's review shots (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_gateway|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
+
+- [ ] LMB with the deck on a wall jack: the screen rises at once; nothing else in the world stops (guards keep walking). Esc and ✕ lower it without opening the game menu; LMB on the jack raises it again.
+- [ ] The 2 s scan when you plug in reads as "the deck is working", not as lag. The gateway shows at once, the rest after the scan.
+- [ ] Walking away unplugs the deck at a sensible distance (3 m): not so short that a step sideways unplugs it, not so long that it looks like a wireless deck.
+- [ ] The Map's amber (access) reads apart from the orange of devices doing something (ringing, firing) and from the online green.
+- [ ] Hacking a gateway: the subnet behind it appearing after its scan feels like a reveal; a second gateway inside it is clearly the next step.
+- [ ] The Icebreaker's letters locking in feel like progress; Stop / Resume keep the progress; the menu's "Icebreaker (40 %)" makes a saved crack easy to find again.
+- [ ] Assists: Trained times, Advanced trace estimates, Master hidden routes are readable and not noisy.
+- [ ] A full trace: the alarm rings (if the tracer's host reaches the controller), the bar says "blocked N s", running tools stop with a message; plugging into another port (a new address) is a way out.
+- [ ] Panic button and radio base station: disable / enable from a device menu (an account on them) work and show in their status.
+
 ## M10 Lockpicking sounds ([ADR 0108](../decisions/0108-lockpick-sounds.md))
 
 Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn` (F6), keys 1-0 or the buttons play the cues, the sliders drive the voices. Compare with the prototype (`design/prototypes/lockpicking_bench.html`, sound on).

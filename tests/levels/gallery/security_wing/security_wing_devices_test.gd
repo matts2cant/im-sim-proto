@@ -90,7 +90,10 @@ func test_terminal_reaches_the_security_devices_through_the_switch() -> void:
 	var terminal := _device("Devices/Terminal")
 	for path in NETWORK:
 		assert_bool(terminal.reaches(_room.get_node(path))).override_failure_message(path).is_true()
-	var listed: Array[String] = ["Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "VaultDoor"]
+	# The panic button and the base station take disable / enable since M12a (ADR 0113).
+	var listed: Array[String] = [
+		"Camera", "Turret", "Controller", "SirenHall", "SirenCorridor", "PanicButton", "BaseStation", "VaultDoor"
+	]
 	listed.append_array(LASERS)
 	assert_array(_listed()).contains_exactly_in_any_order(listed)
 	# The network view also shows the switch, the panic button and the base station (ADR 0083).
@@ -161,7 +164,7 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 
 	_breaker("BreakerB").set_closed(true)
 
-	assert_array(_listed()).has_size(6 + LASERS.size())
+	assert_array(_listed()).has_size(8 + LASERS.size())
 
 
 func test_shooting_the_switch_cuts_the_chain_too() -> void:
@@ -182,7 +185,7 @@ func test_breaker_a_off_unlocks_d4_only() -> void:
 
 	assert_bool(d4.is_locked()).is_false()
 	assert_bool(Door.of(_room.get_node("Doors/VaultDoor")).is_locked()).is_true()
-	assert_array(_listed()).has_size(6 + LASERS.size())
+	assert_array(_listed()).has_size(8 + LASERS.size())
 
 
 func test_closed_vault_door_blocks_the_turrets_line_of_sight() -> void:

@@ -475,6 +475,7 @@ func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccou
 		var source := accounts.known_source(session.entity, account.user)
 		var login := DeckStyle.button("Log in (from %s)" % source if not source.is_empty() else "Log in", 12, true)
 		login.pressed.connect(func() -> void: session.log_in(device, account.user))
+		login.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		line.add_child(login)
 	else:
 		var progress := ice.saved_progress(device, account.user)
@@ -484,6 +485,7 @@ func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccou
 		var crack := DeckStyle.button(text, 12)
 		crack.disabled = not can
 		crack.pressed.connect(_on_crack.bind(device, account.user))
+		crack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		line.add_child(crack)
 	return line
 

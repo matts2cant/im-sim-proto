@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 ## The hub's loadout table (the player starts with an empty inventory since M5): a 1.0 m wooden
 ## table near PlayerSpawn holding the starting kit as item pickups (since ADR 0085 the pistol is loud
-## and a silencer lies beside it), signed "Loadout", clear of the spawn, the walk straight ahead from
-## it and the hub doorways; neighbouring pickups do not overlap.
+## and a silencer lies beside it; since ADR 0113 the deck lies behind the row), signed "Loadout",
+## clear of the spawn, the walk straight ahead from it and the hub doorways; neighbouring pickups do
+## not overlap.
 
 const HUB_SCENE: PackedScene = preload("res://levels/hub/hub.tscn")
 const PLAYER_RADIUS := 0.35
@@ -14,6 +15,7 @@ const LOADOUT: Dictionary[StringName, int] = {
 	&"medkit": 2,
 	&"lockpick": 2,
 	&"biocell": 2,
+	&"deck": 1,
 }
 
 var _hub: Node3D
