@@ -221,7 +221,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
 - [ ] Entry hall: the five lock-row doors read at a glance from the hub door, each with its sign; the west wall left of the table is bare (practice locks come in M10); the hub doorway shows no seam or flicker from either side.
 - [ ] Table: E on the "Closet code" datapad shows it and adds it to the log (L); the two lockpicks go into the inventory.
 - [ ] D1 keypad: "E: enter code" opens the entry screen (game paused) showing "Note: 5309, from 'Closet code'"; a wrong code beeps and says "Wrong code"; 5309 + Enter opens the door; Esc leaves halfway without opening the game menu. The keycard lies on the shelf inside.
-- [ ] D2 pin lock: "Locked: lockpick"; holding LMB with a lockpick drawn shows "Picking N%" and opens after 3 s (2.25 s with Lockpicking Trained); letting go or looking away starts over; the lockpick count does not change. The "Booth login" datapad is on the shelf.
+- [ ] D2 pin lock: "Locked: lockpick"; LMB with a lockpick drawn starts the lockpicking minigame (see "M10 Lockpicking minigame"); once picked the door opens and the lockpick count does not change. The "Booth login" datapad is on the shelf.
 - [ ] D3 keycard: "Locked: keycard" without the card, "E: open (keycard)" with it; the booth has the terminal, breaker B and the alarm controller with the radio base station, and you can turn round in it. From the booth door the two east-wall devices read apart: the dark red box under "Alarm controller", the dark blue box with the antenna under "Radio base station".
 - [ ] D4 electronic: breaker A (hall north wall, "E: switch off D4 power") clunks and the door's control light goes dark; the door stays shut until E opens it; switching A back on locks nothing that is open.
 - [ ] D5 breakable: pistol rounds and baton hits do nothing; shoot the barrel from the hub door: the blast blows the panel away for good, D4 next door stays shut, the hall lamps survive.
@@ -285,7 +285,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] The boat at the pontoon reads as the way out (bow, cabin, motor).
 - [ ] Warehouse doors and security (M9 wave 2, [mission-warehouse.md](../levels/mission-warehouse.md#doors-locks-and-keys-m9-wave-2), [ADR 0090](../decisions/0090-door-size-free-side-locks-warehouse-security.md); review shots: `warehouse_shots.tscn` with `-- shots=door_front_gate_road,door_roller_yard,terminal_network,view_camera_hall,... out=res://reports/screenshots/m9c`, names in `tests/levels/mission/fixtures/warehouse_security_shots.gd`):
   - [ ] The front gate slides along the outside of the fence in about 3 s and reads as a gate, not a wall; the roller doors rise into the wall in about 2.5 s and are clearly loud; nothing clips through posts or walls while they move.
-  - [ ] Back gate: from the quay it says "Locked: lockpick" and picks in about 4 s with lockpicks; from inside it just opens ("E: open") and locks again once closed. Same for the tunnel gate (picked from the ditch), the annex roof door and the fire escape door (opened from inside).
+  - [ ] Back gate: from the quay it says "Locked: lockpick" and is picked with the lockpicking minigame (4 pins); from inside it just opens ("E: open") and locks again once closed. Same for the tunnel gate (picked from the ditch), the annex roof door and the fire escape door (opened from inside).
   - [ ] Side door: the code note in the dumpster gives 2390 and the keypad shows the reminder. Manager office: 4471 from the night shift notes in the break room; from inside (after duct B) the door just opens.
   - [ ] Keycards: the security keycard on the locker room bench opens the security room; the vault keycard on the security room desk opens the vault. The console login is on the manager's desk next to the manifest.
   - [ ] Security console (Network tab): every device is listed with readable labels; it disables the turret, opens the vault, locks or opens the front gate. Cutting breaker B or shooting the switch in the basement store turns everything offline.
@@ -427,3 +427,20 @@ Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn`
 - [ ] Scraping slider up: a hiss that rises in pitch as Tension goes up, with no clicks or zipper noise while sweeping; back to 0 fades out quickly.
 - [ ] Strain slider: silent up to about 0.12, then a buzzing tone that rises in pitch and level towards 1; Stop all (Space) fades everything out at once, without a click.
 - [ ] The voices follow the sliders without a noticeable lag.
+
+## M10 Lockpicking minigame ([ADR 0107](../decisions/0107-lockpicking-minigame.md))
+
+In the security wing (D2's pin lock) or any pin lock, with lockpicks; set the Lockpicking tier in the debug panel's Stats tab. Practice locks: until a later wave places them in the security wing's hall, instance `objects/locks/practice_lock/practice_lock.tscn` on a wall (set its tier in its MechanicalLock data). Review shots: `tests/ui/lockpick/fixtures/lockpick_shots.tscn` with `SHOT=untrained|trained|advanced|master|relock|room`.
+- [ ] LMB with the pick on the lock: the camera turns smoothly to the lock in about a quarter second, the panel opens over the live view, the player does not move with W / S / A / D and keeps crouching if crouched; guards and the world keep running.
+- [ ] Tension: W / S raise and lower it at a comfortable speed, Shift gives fine steps, it stays where left; the wrench flexes and the plug turns a hair with it.
+- [ ] Lift: mouse up raises the pick, it stays where left; the tip lags behind on the binding pin and the pick bows with the force; the sensitivity feels right (tuning `lift_per_pixel`).
+- [ ] A / D: the pick drops below the pins, then slides across, quickly (about 0.1 s); moving with the pick up never jams the next pin; several presses in a row land on the right pin.
+- [ ] Feel of the pins matches the prototype: a crisp click and a hair of plug turn per set; the muffled click above the window; a deep clunk and a bigger turn on a spool, the plug pushing back (creak) while you ease tension and lift; serrated ticks; pins dropping one by one below the drop zone and all at 0 %; a jam on an overset, cleared by releasing tension; the strain rising before a snap at high tension.
+- [ ] Assists: Untrained shows no gauge, captions or pins view; Trained adds the gauge (its green band widens with each tier); Advanced adds the captions; Master adds the pins view. A practice lock shows everything at any tier.
+- [ ] Leaving: E and Esc leave (Esc never opens the game menu; E never also opens the door), so does getting hit; the progress is lost; holding LMB while leaving does not restart it.
+- [ ] A broken pick uses up one lockpick ("SNAP" caption, the count on the belt drops); with none left the panel closes and the HUD says "Out of lockpicks".
+- [ ] A picked door: the plug turns open, the panel closes and the door swings open; the pick count is unchanged.
+- [ ] Practice lock: once open, about 3 s later the plug turns back, the relock sound plays, the pins drop and settle at new heights, the caption says "new pin layout" and the panel reads "Layout 2"; the new layout picks differently.
+- [ ] Master on a Simple lock: holding LMB in the sweet spot rakes it open in about 2 s with clicks; letting go stops.
+- [ ] A guard nearby hears a snapped pick (about 5 m) but not the clicks beyond about 1 m.
+- [ ] Timing targets (a player who understands the mechanic): Simple about 5 s untrained; Standard about 15 s untrained, 7 s at Master; Secure about 30 s / 15 s; High-security about 60 s / 25 s.

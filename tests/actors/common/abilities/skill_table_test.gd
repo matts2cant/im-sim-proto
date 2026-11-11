@@ -70,7 +70,9 @@ func test_low_tech_and_medicine_per_tier() -> void:
 func test_tool_skills_only_write_attributes() -> void:
 	# Computer has no effects until M11 (ADR 0076).
 	assert_array(TABLE.find(&"computer").effects).is_empty()
-	assert_float(_values(TABLE.find(&"lockpicking"), 1)[&"lockpick_time_mult"]).is_equal_approx(0.75, 0.0001)
+	var lockpicking := _values(TABLE.find(&"lockpicking"), 1)
+	assert_float(lockpicking[&"lockpick_window_low"]).is_equal_approx(-0.04, 0.0001)
+	assert_float(lockpicking[&"lockpick_assist"]).is_equal_approx(1.0, 0.0001)
 
 
 func test_modifiers_carry_the_skill_source_and_tiers_clamp() -> void:

@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/lockpick/lockpick_screen.gd" id="1_screen"]
+
+[node name="LockpickScreen" type="CanvasLayer"]
+layer = 23
+script = ExtResource("1_screen")

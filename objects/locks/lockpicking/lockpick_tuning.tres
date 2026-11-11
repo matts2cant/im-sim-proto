@@ -1,0 +1,106 @@
+[gd_resource type="Resource" script_class="LockpickTuning" format=3]
+
+[ext_resource type="Script" path="res://objects/locks/lockpicking/lockpick_tuning.gd" id="1_tuning"]
+[ext_resource type="Script" path="res://objects/locks/lockpicking/lockpick_tier.gd" id="2_tier"]
+
+[sub_resource type="Resource" id="Tier_simple"]
+script = ExtResource("2_tier")
+display_name = "Simple"
+pins = Array[StringName]([&"standard", &"standard", &"standard"])
+tolerance_mult = 1.1
+
+[sub_resource type="Resource" id="Tier_standard"]
+script = ExtResource("2_tier")
+display_name = "Standard"
+pins = Array[StringName]([&"standard", &"standard", &"standard", &"standard", &"standard"])
+tolerance_mult = 1.0
+
+[sub_resource type="Resource" id="Tier_secure"]
+script = ExtResource("2_tier")
+display_name = "Secure"
+pins = Array[StringName]([&"standard", &"standard", &"standard", &"spool", &"spool"])
+tolerance_mult = 0.9
+
+[sub_resource type="Resource" id="Tier_high"]
+script = ExtResource("2_tier")
+display_name = "High-security"
+pins = Array[StringName]([&"standard", &"standard", &"spool", &"spool", &"serrated", &"serrated"])
+tolerance_mult = 0.7
+
+[resource]
+script = ExtResource("1_tuning")
+window_low = 0.30
+window_high = 0.60
+drop_threshold = 0.15
+drop_delay = 0.3
+lift_tolerance_bonus = 0.0
+rake = 0.0
+assist = 0.0
+tension_rate = 0.5
+tension_fine_rate = 0.15
+release_tension = 0.004
+base_tolerance = 0.045
+pin_height_min = 0.44
+pin_height_range = 0.30
+false_set_offset = 0.12
+serrated_offsets = Array[float]([0.18, 0.09])
+pin_fall_rate = 3.0
+set_pin_margin = 0.02
+over_floor = 0.35
+over_slope = 1.4
+tip_ease = 18.0
+lift_rate = 7.0
+lift_required_base = 0.04
+lift_required_tension = 0.5
+strain_force = 0.3
+strain_rate = 3.0
+strain_rate_overset = 2.5
+strain_high_tension = 4.0
+strain_relief = 0.8
+hard_margin = 0.05
+break_strain = 1.0
+false_set_turn = 3.2
+stuck_spool_margin = 0.06
+creak_step = 0.25
+creak_interval = 0.22
+tick_bump = 0.12
+bump_decay = 0.5
+tick_turn = 0.35
+scrape_speed = 0.05
+scrape_gain = 2.0
+scrape_noise_interval = 1.2
+nudge_decay = 4.0
+nudge_set = 0.45
+nudge_set_muted = 0.15
+nudge_overset = 0.6
+nudge_false_set = 0.7
+nudge_tick = 0.2
+nudge_snap = 1.0
+caption_time = 1.6
+plug_tension_turn = 1.4
+plug_set_turn = 0.9
+plug_open_base = 6.0
+plug_open_turn = 84.0
+open_rate = 1.8
+open_sound_delay = 0.12
+rake_time = 0.65
+rake_base = 0.3
+rake_amplitude = 0.25
+rake_period = 0.07
+rake_max_pins = 3
+noise_click = 2.0
+noise_scrape = 2.0
+noise_tick = 2.0
+noise_jam = 3.0
+noise_clunk = 3.0
+noise_open = 4.0
+noise_snap = 6.0
+lift_per_pixel = 0.003
+pin_change_drop_time = 0.05
+pin_change_move_time = 0.05
+face_time = 0.25
+leave_distance = 2.5
+close_after_open = 0.8
+practice_relock_delay = 3.0
+relayout_time = 0.5
+tiers = Array[ExtResource("2_tier")]([SubResource("Tier_simple"), SubResource("Tier_standard"), SubResource("Tier_secure"), SubResource("Tier_high")])

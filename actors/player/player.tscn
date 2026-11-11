@@ -56,6 +56,7 @@
 [ext_resource type="PackedScene" path="res://ui/keypad/keypad_screen.tscn" id="52_keypad_screen"]
 [ext_resource type="PackedScene" path="res://ui/terminal/terminal_screen.tscn" id="62_terminal_screen"]
 [ext_resource type="Script" path="res://actors/common/weapon_drop/weapon_drop.gd" id="63_weapon_drop"]
+[ext_resource type="PackedScene" path="res://ui/lockpick/lockpick_screen.tscn" id="64_lockpick_screen"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -137,6 +138,8 @@ script = ExtResource("22_interactor")
 [node name="LogScreen" parent="." instance=ExtResource("34_log_screen")]
 
 [node name="KeypadScreen" parent="." instance=ExtResource("52_keypad_screen")]
+
+[node name="LockpickScreen" parent="." instance=ExtResource("64_lockpick_screen")]
 
 [node name="ToolUse" type="Node" parent="."]
 script = ExtResource("51_tool_use")

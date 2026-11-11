@@ -136,18 +136,54 @@ display_name = "Computer"
 description = "The deck's tools: crack time, trace gain, Icebreaker strength (consumer: M11)."
 effects = Array[ExtResource("3_effect")]([])
 
-[sub_resource type="Resource" id="Effect_lockpick_time_mult"]
+[sub_resource type="Resource" id="Effect_lockpick_window_low"]
 script = ExtResource("3_effect")
-attribute = &"lockpick_time_mult"
-op = 1
-tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
+attribute = &"lockpick_window_low"
+op = 0
+tier_values = Array[float]([0.0, -0.04, -0.08, -0.12])
+
+[sub_resource type="Resource" id="Effect_lockpick_window_high"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_window_high"
+op = 0
+tier_values = Array[float]([0.0, 0.04, 0.08, 0.12])
+
+[sub_resource type="Resource" id="Effect_lockpick_drop_threshold"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_drop_threshold"
+op = 0
+tier_values = Array[float]([0.0, -0.03, -0.06, -0.09])
+
+[sub_resource type="Resource" id="Effect_lockpick_drop_delay"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_drop_delay"
+op = 0
+tier_values = Array[float]([0.0, 0.15, 0.3, 0.45])
+
+[sub_resource type="Resource" id="Effect_lockpick_lift_tolerance"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_lift_tolerance"
+op = 0
+tier_values = Array[float]([0.0, 0.012, 0.024, 0.036])
+
+[sub_resource type="Resource" id="Effect_lockpick_rake"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_rake"
+op = 0
+tier_values = Array[float]([0.0, 0.0, 0.0, 1.0])
+
+[sub_resource type="Resource" id="Effect_lockpick_assist"]
+script = ExtResource("3_effect")
+attribute = &"lockpick_assist"
+op = 0
+tier_values = Array[float]([0.0, 1.0, 2.0, 3.0])
 
 [sub_resource type="Resource" id="Skill_lockpicking"]
 script = ExtResource("2_skill")
 id = &"lockpicking"
 display_name = "Lockpicking"
-description = "Lockpick time (consumer: M8)."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_time_mult")])
+description = "Lockpicking minigame: a wider tension window and lift tolerance, a lower drop threshold, slower pin drops; assists (Trained: tension gauge, Advanced: + captions, Master: + pins view); Master rakes simple locks."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_window_low"), SubResource("Effect_lockpick_window_high"), SubResource("Effect_lockpick_drop_threshold"), SubResource("Effect_lockpick_drop_delay"), SubResource("Effect_lockpick_lift_tolerance"), SubResource("Effect_lockpick_rake"), SubResource("Effect_lockpick_assist")])
 
 [resource]
 script = ExtResource("1_table")

@@ -61,43 +61,58 @@ func test_keypad_reminder_comes_from_the_users_log() -> void:
 	assert_bool(keypad.use_locked(user)).is_false()
 
 
-func test_mechanical_lock_picks_in_pins_times_skill_and_resets_on_release() -> void:
+func test_mechanical_lock_is_worked_by_its_tool_through_the_minigame() -> void:
 	var box := _locked_box([])
 	var lock := _mechanical(box, 3)
 	var user := _user([])
-	var attributes := Attributes.of(user)
-	attributes.attribute_set.add_modifier(
-		Modifier.create(&"lockpick_time_mult", Modifier.Op.MULTIPLY, 0.75, &"skill.lockpicking")
-	)
-	assert_float(lock.pick_time(user)).is_equal_approx(2.25, 0.0001)
 	assert_bool(lock.accepts_tool(&"lockpick")).is_true()
 	assert_bool(lock.accepts_tool(&"crowbar")).is_false()
-
-	# 1.5 s, then letting go: the progress is lost.
-	_hold(lock, user, 1.5)
-	lock.tool_release(user)
-	assert_float(lock.tool_progress()).is_equal(-1.0)
-	# 2.0 s is not enough...
-	_hold(lock, user, 2.0)
+	# A user without a lockpicking screen cannot pick: working it does nothing.
+	for i in 30:
+		assert_bool(lock.tool_hold(user, FRAME)).is_false()
 	assert_bool(Lockable.of(box).locked).is_true()
-	assert_float(lock.tool_progress()).is_between(0.85, 0.92)
-	# ... 2.4 s in all is.
-	_hold(lock, user, 0.4)
+	assert_array(EventLog.find(&"lock.pick_started")).is_empty()
 
+	# The minigame's success unlocks it for the user, who wants it open.
+	var wanted: Array[Node] = []
+	Lockable.of(box).unlocked_by_user.connect(func(by: Node) -> void: wanted.append(by))
+	assert_bool(lock.complete_pick(user)).is_true()
 	assert_bool(Lockable.of(box).locked).is_false()
+	assert_array(wanted).contains_exactly([user])
 	assert_bool(lock.accepts_tool(&"lockpick")).is_false()
-	assert_array(EventLog.find(&"lock.pick_cancelled")).has_size(1)
 	assert_array(EventLog.find(&"lock.picked")).has_size(1)
+
+
+func test_mechanical_lock_noises_come_from_the_lock() -> void:
+	var box := _locked_box([])
+	var lock := _mechanical(box, 3)
+	lock.position = Vector3(0, 1, 0.1)
+	lock.pick_noise(2.0)
+	await Fixtures.frames(get_tree(), 2)
+	var emitted := EventLog.find(&"stimulus.emitted")
+	assert_array(emitted).has_size(1)
+	assert_str(String(emitted[0].data["type"])).is_equal("noise")
+	assert_float(emitted[0].data["intensity"]).is_equal(2.0)
+	assert_vector(emitted[0].data["origin"]).is_equal_approx(lock.global_position, Vector3.ONE * 0.001)
 
 
 func test_mechanical_lock_pins_are_data() -> void:
 	var box := _locked_box([])
 	var lock := _mechanical(box, 5)
 	lock.data.pins[1] = &"spool"
+	lock.data.pin_seed = 31
+	lock.data.tolerance_mult = 0.7
 
 	assert_int(lock.pin_count()).is_equal(5)
-	assert_str(String(lock.data.pins[1])).is_equal("spool")
-	assert_float(lock.pick_time(_user([]))).is_equal_approx(5.0, 0.0001)
+	var params := LockpickParams.new()
+	var model := lock.new_model(params)
+	assert_int(model.pins.size()).is_equal(5)
+	assert_str(String(model.pins[1].type)).is_equal("spool")
+	assert_float(model.tolerance_mult).is_equal(0.7)
+	# The same lock every retry.
+	assert_array(lock.new_model(params).order).is_equal(model.order)
+	assert_bool(lock.is_practice()).is_false()
+	assert_int(lock.layout_number()).is_equal(0)
 
 
 func test_keycard_reader_opens_for_its_access_only() -> void:
@@ -220,8 +235,3 @@ func _mechanical(box: Node3D, pins: int) -> MechanicalLock:
 
 func _user(tags: Array[StringName]) -> Node3D:
 	return Fixtures.entity(_root, "User", Vector3(0, 0, 2), [], tags)
-
-
-func _hold(lock: MechanicalLock, user: Node, seconds: float) -> void:
-	for i in roundi(seconds / FRAME):
-		lock.tool_hold(user, FRAME)

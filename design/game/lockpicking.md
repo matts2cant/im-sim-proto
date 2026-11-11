@@ -1,6 +1,6 @@
 # Lockpicking
 
-Milestone: M10 (minigame). M8 builds locks as data and a placeholder: see [security.md](security.md).
+Milestone: M10 (minigame, built: [ADR 0107](../decisions/0107-lockpicking-minigame.md)). M8 built locks as data and a placeholder: see [security.md](security.md). The approved prototype is [lockpicking_bench.html](../prototypes/lockpicking_bench.html); the game ports its mechanics, numbers and drawing.
 
 ## Purpose
 
@@ -8,13 +8,14 @@ A mechanical-lock minigame true to real pin-tumbler locks and their vocabulary. 
 
 ## Player-facing behaviour
 
-- **Start**: lockpick selected on the belt, left-click a lock within reach (a door's pin lock: its leaf, where the keyhole sits on the handle, from either face, [ADR 0098](../decisions/0098-door-lock-hardware-and-keycard-relock.md)) ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses). The view locks onto the lock.
-- **Leave**: E or Esc, or taking damage. Leaving releases tension and loses all progress.
-- **Real time**: the world keeps running; guards can walk up on you.
-- **View**: outside only: keyway, tension wrench and pick tip. No HUD meters, no X-ray. The player reads the lock through sound and tool motion.
-- **Tension**: W raises it, S lowers it, and the level holds where you leave it (no leak). The wrench angle shows it.
-- **Pins**: A / D move the pick between pins (discrete steps).
-- **Lift**: mouse Y. The pick tip follows a target height like a spring. When a binding pin resists, the tip lags behind the target and that lag is the applied force. Pushing further raises the force until the pin sets, oversets, or the pick strains and breaks.
+- **Start**: lockpick selected on the belt, left-click a lock within reach (a door's pin lock: its leaf, where the keyhole sits on the handle, from either face, [ADR 0098](../decisions/0098-door-lock-hardware-and-keycard-relock.md)) ([ADR 0059](../decisions/0059-belt-selects-lmb-uses.md): the belt selects, LMB uses). The camera turns to face the lock (0.25 s) and the player stops moving (the stance stays): W / S / A / D work the lock, the mouse lifts the pick.
+- **Leave**: E or Esc (Esc does not open the game menu), taking damage, being unable to act, the lock unlocked or opened by other means, out of reach (2.5 m from the eyes), or the last lockpick broken. Leaving releases tension and loses all progress. A picked lock's screen closes once the plug has turned (0.8 s). LMB still held when the screen closes does not start it again.
+- **Real time**: the game does not pause; guards can walk up on you.
+- **Screen** (`LockpickScreen`, a child of the player): a centred panel about 45% of the screen with the prototype's front view (door plate, plug and keyway, tension wrench, pick, pick-depth dots), drawn in 2D over the live first-person view, above the HUD's belt. Captions at the bottom of the panel, one line of control hints under it.
+- **Assists by skill** (cumulative): Untrained hears the lock only (sound and tool motion); Trained adds the **tension gauge** at the panel's right edge (bands at the picker's real thresholds: drop zone, too low, sweet spot, too high; needle, % and zone word); Advanced adds **captions** (the prototype's texts: "click", "deep clunk, the plug turns further", "a pin drops"...); Master adds the **pins view** under the panel (the clear acrylic side view: key pins, drivers, springs, the shear line, the pick). The level is the `lockpick_assist` attribute, so an augmentation could raise it. A practice lock always shows all three.
+- **Tension**: W raises it, S lowers it (0.5 per second; with Shift 0.15, fine steps), and the level holds where you leave it (no leak). The wrench angle shows it.
+- **Pins**: A / D move the pick between pins (discrete steps). **Changing pins resets the lift** ([ADR 0107](../decisions/0107-lockpicking-minigame.md)): the lift target goes to the bottom, the tip drops below the pins (0.05 s from full lift), then the pick moves across (0.05 s per pin); mouse lift is ignored until it arrives, and further presses during the move queue. Moving with the pick up can no longer jam the next pin (a prototype bug).
+- **Lift**: relative mouse Y moves a lift target (0.003 of the range per pixel, a tuning value; it stays where it is left). The pick tip follows the target like a spring. When a binding pin resists, the tip lags behind the target and that lag is the applied force. Pushing further raises the force until the pin sets, oversets, or the pick strains and breaks.
 
 ### How a pin-tumbler lock behaves
 
@@ -68,7 +69,7 @@ Times are for a player who understands the mechanic.
 - **Sounds**: binding scrape, crisp set click, duller and bigger false-set clunk, counter-rotation creak, serrated ticks, rising strain before a break, overset jam. Placeholder sounds first (the prototype's synth sounds: one-shots baked to WAV, the scrape and strain synthesised live; `LockpickAudio`, [ADR 0108](../decisions/0108-lockpick-sounds.md)); a real sound pass later.
 - **Tool motion**: the wrench turns with the plug and kicks back on counter-rotation; the pick bends with force; the plug turns a hair per set and noticeably on a false set.
 - **Camera**: tiny nudges on clicks.
-- **Practice locks**: clear acrylic locks (one per tier) in the Security wing show the pins. They are the tutorial. The final game will likely have a Deus Ex-style training course ([../backlog.md](../backlog.md)).
+- **Practice locks**: clear acrylic wall locks (`objects/locks/practice_lock/practice_lock.tscn`; `MechanicalLockData.practice` with a `practice_tier`: Simple, Standard, Secure or High-security, the prototype's pins and tolerances). Every assist shows whatever the skill. Picks break on them like on any lock. Once opened, the plug turns back about 3 s later and the lock re-locks with a **new random pin layout** (real locks keep their `pin_seed` across retries): the `relock` sound, the pins drop and settle at their new heights over 0.5 s, the caption "new pin layout", and the panel's layout counter ("Practice lock · Standard · Layout 3"). It re-locks also when the picker has left. They are the tutorial; the Security wing's hall gets one per tier (placed later). The final game will likely have a Deus Ex-style training course ([../backlog.md](../backlog.md)).
 
 ## Rules
 
@@ -81,19 +82,30 @@ Times are for a player who understands the mechanic.
 | Lock opening | 4 | 3 m |
 | Pick breaking | 6 | 5 m (like a footstep) |
 
-- **Lockpicking skill** ([abilities.md](abilities.md)), as attributes and modifiers like the other skills:
-  - Tiers 1-3 widen the tension window and the lift tolerance, lower the drop threshold, slow pin drops and make feedback clearer.
-  - Tier 2 adds a binding-pin hint: a stronger scrape and a slight pick tremor on the binding pin. No overlay.
-  - Tier 3 auto-rakes Simple locks: hold LMB about 2 s, the pick rakes with normal click noise; cancellable.
+- **Lockpicking skill** ([abilities.md](abilities.md)), as attributes and modifiers like the other skills (the prototype's `skillParams(t)`, t = tier 0-3):
+
+| Attribute (base in the tuning) | Per tier (ADD) | Untrained / Trained / Advanced / Master |
+|---|---|---|
+| `lockpick_window_low` (0.30) | -0.04 | 30 / 26 / 22 / 18 % tension |
+| `lockpick_window_high` (0.60) | +0.04 | 60 / 64 / 68 / 72 % |
+| `lockpick_drop_threshold` (0.15) | -0.03 | 15 / 12 / 9 / 6 % |
+| `lockpick_drop_delay` (0.3 s) | +0.15 | 0.3 / 0.45 / 0.6 / 0.75 s per dropped pin |
+| `lockpick_lift_tolerance` (0) | +0.012 | added to the base 0.045 around the shear line |
+| `lockpick_rake` (0) | Master +1 | rakes when at least 0.5 |
+| `lockpick_assist` (0) | +1 | the assists above |
+
+  - Master rakes rakeable locks (at most 3 pins, all standard: a Simple lock): hold LMB in the tension window; a pin sets every 0.65 s (about 2 s for three) with normal click noise; letting go stops it.
+  - The prototype's binding-pin hint (a louder scrape and pick tremor at tier 2+) is dropped: the normal scrape plays at every tier.
   - Skill never hard-gates a lock: hard locks are very hard untrained but possible.
-- **Starting tuning** (all in a `.tres`): working window 30-60% tension untrained, drop zone below 15%, reset at 0%.
-- **Lockpicks break only on failure**: forcing a heavily bound pin at high tension, or prying an overset. Success consumes nothing ([inventory.md](inventory.md)).
+- **Tuning** (`objects/locks/lockpicking/lockpick_tuning.tres`, every prototype number unchanged): tension rates, pin heights, spring, lift force, strain and break, false sets, ticks, rake, noise table, plug turn, the four practice tiers. Each lock's data: `pins`, `pin_seed`, `tolerance_mult` (1.0; the tiers: Simple 1.1, Standard 1.0, Secure 0.9, High-security 0.7), `tool`, `practice`, `practice_tier`.
+- **Lockpicks break only on failure**: forcing a heavily bound pin at high tension, or prying an overset. A broken pick removes one lockpick from the picker's inventory (another stays in hand while any is left); with none left the attempt ends ("Out of lockpicks"). Success consumes nothing ([inventory.md](inventory.md)).
+- **Noise**: every event emits a `noise` at the lock through the usual noise path (the table above: set click, scrape at most every 1.2 s while the binding pin rubs, serrated tick 2; overset jam, false-set clunk 3; opening 4; snap 6). Pin drops and the creak make no noise, as in the prototype.
 - **Systemic**: any entity with a `Lock` component and its pin data (doors, desk drawers, lockers, crates, padlocked gates) uses the same minigame. Pin-tumbler only for now.
 
 ### Plan
 
 - **M8** (built, [ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)): `MechanicalLock` with `MechanicalLockData` (`pins`: one type per pin, `pin_seed`, `tool`), the pick hook is the `Lock` tool interface (`accepts_tool`, `tool_hold`, `tool_release`, `tool_progress`) driven by the user's `ToolUse` while LMB is held with a lockpick; the placeholder takes pins x 1 s x `lockpick_time_mult`. M10 replaces `tool_hold` without touching doors.
-- **M10**: the minigame on mouse and keyboard, the practice locks, the skill rework (tolerance attributes replace `lockpick_time_mult`).
+- **M10** (built, [ADR 0107](../decisions/0107-lockpicking-minigame.md)): `MechanicalLock.tool_hold()` opens the user's `LockpickScreen`; the model is `PinTumbler` (pure, the prototype's `step()`), built by the lock (`new_model()`), with `LockpickParams` from the picker's attributes; success calls `complete_pick()` (unlocks it for the user, who wants it open); noises through `pick_noise()`. Practice locks (`PracticeRelock`). Sounds: `LockpickAudio` ([ADR 0108](../decisions/0108-lockpick-sounds.md)). The skill's attributes replaced `lockpick_time_mult`.
 - **Later gamepad milestone** ([../backlog.md](../backlog.md)): L2 tension, R2 lift, right stick changes pins, rumble.
 
 ## Interactions
@@ -104,7 +116,7 @@ Times are for a player who understands the mechanic.
 
 ## Open questions
 
-- Exact tolerances per lock tier and skill tier.
-- Sound design.
+- Exact tolerances per lock tier and skill tier (the prototype's, to be tuned in playtests).
 - Pick break thresholds.
+- Captions as an accessibility option independent of skill (later pass).
 - Loadout economy (2 picks today).

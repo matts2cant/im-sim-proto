@@ -1,18 +1,26 @@
 class_name MechanicalLockData
 extends Resource
-## A pin-tumbler lock's data (ADR 0078, lockpicking.md): its pins (count and types, for M10's
-## minigame), the tool that works it and the M8 hold-to-pick placeholder's tuning.
+## A pin-tumbler lock's data (ADR 0078, 0107, lockpicking.md): its pins, their seed and tolerance,
+## the tool that works it, and whether it is a practice lock.
 
-## One entry per pin, front to back: `standard`, `spool`, `serrated` (M10 reads them).
+## Practice tiers (LockpickTuning.tiers, in this order).
+enum Tier { SIMPLE, STANDARD, SECURE, HIGH_SECURITY }
+
+## One entry per pin, front to back: `standard`, `spool`, `serrated`. A practice lock uses its tier's
+## pins instead.
 @export var pins: Array[StringName] = [&"standard", &"standard", &"standard"]
-## Seed of M10's per-lock pin data (a lock is the same across retries).
+## Seed of the pin heights and binding order: a lock is the same across retries.
 @export var pin_seed: int = 0
+## Lift tolerance multiplier (1 = base; the prototype's tiers: Simple 1.1, Standard 1.0, Secure 0.9,
+## High-security 0.7). A practice lock uses its tier's.
+@export var tolerance_mult: float = 1.0
 ## ItemData.tool_kind of the tool that picks it.
 @export var tool: StringName = &"lockpick"
-## Placeholder: seconds per pin before the picker's `lockpick_time_mult`.
-@export var seconds_per_pin: float = 1.0
-## Loudness (audible metres) of the lock opening.
-@export var open_noise: float = 4.0
+## A practice lock (clear acrylic): every assist shows whatever the picker's skill, and once opened
+## it re-locks after a few seconds with a new random layout of its tier's pins.
+@export var practice: bool = false
+## A practice lock's tier.
+@export var practice_tier: Tier = Tier.STANDARD
 
 
 func pin_count() -> int:

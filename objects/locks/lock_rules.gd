@@ -1,17 +1,11 @@
 class_name LockRules
 extends RefCounted
-## Pure lock logic (ADR 0078): code check, pick time, key match, power loss, keypad reminder.
+## Pure lock logic (ADR 0078): code check, key match, power loss, keypad reminder, free side.
 
 
 ## True when `entered` is the lock's `code` (a lock without a code never opens by code).
 static func code_matches(entered: String, code: String) -> bool:
 	return not code.is_empty() and entered == code
-
-
-## Seconds the hold-to-pick placeholder takes: seconds per pin x pins x the picker's
-## `lockpick_time_mult` (at least one pin).
-static func pick_time(pin_count: int, seconds_per_pin: float, time_mult: float) -> float:
-	return maxi(pin_count, 1) * maxf(seconds_per_pin, 0.0) * maxf(time_mult, 0.0)
 
 
 ## True when one of `key_ids` opens a lock with `access_id` (an empty access id opens to no key).

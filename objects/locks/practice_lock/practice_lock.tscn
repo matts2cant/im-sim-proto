@@ -1,0 +1,152 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/locks/lockable.gd" id="1_lockable"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="2_mechanical"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="3_data"]
+
+[sub_resource type="Resource" id="Data_practice"]
+script = ExtResource("3_data")
+practice = true
+practice_tier = 1
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.26, 0.32, 0.09)
+
+[sub_resource type="StandardMaterial3D" id="Material_plate"]
+albedo_color = Color(0.1, 0.12, 0.15, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_plate"]
+material = SubResource("Material_plate")
+size = Vector3(0.3, 0.36, 0.012)
+
+[sub_resource type="StandardMaterial3D" id="Material_acrylic"]
+transparency = 1
+albedo_color = Color(0.63, 0.8, 0.89, 0.22)
+roughness = 0.05
+rim_enabled = true
+rim = 0.4
+
+[sub_resource type="BoxMesh" id="Mesh_acrylic"]
+material = SubResource("Material_acrylic")
+size = Vector3(0.24, 0.3, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="Material_brass"]
+albedo_color = Color(0.79, 0.64, 0.29, 1)
+metallic = 0.8
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="Mesh_plug"]
+material = SubResource("Material_brass")
+top_radius = 0.03
+bottom_radius = 0.03
+height = 0.075
+radial_segments = 24
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_pin"]
+material = SubResource("Material_brass")
+top_radius = 0.006
+bottom_radius = 0.006
+height = 0.05
+radial_segments = 8
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_steel"]
+albedo_color = Color(0.67, 0.71, 0.76, 1)
+metallic = 0.9
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="Mesh_driver"]
+material = SubResource("Material_steel")
+top_radius = 0.006
+bottom_radius = 0.006
+height = 0.035
+radial_segments = 8
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_keyway"]
+albedo_color = Color(0.02, 0.02, 0.02, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_keyway"]
+material = SubResource("Material_keyway")
+size = Vector3(0.008, 0.035, 0.002)
+
+[node name="PracticeLock" type="StaticBody3D"]
+collision_mask = 0
+metadata/display_name = "Practice lock"
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.045)
+shape = SubResource("Shape_body")
+
+[node name="Plate" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.006)
+mesh = SubResource("Mesh_plate")
+
+[node name="Acrylic" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.047)
+cast_shadow = 0
+mesh = SubResource("Mesh_acrylic")
+
+[node name="Plug" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.07, 0.047)
+mesh = SubResource("Mesh_plug")
+
+[node name="Keyway" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0.0855)
+cast_shadow = 0
+mesh = SubResource("Mesh_keyway")
+
+[node name="Pins" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.047)
+
+[node name="KeyPin1" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, -0.01, 0)
+mesh = SubResource("Mesh_pin")
+
+[node name="KeyPin2" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, -0.004, 0)
+mesh = SubResource("Mesh_pin")
+
+[node name="KeyPin3" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.014, 0)
+mesh = SubResource("Mesh_pin")
+
+[node name="KeyPin4" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0, 0)
+mesh = SubResource("Mesh_pin")
+
+[node name="KeyPin5" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, -0.008, 0)
+mesh = SubResource("Mesh_pin")
+
+[node name="Driver1" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, 0.04, 0)
+mesh = SubResource("Mesh_driver")
+
+[node name="Driver2" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.046, 0)
+mesh = SubResource("Mesh_driver")
+
+[node name="Driver3" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.036, 0)
+mesh = SubResource("Mesh_driver")
+
+[node name="Driver4" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0.05, 0)
+mesh = SubResource("Mesh_driver")
+
+[node name="Driver5" type="MeshInstance3D" parent="Pins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0.042, 0)
+mesh = SubResource("Mesh_driver")
+
+[node name="Lockable" type="Node" parent="."]
+script = ExtResource("1_lockable")
+locked = true
+
+[node name="MechanicalLock" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0.09)
+script = ExtResource("2_mechanical")
+data = SubResource("Data_practice")
