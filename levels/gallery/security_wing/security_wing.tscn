@@ -35,6 +35,7 @@
 [ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="33_laser"]
 [ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="34_cardboard_box"]
 [ext_resource type="PackedScene" path="res://objects/laser/laser_beam.tscn" id="35_laser_beam"]
+[ext_resource type="PackedScene" path="res://objects/locks/practice_lock/practice_lock.tscn" id="36_practice_lock"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -144,6 +145,26 @@ pins = Array[StringName]([&"standard", &"standard", &"standard"])
 [sub_resource type="Resource" id="Keycard_data"]
 script = ExtResource("13_keycard_data")
 access_id = &"security_booth"
+
+[sub_resource type="Resource" id="Practice_simple"]
+script = ExtResource("11_mechanical_data")
+practice = true
+practice_tier = 0
+
+[sub_resource type="Resource" id="Practice_standard"]
+script = ExtResource("11_mechanical_data")
+practice = true
+practice_tier = 1
+
+[sub_resource type="Resource" id="Practice_secure"]
+script = ExtResource("11_mechanical_data")
+practice = true
+practice_tier = 2
+
+[sub_resource type="Resource" id="Practice_highsecurity"]
+script = ExtResource("11_mechanical_data")
+practice = true
+practice_tier = 3
 
 [node name="SecurityWing" type="Node3D"]
 
@@ -499,6 +520,32 @@ length = 2.98
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 length = 2.98
 
+[node name="PracticeLocks" type="Node3D" parent="."]
+
+[node name="PracticeSimple" parent="PracticeLocks" instance=ExtResource("36_practice_lock")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.5, 1.3, 4.15)
+
+[node name="MechanicalLock" parent="PracticeLocks/PracticeSimple"]
+data = SubResource("Practice_simple")
+
+[node name="PracticeStandard" parent="PracticeLocks" instance=ExtResource("36_practice_lock")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.5, 1.3, 3.4)
+
+[node name="MechanicalLock" parent="PracticeLocks/PracticeStandard"]
+data = SubResource("Practice_standard")
+
+[node name="PracticeSecure" parent="PracticeLocks" instance=ExtResource("36_practice_lock")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.5, 1.3, 2.65)
+
+[node name="MechanicalLock" parent="PracticeLocks/PracticeSecure"]
+data = SubResource("Practice_secure")
+
+[node name="PracticeHighSecurity" parent="PracticeLocks" instance=ExtResource("36_practice_lock")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.5, 1.3, 1.9)
+
+[node name="MechanicalLock" parent="PracticeLocks/PracticeHighSecurity"]
+data = SubResource("Practice_highsecurity")
+
 [node name="Items" type="Node3D" parent="."]
 
 [node name="ClosetCode" parent="Items" instance=ExtResource("25_datapad")]
@@ -641,7 +688,7 @@ size = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.7, 0.05)
 pixel_size = 0.0035
 text = "Datapads: E to read, codes go to your log (L)
-Lockpicks for D2"
+Lockpicks for D2 and the practice locks"
 size = 0
 
 [node name="BreakerA" parent="Labels" instance=ExtResource("3_sign")]
@@ -753,4 +800,39 @@ text = "Two-beam array: no jump
 or crouch gets past. Disable
 it at the terminal, cut
 breaker B or shoot its emitter"
+size = 0
+
+[node name="PracticeLocks" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 2.15, 3.025)
+pixel_size = 0.003
+text = "Practice locks: every assist shows;
+they re-lock with new pins"
+size = 0
+
+[node name="PracticeSimple" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 1.65, 4.15)
+pixel_size = 0.002
+text = "Simple
+3 pins"
+size = 0
+
+[node name="PracticeStandard" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 1.65, 3.4)
+pixel_size = 0.002
+text = "Standard
+5 pins"
+size = 0
+
+[node name="PracticeSecure" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 1.65, 2.65)
+pixel_size = 0.002
+text = "Secure
+5 pins"
+size = 0
+
+[node name="PracticeHighSecurity" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.45, 1.65, 1.9)
+pixel_size = 0.002
+text = "High-security
+6 pins"
 size = 0

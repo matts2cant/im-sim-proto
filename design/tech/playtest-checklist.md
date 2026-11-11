@@ -218,7 +218,7 @@ Hub loadout table and gallery room 7 (Inventory bay):
 
 Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)). Take the loadout table's pistol, baton and lockpicks first.
 
-- [ ] Entry hall: the five lock-row doors read at a glance from the hub door, each with its sign; the west wall left of the table is bare (practice locks come in M10); the hub doorway shows no seam or flicker from either side.
+- [ ] Entry hall: the five lock-row doors read at a glance from the hub door, each with its sign; the west wall left of the table holds the four practice locks (M10d) and their signs; the hub doorway shows no seam or flicker from either side.
 - [ ] Table: E on the "Closet code" datapad shows it and adds it to the log (L); the two lockpicks go into the inventory.
 - [ ] D1 keypad: "E: enter code" opens the entry screen (game paused) showing "Note: 5309, from 'Closet code'"; a wrong code beeps and says "Wrong code"; 5309 + Enter opens the door; Esc leaves halfway without opening the game menu. The keycard lies on the shelf inside.
 - [ ] D2 pin lock: "Locked: lockpick"; LMB with a lockpick drawn starts the lockpicking minigame (see "M10 Lockpicking minigame"); once picked the door opens and the lockpick count does not change. The "Booth login" datapad is on the shelf.
@@ -430,7 +430,7 @@ Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn`
 
 ## M10 Lockpicking minigame ([ADR 0107](../decisions/0107-lockpicking-minigame.md))
 
-In the security wing (D2's pin lock) or any pin lock, with lockpicks; set the Lockpicking tier in the debug panel's Stats tab. Practice locks: until a later wave places them in the security wing's hall, instance `objects/locks/practice_lock/practice_lock.tscn` on a wall (set its tier in its MechanicalLock data). Review shots: `tests/ui/lockpick/fixtures/lockpick_shots.tscn` with `SHOT=untrained|trained|advanced|master|relock|room`.
+In the security wing (D2's pin lock) or any pin lock, with lockpicks; set the Lockpicking tier in the debug panel's Stats tab. Practice locks: the four on the security wing hall's west wall (take the lockpicks from the table); review shots `tests/levels/gallery/security_wing/fixtures/wing_shots.tscn -- shot=practice_wall|practice_wall_near|practice_simple|practice_standard|practice_standard_crouched|practice_secure|practice_high`. Review shots: `tests/ui/lockpick/fixtures/lockpick_shots.tscn` with `SHOT=untrained|trained|advanced|master|relock|room`.
 - [ ] LMB with the pick on the lock: the camera turns smoothly to the lock in about a quarter second, the panel opens over the live view, the player does not move with W / S / A / D and keeps crouching if crouched; guards and the world keep running.
 - [ ] Tension: W / S raise and lower it at a comfortable speed, Shift gives fine steps, it stays where left; the wrench flexes and the plug turns a hair with it.
 - [ ] Lift: mouse up raises the pick, it stays where left; the tip lags behind on the binding pin and the pick bows with the force; the sensitivity feels right (tuning `lift_per_pixel`).
@@ -441,6 +441,7 @@ In the security wing (D2's pin lock) or any pin lock, with lockpicks; set the Lo
 - [ ] A broken pick uses up one lockpick ("SNAP" caption, the count on the belt drops); with none left the panel closes and the HUD says "Out of lockpicks".
 - [ ] A picked door: the plug turns open, the panel closes and the door swings open; the pick count is unchanged.
 - [ ] Practice lock: once open, about 3 s later the plug turns back, the relock sound plays, the pins drop and settle at new heights, the caption says "new pin layout" and the panel reads "Layout 2"; the new layout picks differently.
+- [ ] Practice-lock wall (M10d): from the hall the four locks and their signs read at a glance (header, then Simple 3 pins, Standard 5, Secure 5, High-security 6 from left to right facing the wall; High-security is the one next to the table); each prop shows its tier's pin count through the acrylic and sits flush on the wall with no gap or flicker; each can be picked standing and crouched from in front of it, every assist shows on each at Untrained, its pin count matches its sign, and once open each re-locks with a new layout ("Layout 2", the pins on the wall prop shift too).
 - [ ] Master on a Simple lock: holding LMB in the sweet spot rakes it open in about 2 s with clicks; letting go stops.
 - [ ] A guard nearby hears a snapped pick (about 5 m) but not the clicks beyond about 1 m.
 - [ ] Timing targets (a player who understands the mechanic): Simple about 5 s untrained; Standard about 15 s untrained, 7 s at Master; Secure about 30 s / 15 s; High-security about 60 s / 25 s.
