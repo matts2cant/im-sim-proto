@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_console"]
+script = ExtResource("2_document")
+id = &"gallery.network_lab.pc2_mail_console"
+title = "Console login"
+sender = "M. Ortiz"
+text = "Jan,
+
+For the night checks: the security console takes user ops, password relay52. Its Security app runs the closet camera and the closet door; they obey that console only.
+
+M."
+codes = Dictionary[StringName, String]({&"network_lab_console": "ops:relay52"})
+code_labels = Dictionary[StringName, String]({&"network_lab_console": "Security console login"})
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_console")])

@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="21_silencer"]
 [ext_resource type="PackedScene" path="res://levels/kit/level_exit.tscn" id="22_level_exit"]
 [ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="23_deck"]
+[ext_resource type="PackedScene" path="res://levels/gallery/network_lab/network_lab.tscn" id="24_network_lab"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -95,6 +96,14 @@ offset = -7.5
 width = 2.0
 height = 3.0
 
+[sub_resource type="Resource" id="Opening_network_lab"]
+script = ExtResource("4_opening")
+node_name = &"DoorwayNetworkLab"
+wall = 3
+offset = -2.0
+width = 2.0
+height = 3.0
+
 [node name="Hub" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -103,7 +112,7 @@ environment = SubResource("Environment_1nc5w")
 [node name="Room" parent="." instance=ExtResource("3_room")]
 size = Vector3(30, 5, 30)
 wall_thickness = 0.5
-openings = Array[ExtResource("4_opening")]([SubResource("Opening_movement"), SubResource("Opening_perception"), SubResource("Opening_physics_fire"), SubResource("Opening_shooting_range"), SubResource("Opening_security"), SubResource("Opening_ai_arena"), SubResource("Opening_inventory_abilities"), SubResource("Opening_mission")])
+openings = Array[ExtResource("4_opening")]([SubResource("Opening_movement"), SubResource("Opening_perception"), SubResource("Opening_physics_fire"), SubResource("Opening_shooting_range"), SubResource("Opening_security"), SubResource("Opening_ai_arena"), SubResource("Opening_inventory_abilities"), SubResource("Opening_mission"), SubResource("Opening_network_lab")])
 
 [node name="Doorways" type="Node3D" parent="."]
 
@@ -145,6 +154,11 @@ size = 2
 [node name="LabelMission" parent="Doorways" instance=ExtResource("5_sign")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -14.95, 3.6, -7.5)
 text = "Mission"
+size = 2
+
+[node name="LabelNetworkLab" parent="Doorways" instance=ExtResource("5_sign")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -14.95, 3.6, -2)
+text = "8 Network Lab"
 size = 2
 
 [node name="Lights" type="Node3D" parent="."]
@@ -196,6 +210,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 15.5)
 
 [node name="SecurityWing" parent="." instance=ExtResource("20_security_wing")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, 15.5)
+
+[node name="NetworkLab" parent="." instance=ExtResource("24_network_lab")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -15.5, 0, -2)
 
 [node name="Loadout" type="Node3D" parent="."]
 

@@ -15,7 +15,7 @@ graph TD
     H --> R5["5 Security wing"]
     H --> R6["6 AI arena"]
     H --> R7["7 Inventory and abilities bay"]
-    H --> R8["8 Network lab (M12)"]
+    H --> R8["8 Network lab (M12a)"]
     H --> M["Warehouse mission (separate scene, M9)"]
 ```
 
@@ -30,7 +30,7 @@ graph TD
 | 5 | Security wing | Camera corridor with dark alcoves, laser hall (low and high one-beam arrays, a two-beam array), alarm devices (controller, sirens, radio base station, panic button), a switch on a breaker, turret in a vault, keypad / pin-lock / keycard / electronic (fail-safe, fail-secure) / breakable doors, a security computer, a guard; practice locks (M10) | M8, M10 | [security](../game/security.md) |
 | 6 | AI arena | Guard group, patrols, escalation, body discovery, waking | M7 | [perception](../game/perception-and-ai.md) |
 | 7 | Inventory and abilities bay | Items of every footprint, stats menu | M5, M6 | [inventory](../game/inventory.md), [abilities](../game/abilities.md) |
-| 8 | Network lab | Every entry point, subnets behind a gateway, a tracer, a security console, network devices, clues | M12 | [hacking](../game/hacking.md) |
+| 8 | Network lab | A wall jack and the deck, office PCs with an explicit and an implicit clue, two chained gateways, a tracer, a security console that a camera and a door trust, a room switch on a breaker | M12a | [hacking](../game/hacking.md) |
 
 The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described in [mission-warehouse.md](mission-warehouse.md). The hub's west wall north doorway loads it when the player walks through: `MissionExit`, a kit `LevelExit` (1 x 3 x 2 m box at (-15.7, 0, -7.5), from x -16.2 to -15.2, so the player triggers it once its capsule (radius 0.35) reaches 0.2 m into the doorway, its centre 0.15 m short of the wall's inner face at x -15; [ADR 0087](../decisions/0087-mission-systems.md)); the mission offers a way back to the hub after extraction ([ADR 0086](../decisions/0086-warehouse-mission.md)). Nothing the player carries in the hub comes along. Tests: `tests/levels/mission/mission_kit/mission_level_change_test.gd`.
 
@@ -38,7 +38,7 @@ The mission is a separate scene, `levels/mission/warehouse.tscn` (M9), described
 
 30 x 30 m, 5 m high, doorways 2 x 3 m. The player spawns at `PlayerSpawn` (0, 0, 10) facing the north wall (doorways 1 and 2). Each room scene is instanced in `levels/hub/hub.tscn` behind its doorway, with its origin on the outer face of the hub wall.
 
-The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose eight `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, perception lab, physics and fire, shooting range, security wing, AI arena, inventory bay) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
+The hub is one kit `Room` (interior 30 x 5 x 30 m, 0.5 m walls) whose nine `RoomOpening`s are named after the doorways (`Room/DoorwayMovement` ...); doorway labels are kit `Sign`s (LARGE). Its `Navigation` node (`LevelNavigation`) bakes the navmesh for the hub and every gallery room instanced in it (movement course, perception lab, physics and fire, shooting range, security wing, AI arena, inventory bay, network lab) when the hub loads ([kit](kit.md#navigation), [ADR 0041](../decisions/0041-runtime-navmesh-bake.md)).
 
 Loadout table (`Loadout/`, M5): the player starts with an empty inventory, so a 1.0 m wood `Ledge` (`Table`, 2.6 x 0.7 m, lip at (1.9, 0, 8.4), top z 7.7 to 8.4) stands to the front right of the spawn with the starting kit as item pickups, 0.33 m apart (centre to centre; neighbours never touch): `Pistol` (loud since [ADR 0085](../decisions/0085-weapons-and-attachments.md)), `Silencer` (drag it onto the pistol in the inventory to fit it), `Baton` (stun baton), `PistolAmmo` x60, `Medkit` x2, `Lockpick` x2, `Biocell` x2, at x 0.9 to 2.88 (the multitool was removed in M8, [ADR 0076](../decisions/0076-computer-skill-multitool-removed.md)), and since [ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md) the `Deck` behind the row at (1.9, 7.82). Sign "Loadout" (SMALL) above its back edge. The table's west end (x 0.6) leaves the walk straight north from the spawn free, and it is more than 5 m from every doorway.
 
@@ -315,15 +315,45 @@ Tests (`tests/levels/gallery/inventory_bay/`): `inventory_bay_room_test.gd` (she
 
 ## 8 Network lab
 
-Not built yet (M12). Size and position: measure the free space between neighbouring rooms when M12 is planned. Teaches hacking one idea per station ([hacking](../game/hacking.md), [ADR 0074](../decisions/0074-network-hacking.md)):
+`levels/gallery/network_lab/network_lab.tscn` (M12a), instanced at hub (-15.5, 0, -2) behind a ninth hub doorway, "8 Network Lab" (`Room/DoorwayNetworkLab`, 2 x 3 m, on the west wall between the mission doorway at z -7.5 and room 7's at z 7.5), turned like room 7 so its local -Z points west and local +X is hub -Z (hub = (-15.5 + local z, y, -2 - local x)). Kit parts only, M8/M12a devices from `objects/`, kit `Sign`s at every station. A 3.5 m corridor (`Shell/Corridor`, 2 x 3 m, walls shared with the hub and the hall, [ADR 0043](../decisions/0043-room-connections-share-a-wall.md)) leads into a 14 x 14 m hall, 4 m high, concrete (`Shell/Hall`, interior x -2 to 12, z -4 to -18), and a 2.5 x 2.5 m closet, 3 m high, behind the hall's far wall (`Shell/Closet`, interior x 4.75 to 7.25, z -18.5 to -21) through a 1.2 x 2.2 m door. Four ceiling lamps over the hall, one in the closet.
 
-- Every entry point: a computer used bare-handed, a wall jack, an access point area (its range marked on the floor), an autonomous device with a maintenance port, a computer to plug the deck into.
-- Two or three subnets behind one gateway with a tracer, so the locked-subnet node, a firewall rule and a foothold can each be tried.
-- A security console with cameras that trust it, an office PC that cannot reach them ("Cannot reach SEC-SERVER").
-- Devices with remote actions: a door (one fail-safe, one fail-secure), a camera, a turret, a siren, an alarm controller, a keypad.
-- A switch and an access point with `Powered` and `Breakable`: cutting or breaking them shows what falls back to standalone.
-- Clues: an explicit one (sticky note or datapad), an implicit one (email plus a photo), an exploit datapad, passwords of each strength.
-- A guard whose patrol uses a device, for the Sniffer and the device log.
+**Where it went and why.** Every hub doorway was in use (seven rooms and the mission exit), so the lab needed either a new hub doorway or an opening off another gallery room. Measured from the scenes (outer wall faces, hub x / z): the movement course's hall covers x -26 to 1 for z -72 to -19; room 7's hall x -36 to -19 for z 1 to 14 and its corridor x -19.5 to -15 for z 6 to 9; nothing else lies west of the hub. The west side therefore holds a free block x -15.5 to -36 (and beyond), z -19 to 0.5 (keeping 0.5 m of void to room 7 and to the movement course). A doorway on the hub's west wall at z -2 (4.5 m of wall to the mission doorway, 6.5 m to room 7's, surface to surface) with a 3.5 m corridor reaches it straight from the hub and changes no other room; the alternatives (a room off the shooting range or the security wing, in the free area x 19+, z 19+) meant cutting another room's walls and a walk through it. Footprint (outer faces): corridor hub x -15 to -19, z -0.5 to -3.5; hall x -19 to -34, z 0.5 to -14.5; closet x -33.5 to -37, z -6.25 to -9.75. One side effect: through the mission doorway (the level exit) the player now sees the lab hall's outer east wall 3.5 m behind it instead of the void.
+
+Floor plan (lab-local, plan view, top = local -Z = hub west; not to scale):
+
+```text
+ z -21   +--------+
+         | closet |  B biocells x2 on a 0.8 m shelf
+ z -18.5 +--[D]---+---------------------------------+
+ z -18   | S  K   C           (camera above D)  FW2 |   S closet switch (room switch), K breaker,
+         |W                                    SV   |   C security console on a desk
+         |F                                         |   W main security switch, F FW-01 (tracer),
+         |O                                    FS   |   O office switch; FW2, SV servers switch, FS file server
+         |P2 (photo)                                |   P2 office PC 2 + desk
+         |P1 (sticky note)                          |   P1 office PC 1 + desk
+         |J                                         |   J wall jack (0.45 m up)
+ z -4    +-----[ door ]--T----------------------------+  T deck table (1.0 m, the deck on it)
+         x -2     0      2.6                       12
+                corridor (z 0 to -3.5) -> hub doorway 8
+```
+
+| Station | Lab-local position | Contents |
+|---|---|---|
+| Deck table (`Furniture/DeckTable`) | south wall right of the door, lip (2.6, 0, -4.7), 1.6 x 0.7 m, 1.0 m | `Items/Deck` (the player may not have one). Sign "Deck · take it (E) / select it on the belt" |
+| Wall jack (`Devices/Jack`, OFFICE-JACK 10.0.10.40) | west wall (-1.99, 0.45, -6) | `wall_jack.tscn` on the Office subnet. Sign "Wall jack · Office subnet / deck in hand: LMB plugs in / 3 m away unplugs it" |
+| Office PC 1 (`Devices/OfficePc1`, OFFICE-PC1 10.0.10.11) | west wall (-1.99, 1.45, -8.5), desk below | Account `achen` / `otter61` (Weak); `Items/StickyNote` on the desk teaches it (code `network_lab_office_pc1`). Mail: "Re: my password" from J. Novak, an implicit clue (PC 2's user `jnovak`, "my cat's name and the year we moved in, all lower case"), and IT's note on the tracer. Sign "Office PC 1 · E uses it / login: the sticky note / read its mail" |
+| Office PC 2 (`Devices/OfficePc2`, OFFICE-PC2 10.0.10.12) | west wall (-1.99, 1.45, -12), desk below | Account `jnovak` / `mishka2029` (Weak), written nowhere: `Items/Photo` on its desk ("Mishka, our first night in the new flat, 2029") gives the name and the year. A wrong guess adds the tracer's failed-login trace. Its mail teaches the console's login (`ops:relay52`). Sign "Office PC 2 · no note here / guess its login from PC 1's mail and the photo" |
+| FW-01 (`Devices/Fw01`, 10.0.10.1) | west wall (-1.99, 1.6, -15.7), between the office switch (z -14.6) and the main security switch (z -16.8) | `gateway.tscn`, account `admin` / `gate42` (Weak, admin: the Icebreaker cracks it Untrained in 10 s, about +40 % trace), written nowhere; runs the "Sentry tracer" (default `tracer.tres`) watching Office and Security. Sign "FW-01 · gateway, Sentry tracer / between the office and security switches: hack it from the deck" |
+| Security console (`Devices/Console`, SEC-CONSOLE 10.0.20.5) | far wall (2.6, 1.45, -17.99), desk below | Account `ops` / `relay52` (Medium). Its Security app lists only the closet camera and the closet door (they trust it). Mail: the closet; file `fw02.txt` teaches FW-02's login. Sign "Security console / camera and door trust it" |
+| Closet (`Doors/ClosetDoor` DOOR-CLOSET 10.0.20.51, `Devices/ClosetCamera` CAM-CLOSET 10.0.20.21) | door (5.85, 0, -18.25), camera above it at 2.6 m | `door.tscn` with an `ElectronicLock`, `door.fail_secure`, on circuit `network_lab_closet`; both trust the console. Two biocells on the closet shelf. Sign "Closet · electronic, fail-secure / open it from the console" |
+| Closet switch and breaker (`Devices/ClosetSwitch` SW-CLOSET 10.0.20.3, `Devices/Breaker`) | far wall (-0.9, 1.6, -17.99) and (0.1, 1.3, -17.99) | A subnet can span several switches: the closet's room switch carries the camera and the door and hangs on the main security switch (SW-SECURITY 10.0.20.2, west wall, on no circuit), which carries the console and FW-02. The breaker ("closet switch", circuit `network_lab_closet`) unpowers the room switch: the camera and the door go offline (the door stays locked: fail-secure), the console and FW-02 stay online. Sign "Closet switch · breaker cuts it / camera and door go offline, / the rest of Security stays up" |
+| FW-02 and the file server (`Devices/Fw02` 10.0.20.1, `Devices/ServerSwitch` SW-SERVERS 10.0.30.2, `Devices/FileServer` FILE-SERVER 10.0.30.8) | east wall (11.99, 1.6, -16.2), (11.99, 1.6, -15.1), (11.99, 1.45, -12.5) with a desk | FW-02 (`admin` / `k3epOut9`, Medium, admin) joins Security and the Servers subnet; its login is in the console's files ("Log in (from fw02.txt)" on the Map). The file server (`archive` / `files7`, Weak, written nowhere) holds one file, `well_done.txt`. Signs "FW-02 · gateway inside Security / login: the console's files" and "File server · behind FW-02 / crack it, open its desktop" |
+
+The exercise chain (each station also works on its own): take the deck and plug it into the jack (the Map shows the Office subnet and FW-01 only); read the sticky note, log in on PC 1, read the clue; read the photo, guess PC 2's login, read its mail (the console's login); crack FW-01 from the Map (the Security subnet appears: console, camera, door, both security switches, FW-02); at the console (or its remote desktop from the deck) disable the camera and open the closet; flip the breaker to see the closet's devices drop off while the rest stays up; read the console's `fw02.txt`, log in on FW-02 from the Map (the file server appears), crack it and open its desktop remotely. Untrained, the tracer stays below full (office scan +10 %, FW-01's crack +40 %, the Security scan +10 %, draining 10 %/s; the Servers subnet is unwatched).
+
+Tests (`tests/levels/gallery/network_lab/`, each under 3 s; the station suites load the room fixture `fixtures/lab_player.tscn`, not the hub): `network_lab_room_test.gd` (the room alone, loaded once: shared walls and lined-up doorways, rays through the doorway and corridor clear and walls and the closed closet door blocking, no coplanar faces, `WallDeviceChecks.problems()` empty and every device flush on a hall wall, the signs inside their walls and apart, subnets, addresses, display names, the tracer, trust, accounts, the closet room switch on the main one and on the breaker's circuit, fair clues and the cracked passwords written nowhere, the deck on its table), `network_lab_office_test.gd` (the real player takes the deck and plugs it into the jack with LMB: the Map shows the office and FW-01; the sticky note and Fill in open PC 1, its mail is a clue; a wrong guess on PC 2 adds 15 % trace, the right one opens it and teaches the console's login), `network_lab_security_test.gd` (the console's Security app lists only the camera and the door, disables the camera, opens the closet, the player takes a biocell; the office PCs control nothing; the breaker cuts only the closet switch: the camera and the door offline, the door locked, the console and FW-02 still reached, also by the deck; the Icebreaker cracks FW-01 Untrained, the console's file logs in on FW-02, the file server appears, is cracked and opens remotely on its file), `network_lab_hub_test.gd` (in the hub: the lab's rooms keep 0.5 m from every other gallery room, the room sits on doorway 8 turned west, the navmesh reaches its stations from the spawn, the player walks in). `tests/levels/hub/hub_faces_test.gd` and `hub_test.gd` cover the hub with it. Review shots: `tests/levels/gallery/network_lab/fixtures/lab_shots.tscn` (run in a window with `-- shots=<name>,... out=<folder>`: the stations, the doorway both ways, the entrance, the console's Security app, PC 1's mail, the deck's Map from the jack before and after hacking FW-01 and FW-02, the closet switch off).
+
+Not built (M12b and later): an access point area, an autonomous device with a maintenance port and a computer to plug the deck into as entry points, a firewall rule, an exploit datapad, a guard whose patrol uses a device.
 
 ## Rules
 
@@ -334,4 +364,4 @@ Not built yet (M12). Size and position: measure the free space between neighbour
 
 ## Open questions
 
-- The west wall's north doorway loads the mission scene, so it needs no space behind the wall. South of the hub, room 5 takes hub x -0.5 to 18.5 up to z 38 and room 6 x -25.5 to -1 up to z 36. Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).
+- The west wall's north doorway loads the mission scene, so it needs no space behind the wall (the network lab's hall now stands 3.5 m behind it, M12a). South of the hub, room 5 takes hub x -0.5 to 18.5 up to z 38 and room 6 x -25.5 to -1 up to z 36. Doorways without a room lead into the void for now (the player respawns at the hub spawn when falling out).

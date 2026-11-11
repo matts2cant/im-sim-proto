@@ -184,7 +184,7 @@ All 1.2 x 2.2 m unless noted, each with at least 1.35 m of wall (or another room
 | Upper corridor | 8.25..19.75; 5.25..6.75 (carpet) | Bridge door west, fire escape door east |
 | Second office | 13.25..19.75; 7..14.75 (upper, carpet) | Office PCs, wall jack |
 | Boiler room | 8..19.5; -9..-0.5; -4, 3 | Boiler (x 16..19, z -8.6..-6.6), hatch stair, duct C mouth, tunnel door |
-| Store | 8..19.5; 0..14.75; -4, 3 | Service stair foot; breaker B, network switch, lockpicks, G8's cot |
+| Store | 8..19.5; 0..14.75; -4, 3 | Service stair foot; breaker B, the network closet (the main security switch, FW-01, the office switch), lockpicks, G8's cot |
 
 ### Population spots (placeholders in `LayoutMarkers`)
 
@@ -248,6 +248,7 @@ Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-po
 | Medkit | Boiler room (18.5, -4, -0.9) | |
 | Medkit, pistol rounds (10) | Cache shed, back strip's south-west corner (-33.95, 0, 23.45), (-33.6, 0, 23.4), behind a large crate (M9f) | Combat Strength |
 | Prototype | Vault, on a 0.8 m pedestal (19, 5.3, 3.5) | Optional objective A |
+| Deck (M12a) | Second office, desk 2 beside office PC 2 (17.45, 5.27, 14.1) | The office wall jack, a maintenance port, plugging into a computer: the network ([Network](#network-m12a)) |
 
 Every main route works without any of them; each find opens an option.
 
@@ -381,12 +382,15 @@ Static `Ledge`s (wood) under the items, in `Population/Security/Furniture`: Mana
 
 ## Security network (M9 wave 2)
 
-Two network switches, joined by an uplink cable (M9e, [ADR 0092](../decisions/0092-warehouse-polish.md)):
+A subnet can span several switches (M12a): the Security subnet is wired the way the building is, an area switch per part of the compound, each cabled up to the main security switch in the basement store, which FW-01 joins to the Office subnet ([Network](#network-m12a)). The two-part alarm of M9e ([ADR 0092](../decisions/0092-warehouse-polish.md)) stays: the building's part and the yard's, each with its own alarm controller.
 
-- **`SecuritySwitch`** (the building's): basement store, east wall (19.49, -2.4, 6), next to breaker B and on its circuit (`warehouse_building`). It carries the building's devices: CameraHall, CameraOffice, the vault turret, the console, the security room's `AlarmController`, the radio base station, the security panic button, the five indoor sirens and the cabled office doors (SecurityDoor, BridgeDoor, VaultDoor).
-- **`YardSwitch`** (the yard's): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. It carries the yard's devices: CameraGate, CameraYard, the roof's CameraRoof, LaserRoofWest and LaserRoofEast (M9g), the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
+- **`SecuritySwitch`** (the main security switch, SW-SECURITY): basement store, east wall (19.49, -2.4, 6), next to breaker B and on its circuit (`warehouse_building`), beside FW-01 and the office switch (the network closet). It carries the hall and basement devices (CameraHall, the hall's two sirens, SirenOfficeGround, SirenBasement) and the area switches' uplinks.
+- **`SecurityRoomSwitch`** (SW-SEC-ROOM): security room west wall (14.01, 1.6, 3.6), building circuit. The console, the security room's `AlarmController`, the radio base station, the security panic button and the SecurityDoor.
+- **`VaultSwitch`** (SW-VAULT): vault west wall (14.01, 6.1, 1.5), building circuit. The vault turret, the VaultDoor, the BridgeDoor, CameraOffice and SirenOfficeUpper (the upper floor).
+- **`YardSwitch`** (SW-YARD): gate booth, on the east wall inside north of the door (-9.51, 1.5, -23.4), on breaker A's circuit (`warehouse_yard`); seen (and shot) through the booth's west window from behind the booth's boxes. CameraGate, CameraYard, the booth's panic button, the yard's own controller `AlarmControllerYard` (booth east wall inside, south of the door), the four outdoor sirens and the FrontGate.
+- **`RoofSwitch`** (SW-ROOF): roof, the north parapet's inner face at the camera mast's foot (15.9, 10.05, -9.99), breaker A's circuit. CameraRoof, LaserRoofWest and LaserRoofEast (M9g).
 
-With both up, a camera's incident reaches both controllers and each rings every siren; the console reaches every device. Breaking a switch (a pistol round) or cutting its breaker cuts only its part: its cameras and panic button tell no controller and its sirens hear none, while the other part keeps working on its own controller. Cutting breaker B or breaking the store's switch silences the building and leaves the console with nothing online; the yard still rings. Breaking the booth's switch (or cutting breaker A, which also darkens the yard) silences the yard. Silencing everything takes both, in two places (the showcase moment, twice: the store on the underground route, the booth at G1's post). The devices themselves are on no circuit (they stay powered when a breaker is cut), except the doors (the fail-secure doors stay locked, the bridge door unlocks).
+With every switch up, a camera's incident reaches both controllers and each rings every siren; the console reaches every device. Breaking a switch (a pistol round) or cutting its breaker cuts only the devices behind it: they tell no controller and hear none, while the rest of the subnet keeps working (`warehouse_hacking_test.gd`: the vault's switch unpowered, the roof's broken). Cutting breaker B silences the building and leaves the console with nothing online (its own switch is on that circuit); breaking the store's main switch cuts every area switch from the others: the security room keeps its controller, panic button and door (the console still runs them), the hall, the vault and the upper floor go silent, the yard and the roof lose the building's controller. Breaking the booth's switch silences the yard; the roof's switch (or breaker A, which also darkens the yard and cuts both) the roof. Silencing everything still takes two decisions in two places (the store and the booth, or breaker B and breaker A). The devices themselves are on no circuit (they stay powered when a breaker is cut), except the doors (the fail-secure doors stay locked, the bridge door unlocks).
 
 | Device | Where | Notes |
 |---|---|---|
@@ -397,7 +401,7 @@ With both up, a camera's incident reaches both controllers and each rings every 
 | CameraRoof | Roof, the mast's south face in the north-east corner (17, 12.3, -9.69), rest yaw -20 | Sweeps over duct B's lit forecourt at the west end of its sweep (M9g, [Roof security](#roof-security-m9g)) |
 | LaserRoofWest, LaserRoofEast | Roof, across the parapet's gaps at the annex stair (-20.25, 10.8, 2.37) and the fire escape (20.25, 10.8, -4.52), 1.2 m beams along +Z | One-beam laser arrays (`laser_array.tscn`, `Beam1.length` 1.2; [ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)): high beams (1.3 m over the roof); on the yard circuit: breaker A switches them off |
 | VaultTurret | Vault (16.9, 4.5, 1.0) | Faces the vault door (intruders) |
-| SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Computer "security console" (host SEC-CONSOLE, account `dmarsh` / `harbor77`, medium; mail and files in `population/computers/security_console.tres`; [ADR 0114](../decisions/0114-computers-halcyon-os.md)), credentials `warehouse_security_console`; its Security app controls both switches' devices |
+| SecurityConsole | Security room north wall (16.05, 1.47, 0.26), between duct C and the window | Computer "security console" (host SEC-CONSOLE, account `dmarsh` / `harbor77`, medium; mail and files in `population/computers/security_console.tres`; [ADR 0114](../decisions/0114-computers-halcyon-os.md)), credentials `warehouse_security_console`; its Security app controls every security device (they trust it, M12a) |
 | AlarmController, RadioBaseStation | Security room east wall, over the desk | The building's controller |
 | AlarmControllerYard, YardSwitch | Booth east wall inside, south and north of the door | The yard's controller and switch |
 | PanicButtonSecurity, PanicButtonBooth | Security room west wall; booth west wall (-12.49, 1.3, -20.6) | Where G5 and G1 stand |
@@ -438,49 +442,38 @@ Blind spots and dark routes kept: the dumpster corner north of the side door, th
 
 - **High beams at both arrivals** (B1 `LaserRoofWest`, B2 `LaserRoofEast`): 1.3 m over the roof, across the parapet's 1.2 m gaps where the annex stair and the fire escape arrive, between two 1.6 m posts (the parapet's ends raised). Crouch under (0.35 m to spare); a jump does not clear them. Duct A, from the north catwalk's alcove, reaches the roof behind them.
 - **The roof camera** (`CameraRoof`, on a mast in the north-east corner) and **a flood lamp** on the mast's top light and watch duct B's forecourt (0.6-0.9 standing; dark at the waits w and e beside the duct's housing and at both arrivals). The forecourt sits at the west end of the camera's sweep: in focus 3-5 s per 14.7 s cycle, out of focus 8.5 s in a row. Lit, the forecourt is also seen from the north catwalk through the roof's east skylight (G4 walking east along the catwalk's west half: Sightlines).
-- **On the yard network**: cabled to the yard switch (gate booth); beams and lamp on breaker A's circuit, the camera on none (like the other cameras).
+- **On the roof's own switch** (M12a; at the mast's foot, cabled to the main security switch, breaker A's circuit; before M12a the yard switch): beams and lamp on breaker A's circuit, the camera on none (like the other cameras).
 
 | Obstacle | Answers |
 |---|---|
-| A beam | Crouch under it (no tools); the other arrival or duct A (another way round); breaker A (the annex, through the high window from two stacked crates: no tools); the console (disable); shoot an emitter (noise); break the yard switch (the beam beeps but rings nothing) |
-| The lit forecourt | Wait in the dark beside the housing until the camera turns east (and G4 walks west), then 3 s to the mouth (no tools); breaker A (lamp off: the camera is blind and cut off); the console (disable); shoot the camera or the lamp (noise); break the yard switch |
+| A beam | Crouch under it (no tools); the other arrival or duct A (another way round); breaker A (the annex, through the high window from two stacked crates: no tools); the console (disable); shoot an emitter (noise); break the roof switch at the mast's foot (the beam beeps but rings nothing) |
+| The lit forecourt | Wait in the dark beside the housing until the camera turns east (and G4 walks west), then 3 s to the mouth (no tools); breaker A (lamp off: the camera is blind and cut off); the console (disable); shoot the camera or the lamp (noise); break the roof switch |
 
 A rush (sprinting over the fence and up the annex chain, upright through B1) rings both controllers 15 s after the start ([routes covered by tests](#routes-covered-by-tests-m9f)).
 
-### M12 hooks
+## Network (M12a)
 
-M8 devices standing in for M12's network, named so M12 upgrades them in place (see the sketch below):
-
-| Node | What | Network now |
-|---|---|---|
-| `Network/AccessPointGuest` | A switch device on the hall's west wall outside (-20.52, 6, -2), circuit `warehouse_yard`: the wireless access point covering the west yard, side door and dumpster | None (M12 gives it a range and the Guest subnet) |
-| `Network/OfficeWallJack` | A switch device on the second office's east wall (19.74, 4.9, 10) | Cabled to the two office PCs (Office subnet) |
-| `Network/OfficePc1`, `OfficePc2` | Computers ("office PC 1" / "office PC 2", hosts OFFICE-PC1 / OFFICE-PC2, accounts `lpetrova` / `tulip24` and `kbrandt` / `ferry19`; mail and files in `population/computers/office_pc1.tres` / `office_pc2.tres`) on the second office's south wall over their desks; credentials `warehouse_office_pc1` / `warehouse_office_pc2` on clues (the sticky note on desk 1, the night shift notes). PC 2's mail from L. Petrova and its birthday card file are implicit clues to PC 1's password (flower and age: tulip24) | The office network only: they see the PCs and the jack; their Security apps control nothing |
-| `Devices/SecurityConsole` | The security console | The security switch |
-
-M12's FW-01 gateway joins the three networks; until then the office PCs and the access point cannot reach the security devices.
-
-## Network (M12)
-
-A sketch, not a layout ([../game/hacking.md](../game/hacking.md)). M9 places the hooks as M8 devices: a wireless access point spot covering the yard, an office wall jack, two office computers (credentials-placeholder terminals), the security console. Three subnets behind one gateway, FW-01, which runs the "Sentry" tracer watching Guest and Office:
+The M9 hooks became a real network ([../game/hacking.md](../game/hacking.md), [ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md)); the guest access point waits for M12b's wireless (`Network/AccessPointGuest` is still a plain switch device on no subnet). Two subnets, joined by one gateway:
 
 ```text
-  [AP Guest] ~~ range reaches the yard (side door, dumpster)
-      |
-  Guest 10.0.1.0/24 ---+
-                       |
-  Office 10.0.2.0/24 --+-- FW-01 (Sentry tracer: Guest, Office) -- rules: Guest -> Office deny,
-    office PC x2       |                                             Office -> Security deny,
-    (mail with clues)  |                                             SEC-SERVER -> any allow
-                       |
-  Security 10.0.3.0/24 +   (unwatched by Sentry)
-    SEC-SERVER (security room console; cameras, doors, turret trust it)
-    3 cameras, security room door, vault turret, alarm controller, sirens, radio base station
+  Office 10.0.10.0/24                         Security 10.0.20.0/24
+  SW-OFFICE (store) --- FW-01 (store) ------- SW-SECURITY (store): hall cameras and sirens
+    OFFICE-JACK (wall jack, 2nd office)       |-- SW-SEC-ROOM: SEC-CONSOLE, ALARM, RADIO-BASE, PANIC-SECURITY, DOOR-SECURITY
+    OFFICE-PC1, OFFICE-PC2                    |-- SW-VAULT: TUR-VAULT, DOOR-VAULT, DOOR-BRIDGE, CAM-OFFICE, SIREN-OFFICE-UP
+                       Sentry tracer:         |-- SW-YARD (booth): CAM-GATE, CAM-YARD, ALARM-YARD, PANIC-BOOTH, DOOR-FRONT-GATE, 4 sirens
+                       Office + Security      '-- SW-ROOF (mast's foot): CAM-ROOF, LASER-ROOF-W, LASER-ROOF-E
 ```
 
-- Entry: wireless from the yard (Guest), the office wall jack (Office), the office PCs bare-handed, the security console.
-- Example routes: sniff a guard's login on the Guest wireless, use it on an office PC, read the mail with the security console's password hint; or break the Security switch to kill the cameras and sirens (the security room door is fail-secure, so it then needs another way in); or crack FW-01's admin account (Medium) and add a rule "you -> Security allow".
-- Numbers (passwords, tracer tuning, software versions) are set in M12.
+- **Subnets and addresses.** Office 10.0.10.0/24: FW-01 .1, SW-OFFICE .2, OFFICE-PC1 .11, OFFICE-PC2 .12, OFFICE-JACK .40. Security 10.0.20.0/24 (it spans five switches): SW-SECURITY .2, SW-YARD .3, SW-SEC-ROOM .4, SEC-CONSOLE .5, SW-VAULT .6, SW-ROOF .7, cameras .21-.25, TUR-VAULT .31, ALARM .40, ALARM-YARD .41, RADIO-BASE .45, panic buttons .46-.47, doors .51-.54, roof lasers .61-.62, sirens .71-.79. Each device's `display_name` metadata names it on the deck's Map; switches and gateways name their subnet, the rest take their switch's.
+- **The office wall jack** (`Network/OfficeWallJack`, second office east wall (19.74, 4.9, 10)) is a `wall_jack.tscn`: the deck plugs in there and joins the Office subnet as 10.0.10.40. The deck itself is equipment to find on desk 2 beside office PC 2 ([Equipment to find](#equipment-to-find)): the starting kit has none.
+- **The office switch** (`Network/OfficeSwitch`) and **FW-01** (`Network/Fw01`, `gateway.tscn`) hang in the basement store's network closet beside the main security switch, (19.49, -2.4, 8.1) and (19.49, -2.4, 7.05), all on breaker B's circuit: cutting breaker B takes the tracer down with the building.
+- **FW-01** runs the one tracer, "Sentry tracer" (default `tracer.tres`), watching Office and Security. Its admin account (`admin`, Medium) is written nowhere in the level (`warehouse_hacking_test.gd` checks every datapad, mail and file): crack it with the Icebreaker (Trained or better: 18 s, about +58 % trace from the Sentry tracer at 4 %/s x 0.8), or skip the network and use the security console bare-handed in the security room with the audit note's `dmarsh` / `harbor77`.
+- **Discovery.** From the office jack the Map shows the Office subnet and FW-01 only; hacking FW-01 reveals the Security subnet and its five switches.
+- **Trust.** Every security device trusts the security console; the sirens and the radio base station also trust both alarm controllers (the controllers ring and broadcast to them). Device traffic passes FW-01 (cameras reporting, controllers ringing), so the office PCs reach the security devices, but none obeys them: their Security apps say they control nothing. The deck commands a device with an account on it (none of the security devices has one) or through the console's remote desktop once it has the console's account.
+- **Existing logins** keep working: the console's `dmarsh` (console audit note), office PC 1's `lpetrova` (sticky note), office PC 2's `kbrandt` (night shift notes; PC 2's mail and birthday card remain the implicit clue to PC 1). Office PC 1 gained a mail from IT about FW-01 and its tracer.
+- **Map readability** (`warehouse_security_network_test.gd`): the whole network as one Map has six groups (the five security switches and the office's); in the old 1050 x 440 panel its fitted zoom is about 0.68 and the main switch's cables to the area switches in the other row cross three times (a limit of the deck's Map layout with a switch of switches, left as an open question).
+
+Tests: `warehouse_hacking_test.gd` (subnets, addresses and names, FW-01 between exactly the two subnets on the office side, the jack a real wall jack, the one tracer on FW-01 watching both, its Medium admin login written nowhere, every security device trusting the console and listed by it, the office PCs listing none and refused, the console's known login opening the vault door remotely, one area switch unpowered or broken taking only its devices offline, a deck on the office jack seeing the office and FW-01 and the Security subnet once FW-01 is hacked); `warehouse_security_network_test.gd` (the two alarm parts with the area switches); the other warehouse suites unchanged. Review shots (`fixtures/warehouse_shots.tscn`): `office_jack`, `network_closet`, `security_room_switch`, `vault_switch`, `roof_switch`, `deck_map_office` and `deck_map_hacked` (a deck on the office jack before and after hacking FW-01), `console_cameras`, `office_pc1_security`.
 
 ## Rules
 

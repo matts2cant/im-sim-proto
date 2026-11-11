@@ -50,6 +50,7 @@ const ITEMS: Dictionary[String, int] = {
 	"rifle_rounds": 1,
 	"medkit": 2,
 	"prototype": 1,
+	"deck": 1,
 }
 ## Pickups off the navmesh -> [a navmesh point the player walks from, the stand spot it walks to]:
 ## the 4.4 m rack deck is a step down off the bridge between two rack posts (the railing has a gap);

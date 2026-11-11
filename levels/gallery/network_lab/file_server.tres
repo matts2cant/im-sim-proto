@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="File_done"]
+script = ExtResource("2_document")
+id = &"gallery.network_lab.server_file_done"
+title = "well_done.txt"
+text = "You reached the server subnet: the office jack, FW-01, the Security subnet, FW-02. Each gateway hides what lies behind it until you hold an account on it. In the warehouse, FW-01's admin password is Medium: the Icebreaker needs Trained Computer for it."
+
+[resource]
+script = ExtResource("1_data")
+files = Array[ExtResource("2_document")]([SubResource("File_done")])

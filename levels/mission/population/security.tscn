@@ -30,6 +30,9 @@
 [ext_resource type="Resource" path="res://levels/mission/population/computers/security_console.tres" id="41_console_data"]
 [ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc1.tres" id="42_pc1_data"]
 [ext_resource type="Resource" path="res://levels/mission/population/computers/office_pc2.tres" id="43_pc2_data"]
+[ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="44_wall_jack"]
+[ext_resource type="PackedScene" path="res://objects/network/gateway.tscn" id="45_gateway"]
+[ext_resource type="Script" path="res://objects/network/tracer.gd" id="46_tracer"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -46,6 +49,13 @@ password = "tulip24"
 script = ExtResource("40_account")
 user = "kbrandt"
 password = "ferry19"
+
+[sub_resource type="Resource" id="Account_fw01"]
+script = ExtResource("40_account")
+user = "admin"
+password = "Rk4vTq8z"
+strength = 1
+admin = true
 
 [sub_resource type="Resource" id="Pins_1"]
 script = ExtResource("19_mechanical_lock_data")
@@ -95,6 +105,7 @@ pins = Array[StringName]([&"standard", &"standard", &"standard", &"standard"])
 
 [node name="FrontGate" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -25)
+metadata/display_name = "DOOR-FRONT-GATE"
 
 [node name="Tags" parent="Doors/FrontGate"]
 initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_secure"])
@@ -102,6 +113,10 @@ initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail
 [node name="Door" parent="Doors/FrontGate"]
 wall_thickness = 0.4
 settings = ExtResource("24_vehicle_gate_settings")
+
+[node name="Device" parent="Doors/FrontGate"]
+address = "10.0.20.51"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="Powered" type="Node" parent="Doors/FrontGate"]
 script = ExtResource("23_powered")
@@ -223,6 +238,7 @@ wall_thickness = 0.25
 
 [node name="SecurityDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 0, 5.125)
+metadata/display_name = "DOOR-SECURITY"
 
 [node name="Tags" parent="Doors/SecurityDoor"]
 initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_secure"])
@@ -232,6 +248,10 @@ locked = true
 
 [node name="Door" parent="Doors/SecurityDoor"]
 wall_thickness = 0.25
+
+[node name="Device" parent="Doors/SecurityDoor"]
+address = "10.0.20.52"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="Powered" type="Node" parent="Doors/SecurityDoor"]
 script = ExtResource("23_powered")
@@ -260,6 +280,7 @@ wall_thickness = 0.25
 
 [node name="BridgeDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.125, 4.5, 6)
+metadata/display_name = "DOOR-BRIDGE"
 
 [node name="Tags" parent="Doors/BridgeDoor"]
 initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_safe"])
@@ -270,6 +291,10 @@ locked = true
 [node name="Door" parent="Doors/BridgeDoor"]
 wall_thickness = 0.25
 front_side_wall = 0.75
+
+[node name="Device" parent="Doors/BridgeDoor"]
+address = "10.0.20.53"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="Powered" type="Node" parent="Doors/BridgeDoor"]
 script = ExtResource("23_powered")
@@ -295,6 +320,7 @@ free_side = 2
 
 [node name="VaultDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 4.5, 5.125)
+metadata/display_name = "DOOR-VAULT"
 
 [node name="Tags" parent="Doors/VaultDoor"]
 initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail_secure"])
@@ -304,6 +330,10 @@ locked = true
 
 [node name="Door" parent="Doors/VaultDoor"]
 wall_thickness = 0.25
+
+[node name="Device" parent="Doors/VaultDoor"]
+address = "10.0.20.54"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="Powered" type="Node" parent="Doors/VaultDoor"]
 script = ExtResource("23_powered")
@@ -453,27 +483,53 @@ size = 0
 
 [node name="CameraGate" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(0.2694, 0, 0.963, 0, 1, 0, -0.963, 0, 0.2694, -9.29, 2.35, -23.7)
+metadata/display_name = "CAM-GATE"
+
+[node name="Device" parent="Devices/CameraGate"]
+address = "10.0.20.21"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="CameraYard" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(-0.2626, 0, -0.9649, 0, 1, 0, 0.9649, 0, -0.2626, 20.42, 4, -10.62)
+metadata/display_name = "CAM-YARD"
+
+[node name="Device" parent="Devices/CameraYard"]
+address = "10.0.20.22"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="CameraHall" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 6.5, -9.98)
+metadata/display_name = "CAM-HALL"
 
 [node name="Tilt" parent="Devices/CameraHall/Pivot"]
 transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 0, 0)
 
+[node name="Device" parent="Devices/CameraHall"]
+address = "10.0.20.23"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+
 [node name="CameraOffice" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.9, 6.9, 5.27)
+metadata/display_name = "CAM-OFFICE"
 
 [node name="Pivot" parent="Devices/CameraOffice"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, -0.05, 0.24)
 
+[node name="Device" parent="Devices/CameraOffice"]
+address = "10.0.20.24"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+
 [node name="CameraRoof" parent="Devices" instance=ExtResource("2_security_camera")]
 transform = Transform3D(0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, 0.9397, 17, 12.3, -9.69)
+metadata/display_name = "CAM-ROOF"
+
+[node name="Device" parent="Devices/CameraRoof"]
+address = "10.0.20.25"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="LaserRoofWest" parent="Devices" instance=ExtResource("3_laser_array")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.25, 10.8, 2.37)
+metadata/display_name = "LASER-ROOF-W"
 
 [node name="Beam1" parent="Devices/LaserRoofWest"]
 length = 1.2
@@ -481,8 +537,13 @@ length = 1.2
 [node name="Powered" parent="Devices/LaserRoofWest"]
 circuit = &"warehouse_yard"
 
+[node name="Device" parent="Devices/LaserRoofWest"]
+address = "10.0.20.61"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+
 [node name="LaserRoofEast" parent="Devices" instance=ExtResource("3_laser_array")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.25, 10.8, -4.52)
+metadata/display_name = "LASER-ROOF-E"
 
 [node name="Beam1" parent="Devices/LaserRoofEast"]
 length = 1.2
@@ -490,11 +551,21 @@ length = 1.2
 [node name="Powered" parent="Devices/LaserRoofEast"]
 circuit = &"warehouse_yard"
 
+[node name="Device" parent="Devices/LaserRoofEast"]
+address = "10.0.20.62"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+
 [node name="VaultTurret" parent="Devices" instance=ExtResource("4_turret")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9, 4.5, 1)
+metadata/display_name = "TUR-VAULT"
+
+[node name="Device" parent="Devices/VaultTurret"]
+address = "10.0.20.31"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="SecurityConsole" parent="Devices" instance=ExtResource("5_computer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.05, 1.47, 0.26)
+metadata/display_name = "SEC-CONSOLE"
 
 [node name="Accounts" parent="Devices/SecurityConsole"]
 accounts = Array[ExtResource("40_account")]([SubResource("Account_dmarsh")])
@@ -505,47 +576,120 @@ credentials_id = &"warehouse_security_console"
 host_name = "SEC-CONSOLE"
 label = "security console"
 
+[node name="Device" parent="Devices/SecurityConsole"]
+address = "10.0.20.5"
+
 [node name="AlarmController" parent="Devices" instance=ExtResource("6_alarm_controller")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 1.5, 3)
+metadata/display_name = "ALARM"
+
+[node name="Device" parent="Devices/AlarmController"]
+address = "10.0.20.40"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="RadioBaseStation" parent="Devices" instance=ExtResource("9_radio_base_station")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 1.2, 1.2)
+metadata/display_name = "RADIO-BASE"
+
+[node name="Device" parent="Devices/RadioBaseStation"]
+address = "10.0.20.45"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="PanicButtonSecurity" parent="Devices" instance=ExtResource("8_panic_button")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 1.3, 2)
+metadata/display_name = "PANIC-SECURITY"
+
+[node name="Device" parent="Devices/PanicButtonSecurity"]
+address = "10.0.20.46"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="PanicButtonBooth" parent="Devices" instance=ExtResource("8_panic_button")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -12.49, 1.3, -20.6)
+metadata/display_name = "PANIC-BOOTH"
+
+[node name="Device" parent="Devices/PanicButtonBooth"]
+address = "10.0.20.47"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="AlarmControllerYard" parent="Devices" instance=ExtResource("6_alarm_controller")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.51, 1.5, -20.6)
+metadata/display_name = "ALARM-YARD"
+
+[node name="Device" parent="Devices/AlarmControllerYard"]
+address = "10.0.20.41"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 
 [node name="SirenDock" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 2, -10.52)
+metadata/display_name = "SIREN-DOCK"
+
+[node name="Device" parent="Devices/SirenDock"]
+address = "10.0.20.71"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenEastYard" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 20.52, 2, -6)
+metadata/display_name = "SIREN-EAST-YARD"
+
+[node name="Device" parent="Devices/SirenEastYard"]
+address = "10.0.20.72"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenBackStrip" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 15.52)
+metadata/display_name = "SIREN-BACK-STRIP"
+
+[node name="Device" parent="Devices/SirenBackStrip"]
+address = "10.0.20.73"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenWestYard" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -26.52, 2, 12.2)
+metadata/display_name = "SIREN-WEST-YARD"
+
+[node name="Device" parent="Devices/SirenWestYard"]
+address = "10.0.20.74"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenHallNorth" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.5, -9.98)
+metadata/display_name = "SIREN-HALL-N"
+
+[node name="Device" parent="Devices/SirenHallNorth"]
+address = "10.0.20.75"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenHallWest" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -19.98, 6.5, -4)
+metadata/display_name = "SIREN-HALL-W"
+
+[node name="Device" parent="Devices/SirenHallWest"]
+address = "10.0.20.76"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenOfficeGround" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 2, 5.27)
+metadata/display_name = "SIREN-OFFICE-GND"
+
+[node name="Device" parent="Devices/SirenOfficeGround"]
+address = "10.0.20.77"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenOfficeUpper" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 5.7, 5.27)
+metadata/display_name = "SIREN-OFFICE-UP"
+
+[node name="Device" parent="Devices/SirenOfficeUpper"]
+address = "10.0.20.78"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="SirenBasement" parent="Devices" instance=ExtResource("7_siren")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, -2.2, 0.02)
+metadata/display_name = "SIREN-BASEMENT"
+
+[node name="Device" parent="Devices/SirenBasement"]
+address = "10.0.20.79"
+trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/AlarmControllerYard")])
 
 [node name="BreakerA" parent="Devices" instance=ExtResource("11_breaker_panel")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -25.99, 1.4, 4)
@@ -563,21 +707,63 @@ label = "building power"
 
 [node name="SecuritySwitch" parent="Devices" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 6)
+metadata/display_name = "SW-SECURITY"
 
 [node name="Powered" parent="Devices/SecuritySwitch"]
 circuit = &"warehouse_building"
 
 [node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/SecurityDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/VaultTurret"), NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenOfficeUpper"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/YardSwitch")])
+links = Array[NodePath]([NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/SecurityRoomSwitch"), NodePath("../../../Devices/VaultSwitch"), NodePath("../../../Devices/YardSwitch"), NodePath("../../../Devices/RoofSwitch")])
+address = "10.0.20.2"
+subnet = &"security"
 
 [node name="YardSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.51, 1.5, -23.4)
+metadata/display_name = "SW-YARD"
 
 [node name="Powered" parent="Devices/YardSwitch"]
 circuit = &"warehouse_yard"
 
 [node name="Device" parent="Devices/YardSwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/CameraRoof"), NodePath("../../../Devices/LaserRoofWest"), NodePath("../../../Devices/LaserRoofEast"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
+links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/CameraYard"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
+address = "10.0.20.3"
+subnet = &"security"
+
+[node name="SecurityRoomSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 1.6, 3.6)
+metadata/display_name = "SW-SEC-ROOM"
+
+[node name="Powered" parent="Devices/SecurityRoomSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Devices/SecurityRoomSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Doors/SecurityDoor")])
+address = "10.0.20.4"
+subnet = &"security"
+
+[node name="VaultSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.01, 6.1, 1.5)
+metadata/display_name = "SW-VAULT"
+
+[node name="Powered" parent="Devices/VaultSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Devices/VaultSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/VaultTurret"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/SirenOfficeUpper")])
+address = "10.0.20.6"
+subnet = &"security"
+
+[node name="RoofSwitch" parent="Devices" instance=ExtResource("10_network_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.9, 10.05, -9.99)
+metadata/display_name = "SW-ROOF"
+
+[node name="Powered" parent="Devices/RoofSwitch"]
+circuit = &"warehouse_yard"
+
+[node name="Device" parent="Devices/RoofSwitch"]
+links = Array[NodePath]([NodePath("../../../Devices/CameraRoof"), NodePath("../../../Devices/LaserRoofWest"), NodePath("../../../Devices/LaserRoofEast")])
+address = "10.0.20.7"
+subnet = &"security"
 
 [node name="Network" type="Node3D" parent="."]
 
@@ -587,14 +773,50 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -20.52, 6, -2)
 [node name="Powered" parent="Network/AccessPointGuest"]
 circuit = &"warehouse_yard"
 
-[node name="OfficeWallJack" parent="Network" instance=ExtResource("10_network_switch")]
+[node name="OfficeWallJack" parent="Network" instance=ExtResource("44_wall_jack")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.74, 4.9, 10)
+metadata/display_name = "OFFICE-JACK"
 
 [node name="Device" parent="Network/OfficeWallJack"]
-links = Array[NodePath]([NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
+address = "10.0.10.40"
+subnet = &"office"
+
+[node name="OfficeSwitch" parent="Network" instance=ExtResource("10_network_switch")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 8.1)
+metadata/display_name = "SW-OFFICE"
+
+[node name="Powered" parent="Network/OfficeSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Network/OfficeSwitch"]
+links = Array[NodePath]([NodePath("../../OfficeWallJack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
+address = "10.0.10.2"
+subnet = &"office"
+
+[node name="Fw01" parent="Network" instance=ExtResource("45_gateway")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 7.05)
+metadata/display_name = "FW-01"
+
+[node name="Powered" parent="Network/Fw01"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Network/Fw01"]
+links = Array[NodePath]([NodePath("../../OfficeSwitch"), NodePath("../../../Devices/SecuritySwitch")])
+address = "10.0.10.1"
+subnet = &"office"
+
+[node name="DeviceAccounts" parent="Network/Fw01"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_fw01")])
+credentials_id = &"warehouse_fw01"
+
+[node name="Tracer" type="Node" parent="Network/Fw01"]
+script = ExtResource("46_tracer")
+label = "Sentry tracer"
+watched = Array[StringName]([&"office", &"security"])
 
 [node name="OfficePc1" parent="Network" instance=ExtResource("5_computer")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 5.95, 14.74)
+metadata/display_name = "OFFICE-PC1"
 
 [node name="Accounts" parent="Network/OfficePc1"]
 accounts = Array[ExtResource("40_account")]([SubResource("Account_lpetrova")])
@@ -605,8 +827,12 @@ credentials_id = &"warehouse_office_pc1"
 host_name = "OFFICE-PC1"
 label = "office PC 1"
 
+[node name="Device" parent="Network/OfficePc1"]
+address = "10.0.10.11"
+
 [node name="OfficePc2" parent="Network" instance=ExtResource("5_computer")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 5.95, 14.74)
+metadata/display_name = "OFFICE-PC2"
 
 [node name="Accounts" parent="Network/OfficePc2"]
 accounts = Array[ExtResource("40_account")]([SubResource("Account_kbrandt")])
@@ -616,6 +842,9 @@ data = ExtResource("43_pc2_data")
 credentials_id = &"warehouse_office_pc2"
 host_name = "OFFICE-PC2"
 label = "office PC 2"
+
+[node name="Device" parent="Network/OfficePc2"]
+address = "10.0.10.12"
 
 [node name="Furniture" type="Node3D" parent="."]
 

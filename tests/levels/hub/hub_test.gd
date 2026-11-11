@@ -9,6 +9,7 @@ const DOORWAY_LABELS: Array[String] = [
 	"5 Security",
 	"6 AI Arena",
 	"7 Inventory & Abilities",
+	"8 Network Lab",
 	"Mission",
 ]
 

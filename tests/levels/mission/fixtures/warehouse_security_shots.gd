@@ -6,7 +6,8 @@ extends RefCounted
 ## `app` (security, mail or files; default security) with `select` selected (a device's name in the
 ## Security app, a mail's subject or a file's name). Before a shot, `off` turns those circuits off
 ## and `disable` sends `command.disable` to those devices (both last for the rest of the run: put
-## such shots last).
+## such shots last). `deck` (M12a): a deck plugged into that device, its Map shown (`hack`: those
+## gateways hacked first; the access lasts for the rest of the run).
 
 const DEVICES := "Population/Security/Devices/"
 const NETWORK := "Population/Security/Network/"
@@ -123,6 +124,29 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(14.5, 4.5, 14.0),
 		"look": Vector3(14.5, 5.95, 14.74),
 		"computer": NETWORK + "OfficePc1",
+	},
+	# M12a network: the office wall jack, the network closet in the basement store (FW-01 between the
+	# office and security switches), the deck's Map from the jack before and after hacking FW-01.
+	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
+	"network_closet": {"feet": Vector3(17.0, -4, 7.0), "look": Vector3(19.49, -2.5, 7.0)},
+	# The Security subnet's area switches (a subnet can span several switches).
+	"security_room_switch": {"feet": Vector3(16.0, 0, 3.4), "look": Vector3(14.0, 1.4, 3.0)},
+	"vault_switch": {"feet": Vector3(16.2, 4.5, 2.2), "look": Vector3(14.0, 5.9, 1.5)},
+	"roof_switch": {"feet": Vector3(15.6, 9.5, -8.2), "look": Vector3(16.3, 10.2, -10.0)},
+	"deck_map_office":
+	{
+		"feet": Vector3(18.9, 4.5, 10),
+		"look": Vector3(19.74, 4.9, 10),
+		"deck": NETWORK + "OfficeWallJack",
+		"wait": 2.5,
+	},
+	"deck_map_hacked":
+	{
+		"feet": Vector3(18.9, 4.5, 10),
+		"look": Vector3(19.74, 4.9, 10),
+		"deck": NETWORK + "OfficeWallJack",
+		"hack": [NETWORK + "Fw01"],
+		"wait": 3.0,
 	},
 	# Breaker A's circuit off (the yard devices unreachable: grey) and the hall camera disabled (red).
 	"console_states":
