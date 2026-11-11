@@ -124,10 +124,20 @@ func use_held() -> bool:
 
 
 ## Uses `stack` (the inventory screen's Use, LMB on a held item): weapon / tool toggles in hand, a
-## consumable (medkit) sends its stimuli to the player, others show their message. Returns true when something happened.
-func use_stack(stack: ItemStack) -> bool:
+## consumable (medkit) sends its stimuli to the player, others show their message. Returns true when
+## something happened. With `part`, a consumable is used on that body part (the Health tab's "Use a
+## medkit on the <part>"): its stimuli touch the part's hitbox instead of the whole player, so a
+## `heal` heals that part only (HealEffect, ADR 0111); refused the same way (kept,
+## `refused_message`) when it would do nothing there; false for other items or without that hitbox.
+func use_stack(stack: ItemStack, part: StringName = &"") -> bool:
 	if stack == null or not inventory.stacks.has(stack):
 		return false
+	if not part.is_empty():
+		var hitboxes := Hitboxes.of(player)
+		var box := hitboxes.box(part) if hitboxes != null else null
+		if box == null or stack.item.use_action != ItemData.UseAction.CONSUME:
+			return false
+		return _consume(stack, box)
 	match stack.item.use_action:
 		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
 			_toggle(stack)
@@ -293,13 +303,14 @@ func _toggle(stack: ItemStack) -> void:
 
 
 # Consumable: its stimuli go to the player (CONTACT, delivered at once: the inventory screen pauses
-# the game) and one is used up. Refused (kept) when none of them would do anything to the player (a
-# medkit when unhurt).
-func _consume(stack: ItemStack) -> bool:
+# the game), or to `target` inside it (a body part's hitbox), and one is used up. Refused (kept) when
+# none of them would do anything (a medkit when unhurt).
+func _consume(stack: ItemStack, target: Node = null) -> bool:
+	var touched: Node = target if target != null else player
 	var stimuli: Array[Stimulus] = []
 	var affects := false
 	for type: StringName in stack.item.use_stimuli:
-		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], player, player)
+		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], touched, player)
 		stimulus.scale_attribute = stack.item.use_scale_attribute
 		stimuli.append(stimulus)
 		affects = affects or StimulusSystem.would_affect(stimulus)
@@ -311,7 +322,10 @@ func _consume(stack: ItemStack) -> bool:
 	for stimulus in stimuli:
 		StimulusSystem.emit_now(stimulus)
 	inventory.remove(stack, 1)
-	_log_used(stack, "consume", {"stimuli": stack.item.use_stimuli.keys()})
+	var extra := {"stimuli": stack.item.use_stimuli.keys()}
+	if target != null:
+		extra["part"] = String(Hitboxes.part_of(target))
+	_log_used(stack, "consume", extra)
 	return true
 
 

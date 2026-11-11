@@ -113,13 +113,14 @@ func take_damage(
 	return total
 
 
-## Medkit: heals `amount` split over the damaged parts (BodyDamageModel.heal); returns what was
-## restored (0 when dead or unhurt).
-func heal(amount: float, source_name: String = "") -> float:
-	var restored := model.heal(amount)
+## Medkit: heals `amount` split over the damaged parts (BodyDamageModel.heal), or only `part` when
+## one is named (a medkit used on that part, ADR 0111); returns what was restored (0 when dead or
+## unhurt). Logged `actor.healed {actor, amount, requested, part}` ("" when spread).
+func heal(amount: float, source_name: String = "", part: StringName = &"") -> float:
+	var restored := model.heal(amount) if part.is_empty() else model.heal_part(part, amount)
 	if restored <= 0.0:
 		return 0.0
-	var data := {"actor": String(entity.name), "amount": restored, "requested": amount}
+	var data := {"actor": String(entity.name), "amount": restored, "requested": amount, "part": String(part)}
 	EventLog.record(&"actor.healed", source_name, String(entity.name), data)
 	healed.emit(restored)
 	_after_change(null)

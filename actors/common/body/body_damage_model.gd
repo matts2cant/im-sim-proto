@@ -117,6 +117,18 @@ func heal(amount: float) -> float:
 	return amount - left
 
 
+## Medkit on one part (ADR 0111): heals `part` by up to `amount`, never above its max; disabled
+## limbs heal too, the dead cannot heal. Returns the health actually restored.
+func heal_part(part: StringName, amount: float) -> float:
+	if is_dead() or amount <= 0.0 or not _health.has(part):
+		return 0.0
+	var given := minf(amount, max_health(part) - health(part))
+	if given <= EPSILON:
+		return 0.0
+	_health[part] += given
+	return given
+
+
 func to_dict() -> Dictionary:
 	var parts := {}
 	for part in PARTS:
