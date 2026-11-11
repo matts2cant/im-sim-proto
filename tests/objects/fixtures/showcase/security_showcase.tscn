@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://objects/terminal/terminal.tscn" id="1_terminal"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="1_computer"]
 [ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="2_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="3_controller"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="4_siren"]
@@ -10,6 +10,32 @@
 [ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="8_player"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="10_door"]
+[ext_resource type="Script" path="res://objects/network/device_account.gd" id="11_account"]
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="12_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="13_document"]
+
+[sub_resource type="Resource" id="Account_jmercer"]
+script = ExtResource("11_account")
+user = "jmercer"
+password = "falcon7"
+
+[sub_resource type="Resource" id="Mail_rounds"]
+script = ExtResource("13_document")
+id = &"showcase.console.mail_rounds"
+title = "Night rounds"
+sender = "J. Mercer"
+text = "Camera and turret stay off while the showcase is open. Switch them on from the Security app only for a demo."
+
+[sub_resource type="Resource" id="File_notes"]
+script = ExtResource("13_document")
+id = &"showcase.console.file_notes"
+title = "notes.txt"
+text = "One switch carries everything here: console, camera, turret, alarm controller, siren and door."
+
+[sub_resource type="Resource" id="Console_data"]
+script = ExtResource("12_data")
+mail = Array[ExtResource("13_document")]([SubResource("Mail_rounds")])
+files = Array[ExtResource("13_document")]([SubResource("File_notes")])
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.42, 0.42, 0.4, 1)
@@ -75,7 +101,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 0, -3)
 
 [node name="Lamps" type="Node3D" parent="."]
 
-[node name="TerminalLamp" type="OmniLight3D" parent="Lamps"]
+[node name="ConsoleLamp" type="OmniLight3D" parent="Lamps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 3.2, -5.5)
 light_energy = 2.5
 omni_range = 8.0
@@ -99,14 +125,17 @@ omni_range = 12.0
 script = ExtResource("9_powered")
 circuit = &"showcase_lights"
 
-[node name="Terminal" parent="." instance=ExtResource("1_terminal")]
+[node name="Console" parent="." instance=ExtResource("1_computer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.45, -8)
 
-[node name="TerminalUse" parent="Terminal"]
-credentials_id = &"showcase_terminal"
-username = "jmercer"
-password = "falcon7"
-label = "security terminal"
+[node name="Accounts" parent="Console"]
+accounts = Array[ExtResource("11_account")]([SubResource("Account_jmercer")])
+
+[node name="Computer" parent="Console"]
+data = SubResource("Console_data")
+credentials_id = &"showcase_console"
+host_name = "SHOW-CONSOLE"
+label = "security console"
 
 [node name="Switch" parent="." instance=ExtResource("2_switch")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.6, -8)
@@ -115,7 +144,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.6, -8)
 circuit = &"showcase_net"
 
 [node name="Device" parent="Switch"]
-links = Array[NodePath]([NodePath("../../Terminal"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../Siren"), NodePath("../../Door")])
+links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../Siren"), NodePath("../../Door")])
 
 [node name="Controller" parent="." instance=ExtResource("3_controller")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, -8)
@@ -135,9 +164,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.83, -7)
 [node name="Readable" parent="Datapad"]
 entry_id = &"showcase_security_login"
 title = "Security login"
-text = "Night shift: the security terminal login is jmercer / falcon7. Do not write it down. -- J."
-codes = Dictionary[StringName, String]({&"showcase_terminal": "jmercer:falcon7"})
-code_labels = Dictionary[StringName, String]({&"showcase_terminal": "Security terminal login"})
+text = "Night shift: the security console login is jmercer / falcon7. Do not write it down. -- J."
+codes = Dictionary[StringName, String]({&"showcase_console": "jmercer:falcon7"})
+code_labels = Dictionary[StringName, String]({&"showcase_console": "Security console login"})
 
 [node name="Player" parent="." instance=ExtResource("8_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6.2)

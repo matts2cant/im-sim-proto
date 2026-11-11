@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Warehouse security network (design/levels/mission-warehouse.md "Security network", ADR 0092):
 ## two switches, the building's (basement store, breaker B) and the yard's (gate booth, breaker A),
-## joined by an uplink. The security console reaches every cabled device and loses a part when its
+## joined by an uplink. The security console (a computer) reaches every cabled device, lists them in
+## its Security app (ADR 0114) and loses a part when its
 ## switch is broken or unpowered; the other part keeps working on its own alarm controller. A camera
 ## that sees a lit intruder rings every siren through both controllers; with the building switch
 ## broken a yard camera still rings the yard's sirens, and with both switches broken it tells
@@ -66,9 +67,12 @@ func test_the_console_reaches_both_parts_and_each_switch_cuts_only_its_own() -> 
 	await _helpers.load_level(self)
 	var console := _helpers.console()
 	var rows := _rows(console)
-	for device_name: String in BUILDING + YARD + ["SecuritySwitch", "YardSwitch"]:
+	for device_name: String in BUILDING + YARD:
 		assert_bool(rows.has(device_name)).override_failure_message("missing " + device_name).is_true()
 		assert_bool(rows.get(device_name, false)).override_failure_message(device_name + " offline").is_true()
+	assert_int(rows.size()).is_equal(BUILDING.size() + YARD.size())
+	for switch_name: String in ["SecuritySwitch", "YardSwitch"]:
+		assert_bool(console.device.reaches(_helpers.device_entity(switch_name))).is_true()
 	_assert_graph_readable(console)
 
 	# Breaker B (building power) unpowers the building's switch: the console reaches nothing, but the
@@ -162,12 +166,12 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	assert_array(EventLog.find(&"siren.started")).is_empty()
 
 
-# The console's Network tab at the terminal screen's graph size (ADR 0099, network_map_checks.gd):
-# boxes apart, no cable crossing or under a box, every node shown when fitted, deterministic; two
-# groups (one per switch) and a fitted zoom that keeps labels readable.
-func _assert_graph_readable(console: Terminal) -> void:
-	var rows := console.devices()
-	var result := MapChecks.check(self, rows, Terminal.cables(rows), console.config)
+# The old network map of the console's network (ADR 0099, network_map_checks.gd; the deck's Map takes
+# it over): boxes apart, no cable crossing or under a box, every node shown when fitted,
+# deterministic; two groups (one per switch) and a fitted zoom that keeps labels readable.
+func _assert_graph_readable(console: Computer) -> void:
+	var rows := MapChecks.rows_from(console.entity)
+	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var zoom: float = result["zoom"]
 	assert_float(zoom).override_failure_message("fitted zoom %.2f" % zoom).is_greater(0.8)
 	assert_int((result["layout"] as NetworkLayout).hubs.size()).is_equal(2)
@@ -255,7 +259,7 @@ func test_save_and_load_keep_doors_and_devices() -> void:
 	assert_bool(fresh.door("BackGate").is_locked()).is_false()
 	assert_bool(fresh.door("VaultDoor").is_locked()).is_true()
 	assert_bool((fresh.device_entity("BreakerA").get_node("CircuitBreaker") as CircuitBreaker).closed).is_false()
-	assert_bool(fresh.console().logged_in).is_true()
+	assert_bool(fresh.console().is_logged_in()).is_true()
 	assert_bool(SecurityCamera.of(fresh.device_entity("CameraYard")).disabled).is_true()
 	var controller := fresh.device_entity("AlarmController").get_node("AlarmControllerBehaviour") as AlarmController
 	assert_bool(controller.armed).is_false()
@@ -263,8 +267,8 @@ func test_save_and_load_keep_doors_and_devices() -> void:
 	assert_bool(fresh.console().device.reaches(fresh.door_entity("VaultDoor"))).is_false()
 
 
-# Device name -> online, from the console's device list.
-func _rows(console: Terminal) -> Dictionary:
+# Device name -> online, from the console's Security app list.
+func _rows(console: Computer) -> Dictionary:
 	var rows := {}
 	for row in console.devices():
 		rows[String(row.device.entity.name)] = row.online

@@ -66,3 +66,33 @@ func test_disabled_when_a_component_says_so() -> void:
 	component.set("disabled", true)
 	assert_bool(DeviceStatus.is_disabled(entity)).is_true()
 	assert_bool(DeviceStatus.is_disabled(null)).is_false()
+
+
+func test_only_the_commands_that_apply_are_offered() -> void:
+	# ADR 0113: by the device's words and disabled flag, never by what it is.
+	var all: Array[StringName] = [
+		Device.OPEN,
+		Device.CLOSE,
+		Device.LOCK,
+		Device.UNLOCK,
+		Device.ENABLE,
+		Device.DISABLE,
+		Device.STOP_SWEEP,
+		Device.RESUME_SWEEP,
+		Device.PAN_LEFT
+	]
+	var sweeping := DeviceStatus.applicable(all, PackedStringArray(["online", "enabled", "sweeping"]), false)
+	assert_array(sweeping).is_equal(
+		[Device.OPEN, Device.CLOSE, Device.LOCK, Device.UNLOCK, Device.DISABLE, Device.STOP_SWEEP, Device.PAN_LEFT]
+	)
+	var holding := DeviceStatus.applicable(all, PackedStringArray(["online", "holding", "closed", "locked"]), false)
+	assert_array(holding).is_equal([Device.OPEN, Device.UNLOCK, Device.DISABLE, Device.RESUME_SWEEP, Device.PAN_LEFT])
+	var open := DeviceStatus.applicable(all, PackedStringArray(["online", "open", "unlocked"]), false)
+	assert_bool(open.has(Device.OPEN) or open.has(Device.UNLOCK)).is_false()
+	assert_bool(open.has(Device.CLOSE) and open.has(Device.LOCK)).is_true()
+	# Switched off: only Enable (none when it takes no Enable).
+	assert_array(DeviceStatus.applicable(all, PackedStringArray(["online", "disabled"]), true)).is_equal(
+		[Device.ENABLE]
+	)
+	var no_enable: Array[StringName] = [Device.DISARM, Device.RESET]
+	assert_array(DeviceStatus.applicable(no_enable, PackedStringArray(["online", "disarmed"]), true)).is_empty()

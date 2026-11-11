@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 ## alcoves and the vault, every connection a shared wall: ADR 0043), the doorways clear for the
 ## player capsule (doors open) and blocked by the closed doors, each lock-row door's lock type and
 ## the item that opens it present (code datapad and lockpicks on the entry table, the keycard behind
-## D1, the terminal login behind D2), the practice-lock wall holding only the practice locks and
+## D1, the booth computer's login behind D2), the practice-lock wall holding only the practice locks and
 ## their signs (security_wing_practice_locks_test.gd checks the locks), signs, and no coplanar faces
 ## with different materials. Room-local coordinates: origin on the hub wall's outer face, +Z away
 ## from the hub (not turned: local axes are hub axes).
@@ -218,14 +218,16 @@ func test_what_opens_each_door_is_in_the_room() -> void:
 	var reader := _door("D3Keycard").get_node("KeycardLock") as KeycardLock
 	assert_str(String(card.stack_state().get("key_id", ""))).is_equal(String(reader.access_id()))
 	assert_bool(_inside(_room.get_node("Items/Keycard"), _interior(_shell("ClosetD1")))).is_true()
-	# The terminal's login behind D2 (the terminal itself is in the booth behind D3).
+	# The booth computer's login behind D2 (the computer itself is in the booth behind D3): one of its
+	# accounts.
 	var login := _readable("BoothLogin")
-	var terminal := Terminal.of(_room.get_node("Devices/Terminal"))
-	var known := TerminalCredentials.parse(login.codes.get(terminal.credentials_id, ""))
-	assert_str(known.user).is_equal(terminal.username)
-	assert_str(known.password).is_equal(terminal.password)
+	var computer := Computer.of(_room.get_node("Devices/BoothComputer"))
+	var known := LoginCredentials.parse(login.codes.get(computer.credentials_id, ""))
+	var account := computer.account(known.user)
+	assert_object(account).is_not_null()
+	assert_str(known.password).is_equal(account.password)
 	assert_bool(_inside(_room.get_node("Items/BoothLogin"), _interior(_shell("ClosetD2")))).is_true()
-	assert_bool(_inside(_room.get_node("Devices/Terminal"), _interior(_shell("Booth")).grow(0.05))).is_true()
+	assert_bool(_inside(_room.get_node("Devices/BoothComputer"), _interior(_shell("Booth")).grow(0.05))).is_true()
 	assert_bool(_inside(_room.get_node("Devices/BreakerB"), _interior(_shell("Booth")).grow(0.05))).is_true()
 	# Breaker A in the entry hall; the barrel within 2 m of D5 (its blast breaks the door).
 	assert_bool(_inside(_room.get_node("Devices/BreakerA"), _hall_rect().grow(0.05))).is_true()
@@ -285,7 +287,7 @@ func test_signs() -> void:
 		"blast",
 		"camera",
 		"alcoves",
-		"terminal",
+		"computer",
 		"breaker B",
 		"switch",
 		"panic button",

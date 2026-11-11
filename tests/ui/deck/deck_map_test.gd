@@ -61,7 +61,7 @@ func _press(text: String) -> void:
 
 
 func test_a_known_login_logs_in_without_trace_and_hacking_the_gateway_reveals_its_subnet() -> void:
-	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"fw01.admin": "admin:Gh7vQx2e"})
+	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"fw01": "admin:Gh7vQx2e"})
 	DeviceAccounts.of(_lab.node("Fw01")).credentials_id = &"fw01"
 	PersonalLog.of(_player).add(note)
 	assert_bool(_screen.graph.select("FW-01")).is_true()
@@ -113,9 +113,11 @@ func test_the_icebreaker_cracks_an_account_into_the_journal() -> void:
 	assert_array(_screen.menu_texts()).contains(["access", "Open its desktop (remote)"])
 	_press("Open its desktop (remote)")
 	assert_object(_session.remote).is_same(Computer.of(_lab.node("OfficePc")))
-	assert_bool(_screen.remote_bar.visible).is_true()
-	Computer.of(_lab.node("OfficePc")).desktop_closed.emit()
-	assert_bool(_screen.remote_bar.visible).is_false()
+	var desktop := ComputerScreen.of(_player)
+	assert_bool(desktop.is_remote()).is_true()
+	desktop.back_button.pressed.emit()
+	assert_bool(desktop.is_open()).is_false()
+	assert_object(_session.remote).is_null()
 	assert_bool(_screen.is_open()).is_true()
 
 

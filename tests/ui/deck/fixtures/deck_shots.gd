@@ -23,6 +23,8 @@ const TIERS: Dictionary[String, int] = {
 	"ice_trained": 1,
 	"ice_advanced": 2,
 	"full_trace": 1,
+	"remote": 1,
+	"login_trace": 1,
 }
 
 @export var lab_path: NodePath = ^"../DeckLab"
@@ -86,6 +88,23 @@ func _stage() -> void:
 	_screen.refresh()
 	_screen.graph.fit_view()
 	match _shot:
+		"remote":
+			DeviceAccounts.of(_lab.node("Console")).grant(_player, "dmarsh")
+			_session.refresh()
+			_session.open_remote(_lab.device("Console"))
+			var desktop := ComputerScreen.of(_player)
+			desktop.show_app(ComputerScreen.App.SECURITY)
+			desktop.security_app.refresh(true)
+			desktop.security_app.select("Camera")
+		"login_trace":
+			_screen.close()
+			var console := Computer.of(_lab.node("Console"))
+			console.use_by(_player)
+			var screen := ComputerScreen.of(_player)
+			screen.user_field.text = "dmarsh"
+			screen.password_field.text = "anchor77"
+			screen.submit_login()
+			_screen.refresh_computer_traces()
 		"menu":
 			_screen.graph.select("SEC-CONSOLE")
 		"menu_gateway":

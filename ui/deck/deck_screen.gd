@@ -15,8 +15,12 @@ extends CanvasLayer
 ## - Icebreaker: the picked account's letters locking in, the progress bar, Start / Stop / Resume.
 ## - Skill assists (Icebreaker.assist()): Trained crack times and time left; Advanced + the trace an
 ##   action adds; Master + how many hidden subnets a gateway routes to.
-## - A remote desktop (DeckSession.open_remote()) shows a bar with "Back to the map" until the
-##   desktop closes (the computer's own screen draws the desktop).
+## - A remote desktop (DeckSession.open_remote()): the user's ComputerScreen draws it over the deck's
+##   content area (ComputerScreen.set_remote_area() with that area's anchors); its Esc and "Back to
+##   the map" close it (the deck leaves that Esc to it) and the Map shows again.
+## - Trace bars in the computer overlay too (ADR 0114's slot): while the user's ComputerScreen is
+##   open, one bar per tracer watching the user there (remote: the deck's; bare-handed: the
+##   computer's own device and address), refreshed with the screen.
 
 enum Tool { MAP, ICEBREAKER }
 
@@ -46,8 +50,10 @@ var graph: NetworkGraph
 var map_view: Control
 var ice_view: MarginContainer
 var ice_column: VBoxContainer
-var remote_bar: PanelContainer
-var remote_label: Label
+## The area right of the tools and under the bar (the Map, the Icebreaker, a remote desktop).
+var content_area: Control
+## The user's computer overlay (trace bars, remote desktops), or null.
+var computer_screen: ComputerScreen
 var toast_label: Label
 
 var _input_before: bool = true
@@ -58,6 +64,7 @@ var _toast_left: float = 0.0
 var _signature: String = ""
 var _ice_signature: String = ""
 var _fit_on_show: bool = true
+var _computer_left: float = 0.0
 
 
 func _ready() -> void:
@@ -65,6 +72,18 @@ func _ready() -> void:
 	layer = 22
 	player = get_parent() as Player
 	_build()
+	computer_screen = ComputerScreen.of(get_parent())
+	if computer_screen != null:
+		computer_screen.opened.connect(_on_computer_opened)
+
+
+## The anchors (fractions of the viewport) of the deck's content area: where a remote desktop shows.
+func content_anchors() -> Rect2:
+	var view := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2.ZERO
+	var rect := content_area.get_global_rect()
+	if view.x <= 0.0 or view.y <= 0.0 or rect.size.x <= 0.0:
+		return ComputerScreen.REMOTE_AREA
+	return Rect2(rect.position / view, rect.end / view)
 
 
 func _exit_tree() -> void:
@@ -258,6 +277,9 @@ func ice_texts() -> Array[String]:
 
 
 func _process(delta: float) -> void:
+	_computer_left -= delta
+	if computer_screen != null and computer_screen.is_open() and _computer_left <= 0.0:
+		refresh_computer_traces()
 	if not visible:
 		return
 	if session == null or not session.is_plugged():
@@ -274,11 +296,11 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
+	if session != null and session.remote != null:
+		# A remote desktop is open over the deck: its own screen takes the keys (Esc goes back).
+		return
 	if event.is_action_pressed(&"ui_cancel"):
-		if session != null and session.remote != null:
-			session.close_remote()
-		else:
-			close()
+		close()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed(&"debug_panel_toggle"):
@@ -309,12 +331,38 @@ func _on_notice(text: String) -> void:
 
 
 func _on_remote_changed(computer: Computer) -> void:
-	remote_bar.visible = computer != null
-	if computer == null:
+	if computer != null and computer_screen != null:
+		computer_screen.set_remote_area(content_anchors())
+	elif computer == null:
+		_signature = ""
+		refresh()
+
+
+func _on_computer_opened(_computer: Computer, _remote: bool) -> void:
+	refresh_computer_traces()
+
+
+## Fills the computer overlay's trace slot: remote, the deck's tracers; bare-handed, those watching
+## that computer for its address.
+func refresh_computer_traces() -> void:
+	_computer_left = 0.25
+	if computer_screen == null or not computer_screen.is_open() or computer_screen.computer == null:
 		return
-	var device := Device.of(computer.get_parent())
-	var host := NetworkSource.display_name(device) if device != null else String(computer.get_parent().name)
-	remote_label.text = "Remote desktop · %s · %s" % [host, device.address if device != null else ""]
+	computer_screen.clear_trace_bars()
+	var computer := computer_screen.computer
+	var viewer := get_parent()
+	var address := computer.address()
+	var tracers: Array[Tracer] = []
+	if computer_screen.is_remote() and session != null and session.is_plugged():
+		address = session.source.address
+		tracers = session.tracers()
+	elif computer.device != null:
+		var seen: Array[Device] = [computer.device]
+		tracers = Tracer.bars_for(get_tree(), viewer, seen, address)
+	for tracer in tracers:
+		var known := tracer.device == computer.device or (session != null and session.map_devices().has(tracer.device))
+		var label := tracer.label if known else "unknown tracer"
+		computer_screen.add_trace_bar(trace_bar(label, tracer.trace_of(viewer), tracer.model.lockout_left(address)))
 
 
 func _address_text() -> String:
@@ -365,28 +413,32 @@ func _refresh_traces() -> void:
 	for child in trace_box.get_children():
 		DeckStyle.discard(child)
 	for tracer in session.tracers():
-		var value := tracer.trace_of(session.entity)
-		var bar := HBoxContainer.new()
-		bar.add_theme_constant_override(&"separation", 8)
-		bar.add_child(DeckStyle.mono(tracer_name(tracer), DeckStyle.DIM_COLOR, 12))
-		var track := Panel.new()
-		track.custom_minimum_size = Vector2(TRACE_BAR_WIDTH, 8.0)
-		track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		track.add_theme_stylebox_override(
-			&"panel", DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 0.0, 0.0, 0.0)
-		)
-		var fill := ColorRect.new()
-		fill.color = DeckStyle.ERROR_COLOR if value > HOT_TRACE else DeckStyle.ALERT_COLOR
-		fill.position = Vector2.ZERO
-		fill.size = Vector2(TRACE_BAR_WIDTH * clampf(value / 100.0, 0.0, 1.0), 8.0)
-		track.add_child(fill)
-		bar.add_child(track)
-		var text := "%d %%" % roundi(value)
 		var left := tracer.model.lockout_left(session.source.address)
-		if left > 0.0:
-			text += " · blocked %d s" % ceili(left)
-		bar.add_child(DeckStyle.mono(text, DeckStyle.DIM_COLOR, 12))
-		trace_box.add_child(bar)
+		trace_box.add_child(trace_bar(tracer_name(tracer), tracer.trace_of(session.entity), left))
+
+
+## One trace bar: `label`, a bar of `value` % (red above HOT_TRACE), "N %" and "blocked N s" while
+## `lockout_left` > 0. The deck's title bar and the computer overlay use it.
+static func trace_bar(label: String, value: float, lockout_left: float) -> HBoxContainer:
+	var bar := HBoxContainer.new()
+	bar.add_theme_constant_override(&"separation", 8)
+	bar.add_child(DeckStyle.mono(label, DeckStyle.DIM_COLOR, 12))
+	var track := Panel.new()
+	track.custom_minimum_size = Vector2(TRACE_BAR_WIDTH, 8.0)
+	track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	track.add_theme_stylebox_override(
+		&"panel", DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 0.0, 0.0, 0.0)
+	)
+	var fill := ColorRect.new()
+	fill.color = DeckStyle.ERROR_COLOR if value > HOT_TRACE else DeckStyle.ALERT_COLOR
+	fill.size = Vector2(TRACE_BAR_WIDTH * clampf(value / 100.0, 0.0, 1.0), 8.0)
+	track.add_child(fill)
+	bar.add_child(track)
+	var text := "%d %%" % roundi(value)
+	if lockout_left > 0.0:
+		text += " · blocked %d s" % ceili(lockout_left)
+	bar.add_child(DeckStyle.mono(text, DeckStyle.DIM_COLOR, 12))
+	return bar
 
 
 # The deck's menu for `row` (NetworkGraph.menu_builder).
@@ -426,7 +478,7 @@ func _build_menu(row: NetworkRow, column: VBoxContainer) -> void:
 		remote.pressed.connect(func() -> void: session.open_remote(device))
 		column.add_child(remote)
 	if row.access:
-		var commands := session.commands_for(device)
+		var commands := DeviceStatus.applicable(session.commands_for(device), row.status, row.disabled)
 		if not commands.is_empty():
 			var flow := HFlowContainer.new()
 			flow.add_theme_constant_override(&"h_separation", 6)
@@ -692,6 +744,7 @@ func _build() -> void:
 	column.add_child(body)
 	body.add_child(_build_tools())
 	var content := Control.new()
+	content_area = content
 	content.name = "Content"
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -699,7 +752,6 @@ func _build() -> void:
 	body.add_child(content)
 	_build_map(content)
 	_build_ice(content)
-	_build_remote(content)
 	toast_label = DeckStyle.mono("", DeckStyle.TEXT_COLOR, 13)
 	toast_label.name = "Toast"
 	toast_label.visible = false
@@ -816,24 +868,3 @@ func _build_ice(content: Control) -> void:
 	ice_column = VBoxContainer.new()
 	ice_column.add_theme_constant_override(&"separation", 14)
 	ice_view.add_child(ice_column)
-
-
-func _build_remote(content: Control) -> void:
-	remote_bar = PanelContainer.new()
-	remote_bar.name = "RemoteBar"
-	remote_bar.visible = false
-	remote_bar.z_index = 2
-	remote_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	remote_bar.add_theme_stylebox_override(
-		&"panel", DeckStyle.box(Color(0.03, 0.125, 0.114, 1.0), DeckStyle.LINE_COLOR, 0.0, 12.0, 6.0)
-	)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 14)
-	remote_bar.add_child(row)
-	remote_label = DeckStyle.mono("", DeckStyle.TITLE_COLOR, 13)
-	remote_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(remote_label)
-	var back := DeckStyle.button("Back to the map", 13)
-	back.pressed.connect(func() -> void: session.close_remote())
-	row.add_child(back)
-	content.add_child(remote_bar)

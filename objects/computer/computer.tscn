@@ -11,8 +11,10 @@
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Script" path="res://objects/terminal/terminal.gd" id="20_terminal"]
-[ext_resource type="Resource" path="res://objects/terminal/terminal.tres" id="21_config"]
+[ext_resource type="Script" path="res://objects/computer/computer.gd" id="20_computer"]
+[ext_resource type="Resource" path="res://objects/computer/computer.tres" id="21_config"]
+[ext_resource type="Script" path="res://objects/computer/computer_use.gd" id="22_use"]
+[ext_resource type="Script" path="res://objects/network/device_accounts.gd" id="23_accounts"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
 size = Vector3(0.56, 0.62, 0.3)
@@ -43,7 +45,7 @@ size = Vector3(0.52, 0.03, 0.28)
 material = SubResource("Material_keys")
 size = Vector3(0.4, 0.02, 0.14)
 
-[node name="Terminal" type="StaticBody3D"]
+[node name="Computer" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
@@ -74,7 +76,7 @@ unit_size = 4.0
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
-initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.terminal"])
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.computer"])
 
 [node name="Attributes" type="Node" parent="."]
 script = ExtResource("2_attributes")
@@ -101,6 +103,12 @@ targets = Array[NodePath]([NodePath("../Screen")])
 script = ExtResource("10_device")
 broken_hide = Array[NodePath]([NodePath("../Screen")])
 
-[node name="TerminalUse" type="Node" parent="."]
-script = ExtResource("20_terminal")
+[node name="Accounts" type="Node" parent="."]
+script = ExtResource("23_accounts")
+
+[node name="Computer" type="Node" parent="."]
+script = ExtResource("20_computer")
 config = ExtResource("21_config")
+
+[node name="ComputerUse" type="Node" parent="."]
+script = ExtResource("22_use")

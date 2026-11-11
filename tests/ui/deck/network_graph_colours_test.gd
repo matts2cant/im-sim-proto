@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0099 amendment): the network map colours each node by the device's state as the
-## terminal knows it (Terminal.devices()), on a small network of stand-in devices built in code: a
-## terminal cabled to switch A (powered) and switch B (unpowered). On A: an enabled device, a disabled
+## map rows know it (network_map_checks.gd rows_from()), on a small network of stand-in devices
+## built in code: a console cabled to switch A (powered) and switch B (unpowered). On A: an enabled device, a disabled
 ## one, a broken one and one that cannot be disabled; behind B: a disabled one and an enabled one.
 ## Offline (unreachable: unpowered, broken, cut off) is grey and beats disabled; disabled is red;
 ## otherwise green. Cables to a grey node are grey; a cable to a disabled node stays live. The three
@@ -10,11 +10,10 @@ extends GdUnitTestSuite
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const DisableStandIn := preload("res://tests/objects/devices/fixtures/disable_stand_in.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
-const CONFIG: TerminalConfig = preload("res://objects/terminal/terminal.tres")
 
 var _root: Node3D
 var _graph: NetworkGraph
-var _terminal: Terminal
+var _console: Node3D
 
 
 func before_test() -> void:
@@ -23,9 +22,7 @@ func before_test() -> void:
 	_root.position = Vector3(300, 0, -600)
 	add_child(_root)
 	var console := Devices.device(_root, "Console", Vector3(0, 0, 0))
-	_terminal = Terminal.new()
-	_terminal.config = CONFIG
-	console.add_child(_terminal)
+	_console = console
 	var switch_a := Devices.device(_root, "SwitchA", Vector3(-6, 0, 0), [], true)
 	var switch_b := Devices.device(_root, "SwitchB", Vector3(6, 0, 0), [], true)
 	Devices.link(console, switch_a)
@@ -43,8 +40,8 @@ func before_test() -> void:
 	add_child(_graph)
 	_graph.size = MapChecks.GRAPH_SIZE
 	_graph.request_fit()
-	var rows := _terminal.devices()
-	_graph.show_network(rows, Terminal.cables(rows), CONFIG)
+	var rows := MapChecks.rows_from(_console)
+	_graph.show_network(rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG)
 
 
 func after_test() -> void:
@@ -55,15 +52,15 @@ func after_test() -> void:
 func test_each_node_takes_its_devices_colour() -> void:
 	assert_array(_graph.node_names()).has_size(9)
 	var expected := {
-		"Enabled": TerminalStyle.ONLINE_COLOR,
-		"Plain": TerminalStyle.ONLINE_COLOR,
-		"Switch A": TerminalStyle.ONLINE_COLOR,
-		"Disabled": TerminalStyle.DISABLED_COLOR,
-		"Broken": TerminalStyle.OFFLINE_COLOR,
-		"Switch B": TerminalStyle.OFFLINE_COLOR,
-		"Behind": TerminalStyle.OFFLINE_COLOR,
+		"Enabled": DeckStyle.ONLINE_COLOR,
+		"Plain": DeckStyle.ONLINE_COLOR,
+		"Switch A": DeckStyle.ONLINE_COLOR,
+		"Disabled": DeckStyle.DISABLED_COLOR,
+		"Broken": DeckStyle.OFFLINE_COLOR,
+		"Switch B": DeckStyle.OFFLINE_COLOR,
+		"Behind": DeckStyle.OFFLINE_COLOR,
 		# Disabled, but out of reach: the terminal cannot tell, so grey.
-		"Hidden": TerminalStyle.OFFLINE_COLOR,
+		"Hidden": DeckStyle.OFFLINE_COLOR,
 	}
 	for device_name: String in expected:
 		var color: Color = expected[device_name]
@@ -77,21 +74,21 @@ func test_each_node_takes_its_devices_colour() -> void:
 	assert_object(_fill("Hidden")).is_equal(NetworkGraph.NODE_FILL)
 	assert_object(_fill("Enabled")).is_equal(NetworkGraph.NODE_FILL)
 	# The terminal keeps its own outline.
-	assert_object(_graph.node_color("Console")).is_equal(TerminalStyle.SELF_COLOR)
+	assert_object(_graph.node_color("Console")).is_equal(DeckStyle.SELF_COLOR)
 
 
 func test_the_menu_and_the_selection_stay_readable() -> void:
 	_graph.select("Disabled")
-	assert_object(_graph.menu_status.get_theme_color(&"font_color")).is_equal(TerminalStyle.DISABLED_COLOR)
+	assert_object(_graph.menu_status.get_theme_color(&"font_color")).is_equal(DeckStyle.DISABLED_COLOR)
 	# Selected: white outline whatever the colour, the status line keeps its colour.
 	assert_object(_graph.node_color("Disabled")).is_equal(Color.WHITE)
-	assert_object(_graph.node_status_color("Disabled")).is_equal(TerminalStyle.DISABLED_COLOR)
+	assert_object(_graph.node_status_color("Disabled")).is_equal(DeckStyle.DISABLED_COLOR)
 	_graph.select("Behind")
-	assert_object(_graph.menu_status.get_theme_color(&"font_color")).is_equal(TerminalStyle.OFFLINE_COLOR)
+	assert_object(_graph.menu_status.get_theme_color(&"font_color")).is_equal(DeckStyle.OFFLINE_COLOR)
 	assert_object(_graph.node_color("Behind")).is_equal(Color.WHITE)
-	assert_object(_graph.node_color("Disabled")).is_equal(TerminalStyle.DISABLED_COLOR)
+	assert_object(_graph.node_color("Disabled")).is_equal(DeckStyle.DISABLED_COLOR)
 	_graph.close_menu()
-	assert_object(_graph.node_color("Behind")).is_equal(TerminalStyle.OFFLINE_COLOR)
+	assert_object(_graph.node_color("Behind")).is_equal(DeckStyle.OFFLINE_COLOR)
 
 
 func test_cables_to_grey_nodes_are_grey_and_a_disabled_end_stays_live() -> void:
@@ -111,15 +108,15 @@ func test_cables_to_grey_nodes_are_grey_and_a_disabled_end_stays_live() -> void:
 		assert_int(k).override_failure_message("%s in %s" % [cable, names]).is_greater_equal(0)
 		var expect_live: bool = live[cable]
 		assert_bool(_graph.cable_live(k)).override_failure_message(cable).is_equal(expect_live)
-		var color := NetworkGraph.LIVE_CABLE_COLOR if expect_live else TerminalStyle.OFFLINE_COLOR
+		var color := NetworkGraph.LIVE_CABLE_COLOR if expect_live else DeckStyle.OFFLINE_COLOR
 		assert_object(_graph.cable_color(k)).override_failure_message(cable).is_equal(color)
 
 
 func test_the_colours_differ_in_brightness() -> void:
 	# Relative luminance contrast between each pair, so the states stay apart without hue.
-	var grey := _luminance(TerminalStyle.OFFLINE_COLOR)
-	var red := _luminance(TerminalStyle.DISABLED_COLOR)
-	var green := _luminance(TerminalStyle.ONLINE_COLOR)
+	var grey := _luminance(DeckStyle.OFFLINE_COLOR)
+	var red := _luminance(DeckStyle.DISABLED_COLOR)
+	var green := _luminance(DeckStyle.ONLINE_COLOR)
 	assert_float((red + 0.05) / (grey + 0.05)).is_greater(1.8)
 	assert_float((green + 0.05) / (red + 0.05)).is_greater(1.8)
 	# Grey text stays readable on the map's background.

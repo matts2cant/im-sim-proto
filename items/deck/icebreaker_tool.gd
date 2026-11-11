@@ -143,11 +143,13 @@ func _cracked(accounts: DeviceAccounts) -> void:
 	accounts.grant(entity, job.user)
 	var reader_log := PersonalLog.of(entity)
 	if reader_log != null:
-		var code := accounts.code_id(job.user)
-		var entry_id := StringName("icebreaker.%s.%d" % [code, Icebreaker.password_hash(job.password)])
+		var code := accounts.code_id()
+		var entry_id := StringName(
+			"icebreaker.%s.%s.%d" % [code, job.user.to_lower(), Icebreaker.password_hash(job.password)]
+		)
 		var title := "Cracked: %s@%s" % [job.user, job.host]
 		var text := "The Icebreaker cracked the password of %s on %s." % [job.user, job.host]
-		var codes := {code: TerminalCredentials.format(job.user, job.password)}
+		var codes := {code: LoginCredentials.format(job.user, job.password)}
 		var labels := {code: "%s (%s)" % [job.host, job.user]}
 		reader_log.add(LogEntry.make(entry_id, title, text, "Deck", codes, labels), job.host)
 	var device_name := _name()

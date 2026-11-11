@@ -3,7 +3,7 @@ extends RefCounted
 ## devices around it on a 70 x 40 m site, COUNT devices in all (the terminal first, on the first
 ## switch). The first switch is cabled to every other one; two devices hang on another device (a
 ## chain: switch - controller - base station), so the map has a deeper column. Statuses are long
-## and varied (a few offline). Rows as Terminal.devices() gives them: build() parents a Node3D entity
+## and varied (a few offline). Rows as a map shows them (NetworkRow): build() parents a Node3D entity
 ## per device under `parent`; the Device nodes stay out of the tree (free() frees them).
 
 const COUNT := 60
@@ -23,7 +23,7 @@ const STATUSES: Array[PackedStringArray] = [
 	["online", "idle"],
 ]
 
-var rows: Array[Terminal.Row] = []
+var rows: Array[NetworkRow] = []
 var cables: Array[Vector2i] = []
 var _devices: Array[Device] = []
 
@@ -73,7 +73,7 @@ func _add(parent: Node3D, label: String, at: Vector3, status: PackedStringArray,
 	var device := Device.new()
 	device.entity = entity
 	_devices.append(device)
-	var row := Terminal.Row.new()
+	var row := NetworkRow.new()
 	row.device = device
 	row.name = label
 	row.status = status

@@ -1,6 +1,6 @@
 # 80. The credentials terminal (M8 placeholder)
 
-Status: Accepted (M12 replaces it with computers and the deck, [ADR 0074](0074-network-hacking.md)); the screen, the device view and the E rule are amended by [ADR 0083](0083-security-terminal-redesign.md)
+Status: Superseded by [ADR 0114](0114-computers-halcyon-os.md) (computers replace the terminal). Was: Accepted (M12 replaces it with computers and the deck, [ADR 0074](0074-network-hacking.md)); the screen, the device view and the E rule are amended by [ADR 0083](0083-security-terminal-redesign.md)
 
 Date: 2026-11-08
 

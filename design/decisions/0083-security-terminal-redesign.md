@@ -1,6 +1,6 @@
 # 83. Security terminal redesign: Camera and Network tabs, device status, Esc only
 
-Status: Accepted (amends [ADR 0080](0080-credentials-terminal.md)); the Network tab's floor-plan layout is superseded by [ADR 0099](0099-network-map-layout-pan-zoom.md)
+Status: Superseded by [ADR 0114](0114-computers-halcyon-os.md) (the Camera tab became the Security app; the map moves to the deck). Was: Accepted (amends [ADR 0080](0080-credentials-terminal.md)); the Network tab's floor-plan layout is superseded by [ADR 0099](0099-network-map-layout-pan-zoom.md)
 
 Date: 2026-11-08
 

@@ -59,6 +59,38 @@ static func is_disabled(entity: Node) -> bool:
 	return false
 
 
+## The commands of `commands` worth offering for a device in state `words` (summarize()) that is
+## `disabled` or not, in their order (M12a, the mockup's Security app): switched off, only Enable
+## (nothing else works until then); on, everything but Enable; and of each pair only the one that
+## changes something: Stop sweep while "sweeping", Resume sweep while "holding", Lock while
+## "unlocked", Unlock while "locked", Open while "closed", Close while "open". A pair whose words
+## the device does not report keeps both.
+static func applicable(commands: Array[StringName], words: PackedStringArray, disabled: bool) -> Array[StringName]:
+	if disabled:
+		var enable: Array[StringName] = []
+		if commands.has(Device.ENABLE):
+			enable.append(Device.ENABLE)
+		return enable
+	var hidden: Array[StringName] = [Device.ENABLE]
+	if words.has("sweeping"):
+		hidden.append(Device.RESUME_SWEEP)
+	elif words.has("holding"):
+		hidden.append(Device.STOP_SWEEP)
+	if words.has("locked"):
+		hidden.append(Device.LOCK)
+	elif words.has("unlocked"):
+		hidden.append(Device.UNLOCK)
+	if words.has("open"):
+		hidden.append(Device.OPEN)
+	elif words.has("closed"):
+		hidden.append(Device.CLOSE)
+	var found: Array[StringName] = []
+	for command in commands:
+		if not hidden.has(command):
+			found.append(command)
+	return found
+
+
 ## True when a component of `entity` offers a view.
 static func has_view(entity: Node) -> bool:
 	return _view_component(entity) != null

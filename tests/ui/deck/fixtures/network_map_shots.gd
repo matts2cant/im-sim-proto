@@ -27,7 +27,7 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var back := ColorRect.new()
-	back.color = TerminalStyle.PANEL_COLOR
+	back.color = DeckStyle.PANEL_COLOR
 	back.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(back)
 	_graph = NetworkGraph.new()

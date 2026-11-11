@@ -6,7 +6,8 @@ extends Node3D
 ## wing-local (origin on the hub wall, +Z into the wing) unless `space` is "hub". `open`: doors
 ## (paths under Doors/) opened first. `alarm`: the wing's alarm controller is triggered first.
 ## `network`: the debug panel's network overlay on (ADR 0083). `crouched`: at the crouched eye height
-## (0.9 m). `terminal`: the booth terminal's Network tab, logged in, with that device's menu open.
+## (0.9 m). `computer`: the booth computer's Security app, logged in, with that device (a path under
+## the wing) selected; `login`: its login screen after reading the booth login datapad (Fill in).
 ## `disable`: `command.disable` sent to those devices (under Devices/) first; `break`: those devices
 ## broken first.
 
@@ -68,20 +69,42 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"laser_emitters": {"feet": Vector3(-4.9, 0, 12.8), "look": Vector3(-7.5, 0.9, 15.2)},
 	"laser_pair_emitter": {"feet": Vector3(-6.0, 0, 15.3), "look": Vector3(-7.45, 0.85, 16.4)},
 	"laser_pair_receiver": {"feet": Vector3(-6.0, 0, 15.3), "look": Vector3(-4.55, 0.85, 16.4)},
-	"laser_terminal":
+	"laser_computer":
 	{
 		"feet": Vector3(-0.25, 0, 8.1),
 		"look": Vector3(-0.25, 1.45, 9),
-		"terminal": "LaserPair",
+		"computer": "Devices/LaserPair",
 		"wait": 2.5,
 	},
-	# M9h (ADR 0099 amendment): node colours: disabled red, broken grey, the rest green.
-	"terminal_states":
+	# M12a (ADR 0114): the booth computer's login with Fill in, and its Security app on a camera, the
+	# vault door and the alarm group (disabled red, broken grey, the rest green).
+	"computer_login":
 	{
 		"feet": Vector3(-0.25, 0, 8.1),
 		"look": Vector3(-0.25, 1.45, 9),
-		"terminal": "Controller",
-		"disable": ["Camera", "Turret", "LaserHigh"],
+		"login": true,
+		"wait": 2.0,
+	},
+	"computer_camera":
+	{
+		"feet": Vector3(-0.25, 0, 8.1),
+		"look": Vector3(-0.25, 1.45, 9),
+		"computer": "Devices/Camera",
+		"wait": 2.5,
+	},
+	"computer_door":
+	{
+		"feet": Vector3(-0.25, 0, 8.1),
+		"look": Vector3(-0.25, 1.45, 9),
+		"computer": "Doors/VaultDoor",
+		"wait": 2.5,
+	},
+	"computer_states":
+	{
+		"feet": Vector3(-0.25, 0, 8.1),
+		"look": Vector3(-0.25, 1.45, 9),
+		"computer": "Devices/Controller",
+		"disable": ["Turret", "LaserHigh"],
 		"break": ["SirenCorridor"],
 		"wait": 2.5,
 	},
@@ -95,7 +118,7 @@ var _out: String = ""
 var _time: float = 0.0
 var _opened: bool = false
 var _alarm_sent: bool = false
-var _terminal_open: bool = false
+var _computer_open: bool = false
 
 @onready var _hub: Node3D = $Hub
 @onready var _wing: Node3D = $Hub/SecurityWing
@@ -140,9 +163,9 @@ func _process(delta: float) -> void:
 		for device_name: String in _shot.get("break", []):
 			Device.of(_wing.get_node("Devices/" + device_name)).load_state({"broken": true})
 		DebugPanel.network_overlay.enabled = bool(_shot.get("network", false))
-	if _shot.has("terminal") and _time > 0.6 and not _terminal_open:
-		_terminal_open = true
-		_open_terminal(String(_shot["terminal"]))
+	if (_shot.has("computer") or _shot.has("login")) and _time > 0.6 and not _computer_open:
+		_computer_open = true
+		_open_computer(String(_shot.get("computer", "")))
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
 		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Controller")))
@@ -172,12 +195,17 @@ func _place_player() -> void:
 	_player.load_state(state)
 
 
-# Logs in at the booth terminal, opens its screen on the Network tab and selects `device`.
-func _open_terminal(device: String) -> void:
-	var terminal := Terminal.of(_wing.get_node("Devices/Terminal"))
-	terminal.log_in(terminal.username, terminal.password)
-	terminal.use(_player)
-	var screen := TerminalScreen.of(_player)
-	screen.show_tab(TerminalScreen.Tab.NETWORK)
-	screen.refresh_devices(true)
-	screen.graph.select(Terminal.display_name(Device.of(_wing.get_node("Devices/" + device))))
+# Uses the booth computer: on its login after reading the booth login (`device` empty), else logged
+# in on the Security app with `device` (a path under the wing) selected.
+func _open_computer(device: String) -> void:
+	var computer := Computer.of(_wing.get_node("Devices/BoothComputer"))
+	Usable.of(_wing.get_node("Items/BoothLogin")).use(_player)
+	(_player.get_node("ReadingOverlay") as ReadingOverlay).close()
+	var screen := ComputerScreen.of(_player)
+	if device.is_empty():
+		computer.use_by(_player)
+		screen.fill_in(0)
+		return
+	computer.open_desktop(_player, "rvoss", false)
+	screen.show_app(ComputerScreen.App.SECURITY)
+	screen.security_app.select(Computer.display_name(Device.of(_wing.get_node(device))))

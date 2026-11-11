@@ -89,7 +89,7 @@ func test_the_gateway_shows_before_the_scan_ends() -> void:
 
 func test_hacked_gateways_reveal_the_subnets_behind_them_in_a_chain() -> void:
 	await _plug_jack()
-	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"router.admin": "admin:Gh7vQx2e"})
+	var note := LogEntry.make(&"note.fw", "Router notes", "", "Datapad", {&"router": "admin:Gh7vQx2e"})
 	PersonalLog.of(_user).add(note)
 	assert_bool(_session.log_in(_dev("Fw01"), "admin")).is_false()
 	DeviceAccounts.of(_n["Fw01"]).credentials_id = &"router"
@@ -130,7 +130,7 @@ func test_a_crack_gives_the_account_and_is_learned_into_the_journal() -> void:
 	assert_float(_tracer().trace_of(_user)).is_equal_approx(trace_before + 40.0, 0.5)
 	var codes := JournalRules.codes(PersonalLog.of(_user).book)
 	assert_int(codes.size()).is_equal(1)
-	assert_str(String(codes[0]["code_id"])).is_equal("office_pc.kbrandt")
+	assert_str(String(codes[0]["code_id"])).is_equal("office_pc")
 	assert_str(str(codes[0]["value"])).is_equal("kbrandt / ferry19")
 	assert_str(str(codes[0]["label"])).is_equal("OFFICE-PC (kbrandt)")
 	assert_bool(DeviceAccounts.of(_n["OfficePc"]).knows_login(_user, "kbrandt")).is_true()

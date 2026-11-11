@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Regression (M9h playtest, ADR 0100): at the booth terminal the player sets the turret to target
+## Regression (M9h playtest, ADR 0100): at the booth computer the player sets the turret to target
 ## guards, then opens the vault; the turret kills the post guard. Before the fix the turret saw the
 ## body as a hostile every tick, engaged it again (warning beep restarted, noise 10 emitted) and
 ## dropped it as `target_down` on the next tick: the beep looped for as long as the body lay there.
@@ -40,16 +40,16 @@ func _node(path: String) -> Node3D:
 
 
 func test_the_turret_beep_stops_after_it_kills_the_post_guard() -> void:
-	# At the booth terminal (as in security_wing_scenario_test), logged in with the booth login.
+	# At the booth computer (as in security_wing_scenario_test), logged in with the booth login.
 	var feet := Vector3(-0.25, 0, 8.1)
 	var to := Vector3(-0.25, 1.45, 8.99) - feet
 	await _driver.place(_wing.to_global(feet), atan2(-to.x, -to.z))
-	var terminal := Terminal.of(_node("Devices/Terminal"))
-	assert_bool(terminal.log_in("rvoss", "kestrel4", _player)).is_true()
+	var computer := Computer.of(_node("Devices/BoothComputer"))
+	assert_bool(computer.log_in("rvoss", "kestrel4", _player)).is_true()
 	var turret := Turret.of(_node("Devices/Turret"))
-	assert_bool(terminal.send(Device.TARGET_GUARDS, Device.of(_node("Devices/Turret")))).is_true()
+	assert_bool(computer.send(Device.TARGET_GUARDS, Device.of(_node("Devices/Turret")))).is_true()
 	await _driver.frames(3)
-	assert_bool(terminal.send(Device.OPEN, Device.of(_node("Doors/VaultDoor")))).is_true()
+	assert_bool(computer.send(Device.OPEN, Device.of(_node("Doors/VaultDoor")))).is_true()
 
 	# The turret sees the post guard through the open vault and kills him (about 5 s).
 	var guard := _node("Guards/GuardBatonVault")

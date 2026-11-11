@@ -295,13 +295,18 @@ func open_remote(device: Device) -> bool:
 	return true
 
 
-## Back to the map (the remote desktop closed, or the deck unplugged).
+## Back to the map (the deck unplugged, or a caller ends it): closes the remote desktop if the
+## user's ComputerScreen still shows it.
 func close_remote() -> void:
 	if remote == null:
 		return
-	if is_instance_valid(remote) and remote.desktop_closed.is_connected(_on_desktop_closed):
-		remote.desktop_closed.disconnect(_on_desktop_closed)
+	var was := remote
+	if is_instance_valid(was) and was.desktop_closed.is_connected(_on_desktop_closed):
+		was.desktop_closed.disconnect(_on_desktop_closed)
 	remote = null
+	var screen := ComputerScreen.of(entity)
+	if screen != null and screen.is_remote() and screen.computer == was:
+		screen.close()
 	remote_changed.emit(null)
 
 

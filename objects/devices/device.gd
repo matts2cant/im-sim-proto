@@ -246,18 +246,11 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	return found
 
 
-## Every device this one is cabled to through up devices, the last one up or down (DeviceGraph
-## .connected()): reached() without a type, plus the down devices right behind a reached one or
-## cabled to this one (a terminal lists those as unpowered or broken). Nearest first.
-func connected_devices() -> Array[Device]:
-	var found: Array[Device] = []
-	if not is_inside_tree():
-		return found
-	for id in Device.graph(get_tree()).connected(get_instance_id()):
-		var device := instance_from_id(id) as Device
-		if device != null:
-			found.append(device)
-	return found
+## Its network address (`address`) for screens that ask any component (Computer.address(), ADR
+## 0114): the deck's network layer offers it here. (The dead devices behind a live link:
+## NetworkSource.connected().)
+func device_address() -> String:
+	return address
 
 
 ## True when a receiver of this device's entity wants stimuli of `type` (has a receptron for it)
@@ -289,7 +282,7 @@ static func command_stimulus(
 ## stimulus at the target's entity, origin `at` (NO_POINT: the target's position), emitted through
 ## StimulusSystem (delivered on the next tick), and only when the target trusts this device (an
 ## incident needs no trust). Logged either way. True when sent.
-## `by`: who operated this device to send it (a terminal's user), logged with the stimulus id as
+## `by`: who operated this device to send it (a computer's user), logged with the stimulus id as
 ## `by` and `stimulus` so what the command starts traces back to them (mission tallies, ADR 0087).
 func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by: Node = null) -> bool:
 	var other := Device.of(target)

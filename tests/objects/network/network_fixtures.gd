@@ -137,6 +137,8 @@ static func add_tracer(entity: Node, label: String, watched: Array[StringName], 
 static func add_computer(entity: Node) -> Computer:
 	var computer := Computer.new()
 	computer.name = "Computer"
+	computer.config = load("res://objects/computer/computer.tres") as ComputerConfig
+	computer.label = "computer"
 	entity.add_child(computer)
 	return computer
 
@@ -173,6 +175,7 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	var switch := DeviceSwitch.new()
 	switch.name = "DeviceSwitch"
 	n["Camera"].add_child(switch)
+	ActorState.set_tag(n["Camera"], &"object.camera", true)
 	var alarm_receptrons: Array[Receptron] = [Devices.command_receptron(Device.INCIDENT, [Fixtures.add_tag(ALARMED)])]
 	n["Alarm"] = body_device(parent, "Alarm", origin + Vector3(10, 1.5, 1), alarm_receptrons)
 	_address(n["Alarm"], &"", "10.0.20.40")
@@ -199,6 +202,8 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	camera.trusted.append(camera.get_path_to(n["Console"]))
 	for entity_name: String in SHOWN:
 		n[entity_name].set_meta(&"display_name", SHOWN[entity_name])
+	for entity_name: String in ["OfficePc", "Console"]:
+		Computer.of(n[entity_name]).host_name = SHOWN[entity_name]
 	return n
 
 

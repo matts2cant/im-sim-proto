@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ComputerData" format=3]
+
+[ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
+
+[sub_resource type="Resource" id="Mail_courier"]
+script = ExtResource("2_document")
+id = &"warehouse.pc1.mail_courier"
+title = "Courier"
+sender = "E. Hale"
+text = "Lena, the client's courier collects the prototype from the vault before dawn. Nothing about it in the system."
+
+[sub_resource type="Resource" id="Mail_it"]
+script = ExtResource("2_document")
+id = &"warehouse.pc1.mail_it"
+title = "Password changed"
+sender = "IT"
+text = "Your password was changed successfully. Remember: never write your password down."
+
+[sub_resource type="Resource" id="File_invoice"]
+script = ExtResource("2_document")
+id = &"warehouse.pc1.file_invoice"
+title = "pumps_invoice.txt"
+text = "Invoice 2031-117 · 14 x agricultural pump, model AP-40 · paid in cash · no delivery address"
+
+[resource]
+script = ExtResource("1_data")
+mail = Array[ExtResource("2_document")]([SubResource("Mail_courier"), SubResource("Mail_it")])
+files = Array[ExtResource("2_document")]([SubResource("File_invoice")])

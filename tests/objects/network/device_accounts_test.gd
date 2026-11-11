@@ -94,11 +94,14 @@ func test_a_password_change_takes_the_account_away() -> void:
 
 func test_the_journal_knows_a_login_by_its_code_id() -> void:
 	var accounts := _accounts("OfficePc")
-	assert_str(String(accounts.code_id("KBrandt"))).is_equal("office_pc.kbrandt")
+	assert_str(String(accounts.code_id())).is_equal("office_pc")
+	# A computer's credentials id is the default.
+	Computer.of(_n["OfficePc"]).credentials_id = &"pc_two"
+	assert_str(String(accounts.code_id())).is_equal("pc_two")
 	accounts.credentials_id = &"pc2"
-	assert_str(String(accounts.code_id("kbrandt"))).is_equal("pc2.kbrandt")
+	assert_str(String(accounts.code_id())).is_equal("pc2")
 	assert_bool(accounts.knows_login(_user, "kbrandt")).is_false()
-	var note := LogEntry.make(&"note.night", "Night shift notes", "", "Datapad", {&"pc2.kbrandt": "kbrandt:ferry19"})
+	var note := LogEntry.make(&"note.night", "Night shift notes", "", "Datapad", {&"pc2": "kbrandt:ferry19"})
 	PersonalLog.of(_user).add(note)
 	assert_bool(accounts.knows_login(_user, "kbrandt")).is_true()
 	assert_str(accounts.known_password(_user, "kbrandt")).is_equal("ferry19")

@@ -6,10 +6,10 @@ extends Node
 ## user's traffic through (Gateway). A wrong password adds trace to every tracer watching the device
 ## (Tracer, +15 % by default) and is logged; a refused attempt (the device is down, or a tracer has
 ## blocked the address) adds nothing.
-## The Journal knows a login as the code `code_id(user)` = "<credentials_id>.<user>" whose value is
-## "user:password" (TerminalCredentials), from a datapad, a mail or the Icebreaker: known_password()
-## and known_source() read the viewer's PersonalLog ("Log in" on the Map, "Fill in" on a login
-## screen). User names match without regard to case or surrounding spaces, passwords exactly.
+## The Journal knows a login as a code under the device's `code_id()` whose value is "user:password"
+## (LoginCredentials; one entry per login, ADR 0114), from a datapad, a mail or the Icebreaker:
+## known_login() reads the viewer's PersonalLog ("Log in" on the Map; computers' "Fill in" reads
+## the same codes). User names match without regard to case or surrounding spaces, passwords exactly.
 ## EventLog: `network.login {device, user, by, ok, address, reason}` (reason: wrong, unknown,
 ## offline, blocked; "" on success), `network.password {device, user}`. Saveable (who has access).
 
@@ -17,8 +17,8 @@ extends Node
 signal access_changed(by_key: String)
 
 @export var accounts: Array[DeviceAccount] = []
-## Where the Journal files this device's logins (codes "<credentials_id>.<user>"); empty: the
-## entity's node name in snake_case.
+## Where the Journal files this device's logins (code_id()); empty: its Computer's credentials id,
+## else the entity's node name in snake_case.
 @export var credentials_id: StringName = &""
 @export var entity_path: NodePath = ^".."
 
@@ -151,35 +151,49 @@ func set_password(user: String, password: String) -> void:
 	EventLog.record(&"network.password", "", _name(), {"device": _name(), "user": found.user})
 
 
-## The Journal code id of account `user`.
-func code_id(user: String) -> StringName:
-	var base := String(credentials_id)
-	if base.is_empty():
-		base = _name().to_snake_case()
-	return StringName("%s.%s" % [base, user.strip_edges().to_lower()])
+## The Journal code id of this device's logins: `credentials_id`, else its Computer's, else the
+## entity's node name in snake_case. Every login is one entry's code "user:password" under it.
+func code_id() -> StringName:
+	if not credentials_id.is_empty():
+		return credentials_id
+	var computer := Computer.of(entity)
+	if computer != null and not computer.credentials_id.is_empty():
+		return computer.credentials_id
+	return StringName(_name().to_snake_case())
 
 
-## The password `viewer`'s PersonalLog knows for `user` here ("" when none).
-func known_password(viewer: Node, user: String) -> String:
+## The login `viewer`'s PersonalLog knows for `user` here (the latest learned), or null; its
+## `source` is the entry's title.
+func known_login(viewer: Node, user: String) -> LoginCredentials:
 	var reader_log := PersonalLog.of(viewer)
 	if reader_log == null:
-		return ""
-	var credentials := TerminalCredentials.parse(reader_log.known_code(code_id(user)))
-	if credentials == null or credentials.user.to_lower() != user.strip_edges().to_lower():
-		return ""
-	return credentials.password
+		return null
+	var wanted := user.strip_edges().to_lower()
+	var found: LoginCredentials = null
+	var id := code_id()
+	for entry in reader_log.code_entries(id):
+		var login := LoginCredentials.parse(entry.codes[id])
+		if login != null and login.user.to_lower() == wanted:
+			login.source = entry.title
+			found = login
+	return found
 
 
 ## True when `viewer`'s PersonalLog knows a login for `user` here.
 func knows_login(viewer: Node, user: String) -> bool:
-	var reader_log := PersonalLog.of(viewer)
-	return reader_log != null and TerminalCredentials.parse(reader_log.known_code(code_id(user))) != null
+	return known_login(viewer, user) != null
+
+
+## The password `viewer`'s PersonalLog knows for `user` here ("" when none).
+func known_password(viewer: Node, user: String) -> String:
+	var login := known_login(viewer, user)
+	return login.password if login != null else ""
 
 
 ## Title of the note the known login for `user` came from ("" when none).
 func known_source(viewer: Node, user: String) -> String:
-	var reader_log := PersonalLog.of(viewer)
-	return reader_log.code_source(code_id(user)) if reader_log != null else ""
+	var login := known_login(viewer, user)
+	return login.source if login != null else ""
 
 
 ## The entity's Device, or null.

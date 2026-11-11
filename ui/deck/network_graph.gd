@@ -124,9 +124,9 @@ func _ready() -> void:
 	add_child(fit_button)
 
 
-## Shows `p_rows` (NetworkRow, typed or not: the deck's rows, Terminal.devices()) and their
+## Shows `p_rows` (NetworkRow, typed or not: the deck's rows) and their
 ## `p_cables` (index pairs into them); `p_labels`: the default menu's command labels (a Callable, or
-## an object with `label_for(command)` such as a TerminalConfig; null: keep). An open menu stays open
+## an object with `label_for(command)` such as a DeckConfig; null: keep). An open menu stays open
 ## on the same device and shows its new status. The view stays where it is (see request_fit()).
 func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = null) -> void:
 	rows = NetworkRow.list(p_rows)

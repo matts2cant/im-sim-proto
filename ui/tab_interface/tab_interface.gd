@@ -13,7 +13,7 @@ extends CanvasLayer
 ##   closes it when that tab is already showing. Esc and the close button close it (that Esc does not
 ##   also open the game menu). While open the belt keys 1-5 select a tab, `tab_prev` / `tab_next`
 ##   (Q / E) step left / right.
-## - It opens only while the player can act and has its input (so never over the terminal, lockpick,
+## - It opens only while the player can act and has its input (so never over a computer, lockpick,
 ##   keypad or reading screens, which turn the input off), with no pause screen (game menu, briefing,
 ##   summary) and no debug panel open; while it is open the player's input is off, so none of those
 ##   open, and it swallows the debug panel key. It closes when the player dies or is knocked out.
