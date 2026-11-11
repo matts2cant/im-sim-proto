@@ -4,6 +4,37 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M12a — Network hacking (2026-11-11)
+
+The old spec (ADR 0074) was reviewed against the game, then reconciled with the user in a design review (ADR 0112). An HTML mockup was iterated four times: hidden subnets until a router is hacked, chained routers, remote desktops, subnet boxes. Four agents built it:
+- In parallel:
+  - the computers (Halcyon OS replacing the terminal, ADR 0114), merged first;
+  - the network, tracers and deck (ADR 0113), which merged that branch and added the test across both.
+- Then the network lab (gallery room 8, a new hub doorway) and the warehouse network.
+- Then a follow-up: gateways renamed routers, subnet boxes, a tidy-tree Map layout with no crossings, installed apps per computer.
+
+Final suite on master: 1781 tests, 0 failures, 1 skipped, lint clean, twice; 54.4 s on the second run.
+
+- **Went well:**
+  - **Reviewing the old spec before building.** A page listing what had changed in the game since the spec was written made the review short. The user then reshaped the design with the mockup in hand (hidden subnets, remote desktops, chained routers, routers, subnet boxes, flexible switches) before any agent started.
+  - **A shared contract between the two parallel agents worked a fourth time,** with stubs at the owner's paths and the second agent writing the test across both. Integration surfaced real gaps, which were fixed in the same pass: the trust filter, trace bars in the computer screen, the remote desktop's area.
+  - **The Map layout stayed automatic.** A tidy tree per subnet gives zero crossings by construction, with no layout data stored in levels, and it is tested on made-up networks.
+  - **Mid-build design changes reached the right agent cheaply:** several switches per subnet, and installed apps. The router rename waited for a single pass after the levels merged.
+- **Went wrong:**
+  - **Agents ran the full suite twice:** a CLAUDE.md timing rule meant for the chief engineer was read as theirs. Fixed in both files.
+  - **Two parallel agents wrote into the same scratch subfolder name** (`m12a`), and one overwrote the other's script.
+  - **The warehouse generator (`tools/level_gen/`) is stale.** It still builds terminals, and since M9 the scenes have been edited directly. Regenerating would lose M12a.
+  - **Two small things left to my review:** the first Security app showed every command at once, and the levels agent left three crossings on the warehouse Map with a raised check limit instead of fixing the layout.
+  - **`run_windowed.sh`'s watchdog** held pipes open for its whole time limit. Fixed: it now ends when Godot does.
+- **Changes:**
+  - AGENTS.md: run the full suite once, and read suite times from `reports/suite_times.tsv`.
+  - CLAUDE.md: the second-run rule is the chief engineer's; parallel briefs give each agent its own scratch subfolder name.
+  - `tools/run_windowed.sh`: the watchdog polls.
+- **Open for the user:**
+  - The warehouse generator: retire it (the scenes are the source now) or bring it up to date?
+  - Through the hub's mission exit you now see the network lab's outer wall 3.5 m behind it. Is that fine?
+  - The deck Map's Fit zoom is about 0.48 on the warehouse. Is that readable in play?
+
 ## M11 — Tab interface (2026-11-11)
 
 The user and I agreed a roadmap (M11 to M20, design/README.md; network hacking was renumbered from M11 to M12) and grilled the Tab interface in three rounds. I built an HTML mockup of all five tabs from real game content (`design/prototypes/tab_interface.html`); the user approved it after four small removals and a close button. Two agents worked in parallel on a shared `TabPage` contract:
