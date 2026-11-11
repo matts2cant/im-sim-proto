@@ -36,8 +36,7 @@ var _signature: String = ""
 func _init() -> void:
 	name = "Firewall"
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	for side: String in ["left", "right", "top", "bottom"]:
-		add_theme_constant_override("margin_" + side, 18)
+	theme_type_variation = &"WindowBody"
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
@@ -321,9 +320,7 @@ func _choice(choices: Array[Dictionary], rule: RouterRule, index: int, from_side
 	option.add_theme_font_override(&"font", DeckStyle.mono_font())
 	option.add_theme_font_size_override(&"font_size", 13)
 	option.add_theme_color_override(&"font_color", DeckStyle.TEXT_COLOR)
-	var style := DeckStyle.box(DeckStyle.FIELD_COLOR, DeckStyle.LINE_COLOR, 4.0, 8.0, 4.0)
-	for state: StringName in [&"normal", &"hover", &"pressed", &"focus"]:
-		option.add_theme_stylebox_override(state, style)
+	option.theme_type_variation = &"DeckField"
 	var list := choices.duplicate()
 	var at := _choice_index(list, rule, from_side)
 	if at < 0:

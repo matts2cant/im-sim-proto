@@ -40,7 +40,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 		row.status = DeviceStatus.of(other.entity, row.online)
 		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
-		DeckScreen.place_in_network(row, other)
+		DeckMapView.place_in_network(row, other)
 		if row.online and not row.is_self:
 			for command: StringName in DECK_CONFIG.command_labels:
 				if other.accepts(command, entity):
@@ -51,7 +51,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 
 ## The cables between `rows`, as index pairs (lower first), each once.
 static func cables(rows: Array[NetworkRow]) -> Array[Vector2i]:
-	return DeckScreen.cables_of(rows)
+	return DeckMapView.cables_of(rows)
 
 
 ## Shows the network in a fresh graph under `suite` and asserts the checks; returns

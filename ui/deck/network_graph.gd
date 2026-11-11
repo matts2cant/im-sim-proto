@@ -45,6 +45,8 @@ const CABLE_WIDTH: float = 2.0
 const DASH: float = 7.0
 const DASH_GAP: float = 5.0
 const BACKGROUND: Color = Color(0.02, 0.05, 0.05)
+## The backdrop's edge line.
+const EDGE_COLOR: Color = Color(0.15, 0.375, 0.33, 0.9)
 ## A node box's fill, a disabled node's (tinted red: a second cue beside the outline), and the
 ## selected node's (with a white outline).
 const NODE_FILL: Color = Color(0.04, 0.1, 0.1, 1.0)
@@ -79,6 +81,9 @@ var region_ids: Array[StringName] = []
 ## Subnet id -> its box as drawn now (content coordinates), for each subnet with data and devices on
 ## the map: {"rect": Rect2, "color": Color (its Subnet's), "title": String, "title_rect": Rect2}.
 var subnet_boxes: Dictionary[StringName, Dictionary] = {}
+## Paints BACKGROUND and an edge line behind the map (off inside a WindowFrame, which paints its
+## body itself).
+var draw_backdrop: bool = true
 ## The device whose menu is open (null: none).
 var selected: Device
 var view := NetworkView.new()
@@ -110,6 +115,8 @@ var _drawn: String = ""
 
 
 func _ready() -> void:
+	# Its widgets' looks (DeckButton, DeckCard): also when shown outside the deck's frame.
+	theme = WindowFrame.THEME
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	resized.connect(_on_resized)
@@ -127,12 +134,8 @@ func _ready() -> void:
 	fit_button.name = "Fit"
 	fit_button.tooltip_text = "Show the whole network (F)"
 	fit_button.z_index = 1
-	var fit_style := DeckStyle.panel_style(DeckStyle.BORDER_COLOR, 1, 6.0)
-	fit_style.content_margin_left = 12.0
-	fit_style.content_margin_right = 12.0
-	for state: StringName in [&"normal", &"hover", &"pressed"]:
-		fit_button.add_theme_stylebox_override(state, fit_style)
-	fit_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 8)
+	var margin := WindowFrame.metric(&"space_s")
+	fit_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, margin)
 	fit_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	fit_button.pressed.connect(fit_view)
 	add_child(fit_button)
@@ -353,8 +356,9 @@ func _click(point: Vector2) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND)
-	draw_rect(Rect2(Vector2.ZERO, size), DeckStyle.BORDER_COLOR.darkened(0.5), false, 1.0)
+	if draw_backdrop:
+		draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND)
+		draw_rect(Rect2(Vector2.ZERO, size), EDGE_COLOR, false, 1.0)
 
 
 ## True when cable `k` joins two online devices (drawn solid; else dashed). A disabled end does not

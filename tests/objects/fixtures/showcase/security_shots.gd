@@ -9,6 +9,7 @@ extends Node
 ## desktop inside a stand-in of the deck's panel: ADR 0114).
 
 const SIZE := Vector2i(1152, 648)
+const DeckShots := preload("res://tests/ui/deck/fixtures/deck_shots.gd")
 
 @export var showcase_path: NodePath = ^"../Showcase"
 
@@ -21,7 +22,7 @@ var _done: bool = false
 
 
 func _ready() -> void:
-	DisplayServer.window_set_size(SIZE)
+	DisplayServer.window_set_size(DeckShots.shot_size(SIZE))
 	_show = get_node(showcase_path) as Node3D
 	_player = _show.get_node("Player") as Player
 	_player.input_enabled = false

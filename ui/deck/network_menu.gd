@@ -21,7 +21,7 @@ func _init(width: float = NetworkGraph.MENU_WIDTH) -> void:
 	visible = false
 	custom_minimum_size.x = width
 	z_index = 1
-	add_theme_stylebox_override(&"panel", DeckStyle.panel_style(DeckStyle.BORDER_COLOR, 1, 10.0))
+	theme_type_variation = &"DeckCard"
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 6)
@@ -30,7 +30,7 @@ func _init(width: float = NetworkGraph.MENU_WIDTH) -> void:
 	column.add_child(title)
 	status = DeckStyle.label("", DeckStyle.TEXT_COLOR, 13)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status.custom_minimum_size.x = width - 20.0
+	status.custom_minimum_size.x = width - 2.0 * WindowFrame.metric(&"space_m")
 	column.add_child(status)
 	buttons = VBoxContainer.new()
 	buttons.add_theme_constant_override(&"separation", 4)
@@ -42,7 +42,7 @@ func _init(width: float = NetworkGraph.MENU_WIDTH) -> void:
 ## label for the default buttons (empty: the words after `command.`).
 func show_row(row: NetworkRow, width: float, builder: Callable, command_label: Callable) -> void:
 	custom_minimum_size.x = width
-	status.custom_minimum_size.x = width - 20.0
+	status.custom_minimum_size.x = width - 2.0 * WindowFrame.metric(&"space_m")
 	title.text = row.name
 	var words := PackedStringArray([row.address]) if not row.address.is_empty() else PackedStringArray()
 	words.append_array(row.status)
