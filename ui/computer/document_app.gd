@@ -26,6 +26,7 @@ var reader_label: Label
 var learned_label: Label
 
 var _list: VBoxContainer
+var _buttons: Array[Button] = []
 var _reader_box: PanelContainer
 
 
@@ -64,10 +65,8 @@ func select(index: int) -> bool:
 	var item := documents[index]
 	if computer != null:
 		computer.read(item, viewer, source)
-	for i in _list.get_child_count():
-		var button := _list.get_child(i) as Button
-		if button != null:
-			button.set_pressed_no_signal(i == index)
+	for i in _buttons.size():
+		_buttons[i].set_pressed_no_signal(i == index)
 	_show_reader(item)
 	return true
 
@@ -79,7 +78,7 @@ func select_title(title: String) -> bool:
 
 ## The list entry of item `index`, or null.
 func entry(index: int) -> Button:
-	return _list.get_child(index) as Button if index >= 0 and index < _list.get_child_count() else null
+	return _buttons[index] if index >= 0 and index < _buttons.size() else null
 
 
 func _show_reader(item: ComputerDocument) -> void:
@@ -111,8 +110,8 @@ static func _teaches(item: ComputerDocument) -> bool:
 
 func _rebuild_list() -> void:
 	for child in _list.get_children():
-		_list.remove_child(child)
-		child.queue_free()
+		HalcyonStyle.discard(child)
+	_buttons.clear()
 	for i in documents.size():
 		var item := documents[i]
 		var text := item.title
@@ -124,6 +123,7 @@ func _rebuild_list() -> void:
 		button.custom_minimum_size = Vector2(LIST_WIDTH - 40.0, 0)
 		button.pressed.connect(select.bind(i))
 		_list.add_child(button)
+		_buttons.append(button)
 
 
 func _build() -> void:
