@@ -4,9 +4,9 @@ extends TabPage
 ## (health bar, value / max, what happens at 0 from the body profile); the current effects from the
 ## body and the state tags; treatment with the healing items carried: how many and how much one
 ## heals (with the user's scale attribute, Medicine for a medkit), "Use a medkit on the <part>"
-## (PlayerInventory.use_stack() with the part: the item's stimuli touch that part's hitbox) and "Heal all" (the
-## belt's use: spread over the hurt parts). Works for any character with BodyParts; treatment needs a
-## PlayerInventory. The world keeps running: the page refreshes itself every frame while visible.
+## (PlayerInventory.use_stack() with the part: the item's stimuli touch that part's hitbox) and
+## "Heal all" (the belt's use: spread over the hurt parts). Works for any character with BodyParts;
+## treatment needs a PlayerInventory. The world keeps running: the page refreshes itself every frame while visible.
 
 ## Display name per body part.
 @export var part_names: Dictionary[StringName, String] = {
