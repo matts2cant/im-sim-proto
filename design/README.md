@@ -57,7 +57,8 @@ flowchart LR
     M12b --> M12c["M12c Network consequences"]
     M12c --> M13a["M13a Weapon feel loop"]
     M13a --> M13b["M13b Weapon feedback"]
-    M13b --> M14["M14 Explosives"]
+    M13b --> M13c["M13c Device overhaul"]
+    M13c --> M14["M14 Explosives"]
     M14 --> M15["M15 Factions"]
     M15 --> M16["M16 AI overhaul"]
     M16 --> M17["M17 Dialogue"]
@@ -85,6 +86,7 @@ flowchart LR
 | M12c | Network consequences ([ADR 0115](decisions/0115-m12b-intrusion-and-m12c-consequences.md)): status LEDs, plates and closets, the deck's AR cable view, feedback after an action; mail needs a route to its server, loss-of-signal alarms, fail-secure vaults, the "Clean hands" badge | Network lab; warehouse |
 | M13a | Weapon feel loop ([ADR 0120](decisions/0120-weapon-feel.md)): accuracy blending skill and aim (closer to Counter-Strike with each tier), recoil patterns with the camera climbing, skill-scaled recoil, the submachine gun, the shooting range with live tuning sliders, a settings menu in the Esc menu | Shooting range |
 | M13b | Weapon feedback ([ADR 0120](decisions/0120-weapon-feel.md)): hit markers, impacts by material, tracers, aim punch and guard flinch, guards obeying recoil, weapon motion, per-weapon sounds | Shooting range |
+| M13c | Device overhaul ([ADR 0130](decisions/0130-device-overhaul.md)): one design language (kind colour strip, Map icon, one light, labelled ports, name plate), rack and desk versions of routers, switches, computers and alarm controllers, linking bays, door controllers as the network devices, keys and the keychain, the frame's status line and no E prompts; 3D models first, shown in a hub showroom | Hub showroom, network lab, security wing, warehouse |
 | M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems, and a jamming grenade that drops wireless links ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)) (to be designed) | to be designed |
 | M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
 | M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space; guards logging in at devices, the security operator and the deck's Sniffer (moved from M12, [ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)) (to be designed) | AI arena |
@@ -131,6 +133,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (125 decisions, 0001–0129; 0062, 0081, 0118 and 0119 unused).
+- [decisions/README.md](decisions/README.md): ADR index (126 decisions, 0001–0130; 0062, 0081, 0118 and 0119 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.
