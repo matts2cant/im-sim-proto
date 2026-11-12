@@ -34,6 +34,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 | Shotgun (ADR 0085) | `shotgun` | 3 x 1 | 1 | equip / holster | yes | `magazine` (6) |
 | Sniper rifle | `sniper_rifle` | 4 x 1 | 1 | equip / holster | yes | `magazine` (5), `attachments` |
 | Assault rifle | `assault_rifle` | 2 x 2 | 1 | equip / holster | yes | `magazine` (30), `attachments` |
+| Submachine gun (M13a) | `smg` | 2 x 1 | 1 | equip / holster | yes | `magazine` (30, pistol ammo), `attachments` |
 | Shotgun shells | `shotgun_shells` | 1 x 1 | 48 | none | no | |
 | Sniper rounds | `sniper_rounds` | 1 x 1 | 30 | none | no | |
 | Rifle rounds | `rifle_rounds` | 1 x 1 | 150 | none | no | |

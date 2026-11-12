@@ -261,11 +261,11 @@ Ten guards (`Population/People/Guards`), on their layout markers. Routes loop th
 |---|---|---|---|---|---|
 | G1 gate | `guard_pistol` | | Post outside the booth door (-8.6, 0, -22.2), facing the gate lane (yaw -52), glancing 45 degrees either side | | 0.76 |
 | G2 west yard | `guard_baton` | | A (-18, -17) [2] > B (-23, -4) [2], south of the side door > C (-27, 14) [3], south of the annex > D (-24, -8) [2], by the dumpster: the side door twice a lap | 56.5 s | dark points; crosses the side door pool |
-| G3 east yard | `guard_pistol` | | A (18, -18) [2] > B (32, -11.5) [2], north of the drain chamber > C (25, 0) [3], the east strip > D (27.5, -6.5) [2]: the drain chamber exit twice a lap | 42.3 s | dark; crosses the east flood |
+| G3 east yard | `guard_smg` (M13a) | | A (18, -18) [2] > B (32, -11.5) [2], north of the drain chamber > C (25, 0) [3], the east strip > D (27.5, -6.5) [2]: the drain chamber exit twice a lap | 42.3 s | dark; crosses the east flood |
 | G4 catwalk | `guard_rifle` (assault rifle, bursts) | | A (19.25, 4.5, -3), the east catwalk's end [3] > B (-17, 4.5, -9.25), the north catwalk's west end [3]: the north catwalk out and back, past the duct A alcove | 61.3 s | A and B lit (east catwalk wall lamp, north-west lamp) |
 | G5 security operator | `guard_pistol` | `access.warehouse_security` | Post at the console (17.6, 0, 1.6), facing the security window | | 0.64 |
 | G6 break room | `guard_baton` | | Post (11, 0, 2.6), facing south (the table, the corridor door) | | 0.71 |
-| G7 vault door | `guard_pistol` | `access.warehouse_vault` | Post in the upper corridor (16, 4.5, 6), facing the vault door | | 0.98 |
+| G7 vault door | `guard_smg` (M13a) | `access.warehouse_vault` | Post in the upper corridor (16, 4.5, 6), facing the vault door | | 0.98 |
 | G8 off duty | `guard_baton` | | Post by his cot in the basement store (16.2, -4, 11.5), facing west (the service stair foot) | | 0.68 |
 | G9 back strip | `guard_baton` | | A (-9, 21), by the weak wall [3] > B (25, 6), the east strip beside the fire escape [3]: the back gate twice a lap | 60.3 s | dark; crosses the back gate flood |
 | G10 west catwalk | `guard_pistol` | | A (-19.25, 4.5, -6), the west catwalk [1] > B (5, 4.5, 6), the bridge's east end [3]: past the annex roof door twice a lap | 51.0 s | A and B lit (north-west lamp, bridge lamps) |

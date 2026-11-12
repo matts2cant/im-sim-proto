@@ -12,8 +12,8 @@ extends Resource
 ## Per-shot climb of an automatic weapon, shot 1 first (the first shot itself flies straight: its
 ## step moves the aim for shot 2). Empty: a semi-automatic kick.
 @export var pattern: PackedVector2Array = PackedVector2Array()
-## After the last step the pattern repeats from this index.
-@export_range(0, 60, 1) var loop_from: int = 0
+## After the last step the pattern repeats from this index (part of the shape: no range slider).
+@export var loop_from: int = 0
 ## The whole pattern (or kick) times this.
 @export_range(0.0, 3.0, 0.05) var pattern_scale: float = 1.0
 ## Semi-automatic kick per shot: up, and sideways (random between -side and +side).

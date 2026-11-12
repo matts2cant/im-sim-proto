@@ -32,6 +32,7 @@
 [ext_resource type="Script" path="res://objects/range/body_reset_button.gd" id="30_reset"]
 [ext_resource type="Script" path="res://objects/range/call_button.gd" id="31_call"]
 [ext_resource type="Script" path="res://objects/range/skill_tier_switch.gd" id="32_tier"]
+[ext_resource type="PackedScene" path="res://items/weapons/smg/smg_pickup.tscn" id="40_smg"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -354,10 +355,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.03, -4.45)
 [node name="ItemPickup" parent="Rack2/PistolAmmo"]
 count = 60
 
-[node name="SmgSlot" parent="Rack2" instance=ExtResource("3_sign")]
-transform = Transform3D(-1, 0, 0, 0, 0, 1, 0, 1, 0, 5.75, 1.01, -4.45)
-text = "[ SMG slot ]"
-size = 0
+[node name="Smg" parent="Rack2" instance=ExtResource("40_smg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 1.06, -4.45)
+
+[node name="SmgAmmo" parent="Rack2" instance=ExtResource("20_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.15, 1.03, -4.45)
+
+[node name="ItemPickup" parent="Rack2/SmgAmmo"]
+count = 60
 
 [node name="Labels" type="Node3D" parent="."]
 
@@ -407,7 +412,7 @@ text = "+"
 
 [node name="Rack2" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.6, 2.5, -4.05)
-text = "Pistol · SMG (M13a)"
+text = "Pistol · SMG"
 size = 0
 
 [node name="MeleeUnaware" parent="Labels" instance=ExtResource("3_sign")]

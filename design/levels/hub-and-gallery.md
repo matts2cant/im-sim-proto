@@ -155,7 +155,7 @@ Floor plan (room-local; columns to scale at 0.5 m, rows not to scale; top is the
      -8  |  ##############################rcd T s########|   counter 1.0 m + stripe: firing line; controls
          |gap   5m   10m  20m  40m   spray    moving     |   lane signs on the counter
    -5.6  |                                    A<     >U  |   melee: A aware, U unaware (3 m)
-   -4.4  | [RRRR]     [TT] [PP]                          |   rack, medkits, rack 2 (pistol, SMG slot)
+   -4.4  | [RRRR]     [TT] [PP]                          |   rack, medkits, rack 2 (pistol, SMG)
    z -4  +-----[ door ]----------------------------------+
                corridor -> hub doorway 4
       x  -3.5      0.5  3   5.5  8  10.5    14.5        20.5
@@ -176,7 +176,7 @@ The firing line is the counter's lip at z -8; distances are centre to centre fro
 | Far wall (`FarWall/`) | z -51.6 (43.6 m) | `Barrel1`-`3` at x -2, 1.6, 5.2 (3 m gaps: no chain, a neighbour's blast does 10 of its 25 health) and a `MetalCrate` between barrels 2 and 3; the nearest is 5.4 m from the 40 m dummy. Sign "Long shots" |
 | Weapons rack (`Rack/`, [ADR 0085](../decisions/0085-weapons-and-attachments.md)) | x -3.45 to -1.05, z -4.1 to -5.1 | `Table`: 1.0 m wood `Ledge`, 2.4 x 1.0 m, against the south wall west of the door (its east end 0.05 m short of the door opening at x -1; 2.9 m to the counter's back, so the walk from the door to the counter gap stays open; measured free: the west wall at x -3.5 to the door at x -1, nothing else in the booth west of the door). Back row (z -4.36): `SniperRifle` (x -2.82) and `Shotgun` (x -1.67), muzzles west; front row (z -4.84): `AssaultRifle` (x -2.95), `ShotgunShells` x24, `SniperRounds` x15, `RifleRounds` x90 and a second `Silencer` at x -2.3, -2.0, -1.7, -1.35 (gaps at least 0.15 m). Signs on the wall above: "Weapons rack", "RMB: sniper scope on / off", "Hold LMB: rifle full-auto", "Silencer: I, drag onto a weapon" (SMALL at half pixel size, fitting between the west wall and the door) |
 | Medkits (`Medkits/`) | (3, -4.4) | `Table`: 1.0 m wood `Ledge` (1.2 x 0.6 m) against the south wall east of the door with three M5 medkit item pickups (`items/medkit/`: E takes one, using it from the belt heals 30). Sign "Medkits · E takes · use heals 30" |
-| Rack 2 (`Rack2/`, ADR 0125) | x 4 to 6.4, z -4.1 to -4.8 | `Table`: 1.0 m wood `Ledge` (2.4 x 0.7 m) against the south wall, 0.4 m east of the medkit table: `Pistol`, `PistolAmmo` x60 and a labelled empty slot "[ SMG slot ]" for the submachine gun (M13a, the weapons agent). Sign "Pistol · SMG (M13a)" |
+| Rack 2 (`Rack2/`, ADR 0125) | x 4 to 6.4, z -4.1 to -4.8 | `Table`: 1.0 m wood `Ledge` (2.4 x 0.7 m) against the south wall, 0.4 m east of the medkit table: `Pistol` (x 4.4), `PistolAmmo` x60 (4.8), `Smg` (the submachine gun, 5.75) and `SmgAmmo` (pistol rounds x60, 6.15), all at z -4.45. Sign "Pistol · SMG" |
 
 The hub's `Navigation` bakes the range with the rest: the booth, the blast lane through the counter gap, the lanes around the dividers and the far wall (dummies and objects are not navigation sources). Damage and objects get used up: E on a dummy resets it, the Spawn tab's "Reset level" (or E after dying) reloads the hub.
 

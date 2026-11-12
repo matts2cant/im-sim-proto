@@ -591,13 +591,19 @@ Warehouse network:
 - [ ] Deck in hand (not plugged in), RMB: "AR: cables (RMB)" and the remembered network drawn over the world: ceiling runs in the subnet colours, AP-YARD's wireless links dashed blue, dead links dim. RMB again, switching item or opening any screen turns it off. Is it readable in the office (runs from the basement rise through the floor) or too busy? Do runs fading with distance matter?
 - [ ] A cut device's amber blink, a disabled camera's red LED and a dark unpowered one: is the colour language clear without the Map?
 
-## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md); planned, the build agents complete it)
+## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md), [ADR 0123](../decisions/0123-recoil-and-skill-aim.md))
 
-- [ ] On the shooting range, Untrained: aimed well at the 10 m dummy, the pistol still misses often; Master: the first still shot lands where the crosshair is.
-- [ ] Spraying the assault rifle and the submachine gun: the camera climbs with the pattern and returns after you stop; pulling down keeps the spray on the 10 m dummy; the submachine gun drifts more sideways.
-- [ ] Tapping the pistol needs no recoil correction; the shotgun and sniper kick hard.
-- [ ] Running, walking, crouching and jumping change accuracy as expected (running clearly worse, walking and crouching close to standing).
-- [ ] Sliders change the feel live and their values survive a restart once saved; the reset button stands every downed dummy back up.
+Tests measure the targets (pistol 56 / 80 / 92 / 100 % on a torso at 10 m by tier, the compensated rifle spray 31 / 49 / 67 / 87 %); these checks are how it feels.
+
+- [ ] Range, Untrained (tier button): aimed well at the 10 m dummy, tapping the pistol about once a second still misses about half the shots; Master: the first still shot lands exactly on the crosshair's centre. Trained and Advanced feel like steps between.
+- [ ] Assault rifle, hold LMB at the spray wall without pulling: the camera climbs (mostly up, then sideways), then comes back by itself within about half a second of letting go. Pulling the mouse down against it keeps the spray on the 10 m dummy; is the pattern learnable after a few magazines?
+- [ ] Submachine gun (second rack, pistol ammo): faster, drifts more sideways than up; kills the 5 m dummy in about 0.6-0.7 s; at the 20 m dummy it is clearly weaker than the rifle (damage falls off past 8 m).
+- [ ] Tapping the pistol needs no correction (the kick is back before the next shot); the shotgun and the sniper kick hard; scoped, a sniper shot blacks the lens out for a moment.
+- [ ] Crosshair: four arms around the dot open and close with accuracy (sprint, jump, spray, Master standing still); the arms get "T" caps on a dummy, guard or breakable thing within the gun's range, not on walls or past range; baton and empty hands show the dot only; the scope keeps its own overlay. Readable on bright walls?
+- [ ] Moving: running clearly worse, walking and crouch-walking close to standing, jumping bad.
+- [ ] Settings, camera motion 0 %: the camera stays still during a spray, the crosshair climbs instead and the bullets follow it.
+- [ ] Warehouse: the east yard patrol and the vault door guard carry submachine guns (bursts) and drop one when downed; they aim as the pistol guards do (M13b changes guards).
+- [ ] Tuning panel (range): the held gun's recoil (pattern scale, kick, noise, return delay and time, scope blackout), aim (still cone, movement terms, bloom, cap, settle) and damage falloff sliders change it live.
 
 ### M13a shooting range ([ADR 0125](../decisions/0125-shooting-range-tools.md), [hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range))
 
@@ -608,7 +614,7 @@ Warehouse network:
 - [ ] The tuning terminal (E) opens the panel on the right with the range still visible and running; every slider of the gun in hand changes it at once (fire again with the panel closed); Esc or ✕ closes; Save then a restart keeps the values (editor or a run from the project folder only); Revert brings the saved values back.
 - [ ] Tier buttons in the panel and the "Skill tier" button (E: next, its label says which) change the Weapons skill of the gun in hand; the Skills tab shows the same tier.
 - [ ] "Reset dummies" stands up every downed dummy in the room (lanes, walker and melee pair), dead or knocked out.
-- [ ] The second rack (east of the medkits) holds a pistol and 60 rounds, and a labelled empty SMG slot until the submachine gun lands.
+- [ ] The second rack (east of the medkits) holds a pistol, the submachine gun and 60 pistol rounds for each.
 - [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.
 - [ ] Esc, Settings: the game stays paused; Esc (or Back) returns to the Esc menu with Settings focused, a second Esc resumes. Keyboard only: Up/Down reach every row, Left/Right move sliders, Enter flips switches; the focused row's name is white.
 - [ ] Mouse sensitivity ×2 turns twice as far per mouse move; ×0.5 half; through the sniper scope the crosshair still moves as far on screen as at the hip.

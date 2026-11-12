@@ -100,13 +100,15 @@ func test_controls_sit_on_the_counter_top_apart() -> void:
 		assert_object(Usable.of(control)).override_failure_message(name).is_not_null()
 
 
-func test_second_rack_has_the_pistol_its_ammo_and_an_smg_slot() -> void:
+func test_second_rack_has_the_pistol_the_smg_and_their_ammo() -> void:
 	var table := _room.get_node("Rack2/Table") as Ledge
 	var medkits := _room.get_node("Medkits/Table") as Ledge
 
 	assert_str(String(ItemPickup.of(_room.get_node("Rack2/Pistol")).item.id)).is_equal("pistol")
 	assert_int(ItemPickup.of(_room.get_node("Rack2/PistolAmmo")).count).is_equal(60)
-	assert_str((_room.get_node("Rack2/SmgSlot") as Sign).text).contains("SMG")
+	assert_str(String(ItemPickup.of(_room.get_node("Rack2/Smg")).item.id)).is_equal("smg")
+	assert_int(ItemPickup.of(_room.get_node("Rack2/SmgAmmo")).count).is_equal(60)
+	assert_object(_room.get_node_or_null("Rack2/SmgSlot")).is_null()
 	# East of the medkit table with a gap.
 	var gap := (table.position.x - table.width * 0.5) - (medkits.position.x + medkits.width * 0.5)
 	assert_float(gap).is_greater_equal(0.3)
