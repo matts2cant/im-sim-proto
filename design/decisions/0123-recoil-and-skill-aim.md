@@ -1,6 +1,6 @@
 # 123. Recoil, the still cone per tier, damage falloff and the crosshair (M13a build)
 
-Status: Accepted (builds the M13a part of [ADR 0120](0120-weapon-feel.md); extends [ADR 0048](0048-aim-model.md), [ADR 0061](0061-abilities-model.md), [ADR 0085](0085-weapons-and-attachments.md))
+Status: Accepted, amended by [ADR 0127](0127-hit-reactions-and-guard-recoil.md) (guards now fire with recoil and the weapon's cone) (builds the M13a part of [ADR 0120](0120-weapon-feel.md); extends [ADR 0048](0048-aim-model.md), [ADR 0061](0061-abilities-model.md), [ADR 0085](0085-weapons-and-attachments.md))
 
 Date: 2026-11-12
 
