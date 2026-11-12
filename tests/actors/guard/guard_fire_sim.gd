@@ -97,6 +97,27 @@ func median_survival(runs: int, speed: float = 0.0) -> float:
 	return times[middle] if times.size() % 2 == 1 else (times[middle - 1] + times[middle]) * 0.5
 
 
+## Median survival standing still at 4 m and 10 m over `runs` engagements (returned), then the rows
+## standing and crouched at 15 m and running (5 m/s) at 6 and 10 m over `table_runs`, all printed.
+func survival_table(runs: int, table_runs: int) -> Array[float]:
+	var times: Array[float] = []
+	for at: float in [4.0, 10.0]:
+		await place(at, false)
+		times.append(median_survival(runs))
+	var lines: Array[String] = ["standing still, 4 m: %.2f s" % times[0], "standing still, 10 m: %.2f s" % times[1]]
+	var rows: Array = [
+		["standing still, 15 m", 15.0, false, 0.0],
+		["crouched still, 15 m", 15.0, true, 0.0],
+		["running, 6 m", 6.0, false, 5.0],
+		["running, 10 m", 10.0, false, 5.0],
+	]
+	for row: Array in rows:
+		await place(row[1], row[2])
+		lines.append("%s: %.1f s" % [row[0], median_survival(table_runs, row[3])])
+	print("MEASURED %s, median time under fire:\n%s" % [weapon.id, "\n".join(lines)])
+	return times
+
+
 ## Share of hits (any part) of the first shot's cone after the reaction, over `samples` shots.
 func first_shot_hit_share(samples: int, speed: float = 0.0) -> float:
 	var model := _engage(1, speed)

@@ -17,11 +17,11 @@ extends Node
 ##   CombatModel.spread_deg() through the holder (WeaponHolder.physics_step). Its shots climb with
 ##   the weapon's recoil; re-aiming at the target every tick, it pulls back
 ##   `recoil_compensation` of the climb (the holder's RecoilState.view_share, ADR 0127).
-## - A hit taken makes the character's HitReaction flinch: no shot (a burst stops) and the shot
-##   pause holds until the flinch is over (CombatModel.flinching).
 ##   An automatic weapon fires bursts (ADR 0087): it keeps the holder's trigger held for
 ##   CombatModel.burst_length() shots at the weapon's cycle, letting go early when the line of fire
 ##   closes, it has to move or the magazine runs dry; the shot interval follows each burst.
+## - A hit taken makes the character's HitReaction flinch: no shot (a burst stops) and the shot
+##   pause holds until the flinch is over (CombatModel.flinching).
 ## - Melee weapon: runs in to melee_stop_distance and swings within the weapon's reach; the swing
 ##   rate is the weapon's cycle.
 ## - Shots and swings are WeaponHolder.trigger(): the same stimuli, noise and EventLog as the player.
