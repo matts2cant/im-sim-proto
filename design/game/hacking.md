@@ -34,7 +34,7 @@ Hacking as a believable network, not a minigame. The level has real devices with
 |---|---|---|
 | Map | Shows the devices you can see (see [Discovery](#discovery)), drawn like the old terminal's Network tab (grouped by hub, pan and zoom: [ADR 0099](../decisions/0099-network-map-layout-pan-zoom.md)). Clicking a device opens its menu: its address, status and account names; per account "Log in" (a login the Journal knows) or the Icebreaker; on a device you have access to, its actions; on a computer you have an account on, "Open its desktop (remote)" | M12a |
 | Icebreaker | Brute-forces an account's password. Deterministic, no randomness. Adds trace while it runs | M12a |
-| Exploits | Runs a known exploit against a device whose vendor, product and version match. Adds trace | M12b (built: [Exploits, Firewall and logs as built](#exploits-firewall-and-logs-as-built-m12b)) |
+| Exploit items | One-use inventory items by device kind, used from a device's menu on the Map: admin at once, no trace. No tool of their own | M12b (rebuilt: [Exploit items as built](#exploit-items-as-built-adr-0121)) |
 | Firewall | As admin of a router: view and edit its rules | M12b (built) |
 | Logs | As admin of a device: read its log and erase entries | M16 (M12b records the logs) |
 | Sniffer | Wireless only. Captures the logins guards make on devices connected through the same access point | M16 (needs guards logging in) |
@@ -76,8 +76,8 @@ flowchart LR
 - **Explicit clues** (a sticky note, a datapad, an email with a password): the credential is learned automatically and listed in the Journal's **Codes and logins** ([ADR 0110](../decisions/0110-tab-interface.md)). Login screens offer the logins known for that machine with "Fill in"; the deck's Map offers "Log in" with them.
 - **Implicit clues** (an email "my cat's name plus the year we moved in" and a photo "Mishka, 2029"): nothing is learned. They go to the Journal's Notes; the player types the guess. A wrong guess adds trace.
 - Clues never lower a password's strength.
-- Logging in with correct credentials adds no trace. Failed logins, exploits and the Icebreaker add trace.
-- The Journal is the one list of what you know: codes and logins, exploits (a section added in M12b) and notes.
+- Logging in with correct credentials adds no trace. Failed logins, scans of subnets behind a router and the Icebreaker add trace; an exploit item adds none.
+- The Journal is the one list of what you know: codes and logins, and notes (exploits are inventory items since ADR 0121).
 
 ## Icebreaker
 
@@ -111,20 +111,19 @@ Resulting crack times (the longest is 25 s: no crack should make the player wait
 
 ## Exploits
 
-- Exploits are found in the world (files, datapads). Reading one learns it, like a code.
-- Each targets a vendor, a product and a version range, and states the access it grants (user or admin).
-- Reusable, but burnable: when an exploit run is detected (it ran against a device on a subnet a running tracer watches), the devices on that subnet are patched against it.
-- Difficulty comes from the software versions the level designer gives each device.
+- Exploits are one-use inventory items of one kind: camera, turret, door, alarm (alarm controllers, sirens, panic buttons, radio base stations, laser arrays), computer, router ([ADR 0121](../decisions/0121-exploits-as-items-and-map-fixes.md)). Found in levels; later loot on guards and in shops (M19).
+- Used from a reached device's menu on the Map: admin access at once, like an admin account, no trace; the device logs it. Scarcity is their cost.
+- Details: [Exploit items as built](#exploit-items-as-built-adr-0121).
 
 ## Tracers
 
 - A tracer is not a property of a subnet. It is an app running on a computer, server or router. Example: "Sentry tracer" on firewall RTR-01 watches the Guest and Office subnets. A subnet with no tracer is unwatched.
-- Tuning is a `.tres` on the tracer: trace gain rate, the amount a failed login or an exploit run adds, drain rate while you are idle, lockout duration. Starting values in [Tuning](#tuning).
+- Tuning is a `.tres` on the tracer: trace gain rate, the amount a failed login or a scan adds, drain rate while you are idle, lockout duration. Starting values in [Tuning](#tuning).
 - Activity against a device adds trace to every running tracer that watches the device's subnet. The Computer skill scales the gain.
 - Trace drains while nothing adds to it.
 - **Full trace**: the tracer behaves like a camera. It sends an incident to the alarm controller (location: your entry point, not your position) and blocks your address for the lockout duration. While blocked, the watched devices refuse your address and tools running against them stop (Icebreaker progress stays on the deck).
 - **Disabling a tracer**: if its host is disabled, unpowered or cut off, its subnets are unwatched. If only its link to the alarm controller is cut, it still detects and blocks you, but nothing rings. An admin of its host can stop the app; the security console then shows "Tracer offline" to an operator.
-- No subnet tiers: difficulty comes from what the level designer places (tracers, software versions, firewall rules).
+- No subnet tiers: difficulty comes from what the level designer places (tracers, exploit items, firewall rules).
 
 ## Alarms
 
@@ -162,7 +161,7 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 | Security | Only on computers that have it installed (security consoles, the booth computer). Replaces the old terminal's Camera tab. A list grouped by kind (cameras and turrets; doors; alarm: controller, sirens, radio base stations, panic buttons; laser arrays), an icon per device kind and its status; the selected device's detail pane with its status, actions and, for cameras and turrets, the live view. It lists **only the devices this computer controls** (they trust it and it reaches them); a computer that controls none says so and points to the deck |
 
 - **Apps are installed per computer** (data: its `ComputerData.apps`, in dock order); the dock shows only those. A computer whose data lists none has Mail and Files. Office PCs have no Security app.
-- Reading a mail or file adds it to the Journal automatically, like a datapad ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)). Credentials, codes and (M12b) exploits inside are learned; implicit clues are kept as notes.
+- Reading a mail or file adds it to the Journal automatically, like a datapad ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)). Credentials and codes inside are learned; implicit clues are kept as notes.
 - **Remote desktop**: from the deck's Map, a computer you have an account on opens its desktop inside the deck ("Back to the map" returns). Its Security app controls the devices that trust that computer, from wherever the deck is plugged in.
 - "Copy to deck" (in the game UI) exists only for objectives that need the file itself. Deleting a file can also be an objective.
 
@@ -177,7 +176,7 @@ The alarm is made of devices ([ADR 0075](../decisions/0075-alarms-as-network-dev
 
 ### NPCs and logs
 
-- Devices keep logs: logins (successful and failed), exploit runs, remote actions, with the source address (recorded since M12b). An admin can erase entries with the deck's Logs tool (M16). An undetected exploit run still leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
+- Devices keep logs: logins (successful and failed), exploit items used, remote actions, with the source address (recorded since M12b). An admin can erase entries with the deck's Logs tool (M16). An exploit item used leaves an entry. In v0 only the player reads logs (operators reading them: [backlog](../backlog.md)).
 - **M16** (AI overhaul): guards log in to devices through a "use device" action at patrol waypoints (feeding the Sniffer and the logs), and a security operator watches the monitors.
 
 ## UI
@@ -187,7 +186,7 @@ Overlays, like the Tab interface ([mockup](../prototypes/hacking_screens.html)):
 | Screen | Contents |
 |---|---|
 | Computer (Halcyon OS) | Title bar (host, address, account and access level, trace bars, ✕). Login: user and password, "Fill in" for the logins known for this machine, an error line ("+15 % trace" on a wrong guess). Desktop: the apps installed on it (Mail, Files, and Security on security consoles) in a dock |
-| Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker, Exploits, Firewall; Logs greyed until M16); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
+| Deck | Title bar (entry point and address, trace bars, ✕). Tools on the left (Map, Icebreaker, Firewall; Logs greyed until M16); the Map's device menus; the Icebreaker with the letters locking in and Start / Stop; remote desktops inside the deck |
 
 - One trace bar per tracer watching you (an undiscovered tracer shows as "unknown tracer"), only inside these screens.
 - Skill assists appear on the deck (see [Icebreaker](#icebreaker)).
@@ -201,16 +200,16 @@ Controls ([controls.md](controls.md)):
 
 ## Rules
 
-- **Systemic**: every behaviour comes from components and data on devices (address, subnet, links, accounts, trust list, software vendor/product/version, `Powered`, `Breakable`, tags). A new device that combines existing behaviours is a scene and `.tres`, no new code. Remote commands are stimuli delivered to the device; its receptrons decide what they do ([ADR 0075](../decisions/0075-alarms-as-network-devices.md)).
+- **Systemic**: every behaviour comes from components and data on devices (address, subnet, links, accounts, trust list, kind by tags (DeviceKinds), `Powered`, `Breakable`, tags). A new device that combines existing behaviours is a scene and `.tres`, no new code. Remote commands are stimuli delivered to the device; its receptrons decide what they do ([ADR 0075](../decisions/0075-alarms-as-network-devices.md)).
 - **Skill**: the deck reads its user's Computer skill attributes, so any actor with the skill gets the same tool timings ([abilities.md](abilities.md)).
 - **Deterministic**: no randomness anywhere in hacking.
-- **Saving** ([saving.md](saving.md)): network state (device power and links, firewall rules, patched devices, logs, discovered devices, who knows each Wi-Fi key), known credentials and exploits (PersonalLog), the deck's contents (copied files, crack progress, Wi-Fi crack progress), tracer trace and lockouts. Wireless links come from level data.
+- **Saving** ([saving.md](saving.md)): network state (device power and links, firewall rules, exploit grants, logs, discovered devices, who knows each Wi-Fi key), known credentials (PersonalLog), exploit items (inventory), the deck's contents (copied files, crack progress, Wi-Fi crack progress), tracer trace and lockouts. Wireless links come from level data.
 
 ## M12a implementation details
 
 Settled while building the network layer and the deck ([ADR 0113](../decisions/0113-network-layer-tracers-and-the-deck.md)):
 
-- **Discovery is reach.** A router passes a user's traffic only once the user has an account on it (rules from "you" first, and an exploit's grant counts too: M12b). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a router (a known login or the Icebreaker) is what reveals the subnets behind it; a router inside them is hacked in turn. Routers show at once; other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck).
+- **Discovery is reach.** A router passes a user's traffic only once the user has an account on it (rules from "you" first, and an exploit item's grant counts too: ADR 0121). So the Map shows what the deck's traffic reaches (plus dead devices right behind a reached one), and hacking a router (a known login, the Icebreaker or a router exploit item) is what reveals the subnets behind it; a router inside them is hacked in turn. Routers show at once, and so does the subnet the deck is plugged into or joined over Wi-Fi (ADR 0121: no scan, no trace); the other devices show once their subnet is scanned (2 s, +10 % on the tracers watching it, once per subnet per deck). The scan shows on the Map where the subnet will appear: a blinking dashed box with "Scanning <NAME> <range>…", a progress bar and the seconds left, and a marching dashed link from the router; the world keeps running.
 - **Addresses**: a wall jack gives the deck the jack's address on its subnet; a maintenance port `port:<device address>` (that device only); a computer its own address. A tracer blocks the address it caught: plugging in elsewhere is a new address.
 - **Tethered**: more than 3 m (horizontal, the player's origin to the plugged entity) unplugs the deck; so do being unable to act and losing the deck. The screen lowers with Esc or ✕; LMB on the port raises it again.
 - **Accounts**: logging in gives the account until its password changes. The Journal files a device's logins under one code id per device (its `credentials_id`: on `DeviceAccounts`, else its `Computer`, else its node name in snake_case), one entry per login "user:password"; a cracked login is learned that way, in an entry "Cracked: user@HOST".
@@ -234,24 +233,29 @@ Settled while building it ([ADR 0117](../decisions/0117-wireless-access-points-a
 - **On the Map** wireless links are dashed light blue (#7fd4ff), dashed grey with an end offline; wireless devices hang on their access point in the tidy tree (computed from the topology, no crossings); an access point reads "AP-YARD · access point" and a wireless device's menu says "wireless via AP-YARD".
 - Levels: the network lab's annex Wi-Fi station (AP-LAB, a wireless camera and laser, floor marks at 6 m and 10 m, a pillar that hides the access point) and the warehouse's AP-YARD (the yard camera and both roof lasers; crack spots on the roof and behind the truck): see [Levels](#levels).
 
-## Exploits, Firewall and logs as built (M12b)
+## Exploit items as built (ADR 0121)
+
+Replaces the software, exploit runs and burning of [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md) (approved mockup [hacking_fixes.html](../prototypes/hacking_fixes.html)):
+
+- **Kinds are data.** `DeviceKinds` (`objects/devices/device_kinds.tres`) lists every kind of device by entity tag (a `SecurityKind`: name, icon, the Security app's group, `exploit`): a device's kind is the first kind whose tag its entity has. The Security app lists the kinds with a group; the Map draws every box with its kind's icon (switch, router, access point, computer, server and wall jack included; a computer exploit also opens a server such as MAIL-01); `exploit` names the item kind that opens it (camera, turret, door, alarm, computer, router; none for switches, access points and jacks).
+- **Items**: one ItemData per kind (`items/exploit/<kind>_exploit.tres`, `exploit_kind`), stack to 5, one square, a chip icon (`ItemData.icon`, DeviceIcon strokes); one world pickup scene (`exploit_chip.tscn`) whose ItemPickup names the item.
+- **Use** (`ExploitItems`): a reached device's menu shows "Use <kind> exploit (N left)" and a one-line note while you carry one of its kind and have no access there (never on your entry point). Using it is instant, adds no trace, consumes one and gives you admin there for good (`Device.intrusion`, saved; `has_access()` and `is_admin()` read it beside accounts); the menu then says "access: admin (exploit)". A router opens its Firewall and lets your traffic through, so the subnets behind it get scanned; a computer opens its remote desktop as admin. The device's log records "exploit <address> <you> <item>"; EventLog `deck.exploit_used {device, item, kind, left}`.
+- **Removed**: the Exploits tool, `Exploit` and `Software` resources, software on devices and on the Map, version matching, burning and patching, exploits taught by mails, files and datapads, the Journal's Exploits section, the tracers' exploit amount.
+
+## Firewall and logs as built (M12b)
 
 Settled while building them ([ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md)):
 
-- **Software** is data on any device (`Device.software`: vendor, product, version, a `Software` resource). A device's menu on the Map shows it ("Helix CAM-3 2.1") once its subnet is scanned, then "Exploits (n)" when known exploits match it (never on your entry point).
-- **Exploits** (`Exploit` resources: id, title, vendor, product, an inclusive version range with open ends allowed, user or admin) are taught by mails, files (`ComputerDocument.exploits`) and datapads (`Readable.exploits`) like codes; an implicit clue teaches none. The reader's last line names them ("Learned: exploit Helix default service login (Helix CAM-3 2.0–2.1, admin)"); the Journal's **Exploits** section lists them with where each was learned. Versions compare part by part ("2.0" < "2.0.1" < "2.10").
-- **The Exploits tool** (`ExploitTool` beside the deck's session; `ExploitsView`): the known exploits as a table (exploit and where learned, targets, grants) against the device the menu picked: Run on a match, "no match" (dimmed) otherwise, "patched on this subnet" once burned. A run takes 4 s (skill does not change it) and adds the tracers' exploit amount (+10 %) times your trace gain, spread over the run; Advanced shows "about +N % trace per run". It grants the exploit's level on the device without an account (`Device.has_access()` / `is_admin()`: accounts or exploit grants): its commands, a computer's desktop, and on a router the subnets behind it and its Firewall. It stops if the deck loses the device.
-- **Burned when detected**: a tracer that added trace during the run saw it; when the run ends (even stopped or cut off) every device on that subnet with the exploit's vendor and product, cabled or wireless, is patched against it (saved). A finished run still grants its access. An unwatched run burns nothing.
 - **Firewall rules** (`Router`): first match wins. Your traffic (the deck, on a jack, a port, a computer or Wi-Fi) is judged only by rules from "you"; without one it passes a router you have access to (the M12a rule). Devices' traffic (commands, incidents, ringing, everything sent over the network) is judged by the other rules, else the router's default (allow). So "ALARM → SIREN-OFFICE · DENY" silences that siren when the alarm rings without breaking anything, and "you → SEC-CONSOLE · DENY" is how you would cut yourself off.
 - **The Firewall tool** (`FirewallView`, as admin of a router the deck reaches; the router's menu offers "Firewall rules", the tool button opens the last picked router or the first you are admin of): a table of rules (number: click to select; From and To lists: any, "you" (From only), the subnets and devices on your map; ALLOW / DENY toggles), Add a rule (appends "any → any" with the router's default, a no-op until edited), Move up, Move down, Delete, and a line saying what happens without a match. Every edit is logged on the router with your address.
-- **Device logs** (`DeviceLog` in `Device.intrusion`, newest 50, saved): logins and failed logins with the source address (a computer's own address bare-handed), exploit runs (at the start: an undetected run leaves its entry), commands received (from a device or the deck), remote desktops opened from the deck, firewall edits. Nothing reads them in the game until M16; the debug panel's Network overlay shows each device's log size and newest entry.
-- Levels: software on every device of the network lab, the security wing and the warehouse; the lab annex's exploits station (two exploits on a datapad, Helix cameras in and out of range, the Watchdog tracer that burns a seen run) and firewall station (RTR-04 between an alarm controller and its sirens: a DENY rule silences them); the warehouse's Helix and Vigil exploits and RTR-01's rules: see [Levels](#levels).
+- **Device logs** (`DeviceLog` in `Device.intrusion`, newest 50, saved): logins and failed logins with the source address (a computer's own address bare-handed), exploit items used, commands received (from a device or the deck), remote desktops opened from the deck, firewall edits. Nothing reads them in the game until M16; the debug panel's Network overlay shows each device's log size and newest entry.
+- Levels: the lab annex's exploits station (a camera and a router exploit item on its table, the CCTV cameras behind RTR-03 and its Watchdog tracer) and firewall station (RTR-04 between an alarm controller and its sirens: a DENY rule silences them); the warehouse's camera exploit (office desk 1) and alarm exploit (water tower deck) and RTR-01's rules: see [Levels](#levels).
 
 ## Levels
 
 - **Network lab** (gallery room 8, M12a, built: [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#8-network-lab)): behind a ninth hub doorway on the west wall. Office, Security and Servers subnets; RTR-01 (Weak admin, the Icebreaker cracks it Untrained) runs the Sentry tracer watching Office and Security; RTR-02 inside Security leads to a file server with one file (chained discovery; RTR-02's login is in the console's files). A deck on a table at the entrance, a wall jack on the Office subnet, office PC 1 with a sticky note and a mail with an implicit clue to office PC 2's login (the cat's name from a photo and the year), PC 2's mail with the security console's login; the console's Security app commands a camera and a closet door that trust it (two biocells inside); a subnet can span several switches: the camera and the door hang on a closet room switch whose breaker cuts only them while the rest of the Security subnet stays up. A sign at each station. **M12b annex** (a 14 x 14 m room behind the hall's far wall, two networks of its own): the Wi-Fi station (AP-LAB, Weak key, on the Wi-Fi subnet with a wireless camera and laser; floor marks at 6 m, in Untrained range, and 10 m, Trained only; a pillar to step behind; its own breaker), the exploits station (a datapad teaching the Helix camera and EdgeGuard router exploits; CCTV cameras at Helix 2.1 and 2.0 that match and 2.4 that does not; RTR-03, EdgeGuard 1.8, joins CCTV to the Wi-Fi subnet and runs the Watchdog tracer watching CCTV, so a run there patches the other camera while the same run on the Wi-Fi camera burns nothing) and the firewall station (RTR-04, Weak login on a note, between the alarm controller and panic button and the two sirens: deny the controller to the Sirens subnet and the panic button rings nothing).
-- **Security wing** (gallery room 5, rebuilt in the M12a format in M12b, [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)): Operations (the booth computer, a wall jack in the entry hall) and Security behind RTR-05 (Weak admin, its login in the booth computer's mail, or cracked Untrained); Security spans the main switch on breaker B and an area switch for the booth, the laser hall, the corridor and the vault; every device has software and the security devices trust the booth computer. No tracer.
-- **Warehouse** (M12a, built: [../levels/mission-warehouse.md](../levels/mission-warehouse.md#network-m12a)): Office (the office switch, both office PCs, the office wall jack, now a real wall jack) and Security (the console and every security device, on five switches: a main one in the basement store and area switches for the security room, the vault, the yard and the roof) behind RTR-01 in the store, which runs the one tracer (default tuning) watching both. RTR-01's Medium admin login is written nowhere: crack it Trained, or use the console bare-handed with its known login. Security devices trust the console (sirens and the radio base station also the alarm controllers); the office PCs control nothing. The deck is found on office PC 2's desk. M12b ([../levels/mission-warehouse.md](../levels/mission-warehouse.md#wireless-and-intrusion-m12b)): the access point AP-YARD (Weak key) on the north parapet over the dock, cabled to the yard's switch; the yard camera and both roof lasers link to it by radio, so breaking it cuts only them. Cracked from the roof (6.4 m, Untrained) or from the gap behind the truck (10.5 m, Trained), it joins the Security subnet without passing RTR-01 (the Sentry tracer still watches it). Every device has software; office PC 1's mail teaches the Helix camera exploit (the roof camera's 2.2 is just out of range), a datapad on the water tower the Vigil alarm controller one (the yard's controller only); RTR-01's rules keep the office off Security except the console (no rule can silence the sirens: they share the controllers' subnet).
+- **Security wing** (gallery room 5, rebuilt in the M12a format in M12b, [../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#5-security-wing)): Operations (the booth computer, a wall jack in the entry hall) and Security behind RTR-05 (Weak admin, its login in the booth computer's mail, or cracked Untrained); Security spans the main switch on breaker B and an area switch for the booth, the laser hall, the corridor and the vault; every device has a kind (its Map icon) and the security devices trust the booth computer. No tracer.
+- **Warehouse** (M12a, built: [../levels/mission-warehouse.md](../levels/mission-warehouse.md#network-m12a)): Office (the office switch, both office PCs, the office wall jack, now a real wall jack) and Security (the console and every security device, on five switches: a main one in the basement store and area switches for the security room, the vault, the yard and the roof) behind RTR-01 in the store, which runs the one tracer (default tuning) watching both. RTR-01's Medium admin login is written nowhere: crack it Trained, or use the console bare-handed with its known login. Security devices trust the console (sirens and the radio base station also the alarm controllers); the office PCs control nothing. The deck is found on office PC 2's desk. M12b ([../levels/mission-warehouse.md](../levels/mission-warehouse.md#wireless-and-intrusion-m12b)): the access point AP-YARD (Weak key) on the north parapet over the dock, cabled to the yard's switch; the yard camera and both roof lasers link to it by radio, so breaking it cuts only them. Cracked from the roof (6.4 m, Untrained) or from the gap behind the truck (10.5 m, Trained), it joins the Security subnet without passing RTR-01 (the Sentry tracer still watches it). Every device has a kind (its Map icon); a camera exploit item lies on office desk 1 and an alarm exploit item on the water tower deck (ADR 0121); RTR-01's rules keep the office off Security except the console (no rule can silence the sirens: they share the controllers' subnet).
 
 ## Interactions
 
@@ -268,11 +272,11 @@ Starting values, to be checked by feel in playtest ([playtest checklist](../tech
 | Value | Start | Result |
 |---|---|---|
 | Icebreaker base time | Weak 10 s, Medium 24 s, Strong 50 s | See the crack time table above |
-| Map scan of a subnet | 2 s, +10 % trace | Matches the "12 % (your scan)" wireframe |
-| Exploit run | 4 s, +10 % trace | The fast route; burned if a tracer watches the subnet |
+| Map scan of a subnet behind a router | 2 s, +10 % trace | The subnet you plug into or join shows at once, no scan (ADR 0121) |
+| Exploit item | Instant, no trace, one use | Scarce instead of costly (ADR 0121) |
 | Failed login (wrong guess) | +15 % trace | About six wrong guesses fill a tracer |
 | Tracer gain while a tool runs against a watched device | 4 %/s | One crack fits: Trained Medium 18 s × 4 × 0.8 = 58 %; Advanced Strong 25 s × 4 × 0.6 = 60 %; two in a row without a pause fill it |
-| Sensitive tracer variant (`.tres`) | 7 %/s | Trained Medium 18 s × 7 × 0.8 = 101 %: find the password, use an exploit or train the skill |
+| Sensitive tracer variant (`.tres`) | 7 %/s | Trained Medium 18 s × 7 × 0.8 = 101 %: find the password, use an exploit item or train the skill |
 | Trace drain | 10 %/s, starting 2 s after the last gain | 60 % drains in 8 s |
 | Lockout after full trace | 30 s | Short: the alarm is the real penalty |
 

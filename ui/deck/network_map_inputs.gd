@@ -52,6 +52,8 @@ static func drawn_key(
 			row.joins,
 			row.position().snapped(Vector3.ONE * 0.01),
 			row.commands,
+			row.icon,
+			row.scanning,
 		]
 		parts.append(str(fields))
 	parts.append(str(cables))

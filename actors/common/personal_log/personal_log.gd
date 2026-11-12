@@ -43,11 +43,6 @@ func add(entry: LogEntry, from: String = "") -> bool:
 	for code_id: StringName in entry.codes:
 		code_ids.append(String(code_id))
 	var data := {"entry_id": String(entry.id), "title": entry.title, "codes": code_ids}
-	if not entry.exploits.is_empty():
-		var exploit_ids: Array[String] = []
-		for exploit in entry.exploits:
-			exploit_ids.append(String(exploit.id))
-		data["exploits"] = exploit_ids
 	EventLog.record(&"log.entry_added", _who(), from, data)
 	entry_added.emit(entry)
 	return true
@@ -80,16 +75,6 @@ func code_entries(code_id: StringName) -> Array[LogEntry]:
 
 func known_code_ids() -> Array[StringName]:
 	return book.known_code_ids()
-
-
-## Every exploit learned (M12b: mails, files, datapads), one per id, in the order first learned.
-func known_exploits() -> Array[Exploit]:
-	return book.known_exploits()
-
-
-## The entry exploit `exploit_id` was learned from, or null.
-func exploit_entry(exploit_id: StringName) -> LogEntry:
-	return book.exploit_entry(exploit_id)
 
 
 func save_state() -> Dictionary:

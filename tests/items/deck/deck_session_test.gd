@@ -1,11 +1,12 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0113): a DeckSession and its IcebreakerTool on a minimal user entity (no player:
-## network_fixtures.gd user()) plugged into the lab network. Discovery: the own subnet after a 2 s
-## scan (+10 % on the tracer watching it), the router at once, the subnets behind it hidden until it
-## is hacked, then chained; seen devices stay on the map when out of reach. The Icebreaker: a crack
-## gives the account and is learned into the PersonalLog (the Journal lists it); stopping keeps the
-## progress on the deck, resuming continues, a changed password starts over; a lockout stops it.
-## Tethering, a maintenance port, commands with an account and a remote desktop.
+## network_fixtures.gd user()) plugged into the lab network. Discovery: the own subnet at once
+## without a scan or trace (ADR 0121), the router at once, the subnets behind it hidden until it is
+## hacked, then scanned (2 s, +10 % on the tracer watching them) and chained; seen devices stay on
+## the map when out of reach. The Icebreaker: a crack gives the account and is learned into the
+## PersonalLog (the Journal lists it); stopping keeps the progress on the deck, resuming continues,
+## a changed password starts over; a lockout stops it. Tethering, a maintenance port, commands with
+## an account and a remote desktop.
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const ORIGIN := Vector3(340, 0, -300)
@@ -65,26 +66,39 @@ func _plug_jack(real_scan: bool = false) -> void:
 	await _seconds(_session.config.scan_time + 0.1)
 
 
-func test_plugging_into_a_jack_scans_the_own_subnet_and_shows_its_router() -> void:
-	await _plug_jack(true)
+func test_plugging_into_a_jack_shows_the_own_subnet_at_once_without_a_scan() -> void:
+	assert_bool(_session.plug(_dev("Jack"), _stack)).is_true()
 	assert_bool(_session.is_plugged()).is_true()
 	assert_str(_session.source.address).is_equal("10.0.10.40")
 	var plugged := EventLog.find(&"deck.plugged")
 	assert_str(str(plugged[0].data["port"])).is_equal("JACK")
 	assert_array(_map()).contains_exactly_in_any_order(["Jack", "OfficeSwitch", "OfficePc", "Rtr01"])
-	# One scan of the office subnet, +10 % on the Sentry tracer (it watches office).
-	assert_int(EventLog.find(&"deck.scan").size()).is_equal(1)
-	assert_float(_tracer().trace_of(_user)).is_between(0.0, 10.0)
+	# No scan of the office subnet and no trace on the Sentry tracer (it watches office).
+	assert_int(EventLog.find(&"deck.scan").size()).is_equal(0)
+	assert_float(_tracer().trace_of(_user)).is_equal(0.0)
 	assert_array(_stack.state[DeckSession.SCANNED] as Array).is_equal(["office"])
+	assert_bool(_session.scans.is_empty()).is_true()
 	# Behind the router: no node at all.
 	assert_bool(_map().has("Console")).is_false()
 	assert_int(_session.hidden_routes(_dev("Rtr01"))).is_equal(1)
 
 
-func test_the_router_shows_before_the_scan_ends() -> void:
+func test_a_subnet_behind_a_hacked_router_is_scanned_and_pending_until_then() -> void:
 	assert_bool(_session.plug(_dev("Jack"), _stack)).is_true()
+	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
+	_session.refresh()
 	await _seconds(0.5)
-	assert_array(_map()).is_equal(["Rtr01"])
+	# The real 2 s scan: the security devices are pending (laid out unseen), not on the map.
+	assert_bool(_session.scans.has(&"security")).is_true()
+	assert_float(_session.scans[&"security"]).is_between(1.45, 1.55)
+	assert_bool(_map().has("Console")).is_false()
+	var pending: Array[String] = []
+	for device in _session.scanning:
+		pending.append(String(device.entity.name))
+	assert_array(pending).contains(["Console", "Camera", "SecuritySwitch"])
+	await _seconds(1.7)
+	assert_bool(_map().has("Console")).is_true()
+	assert_array(_session.scanning).is_empty()
 
 
 func test_hacked_routers_reveal_the_subnets_behind_them_in_a_chain() -> void:

@@ -1,7 +1,7 @@
 class_name DeviceLog
 extends RefCounted
-## Pure (ADR 0115, 0116): what a device records about who used it over the network: logins, failed
-## logins, exploit runs and remote actions (commands it received, firewall edits), each with the
+## Pure (ADR 0115, 0121): what a device records about who used it over the network: logins, failed
+## logins, exploit items used on it and remote actions (commands it received, firewall edits), each with the
 ## source address. Every Device keeps one (Device.device_log), saved with it. The newest CAPACITY
 ## entries are kept. Nothing reads them in the game yet: the deck's Logs tool and the guards who
 ## read logs come with M16; tests and the debug panel's network overlay show them.
@@ -9,6 +9,7 @@ extends RefCounted
 ## A login with the right password (also a remote desktop opened with an account).
 const LOGIN: StringName = &"login"
 const FAILED_LOGIN: StringName = &"failed_login"
+## An exploit item used on it (ExploitItems.use()).
 const EXPLOIT: StringName = &"exploit"
 ## A command received over the network, or a change made remotely (a firewall rule).
 const REMOTE: StringName = &"remote"
@@ -47,7 +48,7 @@ func size() -> int:
 	return entries.size()
 
 
-## One entry as a line: "exploit 10.0.10.40 Helix default service login".
+## One entry as a line: "exploit 10.0.10.40 Camera exploit".
 static func line(entry: Dictionary) -> String:
 	var parts := PackedStringArray([str(entry.get("kind", ""))])
 	for key: String in ["address", "user", "detail"]:

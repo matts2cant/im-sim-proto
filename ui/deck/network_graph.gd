@@ -13,6 +13,10 @@ extends Control
 ## in `subnets` (Subnet: name, range, colour) is a box behind its devices; a router row (it joins
 ## two subnets or more) stands between the boxes, "router" after its name. A subnet shows its box
 ## only while one of its devices is on the map.
+## Scans (ADR 0121): a row whose subnet is being scanned (NetworkRow.scanning) is laid out where it
+## will appear but not drawn; its subnet's box is drawn dashed and blinking with "Scanning <NAME>
+## <range>…", a progress bar and the seconds left (`scans`), and a marching dashed link from the
+## router that leads there (NetworkMapPainter). The map animates while a scan shows.
 ## Wireless links (M12b, ADR 0117): a cable whose rows' devices are linked by radio
 ## (Device.wireless_link(): `wireless`) is laid out like a cable (so wireless devices sit with their
 ## access point) and drawn dashed in WIRELESS_COLOR.
@@ -76,10 +80,13 @@ var cables: Array[Vector2i] = []
 var wireless: PackedInt32Array = PackedInt32Array()
 ## Subnet id -> its data (Router.subnet_info()): the subnets drawn as boxes.
 var subnets: Dictionary[StringName, Subnet] = {}
+## Subnet id -> (progress 0..1, seconds left) of the scans the map shows (set by the owner).
+var scans: Dictionary[StringName, Vector2] = {}
 ## The subnets of the last layout, in region order (layout.region_rects).
 var region_ids: Array[StringName] = []
 ## Subnet id -> its box as drawn now (content coordinates), for each subnet with data and devices on
-## the map: {"rect": Rect2, "color": Color (its Subnet's), "title": String, "title_rect": Rect2}.
+## the map: {"rect": Rect2, "color": Color (its Subnet's), "title": String, "title_rect": Rect2,
+## "scanning": bool (every device in it is being scanned: drawn as the scan)}.
 var subnet_boxes: Dictionary[StringName, Dictionary] = {}
 ## Paints BACKGROUND and an edge line behind the map (off inside a WindowFrame, which paints its
 ## body itself).
@@ -172,6 +179,8 @@ func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = 
 	for i in rows.size():
 		var node := NetworkNodeBox.new(rows[i])
 		node.button.pressed.connect(_on_node_pressed.bind(rows[i].device))
+		# Laid out where it will appear, not drawn until its subnet is scanned.
+		node.visible = not rows[i].scanning
 		_nodes.append(node)
 		content.add_child(node)
 	_layout()
@@ -225,12 +234,31 @@ func close_menu() -> void:
 		selection_changed.emit(null)
 
 
-## The node names, in row order.
+## The names of the nodes drawn (not the ones being scanned), in row order.
 func node_names() -> Array[String]:
 	var names: Array[String] = []
 	for row in rows:
-		names.append(row.name)
+		if not row.scanning:
+			names.append(row.name)
 	return names
+
+
+## The subnets whose box in `graph` shows a scan now.
+static func scanning_subnets(graph: NetworkGraph) -> Array[StringName]:
+	var found: Array[StringName] = []
+	for id: StringName in graph.subnet_boxes:
+		if graph.subnet_boxes[id].get("scanning", false):
+			found.append(id)
+	return found
+
+
+## The router row in `graph` that `subnet`'s scan link starts from (a drawn router joining it), or
+## null.
+static func scan_router(graph: NetworkGraph, subnet: StringName) -> NetworkRow:
+	for row in graph.rows:
+		if row.is_between() and not row.scanning and row.joins.has(subnet):
+			return row
+	return null
 
 
 ## The node button of `device_name`, or null.
@@ -406,6 +434,9 @@ func _layout() -> void:
 	for r in _titles.size():
 		if _titles[r] == null or not layout.region_rects[r].has_area():
 			continue
+		var scanning := _all_scanning(region_ids[r])
+		# A scan draws its own words in the box (NetworkMapPainter).
+		_titles[r].visible = not scanning
 		_titles[r].position = layout.title_positions[r]
 		_titles[r].size = titles[r]
 		var words := PackedStringArray()
@@ -416,6 +447,7 @@ func _layout() -> void:
 			"color": subnets[region_ids[r]].map_color,
 			"title": " ".join(words),
 			"title_rect": Rect2(_titles[r].position, _titles[r].size),
+			"scanning": scanning,
 		}
 	# A Control is culled by its own rect: the content's covers everything it draws.
 	content.size = layout.bounds.size
@@ -423,6 +455,24 @@ func _layout() -> void:
 	view.set_content(layout.bounds)
 	if not _try_fit():
 		_apply_view()
+
+
+# True when subnet `id` has members on the map and every one of them is being scanned.
+func _all_scanning(id: StringName) -> bool:
+	var members := 0
+	for row in rows:
+		if row.is_between() or row.subnet != id:
+			continue
+		if not row.scanning:
+			return false
+		members += 1
+	return members > 0
+
+
+func _process(_delta: float) -> void:
+	# The scan boxes blink and their links march.
+	if content != null and not NetworkGraph.scanning_subnets(self).is_empty():
+		content.queue_redraw()
 
 
 # The title of subnet `id`'s box (in the content), or null without data.
@@ -501,7 +551,7 @@ func _place_menu() -> void:
 func _index_at(point: Vector2) -> int:
 	var at := view.to_content(point)
 	for i in range(_nodes.size() - 1, -1, -1):
-		if Rect2(_nodes[i].position, _nodes[i].size).has_point(at):
+		if _nodes[i].visible and Rect2(_nodes[i].position, _nodes[i].size).has_point(at):
 			return i
 	return -1
 
@@ -515,6 +565,6 @@ func _index_of(device: Device) -> int:
 
 func _index_by_name(device_name: String) -> int:
 	for i in rows.size():
-		if rows[i].name == device_name:
+		if rows[i].name == device_name and not rows[i].scanning:
 			return i
 	return -1

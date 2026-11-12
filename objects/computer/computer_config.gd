@@ -5,16 +5,16 @@ extends Resource
 ##   button per command in `command_labels` that the device accepts (a receptron for that type), in
 ##   the table's order. A command missing from the table is never offered (`device.incident`,
 ##   `command.broadcast`: device-to-device traffic). `danger_commands` get a warning style.
-## - The Security app's kinds (`kinds`, by entity tag) and their group order (`groups`). A device
-##   matching no kind is not listed.
+## - The Security app's kinds (`kinds`: the kinds of `device_kinds` with a group, by entity tag) and
+##   their group order (`groups`). A device matching no listed kind is not listed.
 ## - The dock's app icons (`app_icons`, DeviceIcon strokes).
 
 ## Command type -> button label, in the order buttons appear.
 @export var command_labels: Dictionary[StringName, String] = {}
 ## Commands drawn as dangerous (red on hover): switching something off, ringing the alarm.
 @export var danger_commands: Array[StringName] = []
-## The Security app's device kinds.
-@export var kinds: Array[SecurityKind] = []
+## Every kind of device (DeviceKinds, shared with the deck's Map and exploit items).
+@export var device_kinds: DeviceKinds
 ## The Security app's groups, in list order.
 @export var groups: PackedStringArray = []
 ## App id (mail, files, security) -> its dock icon (DeviceIcon strokes).
@@ -27,6 +27,10 @@ extends Resource
 ## A bare-handed session closes when its user is further than this from the computer (m, centre to
 ## centre).
 @export var max_use_distance: float = 3.0
+
+## The Security app's device kinds: those of `device_kinds` whose group is in `groups`, in order.
+var kinds: Array[SecurityKind]:
+	get = _listed_kinds
 
 
 ## The button label of `command`; without a table entry, the words after `command.` capitalised
@@ -56,9 +60,19 @@ func commands() -> Array[StringName]:
 	return result
 
 
-## The kind of `entity` (the first kind in `kinds` whose tag it has), or null.
+## The Security app's kind of `entity` (the first kind in `kinds` whose tag it has), or null.
 func kind_for(entity: Node) -> SecurityKind:
 	for kind in kinds:
 		if kind != null and ActorState.has(entity, kind.tag):
 			return kind
 	return null
+
+
+func _listed_kinds() -> Array[SecurityKind]:
+	var found: Array[SecurityKind] = []
+	if device_kinds == null:
+		return found
+	for kind in device_kinds.kinds:
+		if kind != null and not kind.group.is_empty() and groups.has(kind.group):
+			found.append(kind)
+	return found

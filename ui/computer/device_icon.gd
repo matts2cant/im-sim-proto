@@ -31,13 +31,22 @@ static func make(p_strokes: PackedStringArray, p_colour: Color, side: float = 22
 
 
 func _draw() -> void:
-	var scale_by := minf(size.x, size.y) / GRID
+	var side := minf(size.x, size.y)
+	draw_strokes(self, strokes, Rect2(Vector2.ZERO, Vector2(side, side)), colour)
+
+
+## Draws `p_strokes` on `canvas` scaled into the square `rect` (its smaller side), in `p_colour`
+## (also for icons drawn on another control: inventory items).
+static func draw_strokes(canvas: CanvasItem, p_strokes: PackedStringArray, rect: Rect2, p_colour: Color) -> void:
+	var scale_by := minf(rect.size.x, rect.size.y) / GRID
 	var width := maxf(1.0, WIDTH * scale_by)
-	for stroke in strokes:
-		_draw_stroke(stroke.strip_edges(), scale_by, width)
+	for stroke in p_strokes:
+		_draw_stroke(canvas, stroke.strip_edges(), rect.position, scale_by, width, p_colour)
 
 
-func _draw_stroke(stroke: String, scale_by: float, width: float) -> void:
+static func _draw_stroke(
+	canvas: CanvasItem, stroke: String, at: Vector2, scale_by: float, width: float, p_colour: Color
+) -> void:
 	var parts := stroke.split(" ", false)
 	if parts.is_empty():
 		return
@@ -45,28 +54,30 @@ func _draw_stroke(stroke: String, scale_by: float, width: float) -> void:
 		"rect":
 			if parts.size() >= 5:
 				var rect := Rect2(_num(parts, 1), _num(parts, 2), _num(parts, 3), _num(parts, 4))
-				draw_rect(Rect2(rect.position * scale_by, rect.size * scale_by), colour, false, width, true)
+				canvas.draw_rect(
+					Rect2(at + rect.position * scale_by, rect.size * scale_by), p_colour, false, width, true
+				)
 		"circle":
 			if parts.size() >= 4:
-				var centre := Vector2(_num(parts, 1), _num(parts, 2)) * scale_by
-				draw_arc(centre, _num(parts, 3) * scale_by, 0.0, TAU, 24, colour, width, true)
+				var centre := at + Vector2(_num(parts, 1), _num(parts, 2)) * scale_by
+				canvas.draw_arc(centre, _num(parts, 3) * scale_by, 0.0, TAU, 24, p_colour, width, true)
 		"arc":
 			if parts.size() >= 6:
-				var centre := Vector2(_num(parts, 1), _num(parts, 2)) * scale_by
+				var centre := at + Vector2(_num(parts, 1), _num(parts, 2)) * scale_by
 				var from := deg_to_rad(_num(parts, 4))
 				var to := deg_to_rad(_num(parts, 5))
-				draw_arc(centre, _num(parts, 3) * scale_by, from, to, 16, colour, width, true)
+				canvas.draw_arc(centre, _num(parts, 3) * scale_by, from, to, 16, p_colour, width, true)
 		"dash":
 			if parts.size() >= 3:
-				draw_dashed_line(
-					_point(parts[1]) * scale_by, _point(parts[2]) * scale_by, colour, width, 2.0 * scale_by
+				canvas.draw_dashed_line(
+					at + _point(parts[1]) * scale_by, at + _point(parts[2]) * scale_by, p_colour, width, 2.0 * scale_by
 				)
 		_:
 			var points := PackedVector2Array()
 			for part in parts:
-				points.append(_point(part) * scale_by)
+				points.append(at + _point(part) * scale_by)
 			if points.size() >= 2:
-				draw_polyline(points, colour, width, true)
+				canvas.draw_polyline(points, p_colour, width, true)
 
 
 static func _num(parts: PackedStringArray, index: int) -> float:

@@ -11,10 +11,9 @@ extends Resource
 ## The deck's Wi-Fi range before the Computer skill (m, straight line: the user's eye to the access
 ## point's origin); the skill's `deck_wireless_range` adds to it (8 / 12 / 18 / 25 m by tier).
 @export var wireless_range: float = 8.0
-## Seconds a map scan of a newly reached subnet takes before its devices show.
+## Seconds a map scan of a subnet behind a router takes before its devices show (the subnet the
+## deck is plugged into or joined shows at once: ADR 0121).
 @export var scan_time: float = 2.0
-## Seconds an exploit run takes (ExploitTool; the Computer skill does not change it).
-@export var exploit_time: float = 4.0
 ## Seconds between refreshes of the open screen's map and statuses.
 @export var refresh_interval: float = 0.25
 ## Command type -> button label in a device's menu, in the order buttons appear (a device offers
