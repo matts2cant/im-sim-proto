@@ -13,7 +13,12 @@ extends Node
 ##   shot_interval; reloads an empty magazine (WeaponData: magazine, reload time); fires only when
 ##   the first thing on the line to an aim point (a hitbox of the target: torso, head, then limbs)
 ##   belongs to the target, never through an ally or a wall; blocked for sidestep_time, it steps
-##   aside. Its cone: CombatModel.spread_deg() through the holder (WeaponHolder.physics_step).
+##   aside. Its cone: the weapon's own (WeaponData.aim_config: still floor, shot bloom) widened by
+##   CombatModel.spread_deg() through the holder (WeaponHolder.physics_step). Its shots climb with
+##   the weapon's recoil; re-aiming at the target every tick, it pulls back
+##   `recoil_compensation` of the climb (the holder's RecoilState.view_share, ADR 0127).
+## - A hit taken makes the character's HitReaction flinch: no shot (a burst stops) and the shot
+##   pause holds until the flinch is over (CombatModel.flinching).
 ##   An automatic weapon fires bursts (ADR 0087): it keeps the holder's trigger held for
 ##   CombatModel.burst_length() shots at the weapon's cycle, letting go early when the line of fire
 ##   closes, it has to move or the magazine runs dry; the shot interval follows each burst.
@@ -45,6 +50,8 @@ var awareness: GradedAwareness
 var sensor: PerceptionSensor
 var holder: WeaponHolder
 var model: CombatModel
+## The character's HitReaction (optional): its flinch holds the fire.
+var reaction: HitReaction
 ## The target of the engagement (null: not engaged).
 var target: Node3D
 ## How it is moving to keep its range (ranged weapons).
@@ -73,7 +80,9 @@ func _ready() -> void:
 	awareness = GradedAwareness.of_node(body)
 	sensor = PerceptionSensor.of(body)
 	holder.setup(body, holder.get_parent() as Node3D)
+	holder.recoil.view_share = config.recoil_compensation
 	model = CombatModel.new(config, hash(String(body.name)))
+	reaction = HitReaction.of(body)
 
 
 ## The CombatBehaviour child of `node`, or null.
@@ -94,6 +103,9 @@ func _physics_process(delta: float) -> void:
 	var distance := _target_distance()
 	var floor_add := model.spread(distance) if is_engaged() else 0.0
 	var stance := AimModel.Stance.WALK if body.horizontal_speed() > STILL_SPEED else AimModel.Stance.STILL
+	# The eye is aimed at the target every tick (_fight), so the share of the climb it would follow
+	# is pulled back: the shots keep the rest.
+	holder.recoil.view_recoil()
 	holder.physics_step(delta, stance, floor_add)
 	if not ActorState.can_act(body):
 		_disengage("incapacitated")
@@ -127,7 +139,7 @@ func _update_engaged(delta: float, sighting: PerceptionSensor.Sighting, alerted:
 	var seen := sighting != null and sighting.target == target
 	var raw_speed := VisionRules.flat_distance(target.global_position, _last_target_position) / maxf(delta, 0.0001)
 	_last_target_position = target.global_position
-	model.step(delta, seen, raw_speed)
+	model.step(delta, seen, raw_speed, reaction != null and reaction.is_flinching())
 	if model.lost():
 		_disengage("lost")
 
@@ -261,6 +273,7 @@ func _continue_burst(weapon_state: WeaponState) -> void:
 	var fired := _burst_start_magazine - weapon_state.magazine
 	var keep := (
 		fired < _burst_length
+		and not model.flinching
 		and _may_attack()
 		and move == CombatModel.Move.HOLD
 		and not _sidestepping
@@ -285,7 +298,8 @@ func _fight_melee(data: WeaponData) -> void:
 	else:
 		body.stop()
 	var reach := holder.eye.global_position.distance_to(aim_point)
-	if reach <= data.max_range - config.melee_swing_margin and _may_attack() and model.reacted():
+	var may_swing := model.reacted() and not model.flinching
+	if reach <= data.max_range - config.melee_swing_margin and _may_attack() and may_swing:
 		holder.trigger()
 
 

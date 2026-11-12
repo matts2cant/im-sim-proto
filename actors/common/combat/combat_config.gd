@@ -31,7 +31,7 @@ extends Resource
 ## Automatic weapons (WeaponData.automatic) fire bursts: the trigger stays held for a random number
 ## of shots in this range (at the weapon's cycle), then the usual shot interval follows (ADR 0087).
 @export var burst_shots_min: int = 3
-@export var burst_shots_max: int = 5
+@export var burst_shots_max: int = 4
 
 @export_group("Melee")
 ## Runs in until this close (plus its braking distance).
@@ -40,11 +40,12 @@ extends Resource
 @export var melee_swing_margin: float = 0.3
 
 @export_group("Accuracy")
-## Cone half-angle (degrees) at `spread_near_distance` and closer, at a target that is not settled.
-@export var spread_base_deg: float = 2.0
+## The shooter's own error on top of its weapon's cone (WeaponData.aim_config, ADR 0127), degrees:
+## this much at `spread_near_distance` and closer, at a target that is not settled.
+@export var spread_base_deg: float = 0.0
 @export var spread_near_distance: float = 4.0
 ## Added per metre beyond `spread_near_distance`.
-@export var spread_per_metre: float = 0.15
+@export var spread_per_metre: float = 0.05
 ## A target faster than this (m/s) adds `fast_target_add_deg`.
 @export var fast_target_speed: float = 3.0
 @export var fast_target_add_deg: float = 2.0
@@ -55,3 +56,7 @@ extends Resource
 @export var settled_factor: float = 0.75
 ## Time constant (s) of the smoothing of the target's measured speed.
 @export var target_speed_smoothing: float = 0.15
+## Share (0-1) of its weapon's recoil climb (and of a hit's aim punch) the shooter pulls back by
+## re-aiming at the target (RecoilState.view_share, ADR 0127): 0 leaves its shots the whole
+## pattern, 1 none of it.
+@export_range(0.0, 1.0, 0.05) var recoil_compensation: float = 0.7

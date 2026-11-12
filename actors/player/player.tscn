@@ -61,6 +61,9 @@
 [ext_resource type="Script" path="res://ui/deck/deck_screen.gd" id="81_deck_screen"]
 [ext_resource type="Script" path="res://items/deck/icebreaker_tool.gd" id="82_icebreaker_tool"]
 [ext_resource type="Script" path="res://items/deck/wireless_tool.gd" id="83_wireless_tool"]
+[ext_resource type="Resource" path="res://actors/common/hit_reaction/receptrons/hit_reaction.tres" id="84_hit_reaction_receptron"]
+[ext_resource type="Script" path="res://actors/common/hit_reaction/hit_reaction.gd" id="85_hit_reaction"]
+[ext_resource type="Resource" path="res://actors/player/player_hit_reaction.tres" id="86_hit_reaction_config"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -116,7 +119,7 @@ base_values = Dictionary[StringName, float]({&"carry_mass_limit": 20.0, &"move_s
 [node name="StimulusReceiver" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 script = ExtResource("7_receiver")
-receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron"), ExtResource("35_energy_receptron"), ExtResource("60_heard_siren")])
+receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), ExtResource("84_hit_reaction_receptron"), ExtResource("27_fall_damage"), ExtResource("30_knockback_receptron"), ExtResource("heal_receptron"), ExtResource("35_energy_receptron"), ExtResource("60_heard_siren")])
 
 [node name="AlarmHearing" type="Node" parent="."]
 script = ExtResource("61_alarm_hearing")
@@ -176,6 +179,11 @@ script = ExtResource("26_fall_impact")
 [node name="Knockback" type="Node" parent="."]
 script = ExtResource("28_knockback")
 config = ExtResource("29_knockback_config")
+
+[node name="HitReaction" type="Node" parent="."]
+script = ExtResource("85_hit_reaction")
+config = ExtResource("86_hit_reaction_config")
+holder_path = NodePath("../Head/Camera/WeaponHolder")
 
 [node name="Pusher" type="Node" parent="."]
 script = ExtResource("49_pusher")
