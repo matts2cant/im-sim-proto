@@ -35,7 +35,7 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 | Mission briefing (M9, [ADR 0087](../decisions/0087-mission-systems.md)) | Shown when a mission level starts: its text and objectives; the game pauses and the mouse is free. E, Enter or Esc closes it and play starts (E is not also taken as a use; Esc never also opens the game menu) |
 | Mission summary (M9) | Shown at extraction: time, alarms raised, kills, knockouts, optional objectives, badges; the game stays paused, the mouse is free. Click (or Tab and Enter/Space) **Restart mission** (the level from its start) or **Return to hub** (the hub's spawn, empty inventory). Esc does nothing here: there is no way back into the finished mission |
 | Mission doorway (hub, M9) | Walking into the west wall's north doorway ("Mission") loads the mission level |
-| RMB | `alt_fire`: with a scoped weapon in hand (sniper rifle) **toggles** the scope: press to zoom in (view 15 degrees, scope overlay, slower mouse look), press again to zoom out; it also comes off on reload, switching or putting the weapon away and when you cannot act. Nothing with other items. The game keeps running ([ADR 0085](../decisions/0085-weapons-and-attachments.md)). Inventory tab: item context menu |
+| RMB | `alt_fire`: with a scoped weapon in hand (sniper rifle) **toggles** the scope: press to zoom in (view 15 degrees, scope overlay, slower mouse look), press again to zoom out; it also comes off on reload, switching or putting the weapon away and when you cannot act. With the deck in hand it **toggles** the deck's AR cable view (the links of the devices the deck has seen, within 30 m; "AR: cables (RMB)" on the HUD); putting the deck away or opening any screen turns it off ([ADR 0122](../decisions/0122-network-readability-lights-plates-ar.md)). Nothing with other items. The game keeps running ([ADR 0085](../decisions/0085-weapons-and-attachments.md)). Inventory tab: item context menu |
 
 ## Rules
 
@@ -57,4 +57,4 @@ Define the input scheme. Bindings are by physical key (QWERTY reference), so oth
 
 ## Open questions
 
-- RMB with items other than a scoped weapon: still unbound.
+- RMB with items other than a scoped weapon or the deck: still unbound.
