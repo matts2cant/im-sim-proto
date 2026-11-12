@@ -31,6 +31,7 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Split a milestone into parallel briefs when parts are independent (e.g. systems code vs level building) so each agent keeps a small context.
 - A brief that lets a state reach the player (a tag that stops input, a new damage outcome) also asks for the player-facing UI and a test that the player can always get out of it (wake, reload or load).
 - Every new UI screen in a brief states whether the game pauses or keeps running, and how the player leaves it.
+- A mechanic that makes the player read or compare data (versions, ranges, codes) starts in its simplest form, and its mockup is checked against a one-line explanation (M12b: exploit version ranges and burning were approved in a mockup but too complex in play).
 - Give tuning targets as measured outcomes (time to kill, time to detect) and ask for a test that measures them; my starting numbers are only a first guess.
 - Briefs tell agents to iterate on a test subset (`tools/run_tests.sh res://tests/<area>`) and run the full suite at the end (about 50 s), and never to stop a running suite mid-way. The runner starts up to 12 Godot processes: when two or more agents run at once, tell each to use `-j 4` for full runs. Point agents writing tests at design/tech/testing.md "Writing fast tests".
 - Briefs describe behaviour in terms of properties (components, tags, stimuli), not specific objects, and diff reviews check for identity branches (names, scene paths, concrete classes): AGENTS.md "Systemic design".

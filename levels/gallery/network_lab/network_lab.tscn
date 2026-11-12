@@ -885,7 +885,7 @@ size = 0
 [node name="Rtr03" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 2.1, -32.45)
 pixel_size = 0.0025
-text = "RTR-03 · EdgeGuard 1.8
+text = "RTR-03 · router
 CCTV to Wi-Fi"
 size = 0
 

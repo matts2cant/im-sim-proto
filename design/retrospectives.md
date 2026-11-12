@@ -4,6 +4,34 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M12b playtest fixes and M12c — Network consequences (2026-11-12)
+
+The user played M12b and asked for: exploits as simple one-use items, icons on the Map, a scan that doesn't look like a bug, and fixes for panel corners and alignment in the deck and computer screens. A mockup (`design/prototypes/hacking_fixes.html`) and ADR 0121 settled the first three; the user then let the work run overnight without the playtest gate (M12c built straight after). Five agents:
+- the window frame refactor (one `WindowFrame` and `window_theme.tres` for the deck and Halcyon OS; the big deck and Map files split by concern);
+- the M12b fixes (exploit items by device kind, `DeviceKinds` shared by the Map, the Security app and items; old exploit system and software data removed);
+- M12c consequences (mail routes, loss-of-signal alarms, FAIL-SECURE plates, the Clean hands badge) in parallel with the fixes;
+- M12c readability (status and port lights, plates, network panels, the deck's AR cable view, a HUD drop line, ADR 0122);
+- a sub-agent analysing failed tool calls (AGENTS.md "Tool use").
+
+Final suite on master: 1905 tests, 0 failures, 1 skipped, lint clean, one run, 82.9 s; `suite time` -9 % on the same suites.
+
+- **Went well:**
+  - **The refactor fixed the cause, not the symptom.** The corner bug came from square panels painted over a rounded one, in two duplicated style classes; one shared frame and theme removed it everywhere and halved the biggest files (`deck_screen.gd` 997 to 494 lines, the Map layout 985 to 145, checked against 400 random networks).
+  - **Feedback to merged fixes in one night**, with the mockup approved before the build.
+  - **Merge the first, the last merges master** worked with three overlapping agents; each final report listed the conflicts it resolved.
+- **Went wrong:**
+  - **The exploit system was too complex in play** (version ranges to read, burning), though the user had approved its mockup: reading and comparing data only felt heavy when playing.
+  - **Every overlay built its own panels in code** (`StyleBoxFlat` factories in two style classes), so corners and insets drifted between screens.
+  - **A behaviour change reached a level silently:** loss-of-signal alarms make the warehouse's breaker B raise a network fault, which it didn't before. Tests caught it; the agent changed them to the new behaviour and flagged it.
+  - One new level suite takes 2.65 s, over the 2 s budget (1 s of it is the level load).
+- **Changes:**
+  - AGENTS.md: overlay screens use `ui/window/` (`WindowFrame`, `window_theme.tres` type variations), never their own panel factories.
+  - CLAUDE.md: a mechanic that makes the player read or compare data (versions, ranges, codes) gets the simplest version first and a one-line explanation check in its mockup.
+- **Open for the user:**
+  - The AR cable view is busy in the warehouse office (runs from the basement come up through the floor): readable in play?
+  - Breaker B now raises a network fault (guards come to SW-SECURITY): keep it as a cost of cutting power, or exempt power cuts?
+  - Did the "Tool use" rules cut failed tool calls? Measure on the M13 agents.
+
 ## M12b — Intrusion (2026-11-11)
 
 The user and I settled M12b and M12c in a design review (ADR 0115), with an approved mockup (`design/prototypes/intrusion_screens.html`). Five agents built it:

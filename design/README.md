@@ -131,6 +131,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (117 decisions, 0001–0121; 0062, 0081, 0118 and 0119 unused).
+- [decisions/README.md](decisions/README.md): ADR index (118 decisions, 0001–0122; 0062, 0081, 0118 and 0119 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.

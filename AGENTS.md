@@ -37,6 +37,7 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 - Tuning data goes in `.tres` Resources (text, diffable), not in code.
 - Exactly three autoloads: `StimulusSystem` (added M2), `EventLog`, `DebugPanel`. Do not add more.
 - Pure logic goes in RefCounted/Resource classes testable without the scene tree; nodes are thin adapters.
+- Overlay screens (deck, computers, new ones) use `ui/window/`: `WindowFrame` and the type variations in `window_theme.tres` (shared spacing, radius, insets). Never build panel styles in code.
 - Every stateful system is saveable (see below).
 - LF line endings only. Never write CRLF.
 - Details: [design/tech/conventions.md](design/tech/conventions.md), [design/tech/architecture.md](design/tech/architecture.md).
