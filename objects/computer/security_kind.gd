@@ -1,3 +1,4 @@
+@tool
 class_name SecurityKind
 extends Resource
 ## One kind of device (ADR 0114, 0121): the devices whose entity has `tag` are this kind. Data in
@@ -12,8 +13,12 @@ extends Resource
 ## The Security app's group it is listed under ("Cameras and turrets"; ComputerConfig.groups);
 ## empty: not listed (network gear, computers).
 @export var group: String = ""
-## A small line icon on a 24 x 24 grid (DeviceIcon draws it): one stroke per string.
+## A small line icon on a 24 x 24 grid (DeviceIcon draws it, KindIcon builds it in 3D): one stroke
+## per string.
 @export var icon: PackedStringArray = []
+## The kind's colour (ADR 0130): the strip and icon on its 3D models (DeviceModel parts) and, later,
+## its node on the deck's Map.
+@export var color: Color = Color(0.56, 0.64, 0.7)
 ## The exploit item kind that gives admin access to it (ItemData.exploit_kind: camera, turret, door,
 ## alarm, computer, router); empty: no exploit item opens it.
 @export var exploit: StringName = &""

@@ -1,0 +1,118 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/devices/models/parts/device_model.gd" id="1_device_model"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/face.tres" id="2_face"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/screen.tres" id="3_screen"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/stand.tres" id="4_stand"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/body.tres" id="5_body"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_strip.gd" id="6_kind_strip"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_icon.gd" id="7_kind_icon"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/status_led.gd" id="8_status_led"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/name_plate.gd" id="9_name_plate"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/rail.tres" id="10_rail"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/port_row.gd" id="11_port_row"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = ExtResource("2_face")
+size = Vector3(0.42, 0.27, 0.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2"]
+material = ExtResource("3_screen")
+size = Vector3(0.39, 0.24, 0.001)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+material = ExtResource("4_stand")
+size = Vector3(0.04, 0.132, 0.015)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+material = ExtResource("4_stand")
+size = Vector3(0.16, 0.008, 0.14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+material = ExtResource("5_body")
+size = Vector3(0.18, 0.4, 0.42)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+material = ExtResource("2_face")
+size = Vector3(0.15, 0.012, 0.002)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7"]
+material = ExtResource("10_rail")
+top_radius = 0.013
+bottom_radius = 0.013
+height = 0.002
+radial_segments = 24
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_8"]
+material = ExtResource("2_face")
+top_radius = 0.011
+bottom_radius = 0.011
+height = 0.003
+radial_segments = 24
+rings = 1
+
+[node name="ComputerDesktop" type="Node3D"]
+script = ExtResource("1_device_model")
+kind_tag = &"object.computer"
+
+[node name="Monitor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.205, -0.045)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.205, -0.0295)
+mesh = SubResource("BoxMesh_2")
+
+[node name="Neck" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.074, -0.0675)
+mesh = SubResource("BoxMesh_3")
+
+[node name="Foot" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.004, -0.06)
+mesh = SubResource("BoxMesh_4")
+
+[node name="Tower" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.23, 0.2, 0)
+mesh = SubResource("BoxMesh_5")
+
+[node name="KindStrip" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.23, 0.396, 0.211)
+script = ExtResource("6_kind_strip")
+size = Vector3(0.18, 0.008, 0.002)
+
+[node name="KindIcon" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1775, 0.3575, 0.21)
+script = ExtResource("7_kind_icon")
+side = 0.045
+
+[node name="StatusLed" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, 0.365, 0.21)
+script = ExtResource("8_status_led")
+size = 0.01
+
+[node name="NamePlate" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.23, 0.31, 0.21)
+script = ExtResource("9_name_plate")
+text = "OFFICE-PC1"
+size = Vector2(0.15, 0.02)
+
+[node name="DriveSlot" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.23, 0.274, 0.211)
+mesh = SubResource("BoxMesh_6")
+
+[node name="PowerRim" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.23, 0.22, 0.211)
+mesh = SubResource("CylinderMesh_7")
+
+[node name="Power" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.23, 0.22, 0.2115)
+mesh = SubResource("CylinderMesh_8")
+
+[node name="PortRow" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.215, 0.13, 0.21)
+script = ExtResource("11_port_row")
+labels = PackedStringArray("SW-OFFICE")
+pitch = 0.02
+socket_size = Vector2(0.014, 0.011)
+text_height = 0.0045

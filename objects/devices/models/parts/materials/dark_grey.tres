@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "dark_grey"
+albedo_color = Color(0.1647, 0.1922, 0.2196, 1)
+metallic = 0.3
+roughness = 0.5

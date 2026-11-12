@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "button_open"
+albedo_color = Color(0.1843, 0.3529, 0.2275, 1)
+metallic = 0.0
+roughness = 0.5

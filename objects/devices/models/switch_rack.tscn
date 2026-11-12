@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/devices/models/parts/device_model.gd" id="1_device_model"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_strip.gd" id="2_kind_strip"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/rail.tres" id="3_rail"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/body.tres" id="4_body"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_icon.gd" id="5_kind_icon"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/status_led.gd" id="6_status_led"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/name_plate.gd" id="7_name_plate"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/port_row.gd" id="8_port_row"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = ExtResource("3_rail")
+size = Vector3(0.02, 0.0437, 0.003)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2"]
+material = ExtResource("4_body")
+size = Vector3(0.443, 0.0437, 0.3)
+
+[node name="SwitchRack" type="Node3D"]
+script = ExtResource("1_device_model")
+kind_tag = &"object.network_switch"
+rack_units = 1
+
+[node name="KindStrip" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2315, 0.02225, 0.0015)
+script = ExtResource("2_kind_strip")
+size = Vector3(0.02, 0.0437, 0.003)
+
+[node name="RightEar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2315, 0.02225, 0.0015)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02225, -0.147)
+mesh = SubResource("BoxMesh_2")
+
+[node name="KindIcon" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2015, 0.0241, 0.003)
+script = ExtResource("5_kind_icon")
+side = 0.028
+
+[node name="StatusLed" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.178, 0.0336, 0.003)
+script = ExtResource("6_status_led")
+size = 0.007
+
+[node name="NamePlate" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1425, 0.0191, 0.003)
+script = ExtResource("7_name_plate")
+text = "SW-OFFICE"
+size = Vector2(0.078, 0.012)
+
+[node name="PortRow" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0945, 0.0371, 0.003)
+script = ExtResource("8_port_row")
+labels = PackedStringArray("RTR-02", "SRV-01", "SRV-02", "ALM-CTRL", "AP-YARD", "CAM-HALL", "CAM-GATE", "D4-CTRL", "D2-CTRL", "JACK-OFF", "PC-1", "PC-2", "", "", "SIREN-1", "", "", "", "", "", "", "", "", "")
+pitch = 0.0128
+socket_size = Vector2(0, 0.0075)
+text_height = 0.0052
+label_gap = 0.0025

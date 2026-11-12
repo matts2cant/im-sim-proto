@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" path="res://levels/kit/level_exit.tscn" id="22_level_exit"]
 [ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="23_deck"]
 [ext_resource type="PackedScene" path="res://levels/gallery/network_lab/network_lab.tscn" id="24_network_lab"]
+[ext_resource type="PackedScene" path="res://levels/hub/device_showroom.tscn" id="25_device_showroom"]
 
 [sub_resource type="Environment" id="Environment_1nc5w"]
 background_mode = 1
@@ -264,6 +265,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.02, 7.82)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.6, 7.72)
 text = "Loadout"
 size = 0
+
+[node name="DeviceShowroom" parent="." instance=ExtResource("25_device_showroom")]
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)

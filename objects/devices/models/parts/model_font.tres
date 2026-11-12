@@ -1,0 +1,6 @@
+[gd_resource type="SystemFont" format=3]
+
+[resource]
+font_names = PackedStringArray("JetBrains Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", "monospace")
+font_weight = 600
+multichannel_signed_distance_field = true
