@@ -583,6 +583,14 @@ Warehouse network:
 - [ ] The vault doors (warehouse, security wing) show a yellow FAIL-SECURE plate on the corridor face, readable from 1-2 m; with their power cut they stay locked, while the warehouse bridge door (fail-safe) opens. Does the plate make the rule clear before you try?
 - [ ] Mission summary: a run that breaks nothing earns Clean hands; shooting a crate, a camera, a switch or a barrel (and what its blast breaks) loses it. A crate thrown to pieces does not (known gap: thrown props are not attributed). Is Clean hands too strict with the hall's crates around?
 
+## M12c readability ([ADR 0122](../decisions/0122-network-readability-lights-plates-ar.md), [hacking.md](../game/hacking.md#m12c-readability-as-built))
+
+- [ ] Warehouse basement network closet, at 1 m: each switch and RTR-01 has a green LED top-left, a row of green port lights (SW-SECURITY: 8 and a "+") and a plate under it ("SW-SECURITY / feeds CAM-HALL, ..., +6") readable without stepping closer; the panel behind with its orange stripe and "NETWORK". Same on the security wing's network wall. Do the plates clutter the wall?
+- [ ] Shoot SW-OFFICE from the closet: its LED turns red, its port lights go dark, and the HUD says "SW-OFFICE down: 3 devices offline (OFFICE-JACK, OFFICE-PC1, +1)" for about 4 s. Upstairs, the office jack's LED blinks amber. Is the amber blink noticeable from across the office?
+- [ ] Cut breaker B from far away (more than 30 m from the switches it feeds): the line still shows (your breaker). A guard breaking something far away shows nothing.
+- [ ] Deck in hand (not plugged in), RMB: "AR: cables (RMB)" and the remembered network drawn over the world: ceiling runs in the subnet colours, AP-YARD's wireless links dashed blue, dead links dim. RMB again, switching item or opening any screen turns it off. Is it readable in the office (runs from the basement rise through the floor) or too busy? Do runs fading with distance matter?
+- [ ] A cut device's amber blink, a disabled camera's red LED and a dark unpowered one: is the colour language clear without the Map?
+
 ## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md); planned, the build agents complete it)
 
 - [ ] On the shooting range, Untrained: aimed well at the 10 m dummy, the pistol still misses often; Master: the first still shot lands where the crosshair is.

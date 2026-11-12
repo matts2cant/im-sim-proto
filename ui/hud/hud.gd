@@ -3,7 +3,8 @@ extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone; through a scope the scope
 ## overlay replaces it, ADR 0085), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
-## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log"),
+## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log", the
+## network drops of its NetworkFeedback child, M12c), "AR: cables (RMB)" while the deck's AR view is on,
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
 ## the energy bar beside the silhouette with chips for the augmentations that are on, the light
 ## gauge above them (the player's LightExposure level, ADR 0065), a faint tint
@@ -26,6 +27,7 @@ var player: Player
 
 var _flash: float = 0.0
 var _message_left: float = 0.0
+var _message_time: float = MESSAGE_TIME
 var _item_name_left: float = 0.0
 
 @onready var reticle: Reticle = $Reticle
@@ -48,6 +50,8 @@ var _item_name_left: float = 0.0
 @onready var aug_chips: VBoxContainer = $AugChips
 @onready var cloak_tint: ColorRect = $CloakTint
 @onready var light_gauge: LightGauge = $LightGauge
+## "AR: cables (RMB)" while the deck's AR view is on (M12c).
+@onready var ar_hint: Label = $ArHint
 
 
 func _ready() -> void:
@@ -93,7 +97,7 @@ func _process(delta: float) -> void:
 		damage_flash.color.a = FLASH_ALPHA * _flash / FLASH_TIME
 	if _message_left > 0.0:
 		_message_left = maxf(_message_left - delta, 0.0)
-		message_label.modulate.a = minf(_message_left / (MESSAGE_TIME * 0.5), 1.0)
+		message_label.modulate.a = minf(_message_left / (_message_time * 0.5), 1.0)
 	if _item_name_left > 0.0:
 		_item_name_left = maxf(_item_name_left - delta, 0.0)
 		item_name_label.modulate.a = minf(_item_name_left / (_item_name_time() * 0.5), 1.0)
@@ -108,6 +112,7 @@ func _process(delta: float) -> void:
 		var energy := Energy.of(player)
 		energy_label.text = HudRules.energy_text(energy.current()) if energy != null else ""
 		cloak_tint.visible = ActorState.has(player, ActorState.CLOAKED)
+		refresh_ar_hint()
 	var hearing := AlarmHearing.of(player)
 	alarm_label.visible = hearing != null and hearing.is_hearing()
 
@@ -157,11 +162,18 @@ func refresh_weapon() -> void:
 	ammo_label.text = HudRules.ammo_text(player.weapons.state())
 
 
-## Shows `text` above the belt for a few seconds ("No room in inventory").
-func show_message(text: String) -> void:
+## Shows `text` above the belt for `duration` seconds ("No room in inventory"), the last half fading.
+func show_message(text: String, duration: float = MESSAGE_TIME) -> void:
 	message_label.text = text
 	message_label.modulate.a = 1.0
-	_message_left = MESSAGE_TIME
+	_message_left = duration
+	_message_time = duration
+
+
+## Shows the deck's AR hint while its AR view is on (DeckArView).
+func refresh_ar_hint() -> void:
+	var view := DeckArView.of(player)
+	ar_hint.visible = view != null and view.active
 
 
 ## Seconds the item name stays above the belt after the hand changed (its last half fading out).

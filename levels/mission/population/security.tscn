@@ -43,6 +43,7 @@
 [ext_resource type="Resource" path="res://items/exploit/camera_exploit.tres" id="61_camera_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/alarm_exploit.tres" id="62_alarm_exploit"]
 [ext_resource type="PackedScene" path="res://objects/network/mail_server.tscn" id="53_mail_server"]
+[ext_resource type="PackedScene" path="res://levels/kit/network_panel.tscn" id="90_network_panel"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -1081,3 +1082,8 @@ transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.9, 20.007, -1
 
 [node name="ItemPickup" parent="Items/AlarmExploit"]
 item = ExtResource("62_alarm_exploit")
+
+[node name="NetworkPanelBasement" parent="." instance=ExtResource("90_network_panel")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.5, -2.45, 7.6)
+size = Vector2(4.2, 0.8)
+subnet = ExtResource("47_security")

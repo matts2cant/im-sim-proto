@@ -150,6 +150,15 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# office and security switches), the deck's Map from the jack before and after hacking RTR-01.
 	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
 	"network_closet": {"feet": Vector3(17.0, -4, 7.0), "look": Vector3(19.49, -2.5, 7.0)},
+	# M12c readability: the closet's gear up close (LEDs, port lights, plates, the panel); the deck's AR
+	# cable view from the office and in the closet; SW-OFFICE broken from the closet (the HUD line),
+	# then the office jack it fed blinking amber (`break` lasts for the rest of the run: put them last).
+	"closet_close": {"feet": Vector3(18.3, -4, 6.6), "look": Vector3(19.49, -2.45, 6.4)},
+	"ar_office": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(12.0, 6.5, 6.0), "ar": true, "wait": 1.5},
+	"ar_closet": {"feet": Vector3(16.0, -4, 7.4), "look": Vector3(19.49, -1.6, 7.4), "ar": true, "wait": 1.5},
+	"closet_feedback":
+	{"feet": Vector3(17.6, -4, 7.6), "look": Vector3(19.49, -2.45, 7.6), "break": [NETWORK + "OfficeSwitch"]},
+	"office_amber": {"feet": Vector3(17.4, 4.5, 10.1), "look": Vector3(19.74, 4.9, 10), "wait": 1.6},
 	# The Security subnet's area switches (a subnet can span several switches).
 	"security_room_switch": {"feet": Vector3(16.0, 0, 3.4), "look": Vector3(14.0, 1.4, 3.0)},
 	"vault_switch": {"feet": Vector3(16.2, 4.5, 2.2), "look": Vector3(14.0, 5.9, 1.5)},

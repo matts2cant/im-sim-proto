@@ -22,6 +22,9 @@ collision_mask = 0
 
 [node name="Beam1" parent="." instance=ExtResource("12_beam")]
 
+[node name="StatusLedMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.035, 0.035, 0.083)
+
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
 unit_size = 6.0

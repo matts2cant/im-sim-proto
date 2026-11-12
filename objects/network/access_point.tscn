@@ -55,11 +55,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.115, -0.08)
 cast_shadow = 0
 mesh = SubResource("Mesh_antenna")
 
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.026, 0.06)
-cast_shadow = 0
-mesh = SubResource("Mesh_led")
-
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
 initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.access_point", &"object.network_gear"])
@@ -81,11 +76,13 @@ size = 0.3
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Indicator")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../AntennaLeft"), NodePath("../AntennaRight")])
+broken_hide = Array[NodePath]([NodePath("../AntennaLeft"), NodePath("../AntennaRight")])
 
 [node name="AccessPoint" type="Node" parent="."]
 script = ExtResource("13_access_point")
+
+[node name="PortLightsMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0.005, 0.113)
