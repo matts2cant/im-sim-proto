@@ -82,11 +82,11 @@ td .sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; vert
     <p>Large: a 2-unit rack router with a fan grille and few ports; the uplink port is ringed orange. Small: a desktop box, wedge-shaped, with the same orange uplink.</p>
     <div class="dims">large 48 × 9 cm (2U) · small 22 × 4.5 cm</div></div>
   <div class="card"><h3><i style="background:var(--server)"></i>Servers</h3>
-    <p>Rack units with drive bays (the Map's server icon). A mail server carries an envelope on its front; other servers do not.</p>
+    <p>One generic server: a rack unit with drive bays (the Map's server icon). What it does comes from the apps installed on it (Mail, later Files…), listed on the deck's Map, not shown on the case.</p>
     <div class="dims">48 × 13 cm (3U) or 9 cm (2U)</div></div>
 </div>
 <div class="notes">
-  <p><b>What tells them apart</b> in a bay, strongest first: the height of the unit (1U switch, 2U router, 3U server), the front (a long socket row, a fan grille with an orange uplink, drive bays), then the colour band on the left ear and the Map icon. Each unit keeps one status light and a name label on its front.</p>
+  <p><b>What tells them apart</b> in a bay, strongest first: the height of the unit (1U switch, 2U router, 2–3U server), the front (a long socket row, a fan grille with an orange uplink, drive bays), then the colour band on the left ear and the Map icon. Each unit keeps one status light and a name label on its front.</p>
 </div>
 
 <h2>3 · Interaction frame with status <small>first-person view, 1152 × 648</small></h2>
@@ -207,8 +207,8 @@ td .sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; vert
     blank(1);
     unit(g, "switch", ux, slot(1), uw, U * s, s, "SW-OFFICE");
     blank(2);
-    unit(g, "server", ux, slot(3), uw, 3 * U * s, s, "MAIL-01", { mail: true });
-    unit(g, "server", ux, slot(2), uw, 2 * U * s, s, "FILES-01");
+    unit(g, "server", ux, slot(3), uw, 3 * U * s, s, "SRV-01");
+    unit(g, "server", ux, slot(2), uw, 2 * U * s, s, "SRV-02");
     while (uy + 2 * U * s < floorY - 0.12 * s) blank(2);
     // feet
     for (const fx of [bx + 0.03 * s, bx + bw - 0.07 * s]) el("rect", { x: fx, y: floorY - 0.04 * s, width: 0.04 * s, height: 0.04 * s, fill: "#000" }, g);
@@ -299,10 +299,10 @@ td .sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; vert
         const ux = -0.24, uw = 0.48;
         const h = t.shape === "rack-router" ? 2 * U : U;
         const y0 = -h / 2;
-        unit(g, "server", C.x + ux * s, C.y + (y0 - 3 * U - 0.01) * s, uw * s, 3 * U * s, s, "MAIL-01", { mail: true });
+        unit(g, "server", C.x + ux * s, C.y + (y0 - 3 * U - 0.01) * s, uw * s, 3 * U * s, s, "SRV-01");
         unit(g, t.shape === "rack-router" ? "router" : "switch", C.x + ux * s, C.y + y0 * s, uw * s, h * s, s, t.name);
         if (t.status && t.status[2]) { g.querySelectorAll("[data-glow]").forEach((r, i, all) => { if (i === all.length - 1) { r.setAttribute("fill", css("--st-cut")); r.setAttribute("class", "blink"); } }); }
-        unit(g, "server", C.x + ux * s, C.y + (y0 + h + 0.01) * s, uw * s, 2 * U * s, s, "FILES-01");
+        unit(g, "server", C.x + ux * s, C.y + (y0 + h + 0.01) * s, uw * s, 2 * U * s, s, "SRV-02");
         return { x: ux - 0.026, y: y0, w: uw + 0.05, h };
       }
       case "desk-switch": R(-0.6, 0.02, 1.2, 0.5, css("--desk")); unit(g, "switch", C.x - 0.085 * s, C.y - 0.015 * s, 0.17 * s, 0.035 * s, s, "SW-DESK", { small: true }); return { x: -0.085, y: -0.015, w: 0.17, h: 0.035 };
