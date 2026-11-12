@@ -1,29 +1,21 @@
 extends GdUnitTestSuite
 ## Warehouse intrusion data (M12b, design/levels/mission-warehouse.md "Wireless and intrusion
-## (M12b)", ADR 0116): every networked device runs software the deck's Map shows (vendor, product,
-## version); two exploits are found in the level: "Helix default service login" (Helix CAM-3
-## 2.0-2.1, admin) in office PC 1's mail "Camera firmware", and "Vigil AC debug port" (Vigil AC-200
-## 3.0-3.2, admin) on the field service datapad on the water tower deck. The Helix one matches four
-## cameras, not the roof camera (2.2, just out of range); the Vigil one matches the yard's alarm
-## controller (3.1), not the building's (3.4). A run seen by the Sentry tracer (RTR-01, watching
-## Security) patches every Helix CAM-3 on the subnet. RTR-01's rules: Security -> Office allow,
-## Office -> SEC-CONSOLE allow, Office -> Security deny; a deck with access to RTR-01 still passes
-## (only rules from "you" judge it). The sirens and both alarm controllers are on the Security
-## subnet, so no RTR-01 rule silences them. The level is loaded once.
+## (M12b)", ADR 0121): every networked device is of a kind the deck's Map draws an icon for; two
+## exploit items lie in the level: a camera exploit on office desk 1 (where office PC 1's mail used
+## to teach it) and an alarm exploit beside the field service datapad on the water tower deck. The
+## alarm item, used over AP-YARD, gives admin on the yard's alarm controller at once, without trace.
+## No document teaches an exploit any more. RTR-01's rules: Security -> Office allow, Office ->
+## SEC-CONSOLE allow, Office -> Security deny; a deck with access to RTR-01 still passes (only rules
+## from "you" judge it). The sirens and both alarm controllers are on the Security subnet, so no
+## RTR-01 rule silences them. The level is loaded once.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const SECURITY := "Population/Security/"
-const HELIX := &"helix_default_login"
-const VIGIL := &"vigil_ac_debug"
-## Every camera: the Helix exploit matches all but the roof's (firmware 2.2).
-const CAMERAS: Dictionary[String, String] = {
-	"Devices/CameraGate": "2.1",
-	"Devices/CameraYard": "2.0",
-	"Devices/CameraHall": "2.1",
-	"Devices/CameraOffice": "2.1",
-	"Devices/CameraRoof": "2.2",
-}
+## Every camera (a camera exploit opens each).
+const CAMERAS: Array[String] = [
+	"Devices/CameraGate", "Devices/CameraYard", "Devices/CameraHall", "Devices/CameraOffice", "Devices/CameraRoof"
+]
 ## On the roof 6.4 m from AP-YARD (Untrained Wi-Fi range), the user's eye (warehouse_ap_yard_test.gd).
 const ROOF_EYE := Vector3(0, 11.15, -4.2)
 ## In front of the office wall jack, upper floor (warehouse_hacking_test.gd).
@@ -46,7 +38,7 @@ func before_test() -> void:
 func after_test() -> void:
 	_tracer().load_state(_tracer_state)
 	for device in _security_devices():
-		device.intrusion.from_dict({"patched": [], "log": [], "exploit_access": {}})
+		device.intrusion.from_dict({"log": [], "exploit_admins": []})
 	StimulusSystem.clear()
 
 
@@ -67,107 +59,70 @@ func _frames(count: int) -> void:
 		await get_tree().physics_frame
 
 
-func test_every_networked_device_runs_software() -> void:
+func test_every_networked_device_is_of_a_kind_with_an_icon() -> void:
+	var kinds := DeviceKinds.shipped()
 	var missing: PackedStringArray = []
-	for node in _level.get_node(SECURITY).find_children("*", "Device", true, false):
-		var device := node as Device
-		# Passive gear without software: wall jacks, and the guest access point placeholder (no subnet).
-		if device.address.is_empty() or DeviceNetwork.port_kind(device) == Device.DeckPort.JACK:
-			continue
-		if device.software == null or device.software.version.is_empty():
-			missing.append(String(_level.get_node(SECURITY).get_path_to(device.entity)))
+	for device in _security_devices():
+		var kind := kinds.kind_for(device.entity)
+		if kind == null or kind.icon.is_empty():
+			missing.append(_path(device))
 	assert_array(Array(missing)).is_empty()
 	for path: String in CAMERAS:
-		assert_str(_device(path).software.label()).is_equal("Helix CAM-3 " + CAMERAS[path])
-	assert_str(_device("Devices/AlarmController").software.label()).is_equal("Vigil AC-200 3.4")
-	assert_str(_device("Devices/AlarmControllerYard").software.label()).is_equal("Vigil AC-200 3.1")
-	assert_str(_device("Devices/ApYard").software.label()).is_equal("Skylink AP-5 2.2")
+		assert_str(String(ExploitItems.kind_of(_device(path)))).override_failure_message(path).is_equal("camera")
+	for path: String in ["Devices/AlarmController", "Devices/AlarmControllerYard"]:
+		assert_str(String(ExploitItems.kind_of(_device(path)))).override_failure_message(path).is_equal("alarm")
+	assert_str(String(ExploitItems.kind_of(_device("Network/Rtr01")))).is_equal("router")
 
 
-func test_the_mail_and_the_datapad_teach_their_exploits() -> void:
-	var user := Net.user(_level, AT_JACK)
-	# Office PC 1's mail "Camera firmware".
-	var pc := Computer.of(_entity("Network/OfficePc1"))
-	var mail: ComputerDocument = null
-	for document in pc.data.mail:
-		if document.title == "Camera firmware":
-			mail = document
-	assert_object(mail).is_not_null()
-	assert_bool(pc.read(mail, user, "Mail")).is_true()
-	# The field service notes on the water tower deck (20 m), beside the sniper rifle.
-	var pad := _entity("Items/TowerNotes")
-	assert_float(pad.global_position.y).is_between(20.0, 20.1)
-	var readable := pad.get_node("Readable") as Readable
-	PersonalLog.of(user).read(readable.entry(), "Datapad")
-	var known := _ids(PersonalLog.of(user).known_exploits())
-	assert_array(known).contains_exactly_in_any_order([HELIX, VIGIL])
-	var helix := _known(user, HELIX)
-	assert_str(helix.vendor + " " + helix.product).is_equal("Helix CAM-3")
-	assert_bool(helix.is_admin()).is_true()
-	var vigil := _known(user, VIGIL)
-	assert_str(vigil.vendor + " " + vigil.product).is_equal("Vigil AC-200")
-	assert_bool(vigil.is_admin()).is_true()
-	# Only these two documents teach exploits.
-	var teaching := 0
-	for text_holder in _level.find_children("*", "Readable", true, false):
-		teaching += 1 if not (text_holder as Readable).exploits.is_empty() else 0
-	for node in _level.find_children("*", "Computer", true, false):
-		var computer := node as Computer
-		if computer.data != null:
-			for document in computer.data.mail + computer.data.files:
-				teaching += 1 if not document.exploits.is_empty() else 0
-	assert_int(teaching).is_equal(2)
-	user.free()
-
-
-func test_the_exploits_match_as_designed() -> void:
-	var user := Net.user(_level, AT_JACK)
-	_learn_all(user)
-	var helix := _known(user, HELIX)
-	var vigil := _known(user, VIGIL)
-	for path: String in CAMERAS:
-		var expected := CAMERAS[path] != "2.2"
-		assert_bool(helix.matches(_device(path).software)).override_failure_message(path).is_equal(expected)
-	assert_bool(vigil.matches(_device("Devices/AlarmControllerYard").software)).is_true()
-	assert_bool(vigil.matches(_device("Devices/AlarmController").software)).is_false()
-	# No other device on either subnet matches either exploit.
-	for device in _security_devices():
-		if CAMERAS.has(_path(device)) or _path(device).begins_with("Devices/AlarmController"):
-			continue
-		(
-			assert_bool(helix.matches(device.software) or vigil.matches(device.software))
-			. override_failure_message(_path(device))
-			. is_false()
+func test_the_exploit_items_lie_at_their_places() -> void:
+	# The camera exploit on office desk 1 (top 0.75 m above its floor at 4.5), the alarm one on the
+	# water tower deck (20 m, x 42..50, z -20..-12) beside the field service datapad.
+	var desk := _entity("Furniture/OfficeDesk1")
+	var camera_item := _entity("Items/CameraExploit")
+	assert_str(String(ItemPickup.of(camera_item).item.exploit_kind)).is_equal("camera")
+	var on_desk := camera_item.global_position - desk.global_position
+	assert_float(on_desk.y).is_between(0.74, 0.85)
+	assert_float(absf(on_desk.x)).is_less(0.6)
+	assert_float(absf(on_desk.z)).is_less(0.35)
+	var alarm_item := _entity("Items/AlarmExploit")
+	assert_str(String(ItemPickup.of(alarm_item).item.exploit_kind)).is_equal("alarm")
+	var at := alarm_item.global_position
+	assert_float(at.y).is_between(20.0, 20.1)
+	assert_bool(Rect2(42.3, -19.7, 7.4, 7.4).has_point(Vector2(at.x, at.z))).is_true()
+	assert_float(at.distance_to(_entity("Items/TowerNotes").global_position)).is_less(1.0)
+	# Something solid right under each (a ray down from 5 cm above).
+	var space := _level.get_world_3d().direct_space_state
+	for item: Node3D in [camera_item, alarm_item]:
+		var query := PhysicsRayQueryParameters3D.create(
+			item.global_position + Vector3.UP * 0.05, item.global_position + Vector3.DOWN * 0.1, PhysicsLayers.WORLD
 		)
-	user.free()
+		assert_bool(space.intersect_ray(query).is_empty()).override_failure_message(item.name).is_false()
+	# The camera mail is gone, and the datapad no longer talks about firmware.
+	for document in Computer.of(_entity("Network/OfficePc1")).data.mail:
+		assert_str(document.title).is_not_equal("Camera firmware")
+	var notes := (_entity("Items/TowerNotes").get_node("Readable") as Readable).text
+	assert_bool(notes.contains("firmware")).is_false()
 
 
-func test_a_seen_helix_run_over_ap_yard_patches_every_helix_camera() -> void:
+func test_the_alarm_item_over_ap_yard_opens_the_yard_controller_without_trace() -> void:
 	var user := Net.user(_level, ROOF_EYE)
-	_learn_all(user)
+	var deck := Net.carry(user, {&"alarm": 1})
 	var session := DeckSession.of(user)
 	session.config = session.config.duplicate() as DeckConfig
 	session.config.scan_time = 0.1
-	session.config.exploit_time = 0.5
 	AccessPoint.of(_entity("Devices/ApYard")).grant_key(user)
-	assert_bool(session.plug(_device("Devices/ApYard"), Net.deck_stack())).is_true()
+	assert_bool(session.plug(_device("Devices/ApYard"), deck)).is_true()
 	await _frames(10)
-	var tool := ExploitTool.of(user)
-	var camera := _device("Devices/CameraYard")
-	assert_array(_ids(tool.matching(camera))).contains_exactly([HELIX])
-	assert_array(tool.matching(_device("Devices/CameraRoof"))).is_empty()
-	tool.select(camera)
-	assert_bool(tool.start(_known(user, HELIX))).is_true()
-	await _frames(45)
-	assert_str(String(tool.last_end)).is_equal("done")
-	# The run works once: admin on the camera without an account.
-	assert_bool(camera.is_admin(user)).is_true()
-	# The Sentry tracer saw it: every Helix CAM-3 on the Security subnet is patched, the rest not.
-	for path: String in CAMERAS:
-		assert_bool(_device(path).intrusion.is_patched(_known(user, HELIX))).override_failure_message(path).is_true()
-	assert_bool(_device("Devices/AlarmControllerYard").intrusion.is_patched(_known(user, HELIX))).is_false()
-	assert_array(tool.matching(_device("Devices/CameraGate"))).contains_exactly([_known(user, HELIX)])
-	assert_bool(tool.can_run(_device("Devices/CameraGate"), _known(user, HELIX))).is_false()
+	var controller := _device("Devices/AlarmControllerYard")
+	assert_bool(session.is_online(controller)).is_true()
+	var before := _tracer().trace_of(user)
+	assert_bool(ExploitItems.can_use(user, controller)).is_true()
+	assert_bool(ExploitItems.can_use(user, _device("Devices/CameraYard"))).is_false()
+	assert_bool(ExploitItems.use_from_deck(session, controller)).is_true()
+	assert_bool(controller.is_admin(user)).is_true()
+	assert_float(_tracer().trace_of(user)).is_equal_approx(before, 0.001)
+	assert_int(ExploitItems.count(user, &"alarm")).is_equal(0)
+	assert_bool(ExploitItems.can_use(user, _device("Devices/AlarmController"))).is_false()
 	session.unplug()
 	user.free()
 
@@ -200,28 +155,6 @@ func test_rtr01_keeps_the_office_off_security_except_the_console() -> void:
 		if siren != null:
 			assert_str(String(DeviceNetwork.subnet_of(siren))).override_failure_message(node.name).is_equal("security")
 	user.free()
-
-
-func _learn_all(user: Node) -> void:
-	var exploits: Array[Exploit] = []
-	exploits.append_array((_entity("Items/TowerNotes").get_node("Readable") as Readable).exploits)
-	for document in Computer.of(_entity("Network/OfficePc1")).data.mail:
-		exploits.append_array(document.exploits)
-	Net.learn(user, exploits)
-
-
-func _known(user: Node, exploit_id: StringName) -> Exploit:
-	for exploit in PersonalLog.of(user).known_exploits():
-		if exploit.id == exploit_id:
-			return exploit
-	return null
-
-
-func _ids(list: Array[Exploit]) -> Array[StringName]:
-	var ids: Array[StringName] = []
-	for exploit in list:
-		ids.append(exploit.id)
-	return ids
 
 
 func _path(device: Device) -> String:

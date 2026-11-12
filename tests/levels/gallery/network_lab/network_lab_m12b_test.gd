@@ -5,9 +5,9 @@ extends GdUnitTestSuite
 ##   runs; behind the pillar it pauses ("line of sight lost"); from the 10 m mark AP-LAB is out of
 ##   the Untrained range and in the Trained one; with the key known, aiming joins the Wi-Fi subnet and
 ##   the Map shows the access point, its wireless camera and laser, SW-WIFI and RTR-03.
-## - Exploits: the datapad teaches two exploits; on the CCTV jack the Helix one matches CAM-EX1 and
-##   CAM-EX2, not CAM-EX3 (2.4), the EdgeGuard one RTR-03; a run on CAM-EX1 grants admin and, seen
-##   by the Watchdog tracer, patches CAM-EX2 (and not the Wi-Fi camera on its unwatched subnet).
+## - Exploit items (ADR 0121): the table's camera and router chips picked up; on the CCTV jack the
+##   CCTV subnet shows at once (no scan, no trace); the camera chip gives admin on CAM-EX1 at once
+##   without trace, the router chip admin on RTR-03, whose Wi-Fi subnet then gets scanned.
 ## - Firewall: the note's login logs in on RTR-04 from the alarm jack's Map (the Sirens subnet
 ##   appears); a DENY rule from the alarm controller to the Sirens subnet keeps them silent when the
 ##   panic button is pressed.
@@ -43,13 +43,12 @@ func after_test() -> void:
 	StimulusSystem.clear()
 
 
-# Takes the deck with fast scans and exploit runs (the shipped times are covered by the deck's tests).
+# Takes the deck with fast scans (the shipped time is covered by the deck's tests).
 func _take_fast_deck() -> DeckSession:
 	assert_bool(await _lab.take_deck()).is_true()
 	var session := DeckSession.of(_lab.player)
 	session.config = session.config.duplicate() as DeckConfig
 	session.config.scan_time = 0.1
-	session.config.exploit_time = 1.0
 	return session
 
 
@@ -97,31 +96,36 @@ func test_the_wifi_crack_runs_from_6_m_pauses_behind_the_pillar_and_10_m_needs_t
 	)
 
 
-func test_an_exploit_run_on_cctv_is_seen_and_patches_the_other_camera() -> void:
+func test_the_exploit_chips_open_a_cctv_camera_and_rtr03_without_trace() -> void:
 	var session := await _take_fast_deck()
-	await _lab.stand(Vector3(10, 0, -31.0), _lab.node("Items/ExploitNotes").position)
-	await _lab.read("Items/ExploitNotes")
+	await _lab.stand(Vector3(10, 0, -31.0), _lab.node("Items/CameraExploit").position)
+	for path: String in ["Items/CameraExploit", "Items/RouterExploit"]:
+		assert_bool(_lab.player.inventory.pick_up(ItemPickup.of(_lab.node(path)))).is_true()
+	assert_int(ExploitItems.count(_lab.player, &"camera")).is_equal(1)
+	assert_int(ExploitItems.count(_lab.player, &"router")).is_equal(1)
+	_lab.player.inventory.hold(_lab.player.inventory.inventory.stacks_of(&"deck")[0])
 	await _lab.click(AT_CCTV_JACK, "Devices/CctvJack")
 	assert_object(session.port).is_same(_lab.device("Devices/CctvJack"))
-	await _lab.seconds(0.3)
-	var tool := ExploitTool.of(_lab.player)
-	assert_int(tool.known().size()).is_equal(2)
-	var helix := tool.matching(_lab.device("Devices/CamEx1"))
-	assert_int(helix.size()).is_equal(1)
-	assert_str(helix[0].product).is_equal("CAM-3")
-	assert_int(tool.matching(_lab.device("Devices/CamEx2")).size()).is_equal(1)
-	assert_array(tool.matching(_lab.device("Devices/CamEx3"))).is_empty()
-	assert_str(tool.matching(_lab.device("Devices/Rtr03"))[0].product).is_equal("EdgeGuard")
-	# The run on CAM-EX1 (1 s here): admin there; the Watchdog saw it, so CAM-EX2 is patched.
-	tool.select(_lab.device("Devices/CamEx1"))
-	assert_bool(tool.start(helix[0])).is_true()
-	await _lab.seconds(1.3)
-	assert_bool(_lab.device("Devices/CamEx1").is_admin(_lab.player)).is_true()
+	# The CCTV subnet shows at once: no scan of the entry point's subnet.
+	assert_bool(session.scans.has(&"lab_cctv")).is_false()
+	var screen := DeckScreen.of(_lab.player)
+	screen.refresh()
+	assert_array(screen.graph.node_names()).contains(["CAM-EX1", "CAM-EX2", "CAM-EX3", "RTR-03"])
 	var watchdog := _lab.node("Devices/Rtr03").get_node("Tracer") as Tracer
-	assert_float(watchdog.trace_of(_lab.player)).is_greater(0.0)
-	assert_bool(_lab.device("Devices/CamEx2").intrusion.is_patched(helix[0])).is_true()
-	assert_bool(tool.can_run(_lab.device("Devices/CamEx2"), helix[0])).is_false()
-	assert_bool(_lab.device("Devices/WifiCamera").intrusion.is_patched(helix[0])).is_false()
+	assert_float(watchdog.trace_of(_lab.player)).is_equal(0.0)
+	var camera := _lab.device("Devices/CamEx1")
+	assert_bool(ExploitItems.use_from_deck(session, camera)).is_true()
+	assert_bool(camera.is_admin(_lab.player)).is_true()
+	assert_int(ExploitItems.count(_lab.player, &"camera")).is_equal(0)
+	assert_bool(ExploitItems.use_from_deck(session, _lab.device("Devices/CamEx2"))).is_false()
+	assert_bool(ExploitItems.use_from_deck(session, _lab.device("Devices/Rtr03"))).is_true()
+	assert_bool(_lab.device("Devices/Rtr03").is_admin(_lab.player)).is_true()
+	assert_float(watchdog.trace_of(_lab.player)).is_equal(0.0)
+	# Behind RTR-03 the Wi-Fi subnet is scanned (0.1 s here), then on the map.
+	assert_bool(session.scans.has(&"lab_wifi")).is_true()
+	await _lab.seconds(0.3)
+	screen.refresh()
+	assert_array(screen.graph.node_names()).contains(["AP-LAB", "SW-WIFI"])
 
 
 func test_the_note_logs_in_on_rtr04_and_a_deny_rule_keeps_the_sirens_silent() -> void:

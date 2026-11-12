@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="Software" format=3]
-
-[ext_resource type="Script" path="res://objects/network/software.gd" id="1_script"]
-
-[resource]
-script = ExtResource("1_script")
-vendor = "Helix"
-product = "CAM-3"
-version = "2.0"

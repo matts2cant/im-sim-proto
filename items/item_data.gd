@@ -30,6 +30,8 @@ enum UseAction {
 @export var max_stack: int = 1
 ## Graybox icon: a rect of this colour with the short name.
 @export var colour: Color = Color(0.5, 0.5, 0.5)
+## Optional line icon drawn on the graybox icon (DeviceIcon strokes on a 24 x 24 grid).
+@export var icon: PackedStringArray = []
 ## The pickup it becomes in the world (a RigidBody3D with an ItemPickup). A path, not a
 ## PackedScene: that scene's ItemPickup references this resource (no load cycle).
 @export_file("*.tscn") var world_scene: String = ""
@@ -59,6 +61,12 @@ enum UseAction {
 ## Set on attachment items (a silencer): dragged onto a weapon whose slots accept it in the
 ## Inventory tab, it is fitted and used up (ADR 0085).
 @export var attachment: AttachmentData
+
+@export_group("Exploit")
+## Set on exploit items (ADR 0121): one is used up to give admin access to a device whose kind
+## opens with it (SecurityKind.exploit: camera, turret, door, alarm, computer, router), from that
+## device's menu on the deck's Map (ExploitItems).
+@export var exploit_kind: StringName = &""
 
 
 ## Stacks with instance state never merge (each pistol keeps its own magazine).

@@ -85,7 +85,7 @@ func test_unplugged_the_map_draws_nothing_and_says_so() -> void:
 	_screen.open_wifi(_session)
 	assert_int(_screen.tool).is_equal(DeckScreen.Tool.WIFI)
 	assert_bool(_screen.map_button.disabled).is_false()
-	assert_bool(_screen.exploits_button.disabled).is_true()
+	assert_bool(_screen.firewall_button.disabled).is_true()
 	_screen.map_button.pressed.emit()
 	assert_int(_screen.tool).is_equal(DeckScreen.Tool.MAP)
 	assert_array(_screen.graph.node_names()).is_empty()

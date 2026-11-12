@@ -40,6 +40,16 @@ func _ready() -> void:
 	inventory.stack_removed.connect(_on_stack_removed)
 
 
+## The PlayerInventory child of `node`, or null.
+static func of(node: Node) -> PlayerInventory:
+	if node == null or not is_instance_valid(node):
+		return null
+	for child in node.get_children():
+		if child is PlayerInventory:
+			return child as PlayerInventory
+	return null
+
+
 ## Called by the Player once its WeaponHolder is wired.
 func setup(p_player: Player) -> void:
 	player = p_player

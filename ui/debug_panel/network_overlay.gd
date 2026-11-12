@@ -4,7 +4,7 @@ extends Node3D
 ## every Device (any entity with the component) with its name and status words: DeviceStatus, the
 ## same query the computers use, "online" plus its components' words while the device is up, else
 ## "offline" and, as this is a developer view, why (unpowered, broken), then the size of its device
-## log and its newest entry (M12b: logins, exploit runs, remote actions). A line along every cable
+## log and its newest entry (M12b: logins, exploits used, remote actions). A line along every cable
 ## (Device.links, each once): green while both ends are up, red otherwise. Shows every device
 ## whatever the player knows. Toggled by the Overlays tab's "Network" checkbox; refreshed every
 ## REFRESH seconds while on; off, it holds no labels, draws nothing and does not process.

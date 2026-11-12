@@ -27,6 +27,11 @@ var subnet: StringName = &""
 var joins: Array[StringName] = []
 ## A word shown after its name on the Map ("router"), or "".
 var role: String = ""
+## Its kind's icon on the Map (DeviceIcon strokes, from DeviceKinds; ADR 0121), or empty.
+var icon: PackedStringArray = []
+## Its subnet is being scanned (ADR 0121): laid out where it will appear but not drawn; the Map
+## shows the scan there instead.
+var scanning: bool = false
 
 
 ## True when it stands between subnets on the Map (a router).

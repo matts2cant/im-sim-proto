@@ -78,7 +78,27 @@ func test_deck_commands_and_remote_desktops_are_logged_on_the_device() -> void:
 	assert_bool(_session.open_remote(console)).is_true()
 	_session.close_remote()
 	var camera := _dev("Camera")
-	camera.intrusion.grant_exploit(NetworkSource.user_key(_user), Exploit.Access.ADMIN)
+	camera.intrusion.grant_exploit(NetworkSource.user_key(_user))
 	assert_bool(_session.send(Device.DISABLE, camera)).is_true()
 	assert_array(_lines(console)).is_equal(["login 10.0.10.40 dmarsh remote desktop"])
 	assert_array(_lines(camera)).is_equal(["remote 10.0.10.40 Hacker command.disable"])
+
+
+func test_the_device_log_keeps_the_newest_entries_and_saves_with_exploit_access() -> void:
+	var log_data := DeviceLog.new()
+	for i in DeviceLog.CAPACITY + 5:
+		log_data.record(DeviceLog.LOGIN, "10.0.10.%d" % i, "kbrandt")
+	assert_int(log_data.size()).is_equal(DeviceLog.CAPACITY)
+	assert_str(str(log_data.entries[0]["address"])).is_equal("10.0.10.5")
+	log_data.record(DeviceLog.EXPLOIT, "10.0.10.40", "Player", "Camera exploit")
+	assert_str(DeviceLog.line(log_data.last())).is_equal("exploit 10.0.10.40 Player Camera exploit")
+	var intrusion := DeviceIntrusion.new()
+	intrusion.device_log = log_data
+	intrusion.grant_exploit("Player")
+	intrusion.grant_exploit("")
+	var loaded := DeviceIntrusion.new()
+	loaded.from_dict(intrusion.to_dict())
+	assert_bool(loaded.has_exploit("Player")).is_true()
+	assert_bool(loaded.has_exploit("Someone")).is_false()
+	assert_bool(loaded.has_exploit("")).is_false()
+	assert_int(loaded.device_log.of_kind(DeviceLog.EXPLOIT).size()).is_equal(1)

@@ -7,7 +7,6 @@ script = ExtResource("1_script")
 gain_per_second = 7.0
 failed_login = 15.0
 scan = 10.0
-exploit = 10.0
 drain_per_second = 10.0
 drain_delay = 2.0
 lockout = 30.0

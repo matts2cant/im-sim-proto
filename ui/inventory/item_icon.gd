@@ -1,7 +1,8 @@
 class_name ItemIcon
 extends RefCounted
 ## Graybox item icon drawn on any CanvasItem (inventory grid, belt row, belt HUD): a rect of the
-## item's colour with a lighter rim, its short name and the stack count. No image assets.
+## item's colour with a lighter rim, its short name and the stack count; an item with a line icon
+## (ItemData.icon, DeviceIcon strokes) shows it above its short name. No image assets.
 
 const TEXT := Color(0.95, 0.95, 0.92)
 const SHADOW := Color(0, 0, 0, 0.7)
@@ -30,6 +31,11 @@ static func draw(canvas: CanvasItem, rect: Rect2, stack: ItemStack, font_size: i
 	):
 		name_size -= 1
 	var baseline := inner.get_center().y + (font.get_ascent(name_size) - font.get_descent(name_size)) * 0.5
+	if not stack.item.icon.is_empty():
+		var side := minf(inner.size.x, inner.size.y) * 0.5
+		var icon_rect := Rect2(inner.get_center() - Vector2(side * 0.5, side * 0.72), Vector2(side, side))
+		DeviceIcon.draw_strokes(canvas, stack.item.icon, icon_rect, text_colour)
+		baseline = icon_rect.end.y + font.get_ascent(name_size) + 1.0
 	_text(
 		canvas,
 		font,

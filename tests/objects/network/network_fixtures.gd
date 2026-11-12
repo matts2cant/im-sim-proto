@@ -18,10 +18,8 @@ extends RefCounted
 ## kiosk1 Weak. OfficePc and Console are computers (Computer component; Security installed on the
 ## Console only). Rtr01 and Rtr02 carry the subnets' data (objects/network/subnets/). Screens show
 ## the mockup's names (SHOWN: `display_name` metadata).
-## Software (M12b, SOFTWARE: vendor, product, version): OfficePc and Console Halcyon OS 4.2, Camera
-## Helix CAM-3 2.1, Alarm Vigil AC-200 3.4, Rtr01 Norsk EdgeGuard 1.8, Rtr02 Norsk EdgeGuard 2.2,
-## FileServer Halcyon Server 5.1. Exploits for them: exploits() (the mockup's three plus a router
-## one). add_siren() adds a siren stand-in on the office switch (M12b firewall tests).
+## carry() (ADR 0121) gives a user an inventory with a deck and exploit items. add_siren() adds a
+## siren stand-in on the office switch (M12b firewall tests).
 ## add_wireless() (M12b) adds the mockup's access point AP-YARD on the security switch, its wireless
 ## camera and laser, and a cabled camera beside it (positions from `origin`):
 ##
@@ -38,6 +36,7 @@ const OFFICE: Subnet = preload("res://objects/network/subnets/office.tres")
 const SECURITY: Subnet = preload("res://objects/network/subnets/security.tres")
 const SERVERS: Subnet = preload("res://objects/network/subnets/servers.tres")
 const ACCESS_POINT: PackedScene = preload("res://objects/network/access_point.tscn")
+const DECK: ItemData = preload("res://items/deck/deck.tres")
 ## AP-YARD's key: Weak (the Icebreaker cracks it Untrained), deck address 10.0.20.90.
 const WIFI_KEY := "yard2031"
 ## Added to the alarm stand-in by every incident it receives.
@@ -45,16 +44,6 @@ const ALARMED: StringName = &"test.alarmed"
 ## Added to the siren stand-in (add_siren()) by every ring and every test command it receives.
 const RUNG: StringName = &"test.rung"
 const TESTED: StringName = &"test.tested"
-## Entity name -> [vendor, product, version].
-const SOFTWARE: Dictionary[String, Array] = {
-	"OfficePc": ["Halcyon", "OS", "4.2"],
-	"Console": ["Halcyon", "OS", "4.2"],
-	"Camera": ["Helix", "CAM-3", "2.1"],
-	"Alarm": ["Vigil", "AC-200", "3.4"],
-	"Rtr01": ["Norsk", "EdgeGuard", "1.8"],
-	"Rtr02": ["Norsk", "EdgeGuard", "2.2"],
-	"FileServer": ["Halcyon", "Server", "5.1"],
-}
 const WEAK := DeviceAccount.Strength.WEAK
 const MEDIUM := DeviceAccount.Strength.MEDIUM
 const STRONG := DeviceAccount.Strength.STRONG
@@ -258,35 +247,11 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	link(n["ServerSwitch"], n["FileServer"])
 	var camera := Device.of(n["Camera"])
 	camera.trusted.append(camera.get_path_to(n["Console"]))
-	for entity_name: String in SOFTWARE:
-		var parts: Array = SOFTWARE[entity_name]
-		Device.of(n[entity_name]).software = Software.make(str(parts[0]), str(parts[1]), str(parts[2]))
 	for entity_name: String in n:
 		n[entity_name].set_meta(&"display_name", SHOWN[entity_name])
 	for entity_name: String in ["OfficePc", "Console"]:
 		Computer.of(n[entity_name]).host_name = SHOWN[entity_name]
 	return n
-
-
-## The exploits of the mockup, by id: helix (Helix CAM-3 2.0-2.1, admin), vigil (Vigil AC-200
-## 3.0-3.2, admin: the lab's 3.4 alarm is too new), halcyon (Halcyon OS 4.0-4.3, user), norsk (Norsk
-## EdgeGuard 1.0-1.9, admin: Rtr01 only).
-static func exploits() -> Dictionary[String, Exploit]:
-	var admin := Exploit.Access.ADMIN
-	return {
-		"helix":
-		Exploit.make(&"helix_default_login", "Helix default service login", "Helix", "CAM-3", "2.0", "2.1", admin),
-		"vigil": Exploit.make(&"vigil_ac_debug", "Vigil AC debug port", "Vigil", "AC-200", "3.0", "3.2", admin),
-		"halcyon": Exploit.make(&"halcyon_share_overflow", "Halcyon share overflow", "Halcyon", "OS", "4.0", "4.3"),
-		"norsk": Exploit.make(&"norsk_edge_bypass", "EdgeGuard auth bypass", "Norsk", "EdgeGuard", "1.0", "1.9", admin),
-	}
-
-
-## Teaches `user` the exploits `list` through a datapad entry `entry_id` added to their log (as a
-## mail or a file read would; no reading overlay).
-static func learn(user: Node, list: Array[Exploit], entry_id: StringName = &"test.exploits") -> void:
-	var entry := LogEntry.make(entry_id, "Exploit notes", "Notes on exploits.", "Datapad", {}, {}, list)
-	PersonalLog.of(user).add(entry, "Datapad")
 
 
 ## A siren stand-in "Siren" (SIREN-OFFICE, 10.0.10.30) cabled to the lab's OfficeSwitch: it takes
@@ -377,8 +342,7 @@ static func link_wireless(device_entity: Node3D, access_point: Node3D) -> void:
 
 
 ## A user entity (Node3D with Tags, Attributes, a PersonalLog, a DeckSession, an IcebreakerTool and
-## a WirelessTool and an ExploitTool) under `parent` at `position`, its Computer skill attributes at
-## `tier`
+## a WirelessTool) under `parent` at `position`, its Computer skill attributes at `tier`
 ## (0 Untrained .. 3 Master: crack time, trace gain, strongest password, assist).
 static func user(parent: Node, position: Vector3, tier: int = 0) -> Node3D:
 	var root := Node3D.new()
@@ -391,9 +355,6 @@ static func user(parent: Node, position: Vector3, tier: int = 0) -> Node3D:
 	var ice := IcebreakerTool.new()
 	ice.name = "IcebreakerTool"
 	root.add_child(ice)
-	var exploit_tool := ExploitTool.new()
-	exploit_tool.name = "ExploitTool"
-	root.add_child(exploit_tool)
 	var wireless := WirelessTool.new()
 	wireless.name = "WirelessTool"
 	root.add_child(wireless)
@@ -419,7 +380,33 @@ static func set_tier(entity: Node, tier: int) -> void:
 
 ## A deck stack (the shipped item) with an empty state.
 static func deck_stack() -> ItemStack:
-	return ItemStack.new(load("res://items/deck/deck.tres") as ItemData, 1, {})
+	return ItemStack.new(DECK, 1, {})
+
+
+## The shipped exploit item of `kind` (camera, turret, door, alarm, computer, router).
+static func exploit_item(kind: StringName) -> ItemData:
+	return load("res://items/exploit/%s_exploit.tres" % kind) as ItemData
+
+
+## Gives `user` (in the tree) a PlayerInventory (the shipped grid, made once) holding a deck and
+## `exploits` (kind -> count) exploit items. Returns the deck's stack (plug it: a deck missing from
+## the user's inventory unplugs).
+static func carry(user: Node, exploits: Dictionary[StringName, int] = {}) -> ItemStack:
+	var hands := PlayerInventory.of(user)
+	if hands == null:
+		hands = PlayerInventory.new()
+		hands.name = "PlayerInventory"
+		hands.config = load("res://items/inventory/inventory_config.tres") as InventoryConfig
+		hands.catalog = ItemCatalog.default()
+		user.add_child(hands)
+	var deck := DECK
+	hands.give(deck, 1)
+	for kind: StringName in exploits:
+		hands.give(exploit_item(kind), exploits[kind])
+	for stack in hands.inventory.stacks:
+		if stack.item == deck:
+			return stack
+	return null
 
 
 static func _address(entity: Node3D, subnet: StringName, address: String) -> void:

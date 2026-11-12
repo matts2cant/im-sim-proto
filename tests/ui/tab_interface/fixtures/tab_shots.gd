@@ -3,7 +3,8 @@ extends Node
 ## the player carrying a mixed loadout, a personal log with codes and logins, and an inert Mission
 ## with the warehouse data (one secondary objective done). Opens the Tab interface on the tab of
 ## `shot` and saves the window (UI included) to reports/screenshots/m11_<shot>.png, then quits.
-## Shots: inventory, inventory_medkit, health, augmentations, skills, objectives, codes, exploits, notes, hit
+## Shots: inventory, inventory_medkit, inventory_exploits (camera and router exploit items, ADR 0121),
+## health, augmentations, skills, objectives, codes, notes, hit
 ## (the inventory during a hit's edge flash). Command line after `--`: shot=<name>.
 ## A real-time watchdog saves what is shown and quits after WATCHDOG seconds.
 
@@ -22,13 +23,13 @@ const WATCHDOG := 25.0
 const SHOTS := {
 	"inventory": [0, -1],
 	"inventory_medkit": [0, -1],
+	"inventory_exploits": [0, -1],
 	"health": [1, -1],
 	"augmentations": [2, -1],
 	"skills": [3, -1],
 	"objectives": [4, 0],
 	"codes": [4, 1],
-	"exploits": [4, 2],
-	"notes": [4, 3],
+	"notes": [4, 2],
 	"hit": [0, -1],
 }
 
@@ -89,6 +90,8 @@ func _act() -> void:
 	tabs.open(int(spec[0]))
 	if shot == "inventory_medkit":
 		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"medkit")[0])
+	elif shot == "inventory_exploits":
+		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"camera_exploit")[0])
 	elif shot.begins_with("inventory") or shot == "hit":
 		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"pistol")[0])
 	if int(spec[1]) >= 0:
@@ -120,6 +123,9 @@ func _give() -> void:
 	inventory.give(Items.BIOCELL, 1)
 	inventory.give(load(PROTOTYPE) as ItemData, 1)
 	inventory.give(load(SILENCER) as ItemData, 1)
+	if shot == "inventory_exploits":
+		inventory.give(load("res://items/exploit/camera_exploit.tres") as ItemData, 2)
+		inventory.give(load("res://items/exploit/router_exploit.tres") as ItemData, 1)
 	_player.body.take_damage(&"damage.blunt", 30.0, &"arm_l")
 
 
@@ -149,32 +155,6 @@ func _fill_log() -> void:
 					{&"warehouse_security_console": "Security console login"}
 				)
 			)
-		)
-	)
-	var helix := Exploit.make(
-		&"helix_default_login", "Helix default service login", "Helix", "CAM-3", "2.0", "2.1", Exploit.Access.ADMIN
-	)
-	var halcyon := Exploit.make(&"halcyon_share_overflow", "Halcyon share overflow", "Halcyon", "OS", "4.0", "4.3")
-	reader_log.add(
-		LogEntry.make(
-			&"warehouse.camera_firmware",
-			"Camera firmware",
-			"From IT\n\nThe Helix cameras still answer on the factory service login. Update them before the audit.",
-			"Mail",
-			{},
-			{},
-			[helix]
-		)
-	)
-	reader_log.add(
-		LogEntry.make(
-			&"warehouse.usb_stick",
-			"Klaus's USB stick",
-			"halcyon_smb.txt: overflow in the file share of Halcyon OS 4.0 to 4.3. Gets you a user session.",
-			"Datapad",
-			{},
-			{},
-			[halcyon]
 		)
 	)
 	reader_log.add(

@@ -16,19 +16,21 @@ extends Node
 ##   the user's eye stays within the deck's Wi-Fi range of the access point (wireless_range():
 ##   DeckConfig.wireless_range plus the Computer skill's `deck_wireless_range`, straight line); out of
 ##   range it drops (`out_of_range`) like a pulled plug.
-## - Map (discovery, ADR 0112): every device the deck's traffic reaches (through the routers it has
-##   hacked: Router), plus the dead ones right behind them, once its subnet has been scanned
-##   (`config.scan_time` s, +10 % trace on the tracers watching it, once per subnet: kept on the
-##   deck), and routers at once. Devices seen once stay on the map (greyed when out of reach).
-##   Refreshed every `config.refresh_interval` s and after every change. The Map draws only the
-##   seen devices on the physical network of the entry point (the jack, the access point joined, the
-##   port's device: DeviceNetwork.physical_network(), cables and holding wireless links, up or down,
-##   whatever the routers' rules): another network the deck has seen stays remembered and shows
-##   again once the deck is plugged in there. Unplugged: nothing.
+## - Map (discovery, ADR 0112, 0121): every device the deck's traffic reaches (through the routers
+##   it has hacked: Router), plus the dead ones right behind them: on the subnet the deck is plugged
+##   into or joined (the entry point's) at once, on a subnet behind a router once that subnet has
+##   been scanned (`config.scan_time` s, +10 % trace on the tracers watching it, once per subnet:
+##   kept on the deck; `scans` and `scanning` let the Map show the scan), and routers at once.
+##   Devices seen once stay on the map (greyed when out of reach). Refreshed every
+##   `config.refresh_interval` s and after every change. The Map draws only the seen devices on the
+##   physical network of the entry point (the jack, the access point joined, the port's device:
+##   DeviceNetwork.physical_network(), cables and holding wireless links, up or down, whatever the
+##   routers' rules): another network the deck has seen stays remembered and shows again once the
+##   deck is plugged in there. Unplugged: nothing.
 ## - Accounts: log_in() with a login the user's Journal knows (no trace when right; a wrong known
-##   password is a failed login). With access to a device (an account, or an exploit's grant:
-##   ExploitTool, Device.has_access()): its commands (send()), and on a computer its desktop,
-##   remotely (open_remote(): Computer.open_desktop(user, account, true); `remote` until
+##   password is a failed login). With access to a device (an account, or an exploit item's admin
+##   grant: ExploitItems.use_from_deck(), Device.has_access()): its commands (send()), and on a
+##   computer its desktop, remotely (open_remote(): Computer.open_desktop(user, account, true); `remote` until
 ##   `desktop_closed`). As admin of a router: its firewall rules (the deck's Firewall tool). Commands
 ##   and remote desktops are written to the device's log with the deck's address
 ##   (Device.intrusion).
@@ -67,6 +69,9 @@ var stack: ItemStack
 var remote: Computer
 ## Subnets being scanned -> seconds left.
 var scans: Dictionary[StringName, float] = {}
+## Read only: the devices on the entry point's network whose subnet is being scanned (at the last
+## refresh): the Map lays them out unseen and shows the scan where they will appear.
+var scanning: Array[Device] = []
 ## Why the deck was last unplugged.
 var unplug_reason: StringName = &""
 
@@ -184,6 +189,7 @@ func unplug(reason: StringName = &"unplugged") -> void:
 	_reached.clear()
 	_connected.clear()
 	_map.clear()
+	scanning.clear()
 	var screen := DeckScreen.of(entity)
 	if screen != null and screen.is_open():
 		screen.close()
@@ -239,7 +245,12 @@ func refresh() -> void:
 	var tree := get_tree()
 	_connected = source.connected(tree)
 	_reached = source.reached(tree)
+	# The entry point's subnet needs no scan (ADR 0121): it shows at once, no trace.
+	var entry := DeviceNetwork.subnet_of(port)
 	var scanned := _list(SCANNED)
+	if not scanned.has(String(entry)):
+		scanned.append(String(entry))
+		stack.state[SCANNED] = scanned
 	var seen := _list(SEEN)
 	var seen_changed := false
 	for device in _connected:
@@ -261,6 +272,10 @@ func refresh() -> void:
 		var device := Device.of(get_node_or_null(NodePath(path)))
 		if device != null and network.has(device) and not _map.has(device):
 			_map.append(device)
+	scanning.clear()
+	for device in _connected:
+		if scans.has(DeviceNetwork.subnet_of(device)) and network.has(device) and not _map.has(device):
+			scanning.append(device)
 	changed.emit()
 
 
@@ -289,12 +304,12 @@ func is_blocked(device: Device) -> bool:
 	return is_plugged() and Tracer.blocks(device, source.address)
 
 
-## True when the user has access to `device` (an account, or an exploit's grant).
+## True when the user has access to `device` (an account, or an exploit item's grant).
 func has_access(device: Device) -> bool:
 	return device != null and is_instance_valid(device) and device.has_access(entity)
 
 
-## True when `deck_stack` has scanned `subnet` (its devices' software shows on the Map).
+## True when `deck_stack` has scanned `subnet` (or the deck was plugged in there).
 static func has_scanned(deck_stack: ItemStack, subnet: StringName) -> bool:
 	if deck_stack == null:
 		return false
@@ -402,7 +417,7 @@ func tracers() -> Array[Tracer]:
 ## `text`, plus the router note when `device` is a router (its subnets now show on the map).
 static func access_notice(device: Device, text: String) -> String:
 	if Router.of(device.entity) != null:
-		return "%s. Router hacked: the subnets behind it appear on the map" % text
+		return "%s. Router hacked: scanning the subnets behind it" % text
 	return text
 
 
@@ -471,7 +486,7 @@ func _remote_user(device: Device, accounts: DeviceAccounts) -> String:
 			return user
 	if not names.is_empty():
 		return names[0]
-	# Access from an exploit: the first account of the level it granted, else the first.
+	# Access from an exploit item (admin): the first admin account, else the first.
 	var admin := device.is_admin(entity)
 	for each in accounts.accounts:
 		if each != null and each.admin == admin:
@@ -485,12 +500,7 @@ func _on_desktop_closed() -> void:
 
 
 func _inventory() -> PlayerInventory:
-	if entity == null:
-		return null
-	for child in entity.get_children():
-		if child is PlayerInventory:
-			return child as PlayerInventory
-	return null
+	return PlayerInventory.of(entity)
 
 
 static func _source_kind(kind: Device.DeckPort) -> NetworkSource.Kind:

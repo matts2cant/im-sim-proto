@@ -6,18 +6,14 @@ extends TabPage
 ##   primary and secondary objectives with their state; outside a mission it says there is none.
 ## - Codes and logins: every code and login the player's PersonalLog knows, with what it opens
 ##   (LogEntry.code_label) and the entry it came from, a link that opens that note.
-## - Exploits (M12b, ADR 0116): every exploit it knows, what it targets (vendor, product, versions),
-##   the access it grants and where it was learned (a link to that note). The deck's Exploits tool
-##   runs them.
 ## - Notes: every entry, newest first (list), and the selected one (reader: title, source, text and
 ##   what it taught).
 ## Live: rebuilt while visible whenever the log or the mission's objectives change.
 
-enum Section { OBJECTIVES, CODES, EXPLOITS, NOTES }
+enum Section { OBJECTIVES, CODES, NOTES }
 
-const SECTION_NAMES: Array[String] = ["Objectives", "Codes and logins", "Exploits", "Notes"]
+const SECTION_NAMES: Array[String] = ["Objectives", "Codes and logins", "Notes"]
 const CODES_HINT := "Keypads and computers fill these in for you when you know them."
-const EXPLOITS_HINT := "Run them with the deck's Exploits tool against a device whose software matches."
 const NAV_WIDTH := 210.0
 const LIST_WIDTH := 300.0
 
@@ -79,10 +75,6 @@ func code_rows() -> Array[Dictionary]:
 	return JournalRules.codes(personal_log.book if personal_log != null else null)
 
 
-func exploit_rows() -> Array[Dictionary]:
-	return JournalRules.exploits(personal_log.book if personal_log != null else null)
-
-
 ## Entries, newest first.
 func notes() -> Array[LogEntry]:
 	return personal_log.entries() if personal_log != null else []
@@ -121,7 +113,7 @@ func _signature_now() -> String:
 
 
 func _rebuild() -> void:
-	var counts: Array[int] = [objective_rows().size(), code_rows().size(), exploit_rows().size(), notes().size()]
+	var counts: Array[int] = [objective_rows().size(), code_rows().size(), notes().size()]
 	for i in _nav_buttons.size():
 		TabStyle.style_row_button(_nav_buttons[i], i == section)
 		(_nav_buttons[i].get_node(^"Count") as Label).text = str(counts[i])
@@ -131,8 +123,6 @@ func _rebuild() -> void:
 			_build_objectives()
 		Section.CODES:
 			_build_codes()
-		Section.EXPLOITS:
-			_build_exploits()
 		Section.NOTES:
 			_build_notes()
 
@@ -236,44 +226,6 @@ func _build_codes() -> void:
 		grid.add_child(link)
 	var hint := TabStyle.label(CODES_HINT, 12, TabStyle.DIM)
 	box.add_child(hint)
-
-
-func _build_exploits() -> void:
-	var column := TabStyle.column()
-	column.name = "Exploits"
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body.add_child(column)
-	var box := TabStyle.column_box(column)
-	box.add_child(TabStyle.caption("Exploits you know"))
-	var rows := exploit_rows()
-	if rows.is_empty():
-		box.add_child(TabStyle.paragraph(JournalRules.NO_EXPLOITS))
-		return
-	var grid := GridContainer.new()
-	grid.name = "Table"
-	grid.columns = 4
-	grid.add_theme_constant_override(&"h_separation", 24)
-	grid.add_theme_constant_override(&"v_separation", 10)
-	box.add_child(grid)
-	for header: String in ["EXPLOIT", "TARGETS", "GRANTS", "LEARNED FROM"]:
-		grid.add_child(TabStyle.mono(header, 11, TabStyle.CAPTION))
-	for row in rows:
-		var title := TabStyle.label(str(row["title"]), 13)
-		title.name = "Exploit_%s" % String(row["id"]).replace(".", "_")
-		grid.add_child(title)
-		grid.add_child(TabStyle.mono(str(row["targets"]), 13, TabStyle.AMBER))
-		grid.add_child(TabStyle.mono(str(row["access"]), 13, TabStyle.FG))
-		var link := LinkButton.new()
-		link.name = "From_%s" % String(row["id"]).replace(".", "_")
-		var source := str(row["entry_source"])
-		link.text = "%s: %s" % [source, row["entry_title"]] if not source.is_empty() else str(row["entry_title"])
-		link.focus_mode = Control.FOCUS_NONE
-		link.add_theme_color_override(&"font_color", TabStyle.CAPTION)
-		link.add_theme_color_override(&"font_hover_color", TabStyle.AMBER)
-		link.add_theme_font_size_override(&"font_size", 13)
-		link.pressed.connect(open_note.bind(row["entry_id"]))
-		grid.add_child(link)
-	box.add_child(TabStyle.label(EXPLOITS_HINT, 12, TabStyle.DIM))
 
 
 func _build_notes() -> void:

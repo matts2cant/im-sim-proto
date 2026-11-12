@@ -1,14 +1,12 @@
 class_name DeckDeviceMenu
 extends RefCounted
-## What the deck's Map shows in a device's menu (NetworkGraph.menu_builder; ADR 0113, 0116): its
-## software once its subnet is scanned, "Exploits (n)" and "Firewall rules" (IntrusionMenu), a
-## wireless device's access point, its accounts (access / "Log in (from <note>)" / Icebreaker /
+## What the deck's Map shows in a device's menu (NetworkGraph.menu_builder; ADR 0113, 0116, 0121): a
+## wireless device's access point, "Use <kind> exploit (N left)" and "Firewall rules"
+## (IntrusionMenu), its accounts (access / "Log in (from <note>)" / Icebreaker /
 ## "too strong"), a router's note, "Open its desktop (remote)" on a computer with access, its
 ## commands with access, else who it trusts. Skill assists (Icebreaker.assist()): Trained crack
 ## times; Advanced + the trace a crack adds; Master + how many hidden subnets a router routes to.
 
-## "Exploits (n)" pressed on `device`.
-signal exploits_requested(device: Device)
 ## "Firewall rules" pressed on router `device`.
 signal firewall_requested(device: Device)
 ## An Icebreaker crack started from an account row.
@@ -22,22 +20,17 @@ const WIDTH: float = 300.0
 
 var session: DeckSession
 var ice: IcebreakerTool
-var exploit_tool: ExploitTool
 
 
-func bind(p_session: DeckSession, p_ice: IcebreakerTool, p_exploit_tool: ExploitTool) -> void:
+func bind(p_session: DeckSession, p_ice: IcebreakerTool) -> void:
 	session = p_session
 	ice = p_ice
-	exploit_tool = p_exploit_tool
 
 
 ## Fills `column` with the menu of `row`.
 func build(row: NetworkRow, column: VBoxContainer) -> void:
 	var device := row.device
 	var text_width := WIDTH - 24.0
-	var software := IntrusionMenu.software_line(row, session)
-	if software != null:
-		column.add_child(software)
 	if device.wireless_link() != null:
 		var via := "wireless via %s" % NetworkSource.display_name(device.wireless_link())
 		column.add_child(DeckStyle.mono(via, NetworkGraph.WIRELESS_COLOR, 12))
@@ -54,7 +47,7 @@ func build(row: NetworkRow, column: VBoxContainer) -> void:
 			left = maxf(left, tracer.model.lockout_left(session.source.address))
 		column.add_child(DeckStyle.label("Blocked by a tracer: %d s" % ceili(left), DeckStyle.ERROR_COLOR, 13))
 		return
-	IntrusionMenu.add_to(column, row, session, exploit_tool, exploits_requested.emit, firewall_requested.emit)
+	IntrusionMenu.add_to(column, row, session, _on_use_exploit, firewall_requested.emit)
 	var assist := Icebreaker.assist(session.entity)
 	var accounts := DeviceAccounts.of(device.entity)
 	if accounts != null and not accounts.accounts.is_empty():
@@ -144,6 +137,12 @@ func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccou
 		crack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		line.add_child(crack)
 	return line
+
+
+func _on_use_exploit(device: Device) -> void:
+	if not ExploitItems.use_from_deck(session, device):
+		notice.emit("%s: no connection." % NetworkSource.display_name(device))
+	map_changed.emit()
 
 
 func _on_crack(device: Device, user: String) -> void:

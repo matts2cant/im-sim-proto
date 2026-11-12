@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
-## Integration (ADR 0115, 0116): the deck's Exploits and Firewall tools on the real Player in the lab
-## fixture (fixtures/deck_lab.tscn), plugged into the wall jack. A scanned device's menu shows its
-## software and "Exploits (n)" for the known exploits that match it, which opens the Exploits tool
-## on it: Run on a match, "no match" otherwise, "patched on this subnet" once a seen run burned it.
+## Integration (ADR 0115, 0121): exploit items and the Firewall tool on the real Player in the lab
+## fixture (fixtures/deck_lab.tscn), plugged into the wall jack. A device's menu offers "Use <kind>
+## exploit (N left)" while the player carries an item of its kind and has no access: using it is
+## instant, adds no trace, consumes one and gives admin (a router's subnets then scanned, the scan
+## shown on the Map); another kind offers nothing; used up, the button is gone.
 ## A router the player is admin of offers "Firewall rules": the Firewall tool adds, edits, toggles,
 ## moves and deletes its rules, and a rule from "you" cuts the deck off a device behind it.
 
@@ -17,7 +18,6 @@ var _lab: Lab
 var _player: Player
 var _session: DeckSession
 var _screen: DeckScreen
-var _x: Dictionary[String, Exploit]
 
 
 func before_test() -> void:
@@ -30,11 +30,9 @@ func before_test() -> void:
 	_player.reload_on_reset = false
 	_session = DeckSession.of(_player)
 	_screen = DeckScreen.of(_player)
-	_x = Net.exploits()
 	await _driver.settle()
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
-	_session.config.exploit_time = 1.0
 	_player.inventory.give(DECK, 1)
 	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
 	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
@@ -60,27 +58,45 @@ func _press(text: String) -> void:
 		button.pressed.emit()
 
 
-func test_the_menu_shows_software_and_opens_the_exploits_tool_on_a_match() -> void:
-	Net.learn(_player, [_x["helix"], _x["halcyon"]])
+func test_a_router_exploit_from_the_menu_gives_admin_and_scans_behind_it() -> void:
+	_player.inventory.give(Net.exploit_item(&"router"), 1)
+	_player.inventory.give(Net.exploit_item(&"camera"), 2)
 	_screen.refresh()
+	var sentry := _lab.node("Rtr01").get_node("Tracer") as Tracer
+	var before := sentry.trace_of(_player)
+	# A wrong kind offers nothing: the office PC has no camera or router kind.
 	assert_bool(_screen.graph.select("OFFICE-PC")).is_true()
-	assert_array(_screen.menu_texts()).contains(["Halcyon OS 4.2", "Exploits (1)"])
-	_press("Exploits (1)")
-	assert_int(_screen.tool).is_equal(DeckScreen.Tool.EXPLOITS)
-	var view := _screen.exploits_view
-	assert_object(ExploitTool.of(_player).target).is_same(_lab.device("OfficePc"))
-	assert_array(view.texts()).contains(["Target: OFFICE-PC · Halcyon OS 4.2 · 10.0.10.12", "no match"])
-	var run := view.run_button(&"halcyon_share_overflow")
-	assert_object(run).is_not_null()
-	assert_object(view.run_button(&"helix_default_login")).is_null()
-	run.pressed.emit()
-	assert_bool(ExploitTool.of(_player).is_running()).is_true()
-	await _driver.frames(75)
+	for text in _screen.menu_texts():
+		assert_bool(text.begins_with("Use ")).override_failure_message(text).is_false()
+	assert_bool(_screen.graph.select("RTR-01")).is_true()
+	assert_array(_screen.menu_texts()).contains(["Use router exploit (1 left)", IntrusionMenu.EXPLOIT_NOTE])
+	_press("Use router exploit (1 left)")
+	var router := _lab.device("Rtr01")
+	assert_bool(router.is_admin(_player)).is_true()
+	assert_int(ExploitItems.count(_player, &"router")).is_equal(0)
+	# Instant, no trace of its own (only the scan of the watched Security subnet behind it adds),
+	# logged on the router with the deck's address.
+	var scan := sentry.config.scan * Icebreaker.trace_mult(_player)
+	assert_float(sentry.trace_of(_player) - before).is_equal_approx(scan, 0.01)
+	var used := router.intrusion.device_log.of_kind(DeviceLog.EXPLOIT)
+	assert_int(used.size()).is_equal(1)
+	var line := "exploit 10.0.10.40 %s Router exploit" % NetworkSource.user_key(_player)
+	assert_str(DeviceLog.line(used[0])).is_equal(line)
+	# The subnet behind it is scanned, shown as the scan, then on the map.
+	assert_bool(_session.scans.has(&"security")).is_true()
 	_screen.refresh()
-	# Done: user access; the Sentry tracer watching the office saw it, so it is burned there.
-	assert_bool(_lab.device("OfficePc").has_access(_player)).is_true()
-	assert_array(view.texts()).contains(["patched on this subnet"])
-	assert_object(view.run_button(&"halcyon_share_overflow")).is_null()
+	assert_array(NetworkGraph.scanning_subnets(_screen.graph)).contains([&"security"])
+	assert_bool(_screen.graph.node_names().has("CAM-GATE")).is_false()
+	await _driver.frames(15)
+	_screen.refresh()
+	assert_array(_screen.graph.node_names()).contains(["CAM-GATE", "SEC-CONSOLE"])
+	assert_array(NetworkGraph.scanning_subnets(_screen.graph)).is_empty()
+	# Used up: the router offers no exploit any more, the Firewall instead; the camera offers its own.
+	assert_bool(_screen.graph.select("RTR-01")).is_true()
+	assert_array(_screen.menu_texts()).contains(["Firewall rules", "access: admin (exploit)"])
+	assert_bool(_screen.menu_texts().has("Use router exploit (0 left)")).is_false()
+	assert_bool(_screen.graph.select("CAM-GATE")).is_true()
+	assert_array(_screen.menu_texts()).contains(["Use camera exploit (2 left)"])
 
 
 func test_the_firewall_tool_edits_a_routers_rules() -> void:
@@ -89,7 +105,6 @@ func test_the_firewall_tool_edits_a_routers_rules() -> void:
 	await _driver.frames(15)
 	_screen.refresh()
 	assert_bool(_screen.graph.select("RTR-01")).is_true()
-	assert_array(_screen.menu_texts()).contains(["Norsk EdgeGuard 1.8"])
 	_press("Firewall rules")
 	assert_int(_screen.tool).is_equal(DeckScreen.Tool.FIREWALL)
 	var view := _screen.firewall_view
