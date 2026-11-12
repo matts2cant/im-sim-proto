@@ -11,9 +11,15 @@ extends RefCounted
 ##   Knockouts: `actor.knocked_out` the same way.
 ## - Alarms: `alarm.raised` that started a ring (not `again`). Alerts: `actor.awareness` to
 ##   `alerted`. Bodies found: `actor.body_found`.
-## - Ghost: no alert, no alarm, no body found (Suspicious is fine). Pacifist: no kill.
-## Not attributed (known gaps): a thrown prop's impact (its source is the prop) and fall damage after a
-## push (the faller is its own source).
+## - Broken (M12c, ADR 0115): the objects the player broke, by name: any Breakable whose health
+##   reaches 0 under the player's damage (`object.damaged` with `health` <= 0 and an attributed
+##   `by`: props that fall apart and devices that keep their broken husk alike), that explodes from
+##   the player's stimulus (`object.exploded`), or that burns out after the player set it alight
+##   (`object.ignited` then `object.broken` reason `burnt_out`).
+## - Ghost: no alert, no alarm, no body found (Suspicious is fine). Pacifist: no kill. Clean hands:
+##   nothing broken.
+## Not attributed (known gaps): a thrown prop's impact (its source is the prop; a crate thrown to
+## pieces breaks no clean hands) and fall damage after a push (the faller is its own source).
 ## Saved with the mission (to_dict); attributed stimulus ids stay valid across a load because the
 ## quicksave reserves them (StimulusSystem.reserve_ids, QuickSave.STIMULUS_IDS).
 
@@ -24,6 +30,11 @@ const KNOCKED_OUT: StringName = &"actor.knocked_out"
 const ALARM: StringName = &"alarm.raised"
 const AWARENESS: StringName = &"actor.awareness"
 const BODY_FOUND: StringName = &"actor.body_found"
+const DAMAGED: StringName = &"object.damaged"
+const EXPLODED: StringName = &"object.exploded"
+const IGNITED: StringName = &"object.ignited"
+const BROKEN: StringName = &"object.broken"
+const BURNT_OUT: String = "burnt_out"
 const ALERTED: String = "alerted"
 const UNTRACKED_TYPES: Array[String] = ["noise"]
 
@@ -34,9 +45,13 @@ var knockouts: int = 0
 var alarms: int = 0
 var alerts: int = 0
 var bodies_found: int = 0
+## Names of the objects the player broke (name -> true).
+var broken: Dictionary[String, bool] = {}
 
 ## Ids of the player's stimuli (stimulus id -> true).
 var _attributed: Dictionary[int, bool] = {}
+## Names of the objects the player set alight (name -> true).
+var _lit: Dictionary[String, bool] = {}
 
 
 func _init(p_player_names: Array[String] = []) -> void:
@@ -58,6 +73,10 @@ func ghost() -> bool:
 
 func pacifist() -> bool:
 	return kills == 0
+
+
+func clean_hands() -> bool:
+	return broken.is_empty()
 
 
 ## Counts `entry` if it is one of the kinds above.
@@ -83,6 +102,19 @@ func observe(entry: EventLogEntry) -> void:
 				alerts += 1
 		BODY_FOUND:
 			bodies_found += 1
+		DAMAGED:
+			if float(data.get("health", 1.0)) <= 0.0 and is_attributed(_id(data.get("by"))):
+				broken[str(data.get("object", entry.target))] = true
+		EXPLODED:
+			if is_attributed(_id(data.get("by"))):
+				broken[str(data.get("object", entry.source))] = true
+		IGNITED:
+			if is_attributed(_id(data.get("by"))):
+				_lit[str(data.get("object", entry.source))] = true
+		BROKEN:
+			var object := str(data.get("object", entry.source))
+			if is_attributed(_id(data.get("by"))) or (str(data.get("reason", "")) == BURNT_OUT and _lit.has(object)):
+				broken[object] = true
 
 
 func to_dict() -> Dictionary:
@@ -95,6 +127,8 @@ func to_dict() -> Dictionary:
 		"alerts": alerts,
 		"bodies_found": bodies_found,
 		"attributed": ids,
+		"broken": broken.keys(),
+		"lit": _lit.keys(),
 	}
 
 
@@ -107,6 +141,12 @@ func from_dict(data: Dictionary) -> void:
 	_attributed.clear()
 	for id: Variant in data.get("attributed", []):
 		_attributed[int(id)] = true
+	broken.clear()
+	for object: Variant in data.get("broken", []):
+		broken[str(object)] = true
+	_lit.clear()
+	for object: Variant in data.get("lit", []):
+		_lit[str(object)] = true
 
 
 func _observe_stimulus(data: Dictionary) -> void:

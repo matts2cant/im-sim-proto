@@ -4,7 +4,8 @@ extends HBoxContainer
 ## reader (title, sender, text, what reading it taught). Selecting an item reads it: it joins the
 ## viewer's PersonalLog like a datapad (Computer.read(), source "Mail" or "Files"), without the
 ## reading overlay. An implicit clue is kept as a note: nothing is learned. The first item is
-## selected (read) when the app shows.
+## selected (read) when the app shows. A status line above the list says what is wrong (M12c: Mail
+## with its server out of reach, MailRoute.reason()); hidden while empty.
 
 const LIST_WIDTH: float = 300.0
 const NOTE_ONLY := "Added to the Journal (Notes)."
@@ -20,6 +21,8 @@ var documents: Array[ComputerDocument] = []
 var selected: int = -1
 
 var list_caption: Label
+## The status line above the list ("Can't reach MAIL-01: no route (RTR-01 is down)").
+var status_label: Label
 var title_label: Label
 var from_label: Label
 var reader_label: Label
@@ -34,9 +37,14 @@ func _ready() -> void:
 	_build()
 
 
-## Shows `p_documents` of `p_computer` for `p_viewer` and reads the first one.
+## Shows `p_documents` of `p_computer` for `p_viewer` and reads the first one; `status`: the line
+## above the list ("": none).
 func show_documents(
-	p_computer: Computer, p_viewer: Node, p_documents: Array[ComputerDocument], p_source: String
+	p_computer: Computer,
+	p_viewer: Node,
+	p_documents: Array[ComputerDocument],
+	p_source: String,
+	status: String = "",
 ) -> void:
 	computer = p_computer
 	viewer = p_viewer
@@ -44,6 +52,8 @@ func show_documents(
 	documents = p_documents
 	selected = -1
 	list_caption.text = ("Inbox" if source == "Mail" else "Files").to_upper()
+	status_label.text = status
+	status_label.visible = not status.is_empty()
 	_rebuild_list()
 	select(0)
 
@@ -138,6 +148,10 @@ func _build() -> void:
 	left.add_child(left_box)
 	list_caption = HalcyonStyle.caption("Inbox")
 	left_box.add_child(list_caption)
+	status_label = HalcyonStyle.paragraph("", 12, HalcyonStyle.AMBER)
+	status_label.name = "Status"
+	status_label.visible = false
+	left_box.add_child(status_label)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

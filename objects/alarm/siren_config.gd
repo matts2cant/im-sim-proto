@@ -17,3 +17,9 @@ extends Resource
 ## Pitch of the placeholder tone (PlaceholderBeep) played on every pulse.
 @export var tone_hz: float = 740.0
 @export var tone_length: float = 0.7
+## A network fault's pattern (M12c, ADR 0115): a lower, short tone played twice per pulse, so a
+## fault does not sound like an intruder alarm.
+@export var fault_tone_hz: float = 440.0
+@export var fault_tone_length: float = 0.15
+## Seconds between the fault pattern's two beeps.
+@export var fault_gap: float = 0.3

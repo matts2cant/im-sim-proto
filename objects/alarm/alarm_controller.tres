@@ -6,3 +6,7 @@
 script = ExtResource("1_script")
 duration = 45.0
 ring_refresh = 1.0
+fault_drops = 3
+fault_window = 10.0
+supervision_interval = 0.5
+trouble_notes = 8

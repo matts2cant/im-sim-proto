@@ -12,6 +12,9 @@ extends HBoxContainer
 ##   danger style from the config's table).
 ## Offline devices stay listed, greyed, without actions. A computer that controls none says so and
 ## points to the deck. refresh() rebuilds what changed; the screen calls it a few times a second.
+## Trouble (M12c, ADR 0115): under the list, the trouble notes of the online alarm controllers it
+## lists (AlarmController.trouble_lines(): "02:15  CAM-GATE  lost signal"), newest first, the same
+## note from two controllers once; hidden while there is none.
 
 const LIST_WIDTH: float = 330.0
 const NO_SIGNAL := "No signal"
@@ -32,6 +35,8 @@ const FEED_SHOWN_COMPACT: Vector2 = Vector2(352, 198)
 const FEED_FOV: float = 70.0
 const FEED_NEAR: float = 0.05
 const FEED_FAR: float = 80.0
+## Trouble notes shown at most.
+const TROUBLE_SHOWN: int = 6
 
 var computer: Computer
 ## Who operates the desktop (logged as the commands' operator).
@@ -56,6 +61,8 @@ var feed_rect: TextureRect
 var no_signal_label: Label
 var live_label: Label
 var view_label: Label
+## The trouble notes under the list (caption and lines).
+var trouble_box: VBoxContainer
 
 var _list: VBoxContainer
 var _list_column: MarginContainer
@@ -64,6 +71,7 @@ var _detail_column: MarginContainer
 var _none_column: MarginContainer
 var _actions: HFlowContainer
 var _signature: String = ""
+var _trouble: PackedStringArray = []
 
 
 func _ready() -> void:
@@ -82,6 +90,7 @@ func bind(p_computer: Computer, p_viewer: Node) -> void:
 ## Reads the devices again and rebuilds what changed (or everything with `force`).
 func refresh(force: bool = false) -> void:
 	rows = computer.devices() if computer != null and is_instance_valid(computer) else [] as Array[Computer.DeviceRow]
+	_refresh_trouble(force)
 	var signature := _signature_of(rows)
 	if signature == _signature and not force:
 		return
@@ -181,6 +190,11 @@ func action_labels() -> Array[String]:
 	return labels
 
 
+## The trouble lines shown, newest first (at the last refresh).
+func trouble_lines() -> PackedStringArray:
+	return _trouble
+
+
 ## Shows the live view at `shown` size (FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop).
 func set_view_size(shown: Vector2) -> void:
 	feed_frame.custom_minimum_size = shown
@@ -252,6 +266,34 @@ func _signature_of(p_rows: Array[Computer.DeviceRow]) -> String:
 			)
 		)
 	return ";".join(parts)
+
+
+# Collects the online controllers' trouble notes and rebuilds the box when they changed.
+func _refresh_trouble(force: bool) -> void:
+	var lines: Array[String] = []
+	for row in rows:
+		var controller := AlarmController.of(row.device.entity) if row.online else null
+		if controller == null:
+			continue
+		for line in controller.trouble_lines():
+			if not lines.has(line):
+				lines.append(line)
+	lines.sort()
+	lines.reverse()
+	var shown := PackedStringArray(lines.slice(0, TROUBLE_SHOWN))
+	if shown == _trouble and not force:
+		return
+	_trouble = shown
+	for child in trouble_box.get_children():
+		HalcyonStyle.discard(child)
+	trouble_box.visible = not shown.is_empty()
+	if shown.is_empty():
+		return
+	trouble_box.add_child(HalcyonStyle.caption("Trouble"))
+	for line in shown:
+		var label := HalcyonStyle.label(line, 12, HalcyonStyle.AMBER, true)
+		label.clip_text = true
+		trouble_box.add_child(label)
 
 
 func _rebuild_list() -> void:
@@ -353,14 +395,23 @@ func _build() -> void:
 	_list_column.custom_minimum_size = Vector2(LIST_WIDTH, 0)
 	_list_column.theme_type_variation = &"WindowBody"
 	add_child(_list_column)
+	var list_box := VBoxContainer.new()
+	list_box.add_theme_constant_override(&"separation", 8)
+	_list_column.add_child(list_box)
 	var scroll := ScrollContainer.new()
 	_list_scroll = scroll
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_list_column.add_child(scroll)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_box.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override(&"separation", 4)
 	scroll.add_child(_list)
+	trouble_box = VBoxContainer.new()
+	trouble_box.name = "Trouble"
+	trouble_box.add_theme_constant_override(&"separation", 2)
+	trouble_box.visible = false
+	list_box.add_child(trouble_box)
 	_detail_column = MarginContainer.new()
 	_detail_column.name = "Detail"
 	_detail_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -11,8 +11,11 @@ extends Node
 ##   node shows while it sounds; `sound_path` (an AudioStreamPlayer3D) plays a placeholder tone on
 ##   each pulse.
 ## - Unpowered or broken (its Device down): silent at once.
-## EventLog: `siren.started {siren, by}`, `siren.stopped {siren, reason}` (silenced, timeout,
-## unpowered). Saveable (seconds left).
+## - A network fault (M12c, ADR 0115): a `command.ring` from an entity tagged
+##   AlarmController.FAULT switches it to the fault pattern (two short low beeps per pulse,
+##   SirenConfig fault_*); any other ring or a test switches it back. Guards hear the same stimulus.
+## EventLog: `siren.started {siren, by, fault}`, `siren.stopped {siren, reason}` (silenced, timeout,
+## unpowered). Saveable (seconds left, fault).
 
 ## Float slack on the timers (sums of 1/60 s ticks).
 const EPSILON: float = 0.0001
@@ -28,8 +31,14 @@ var entity: Node3D
 var device: Device
 ## Seconds it keeps sounding (0: silent).
 var ring_left: float = 0.0
+## It announces a network fault (its last ring came from a controller ringing for one).
+var fault: bool = false
 
 var _pulse_left: float = 0.0
+# Seconds to the fault pattern's second beep (<= 0: none due).
+var _beep_left: float = 0.0
+var _tone: AudioStream
+var _fault_tone: AudioStream
 
 
 func _ready() -> void:
@@ -43,8 +52,11 @@ func _ready() -> void:
 	device.action_received.connect(_on_action)
 	device.state_changed.connect(_on_device_state_changed)
 	var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
-	if sound != null and sound.stream == null:
-		sound.stream = PlaceholderBeep.tone(config.tone_hz, config.tone_length)
+	if sound != null:
+		if sound.stream == null:
+			sound.stream = PlaceholderBeep.tone(config.tone_hz, config.tone_length)
+		_tone = sound.stream
+		_fault_tone = PlaceholderBeep.tone(config.fault_tone_hz, config.fault_tone_length)
 	_update_beacon()
 
 
@@ -65,7 +77,7 @@ func ring(seconds: float, by: String = "") -> void:
 	ring_left = maxf(ring_left, seconds)
 	if not was_sounding:
 		_pulse_left = 0.0
-		EventLog.record(&"siren.started", by, _name(), {"siren": _name(), "by": by})
+		EventLog.record(&"siren.started", by, _name(), {"siren": _name(), "by": by, "fault": fault})
 		_update_beacon()
 
 
@@ -85,6 +97,11 @@ func _physics_process(delta: float) -> void:
 		ring_left = 0.0
 		_stopped("timeout")
 		return
+	if _beep_left > 0.0:
+		_beep_left -= delta
+		if _beep_left <= EPSILON:
+			_beep_left = 0.0
+			_play()
 	_pulse_left -= delta
 	if _pulse_left <= EPSILON:
 		_pulse_left += config.interval
@@ -92,6 +109,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _stopped(reason: String) -> void:
+	_beep_left = 0.0
 	EventLog.record(&"siren.stopped", "", _name(), {"siren": _name(), "reason": reason})
 	_update_beacon()
 
@@ -102,16 +120,29 @@ func _pulse() -> void:
 		config.sound_type, config.loudness, origin, config.loudness, entity, Stimulus.Propagation.PATH
 	)
 	StimulusSystem.emit(stimulus)
+	_play()
+	if fault:
+		_beep_left = config.fault_gap
+
+
+# One beep of the current pattern.
+func _play() -> void:
 	var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
-	if sound != null and sound.is_inside_tree():
-		sound.play()
+	if sound == null or not sound.is_inside_tree():
+		return
+	var stream := _fault_tone if fault else _tone
+	if stream != null and sound.stream != stream:
+		sound.stream = stream
+	sound.play()
 
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	match action:
 		Device.RING:
+			fault = is_instance_valid(stimulus.source) and ActorState.has(stimulus.source, AlarmController.FAULT)
 			ring(config.ring_hold, stimulus.source_name())
 		Device.TEST:
+			fault = false
 			ring(config.test_duration, stimulus.source_name())
 		Device.SILENCE:
 			silence()
@@ -133,10 +164,11 @@ func _name() -> String:
 
 
 func save_state() -> Dictionary:
-	return {"left": ring_left, "pulse": _pulse_left}
+	return {"left": ring_left, "pulse": _pulse_left, "fault": fault}
 
 
 func load_state(data: Dictionary) -> void:
 	ring_left = float(data.get("left", ring_left))
 	_pulse_left = float(data.get("pulse", _pulse_left))
+	fault = bool(data.get("fault", false))
 	_update_beacon()

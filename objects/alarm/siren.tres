@@ -11,3 +11,6 @@ ring_hold = 2.5
 test_duration = 3.0
 tone_hz = 740.0
 tone_length = 0.7
+fault_tone_hz = 440.0
+fault_tone_length = 0.15
+fault_gap = 0.3
