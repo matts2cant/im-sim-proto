@@ -18,8 +18,8 @@ extends CharacterBody3D
 ## config) change the jump and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
 ## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
 ## Weapons (ADR 0085): LMB held sets the WeaponHolder's `trigger_held` (automatic weapons), RMB
-## (`alt_fire`) toggles a weapon's scope; the camera follows the holder's scope FOV and mouse look
-## scales with it.
+## (`alt_fire`) toggles a weapon's scope (with a deck in hand: its AR cable view, DeckArView, M12c);
+## the camera follows the holder's scope FOV and mouse look scales with it.
 ## Saveable.
 
 signal mantled(height: float)
@@ -485,7 +485,10 @@ func _handle_actions() -> void:
 				elif not inventory.use_held():
 					weapons.trigger()
 			&"alt_fire":
-				weapons.toggle_scope()
+				# A deck in hand toggles its AR cable view (M12c); a weapon its scope.
+				var ar_view := DeckArView.of(self)
+				if ar_view == null or not ar_view.toggle():
+					weapons.toggle_scope()
 			&"reload":
 				weapons.reload()
 			&"holster":

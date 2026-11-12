@@ -34,6 +34,8 @@ extends Node
 ##   is not network gear (DeviceNetwork.is_network_gear()) and stands within the access point's
 ##   `wireless_range` (wireless_link()). It is a link of the reach graph like a cable: a down access
 ##   point cuts its wireless devices off. `links` stays the cables.
+## - Status light (M12c, ADR 0122): once on a network it attaches a StatusLight to its entity (and
+##   network gear a GearPlate), unless `status_light` is off.
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
 ##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
@@ -102,6 +104,8 @@ const DECK_NODE: int = -1
 @export var software: Software
 ## The access point (its entity or Device) it links to by radio instead of a cable; empty: none.
 @export var wireless: NodePath = ^""
+## Shows its state on a StatusLight (and a GearPlate on network gear) once it is on a network (M12c).
+@export var status_light: bool = true
 
 var entity: Node3D
 var powered: Powered
@@ -132,6 +136,9 @@ func _ready() -> void:
 	_apply()
 	if not wireless.is_empty():
 		_check_wireless.call_deferred()
+	if status_light:
+		# Deferred: the level's other devices (and the cables naming this one) are ready by then.
+		_attach_status_light.call_deferred()
 
 
 ## The Device child of `node` (an entity), or `node` itself when it is a Device; null otherwise.
@@ -419,6 +426,10 @@ func _check_wireless() -> void:
 	if other != null and AccessPoint.of(other) != null:
 		why = "is network gear" if DeviceNetwork.is_network_gear(self) else "stands out of the access point's range"
 	push_warning("Device %s: its wireless link %s %s" % [get_path(), wireless, why])
+
+
+func _attach_status_light() -> void:
+	StatusLight.attach(self)
 
 
 func _entity_name() -> String:

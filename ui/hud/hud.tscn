@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://ui/hud/energy_bar.gd" id="5_energy"]
 [ext_resource type="Script" path="res://ui/hud/light_gauge.gd" id="6_light"]
 [ext_resource type="Script" path="res://ui/hud/scope_overlay.gd" id="7_scope"]
+[ext_resource type="Script" path="res://ui/hud/network_feedback.gd" id="8_network_feedback"]
 
 [sub_resource type="LabelSettings" id="Label_weapon"]
 font_size = 18
@@ -223,6 +224,24 @@ theme_override_font_sizes/font_size = 30
 text = "ALARM"
 horizontal_alignment = 1
 
+[node name="ArHint" type="Label" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 68.0
+offset_right = 150.0
+offset_bottom = 94.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "AR: cables (RMB)"
+horizontal_alignment = 1
+
 [node name="Message" type="Label" parent="."]
 anchors_preset = 7
 anchor_left = 0.5
@@ -307,3 +326,6 @@ layout_mode = 2
 text = "E: restart level · Esc: menu"
 label_settings = SubResource("Label_hint")
 horizontal_alignment = 1
+
+[node name="NetworkFeedback" type="Node" parent="."]
+script = ExtResource("8_network_feedback")
