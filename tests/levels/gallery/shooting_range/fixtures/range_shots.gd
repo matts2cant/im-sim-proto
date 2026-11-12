@@ -59,6 +59,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# M13a weapon feel (ADR 0123): the SMG at eye height; the crosshair on nothing, and mid-spray
 	# (fire: the trigger held from the start, the recoil climbing the camera) on the 10 m dummy.
 	"fp_smg": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "smg"},
+	"fp_smg_silenced":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "smg", "silencer": true},
 	"fp_smg_spray":
 	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "smg", "fire": true, "wait": 0.75},
 	"fp_rifle_spray":

@@ -64,6 +64,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"cam": Vector3(3.2, EYE, -1.6),
 		"face": 0.6
 	},
+	"hold_smg": {"guard": "pistol", "weapon": "smg/smg", "draw": true, "cam": Vector3(3.2, EYE, -1.6), "face": 0.6},
+	# Close side view of the SMG in the fist (its grip and stock against the hand).
+	"hold_smg_side":
+	{"guard": "pistol", "weapon": "smg/smg", "draw": true, "cam": Vector3(1.5, 1.45, -0.6), "face": 0.0},
+	"aim_smg":
+	{
+		"guard": "pistol",
+		"weapon": "smg/smg",
+		"draw": true,
+		"fire": true,
+		"freeze": 0.06,
+		"cam": Vector3(3.6, EYE, -1.8),
+		"face": -0.2
+	},
 	"hold_baton_front": {"guard": "pistol", "weapon": "baton/baton", "draw": true, "cam": Vector3(1.0, EYE, -3.4)},
 	"hold_rifle_top":
 	{

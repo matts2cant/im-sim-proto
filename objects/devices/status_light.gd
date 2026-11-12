@@ -12,9 +12,13 @@ extends Node3D
 ##   unpowered (or gone with its entity).
 ## - Port lights: one per cabled link (up to MAX_PORTS, then a "+"), green while the gear is up and
 ##   the device at the other end is up, dark otherwise.
-## - Placement: a child Marker3D of the entity named LED_MARKER / PORTS_MARKER (its +Z faces out),
-##   else the top-front of the entity's visible bounds (+Z is the front, as wall-mounted devices are
-##   built), the LED near the left edge and the ports centred below it.
+## - Placement (M13 amendment): a Marker3D anywhere under the entity named LED_MARKER /
+##   PORTS_MARKER (its +Z faces out), else on the surface of the entity's visible meshes seen from
+##   the front (+Z, as wall-mounted devices are built; DeviceSurface): the LED on the top-left-most
+##   flat front-facing spot of one mesh, FRONT_OFFSET proud, the ports on the surface ROW_DROP below
+##   it, centred. Each light goes under the node it sits on (the marker's parent, the mesh it was
+##   projected on), so it rides with that part (a door's leaf) and hides with it. Without any mesh
+##   to sit on: the top-front corner of the visible bounds.
 ## - Cheap: refreshed on the device's and its links' signals (state, power, breakage, commands), never
 ##   per frame; the blink is the shader's (status_light.gdshader, per-instance colour and blink).
 ## Links are read once when attached (cables are level data).
@@ -22,7 +26,7 @@ extends Node3D
 enum State { UP, CUT_OFF, DISABLED, DARK }
 
 const NODE_NAME: StringName = &"StatusLight"
-## Optional markers on the entity.
+## Optional markers anywhere under the entity (find_child).
 const LED_MARKER: NodePath = ^"StatusLedMarker"
 const PORTS_MARKER: NodePath = ^"PortLightsMarker"
 const MAX_PORTS: int = 8
@@ -42,6 +46,8 @@ const TOP_INSET: float = 0.025
 const ROW_DROP: float = 0.035
 ## Out of the front face (m).
 const FRONT_OFFSET: float = 0.003
+## Half-size (m) of the flat square the LED needs: its own 12 mm plus a 4 mm rim.
+const LED_FOOTPRINT: float = 0.016
 
 var device: Device
 var state: State = State.DARK
@@ -55,6 +61,8 @@ var port_lights: Array[MeshInstance3D] = []
 var more: Label3D
 ## The entity's visible bounds in its own frame, before the light was added.
 var bounds: AABB = AABB()
+## Instance ids of the parts placed under another node of the entity (freed with this light).
+var _parts: Array[int] = []
 
 
 ## Attaches a StatusLight (and a GearPlate on network gear) to `device`'s entity when the device is
@@ -176,13 +184,24 @@ func _ready() -> void:
 	refresh()
 
 
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE:
+		return
+	for id in _parts:
+		var part := instance_from_id(id) as Node
+		if part != null and not part.is_queued_for_deletion():
+			part.queue_free()
+
+
 ## Reads the state again and repaints the LED and the port lights.
 func refresh() -> void:
 	state = state_of(device, links)
-	_paint(led, COLORS[state], state == State.CUT_OFF)
+	if is_instance_valid(led):
+		_paint(led, COLORS[state], state == State.CUT_OFF)
 	var lit := port_states()
 	for i in port_lights.size():
-		_paint(port_lights[i], PORT_ON if lit[i] else COLORS[State.DARK], false)
+		if is_instance_valid(port_lights[i]):
+			_paint(port_lights[i], PORT_ON if lit[i] else COLORS[State.DARK], false)
 
 
 ## For each port light (cable order): lit (the gear and the far end both up).
@@ -205,20 +224,29 @@ func _refresh_later() -> void:
 
 
 func _build() -> void:
-	var front := bounds.end.z + FRONT_OFFSET
-	var top := bounds.end.y - minf(TOP_INSET, bounds.size.y * 0.5)
-	var left := bounds.position.x + minf(0.03, bounds.size.x * 0.5)
-	var led_at := _marker(LED_MARKER, Transform3D(Basis.IDENTITY, Vector3(left, top, front)))
-	led = _light(LED_MESH, led_at, "Led")
+	var surface := DeviceSurface.new(device.entity, self)
+	var led_spot := _marker_spot(LED_MARKER)
+	if led_spot == null:
+		var found := surface.find_spot(LED_FOOTPRINT)
+		if found != null:
+			led_spot = _proud(found)
+	if led_spot == null:
+		led_spot = _corner_spot()
+	led = _light(LED_MESH, led_spot, "Led")
 	if ports.is_empty():
 		return
-	var row_default := Vector3(bounds.get_center().x, top - ROW_DROP, front)
-	var row := _marker(PORTS_MARKER, Transform3D(Basis.IDENTITY, row_default))
 	var count := mini(ports.size(), MAX_PORTS)
+	var row := _marker_spot(PORTS_MARKER)
 	for i in count:
 		var along := (float(i) - float(count - 1) * 0.5) * PORT_PITCH
-		port_lights.append(_light(PORT_MESH, row * Transform3D(Basis.IDENTITY, Vector3(along, 0.0, 0.0)), "Port%d" % i))
+		var spot: DeviceSurface.Spot = null
+		if row != null:
+			spot = _along(row, along)
+		else:
+			spot = _row_spot(surface, led_spot, along)
+		port_lights.append(_light(PORT_MESH, spot, "Port%d" % i))
 	if ports.size() > MAX_PORTS:
+		var last := row if row != null else _row_spot(surface, led_spot, 0.0)
 		more = Label3D.new()
 		more.name = "More"
 		more.text = "+"
@@ -226,27 +254,71 @@ func _build() -> void:
 		more.pixel_size = 0.001
 		more.outline_size = 4
 		more.modulate = PORT_ON
-		more.transform = row * Transform3D(Basis.IDENTITY, Vector3((float(count) * 0.5 + 0.4) * PORT_PITCH, 0.0, 0.0))
-		add_child(more)
+		_attach_part(more, _along(last, (float(count) * 0.5 + 0.4) * PORT_PITCH))
 
 
-# The transform of the marker `path` in the entity's frame, else `fallback`.
-func _marker(path: NodePath, fallback: Transform3D) -> Transform3D:
+# The marker `path` (anywhere under the entity) as a spot carried by the marker's parent, or null.
+func _marker_spot(path: NodePath) -> DeviceSurface.Spot:
 	var entity := device.entity
-	var marker := entity.get_node_or_null(path) as Node3D
+	var marker := entity.find_child(String(path), true, false) as Node3D
 	if marker == null:
-		return fallback
-	return entity.global_transform.affine_inverse() * marker.global_transform
+		return null
+	var carrier := marker.get_parent() as Node3D
+	return DeviceSurface.Spot.new(carrier, entity.global_transform.affine_inverse() * marker.global_transform)
 
 
-func _light(mesh: Mesh, at: Transform3D, node_name: String) -> MeshInstance3D:
+# Without a visible face to sit on: the top-front corner of the entity's visible bounds.
+func _corner_spot() -> DeviceSurface.Spot:
+	var front := bounds.end.z + FRONT_OFFSET
+	var top := bounds.end.y - minf(TOP_INSET, bounds.size.y * 0.5)
+	var left := bounds.position.x + minf(0.03, bounds.size.x * 0.5)
+	return DeviceSurface.Spot.new(device.entity, Transform3D(Basis.IDENTITY, Vector3(left, top, front)))
+
+
+# A port light `along` the row ROW_DROP below the LED, centred on the entity: on the surface it
+# meets there when that faces the front, else level with the LED.
+func _row_spot(surface: DeviceSurface, led_spot: DeviceSurface.Spot, along: float) -> DeviceSurface.Spot:
+	var y := led_spot.transform.origin.y - ROW_DROP
+	var x := surface.bounds.get_center().x + along if not surface.is_empty() else along
+	var hit := surface.project(x, y)
+	if hit != null and hit.normal().z >= DeviceSurface.MIN_FACING:
+		return _proud(hit)
+	var level := Vector3(x, y, led_spot.transform.origin.z)
+	return DeviceSurface.Spot.new(led_spot.carrier, Transform3D(led_spot.transform.basis, level))
+
+
+# `spot` moved `along` its own X (a marker row's port lights).
+func _along(spot: DeviceSurface.Spot, along: float) -> DeviceSurface.Spot:
+	return DeviceSurface.Spot.new(spot.carrier, spot.transform * Transform3D(Basis.IDENTITY, Vector3(along, 0.0, 0.0)))
+
+
+# A surface spot moved FRONT_OFFSET out of the surface.
+static func _proud(spot: DeviceSurface.Spot) -> DeviceSurface.Spot:
+	var out := spot.transform.translated(spot.normal() * FRONT_OFFSET)
+	return DeviceSurface.Spot.new(spot.carrier, out)
+
+
+func _light(mesh: Mesh, spot: DeviceSurface.Spot, node_name: String) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = mesh
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	instance.transform = at
-	add_child(instance)
+	_attach_part(instance, spot)
 	return instance
+
+
+# Adds `part` under the spot's carrier (this node when the carrier is the entity itself), placed at
+# the spot (a marker spot as it is, a surface spot FRONT_OFFSET proud of the surface).
+func _attach_part(part: Node3D, spot: DeviceSurface.Spot) -> void:
+	var entity := device.entity
+	var carrier := spot.carrier
+	if carrier == null or carrier == entity or not is_instance_valid(carrier):
+		add_child(part)
+		part.transform = spot.transform
+		return
+	carrier.add_child(part)
+	part.global_transform = entity.global_transform * spot.transform
+	_parts.append(part.get_instance_id())
 
 
 static func _paint(instance: MeshInstance3D, color: Color, blinking: bool) -> void:

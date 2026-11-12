@@ -10,6 +10,7 @@ Only the files the game uses are copied here (GLB format, with `Textures/colorma
 | `blaster-m.glb` | Shotgun (`items/weapons/shotgun/shotgun_model.tscn`) |
 | `blaster-f.glb` | Sniper rifle (`items/weapons/sniper_rifle/sniper_rifle_model.tscn`) |
 | `blaster-p.glb` | Assault rifle (`items/weapons/assault_rifle/assault_rifle_model.tscn`) |
+| `blaster-n.glb` | Submachine gun (`items/weapons/smg/smg_model.tscn`) |
 | `silencer-small.glb` | The silencer fitted on a weapon's muzzle (`items/attachments/silencer/silencer.tres`) |
 | `crate-small.glb` | The silencer's world pickup (`items/attachments/silencer/silencer_pickup.tscn`) |
 
