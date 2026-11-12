@@ -356,7 +356,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.03, -4.45)
 count = 60
 
 [node name="Smg" parent="Rack2" instance=ExtResource("40_smg")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 1.06, -4.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 1.065, -4.45)
 
 [node name="SmgAmmo" parent="Rack2" instance=ExtResource("20_pistol_ammo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.15, 1.03, -4.45)
