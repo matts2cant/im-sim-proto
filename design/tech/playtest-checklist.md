@@ -591,6 +591,7 @@ Warehouse network:
 - [ ] Cut breaker B from far away (more than 30 m from the switches it feeds): the line still shows (your breaker). A guard breaking something far away shows nothing.
 - [ ] Deck in hand (not plugged in), RMB: "AR: cables (RMB)" and the remembered network drawn over the world: ceiling runs in the subnet colours, AP-YARD's wireless links dashed blue, dead links dim. RMB again, switching item or opening any screen turns it off. Is it readable in the office (runs from the basement rise through the floor) or too busy? Do runs fading with distance matter?
 - [ ] A cut device's amber blink, a disabled camera's red LED and a dark unpowered one: is the colour language clear without the Map?
+- [ ] M13 fix: walk past every networked device kind at an angle (camera, siren, panic button, alarm controller, radio base station, computer, wall jack, access point, switch, router, mail server, turret, door, fence gate, laser array): each LED sits on the device (camera: its wall plate; turret: its base; door: the leaf's top-left in the doorway, sliding away with it), never in the air in front of or above it. Reference shots: `tests/objects/fixtures/showcase/status_light_shots.tscn`.
 
 ## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md), [ADR 0123](../decisions/0123-recoil-and-skill-aim.md))
 
@@ -618,6 +619,7 @@ Tests measure the targets (pistol 56 / 80 / 92 / 100 % on a torso at 10 m by tie
 - [ ] Tier buttons in the panel and the "Skill tier" button (E: next, its label says which) change the Weapons skill of the gun in hand; the Skills tab shows the same tier.
 - [ ] "Reset dummies" stands up every downed dummy in the room (lanes, walker and melee pair), dead or knocked out.
 - [ ] The second rack (east of the medkits) holds a pistol, the submachine gun and 60 pistol rounds for each.
+- [ ] M13 fix: the SMG is the red Kenney `blaster-n` (like the pistol, they share ammo): in first person it sits where the old one did, with and without the silencer (the silencer on its muzzle, the flash and tracers from its end); lying on the rack, held by a warehouse guard and dropped by one, it looks the same size.
 - [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.
 - [ ] Esc, Settings: the game stays paused; Esc (or Back) returns to the Esc menu with Settings focused, a second Esc resumes. Keyboard only: Up/Down reach every row, Left/Right move sliders, Enter flips switches; the focused row's name is white.
 - [ ] Mouse sensitivity ×2 turns twice as far per mouse move; ×0.5 half; through the sniper scope the crosshair still moves as far on screen as at the hip.

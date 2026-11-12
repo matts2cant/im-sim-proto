@@ -76,6 +76,9 @@ shape = SubResource("Shape_head")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, 0)
 mesh = SubResource("Mesh_base")
 
+[node name="StatusLedMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99554, 0.09428, 0, -0.09428, 0.99554, 0, 0.8, 0.197)
+
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 1.15, 0)
 

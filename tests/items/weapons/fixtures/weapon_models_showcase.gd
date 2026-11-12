@@ -9,12 +9,14 @@ const MODELS: Array[String] = [
 	"res://items/weapons/shotgun/shotgun_model.tscn",
 	"res://items/weapons/sniper_rifle/sniper_rifle_model.tscn",
 	"res://items/weapons/assault_rifle/assault_rifle_model.tscn",
+	"res://items/weapons/smg/smg_model.tscn",
 ]
 const RAW: Array[String] = [
 	"res://assets/models/kenney_blaster_kit/blaster-b.glb",
 	"res://assets/models/kenney_blaster_kit/blaster-m.glb",
 	"res://assets/models/kenney_blaster_kit/blaster-f.glb",
 	"res://assets/models/kenney_blaster_kit/blaster-p.glb",
+	"res://assets/models/kenney_blaster_kit/blaster-n.glb",
 	"res://assets/models/kenney_blaster_kit/silencer-small.glb",
 	"res://assets/models/kenney_blaster_kit/crate-small.glb",
 ]
@@ -37,7 +39,7 @@ func _ready() -> void:
 	for i in paths.size():
 		var node := (load(paths[i]) as PackedScene).instantiate() as Node3D
 		add_child(node)
-		node.position = Vector3(0, 1.6 - i * 0.45, 0)
+		node.position = Vector3(0, 1.75 - i * 0.42, 0)
 		var model := node as WeaponModel
 		if model == null:
 			continue
