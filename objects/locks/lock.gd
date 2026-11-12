@@ -152,6 +152,7 @@ func make_noise(loudness: float, tone_hz: float) -> void:
 		var noise := Stimulus.make_noise(loudness, noise_origin(), entity if entity != null else self)
 		StimulusSystem.emit(noise)
 	var audio := AudioStreamPlayer3D.new()
+	audio.bus = GameSettings.EFFECTS_BUS
 	audio.stream = PlaceholderBeep.tone(tone_hz)
 	audio.unit_size = 4.0
 	audio.process_mode = Node.PROCESS_MODE_ALWAYS

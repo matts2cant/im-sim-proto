@@ -108,6 +108,7 @@ config = ExtResource("13_perception")
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0.25)
 unit_size = 6.0
+bus = &"Effects"
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
