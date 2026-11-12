@@ -8,6 +8,7 @@ extends GdUnitTestSuite
 ## SEC-CONSOLE allow, Office -> MAIL-01 allow (M12c), Office -> Security deny; a deck with access to
 ## RTR-01 still passes (only rules from "you" judge it). The sirens and both alarm controllers are
 ## on the Security subnet, so no RTR-01 rule silences them. The level is loaded once.
+
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const SECURITY := "Population/Security/"
