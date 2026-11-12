@@ -76,6 +76,9 @@ const MANTLE_MAX: StringName = &"mantle_max_height"
 var mode: PlayerMotion.Mode = PlayerMotion.Mode.IDLE
 var crouched: bool = false
 var pitch: float = 0.0
+## The camera's shake on firing (WeaponMotionConfig.shake_deg, x the camera motion setting); its
+## `rng.seed` is set by tests, randomised in play.
+var view_shake := ViewShake.new()
 
 var _probe: PlayerProbe
 var _jump_requested: bool = false
@@ -102,8 +105,6 @@ var _face_point: Vector3 = Vector3.ZERO
 var _face_left: float = 0.0
 ## LMB was still held when a screen gave the input back: tools wait for a fresh press.
 var _tool_latched: bool = false
-## The camera's shake on firing (WeaponMotionConfig.shake_deg, x the camera motion setting).
-var _shake := ViewShake.new()
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
@@ -209,7 +210,7 @@ func _physics_process(delta: float) -> void:
 	weapons.trigger_held = _trigger_held()
 	weapons.recoil.view_share = camera_motion()
 	weapons.physics_step(delta, aim_stance())
-	_shake.step(delta)
+	view_shake.step(delta)
 	_apply_view_recoil()
 	_camera.fov = weapons.scope.view_fov(weapons.weapon(), _hip_fov)
 
@@ -623,13 +624,13 @@ func _apply_view_recoil() -> void:
 ## The camera's shake now (degrees right, up and rolled left; ADR 0128): the weapon's shot shake x
 ## the camera motion setting (0: none).
 func camera_shake() -> Vector3:
-	return _shake.offset() * camera_motion()
+	return view_shake.offset() * camera_motion()
 
 
 # A shot (or swing) shakes the camera by the weapon's shake (WeaponMotionConfig; none without one).
 func _on_weapon_fired(weapon: WeaponData) -> void:
 	if weapon.motion != null:
-		_shake.add(weapon.motion.shake_deg, weapon.motion.shake_time)
+		view_shake.add(weapon.motion.shake_deg, weapon.motion.shake_time)
 
 
 # A step moved the body by `rise`: the camera stays where it was and eases after it.
