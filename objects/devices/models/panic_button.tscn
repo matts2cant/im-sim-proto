@@ -24,7 +24,7 @@ rings = 1
 material = ExtResource("7_button_red")
 top_radius = 0.03
 bottom_radius = 0.03
-height = 0.016
+height = 0.01
 radial_segments = 24
 rings = 1
 
@@ -57,5 +57,5 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.015, 0.043)
 mesh = SubResource("CylinderMesh_2")
 
 [node name="Button" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.015, 0.048)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.015, 0.051)
 mesh = SubResource("CylinderMesh_3")

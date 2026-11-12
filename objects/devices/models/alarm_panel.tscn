@@ -32,7 +32,7 @@ rings = 1
 material = ExtResource("10_face")
 top_radius = 0.021
 bottom_radius = 0.021
-height = 0.006
+height = 0.002
 radial_segments = 24
 rings = 1
 
@@ -86,7 +86,7 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.04, 0.062)
 mesh = SubResource("CylinderMesh_3")
 
 [node name="KeySwitch" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.04, 0.063)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.04, 0.065)
 mesh = SubResource("CylinderMesh_4")
 
 [node name="KeySlot" type="MeshInstance3D" parent="."]

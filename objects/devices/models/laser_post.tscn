@@ -24,7 +24,7 @@ rings = 1
 material = ExtResource("7_lens")
 top_radius = 0.008
 bottom_radius = 0.008
-height = 0.003
+height = 0.001
 radial_segments = 24
 rings = 1
 
@@ -57,7 +57,7 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.1, 0.041)
 mesh = SubResource("CylinderMesh_2")
 
 [node name="Lens0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.1, 0.0415)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.1, 0.0425)
 mesh = SubResource("CylinderMesh_3")
 
 [node name="LensRim1" type="MeshInstance3D" parent="."]
@@ -65,7 +65,7 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.041)
 mesh = SubResource("CylinderMesh_2")
 
 [node name="Lens1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.0415)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.0425)
 mesh = SubResource("CylinderMesh_3")
 
 [node name="LensRim2" type="MeshInstance3D" parent="."]
@@ -73,5 +73,5 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.1, 0.041)
 mesh = SubResource("CylinderMesh_2")
 
 [node name="Lens2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.1, 0.0415)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.1, 0.0425)
 mesh = SubResource("CylinderMesh_3")

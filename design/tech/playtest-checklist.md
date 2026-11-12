@@ -678,3 +678,16 @@ Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `i
 - [ ] Knock out a guard and look at the body: the frame fits the lying figure (not the standing height) with "Guard"; the "?" icon over a guard never stretches a frame.
 - [ ] The brackets read on bright (a lit wall) and dark (an unlit corner) backgrounds; at 1080 p the lines are one pixel thin, at 4K still crisp. Too subtle or too strong? Is the tag's size right?
 - [ ] Scoped (sniper RMB): no frame; knocked out or dead: no frame.
+
+## M13c showroom: device models ([ADR 0130](../decisions/0130-device-overhaul.md) step 0)
+
+Walk to the hub's east wall between the two east doorways (the `DeviceShowroom`, [hub-and-gallery.md](../levels/hub-and-gallery.md#hub)). The models are look only: nothing reacts yet.
+
+- [ ] From 4 m: can you tell the kinds apart by their colour strip alone (switch blue, router orange, access point cyan, wall jack slate, computers green, alarm system red, door controllers violet, security yellow)? Do rack and desk versions of a switch or router read as the same family?
+- [ ] Each model's icon on its front matches the deck Map's icon for its kind; the rack server, desktop and laptop show the computer icon. Are the icons big enough to read from 1.5 m?
+- [ ] One status light per model (green; the door controllers' lock light red, the camera's lamp on its body); none on the wall jack, panic button and laser post.
+- [ ] Lean in to BAY-A's rack switch: at which distance can you read the vertical port labels (the screenshots found about 0.3 m at 648 p, 0.5 m at 1080 p)? Is that acceptable, or do the labels need another form (numbers with a legend, labels on the far end only)?
+- [ ] The router's uplink socket (the last one) is ringed in orange; empty sockets have a dark light, cabled ones green.
+- [ ] Bays: the U steps of the units and the blank panels, the name plate on top, the cables rising to the ceiling, the glass door of BAY-B (the lights show through, the keyhole lock on its right edge). Walk round them: does the depth look right (0.6 m)?
+- [ ] The desk gear (desktop with monitor, laptop marked "later", desk switch, wedge-shaped desk router) sits on the desk without floating or sinking; wall models sit flat on the wall, with no gap and no flicker at the joins.
+- [ ] The LEDs, port lights and ARMED displays glow; name plates, port labels and icons do not (they are printed, lit by the room). Are the showroom's two lamps enough to judge the colours?

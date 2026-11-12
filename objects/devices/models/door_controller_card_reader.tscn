@@ -24,7 +24,7 @@ size = Vector3(0.04, 0.03, 0.002)
 
 [sub_resource type="BoxMesh" id="BoxMesh_4"]
 material = ExtResource("9_face")
-size = Vector3(0.036, 0.026, 0.003)
+size = Vector3(0.036, 0.026, 0.001)
 
 [node name="DoorCardReader" type="Node3D"]
 script = ExtResource("1_device_model")
@@ -65,5 +65,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0.036)
 mesh = SubResource("BoxMesh_3")
 
 [node name="Reader" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0.0365)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0.0375)
 mesh = SubResource("BoxMesh_4")

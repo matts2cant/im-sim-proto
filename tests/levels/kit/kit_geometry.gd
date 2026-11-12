@@ -5,6 +5,11 @@ extends RefCounted
 const COPLANAR_TOLERANCE := 0.001
 ## Overlaps smaller than this (m²) are rounding slivers along shared edges, not visible faces.
 const MIN_OVERLAP_AREA := 0.0001
+## The same for small mesh parts (device models): 1 mm².
+const MIN_MESH_OVERLAP_AREA := 0.000001
+## Mesh parts printed on a surface sit 0.5 mm proud on purpose (reverse-Z depth keeps them apart):
+## closer than this counts as the same plane.
+const MESH_COPLANAR_TOLERANCE := 0.0002
 
 
 ## Bounds of a CSG root's collision faces in its local space (computed out of the tree).
@@ -87,6 +92,93 @@ static func coplanar_material_overlaps(level: Node) -> PackedStringArray:
 	return PackedStringArray(found.keys())
 
 
+## The mesh counterpart of coplanar_material_overlaps() (device models, ADR 0130): pairs of visible
+## faces of different MeshInstance3D nodes under `root` that lie on the same plane, face the same
+## way, overlap by more than MIN_MESH_OVERLAP_AREA (small parts: a port light is 2 x 5 mm) and have
+## different materials. Faces are bucketed by plane, so a few hundred meshes stay cheap. Meshes
+## built in _ready need `root` in the tree. Returns one readable line per offending pair and plane.
+static func coplanar_mesh_overlaps(root: Node) -> PackedStringArray:
+	var names: Array[String] = []
+	var buckets: Dictionary[String, Array] = {}
+	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
+		var instance := node as MeshInstance3D
+		if instance.mesh == null or not _visible_under(instance, root):
+			continue
+		var index := names.size()
+		names.append(str(root.get_path_to(instance)))
+		var xform := _transform_under(instance, root)
+		for surface in instance.mesh.get_surface_count():
+			for face in _surface_faces(instance.mesh, surface, xform, _material_of(instance, surface)):
+				var key := _plane_key(face)
+				if not buckets.has(key):
+					buckets[key] = []
+				buckets[key].append([index, face])
+	var found := {}
+	for key: String in buckets:
+		var here: Array = buckets[key]
+		var next: Array = buckets.get(_next_key(key), [])
+		for i in here.size():
+			for j in range(i + 1, here.size() + next.size()):
+				var other: Array = here[j] if j < here.size() else next[j - here.size()]
+				_check_mesh_pair(here[i], other, names, found)
+	return PackedStringArray(found.keys())
+
+
+static func _check_mesh_pair(a: Array, b: Array, names: Array[String], found: Dictionary) -> void:
+	if a[0] == b[0]:
+		return
+	var face_a: Dictionary = a[1]
+	var face_b: Dictionary = b[1]
+	if face_a["material"] == face_b["material"] or not _same_plane(face_a, face_b, MESH_COPLANAR_TOLERANCE):
+		return
+	if _overlap_area(face_a, face_b) > MIN_MESH_OVERLAP_AREA:
+		var plane := Plane(face_a["normal"], face_a["d"])
+		found["%s / %s on %s" % [names[a[0]], names[b[0]], plane]] = true
+
+
+static func _material_of(instance: MeshInstance3D, surface: int) -> Material:
+	if instance.material_override != null:
+		return instance.material_override
+	var material := instance.get_surface_override_material(surface)
+	return material if material != null else instance.mesh.surface_get_material(surface)
+
+
+# The plane bucket of a face: its normal in hundredths and its distance in steps of
+# MESH_COPLANAR_TOLERANCE; faces that close to each other fall in the same or the next bucket.
+static func _plane_key(face: Dictionary) -> String:
+	var n: Vector3 = face["normal"]
+	var d := floori((face["d"] as float) / MESH_COPLANAR_TOLERANCE)
+	return "%d,%d,%d|%d" % [roundi(n.x * 100.0), roundi(n.y * 100.0), roundi(n.z * 100.0), d]
+
+
+static func _next_key(key: String) -> String:
+	var parts := key.split("|")
+	return "%s|%d" % [parts[0], parts[1].to_int() + 1]
+
+
+static func _surface_faces(mesh: Mesh, surface: int, xform: Transform3D, material: Material) -> Array[Dictionary]:
+	var faces: Array[Dictionary] = []
+	var arrays := mesh.surface_get_arrays(surface)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var indices := PackedInt32Array()
+	if arrays[Mesh.ARRAY_INDEX] != null:
+		indices = arrays[Mesh.ARRAY_INDEX]
+	var count := indices.size() if not indices.is_empty() else vertices.size()
+	for k in range(0, count, 3):
+		var corners: Array[Vector3] = []
+		for c in 3:
+			corners.append(xform * vertices[indices[k + c] if not indices.is_empty() else k + c])
+		var normal := (corners[2] - corners[0]).cross(corners[1] - corners[0])
+		if normal.length() < 1e-12:
+			continue
+		normal = normal.normalized()
+		var box := AABB(corners[0], Vector3.ZERO).expand(corners[1]).expand(corners[2])
+		faces.append(
+			{"corners": corners, "normal": normal, "d": normal.dot(corners[0]), "material": material, "bounds": box}
+		)
+	return faces
+
+
 static func _baked_faces(shape: CSGShape3D, xform: Transform3D) -> Dictionary:
 	var faces: Array[Dictionary] = []
 	var bounds := AABB()
@@ -126,12 +218,12 @@ static func _baked_faces(shape: CSGShape3D, xform: Transform3D) -> Dictionary:
 	return {"path": str(shape.name), "faces": faces, "bounds": bounds}
 
 
-static func _same_plane(a: Dictionary, b: Dictionary) -> bool:
+static func _same_plane(a: Dictionary, b: Dictionary, tolerance: float = COPLANAR_TOLERANCE) -> bool:
 	if (a["normal"] as Vector3).dot(b["normal"]) < 0.9999:
 		return false
-	if absf((a["d"] as float) - (b["d"] as float)) > COPLANAR_TOLERANCE:
+	if absf((a["d"] as float) - (b["d"] as float)) > tolerance:
 		return false
-	return (a["bounds"] as AABB).grow(COPLANAR_TOLERANCE).intersects(b["bounds"])
+	return (a["bounds"] as AABB).grow(tolerance).intersects(b["bounds"])
 
 
 ## Area shared by two coplanar triangles (projected onto their common plane).

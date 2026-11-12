@@ -48,7 +48,7 @@ rings = 1
 material = ExtResource("2_face")
 top_radius = 0.011
 bottom_radius = 0.011
-height = 0.003
+height = 0.001
 radial_segments = 24
 rings = 1
 
@@ -106,7 +106,7 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.23, 0.22, 0.211)
 mesh = SubResource("CylinderMesh_7")
 
 [node name="Power" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.23, 0.22, 0.2115)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.23, 0.22, 0.2125)
 mesh = SubResource("CylinderMesh_8")
 
 [node name="PortRow" type="Node3D" parent="."]

@@ -30,13 +30,13 @@ rings = 1
 material = ExtResource("8_face")
 top_radius = 0.0205
 bottom_radius = 0.0205
-height = 0.002
+height = 0.0005
 radial_segments = 24
 rings = 1
 
 [sub_resource type="BoxMesh" id="BoxMesh_5"]
 material = ExtResource("3_rail")
-size = Vector3(0.032, 0.0015, 0.003)
+size = Vector3(0.032, 0.0015, 0.001)
 
 [node name="RouterRack" type="Node3D"]
 script = ExtResource("1_device_model")
@@ -77,19 +77,19 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0645, 0.0441, 0.00375)
 mesh = SubResource("CylinderMesh_3")
 
 [node name="Fan0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0645, 0.0441, 0.004)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0645, 0.0441, 0.00475)
 mesh = SubResource("CylinderMesh_4")
 
 [node name="Grille0_0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0531, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0531, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="Grille0_1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0441, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0441, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="Grille0_2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0351, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0645, 0.0351, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="FanRim1" type="MeshInstance3D" parent="."]
@@ -97,19 +97,19 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0095, 0.0441, 0.00375)
 mesh = SubResource("CylinderMesh_3")
 
 [node name="Fan1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0095, 0.0441, 0.004)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.0095, 0.0441, 0.00475)
 mesh = SubResource("CylinderMesh_4")
 
 [node name="Grille1_0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0531, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0531, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="Grille1_1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0441, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0441, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="Grille1_2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0351, 0.0045)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0095, 0.0351, 0.0055)
 mesh = SubResource("BoxMesh_5")
 
 [node name="PortRow" type="Node3D" parent="."]
