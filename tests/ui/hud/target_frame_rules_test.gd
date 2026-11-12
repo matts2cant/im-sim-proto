@@ -1,8 +1,10 @@
 extends GdUnitTestSuite
-## Unit: the interaction frame's pure rules (ADR 0129): framed kinds, near-plane clipping, the
+## Unit: the interaction frame's pure rules (ADR 0129): framed kinds, clipping to the view, the
 ## screen rectangle (padding, clamping), bracket sizes and the name tag's place.
 
 const SCREEN := Vector2(1920, 1080)
+## The near plane of a camera at the origin looking down -Z (outside: z > -0.05).
+const NEAR := Plane(Vector3.BACK, -0.05)
 
 
 func test_frames_what_can_be_picked_up_used_or_carried() -> void:
@@ -14,29 +16,45 @@ func test_frames_what_can_be_picked_up_used_or_carried() -> void:
 		assert_bool(TargetFrameRules.frames(kind)).is_false()
 
 
-func test_a_box_in_front_keeps_its_corners() -> void:
-	var front := TargetFrameRules.clip_to_front(_corners(AABB(Vector3(-0.5, -0.5, -3.0), Vector3.ONE)), 0.05)
+func test_a_box_in_view_keeps_its_corners() -> void:
+	var box := AABB(Vector3(-0.5, -0.5, -3.5), Vector3.ONE)
 
-	assert_int(front.size()).is_equal(8)
+	var points := TargetFrameRules.clip_box(_corners(box), [NEAR])
+
+	# Six faces of four corners each, none cut.
+	assert_int(points.size()).is_equal(24)
+	for point in points:
+		assert_bool(box.grow(0.0001).has_point(point)).is_true()
 
 
-func test_a_box_behind_the_camera_has_nothing_in_front() -> void:
-	var front := TargetFrameRules.clip_to_front(_corners(AABB(Vector3(-0.5, -0.5, 1.0), Vector3.ONE)), 0.05)
+func test_a_box_behind_the_camera_has_nothing_in_view() -> void:
+	var points := TargetFrameRules.clip_box(_corners(AABB(Vector3(-0.5, -0.5, 1.0), Vector3.ONE)), [NEAR])
 
-	assert_bool(front.is_empty()).is_true()
+	assert_bool(points.is_empty()).is_true()
 
 
 func test_a_box_across_the_near_plane_is_cut_at_it() -> void:
-	# From 0.5 m behind the eye to 1.5 m in front: 4 corners in front, 4 edges cut at z = -0.05.
-	var front := TargetFrameRules.clip_to_front(_corners(AABB(Vector3(-1, -1, -1.5), Vector3(2, 2, 2))), 0.05)
+	# From 0.5 m behind the eye to 1.5 m in front of it.
+	var points := TargetFrameRules.clip_box(_corners(AABB(Vector3(-1, -1, -1.5), Vector3(2, 2, 2))), [NEAR])
 
-	assert_int(front.size()).is_equal(8)
 	var cut := 0
-	for point in front:
+	for point in points:
 		assert_float(point.z).is_less_equal(-0.05 + 0.0001)
 		if is_equal_approx(point.z, -0.05):
 			cut += 1
-	assert_int(cut).is_equal(4)
+	assert_int(cut).is_greater(0)
+
+
+func test_a_box_across_a_side_of_the_view_is_cut_at_it() -> void:
+	# The right side of the view at x = 1 (outside: x > 1); the box runs from x = -1 to 3.
+	var right := Plane(Vector3.RIGHT, 1.0)
+
+	var points := TargetFrameRules.clip_box(_corners(AABB(Vector3(-1, -0.5, -3.5), Vector3(4, 1, 1))), [NEAR, right])
+
+	var most := -INF
+	for point in points:
+		most = maxf(most, point.x)
+	assert_float(most).is_equal_approx(1.0, 0.0001)
 
 
 func test_rect_of_points() -> void:

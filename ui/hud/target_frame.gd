@@ -7,9 +7,9 @@ extends Control
 ## inside the frame's top-left corner. Decided only by the Interactor's components: anything that
 ## becomes interactable is framed with no extra code.
 ## The target's visible parts (frameable()) are collected when the target changes; each refresh
-## merges their current boxes in the target's frame (a falling body or a moving part stays framed),
-## clips that box to the camera's near plane and projects it. The Hud calls refresh() every frame;
-## tests call it too. Visual only, not saved.
+## clips each part's current box to the camera's view (TargetFrameRules.clip_box) and projects it,
+## so a falling body or a moving part stays framed and a lying body is framed tightly. The Hud calls
+## refresh() every frame; tests call it too. Visual only, not saved.
 
 const COLOR := Color(1, 1, 1, 0.95)
 ## Faint dark outline around each bar so the frame reads on bright and dark backgrounds.
@@ -104,38 +104,26 @@ func _draw() -> void:
 		draw_rect(bar, COLOR)
 
 
-# The frame of the target's visible box seen by `camera`, no area when nothing of it is in front.
+# The frame of the target's visible parts seen by `camera`: each part's box clipped to the view and
+# projected, the rectangle around them all; no area when nothing of it is in view.
 func _project(camera: Camera3D) -> Rect2:
-	var bounds := _local_bounds()
-	if not bounds.has_surface():
-		return Rect2()
-	var to_camera := camera.global_transform.affine_inverse() * target.global_transform
-	var corners := PackedVector3Array()
-	for i in 8:
-		corners.append(to_camera * bounds.get_endpoint(i))
-	var front := TargetFrameRules.clip_to_front(corners, camera.near * 1.01)
+	var frustum := camera.get_frustum()
 	var points := PackedVector2Array()
-	for point in front:
-		points.append(camera.unproject_position(camera.global_transform * point))
-	var screen := get_viewport_rect().size
-	return TargetFrameRules.frame_rect(TargetFrameRules.rect_of(points), screen, TargetFrameRules.unit(screen.y))
-
-
-# The merged box of the visible parts in the target's own frame (no surface without any).
-func _local_bounds() -> AABB:
-	var to_target := target.global_transform.affine_inverse()
-	var merged := AABB()
-	var found := false
+	var corners := PackedVector3Array()
+	corners.resize(8)
 	for part in _parts:
 		if not is_instance_valid(part) or not part.is_visible_in_tree():
 			continue
 		var box := part.get_aabb()
 		if not box.has_surface():
 			continue
-		box = (to_target * part.global_transform) * box
-		merged = merged.merge(box) if found else box
-		found = true
-	return merged
+		var to_world := part.global_transform
+		for i in 8:
+			corners[i] = to_world * box.get_endpoint(i)
+		for point in TargetFrameRules.clip_box(corners, frustum):
+			points.append(camera.unproject_position(point))
+	var screen := get_viewport_rect().size
+	return TargetFrameRules.frame_rect(TargetFrameRules.rect_of(points), screen, TargetFrameRules.unit(screen.y))
 
 
 func _hide() -> void:

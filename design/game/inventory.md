@@ -127,6 +127,7 @@ Deus Ex 1 style grid inventory: what you carry is a spatial puzzle, the belt is 
 - Belt: bottom centre, 10 slots (52 px) with the key number, short name and count; the selected slot has a yellow border.
 - The name of the item put in hand shows just above the belt for `InventoryConfig.item_name_time` (1.5 s, fading over its last half); holstering hides it at once.
 - Prompt under the reticle; messages (2.5 s, fading) above the item name; the name of the item in hand and ammo bottom right.
+- Interaction frame ([ADR 0129](../decisions/0129-interaction-frame.md)): while the Interactor targets something to pick up, use or carry (also "Too heavy"; not while carrying, unable to act or scoped), four thin white corner brackets frame its visible geometry on screen (each mesh's box clipped to the view and projected; labels, sprites, particles and shadow proxies left out), padded 6 px and kept 16 px inside the screen (a door up close); a small boxed tag with the prompt's name (`Interactor.target_name`, "Lockpick (3)") sits inside the frame's top-left corner, or just above a small frame. Sizes are px at 1080 p scaled with the canvas: lines 1 px (never under one physical pixel), arms 15 % of the shorter side within 8-24 px. The frame follows the thing every frame; the prompt line stays. `ui/hud/target_frame.gd`, `target_frame_rules.gd`, the tag style `HudTargetTag` in `ui/hud/hud_theme.tres`.
 
 ### Saving
 

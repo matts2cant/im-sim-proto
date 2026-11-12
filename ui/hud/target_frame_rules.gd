@@ -1,7 +1,7 @@
 class_name TargetFrameRules
 extends RefCounted
 ## Pure logic of the HUD's interaction frame (ADR 0129): which Interactor kinds are framed, the box
-## of the target clipped to the camera's near plane, its screen rectangle (padded, clamped inside the
+## of the target clipped to the camera's view, its screen rectangle (padded, clamped inside the
 ## screen), the corner brackets and where the name tag goes. Sizes are given in pixels at 1080 p and
 ## scaled by `unit` (the canvas height / 1080), so the frame looks the same at every resolution.
 
@@ -33,26 +33,49 @@ static func unit(height: float) -> float:
 	return height / REFERENCE_HEIGHT
 
 
-## The parts of the box with these 8 corners (camera space: the camera looks down -Z) in front of
-## the near plane: the corners in front of it and the points where the box's edges cross it. Empty
-## when the whole box is behind the plane. Corners are indexed by their axes' bits (AABB.get_endpoint
-## order), so two corners whose indices differ by one bit share an edge.
-static func clip_to_front(corners: PackedVector3Array, near: float) -> PackedVector3Array:
-	var plane := -near
+## The outline of the box with these 8 corners inside the view: each face clipped by every plane
+## (Camera3D.get_frustum(): normals point out of the view), the vertices of what is left. Empty when
+## nothing of the box is in view (behind the camera). Corners are indexed by their axes' bits
+## (AABB.get_endpoint order). Projecting these points gives the box's outline cut at the screen's
+## edges, so a door up close is framed by what is seen of it.
+static func clip_box(corners: PackedVector3Array, planes: Array[Plane]) -> PackedVector3Array:
 	var points := PackedVector3Array()
-	for corner in corners:
-		if corner.z <= plane:
-			points.append(corner)
-	for i in corners.size():
-		for bit: int in [1, 2, 4]:
-			var j := i | bit
-			if j == i or j >= corners.size():
-				continue
-			var a := corners[i]
-			var b := corners[j]
-			if (a.z <= plane) != (b.z <= plane):
-				points.append(a.lerp(b, (plane - a.z) / (b.z - a.z)))
+	for bit: int in [1, 2, 4]:
+		var others: Array[int] = []
+		for other: int in [1, 2, 4]:
+			if other != bit:
+				others.append(other)
+		for side: int in [0, bit]:
+			var face := PackedVector3Array(
+				[
+					corners[side],
+					corners[side | others[0]],
+					corners[side | others[0] | others[1]],
+					corners[side | others[1]],
+				]
+			)
+			points.append_array(clip_polygon(face, planes))
 	return points
+
+
+## A convex polygon cut by each plane (Sutherland-Hodgman), keeping the side below every plane.
+static func clip_polygon(polygon: PackedVector3Array, planes: Array[Plane]) -> PackedVector3Array:
+	var result := polygon
+	for plane in planes:
+		var kept := PackedVector3Array()
+		for i in result.size():
+			var a := result[i]
+			var b := result[(i + 1) % result.size()]
+			var da := plane.distance_to(a)
+			var db := plane.distance_to(b)
+			if da <= 0.0:
+				kept.append(a)
+			if (da <= 0.0) != (db <= 0.0):
+				kept.append(a.lerp(b, da / (da - db)))
+		result = kept
+		if result.is_empty():
+			break
+	return result
 
 
 ## Smallest rectangle holding every point (an empty Rect2 for no points).
