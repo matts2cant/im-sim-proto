@@ -52,7 +52,8 @@ func test_rifles_and_sniper_pickers_apply_their_tiers_live() -> void:
 		picker.select(2)
 		picker.item_selected.emit(2)
 		assert_int(Skills.of(_entity).tier(skill)).is_equal(2)
-	assert_float(Attributes.read(_entity, &"rifle_spread_mult", 1.0)).is_equal_approx(0.6, 0.0001)
+	# Rifles Advanced: x0.5 since M13a (ADR 0123).
+	assert_float(Attributes.read(_entity, &"rifle_spread_mult", 1.0)).is_equal_approx(0.5, 0.0001)
 	assert_float(Attributes.read(_entity, &"sniper_sway_mult", 1.0)).is_equal_approx(0.5, 0.0001)
 
 

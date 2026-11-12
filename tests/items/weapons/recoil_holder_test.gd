@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0123): recoil is a WeaponHolder feature, not the player's: a shooter built from
 ## components (shooter_fixtures.gd) at a wall 8 m away.
-## - Skill scales it through attributes: Master's first rifle step is the pattern x1 with a quarter
-##   of Untrained's noise (x1.5 and x2), and returns faster.
+## - Skill scales it through attributes: Master's first rifle step is the pattern x0.67 with a
+##   quarter of Untrained's noise (the config is Untrained's), and returns faster.
 ## - The bullets follow the whole climb whatever share the eye follows: a spray with the eye
 ##   following none of it (camera motion 0) hits where it hits with the eye following all of it.
 ## - Pulling against the pattern keeps a spray on the aim point; not pulling climbs off it.
@@ -34,8 +34,9 @@ func test_skill_scales_the_pattern_noise_and_return() -> void:
 	var untrained_return := _return_time()
 	var master := _first_step(3)
 	var master_return := _return_time()
-	var untrained_noise := untrained - pattern * 1.5
-	var master_noise := master - pattern
+	# The config is Untrained's; Master x0.67 size, x0.25 noise.
+	var untrained_noise := untrained - pattern
+	var master_noise := master - pattern * 0.67
 	assert_vector(untrained_noise).is_equal_approx(master_noise * 4.0, Vector2.ONE * 0.0001)
 	assert_float(master_noise.length()).is_less(RIFLE.recoil.noise_deg)
 	# Return time x0.55 at Master (rifle_recoil_recover_mult).

@@ -53,14 +53,14 @@ script = ExtResource("3_effect")
 attribute = &"pistol_recoil_size_mult"
 op = 1
 label = "Recoil size"
-tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+tier_values = Array[float]([1.0, 0.89, 0.78, 0.67])
 
 [sub_resource type="Resource" id="Effect_pistol_recoil_noise_mult"]
 script = ExtResource("3_effect")
 attribute = &"pistol_recoil_noise_mult"
 op = 1
 label = "Recoil noise"
-tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
 
 [sub_resource type="Resource" id="Effect_pistol_recoil_recover_mult"]
 script = ExtResource("3_effect")
@@ -115,14 +115,14 @@ script = ExtResource("3_effect")
 attribute = &"rifle_recoil_size_mult"
 op = 1
 label = "Recoil size"
-tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+tier_values = Array[float]([1.0, 0.89, 0.78, 0.67])
 
 [sub_resource type="Resource" id="Effect_rifle_recoil_noise_mult"]
 script = ExtResource("3_effect")
 attribute = &"rifle_recoil_noise_mult"
 op = 1
 label = "Recoil noise"
-tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
 
 [sub_resource type="Resource" id="Effect_rifle_recoil_recover_mult"]
 script = ExtResource("3_effect")
@@ -188,14 +188,14 @@ script = ExtResource("3_effect")
 attribute = &"sniper_recoil_size_mult"
 op = 1
 label = "Recoil size"
-tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+tier_values = Array[float]([1.0, 0.89, 0.78, 0.67])
 
 [sub_resource type="Resource" id="Effect_sniper_recoil_noise_mult"]
 script = ExtResource("3_effect")
 attribute = &"sniper_recoil_noise_mult"
 op = 1
 label = "Recoil noise"
-tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
 
 [sub_resource type="Resource" id="Effect_sniper_recoil_recover_mult"]
 script = ExtResource("3_effect")

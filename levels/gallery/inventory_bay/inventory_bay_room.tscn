@@ -30,6 +30,7 @@
 [ext_resource type="Resource" path="res://items/exploit/alarm_exploit.tres" id="64_alarm_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/computer_exploit.tres" id="65_computer_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/router_exploit.tres" id="66_router_exploit"]
+[ext_resource type="PackedScene" path="res://items/weapons/smg/smg_pickup.tscn" id="67_smg"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -107,7 +108,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.1075, -9.75)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.0765, -10.95)
 
 [node name="AssaultRifle" parent="ItemTable" instance=ExtResource("22_assault_rifle")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.08, -12.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.74, 1.08, -12.2)
+
+[node name="Smg" parent="ItemTable" instance=ExtResource("67_smg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.37, 1.06, -12.2)
 
 [node name="ShotgunShells" parent="ItemTable" instance=ExtResource("23_shotgun_shells")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.035, -12.88)
@@ -429,6 +433,13 @@ pixel_size = 0.0025
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -12.2)
 text = "Assault rifle
 2×2"
+size = 0
+pixel_size = 0.0025
+
+[node name="Smg" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 2.0, -12.2)
+text = "Submachine gun
+2×1"
 size = 0
 pixel_size = 0.0025
 

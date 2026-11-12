@@ -34,13 +34,14 @@ func test_size_and_noise_scale_independently() -> void:
 	var untrained := RecoilState.new(5)
 	var master := RecoilState.new(5)
 	var pattern := RIFLE.recoil.pattern_step(0) * RIFLE.recoil.pattern_scale
-	# The skill table's Untrained and Master multipliers: size x1.5 / x1, noise x2 / x0.5.
-	untrained.add_shot(RIFLE.recoil, 1.5, 2.0)
-	master.add_shot(RIFLE.recoil, 1.0, 0.5)
-	var untrained_noise := untrained.offset - pattern * 1.5
-	var master_noise := master.offset - pattern
+	# The skill table's Untrained and Master multipliers (the config is Untrained's): size x1 / x0.67,
+	# noise x1 / x0.25.
+	untrained.add_shot(RIFLE.recoil, 1.0, 1.0)
+	master.add_shot(RIFLE.recoil, 0.67, 0.25)
+	var untrained_noise := untrained.offset - pattern
+	var master_noise := master.offset - pattern * 0.67
 	assert_vector(untrained_noise).is_equal_approx(master_noise * 4.0, Vector2.ONE * 0.0001)
-	assert_float(absf(master_noise.x)).is_less_equal(RIFLE.recoil.noise_deg * 0.5)
+	assert_float(absf(master_noise.x)).is_less_equal(RIFLE.recoil.noise_deg * 0.25)
 
 
 func test_automatic_climb_holds_during_a_spray_and_returns_after_it() -> void:
@@ -70,7 +71,7 @@ func test_automatic_climb_holds_during_a_spray_and_returns_after_it() -> void:
 
 func test_semi_automatic_kick_returns_in_about_0_2_s() -> void:
 	var recoil := RecoilState.new(3)
-	recoil.add_shot(PISTOL.recoil, 1.5, 2.0)
+	recoil.add_shot(PISTOL.recoil)
 	var kicked := recoil.offset.length()
 	assert_float(recoil.offset.y).is_greater(PISTOL.recoil.kick_up_deg)
 	var ticks := 0
@@ -100,7 +101,9 @@ func test_pattern_loops_and_resumes_part_way_after_a_short_pause() -> void:
 	assert_float(recoil.heat).is_between(3.0, 4.5)
 	var before := recoil.offset
 	recoil.add_shot(config)
-	assert_vector(recoil.offset - before).is_equal_approx(config.pattern[floori(3.0)], Vector2.ONE * 0.0001)
+	assert_vector(recoil.offset - before).is_equal_approx(
+		config.pattern[3] * config.pattern_scale, Vector2.ONE * 0.0001
+	)
 
 
 func test_damage_falls_off_past_its_start() -> void:

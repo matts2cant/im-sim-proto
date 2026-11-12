@@ -4,8 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
+pattern_scale = 1.5
 kick_up_deg = 5.0
 kick_side_deg = 1.0
-noise_deg = 0.2
+noise_deg = 0.4
 recover_time = 0.08
 scope_blackout_time = 0.3
