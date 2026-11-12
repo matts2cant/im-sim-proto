@@ -174,11 +174,12 @@ func test_a_seen_helix_run_over_ap_yard_patches_every_helix_camera() -> void:
 
 func test_rtr01_keeps_the_office_off_security_except_the_console() -> void:
 	var router := Router.of(_entity("Network/Rtr01"))
-	assert_int(router.rules.size()).is_equal(3)
+	assert_int(router.rules.size()).is_equal(4)
 	assert_bool(router.default_allow).is_true()
 	var pc := _device("Network/OfficePc1")
-	# Office devices reach the console only; the security devices reach the office.
+	# Office devices reach the console and MAIL-01 (M12c) only; the security devices reach the office.
 	assert_bool(pc.reaches(_entity("Devices/SecurityConsole"))).is_true()
+	assert_bool(pc.reaches(_entity("Network/MailServer"))).is_true()
 	for path: String in ["Doors/VaultDoor", "Devices/CameraHall", "Devices/AlarmController"]:
 		assert_bool(pc.reaches(_entity(path))).override_failure_message(path).is_false()
 	assert_bool(_device("Devices/SecurityConsole").reaches(_entity("Network/OfficePc1"))).is_true()

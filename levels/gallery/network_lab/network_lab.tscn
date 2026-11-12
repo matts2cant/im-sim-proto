@@ -23,6 +23,8 @@
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/office_pc2.tres" id="21_pc2_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/console.tres" id="22_console_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/file_server.tres" id="23_server_data"]
+[ext_resource type="Resource" path="res://levels/gallery/network_lab/mail_pc.tres" id="23_mail_pc_data"]
+[ext_resource type="Script" path="res://objects/network/internet_link.gd" id="23_internet_link"]
 [ext_resource type="Script" path="res://objects/network/subnet.gd" id="24_subnet"]
 [ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="24_office"]
 [ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="24_security"]
@@ -143,6 +145,11 @@ script = ExtResource("15_account")
 user = "archive"
 password = "files7"
 
+[sub_resource type="Resource" id="Account_guest"]
+script = ExtResource("15_account")
+user = "guest"
+password = "guest"
+
 [node name="NetworkLab" type="Node3D"]
 
 [node name="Shell" type="Node3D" parent="."]
@@ -203,6 +210,13 @@ surface = "wood"
 
 [node name="ServerDesk" parent="Furniture" instance=ExtResource("4_ledge")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -12.5)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
+[node name="MailPcDesk" parent="Furniture" instance=ExtResource("4_ledge")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -9.5)
 height = 0.75
 width = 1.4
 depth = 0.7
@@ -423,6 +437,47 @@ data = ExtResource("23_server_data")
 credentials_id = &"network_lab_file_server"
 host_name = "FILE-SERVER"
 label = "file server"
+
+[node name="MailPc" parent="Devices" instance=ExtResource("14_computer")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.45, -9.5)
+metadata/display_name = "MAIL-PC"
+
+[node name="Accounts" parent="Devices/MailPc"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_guest")])
+
+[node name="Computer" parent="Devices/MailPc"]
+data = ExtResource("23_mail_pc_data")
+host_name = "MAIL-PC"
+label = "mail PC"
+session_user = "guest"
+mail_server = "mail.halcyon.net"
+
+[node name="Device" parent="Devices/MailPc"]
+links = Array[NodePath]([NodePath("../../EdgeRouter")])
+address = "10.0.80.10"
+subnet = &"lab_mail"
+
+[node name="EdgeRouter" parent="Devices" instance=ExtResource("12_router")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -7.6)
+metadata/display_name = "EDGE-RTR"
+
+[node name="Powered" parent="Devices/EdgeRouter"]
+circuit = &"network_lab_edge"
+
+[node name="Device" parent="Devices/EdgeRouter"]
+address = "10.0.80.1"
+subnet = &"lab_mail"
+
+[node name="InternetLink" type="Node" parent="Devices/EdgeRouter"]
+script = ExtResource("23_internet_link")
+hosts = PackedStringArray("mail.halcyon.net")
+
+[node name="EdgeBreaker" parent="Devices" instance=ExtResource("9_breaker")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.3, -6.5)
+
+[node name="CircuitBreaker" parent="Devices/EdgeBreaker"]
+circuit = &"network_lab_edge"
+label = "edge router"
 
 [node name="Device" parent="Devices/FileServer"]
 address = "10.0.30.8"
@@ -781,6 +836,14 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.15, -12.5)
 pixel_size = 0.003
 text = "File server · behind RTR-02
 crack it, open its desktop"
+size = 0
+
+[node name="MailRoute" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.3, -8.0)
+pixel_size = 0.003
+text = "Mail route · this PC's mail is on the internet
+through EDGE-RTR: cut the breaker and
+unread mail goes out of reach"
 size = 0
 
 [node name="Annex" parent="Labels" instance=ExtResource("3_sign")]

@@ -41,6 +41,7 @@
 [ext_resource type="Script" path="res://objects/network/router_rule.gd" id="50_router_rule"]
 [ext_resource type="PackedScene" path="res://objects/network/access_point.tscn" id="51_access_point"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="52_metal"]
+[ext_resource type="PackedScene" path="res://objects/network/mail_server.tscn" id="53_mail_server"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -234,6 +235,28 @@ from = "office"
 to_kind = 2
 to = "10.0.20.5"
 allow = true
+
+[sub_resource type="Resource" id="Rule_office_mail"]
+script = ExtResource("50_router_rule")
+from_kind = 1
+from = "office"
+to_kind = 2
+to = "10.0.20.8"
+allow = true
+
+[sub_resource type="Resource" id="Sw_halcyon_server"]
+script = ExtResource("48_software")
+vendor = "Halcyon"
+product = "Server"
+version = "5.1"
+
+[sub_resource type="StandardMaterial3D" id="Mat_fail_secure_plate"]
+albedo_color = Color(0.85, 0.65, 0.15, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="Mesh_fail_secure_plate"]
+material = SubResource("Mat_fail_secure_plate")
+size = Vector3(0.36, 0.09, 0.004)
 
 [sub_resource type="Resource" id="Rule_office_security"]
 script = ExtResource("50_router_rule")
@@ -500,6 +523,20 @@ free_side = 2
 script = ExtResource("22_electronic_lock")
 free_side = 2
 
+[node name="FailSecurePlate" type="MeshInstance3D" parent="Doors/VaultDoor/PanelMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.034)
+cast_shadow = 0
+mesh = SubResource("Mesh_fail_secure_plate")
+
+[node name="FailSecureLabel" type="Label3D" parent="Doors/VaultDoor/PanelMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.038)
+pixel_size = 0.001
+double_sided = false
+modulate = Color(0.1, 0.08, 0.02, 1)
+outline_size = 0
+text = "FAIL-SECURE"
+font_size = 48
+
 [node name="StairsUpper" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.65, 4.5, 6.875)
 
@@ -738,6 +775,7 @@ data = ExtResource("41_console_data")
 credentials_id = &"warehouse_security_console"
 host_name = "SEC-CONSOLE"
 label = "security console"
+mail_server = "MAIL-01"
 
 [node name="Device" parent="Devices/SecurityConsole"]
 software = SubResource("Sw_halcyon_42")
@@ -892,7 +930,7 @@ circuit = &"warehouse_building"
 
 [node name="Device" parent="Devices/SecuritySwitch"]
 software = SubResource("Sw_norsk_sw")
-links = Array[NodePath]([NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/SecurityRoomSwitch"), NodePath("../../../Devices/VaultSwitch"), NodePath("../../../Devices/YardSwitch"), NodePath("../../../Devices/RoofSwitch")])
+links = Array[NodePath]([NodePath("../../../Devices/CameraHall"), NodePath("../../../Devices/SirenHallNorth"), NodePath("../../../Devices/SirenHallWest"), NodePath("../../../Devices/SirenOfficeGround"), NodePath("../../../Devices/SirenBasement"), NodePath("../../../Devices/SecurityRoomSwitch"), NodePath("../../../Devices/VaultSwitch"), NodePath("../../../Devices/YardSwitch"), NodePath("../../../Devices/RoofSwitch"), NodePath("../../../Network/MailServer")])
 address = "10.0.20.2"
 subnet = &"security"
 
@@ -1016,7 +1054,7 @@ accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr01")])
 credentials_id = &"warehouse_rtr01"
 
 [node name="Router" parent="Network/Rtr01"]
-rules = Array[ExtResource("50_router_rule")]([SubResource("Rule_security_office"), SubResource("Rule_office_console"), SubResource("Rule_office_security")])
+rules = Array[ExtResource("50_router_rule")]([SubResource("Rule_security_office"), SubResource("Rule_office_console"), SubResource("Rule_office_mail"), SubResource("Rule_office_security")])
 subnet_data = Array[ExtResource("47_subnet")]([ExtResource("47_office"), ExtResource("47_security")])
 side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.1"})
 
@@ -1037,6 +1075,7 @@ data = ExtResource("42_pc1_data")
 credentials_id = &"warehouse_office_pc1"
 host_name = "OFFICE-PC1"
 label = "office PC 1"
+mail_server = "MAIL-01"
 
 [node name="Device" parent="Network/OfficePc1"]
 software = SubResource("Sw_halcyon_44")
@@ -1054,10 +1093,23 @@ data = ExtResource("43_pc2_data")
 credentials_id = &"warehouse_office_pc2"
 host_name = "OFFICE-PC2"
 label = "office PC 2"
+mail_server = "MAIL-01"
 
 [node name="Device" parent="Network/OfficePc2"]
 software = SubResource("Sw_halcyon_44")
 address = "10.0.10.12"
+
+[node name="MailServer" parent="Network" instance=ExtResource("53_mail_server")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.49, -2.4, 9.2)
+metadata/display_name = "MAIL-01"
+
+[node name="Powered" parent="Network/MailServer"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Network/MailServer"]
+software = SubResource("Sw_halcyon_server")
+address = "10.0.20.8"
+subnet = &"security"
 
 [node name="Furniture" type="Node3D" parent="."]
 

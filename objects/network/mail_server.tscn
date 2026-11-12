@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/electronics.tres" id="7_electronics"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
+[ext_resource type="Script" path="res://objects/network/mail_server.gd" id="13_mail_server"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.5, 0.6, 0.3)
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+material = ExtResource("11_metal_surface")
+size = Vector3(0.5, 0.6, 0.28)
+
+[sub_resource type="BoxMesh" id="Mesh_leds"]
+material = ExtResource("12_led")
+size = Vector3(0.3, 0.025, 0.01)
+
+[node name="MailServer" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+shape = SubResource("Shape_body")
+
+[node name="Box" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.14)
+mesh = SubResource("Mesh_box")
+
+[node name="Indicator" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0.285)
+cast_shadow = 0
+mesh = SubResource("Mesh_leds")
+
+[node name="Indicator2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.285)
+cast_shadow = 0
+mesh = SubResource("Mesh_leds")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.server"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 40.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage")])
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+script = ExtResource("6_breakable")
+material = ExtResource("7_electronics")
+settings = ExtResource("8_break_settings")
+break_on_depleted = false
+size = 0.6
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("9_powered")
+targets = Array[NodePath]([NodePath("../Indicator"), NodePath("../Indicator2")])
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("10_device")
+broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../Indicator2")])
+
+[node name="MailServerBehaviour" type="Node" parent="."]
+script = ExtResource("13_mail_server")

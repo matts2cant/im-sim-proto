@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## no simulated seconds; supervision checks every CHECK seconds.
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
+const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const CONTROLLER_SCENE: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN_SCENE: PackedScene = preload("res://objects/alarm/siren.tscn")
 const ORIGIN := Vector3(-300, 0, 340)
@@ -184,6 +185,26 @@ func test_a_controller_that_goes_down_counts_no_drops_and_takes_stock_again() ->
 	_break("B1")
 	await _checks(2)
 	assert_array(Array(_controller().trouble_lines())).has_size(1)
+
+
+func test_the_security_app_lists_the_trouble_notes_of_the_controllers_it_lists() -> void:
+	var console := Devices.device(_root, "Console", ORIGIN + Vector3(-1, 1, -2))
+	Devices.link(console, _n["Controller"])
+	var computer := Net.add_computer(console, [Computer.MAIL, Computer.FILES, Computer.SECURITY])
+	var app := SecurityApp.new()
+	add_child(app)
+	app.bind(computer, null)
+	assert_bool(app.trouble_box.visible).is_false()
+	_break("B1")
+	await _checks(2)
+	_controller().clock += 1.0
+	_break("B2")
+	await _checks(2)
+	app.refresh()
+	assert_bool(app.trouble_box.visible).is_true()
+	assert_array(Array(app.trouble_lines())).has_size(2)
+	assert_str(app.trouble_lines()[0]).ends_with("CAM-B2  lost signal")
+	app.free()
 
 
 func test_notes_are_saved_and_loaded() -> void:
