@@ -139,6 +139,7 @@ func _play_sound(origin: Vector3) -> void:
 	if material == null or material.break_sound == null:
 		return
 	var player := AudioStreamPlayer3D.new()
+	player.bus = GameSettings.EFFECTS_BUS
 	player.name = "BreakSound"
 	player.stream = material.break_sound
 	player.volume_db = material.break_volume_db

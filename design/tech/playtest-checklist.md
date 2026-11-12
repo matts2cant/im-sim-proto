@@ -610,3 +610,10 @@ Warehouse network:
 - [ ] "Reset dummies" stands up every downed dummy in the room (lanes, walker and melee pair), dead or knocked out.
 - [ ] The second rack (east of the medkits) holds a pistol and 60 rounds, and a labelled empty SMG slot until the submachine gun lands.
 - [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.
+- [ ] Esc, Settings: the game stays paused; Esc (or Back) returns to the Esc menu with Settings focused, a second Esc resumes. Keyboard only: Up/Down reach every row, Left/Right move sliders, Enter flips switches; the focused row's name is white.
+- [ ] Mouse sensitivity ×2 turns twice as far per mouse move; ×0.5 half; through the sniper scope the crosshair still moves as far on screen as at the hip.
+- [ ] Invert Y: mouse forward looks down; off again: normal.
+- [ ] Field of view: dragging the slider widens or narrows the view behind the dimmed menu at once; 100° and 70° feel right; the sniper scope still zooms to the same view at any setting.
+- [ ] Volumes: master, effects (gunshots, footsteps, alarms, lockpicking clicks) change at once; 0 % is silent; music has nothing to play yet.
+- [ ] Fullscreen on and off switches the window; vsync off raises the frame rate above the monitor's (debug panel stats).
+- [ ] Quit, start again: the settings are kept (`user://settings.cfg`); loading a save does not change them.

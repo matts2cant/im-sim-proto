@@ -104,3 +104,4 @@ color_ramp = SubResource("Gradient_smoke")
 [node name="Bang" type="AudioStreamPlayer3D" parent="."]
 unit_size = 20.0
 max_distance = 120.0
+bus = &"Effects"

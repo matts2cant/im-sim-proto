@@ -46,6 +46,7 @@ func _ready() -> void:
 	bark = _label("Bark", 36, Vector3(0, -0.28, 0))
 	bark.modulate = Color(0.95, 0.95, 0.95)
 	audio = AudioStreamPlayer3D.new()
+	audio.bus = GameSettings.EFFECTS_BUS
 	audio.name = "Audio"
 	add_child(audio)
 	if awareness != null:

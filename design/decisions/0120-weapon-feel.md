@@ -45,7 +45,7 @@ The roadmap asks for weapon feel "closer to Counter-Strike". Today accuracy is a
 - Guards obey the weapon's spread and recoil, compensating about 70 %, and keep firing short bursts; their accuracy is retuned so the ADR 0070 survival targets hold (the player survives at least 3 s under fire at 10 m, about 2 s at 4 m).
 - Weapon motion driven by code (no arms or hands): kick, sway, bob, reload and draw; a slight camera shake on firing, scaled by the camera motion setting.
 - Sounds per weapon built from the sound packs already in the project (layers, pitch, a bass layer), with an echo tail by indoor or outdoor area; if the packs are too thin, the chief engineer asks the user before adding any.
-- A mockup of hit markers and tracers before the build.
+- No mockup required: feedback is game feel, judged in the game (the user, 2026-11-12). A reference sketch exists in [hit_feedback.html](../prototypes/hit_feedback.html).
 
 ## Alternatives considered
 

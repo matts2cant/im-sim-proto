@@ -29,6 +29,7 @@ func _ready() -> void:
 	body.contact_monitor = true
 	body.max_contacts_reported = maxi(body.max_contacts_reported, 8)
 	_audio = AudioStreamPlayer3D.new()
+	_audio.bus = GameSettings.EFFECTS_BUS
 	_audio.name = "ImpactAudio"
 	_audio.max_polyphony = 2
 	_audio.unit_size = 4.0

@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Integration: the LockpickAudio node (ADR 0108), the API the lockpicking minigame calls. Every cue
 ## plays on its own pooled player (overlapping cues never cut each other off), an unknown cue only
 ## warns, the continuous voices go silent with no scraping and low strain, and stop_all silences
-## everything. Non-positional players on the Master bus.
+## everything. Non-positional players on the Effects bus (ADR 0124).
 
 const CUES: Array[StringName] = [
 	&"click",
@@ -30,7 +30,7 @@ func test_every_cue_plays_on_its_own_player() -> void:
 		_audio.play(cue)
 	var playing: Array[AudioStream] = []
 	for player in _players():
-		assert_str(player.bus).is_equal("Master")
+		assert_str(player.bus).is_equal(String(GameSettings.EFFECTS_BUS))
 		if player.playing:
 			playing.append(player.stream)
 	# The pool has 6 players: the last 6 cues are all still playing, none cut off by the next.
@@ -73,7 +73,7 @@ func test_no_scraping_and_low_strain_are_silent_after_smoothing() -> void:
 func test_voices_stream_to_a_generator() -> void:
 	var voice_player := _audio.get_node("Voices") as AudioStreamPlayer
 	assert_object(voice_player.stream).is_instanceof(AudioStreamGenerator)
-	assert_str(voice_player.bus).is_equal("Master")
+	assert_str(voice_player.bus).is_equal(String(GameSettings.EFFECTS_BUS))
 	_audio.set_strain(0.5)
 	# Whatever room the generator has is filled without errors (none in a headless run may be free).
 	assert_int(_audio.fill()).is_greater_equal(0)

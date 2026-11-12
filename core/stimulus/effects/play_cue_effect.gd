@@ -12,6 +12,7 @@ func apply(ctx: EffectContext) -> void:
 	if stream == null:
 		return
 	var player := AudioStreamPlayer3D.new()
+	player.bus = GameSettings.EFFECTS_BUS
 	player.name = "Cue"
 	player.stream = stream
 	player.volume_db = volume_db
