@@ -1,0 +1,453 @@
+<meta charset="utf-8">
+<title>Device Design Language</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: 1) every device in every version as cards, drawn at the game's own pixel scale (1152 px wide view,
+   75 degrees, at a chosen distance), sharing one language: kind colour, Map icon, one status light, labelled
+   ports, name plate. 2) Linking bays, open and locked. 3) The deck's Map in the same language. 4) The keychain
+   in the inventory. Single dark look: game views. */
+:root {
+  color-scheme: dark;
+  --page: #07090b; --wall: #262b31; --wall-line: #1f2328; --desk: #6b5137; --desk-edge: #4c3926; --ceil: #1a1d21;
+  --fg: #e4eaee; --caption: #9eb8c2; --line: rgba(140, 158, 168, 0.35); --panel-2: #12191d; --amber: #ffd14d;
+  --body: #171b20; --body-edge: #313840; --face: #0e1114; --port: #040506; --plate: #d9dde0; --plate-text: #1a1d20; --rail: #3a424a; --blank: #1a1e22;
+  /* kind colours */
+  --k-switch: #3f8fd9; --k-router: #e8862a; --k-ap: #36c3d6; --k-jack: #8fa3b3; --k-computer: #3fc48a;
+  --k-alarm: #e5534b; --k-door: #a07cf0; --k-security: #e8c547;
+  /* StatusLight colours */
+  --st-up: #26ff4d; --st-cut: #ff9e0d; --st-off: #ff1f14; --st-dark: #0f1210;
+  /* deck */
+  --os-bg: #071211; --os-panel: #0b1a19; --os-line: rgba(77, 191, 168, 0.45); --teal: #8cf2d9; --teal-text: #d1f2e6; --teal-dim: #7fa8a3; --self: #73d9ff;
+  /* tab interface */
+  --tab-bg: rgba(13, 18, 21, 0.96); --cell: #0f1417; --cell-line: rgba(140, 158, 168, 0.28);
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif; --font-head: "Space Grotesk", "Inter", system-ui, sans-serif; --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--fg); font: 14px var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 32px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.wrap { width: 100%; max-width: 1240px; display: flex; flex-direction: column; gap: 12px; }
+h1 { margin: 0; font: 700 22px var(--font-head); }
+h2 { margin: 22px 0 0; font: 600 18px var(--font-head); text-wrap: balance; }
+h2 small { font: 400 13px var(--font-ui); color: var(--caption); margin-left: 8px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; color: var(--caption); font-size: 12px; }
+.bar label { display: flex; gap: 6px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; color: var(--caption); background: var(--panel-2); border: 0; padding: 5px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--page); background: var(--amber); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+input[type="range"] { width: 150px; accent-color: var(--amber); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--caption); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 6px; display: inline-block; border-radius: 1px; }
+.grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.card { border: 1px solid var(--line); border-radius: 6px; background: #0c1013; min-width: 0; max-width: 100%; display: flex; flex-direction: column; }
+.card header { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.card h3 { margin: 0; font: 600 14px var(--font-head); display: flex; gap: 8px; align-items: center; }
+.card h3 i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.card .seg button { padding: 3px 8px; font-size: 11px; }
+.card .view { overflow: auto; max-width: 100%; }
+.card svg { display: block; }
+.card footer { padding: 6px 10px 9px; color: var(--caption); font-size: 12px; line-height: 1.45; max-width: 52ch; }
+.later { color: var(--amber); font-weight: 600; }
+.notes { color: var(--caption); font-size: 13px; line-height: 1.55; }
+.notes p { margin: 0 0 8px; max-width: 86ch; }
+.notes b { color: var(--fg); font-weight: 600; }
+.scroll { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+.scroll svg { display: block; }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
+.blink { animation: blink 0.8s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+/* keychain */
+.tab { background: var(--tab-bg); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+@media (max-width: 760px) { .tab { grid-template-columns: 1fr; } }
+.tab h4 { margin: 0 0 8px; font: 600 11px var(--font-mono); letter-spacing: 0.12em; color: var(--caption); text-transform: uppercase; }
+.inv { display: grid; grid-template-columns: repeat(10, 44px); gap: 3px; overflow-x: auto; }
+.inv div { width: 44px; height: 44px; background: var(--cell); border: 1px solid var(--cell-line); border-radius: 3px; font: 10px var(--font-mono); color: var(--caption); display: grid; place-items: center; text-align: center; }
+.inv .item { background: #1a232a; color: var(--fg); border-color: rgba(255, 209, 77, 0.35); }
+.keys { display: flex; flex-direction: column; gap: 4px; }
+.key { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; padding: 6px 8px; background: var(--cell); border: 1px solid var(--cell-line); border-radius: 3px; }
+.key b { font-weight: 500; color: var(--fg); font-size: 13px; }
+.key small { display: block; color: var(--caption); font-size: 11px; }
+.key svg { width: 20px; height: 20px; }
+.toast { display: inline-block; padding: 6px 12px; background: rgba(8, 10, 12, 0.8); border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <h1>Device design language</h1>
+  <div class="notes">
+    <p><b>One language for every device</b>: a strip in the device kind's colour, the kind's Map icon, one status light (none on wall jacks, panic buttons and lasers), every network port visible with a label naming what it is cabled to, and a name plate. Rack and standalone versions of the same device look like the same family. The deck's Map draws the same strip and icon.</p>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <h2>1 · Every device, every version <small>at the game's own pixel scale</small></h2>
+  <div class="bar">
+    <label for="dist">Viewing distance <input id="dist" type="range" min="0.3" max="2" step="0.1" value="0.8"> <span id="dist-out">0.8 m</span></label>
+    <span class="seg" role="group" aria-label="Status" id="status"></span>
+    <span class="seg" role="group" aria-label="Light">
+      <button type="button" id="l-lit" aria-pressed="true">Lit room</button>
+      <button type="button" id="l-dark" aria-pressed="false">Dark corner</button>
+    </span>
+  </div>
+  <div class="grid" id="cards"></div>
+  <div class="notes">
+    <p><b>Port labels</b> run vertically under each socket on multi-port gear (your choice a); single-port devices print the label flat under their port. At the 2 m reach most labels are too small to read; lean in (0.5 m or closer) to read a switch's ports. The light on a door controller is its lock light (red locked, green unlocked) and also shows the network problems; the camera keeps its own lamp.</p>
+  </div>
+
+  <h2>2 · Linking bays <small>open, and locked glass door (lockpick or key)</small></h2>
+  <div class="scroll"><svg id="bays" width="1180" height="560" aria-label="Two linking bays"></svg></div>
+
+  <h2>3 · The deck's Map <small>same strip and icon on every node</small></h2>
+  <div class="scroll"><svg id="map" width="1180" height="620" aria-label="The deck's Map of two subnets"></svg></div>
+  <div class="notes">
+    <p>Each node: the kind's colour strip on its left edge, its icon in that colour, the name, and the status square (the light's colours; cut off blinks). Cables are solid lines, wireless links dashed. A computer's installed apps are not on the node; they show in its device menu. Rack and desk versions of a device look the same on the Map: it is a map of the network, not of the rooms.</p>
+  </div>
+
+  <h2>4 · Keychain <small>Inventory tab</small></h2>
+  <div class="tab">
+    <div>
+      <h4>Inventory</h4>
+      <div class="inv" id="inv"></div>
+    </div>
+    <div>
+      <h4>Keychain · 3 keys</h4>
+      <div class="keys" id="keys"></div>
+    </div>
+  </div>
+  <div class="bar"><span class="toast">Key added to the keychain: Linking bay A</span></div>
+  <div class="notes">
+    <p>Keys are picked up into the keychain, never into the grid: they take no space and cannot be dropped or thrown. A lock whose key you hold opens with E; without it, pick the lock. The frame on a locked thing reads "Locked · key or lockpick".</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+
+  // DeviceKinds icons (objects/devices/device_kinds.tres), 24-unit boxes.
+  const ICONS = {
+    camera: ["rect 3 7 13 9", "16,10 21,7 21,16 16,13 16,10", "8,16 8,20 13,20"],
+    turret: ["rect 5 9 10 7", "15,12 22,12", "8,16 6,21 16,21 14,16"],
+    door: ["rect 6 3 12 18", "circle 15 12 1"],
+    alarm: ["6,16 6,11", "18,16 18,11", "arc 12 11 6 180 360", "rect 4 16 16 3", "12,2 12,4", "3,6 4.5,7.5", "21,6 19.5,7.5"],
+    siren: ["4,10 4,14 7,14 12,18 12,6 7,10 4,10", "arc 13 12 4 -50 50", "arc 13 12 7.5 -50 50"],
+    radio: ["12,13 12,21", "8,21 16,21", "circle 12 11 2", "arc 12 12 5 -140 -40", "arc 12 12 9 -140 -40"],
+    panic: ["rect 4 4 16 16", "circle 12 12 4.5"],
+    laser: ["4,4 4,20", "20,4 20,20", "dash 4,8 20,8", "dash 4,13 20,13"],
+    computer: ["rect 3 4 18 12", "9,20 15,20", "12,16 12,20"],
+    router: ["rect 3 10 18 8", "7,14 7.6,14", "11,14 11.6,14", "15,14 19,14", "6,5 18,5", "15,3 18,5 15,7"],
+    ap: ["12,20 12,14", "circle 12 12 1.5", "arc 12 12 5 -135 -45", "arc 12 12 9 -135 -45"],
+    switch: ["rect 3 7 18 10", "6,12 6,14", "9,12 9,14", "12,12 12,14", "15,12 15,14", "18,12 18,14"],
+    jack: ["rect 4 4 16 16", "rect 8 9 8 6", "10,15 10,13", "12,15 12,13", "14,15 14,13"],
+  };
+  const KC = { switch: "--k-switch", router: "--k-router", ap: "--k-ap", jack: "--k-jack", computer: "--k-computer",
+    alarm: "--k-alarm", siren: "--k-alarm", radio: "--k-alarm", panic: "--k-alarm", door: "--k-door",
+    camera: "--k-security", turret: "--k-security", laser: "--k-security" };
+  const LEGEND = [["--k-switch", "Network switch"], ["--k-router", "Router"], ["--k-ap", "Access point"], ["--k-jack", "Wall jack"],
+    ["--k-computer", "Computer (desktop, rack, laptop)"], ["--k-alarm", "Alarm system (controller, siren, radio base, panic button)"],
+    ["--k-door", "Door controller"], ["--k-security", "Security (camera, turret, laser)"]];
+  document.getElementById("legend").innerHTML = LEGEND.map(([c, n]) => `<span><i style="background:var(${c})"></i>${n}</span>`).join("");
+
+  function drawIcon(parent, name, x, y, size, color, sw) {
+    const g = el("g", { transform: `translate(${x} ${y}) scale(${size / 24})`, fill: "none", stroke: color, "stroke-width": sw || 1.8, "stroke-linecap": "round", "stroke-linejoin": "round" }, parent);
+    for (const cmd of ICONS[name]) {
+      const p = cmd.split(" ");
+      if (p[0] === "rect") el("rect", { x: p[1], y: p[2], width: p[3], height: p[4], rx: 1 }, g);
+      else if (p[0] === "circle") el("circle", { cx: p[1], cy: p[2], r: p[3] }, g);
+      else if (p[0] === "arc") { const [cx, cy, r, a0, a1] = p.slice(1).map(Number); const pt = (a) => `${cx + r * Math.cos(a * Math.PI / 180)} ${cy + r * Math.sin(a * Math.PI / 180)}`; el("path", { d: `M ${pt(a0)} A ${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} 1 ${pt(a1)}` }, g); }
+      else if (p[0] === "dash") el("polyline", { points: p.slice(1).join(" "), "stroke-dasharray": "2 2" }, g);
+      else el("polyline", { points: cmd }, g);
+    }
+  }
+
+  const ST = { status: "up", dark: false, dist: 0.8 };
+  const STATUS = [["up", "Online"], ["cut", "Cut off"], ["off", "Disabled"], ["dark", "No power"]];
+  const stColor = () => css({ up: "--st-up", cut: "--st-cut", off: "--st-off", dark: "--st-dark" }[ST.status]);
+
+  // Pen: draws in metres relative to a device's top-left (ox, oy) in px, s px per metre.
+  function pen(g, s, ox, oy) {
+    const X = (m) => ox + m * s, Y = (m) => oy + m * s, L = (m) => m * s;
+    const p = {
+      s, X, Y, L,
+      r: (x, y, w, h, fill, extra) => el("rect", Object.assign({ x: X(x), y: Y(y), width: Math.max(0.5, L(w)), height: Math.max(0.5, L(h)), fill }, extra || {}), g),
+      c: (x, y, r, fill, extra) => el("circle", Object.assign({ cx: X(x), cy: Y(y), r: Math.max(0.5, L(r)), fill }, extra || {}), g),
+      poly: (pts, fill, extra) => el("polygon", Object.assign({ points: pts.map(([a, b]) => `${X(a)},${Y(b)}`).join(" "), fill }, extra || {}), g),
+      line: (x1, y1, x2, y2, stroke, w, extra) => el("line", Object.assign({ x1: X(x1), y1: Y(y1), x2: X(x2), y2: Y(y2), stroke, "stroke-width": Math.max(0.6, L(w)) }, extra || {}), g),
+      text: (x, y, str, size, fill, extra) => { if (L(size) < 1.2) return; const t = el("text", Object.assign({ x: X(x), y: Y(y), fill, "font-family": "JetBrains Mono, monospace", "font-weight": 600, "font-size": L(size) }, extra || {}), g); t.textContent = str; return t; },
+      vtext: (x, y, str, size, fill) => { if (L(size) < 1.2) { p.r(x - size * 0.35, y, size * 0.7, size * 0.62 * str.length, fill, { opacity: 0.5 }); return; } const t = el("text", { transform: `translate(${X(x)} ${Y(y)}) rotate(90)`, fill, "font-family": "JetBrains Mono, monospace", "font-weight": 600, "font-size": L(size), "dominant-baseline": "middle" }, g); t.textContent = str; },
+      icon: (kind, x, y, size, color) => drawIcon(g, kind, X(x), Y(y), L(size), color || css(KC[kind]), 2),
+      body: (x, y, w, h, fill) => p.r(x, y, w, h, fill || css("--body"), { stroke: css("--body-edge"), "stroke-width": Math.max(1, L(0.002)), rx: L(0.003) }),
+      band: (kind, x, y, w, h) => p.r(x, y, w, h, css(KC[kind])),
+      led: (x, y, size, override) => {
+        const col = override && ST.status === "up" ? override : stColor();
+        p.r(x, y, size, size, col, Object.assign({ "data-glow": ST.status === "dark" ? 0 : 1 }, ST.status === "cut" ? { class: "blink" } : {}));
+      },
+      plate: (x, y, w, h, name) => { p.r(x, y, w, h, css("--plate"), { rx: L(0.001) }); p.text(x + w / 2, y + h * 0.78, name, h * 0.72, css("--plate-text"), { "text-anchor": "middle" }); },
+      // A row of sockets with a port light above each and a vertical label below.
+      ports: (x0, y, n, pitch, labels, o) => {
+        const opt = o || {}, sw = opt.sw || pitch * 0.78, sh = opt.sh || 0.009, fs = opt.fs || Math.min(pitch * 0.62, 0.0038);
+        for (let i = 0; i < n; i++) {
+          const x = x0 + i * pitch, lab = labels[i] || "", up = !!lab && ST.status !== "dark";
+          const uplink = opt.uplink === i;
+          p.r(x + sw * 0.3, y - 0.0045, sw * 0.4, 0.0022, up ? css("--st-up") : "#1b201c", up ? { "data-glow": 1 } : {});
+          p.r(x, y, sw, sh, css("--port"), uplink ? { stroke: css("--k-router"), "stroke-width": Math.max(1, L(0.0018)) } : {});
+          if (lab && !opt.flat) p.vtext(x + sw / 2, y + sh + 0.003, lab, fs, css("--plate"));
+          if (lab && opt.flat) p.text(x + sw / 2, y + sh + 0.003 + fs, lab, fs, css("--plate"), { "text-anchor": "middle" });
+        }
+      },
+    };
+    return p;
+  }
+
+  const U = 0.0445;
+  // Rack unit shell: ears (left ear = kind band), face, icon, light, name plate. Returns x where the face content starts.
+  function rackShell(p, kind, h, name) {
+    p.r(0, 0, 0.02, h, css(KC[kind]));
+    p.r(0.463, 0, 0.02, h, css("--rail"));
+    for (const yy of [0.008, h - 0.008]) { p.c(0.01, yy, 0.0025, "#0a0c0e"); p.c(0.473, yy, 0.0025, "#0a0c0e"); }
+    p.body(0.02, 0, 0.443, h);
+    const isz = Math.min(0.028, h - 0.014);
+    p.icon(kind, 0.026, 0.006, isz);
+    p.led(0.06, 0.007, 0.007);
+    p.plate(0.06, 0.019, 0.078, 0.012, name);
+    return 0.147;
+  }
+
+  const SW_LABELS = ["RTR-02", "SRV-01", "SRV-02", "ALM-CTRL", "AP-YARD", "CAM-HALL", "CAM-GATE", "D4-CTRL", "D2-CTRL", "JACK-OFF", "PC-1", "PC-2", "", "", "SIREN-1", "", "", "", "", "", "", "", "", ""];
+
+  // Device catalogue: versions with size (m), context, draw(p).
+  const DEVICES = [
+    { id: "switch", kind: "switch", title: "Network switch", versions: [
+      { name: "Rack (1U)", w: 0.483, h: U, ctx: "rack", note: "48 × 4.5 cm, 24 sockets", draw: (p) => { const x = rackShell(p, "switch", U, "SW-OFFICE"); p.ports(x, 0.008, 24, 0.0128, SW_LABELS, { fs: 0.0034 }); } },
+      { name: "Desk", w: 0.2, h: 0.042, ctx: "desk", note: "20 × 4 cm, 5 sockets", draw: (p) => { p.body(0, 0, 0.2, 0.042); p.band("switch", 0, 0, 0.2, 0.004); p.icon("switch", 0.007, 0.009, 0.02); p.led(0.032, 0.01, 0.006); p.ports(0.058, 0.011, 5, 0.018, ["PC-1", "PC-2", "PRINT", "RTR-H", ""], { fs: 0.0032, sw: 0.012 }); p.plate(0.152, 0.012, 0.044, 0.011, "SW-DESK"); } },
+    ] },
+    { id: "router", kind: "router", title: "Router", versions: [
+      { name: "Rack (2U)", w: 0.483, h: 2 * U, ctx: "rack", note: "48 × 9 cm, uplink + 8 sockets", draw: (p) => { const x = rackShell(p, "router", 2 * U, "RTR-02");
+        for (const cx of [x + 0.03, x + 0.085]) { p.c(cx, 0.0445, 0.022, css("--face"), { stroke: css("--rail"), "stroke-width": Math.max(1, p.L(0.0015)) }); for (let k = -1; k <= 1; k++) p.line(cx - 0.016, 0.0445 + k * 0.009, cx + 0.016, 0.0445 + k * 0.009, css("--rail"), 0.0015); }
+        p.ports(x + 0.125, 0.02, 9, 0.019, ["SW-CORE", "SW-OFFICE", "SW-SEC", "AP-YARD", "", "", "", "", "RTR-01"], { uplink: 8, sh: 0.011, fs: 0.004 }); } },
+      { name: "Desk", w: 0.22, h: 0.046, ctx: "desk", note: "22 × 4.5 cm, uplink + 4 sockets", draw: (p) => { p.poly([[0, 0.046], [0.22, 0.046], [0.22, 0.004], [0, 0.016]], css("--body"), { stroke: css("--body-edge"), "stroke-width": 1 }); p.poly([[0, 0.016], [0.22, 0.004], [0.22, 0.008], [0, 0.02]], css(KC.router)); p.icon("router", 0.007, 0.021, 0.02); p.led(0.032, 0.023, 0.006); p.ports(0.06, 0.024, 5, 0.018, ["SW-DESK", "PC-3", "", "", "RTR-02"], { uplink: 4, sw: 0.012, fs: 0.003 }); p.plate(0.16, 0.025, 0.054, 0.011, "RTR-HOME"); } },
+    ] },
+    { id: "computer", kind: "computer", title: "Computer", versions: [
+      { name: "Desktop", w: 0.64, h: 0.42, ctx: "desk", note: "tower 18 × 40 cm beside its monitor", draw: (p) => {
+        p.r(0.0, 0.08, 0.42, 0.27, "#111417", { stroke: "#2a3036", "stroke-width": 2 }); p.r(0.015, 0.095, 0.39, 0.24, "#0f2a26"); p.r(0.19, 0.35, 0.04, 0.07, "#2a3036");
+        p.body(0.46, 0.02, 0.18, 0.4); p.band("computer", 0.46, 0.02, 0.18, 0.008); p.icon("computer", 0.475, 0.04, 0.045); p.led(0.535, 0.05, 0.01); p.plate(0.475, 0.1, 0.15, 0.02, "OFFICE-PC1");
+        p.r(0.475, 0.14, 0.15, 0.012, css("--face")); p.c(0.55, 0.2, 0.012, css("--face"), { stroke: css("--rail"), "stroke-width": 1 });
+        p.ports(0.535, 0.29, 1, 0.02, ["SW-OFFICE"], { sw: 0.014, sh: 0.011, fs: 0.0045 }); } },
+      { name: "Rack server (2U)", w: 0.483, h: 2 * U, ctx: "rack", note: "48 × 9 cm, same computer, opened with E", draw: (p) => { const x = rackShell(p, "computer", 2 * U, "SRV-01");
+        for (let b = 0; b < 4; b++) { p.r(x + 0.005 + b * 0.055, 0.012, 0.048, 0.065, css("--face"), { stroke: css("--body-edge"), "stroke-width": 1 }); p.r(x + 0.012 + b * 0.055, 0.06, 0.034, 0.006, "#2a3036"); }
+        p.ports(x + 0.25, 0.02, 1, 0.02, ["SW-CORE"], { sw: 0.014, sh: 0.011, fs: 0.0042 }); } },
+      { name: "Laptop (later)", w: 0.34, h: 0.25, ctx: "desk", note: "<span class=\"later\">later</span> · 34 cm wide", draw: (p) => {
+        p.r(0.01, 0, 0.32, 0.21, "#111417", { stroke: "#2a3036", "stroke-width": 2, rx: p.L(0.006) }); p.r(0.025, 0.012, 0.29, 0.185, "#0f2a26"); p.band("computer", 0.01, 0, 0.32, 0.005);
+        p.body(0, 0.21, 0.34, 0.04); p.icon("computer", 0.008, 0.215, 0.022); p.led(0.034, 0.222, 0.006); p.plate(0.044, 0.221, 0.07, 0.011, "LAPTOP-3");
+        p.r(0.27, 0.224, 0.014, 0.01, css("--port")); p.text(0.31, 0.244, "SW-DESK", 0.0035, css("--plate"), { "text-anchor": "middle" }); } },
+    ] },
+    { id: "alarm", kind: "alarm", title: "Alarm controller", versions: [
+      { name: "Wall panel", w: 0.3, h: 0.38, ctx: "wall", note: "30 × 38 cm", draw: (p) => { p.body(0, 0, 0.3, 0.38); p.band("alarm", 0, 0, 0.3, 0.012); p.icon("alarm", 0.02, 0.025, 0.05); p.led(0.08, 0.03, 0.012); p.plate(0.1, 0.03, 0.18, 0.022, "ALM-CTRL");
+        p.r(0.03, 0.09, 0.24, 0.08, "#08130f", { stroke: css("--body-edge"), "stroke-width": 1 }); p.text(0.15, 0.142, "ARMED", 0.028, "#3fc48a", { "text-anchor": "middle" });
+        p.c(0.15, 0.23, 0.025, css("--face"), { stroke: css("--rail"), "stroke-width": 2 }); p.line(0.15, 0.215, 0.15, 0.245, css("--rail"), 0.004);
+        p.ports(0.143, 0.29, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.011, fs: 0.0045 }); } },
+      { name: "Rack (2U)", w: 0.483, h: 2 * U, ctx: "rack", note: "48 × 9 cm, same controller", draw: (p) => { const x = rackShell(p, "alarm", 2 * U, "ALM-CTRL");
+        p.r(x + 0.005, 0.015, 0.14, 0.04, "#08130f", { stroke: css("--body-edge"), "stroke-width": 1 }); p.text(x + 0.075, 0.042, "ARMED", 0.018, "#3fc48a", { "text-anchor": "middle" });
+        p.c(x + 0.19, 0.0445, 0.016, css("--face"), { stroke: css("--rail"), "stroke-width": 2 }); p.line(x + 0.19, 0.034, x + 0.19, 0.055, css("--rail"), 0.003);
+        p.ports(x + 0.25, 0.02, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.011, fs: 0.0042 }); } },
+    ] },
+    { id: "ap", kind: "ap", title: "Access point", versions: [
+      { name: "Wall", w: 0.22, h: 0.19, ctx: "wall", note: "22 × 6 cm body, 12 cm antennas", draw: (p) => { for (const ax of [0.03, 0.185]) p.r(ax, 0, 0.008, 0.13, "#0b0d10"); p.body(0, 0.125, 0.22, 0.065); p.band("ap", 0, 0.125, 0.22, 0.005);
+        p.icon("ap", 0.008, 0.136, 0.024); p.led(0.036, 0.138, 0.007); p.plate(0.05, 0.137, 0.075, 0.011, "AP-YARD"); p.ports(0.17, 0.142, 1, 0.02, ["SW-OFFICE"], { sw: 0.013, sh: 0.009, fs: 0.003 }); } },
+    ] },
+    { id: "jack", kind: "jack", title: "Wall jack", versions: [
+      { name: "Wall", w: 0.09, h: 0.12, ctx: "wall", note: "9 × 12 cm, no light", draw: (p) => { p.r(0, 0, 0.09, 0.12, "#d9dde0", { rx: p.L(0.004) }); p.band("jack", 0, 0, 0.09, 0.004); p.icon("jack", 0.006, 0.01, 0.016, css("--k-jack"));
+        p.text(0.056, 0.022, "JACK-OFF", 0.0065, css("--plate-text"), { "text-anchor": "middle" }); p.r(0.025, 0.04, 0.04, 0.03, "#121416"); p.r(0.033, 0.05, 0.024, 0.014, "#000");
+        p.text(0.045, 0.088, "SW-OFFICE · 10", 0.0055, css("--plate-text"), { "text-anchor": "middle" }); } },
+    ] },
+    { id: "door", kind: "door", title: "Door controller", versions: [
+      ...[["Keypad", "keypad"], ["Card reader", "card"], ["Status box", "status"], ["Control box", "control"]].map(([n, v]) => ({ name: n, w: 0.1, h: 0.2, ctx: "wall", note: "10 × 20 cm; the light is the lock light",
+        draw: (p) => { p.body(0, 0, 0.1, 0.2); p.band("door", 0, 0, 0.1, 0.006); p.icon("door", 0.006, 0.012, 0.02); p.led(0.032, 0.015, 0.012, css("--st-off")); p.plate(0.048, 0.015, 0.046, 0.012, "D4-CTRL");
+          if (v === "keypad") for (let i = 0; i < 12; i++) p.r(0.02 + (i % 3) * 0.022, 0.045 + Math.floor(i / 3) * 0.022, 0.016, 0.016, "#3a4046", { rx: p.L(0.002) });
+          if (v === "card") { p.r(0.02, 0.07, 0.06, 0.008, "#000"); p.r(0.03, 0.09, 0.04, 0.03, "none", { stroke: css("--rail"), "stroke-width": 1 }); }
+          if (v === "control") { p.r(0.02, 0.06, 0.06, 0.025, "#2f5a3a"); p.r(0.02, 0.095, 0.06, 0.025, "#5a2f2f"); p.text(0.05, 0.077, "OPEN", 0.008, "#d9dde0", { "text-anchor": "middle" }); p.text(0.05, 0.112, "CLOSE", 0.008, "#d9dde0", { "text-anchor": "middle" }); }
+          p.ports(0.043, 0.16, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.0042, flat: true }); } })),
+    ] },
+    { id: "camera", kind: "camera", title: "Security camera", versions: [
+      { name: "Wall", w: 0.3, h: 0.2, ctx: "wall", note: "keeps its own lamp (green idle, amber suspicious, red seen)", draw: (p) => { p.body(0, 0.03, 0.07, 0.15); p.band("camera", 0, 0.03, 0.07, 0.005); p.icon("camera", 0.008, 0.042, 0.022); p.plate(0.006, 0.072, 0.058, 0.011, "CAM-HALL");
+        p.ports(0.028, 0.1, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.0035, flat: true }); p.r(0.07, 0.07, 0.03, 0.02, css("--rail"));
+        p.r(0.1, 0.04, 0.17, 0.075, "#cfd3d6", { rx: p.L(0.006) }); p.band("camera", 0.1, 0.04, 0.17, 0.005); p.r(0.27, 0.05, 0.025, 0.055, "#20262b"); p.c(0.29, 0.0775, 0.012, "#0b0d10"); p.led(0.11, 0.085, 0.01); } },
+    ] },
+    { id: "turret", kind: "turret", title: "Turret", versions: [
+      { name: "Ceiling", w: 0.32, h: 0.24, ctx: "ceiling", note: "light on the fixed base", draw: (p) => { p.body(0.06, 0, 0.2, 0.09); p.band("turret", 0.06, 0, 0.2, 0.006); p.icon("turret", 0.07, 0.015, 0.03); p.led(0.105, 0.02, 0.01); p.plate(0.12, 0.035, 0.12, 0.014, "TUR-VAULT");
+        p.ports(0.235, 0.015, 1, 0.02, ["SW-SEC"], { sw: 0.012, sh: 0.008, fs: 0.003, flat: true }); p.r(0.15, 0.09, 0.02, 0.04, css("--rail")); p.r(0.07, 0.13, 0.18, 0.08, "#2a3138", { rx: p.L(0.01) }); p.r(0.25, 0.155, 0.07, 0.022, "#0b0d10"); p.c(0.1, 0.17, 0.012, "#0b0d10"); } },
+    ] },
+    { id: "siren", kind: "siren", title: "Siren", versions: [
+      { name: "Wall", w: 0.2, h: 0.24, ctx: "wall", note: "", draw: (p) => { p.poly([[0.02, 0], [0.18, 0], [0.14, 0.11], [0.06, 0.11]], "#2a3138"); p.c(0.1, 0.05, 0.04, "#0b0d10"); p.body(0.04, 0.11, 0.12, 0.12); p.band("siren", 0.04, 0.11, 0.12, 0.005);
+        p.icon("siren", 0.048, 0.122, 0.024); p.led(0.078, 0.125, 0.008); p.plate(0.05, 0.155, 0.1, 0.012, "SIREN-1"); p.ports(0.093, 0.18, 1, 0.02, ["SW-SEC"], { sw: 0.013, sh: 0.009, fs: 0.0035, flat: true }); } },
+    ] },
+    { id: "radio", kind: "radio", title: "Radio base station", versions: [
+      { name: "Wall", w: 0.22, h: 0.3, ctx: "wall", note: "", draw: (p) => { p.r(0.17, 0, 0.008, 0.12, "#0b0d10"); p.body(0, 0.12, 0.22, 0.17); p.band("radio", 0, 0.12, 0.22, 0.006); p.icon("radio", 0.01, 0.135, 0.03); p.led(0.05, 0.14, 0.01); p.plate(0.07, 0.138, 0.13, 0.016, "RADIO-BASE");
+        p.r(0.02, 0.18, 0.18, 0.04, css("--face")); for (let k = 0; k < 6; k++) p.line(0.03 + k * 0.028, 0.185, 0.03 + k * 0.028, 0.215, css("--rail"), 0.002); p.ports(0.103, 0.235, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.004, flat: true }); } },
+    ] },
+    { id: "panic", kind: "panic", title: "Panic button", versions: [
+      { name: "Wall", w: 0.1, h: 0.16, ctx: "wall", note: "no light", draw: (p) => { p.body(0, 0, 0.1, 0.16); p.band("panic", 0, 0, 0.1, 0.005); p.icon("panic", 0.006, 0.01, 0.016); p.plate(0.026, 0.012, 0.068, 0.011, "PANIC-1"); p.c(0.05, 0.068, 0.03, "#c22b22", { stroke: "#7d1a14", "stroke-width": 2 });
+        p.ports(0.043, 0.115, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.009, fs: 0.0038, flat: true }); } },
+    ] },
+    { id: "laser", kind: "laser", title: "Laser array", versions: [
+      { name: "Wall post", w: 0.3, h: 0.5, ctx: "wall", note: "no light; the beam shows it is on", draw: (p) => { p.body(0, 0, 0.05, 0.5); p.band("laser", 0, 0, 0.05, 0.006); p.icon("laser", 0.006, 0.014, 0.038); p.plate(0.004, 0.06, 0.042, 0.011, "LSR-1");
+        for (const ly of [0.15, 0.25, 0.35]) { p.c(0.025, ly, 0.008, "#0b0d10", { stroke: css("--rail"), "stroke-width": 1 }); if (ST.status === "up") p.line(0.04, ly, 0.3, ly, "rgba(255,40,30,0.75)", 0.002); }
+        p.ports(0.018, 0.43, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.009, fs: 0.0034, flat: true }); } },
+    ] },
+  ];
+
+  // One card per device; draws its current version at s = 750 / distance px per metre.
+  const cardsEl = document.getElementById("cards");
+  const sel = {};
+  function context(svg, ctx, s, ox, oy, w, h) {
+    const W = +svg.getAttribute("width"), H = +svg.getAttribute("height");
+    el("rect", { x: 0, y: 0, width: W, height: H, fill: css("--wall") }, svg);
+    if (ctx === "rack") {
+      el("rect", { x: ox - 6, y: 0, width: w * s + 12, height: H, fill: "#0b0d10" }, svg);
+      el("rect", { x: ox, y: 0, width: 0.02 * s, height: H, fill: css("--rail") }, svg); el("rect", { x: ox + 0.463 * s, y: 0, width: 0.02 * s, height: H, fill: css("--rail") }, svg);
+      for (const yy of [oy - U * s - 2, oy + h * s + 2]) el("rect", { x: ox + 0.02 * s, y: yy, width: 0.443 * s, height: U * s, fill: css("--blank"), stroke: "#101316" }, svg);
+    } else if (ctx === "desk") {
+      el("rect", { x: 0, y: oy + h * s, width: W, height: 0.03 * s, fill: css("--desk") }, svg);
+      el("rect", { x: 0, y: oy + h * s + 0.03 * s, width: W, height: H, fill: css("--desk-edge") }, svg);
+    } else if (ctx === "ceiling") {
+      el("rect", { x: 0, y: 0, width: W, height: oy, fill: css("--ceil") }, svg);
+    }
+  }
+  function drawCard(d) {
+    const v = d.versions[sel[d.id] || 0];
+    const s = 750 / ST.dist, pad = 24;
+    const W = Math.max(300, Math.round(v.w * s + pad * 2)), H = Math.max(140, Math.round(v.h * s + pad * 2 + (v.ctx === "rack" ? U * s * 2 : 0)));
+    const svg = d.svg; svg.textContent = ""; svg.setAttribute("width", W); svg.setAttribute("height", H);
+    const ox = (W - v.w * s) / 2, oy = (H - v.h * s) / 2 + (v.ctx === "ceiling" ? 8 : 0);
+    context(svg, v.ctx, s, ox, oy, v.w, v.h);
+    const g = el("g", {}, svg);
+    v.draw(pen(g, s, ox, oy));
+    if (ST.dark) { el("rect", { x: 0, y: 0, width: W, height: H, fill: "#000", opacity: 0.74 }, svg); g.querySelectorAll('[data-glow="1"]').forEach((r) => svg.appendChild(r.cloneNode())); }
+    d.foot.innerHTML = v.note;
+  }
+  for (const d of DEVICES) {
+    const card = document.createElement("section"); card.className = "card";
+    const head = document.createElement("header");
+    head.innerHTML = `<h3><i style="background:var(${KC[d.kind]})"></i>${d.title}</h3>`;
+    if (d.versions.length > 1) {
+      const seg = document.createElement("span"); seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", d.title + " version");
+      d.versions.forEach((v, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = v.name; b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+        b.onclick = () => { sel[d.id] = i; seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); drawCard(d); }; seg.appendChild(b); });
+      head.appendChild(seg);
+    } else { const sp = document.createElement("span"); sp.style.cssText = "font-size:11px;color:var(--caption)"; sp.textContent = d.versions[0].name; head.appendChild(sp); }
+    const view = document.createElement("div"); view.className = "view";
+    d.svg = el("svg", { role: "img", "aria-label": d.title }, view);
+    const foot = document.createElement("footer"); d.foot = foot;
+    card.append(head, view, foot); cardsEl.appendChild(card);
+  }
+  const drawCards = () => DEVICES.forEach(drawCard);
+
+  // Status and light controls
+  const stEl = document.getElementById("status");
+  STATUS.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = n; b.setAttribute("aria-pressed", k === ST.status ? "true" : "false");
+    b.onclick = () => { ST.status = k; stEl.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); drawCards(); drawBays(); drawMap(); }; stEl.appendChild(b); });
+  const lL = document.getElementById("l-lit"), lD = document.getElementById("l-dark");
+  lL.onclick = () => { ST.dark = false; lL.setAttribute("aria-pressed", "true"); lD.setAttribute("aria-pressed", "false"); drawCards(); };
+  lD.onclick = () => { ST.dark = true; lD.setAttribute("aria-pressed", "true"); lL.setAttribute("aria-pressed", "false"); drawCards(); };
+  const dist = document.getElementById("dist"), out = document.getElementById("dist-out");
+  dist.oninput = () => { ST.dist = Number(dist.value); out.textContent = ST.dist.toFixed(1) + " m"; drawCards(); };
+
+  // ---------- 2. Linking bays ----------
+  const baysEl = document.getElementById("bays");
+  function drawBays() {
+    baysEl.textContent = "";
+    const W = 1180, H = 560, floorY = 540, s = 250;
+    el("rect", { x: 0, y: 0, width: W, height: floorY, fill: css("--wall") }, baysEl);
+    el("rect", { x: 0, y: floorY, width: W, height: H - floorY, fill: "#15181b" }, baysEl);
+    const bay = (bx, name, locked) => {
+      const bw = 0.6 * s, bh = 1.9 * s, by = floorY - bh, g = el("g", {}, baysEl);
+      for (let k = 0; k < 5; k++) el("line", { x1: bx + bw * (0.35 + k * 0.07), y1: by, x2: bx + bw * (0.35 + k * 0.07), y2: 0, stroke: "#0a0c0e", "stroke-width": 3 }, g);
+      el("rect", { x: bx, y: by, width: bw, height: bh, fill: "#0b0d10", stroke: css("--rail"), "stroke-width": 2 }, g);
+      el("rect", { x: bx + bw / 2 - 0.12 * s, y: by + 0.03 * s, width: 0.24 * s, height: 0.035 * s, fill: css("--plate"), rx: 2 }, g);
+      const t = el("text", { x: bx + bw / 2, y: by + 0.056 * s, "text-anchor": "middle", fill: css("--plate-text"), "font-family": "JetBrains Mono, monospace", "font-weight": 600, "font-size": 0.02 * s }, g); t.textContent = name;
+      const ux = bx + (bw - 0.483 * s) / 2; let uy = by + 0.1 * s;
+      const put = (h, draw) => { draw(pen(g, s, ux, uy)); uy += h * s + 2; };
+      const blank = (n) => { el("rect", { x: ux + 0.02 * s, y: uy, width: 0.443 * s, height: n * U * s, fill: css("--blank"), stroke: "#101316" }, g); uy += n * U * s + 2; };
+      put(U, DEVICES[0].versions[0].draw); blank(1);
+      put(2 * U, DEVICES[1].versions[0].draw); blank(1);
+      put(2 * U, DEVICES[3].versions[1].draw); blank(2);
+      put(2 * U, DEVICES[2].versions[1].draw);
+      put(2 * U, (p) => { const x = rackShell(p, "computer", 2 * U, "SRV-02"); for (let b = 0; b < 4; b++) p.r(x + 0.005 + b * 0.055, 0.012, 0.048, 0.065, css("--face"), { stroke: css("--body-edge"), "stroke-width": 1 }); p.ports(x + 0.25, 0.02, 1, 0.02, ["SW-CORE"], { sw: 0.014, sh: 0.011, fs: 0.0042 }); });
+      while (uy + 2 * U * s < floorY - 0.1 * s) blank(2);
+      if (locked) {
+        el("rect", { x: bx + 4, y: by + 0.08 * s, width: bw - 8, height: bh - 0.12 * s, fill: "rgba(150,190,210,0.10)", stroke: css("--rail"), "stroke-width": 5 }, g);
+        el("rect", { x: bx + bw - 0.05 * s, y: by + bh * 0.47, width: 0.03 * s, height: 0.07 * s, fill: "#9aa1a6", rx: 2 }, g);
+        el("circle", { cx: bx + bw - 0.035 * s, cy: by + bh * 0.47 + 0.02 * s, r: 0.006 * s, fill: "#1a1d20" }, g);
+        el("line", { x1: bx + 0.1 * s, y1: by + 0.3 * s, x2: bx + 0.3 * s, y2: by + 0.1 * s, stroke: "rgba(255,255,255,0.06)", "stroke-width": 0.04 * s }, g);
+        // the frame on the locked door
+        const fx0 = bx - 6, fy0 = by + 0.06 * s, fx1 = bx + bw + 6, fy1 = floorY - 2, a = 14;
+        for (const pts of [`${fx0},${fy0 + a} ${fx0},${fy0} ${fx0 + a},${fy0}`, `${fx1 - a},${fy0} ${fx1},${fy0} ${fx1},${fy0 + a}`, `${fx0},${fy1 - a} ${fx0},${fy1} ${fx0 + a},${fy1}`, `${fx1 - a},${fy1} ${fx1},${fy1} ${fx1},${fy1 - a}`]) el("polyline", { points: pts, fill: "none", stroke: "#f2f4f5", "stroke-width": 1 }, g);
+        el("rect", { x: fx0 + 4, y: fy0 + 4, width: 150, height: 36, fill: "rgba(8,10,12,0.75)", stroke: "rgba(242,244,245,0.85)" }, g);
+        const n1 = el("text", { x: fx0 + 10, y: fy0 + 19, fill: "#f2f4f5", "font-family": "Inter, sans-serif", "font-size": 12, "font-weight": 500 }, g); n1.textContent = "Linking bay A";
+        el("rect", { x: fx0 + 10, y: fy0 + 26, width: 7, height: 7, fill: css("--amber") }, g);
+        const n2 = el("text", { x: fx0 + 22, y: fy0 + 33, fill: css("--amber"), "font-family": "Inter, sans-serif", "font-size": 11, "font-weight": 500 }, g); n2.textContent = "Locked · key or lockpick";
+      }
+      const cap = el("text", { x: bx + bw / 2, y: floorY - bh - 14, "text-anchor": "middle", fill: css("--caption"), "font-family": "Inter, sans-serif", "font-size": 13 }, baysEl); cap.textContent = locked ? "Locked glass door" : "Open bay";
+    };
+    bay(250, "BAY-A · OFFICE", false);
+    bay(780, "BAY-B · SECURITY", true);
+  }
+
+  // ---------- 3. Map ----------
+  const mapEl = document.getElementById("map");
+  function drawMap() {
+    mapEl.textContent = "";
+    const W = 1180, H = 620;
+    el("rect", { x: 0, y: 0, width: W, height: H, fill: css("--os-bg") }, mapEl);
+    el("rect", { x: 0, y: 0, width: W, height: 34, fill: css("--os-panel") }, mapEl);
+    el("line", { x1: 0, y1: 34, x2: W, y2: 34, stroke: css("--os-line") }, mapEl);
+    const tabs = ["Map", "Icebreaker"]; tabs.forEach((n, i) => { const t = el("text", { x: 16 + i * 90, y: 22, fill: i === 0 ? css("--teal") : css("--teal-dim"), "font-family": "JetBrains Mono, monospace", "font-size": 12 }, mapEl); t.textContent = n; });
+    const tr = el("text", { x: W - 16, y: 22, "text-anchor": "end", fill: css("--teal-dim"), "font-family": "JetBrains Mono, monospace", "font-size": 12 }, mapEl); tr.textContent = "Plugged into JACK-OFF · trace 12 %";
+    const subnet = (x, y, w, h, name) => { el("rect", { x, y, width: w, height: h, fill: "rgba(140,242,217,0.03)", stroke: css("--os-line"), "stroke-dasharray": "5 4", rx: 6 }, mapEl);
+      const t = el("text", { x: x + 12, y: y + 20, fill: css("--teal"), "font-family": "JetBrains Mono, monospace", "font-size": 12, "font-weight": 600, "letter-spacing": "0.08em" }, mapEl); t.textContent = name; };
+    subnet(20, 50, 560, 550, "OFFICE · 10.1.0.0");
+    subnet(600, 50, 560, 550, "SECURITY · 10.2.0.0");
+    const N = {};
+    const node = (id, kind, name, x, y, st) => { N[id] = { x, y, w: 150, h: 34 }; const g = el("g", {}, mapEl);
+      el("rect", { x, y, width: 150, height: 34, fill: css("--os-panel"), stroke: css("--os-line"), rx: 4 }, g);
+      el("rect", { x, y, width: 5, height: 34, fill: css(KC[kind]), rx: 1 }, g);
+      drawIcon(g, kind, x + 11, y + 7, 20, css(KC[kind]), 1.8);
+      const t = el("text", { x: x + 38, y: y + 22, fill: css("--teal-text"), "font-family": "JetBrains Mono, monospace", "font-size": 12 }, g); t.textContent = name;
+      const sc = { up: "--st-up", cut: "--st-cut", off: "--st-off", dark: "--st-dark" }[st || "up"];
+      el("rect", Object.assign({ x: x + 134, y: y + 13, width: 8, height: 8, fill: css(sc), stroke: st === "dark" ? "#3a4046" : "none" }, st === "cut" ? { class: "blink" } : {}), g); };
+    const link = (a, b, wireless) => { const A = N[a], B = N[b]; el("line", { x1: A.x + A.w / 2, y1: A.y + A.h / 2, x2: B.x + B.w / 2, y2: B.y + B.h / 2, stroke: css("--teal-dim"), "stroke-width": 1.5, "stroke-dasharray": wireless ? "5 4" : "none", opacity: 0.8 }, mapEl); };
+    // links first (drawn under nodes): placeholder positions, then nodes
+    const place = [
+      ["rtr1", "router", "RTR-01", 520, 300], ["swo", "switch", "SW-OFFICE", 300, 110], ["swd", "switch", "SW-DESK", 60, 230], ["rtrh", "router", "RTR-HOME", 60, 330],
+      ["pc1", "computer", "OFFICE-PC1", 300, 230], ["pc2", "computer", "PC-1", 60, 450], ["srv1", "computer", "SRV-01", 300, 330], ["jack", "jack", "JACK-OFF", 300, 450], ["ap", "ap", "AP-YARD", 300, 540],
+      ["lap", "computer", "LAPTOP-3", 60, 540],
+      ["sws", "switch", "SW-SEC", 860, 110], ["alm", "alarm", "ALM-CTRL", 660, 200], ["cam", "camera", "CAM-HALL", 980, 200], ["cam2", "camera", "CAM-GATE", 980, 290],
+      ["d4", "door", "D4-CTRL", 660, 290], ["siren", "siren", "SIREN-1", 660, 380], ["radio", "radio", "RADIO-BASE", 980, 380], ["panic", "panic", "PANIC-1", 660, 470], ["laser", "laser", "LSR-1", 980, 470], ["tur", "turret", "TUR-VAULT", 820, 550],
+    ];
+    for (const [id, , , x, y] of place) N[id] = { x, y, w: 150, h: 34 };
+    [["swo", "rtr1"], ["sws", "rtr1"], ["swo", "pc1"], ["swo", "srv1"], ["swo", "jack"], ["swo", "ap"], ["swo", "rtrh"], ["rtrh", "swd"], ["swd", "pc2"], ["ap", "lap", true],
+      ["sws", "alm"], ["sws", "cam"], ["sws", "cam2"], ["sws", "d4"], ["sws", "siren"], ["sws", "radio"], ["sws", "panic"], ["sws", "laser"], ["sws", "tur"]].forEach(([a, b, w]) => link(a, b, w));
+    const st = { cam2: "cut", d4: ST.status, siren: "dark", panic: "off" };
+    for (const [id, kind, name, x, y] of place) node(id, kind, name, x, y, st[id] || "up");
+    // self
+    const J = N.jack; el("circle", { cx: J.x + J.w + 16, cy: J.y + 17, r: 6, fill: css("--self") }, mapEl);
+    const me = el("text", { x: J.x + J.w + 28, y: J.y + 21, fill: css("--self"), "font-family": "JetBrains Mono, monospace", "font-size": 11 }, mapEl); me.textContent = "you";
+  }
+
+  // ---------- 4. Keychain ----------
+  const inv = document.getElementById("inv");
+  const items = { 0: "Pistol", 1: "Pistol", 10: "Pistol", 11: "Pistol", 2: "Medkit", 3: "Lock-pick ×3", 4: "Deck", 5: "Deck", 12: "Ammo", 20: "Biocell" };
+  for (let i = 0; i < 40; i++) { const d = document.createElement("div"); if (items[i]) { d.className = "item"; d.textContent = items[i]; } inv.appendChild(d); }
+  const keySvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#ffd14d" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="12" r="4"/><path d="M11 12h10M17 12v3M20 12v2"/></svg>`;
+  document.getElementById("keys").innerHTML = [["Linking bay A", "Found in the office desk"], ["Warehouse office", "Taken from a guard"], ["Gate padlock", "Found on the loading dock"]]
+    .map(([n, f]) => `<div class="key">${keySvg}<div><b>${n}</b><small>${f}</small></div></div>`).join("");
+
+  drawCards(); drawBays(); drawMap();
+})();
+</script>
