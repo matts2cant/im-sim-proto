@@ -6,8 +6,9 @@ extends Node3D
 ## (the user's `input_enabled` off) turns it off. While on it draws, in the world, the links between
 ## the devices the held deck has seen (its remembered map: the stack's DeckSession.SEEN list, both
 ## ends seen) within RANGE m of the user (either end), at most MAX_LINKS:
-## - a cable as a "ceiling run": up from one end to just under the ceiling (a ray up, else
-##   CEILING_FALLBACK m above it), across, and down to the other end, in its subnet's colour (Subnet
+## - a cable as a "ceiling run": up from one end to just under the ceiling over the end nearer the
+##   user (a ray up, else CEILING_FALLBACK m above it; across floors the run rises from the floor the
+##   user is on), across, and down to the other end, in its subnet's colour (Subnet
 ##   data, Router.subnet_info(); the subnet of the end that is not a router);
 ## - a wireless link as a dashed straight line in WIRELESS_COLOR;
 ## - a link with an end down drawn dim (ALPHA_DOWN instead of ALPHA_UP).
@@ -248,7 +249,9 @@ func _draw() -> void:
 		if bool(link["wireless"]):
 			points = dashes(from, to)
 		else:
-			var run := ceiling_run(from, to, minf(_ceiling(a), _ceiling(b)))
+			# Under the ceiling of the end nearer the user: across floors, it rises from what they see.
+			var near := a if from.distance_to(_built_at) <= to.distance_to(_built_at) else b
+			var run := ceiling_run(from, to, _ceiling(near))
 			for i in run.size() - 1:
 				points.append(run[i])
 				points.append(run[i + 1])

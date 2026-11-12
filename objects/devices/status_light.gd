@@ -33,19 +33,15 @@ const COLORS: Dictionary[State, Color] = {
 	State.DARK: Color(0.06, 0.07, 0.06),
 }
 const PORT_ON: Color = Color(0.15, 1.0, 0.3)
-const LED_SIZE: Vector3 = Vector3(0.024, 0.024, 0.008)
-const PORT_SIZE: Vector3 = Vector3(0.014, 0.014, 0.006)
+## The LED (24 mm) and port light (14 mm) boxes, with the shared status_light.gdshader material.
+const LED_MESH: Mesh = preload("res://objects/devices/status_light_led.tres")
+const PORT_MESH: Mesh = preload("res://objects/devices/status_light_port.tres")
 const PORT_PITCH: float = 0.024
 ## From the top edge to the LED's centre, and from the LED down to the port row (m).
 const TOP_INSET: float = 0.025
 const ROW_DROP: float = 0.035
 ## Out of the front face (m).
 const FRONT_OFFSET: float = 0.003
-const SHADER: Shader = preload("res://objects/devices/status_light.gdshader")
-
-static var _material: ShaderMaterial
-static var _led_mesh: BoxMesh
-static var _port_mesh: BoxMesh
 
 var device: Device
 var state: State = State.DARK
@@ -209,12 +205,11 @@ func _refresh_later() -> void:
 
 
 func _build() -> void:
-	_ensure_resources()
 	var front := bounds.end.z + FRONT_OFFSET
 	var top := bounds.end.y - minf(TOP_INSET, bounds.size.y * 0.5)
 	var left := bounds.position.x + minf(0.03, bounds.size.x * 0.5)
 	var led_at := _marker(LED_MARKER, Transform3D(Basis.IDENTITY, Vector3(left, top, front)))
-	led = _light(_led_mesh, led_at, "Led")
+	led = _light(LED_MESH, led_at, "Led")
 	if ports.is_empty():
 		return
 	var row_default := Vector3(bounds.get_center().x, top - ROW_DROP, front)
@@ -222,9 +217,7 @@ func _build() -> void:
 	var count := mini(ports.size(), MAX_PORTS)
 	for i in count:
 		var along := (float(i) - float(count - 1) * 0.5) * PORT_PITCH
-		port_lights.append(
-			_light(_port_mesh, row * Transform3D(Basis.IDENTITY, Vector3(along, 0.0, 0.0)), "Port%d" % i)
-		)
+		port_lights.append(_light(PORT_MESH, row * Transform3D(Basis.IDENTITY, Vector3(along, 0.0, 0.0)), "Port%d" % i))
 	if ports.size() > MAX_PORTS:
 		more = Label3D.new()
 		more.name = "More"
@@ -250,7 +243,6 @@ func _light(mesh: Mesh, at: Transform3D, node_name: String) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = mesh
-	instance.material_override = _material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	instance.transform = at
 	add_child(instance)
@@ -262,14 +254,3 @@ static func _paint(instance: MeshInstance3D, color: Color, blinking: bool) -> vo
 		return
 	instance.set_instance_shader_parameter(&"led_color", color)
 	instance.set_instance_shader_parameter(&"blink", 1.0 if blinking else 0.0)
-
-
-static func _ensure_resources() -> void:
-	if _material != null:
-		return
-	_material = ShaderMaterial.new()
-	_material.shader = SHADER
-	_led_mesh = BoxMesh.new()
-	_led_mesh.size = LED_SIZE
-	_port_mesh = BoxMesh.new()
-	_port_mesh.size = PORT_SIZE

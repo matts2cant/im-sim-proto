@@ -43,6 +43,7 @@
 [ext_resource type="Script" path="res://objects/network/subnet.gd" id="44_subnet"]
 [ext_resource type="Resource" path="res://levels/gallery/security_wing/subnets/wing_ops.tres" id="45_ops"]
 [ext_resource type="Resource" path="res://levels/gallery/security_wing/subnets/wing_security.tres" id="46_security"]
+[ext_resource type="PackedScene" path="res://levels/kit/network_panel.tscn" id="90_network_panel"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -1028,3 +1029,8 @@ pixel_size = 0.002
 text = "High-security
 6 pins"
 size = 0
+
+[node name="NetworkPanel" parent="." instance=ExtResource("90_network_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.55, 0)
+size = Vector2(2.5, 0.8)
+subnet = ExtResource("46_security")

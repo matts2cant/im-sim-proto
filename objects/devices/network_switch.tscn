@@ -40,11 +40,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.055)
 cast_shadow = 0
 mesh = SubResource("Mesh_box")
 
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.11)
-cast_shadow = 0
-mesh = SubResource("Mesh_leds")
-
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
 initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.network_switch", &"object.network_gear"])
@@ -68,8 +63,6 @@ size = 0.4
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Indicator")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Indicator")])

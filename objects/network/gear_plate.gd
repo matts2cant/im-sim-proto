@@ -19,8 +19,10 @@ const SEPARATOR: String = " · "
 const FONT_SIZE: int = 30
 const PIXEL_SIZE: float = 0.001
 const WRAP_PIXELS: float = 500.0
-## Below the bounds (m) and out of the back face.
+## Below the bounds (m), plus DEPTH_DROP of the gear's depth (a deep box would hide the plate's top
+## line from eye height), and out of the back face.
 const DROP: float = 0.025
+const DEPTH_DROP: float = 0.3
 const OUT: float = 0.006
 
 
@@ -38,7 +40,8 @@ static func attach(device: Device, bounds: AABB) -> GearPlate:
 	if marker != null:
 		plate.transform = entity.global_transform.affine_inverse() * marker.global_transform
 	else:
-		plate.position = Vector3(bounds.get_center().x, bounds.position.y - DROP, bounds.position.z + OUT)
+		var drop := DROP + DEPTH_DROP * bounds.size.z
+		plate.position = Vector3(bounds.get_center().x, bounds.position.y - drop, bounds.position.z + OUT)
 	entity.add_child(plate)
 	return plate
 

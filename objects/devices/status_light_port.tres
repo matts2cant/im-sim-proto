@@ -1,0 +1,10 @@
+[gd_resource type="BoxMesh" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://objects/devices/status_light.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="Material_port"]
+shader = ExtResource("1_shader")
+
+[resource]
+material = SubResource("Material_port")
+size = Vector3(0.014, 0.014, 0.006)
