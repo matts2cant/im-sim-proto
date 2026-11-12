@@ -402,7 +402,7 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 
 - [ ] No crack feels like dead waiting: Trained on a Medium password (18 s) and Advanced on a Strong one (25 s). Note any wait that drags.
 - [ ] One crack against a default tracer leaves room to spare; two in a row without a pause trip it; a short pause (about 8 s) drains it.
-- [ ] A sensitive tracer makes Trained brute force on Medium fail, so finding the password or an exploit feels worth it.
+- [ ] A sensitive tracer makes Trained brute force on Medium fail, so finding the password or an exploit item feels worth it.
 - [ ] Guessing an implicit-clue password: a couple of wrong guesses are forgiven, careless guessing is not.
 - [ ] The 30 s lockout plus the alarm feels like a real penalty without stalling the player.
 - [ ] Door lock hardware (M9h, [ADR 0098](../decisions/0098-door-lock-hardware-and-keycard-relock.md); review shots: `wing_shots.tscn` with `-- shot=hw_d1_keypad|hw_d2_hall|hw_d2_closet|hw_d3_reader|hw_d3_open|hw_d4|hw_vault|hw_vault_inside out=<png>`, and `warehouse_shots.tscn` with `-- shots=door_manager,door_security,door_vault,door_back_gate_inside,door_back_gate_out,door_roller_inside,door_side,panel_bridge_door,door_front_gate_inside,panel_fire_escape_door out=res://reports/screenshots/m9h_doors/warehouse`):
@@ -420,7 +420,7 @@ No arena yet: open `tests/scenarios/fixtures/combat_yard_playtest.tscn` and run 
 Take the deck from the hub's loadout table (or the network lab's entrance table). The deck lab fixture's review shots stay useful (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_start|map_hacked|map_chained|menu|menu_router|ice_trained|ice_advanced|full_trace`) and set the Computer tier in the debug panel's Stats tab.
 
 - [ ] LMB with the deck on a wall jack: the screen rises at once; nothing else in the world stops (guards keep walking). Esc and ✕ lower it without opening the game menu; LMB on the jack raises it again.
-- [ ] The 2 s scan when you plug in reads as "the deck is working", not as lag. The router shows at once, the rest after the scan.
+- [ ] Plugging in (or joining a Wi-Fi) shows your own subnet at once, with no scan (ADR 0121); only a subnet behind a router is scanned, and its scan reads as "the deck is working", not as lag.
 - [ ] Walking away unplugs the deck at a sensible distance (3 m): not so short that a step sideways unplugs it, not so long that it looks like a wireless deck.
 - [ ] The Map's amber (access) reads apart from the orange of devices doing something (ringing, firing) and from the online green.
 - [ ] Hacking a router: the subnet behind it appearing after its scan feels like a reveal; a second router inside it is clearly the next step.
@@ -447,16 +447,16 @@ No level has an access point yet: use the review shots (`tests/ui/deck/fixtures/
 - [ ] Dashed light-blue wireless links read apart from green cables and from grey dashed dead cables; breaking or unpowering the access point turns its wireless devices offline on the Map and their links grey.
 - [ ] The trace while cracking a key (the access point's subnet's tracers) feels fair next to cracking an account.
 
-### M12b Intrusion: exploits, Firewall, logs ([ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md))
+### M12b Intrusion: exploit items, Firewall, logs ([ADR 0121](../decisions/0121-exploits-as-items-and-map-fixes.md), [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md))
 
-No level has software versions or exploits yet: use the review shots (`tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=menu_software|exploits|exploits_patched|firewall`, and `tests/ui/tab_interface/fixtures/tab_shots.tscn -- shot=exploits`, through `tools/run_windowed.sh`) until the levels brief places them, then check in the lab and the warehouse.
+Review shots: `tests/ui/deck/fixtures/deck_shots.tscn` with `SHOT=map_hacked|menu_exploit|scanning|firewall`, and `tests/ui/tab_interface/fixtures/tab_shots.tscn -- shot=inventory_exploits` (through `tools/run_windowed.sh`); then the lab and the warehouse.
 
-- [ ] A device's menu reads at a glance: the software line under the address, "Exploits (n)" only when something matches; matching versions is a quick read, finding the exploit is the challenge.
-- [ ] The Exploits tool: the one match stands out from the dimmed "no match" rows; 4 s and +10 % trace feel like the fast route next to the Icebreaker; "patched on this subnet" after a run a tracer saw is clear about why the exploit stopped working there, and an unwatched subnet keeping it usable feels fair.
-- [ ] An admin exploit on a router reveals the subnets behind it like a cracked login (the toast says so).
+- [ ] Every box on the Map has an icon that says what it is (camera, turret, door, alarm device, computer, router, switch, access point, wall jack) at the default zoom.
+- [ ] Carrying an exploit item, a device of its kind offers "Use <kind> exploit (N left)" in its menu, other kinds nothing; using it is instant, no trace, and the menu then says "access: admin (exploit)". Does one use per item feel scarce but fair?
+- [ ] A router exploit on RTR-01: the Firewall opens, and the subnet behind it shows its scan where it will appear (blinking dashed box, "Scanning SECURITY 10.0.20.0/24…", progress bar, seconds left, marching link from the router), then the devices appear in that box. The world keeps running meanwhile.
 - [ ] The Firewall table is readable and editable with the mouse alone: selecting a row by its number, the From / To lists, ALLOW / DENY in green / red, Move up / down, Delete. "ALARM → SIREN · DENY" above the rest silences that siren when the alarm rings; deleting it lets it ring again.
 - [ ] The line under the table makes it clear that your own traffic passes with an account unless a rule names "you".
-- [ ] The Journal's Exploits section: targets and grants read easily, the "learned from" link opens the note.
+- [ ] The inventory: exploit items show a chip icon and their kind (X-CAM, X-RTR), stack to 5 in one square, and the description says where to use them.
 
 ### M12b Map: the plugged network only ([ADR 0113 amendment](../decisions/0113-network-layer-tracers-and-the-deck.md#amendment-the-map-draws-the-plugged-network-only-2026-11-11))
 
@@ -468,7 +468,7 @@ Review shots: `lab_shots.tscn -- shots=annex_overview,wifi_station,wifi_pillar,e
 
 - [ ] Wi-Fi station: with the lab's deck, Untrained, stand on the 6 m mark, aim at AP-LAB and hold LMB: the Wi-Fi key screen, Crack the key runs (about 10 s). Step behind the pillar: "Paused: line of sight lost"; step out: it goes on. From the 10 m mark it says out of range; with the Computer skill Trained (debug panel) it is in range. Joined, the Map shows AP-LAB with CAM-WIFI and LASER-WIFI dashed, SW-WIFI and RTR-03.
 - [ ] Shoot AP-LAB, or cut its breaker: CAM-WIFI and LASER-WIFI turn grey on the Map and the deck's Wi-Fi drops; the breaker back on brings them back. The marks and the pillar read clearly from the doorway.
-- [ ] Exploits station: read the datapad, plug into the CCTV jack: CAM-EX1 and CAM-EX2 offer Exploits (1), CAM-EX3 (2.4) shows no match. Run it on CAM-EX1: the Watchdog trace rises, then CAM-EX2 reads "patched on this subnet". Join AP-LAB's Wi-Fi and run it on CAM-WIFI: unwatched, nothing is patched. The EdgeGuard exploit on RTR-03 from the Wi-Fi side reveals CCTV.
+- [ ] Exploits station: take the two chips from the table, plug into the CCTV jack: the CCTV subnet is there at once; "Use camera exploit" on CAM-EX1 gives admin without trace (the Watchdog bar stays at 0); "Use router exploit" on RTR-03 opens its Firewall and the Wi-Fi subnet behind it gets scanned. The sign explains it.
 - [ ] Firewall station: press PANIC-LAB: both sirens ring. Read the note, plug into the alarm jack, log in on RTR-04 from the Map, Firewall: add ALARM-LAB → SIRENS (or SIREN-A, SIREN-B) DENY; press the button again: silence, the controller still shows ringing. Is the sign enough to find the rule without help?
 - [ ] Security wing: the entry hall's network wall (SW-OPS, RTR-05, SW-SECURITY) and the wall jack read as network gear; plugged into the jack the Map shows Operations and RTR-05 only; the booth computer's mail "RTR-05 login" (or a 10 s crack) reveals the Security subnet: SW-SECURITY with its booth, lasers, vault and corridor switches, no crossing. Every station works as before (D4 now also opens from the booth computer).
 
@@ -571,7 +571,7 @@ Warehouse network:
 - [ ] Untrained, from the roof spot (about 6.4 m): Crack the key (10 s, about +40 % on the Sentry tracer) while crouched in the dark; nobody notices. Then walk to the gap behind the truck (crouch under the trailer): Untrained says "out of the deck's Wi-Fi range (10 m; yours 8 m)", Trained (debug panel) cracks it there (7.5 s).
 - [ ] Joined over AP-YARD: the Map shows the Security subnet and RTR-01, not the office; the console, the cameras, the lasers and both alarm controllers are there. Walking more than the deck's range away drops the Wi-Fi.
 - [ ] Shooting AP-YARD (from the gap or the apron): the yard camera and both roof lasers go offline (grey on the console), the gate camera and the roof camera stay up; walking upright through a roof beam then rings nothing. Is that quiet route worth a pistol shot, and is the shot heard?
-- [ ] Exploits: office PC 1's mail "Camera firmware" teaches the Helix exploit; run it on CAM-YARD from AP-YARD (4 s): admin on the camera (disable it), and the Map then says the other Helix cameras are patched (the Sentry tracer saw it). CAM-ROOF (2.2) shows "no match". The field service notes on the water tower deck teach the Vigil exploit: ALARM-YARD (3.1) matches, ALARM (3.4) does not. Do the version numbers read as the reason?
+- [ ] Exploit items: the camera exploit on office desk 1 (beside the sticky note) and the alarm exploit on the water tower deck (beside the field service notes and the sniper rifle) are findable and read as loot. From AP-YARD, the alarm exploit on ALARM-YARD disarms the yard without any trace; the camera exploit takes any one camera. Is the tower detour worth it for one alarm device?
 - [ ] Firewall: with admin on RTR-01 (Trained crack from the office jack), the Firewall tool lists three rules (Security -> Office allow, Office -> SEC-CONSOLE allow, Office -> Security deny) and they read sensibly. No rule there silences a siren: the alarm controllers and the sirens share the Security subnet (does a player expect otherwise?).
 
 ## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md); planned, the build agents complete it)
