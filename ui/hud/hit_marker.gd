@@ -18,8 +18,15 @@ var rules := HitMarkerRules.new()
 ## The marker showing (NONE: none) and its seconds left.
 var kind: HitMarkerRules.Kind = HitMarkerRules.Kind.NONE
 var time_left: float = 0.0
-## Offset of the aim point from the screen centre (pixels).
-var offset: Vector2 = Vector2.ZERO
+## Offset of the aim point from the screen centre (pixels). A marker showing redraws when it changes,
+## so it follows the crosshair under recoil and sway.
+var offset: Vector2 = Vector2.ZERO:
+	set(value):
+		if value == offset:
+			return
+		offset = value
+		if is_showing():
+			queue_redraw()
 ## Keeps the marker showing (screenshots).
 var held: bool = false
 ## Markers shown since the last clear (tests).
