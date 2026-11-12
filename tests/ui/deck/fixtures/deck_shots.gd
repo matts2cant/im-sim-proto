@@ -10,10 +10,10 @@ extends Node
 ## address blocked, the incident sent, the console's menu says so), remote (the console's desktop
 ## opened from the Map over the deck, its Security app on the camera), login_trace (the console
 ## bare-handed after a wrong password: the tracer's bar in the computer overlay).
-## M12b intrusion (ADR 0116; the lab knows the mockup's exploits): menu_software (CAM-GATE's menu:
-## its software line and "Exploits (1)"), exploits (Advanced: the Exploits tool on CAM-GATE, one
-## match and three that do not), exploits_patched (the same after a seen run burned it), firewall
-## (RTR-01's rules with a deny rule selected).
+## M12b intrusion (ADR 0121): menu_exploit (two camera exploit items carried: CAM-GATE's menu with
+## "Use camera exploit (2 left)"), scanning (a router exploit used on RTR-01 from the office jack:
+## the Security subnet's scan part way, its dashed box, bar and link), firewall (RTR-01's rules
+## with a deny rule selected).
 ## M12b map fix (ADR 0113 amendment): map_second (RTR-01 hacked on the lab's jack, then plugged into
 ## a second network with no link to it, network_fixtures.gd annex(), its printer broken: only the
 ## annex is drawn).
@@ -35,9 +35,8 @@ const TIERS: Dictionary[String, int] = {
 	"full_trace": 1,
 	"remote": 1,
 	"login_trace": 1,
-	"menu_software": 1,
-	"exploits": 2,
-	"exploits_patched": 1,
+	"menu_exploit": 1,
+	"scanning": 1,
 	"firewall": 1,
 	"map_second": 1,
 }
@@ -99,7 +98,7 @@ static func shot_size(fallback: Vector2i) -> Vector2i:
 
 
 func _stage() -> void:
-	if _shot != "map_start":
+	if _shot not in ["map_start", "scanning"]:
 		DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
 	_session.refresh()
 	await _seconds(0.4)
@@ -110,21 +109,21 @@ func _stage() -> void:
 		await _seconds(0.4)
 	_screen.refresh()
 	_screen.graph.fit_view()
-	if _shot in ["menu_software", "exploits", "exploits_patched"]:
-		var x := Net.exploits()
-		Net.learn(_player, [x["helix"], x["vigil"], x["halcyon"], x["norsk"]])
-		_session.refresh()
 	match _shot:
 		"map_second":
 			await _plug_second_network()
-		"menu_software":
+		"menu_exploit":
+			_player.inventory.give(Net.exploit_item(&"camera"), 2)
+			_session.refresh()
+			_screen.refresh()
 			_screen.graph.select("CAM-GATE")
-		"exploits", "exploits_patched":
-			var tool := ExploitTool.of(_player)
-			tool.select(_lab.device("Camera"))
-			if _shot == "exploits_patched":
-				ExploitTool.patch_subnet(get_tree(), &"security", Net.exploits()["helix"])
-			_screen.show_tool(DeckScreen.Tool.EXPLOITS)
+		"scanning":
+			_player.inventory.give(Net.exploit_item(&"router"), 1)
+			_session.config.scan_time = 3.0
+			ExploitItems.use_from_deck(_session, _lab.device("Rtr01"))
+			await _seconds(1.0)
+			_screen.refresh()
+			_screen.graph.fit_view()
 		"firewall":
 			var router := Router.of(_lab.node("Rtr01"))
 			router.add_rule(

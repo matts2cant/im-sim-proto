@@ -24,11 +24,10 @@ extends Node
 ##   its rules (default allow) and a user's (the deck) only once that user has an account on it.
 ##   `trusted`: the devices allowed to command this one (empty: any device that reaches it, M8's
 ##   behaviour); incidents are reports, not commands, and ignore it.
-## - Intrusion (M12b, ADR 0115, 0116): `software` (vendor, product, version) is what exploits target;
-##   `intrusion` (DeviceIntrusion, saved) holds the exploit ids it is patched against, the access
-##   exploit runs gave users and its log (logins, failed logins, exploit runs and the commands it
-##   receives, with the source address). Access (has_access(), is_admin()) is an account
-##   (DeviceAccounts) or an exploit's grant.
+## - Intrusion (M12b, ADR 0115, 0121): `intrusion` (DeviceIntrusion, saved) holds the users an
+##   exploit item gave admin access and its log (logins, failed logins, exploits used and the
+##   commands it receives, with the source address). Access (has_access(), is_admin()) is an account
+##   (DeviceAccounts) or an exploit item's grant (admin).
 ## - Wireless (M12b, ADR 0115, 0117): `wireless` names an access point (an entity with an
 ##   AccessPoint) this device links to by radio instead of a cable; the link holds while the device
 ##   is not network gear (DeviceNetwork.is_network_gear()) and stands within the access point's
@@ -100,8 +99,6 @@ const DECK_NODE: int = -1
 ## Devices (entities or Device nodes) allowed to command it; empty: any device that reaches it.
 @export var trusted: Array[NodePath] = []
 @export var deck_port: DeckPort = DeckPort.AUTO
-## The software it runs (exploits target it; the deck's Map shows it once its subnet is scanned).
-@export var software: Software
 ## The access point (its entity or Device) it links to by radio instead of a cable; empty: none.
 @export var wireless: NodePath = ^""
 ## Shows its state on a StatusLight (and a GearPlate on network gear) once it is on a network (M12c).
@@ -111,7 +108,7 @@ var entity: Node3D
 var powered: Powered
 var breakable: Breakable
 var broken: bool = false
-## Patches, exploit access and its log (saved).
+## Exploit access and its log (saved).
 var intrusion: DeviceIntrusion = DeviceIntrusion.new()
 
 var _was_up: bool = true
@@ -295,20 +292,20 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	return found
 
 
-## True when `by` has access here: an account (DeviceAccounts) or an exploit's grant.
+## True when `by` has access here: an account (DeviceAccounts) or an exploit item's grant.
 func has_access(by: Node) -> bool:
 	var accounts := DeviceAccounts.of(entity)
 	if accounts != null and accounts.has_access(by):
 		return true
-	return intrusion.exploit_access(NetworkSource.user_key(by)) >= 0
+	return intrusion.has_exploit(NetworkSource.user_key(by))
 
 
-## True when `by` has admin access here: an admin account or an exploit that grants admin.
+## True when `by` has admin access here: an admin account or an exploit item's grant.
 func is_admin(by: Node) -> bool:
 	var accounts := DeviceAccounts.of(entity)
 	if accounts != null and accounts.is_admin(by):
 		return true
-	return intrusion.exploit_access(NetworkSource.user_key(by)) == Exploit.Access.ADMIN
+	return intrusion.has_exploit(NetworkSource.user_key(by))
 
 
 ## Its network address (`address`) for screens that ask any component (Computer.address(), ADR

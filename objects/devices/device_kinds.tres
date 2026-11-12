@@ -1,0 +1,111 @@
+[gd_resource type="Resource" script_class="DeviceKinds" format=3]
+
+[ext_resource type="Script" path="res://objects/devices/device_kinds.gd" id="1_script"]
+[ext_resource type="Script" path="res://objects/computer/security_kind.gd" id="2_kind"]
+
+[sub_resource type="Resource" id="Kind_camera"]
+script = ExtResource("2_kind")
+tag = &"object.camera"
+name = "Camera"
+group = "Cameras and turrets"
+icon = PackedStringArray("rect 3 7 13 9", "16,10 21,7 21,16 16,13 16,10", "8,16 8,20 13,20")
+exploit = &"camera"
+
+[sub_resource type="Resource" id="Kind_turret"]
+script = ExtResource("2_kind")
+tag = &"object.turret"
+name = "Turret"
+group = "Cameras and turrets"
+icon = PackedStringArray("rect 5 9 10 7", "15,12 22,12", "8,16 6,21 16,21 14,16")
+exploit = &"turret"
+
+[sub_resource type="Resource" id="Kind_door"]
+script = ExtResource("2_kind")
+tag = &"object.door"
+name = "Door"
+group = "Doors"
+icon = PackedStringArray("rect 6 3 12 18", "circle 15 12 1")
+exploit = &"door"
+
+[sub_resource type="Resource" id="Kind_alarm"]
+script = ExtResource("2_kind")
+tag = &"object.alarm_controller"
+name = "Alarm controller"
+group = "Alarm"
+icon = PackedStringArray("6,16 6,11", "18,16 18,11", "arc 12 11 6 180 360", "rect 4 16 16 3", "12,2 12,4", "3,6 4.5,7.5", "21,6 19.5,7.5")
+exploit = &"alarm"
+
+[sub_resource type="Resource" id="Kind_siren"]
+script = ExtResource("2_kind")
+tag = &"object.siren"
+name = "Siren"
+group = "Alarm"
+icon = PackedStringArray("4,10 4,14 7,14 12,18 12,6 7,10 4,10", "arc 13 12 4 -50 50", "arc 13 12 7.5 -50 50")
+exploit = &"alarm"
+
+[sub_resource type="Resource" id="Kind_radio"]
+script = ExtResource("2_kind")
+tag = &"object.radio_base_station"
+name = "Radio base station"
+group = "Alarm"
+icon = PackedStringArray("12,13 12,21", "8,21 16,21", "circle 12 11 2", "arc 12 12 5 -140 -40", "arc 12 12 9 -140 -40")
+exploit = &"alarm"
+
+[sub_resource type="Resource" id="Kind_panic"]
+script = ExtResource("2_kind")
+tag = &"object.panic_button"
+name = "Panic button"
+group = "Alarm"
+icon = PackedStringArray("rect 4 4 16 16", "circle 12 12 4.5")
+exploit = &"alarm"
+
+[sub_resource type="Resource" id="Kind_laser"]
+script = ExtResource("2_kind")
+tag = &"object.laser"
+name = "Laser array"
+group = "Laser arrays"
+icon = PackedStringArray("4,4 4,20", "20,4 20,20", "dash 4,8 20,8", "dash 4,13 20,13")
+exploit = &"alarm"
+
+[sub_resource type="Resource" id="Kind_computer"]
+script = ExtResource("2_kind")
+tag = &"object.computer"
+name = "Computer"
+icon = PackedStringArray("rect 3 4 18 12", "9,20 15,20", "12,16 12,20")
+exploit = &"computer"
+
+[sub_resource type="Resource" id="Kind_server"]
+script = ExtResource("2_kind")
+tag = &"object.server"
+name = "Server"
+icon = PackedStringArray("rect 5 3 14 6", "rect 5 9 14 6", "rect 5 15 14 6", "8,6 9,6", "8,12 9,12", "8,18 9,18")
+exploit = &"computer"
+
+[sub_resource type="Resource" id="Kind_router"]
+script = ExtResource("2_kind")
+tag = &"object.router"
+name = "Router"
+icon = PackedStringArray("rect 3 10 18 8", "7,14 7.6,14", "11,14 11.6,14", "15,14 19,14", "6,5 18,5", "15,3 18,5 15,7")
+exploit = &"router"
+
+[sub_resource type="Resource" id="Kind_access_point"]
+script = ExtResource("2_kind")
+tag = &"object.access_point"
+name = "Access point"
+icon = PackedStringArray("12,20 12,14", "circle 12 12 1.5", "arc 12 12 5 -135 -45", "arc 12 12 9 -135 -45")
+
+[sub_resource type="Resource" id="Kind_switch"]
+script = ExtResource("2_kind")
+tag = &"object.network_switch"
+name = "Network switch"
+icon = PackedStringArray("rect 3 7 18 10", "6,12 6,14", "9,12 9,14", "12,12 12,14", "15,12 15,14", "18,12 18,14")
+
+[sub_resource type="Resource" id="Kind_wall_jack"]
+script = ExtResource("2_kind")
+tag = &"object.wall_jack"
+name = "Wall jack"
+icon = PackedStringArray("rect 4 4 16 16", "rect 8 9 8 6", "10,15 10,13", "12,15 12,13", "14,15 14,13")
+
+[resource]
+script = ExtResource("1_script")
+kinds = Array[ExtResource("2_kind")]([SubResource("Kind_camera"), SubResource("Kind_turret"), SubResource("Kind_door"), SubResource("Kind_alarm"), SubResource("Kind_siren"), SubResource("Kind_radio"), SubResource("Kind_panic"), SubResource("Kind_laser"), SubResource("Kind_computer"), SubResource("Kind_server"), SubResource("Kind_router"), SubResource("Kind_access_point"), SubResource("Kind_switch"), SubResource("Kind_wall_jack")])

@@ -6,7 +6,7 @@ extends Node
 ## (commands, incidents, ringing). A device's own traffic: the first of its `rules` that matches
 ## (RouterRule, from a subnet, a device or any) decides, else `default_allow`. A user's (the deck:
 ## "you"): only rules that name "you" apply (the first match decides), else it passes when the user
-## has access to this router (an account or an exploit's grant, Device.has_access(): "hacking the
+## has access to this router (an account or an exploit item's grant, Device.has_access(): "hacking the
 ## router"). So the subnets behind a router stay out of a deck's reach, and off its map, until it is
 ## hacked. The deck's Firewall tool edits the rules as admin (add_rule(), move_rule(), ...).
 ## Network data (ADR 0112 amendment): `subnet_data`, the Subnets it joins (names, ranges and Map

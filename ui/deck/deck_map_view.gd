@@ -1,10 +1,12 @@
 class_name DeckMapView
 extends Control
-## The deck's Map tool (ADR 0112, 0113): a NetworkGraph of DeckSession.map_devices() (amber: access,
-## grey: out of reach), the network the deck is plugged into only; unplugged (from the Wi-Fi key
-## screen) it draws nothing and says UNPLUGGED_NOTE. A device's menu: DeckDeviceMenu. Drag pans, the
-## wheel zooms, F fits. It rebuilds its nodes only when what they show changes (signature()), so a
-## still cursor keeps its hover.
+## The deck's Map tool (ADR 0112, 0113, 0121): a NetworkGraph of DeckSession.map_devices() (amber:
+## access, grey: out of reach), each box with its kind's icon (DeviceKinds), plus the devices whose
+## subnet is being scanned (DeckSession.scanning: laid out unseen, the graph draws the scan), the
+## network the deck is plugged into only; unplugged (from the Wi-Fi key screen) it draws nothing and
+## says UNPLUGGED_NOTE. A device's menu: DeckDeviceMenu. Drag pans, the wheel zooms, F fits. It
+## rebuilds its nodes only when what they show changes (signature()), so a still cursor keeps its
+## hover.
 
 const HINT: String = "Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit. Esc: lower the deck"
 ## What the Map says while the deck is not plugged in (it draws nothing).
@@ -12,11 +14,12 @@ const UNPLUGGED_NOTE: String = "Plug the deck into a device to see its network."
 
 var session: DeckSession
 var ice: IcebreakerTool
-var exploit_tool: ExploitTool
 var graph: NetworkGraph
 var menu := DeckDeviceMenu.new()
 ## The line while unplugged (UNPLUGGED_NOTE).
 var unplugged_label: Label
+
+var kinds: DeviceKinds = DeviceKinds.shipped()
 
 var _signature: String = ""
 var _fit_on_show: bool = true
@@ -53,11 +56,10 @@ func _init() -> void:
 	add_child(unplugged_label)
 
 
-func bind(p_session: DeckSession, p_ice: IcebreakerTool, p_exploit_tool: ExploitTool) -> void:
+func bind(p_session: DeckSession, p_ice: IcebreakerTool) -> void:
 	session = p_session
 	ice = p_ice
-	exploit_tool = p_exploit_tool
-	menu.bind(session, ice, exploit_tool)
+	menu.bind(session, ice)
 	_signature = ""
 
 
@@ -77,6 +79,7 @@ func reset() -> void:
 func refresh() -> void:
 	unplugged_label.visible = not session.is_plugged()
 	var rows := map_rows()
+	graph.scans = scan_state()
 	var signature := signature_of(rows)
 	if signature == _signature:
 		return
@@ -94,10 +97,16 @@ func map_rows() -> Array[NetworkRow]:
 	if session == null:
 		return rows
 	var reached := session.reached_devices()
-	for device in session.map_devices():
+	var shown := session.map_devices()
+	var pending := session.scanning.duplicate()
+	shown.append_array(pending)
+	for device in shown:
 		if not is_instance_valid(device) or not is_instance_valid(device.entity):
 			continue
 		var row := NetworkRow.new()
+		row.scanning = pending.has(device)
+		var kind := kinds.kind_for(device.entity)
+		row.icon = kind.icon if kind != null else PackedStringArray()
 		row.device = device
 		row.name = NetworkSource.display_name(device)
 		row.is_self = session.is_entry(device)
@@ -109,6 +118,18 @@ func map_rows() -> Array[NetworkRow]:
 		place_in_network(row, device)
 		rows.append(row)
 	return rows
+
+
+## Subnet -> (progress 0..1, seconds left) of each scan running now (DeckSession.scans).
+func scan_state() -> Dictionary[StringName, Vector2]:
+	var found: Dictionary[StringName, Vector2] = {}
+	if session == null:
+		return found
+	var total := maxf(session.config.scan_time, 0.001)
+	for subnet: StringName in session.scans:
+		var left := session.scans[subnet]
+		found[subnet] = Vector2(clampf(1.0 - left / total, 0.0, 1.0), left)
+	return found
 
 
 ## Fills `row`'s network place from `device`: its address, its subnet and, for a router, the
@@ -170,15 +191,18 @@ func signature_of(rows: Array[NetworkRow]) -> String:
 				]
 			)
 		)
-		parts.append(
-			(
-				"%s|%s|%d|%d"
-				% [
-					row.device.is_admin(session.entity),
-					DeckSession.has_scanned(session.stack, row.subnet),
-					row.device.intrusion.patched.size(),
-					exploit_tool.matching(row.device).size() if exploit_tool != null else 0
-				]
+		(
+			parts
+			. append(
+				(
+					"%s|%s|%s|%d"
+					% [
+						row.scanning,
+						row.device.is_admin(session.entity),
+						DeckSession.has_scanned(session.stack, row.subnet),
+						ExploitItems.count(session.entity, ExploitItems.kind_of(row.device)),
+					]
+				)
 			)
 		)
 	parts.append(str(Icebreaker.assist(session.entity)))

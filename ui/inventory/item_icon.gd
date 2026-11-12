@@ -1,7 +1,8 @@
 class_name ItemIcon
 extends RefCounted
 ## Graybox item icon drawn on any CanvasItem (inventory grid, belt row, belt HUD): a rect of the
-## item's colour with a lighter rim, its short name and the stack count. No image assets.
+## item's colour with a lighter rim, its short name and the stack count; an item with a line icon
+## (ItemData.icon, DeviceIcon strokes) shows it above its short name. No image assets.
 
 const TEXT := Color(0.95, 0.95, 0.92)
 const SHADOW := Color(0, 0, 0, 0.7)
@@ -23,23 +24,29 @@ static func draw(canvas: CanvasItem, rect: Rect2, stack: ItemStack, font_size: i
 	canvas.draw_rect(inner, rim, false, 1.0)
 	var text_colour := Color(TEXT, alpha)
 	var name_size := font_size
-	# Shrink the short name until it fits the icon width.
+	var has_icon := not stack.item.icon.is_empty()
+	# With a line icon the name sits bottom-left beside the count (bottom-right).
+	var room := inner.size.x - 6
+	if has_icon:
+		room -= font.get_string_size(count_text(stack), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + 4.0
+	# Shrink the short name until it fits.
 	while (
-		name_size > 8
-		and font.get_string_size(stack.item.short_name, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size).x > inner.size.x - 6
+		name_size > 8 and font.get_string_size(stack.item.short_name, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size).x > room
 	):
 		name_size -= 1
 	var baseline := inner.get_center().y + (font.get_ascent(name_size) - font.get_descent(name_size)) * 0.5
-	_text(
-		canvas,
-		font,
-		Vector2(inner.position.x, baseline),
-		stack.item.short_name,
-		inner.size.x,
-		name_size,
-		text_colour,
-		HORIZONTAL_ALIGNMENT_CENTER
-	)
+	var at := Vector2(inner.position.x, baseline)
+	var align := HORIZONTAL_ALIGNMENT_CENTER
+	if has_icon:
+		baseline = inner.end.y - 4.0 - font.get_descent(font_size)
+		at = Vector2(inner.position.x + 4.0, baseline)
+		align = HORIZONTAL_ALIGNMENT_LEFT
+		var side := minf(inner.size.x, baseline - font.get_ascent(name_size) - inner.position.y - 4.0) * 0.8
+		var middle := Vector2(inner.get_center().x, (inner.position.y + baseline - font.get_ascent(name_size)) * 0.5)
+		DeviceIcon.draw_strokes(
+			canvas, stack.item.icon, Rect2(middle - Vector2(side, side) * 0.5, Vector2(side, side)), text_colour
+		)
+	_text(canvas, font, at, stack.item.short_name, inner.size.x - 4.0, name_size, text_colour, align)
 	var tags := tag_text(stack)
 	if not tags.is_empty():
 		var top := inner.position.y + 3.0 + font.get_ascent(TAG_SIZE)

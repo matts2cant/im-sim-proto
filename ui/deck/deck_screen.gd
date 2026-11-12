@@ -8,8 +8,8 @@ extends CanvasLayer
 ## This host owns the window (a WindowFrame: header, tools sidebar, body) and switches the tools:
 ## - Header: "Deck", the entry point and address, one trace bar per tracer watching the user
 ##   (DeckTraceBars; "unknown tracer" until its host is on the map), ✕.
-## - Tools in the sidebar: Map (DeckMapView, its menus DeckDeviceMenu), Icebreaker (DeckIceView),
-##   Exploits (ExploitsView), Firewall (FirewallView); Logs greyed (M16). Wi-Fi (WifiPanel, M12b,
+## - Tools in the sidebar: Map (DeckMapView, its menus DeckDeviceMenu: exploit items are used
+##   there, ADR 0121), Icebreaker (DeckIceView), Firewall (FirewallView); Logs greyed (M16). Wi-Fi (WifiPanel, M12b,
 ##   ADR 0117): open_wifi() raises it on the Wi-Fi key screen, plugged in or not.
 ## - Refreshes (every refresh interval, every session change) keep the buttons under the cursor: the
 ##   Map rebuilds its nodes only when they change, the menu and the Icebreaker are filled aside and
@@ -21,7 +21,7 @@ extends CanvasLayer
 ## - Trace bars in the computer overlay too (ADR 0114's slot): while the user's ComputerScreen is
 ##   open, one bar per tracer watching the user there (DeckTraceBars.computer_bars()).
 
-enum Tool { MAP, ICEBREAKER, WIFI, EXPLOITS, FIREWALL }
+enum Tool { MAP, ICEBREAKER, WIFI, FIREWALL }
 
 const PANEL_FRACTION: float = 0.85
 const TOAST_TIME: float = 2.5
@@ -33,8 +33,6 @@ const COMPUTER_TRACE_INTERVAL: float = 0.25
 var session: DeckSession
 ## The deck's Icebreaker (beside the session).
 var ice: IcebreakerTool
-## The deck's Exploits tool (beside the session).
-var exploit_tool: ExploitTool
 var wireless: WirelessTool
 var player: Player
 var tool: Tool = Tool.MAP
@@ -46,14 +44,12 @@ var trace_box: HBoxContainer
 var close_button: Button
 var map_button: Button
 var ice_button: Button
-var exploits_button: Button
 var firewall_button: Button
 var map_view: DeckMapView
 var graph: NetworkGraph
 ## The Map's line while unplugged (UNPLUGGED_NOTE).
 var unplugged_label: Label
 var ice_view: DeckIceView
-var exploits_view: ExploitsView
 var firewall_view: FirewallView
 var wifi_view: WifiPanel
 var tether_label: Label
@@ -129,11 +125,9 @@ func open_wifi(p_session: DeckSession) -> void:
 func _raise(p_session: DeckSession, which: Tool) -> void:
 	session = p_session
 	ice = IcebreakerTool.of(session.get_parent())
-	exploit_tool = ExploitTool.of(session.get_parent())
 	wireless = WirelessTool.of(session.get_parent())
-	map_view.bind(session, ice, exploit_tool)
+	map_view.bind(session, ice)
 	ice_view.bind(session, ice)
-	exploits_view.bind(session, exploit_tool)
 	firewall_view.bind(session)
 	if not session.changed.is_connected(_on_changed):
 		session.changed.connect(_on_changed)
@@ -156,8 +150,6 @@ func _raise(p_session: DeckSession, which: Tool) -> void:
 	ice_view.invalidate()
 	if which == Tool.MAP and ice != null and ice.is_running():
 		which = Tool.ICEBREAKER
-	elif which == Tool.MAP and exploit_tool != null and exploit_tool.is_running():
-		which = Tool.EXPLOITS
 	show_tool(which)
 	_on_remote_changed(session.remote)
 	refresh()
@@ -178,18 +170,16 @@ func close() -> void:
 	Input.mouse_mode = _mouse_before
 
 
-## Shows the Map, the Icebreaker, the Exploits tool or the Firewall (on the router picked last,
+## Shows the Map, the Icebreaker or the Firewall (on the router picked last,
 ## else the first the user is admin of).
 func show_tool(which: Tool) -> void:
 	tool = which
 	map_view.visible = tool == Tool.MAP
 	ice_view.visible = tool == Tool.ICEBREAKER
-	exploits_view.visible = tool == Tool.EXPLOITS
 	firewall_view.visible = tool == Tool.FIREWALL
 	wifi_view.visible = tool == Tool.WIFI
 	map_button.set_pressed_no_signal(tool == Tool.MAP)
 	ice_button.set_pressed_no_signal(tool == Tool.ICEBREAKER)
-	exploits_button.set_pressed_no_signal(tool == Tool.EXPLOITS)
 	firewall_button.set_pressed_no_signal(tool == Tool.FIREWALL)
 	if tool != Tool.MAP:
 		graph.close_menu()
@@ -207,7 +197,6 @@ func refresh() -> void:
 		return
 	_refresh_left = session.config.refresh_interval
 	ice_button.disabled = not session.is_plugged()
-	exploits_button.disabled = not session.is_plugged()
 	firewall_button.disabled = not session.is_plugged()
 	tether_label.text = WIRELESS_NOTE if session.is_wireless() else TETHER_NOTE
 	if tool == Tool.WIFI:
@@ -223,8 +212,6 @@ func refresh() -> void:
 			map_view.refresh()
 		Tool.ICEBREAKER:
 			ice_view.refresh()
-		Tool.EXPLOITS:
-			exploits_view.refresh()
 		Tool.FIREWALL:
 			firewall_view.refresh()
 		Tool.WIFI:
@@ -375,11 +362,6 @@ func _on_crack_started() -> void:
 	show_tool(Tool.ICEBREAKER)
 
 
-func _open_exploits(device: Device) -> void:
-	exploit_tool.select(device)
-	show_tool(Tool.EXPLOITS)
-
-
 func _open_firewall(device: Device) -> void:
 	firewall_view.show_router(device)
 	show_tool(Tool.FIREWALL)
@@ -421,7 +403,6 @@ func _build() -> void:
 	map_view = DeckMapView.new()
 	graph = map_view.graph
 	unplugged_label = map_view.unplugged_label
-	map_view.menu.exploits_requested.connect(_open_exploits)
 	map_view.menu.firewall_requested.connect(_open_firewall)
 	map_view.menu.crack_started.connect(_on_crack_started)
 	map_view.menu.notice.connect(show_notice)
@@ -431,9 +412,6 @@ func _build() -> void:
 	ice_view.map_requested.connect(show_tool.bind(Tool.MAP))
 	ice_view.refresh_requested.connect(refresh)
 	content_area.add_child(ice_view)
-	exploits_view = ExploitsView.new()
-	exploits_view.visible = false
-	content_area.add_child(exploits_view)
 	firewall_view = FirewallView.new()
 	firewall_view.visible = false
 	content_area.add_child(firewall_view)
@@ -447,7 +425,6 @@ func _build_tools() -> void:
 	var column := frame.sidebar_column
 	map_button = _tool_button("Map", Tool.MAP)
 	ice_button = _tool_button("Icebreaker", Tool.ICEBREAKER)
-	exploits_button = _tool_button("Exploits", Tool.EXPLOITS)
 	firewall_button = _tool_button("Firewall", Tool.FIREWALL)
 	var logs := _tool_button("Logs  (M16)", -1)
 	logs.disabled = true

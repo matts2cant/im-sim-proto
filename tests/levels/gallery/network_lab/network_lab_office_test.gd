@@ -37,14 +37,14 @@ func test_the_deck_from_the_table_plugs_into_the_jack_and_maps_the_office_and_rt
 	assert_bool(session.is_plugged()).is_true()
 	assert_object(session.port).is_same(_lab.device("Devices/Jack"))
 	assert_str(session.source.address).is_equal("10.0.10.40")
-	# The office scan (2 s) while the screen is up.
-	await _lab.seconds(2.3)
+	# The office subnet (the jack's own) shows at once, without a scan or trace (ADR 0121).
+	await _lab.seconds(0.1)
 	var screen := DeckScreen.of(_lab.player)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains_exactly_in_any_order(
 		["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC1", "OFFICE-PC2", "RTR-01"]
 	)
-	assert_float(_lab.tracer().trace_of(_lab.player)).is_greater(0.0)
+	assert_float(_lab.tracer().trace_of(_lab.player)).is_equal(0.0)
 
 
 func test_the_sticky_note_opens_pc1_and_its_mail_is_an_implicit_clue() -> void:

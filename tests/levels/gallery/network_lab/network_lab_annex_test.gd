@@ -6,9 +6,9 @@ extends GdUnitTestSuite
 ##   wireless camera and laser; floor marks 6 m (Untrained: in range) and 10 m (Trained only) from
 ##   it with a clear line of sight, and a pillar that hides it from a spot behind it within the
 ##   Untrained range;
-## - exploits: the CCTV subnet (a jack, three Helix CAM-3 cameras 2.1, 2.0 and 2.4) behind RTR-03
-##   (Norsk EdgeGuard 1.8, the Watchdog tracer watching CCTV only), which joins it to the Wi-Fi
-##   subnet; a datapad teaches the Helix and EdgeGuard exploits;
+## - exploits: the CCTV subnet (a jack, three cameras) behind RTR-03 (the Watchdog tracer watching
+##   CCTV only), which joins it to the Wi-Fi subnet; a camera and a router exploit item on the
+##   station's table (ADR 0121), each opening a device of its kind there;
 ## - firewall: RTR-04 between the Alarm subnet (a jack, the alarm controller, a panic button) and
 ##   the Sirens subnet (two sirens); its Weak admin login on a note at the station; denying the
 ##   controller to the Sirens subnet silences them.
@@ -259,21 +259,26 @@ func test_the_floor_marks_sit_at_6_and_10_m_and_the_pillar_hides_the_access_poin
 	assert_float(nearest.distance_to(Vector2(BEHIND_PILLAR.x, BEHIND_PILLAR.z))).is_greater(0.45)
 
 
-func test_exploits_match_as_designed() -> void:
-	var notes := _node("Items/ExploitNotes").get_node("Readable") as Readable
-	assert_int(notes.exploits.size()).is_equal(2)
-	var helix: Exploit = notes.exploits.filter(func(x: Exploit) -> bool: return x.product == "CAM-3")[0]
-	var norsk: Exploit = notes.exploits.filter(func(x: Exploit) -> bool: return x.product == "EdgeGuard")[0]
-	# Helix 2.0-2.1: CAM-EX1 (2.1) and CAM-EX2 (2.0, the same product on the watched subnet) and the
-	# Wi-Fi camera (2.1, unwatched); CAM-EX3 (2.4) is out of range.
-	for path: String in ["Devices/CamEx1", "Devices/CamEx2", "Devices/WifiCamera"]:
-		assert_bool(helix.matches(_device(path).software)).override_failure_message(path).is_true()
-	assert_bool(helix.matches(_device("Devices/CamEx3").software)).is_false()
-	assert_bool(_device("Devices/CamEx3").software.same_product(_device("Devices/CamEx1").software)).is_true()
-	# EdgeGuard 1.0-1.9: RTR-03 (1.8), not RTR-04 (2.2).
-	assert_bool(norsk.matches(_device("Devices/Rtr03").software)).is_true()
-	assert_bool(norsk.matches(_device("Devices/Rtr04").software)).is_false()
-	assert_bool(helix.is_admin() and norsk.is_admin()).is_true()
+func test_the_exploit_items_lie_on_the_table_and_open_devices_there() -> void:
+	var table := _node("Furniture/ExploitTable") as Node3D
+	var kinds := DeviceKinds.shipped()
+	var expected: Dictionary[String, StringName] = {"Items/CameraExploit": &"camera", "Items/RouterExploit": &"router"}
+	for path: String in expected:
+		var pickup := ItemPickup.of(_node(path))
+		assert_object(pickup).override_failure_message(path).is_not_null()
+		assert_str(String(pickup.item.exploit_kind)).is_equal(String(expected[path]))
+		# On the table's top (1.0 m), within its 1.4 x 0.7 m footprint (a ledge's origin is its lip,
+		# its top extends along its local -z).
+		var at := table.to_local((_node(path) as Node3D).global_position)
+		assert_float(at.y).override_failure_message(path).is_between(0.98, 1.1)
+		assert_float(absf(at.x)).override_failure_message(path).is_less(0.6)
+		assert_float(at.z).override_failure_message(path).is_between(-0.6, -0.1)
+	# Each kind opens devices of the station: the CCTV cameras and RTR-03.
+	for path: String in ["Devices/CamEx1", "Devices/CamEx2", "Devices/CamEx3"]:
+		assert_str(String(kinds.kind_for(_node(path)).exploit)).override_failure_message(path).is_equal("camera")
+	assert_str(String(kinds.kind_for(_node("Devices/Rtr03")).exploit)).is_equal("router")
+	# The old datapad is gone.
+	assert_object(_room.get_node_or_null(^"Items/ExploitNotes")).is_null()
 
 
 func test_denying_the_controller_to_the_sirens_silences_them() -> void:

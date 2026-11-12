@@ -4,13 +4,25 @@ extends RefCounted
 ## coordinates, from the graph's public state (layout, rows, cables, wireless, subnet_boxes):
 ## - Subnet boxes: a flat box of the subnet's colour (fill SUBNET_FILL_ALPHA, a 1 px border) and its
 ##   title (its name, then its range dimmer) at its top-left.
+## - A subnet being scanned (ADR 0121; its box's "scanning"): the box dashed and blinking (period
+##   SCAN_BLINK s), "Scanning <NAME> <range>…" over a progress bar and the seconds left in its
+##   middle, and a marching dashed link (SCAN_MARCH px/s) from the router that leads there to the
+##   box's edge. The cables of its unseen devices are not drawn.
 ## - Cables along the layout's routes: solid green between two online devices (also when one is
 ##   disabled: the link works), dashed grey otherwise; a wireless link always dashed in
 ##   WIRELESS_COLOR (the offline grey while an end is offline). Dashed ones first, so a live bus
 ##   shared with them stays solid; the layout's `extra` cables (off the network's tree) last.
 
-
 ## The title of a subnet's box: `data`'s label (else `id` in capitals), then its range dimmer.
+## Seconds per blink of a scan's box, and how fast its link's dashes march (content px per s).
+const SCAN_BLINK: float = 1.0
+const SCAN_MARCH: float = 18.0
+const SCAN_BAR_WIDTH: float = 240.0
+const SCAN_BAR_HEIGHT: float = 8.0
+const SCAN_DASH: float = 7.0
+const SCAN_GAP: float = 5.0
+
+
 static func subnet_title(id: StringName, data: Subnet) -> Control:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override(&"separation", 10)
@@ -33,8 +45,12 @@ static func paint(graph: NetworkGraph) -> void:
 	if layout == null:
 		return
 	var canvas := graph.content
+	var now := Time.get_ticks_msec() / 1000.0
 	for id: StringName in graph.subnet_boxes:
 		var color: Color = graph.subnet_boxes[id]["color"]
+		if graph.subnet_boxes[id].get("scanning", false):
+			_paint_scan(graph, id, now)
+			continue
 		var box := StyleBoxFlat.new()
 		box.bg_color = Color(color, NetworkGraph.SUBNET_FILL_ALPHA)
 		box.border_color = Color(color, NetworkGraph.SUBNET_BORDER_ALPHA)
@@ -54,6 +70,8 @@ static func paint(graph: NetworkGraph) -> void:
 			var cable := cables[k]
 			if cable.x >= rows.size() or cable.y >= rows.size():
 				continue
+			if rows[cable.x].scanning or rows[cable.y].scanning:
+				continue
 			var live := graph.cable_live(k)
 			if live != pass_live:
 				continue
@@ -69,11 +87,58 @@ static func paint(graph: NetworkGraph) -> void:
 				_draw_dashed(canvas, route, NetworkGraph.DASH, NetworkGraph.DASH_GAP, color)
 
 
-## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs.
-static func dashes(route: PackedVector2Array, dash: float, gap: float) -> Array[PackedVector2Array]:
+## The scan of subnet `id` in its box (see the class description); `now`: seconds (animation).
+static func _paint_scan(graph: NetworkGraph, id: StringName, now: float) -> void:
+	var canvas := graph.content
+	var rect: Rect2 = graph.subnet_boxes[id]["rect"]
+	var color: Color = graph.subnet_boxes[id]["color"]
+	var text_color := color.lightened(0.5)
+	var blink := 0.65 + 0.35 * cos(now * TAU / SCAN_BLINK)
+	var march := fmod(now * SCAN_MARCH, SCAN_DASH + SCAN_GAP)
+	var router := NetworkGraph.scan_router(graph, id)
+	if router != null:
+		var index := graph.rows.find(router)
+		var node := graph.layout.rects[index] if index >= 0 and index < graph.layout.rects.size() else Rect2()
+		var from := node.get_center()
+		var to := Vector2(clampf(from.x, rect.position.x, rect.end.x), clampf(from.y, rect.position.y, rect.end.y))
+		var link := PackedVector2Array([from, to])
+		_draw_dashed(canvas, link, SCAN_DASH, SCAN_GAP, Color(color, 0.9), march)
+	canvas.draw_rect(rect, Color(color, NetworkGraph.SUBNET_FILL_ALPHA * blink))
+	var corners := PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end])
+	corners.append_array(PackedVector2Array([Vector2(rect.position.x, rect.end.y), rect.position]))
+	_draw_dashed(canvas, corners, SCAN_DASH, SCAN_GAP, Color(color, NetworkGraph.SUBNET_BORDER_ALPHA * blink + 0.3))
+	var data: Subnet = graph.subnets.get(id)
+	var title := String(id).to_upper()
+	var range_text := ""
+	if data != null:
+		title = data.label if not data.label.is_empty() else title
+		range_text = data.address_range
+	var font := DeckStyle.mono_font()
+	var centre := rect.get_center()
+	var width := maxf(rect.size.x - 16.0, 40.0)
+	var left := centre.x - width * 0.5
+	var scan: Vector2 = graph.scans.get(id, Vector2.ZERO)
+	var words := "Scanning %s %s…" % [title, range_text] if not range_text.is_empty() else "Scanning %s…" % title
+	canvas.draw_string(font, Vector2(left, centre.y - 10.0), words, HORIZONTAL_ALIGNMENT_CENTER, width, 13, text_color)
+	var bar_width := minf(SCAN_BAR_WIDTH, width)
+	var bar := Rect2(centre.x - bar_width * 0.5, centre.y, bar_width, SCAN_BAR_HEIGHT)
+	canvas.draw_rect(bar, NetworkGraph.BACKGROUND)
+	canvas.draw_rect(Rect2(bar.position, Vector2(bar.size.x * clampf(scan.x, 0.0, 1.0), bar.size.y)), text_color)
+	canvas.draw_rect(bar, Color(color, 0.9), false, 1.0)
+	var left_text := "%.1f s left · tracers watching it see the scan" % maxf(scan.y, 0.0)
+	canvas.draw_string(
+		font, Vector2(left, bar.end.y + 18.0), left_text, HORIZONTAL_ALIGNMENT_CENTER, width, 11, Color(text_color, 0.8)
+	)
+
+
+## `route` cut into dashes of `dash` px with `gap` px between them, as [from, to] pairs; `offset`
+## shifts the pattern along the route (marching dashes).
+static func dashes(
+	route: PackedVector2Array, dash: float, gap: float, offset: float = 0.0
+) -> Array[PackedVector2Array]:
 	var found: Array[PackedVector2Array] = []
 	var period := dash + gap
-	var walked := 0.0
+	var walked := period - fmod(offset, period)
 	for i in route.size() - 1:
 		var from := route[i]
 		var length := from.distance_to(route[i + 1])
@@ -91,6 +156,8 @@ static func dashes(route: PackedVector2Array, dash: float, gap: float) -> Array[
 	return found
 
 
-static func _draw_dashed(canvas: Control, route: PackedVector2Array, dash: float, gap: float, color: Color) -> void:
-	for piece in dashes(route, dash, gap):
+static func _draw_dashed(
+	canvas: Control, route: PackedVector2Array, dash: float, gap: float, color: Color, phase: float = 0.0
+) -> void:
+	for piece in dashes(route, dash, gap, phase):
 		canvas.draw_line(piece[0], piece[1], color, NetworkGraph.CABLE_WIDTH, true)

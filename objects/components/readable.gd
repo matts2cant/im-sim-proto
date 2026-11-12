@@ -13,8 +13,6 @@ extends Usable
 ## Code id -> what the code opens, in words ("Manager's office door"): the Journal's Codes and
 ## logins list names it so (ADR 0110). Without one the id is shown in words.
 @export var code_labels: Dictionary[StringName, String] = {}
-## Exploits it teaches (the Journal's Exploits section; the deck's Exploits tool runs them).
-@export var exploits: Array[Exploit] = []
 ## What the log says it was read from; empty: the owner's node name in words.
 @export var source: String = ""
 
@@ -37,7 +35,7 @@ func entry() -> LogEntry:
 	var from := source
 	if from.is_empty() and get_parent() != null:
 		from = String(get_parent().name).capitalize()
-	return LogEntry.make(entry_id, title, text, from, codes, code_labels, exploits)
+	return LogEntry.make(entry_id, title, text, from, codes, code_labels)
 
 
 func use(user: Node) -> bool:

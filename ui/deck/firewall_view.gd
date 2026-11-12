@@ -2,7 +2,7 @@ class_name FirewallView
 extends MarginContainer
 ## The deck's Firewall tool (ADR 0115, 0116; the approved mockup design/prototypes/
 ## intrusion_screens.html): as admin of a router the deck reaches (an admin account or an exploit
-## granting admin), its ordered rules as a table: number (click to select), From, To (each a
+## item), its ordered rules as a table: number (click to select), From, To (each a
 ## choice of any, "you" (From only), a subnet or a device on the map), ALLOW / DENY (click to
 ## toggle); Add a rule (appended: any -> any with the router's default, so it changes nothing until
 ## edited), Move up, Move down, Delete. The first rule that matches decides (Router.passes()); a

@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 ## the hall's network wall: Operations (the booth computer and the hall's wall jack on SW-OPS) and
 ## Security (every security device). Security spans an area switch per room with devices, each
 ## cabled up to SW-SECURITY (the network wall, breaker B): SW-BOOTH, SW-LASERS, SW-CORRIDOR,
-## SW-VAULT. Every device has an address, a display name and software; the security devices trust
+## SW-VAULT. Every device has an address, a display name and a kind (Map icon); the security devices trust
 ## the booth computer (sirens and the radio base station also the alarm controller). RTR-05's Weak
 ## admin login is in the booth computer's mail; a deck on the jack reaches only Operations and the
 ## router until it has an account there. The deck's Map of the whole network, from the jack and from
@@ -94,7 +94,7 @@ func _device(path: String) -> Device:
 	return Device.of(_node(path))
 
 
-func test_two_subnets_behind_rtr05_with_addresses_names_software_and_trust() -> void:
+func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> void:
 	for path: String in NETWORK:
 		var device := _device(path)
 		assert_str(String(DeviceNetwork.subnet_of(device))).override_failure_message(path).is_equal(
@@ -102,11 +102,10 @@ func test_two_subnets_behind_rtr05_with_addresses_names_software_and_trust() -> 
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
 		assert_str(NetworkSource.display_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
-		# Every device but the switches and the jack runs software the Map shows.
-		if not DeviceNetwork.is_network_gear(device) or Router.of(device.entity) != null:
-			if DeviceNetwork.port_kind(device) != Device.DeckPort.JACK:
-				assert_object(device.software).override_failure_message(path).is_not_null()
-				assert_str(device.software.label()).override_failure_message(path).is_not_empty()
+		# Every device is of a kind the Map draws an icon for (ADR 0121).
+		var kind := DeviceKinds.shipped().kind_for(device.entity)
+		assert_object(kind).override_failure_message(path).is_not_null()
+		assert_bool(kind.icon.is_empty()).override_failure_message(path).is_false()
 	var router := Router.of(_node("Devices/Rtr05"))
 	assert_array(router.subnets()).contains_exactly_in_any_order([OPS, SECURITY])
 	assert_array(router.addresses()).is_equal(["10.0.15.1", "10.0.25.254"])

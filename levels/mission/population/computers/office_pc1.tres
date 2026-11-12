@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://objects/computer/computer_data.gd" id="1_data"]
 [ext_resource type="Script" path="res://objects/computer/computer_document.gd" id="2_document"]
-[ext_resource type="Script" path="res://objects/network/exploit.gd" id="3_exploit"]
 
 [sub_resource type="Resource" id="Mail_courier"]
 script = ExtResource("2_document")
@@ -25,24 +24,6 @@ title = "Office network"
 sender = "IT"
 text = "The office network now sits behind the router RTR-01 in the basement store. Its Sentry tracer watches the office and security subnets: failed logins get reported. The security devices only take orders from the security console; nothing on this PC can reach them."
 
-[sub_resource type="Resource" id="Exploit_helix"]
-script = ExtResource("3_exploit")
-id = &"helix_default_login"
-title = "Helix default service login"
-vendor = "Helix"
-product = "CAM-3"
-version_min = "2.0"
-version_max = "2.1"
-access = 1
-
-[sub_resource type="Resource" id="Mail_cameras"]
-script = ExtResource("2_document")
-id = &"warehouse.pc1.mail_cameras"
-title = "Camera firmware"
-sender = "IT"
-text = "Helix warns that its CAM-3 cameras on firmware 2.0 and 2.1 still accept the factory service login (full admin, no password asked). Their 2.2 update closes it; so far only the new roof camera runs 2.2, the others get it at the next maintenance visit. Until then the router RTR-01 keeps the office off the security subnet, except the security console."
-exploits = Array[ExtResource("3_exploit")]([SubResource("Exploit_helix")])
-
 [sub_resource type="Resource" id="File_invoice"]
 script = ExtResource("2_document")
 id = &"warehouse.pc1.file_invoice"
@@ -51,5 +32,5 @@ text = "Invoice 2031-117 · 14 x agricultural pump, model AP-40 · paid in cash 
 
 [resource]
 script = ExtResource("1_data")
-mail = Array[ExtResource("2_document")]([SubResource("Mail_courier"), SubResource("Mail_it"), SubResource("Mail_network"), SubResource("Mail_cameras")])
+mail = Array[ExtResource("2_document")]([SubResource("Mail_courier"), SubResource("Mail_it"), SubResource("Mail_network")])
 files = Array[ExtResource("2_document")]([SubResource("File_invoice")])

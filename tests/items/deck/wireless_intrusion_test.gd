@@ -1,13 +1,10 @@
 extends GdUnitTestSuite
-## Integration across M12b's intrusion (ADR 0116) and wireless (ADR 0117), on the lab network with
-## the access point AP-YARD and its wireless devices (network_fixtures.gd add_wireless()), software
-## data as the mockup's: CAM-YARD (wireless) Helix CAM-3 2.1, CAM-DOCK (cabled) Helix CAM-3 2.0,
-## LASER-ROOF (wireless) Lumen Tripwire 1.3, and the lab's cabled Camera Helix CAM-3 2.1, all on the
-## security subnet. An exploit runs on a wireless device from a deck on the office jack (through the
-## hacked router) and from a deck joined over Wi-Fi; a seen run on a wireless device patches the
-## product's cabled and wireless devices on the subnet; a firewall rule stops a wireless camera's
-## incident reaching an alarm controller across the router; a rule from "you" judges a Wi-Fi deck as
-## it judges a deck on a jack.
+## Integration across M12b's intrusion (ADR 0121) and wireless (ADR 0117), on the lab network with
+## the access point AP-YARD and its wireless devices (network_fixtures.gd add_wireless()): CAM-YARD
+## (wireless) and CAM-DOCK (cabled) tagged as cameras here. A camera exploit item opens the wireless
+## camera from a deck on the office jack (through the hacked router) and from a deck joined over
+## Wi-Fi, and only that camera; a firewall rule stops a wireless camera's incident reaching an alarm
+## controller across the router; a rule from "you" judges a Wi-Fi deck as it judges a deck on a jack.
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
@@ -20,8 +17,7 @@ var _root: Node3D
 var _n: Dictionary[String, Node3D]
 var _user: Node3D
 var _session: DeckSession
-var _tool: ExploitTool
-var _helix: Exploit
+var _deck: ItemStack
 
 
 func before_test() -> void:
@@ -31,14 +27,11 @@ func before_test() -> void:
 	add_child(_root)
 	_n = Net.lab(_root, ORIGIN)
 	Net.add_wireless(_n, _root, ORIGIN)
-	_dev("CamYard").software = Software.make("Helix", "CAM-3", "2.1")
-	_dev("CamDock").software = Software.make("Helix", "CAM-3", "2.0")
-	_dev("LaserRoof").software = Software.make("Lumen", "Tripwire", "1.3")
+	for entity_name: String in ["CamYard", "CamDock"]:
+		ActorState.set_tag(_n[entity_name], &"object.camera", true)
 	_user = Net.user(_root, ORIGIN + Vector3(0, 0, 1))
 	_session = DeckSession.of(_user)
-	_tool = ExploitTool.of(_user)
-	_helix = Net.exploits()["helix"]
-	Net.learn(_user, [_helix])
+	_deck = Net.carry(_user, {&"camera": 1})
 
 
 func after_test() -> void:
@@ -51,10 +44,6 @@ func _dev(entity_name: String) -> Device:
 	return Device.of(_n[entity_name])
 
 
-func _tracer() -> Tracer:
-	return _n["Rtr01"].get_node("Tracer") as Tracer
-
-
 func _seconds(seconds: float) -> void:
 	for i in roundi(seconds * 60.0):
 		await get_tree().physics_frame
@@ -63,44 +52,36 @@ func _seconds(seconds: float) -> void:
 func _fast() -> void:
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
-	_session.config.exploit_time = 0.5
 
 
-func _run_on_cam_yard() -> void:
+# Uses the camera item on CAM-YARD: admin there, the item gone, CAM-DOCK still closed.
+func _use_on_cam_yard(address: String) -> void:
 	var cam := _dev("CamYard")
-	assert_array(_tool.matching(cam)).contains_exactly([_helix])
-	_tool.select(cam)
-	assert_bool(_tool.start(_helix)).is_true()
-	await _seconds(0.7)
-	assert_str(String(_tool.last_end)).is_equal("done")
+	assert_bool(_session.is_online(cam)).is_true()
+	assert_bool(ExploitItems.use_from_deck(_session, cam)).is_true()
 	assert_bool(cam.is_admin(_user)).is_true()
+	assert_bool(_dev("CamDock").has_access(_user)).is_false()
+	assert_int(ExploitItems.count(_user, &"camera")).is_equal(0)
+	assert_bool(ExploitItems.use_from_deck(_session, _dev("CamDock"))).is_false()
+	var used := cam.intrusion.device_log.of_kind(DeviceLog.EXPLOIT)
+	assert_str(str(used[0]["address"])).is_equal(address)
 
 
-func test_an_exploit_runs_on_a_wireless_device_from_a_jack_through_the_router() -> void:
-	_tracer().watched = [&"office"] as Array[StringName]
+func test_a_camera_item_opens_a_wireless_camera_from_a_jack_through_the_router() -> void:
 	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	_fast()
-	assert_bool(_session.plug(_dev("Jack"), Net.deck_stack())).is_true()
-	assert_bool(_session.is_online(_dev("CamYard"))).is_true()
-	await _run_on_cam_yard()
-	# Unwatched: nothing burned.
-	assert_bool(_dev("CamYard").intrusion.is_patched(_helix)).is_false()
+	assert_bool(_session.plug(_dev("Jack"), _deck)).is_true()
+	_use_on_cam_yard("10.0.10.40")
 
 
-func test_a_seen_run_from_wifi_patches_the_product_cabled_and_wireless() -> void:
+func test_a_camera_item_opens_a_wireless_camera_over_wifi() -> void:
 	_user.global_position = ORIGIN + NEAR_AP
 	AccessPoint.of(_n["ApYard"]).grant_key(_user)
 	_fast()
-	assert_bool(_session.plug(_dev("ApYard"), Net.deck_stack())).is_true()
+	assert_bool(_session.plug(_dev("ApYard"), _deck)).is_true()
 	assert_bool(_session.is_wireless()).is_true()
 	await _seconds(0.1)
-	await _run_on_cam_yard()
-	# The Sentry tracer watches the security subnet: every Helix CAM-3 there is patched.
-	for entity_name: String in ["CamYard", "CamDock", "Camera"]:
-		assert_bool(_dev(entity_name).intrusion.is_patched(_helix)).override_failure_message(entity_name).is_true()
-	assert_bool(_dev("LaserRoof").intrusion.is_patched(_helix)).is_false()
-	var runs := _dev("CamYard").intrusion.device_log.of_kind(DeviceLog.EXPLOIT)
-	assert_str(str(runs[0]["address"])).is_equal("10.0.20.90")
+	_use_on_cam_yard("10.0.20.90")
 
 
 func test_a_firewall_rule_stops_a_wireless_cameras_incident_across_the_router() -> void:

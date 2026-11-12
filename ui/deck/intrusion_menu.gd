@@ -1,41 +1,37 @@
 class_name IntrusionMenu
 extends RefCounted
-## The M12b parts of a device's menu on the deck's Map (ADR 0115, 0116; the approved mockup
-## design/prototypes/intrusion_screens.html), added by DeckScreen: the software line ("Helix CAM-3
-## 2.1", once the device's subnet is scanned), "Exploits (n)" for the known exploits that match it
-## (never on the entry point), "Firewall rules" on a router the user is admin of, and the access an
-## exploit gave ("access: admin (exploit)").
+## The intrusion parts of a device's menu on the deck's Map (ADR 0115, 0121; the approved mockup
+## design/prototypes/hacking_fixes.html), added by DeckDeviceMenu: "Use <kind> exploit (N left)"
+## when the user carries an exploit item of the device's kind and has no access there yet (never on
+## the entry point; ExploitItems), "Firewall rules" on a router the user is admin of, and the access
+## an exploit item gave ("access: admin (exploit)").
+
+const EXPLOIT_NOTE: String = "One use: admin control of this device, at once, no trace. The device logs it."
 
 
-## The software line of `row`'s device, or null (no software, or its subnet not scanned yet).
-static func software_line(row: NetworkRow, session: DeckSession) -> Label:
-	var device := row.device
-	if device.software == null or not DeckSession.has_scanned(session.stack, row.subnet):
-		return null
-	var line := DeckStyle.mono(device.software.label(), DeckStyle.TITLE_COLOR, 12)
-	line.name = "Software"
-	return line
+## The "Use … exploit (N left)" label for `item` with `left` carried.
+static func use_label(item: ItemData, left: int) -> String:
+	return "Use %s (%d left)" % [item.display_name.to_lower(), left]
 
 
-## Adds the buttons and the exploit access line of `row` to `column`: `on_exploits(device)` and
-## `on_firewall(device)` open the tools.
+## Adds the buttons and the exploit access line of `row` to `column`: `on_use(device)` uses an
+## exploit item, `on_firewall(device)` opens the Firewall.
 static func add_to(
-	column: VBoxContainer,
-	row: NetworkRow,
-	session: DeckSession,
-	tool: ExploitTool,
-	on_exploits: Callable,
-	on_firewall: Callable
+	column: VBoxContainer, row: NetworkRow, session: DeckSession, on_use: Callable, on_firewall: Callable
 ) -> void:
 	var device := row.device
+	var user := session.entity
 	var flow := HFlowContainer.new()
 	flow.add_theme_constant_override(&"h_separation", 6)
-	var count := tool.matching(device).size() if tool != null and not row.is_self else 0
-	if count > 0:
-		var exploits := DeckStyle.button("Exploits (%d)" % count, 13)
-		exploits.pressed.connect(on_exploits.bind(device))
-		flow.add_child(exploits)
-	if Router.of(device.entity) != null and device.is_admin(session.entity):
+	var item := ExploitItems.item_for(user, device)
+	var usable := item != null and not row.is_self and ExploitItems.can_use(user, device)
+	if usable:
+		var left := ExploitItems.count(user, item.exploit_kind)
+		var use := DeckStyle.button(use_label(item, left), 13, true)
+		use.name = "UseExploit"
+		use.pressed.connect(on_use.bind(device))
+		flow.add_child(use)
+	if Router.of(device.entity) != null and device.is_admin(user):
 		var rules := DeckStyle.button("Firewall rules", 13, true)
 		rules.pressed.connect(on_firewall.bind(device))
 		flow.add_child(rules)
@@ -43,7 +39,7 @@ static func add_to(
 		column.add_child(flow)
 	else:
 		flow.free()
-	var granted := device.intrusion.exploit_access(NetworkSource.user_key(session.entity))
-	if granted >= 0:
-		var level := "admin" if granted == Exploit.Access.ADMIN else "user"
-		column.add_child(DeckStyle.mono("access: %s (exploit)" % level, DeckStyle.ACCESS_COLOR, 12))
+	if usable:
+		column.add_child(DeckStyle.paragraph(EXPLOIT_NOTE, DeckStyle.DIM_COLOR, 12, DeckDeviceMenu.WIDTH - 24.0))
+	if device.intrusion.has_exploit(NetworkSource.user_key(user)):
+		column.add_child(DeckStyle.mono("access: admin (exploit)", DeckStyle.ACCESS_COLOR, 12))

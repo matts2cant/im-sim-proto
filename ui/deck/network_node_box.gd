@@ -1,14 +1,20 @@
 class_name NetworkNodeBox
 extends VBoxContainer
-## One node of a NetworkGraph (ADR 0083, 0099): the device's name button ("name · role") over its
-## status line (its address, then its status words without "online"). The outline and the status
-## line take the device's colour (DeckStyle.row_color(): offline grey, disabled red, access amber,
-## alert words orange, else green); the owner's own device is outlined thick blue, a disabled one is
-## tinted red inside, the selected one white and lighter inside. Name and status sit on the bus side
-## of the box (centred on a hub). Children "Button" and "Status" (tests find them by name).
+## One node of a NetworkGraph (ADR 0083, 0099, 0121): the device's name button ("name · role", its
+## kind's icon at its left when the row has one: child "Icon") over its status line (its address,
+## then its status words without "online"). The outline and the status line take the device's colour
+## (DeckStyle.row_color(): offline grey, disabled red, access amber, alert words orange, else
+## green); the owner's own device is outlined thick blue, a disabled one is tinted red inside, the
+## selected one white and lighter inside. Name and status sit on the bus side of the box (centred on
+## a hub). Children "Button" and "Status" (tests find them by name).
+
+## The kind's icon (px).
+const ICON_SIZE: float = 16.0
 
 var button: Button
 var status: Label
+## The kind's icon in the button, or null.
+var icon: DeviceIcon
 ## The button's box in every state (restyle() changes it in place).
 var style: StyleBoxFlat
 
@@ -35,6 +41,17 @@ func _init(row: NetworkRow) -> void:
 		button.add_theme_stylebox_override(state, style)
 	button.add_theme_color_override(&"font_color", DeckStyle.TEXT_COLOR if row.online else color)
 	button.add_theme_color_override(&"font_hover_color", DeckStyle.TITLE_COLOR)
+	if not row.icon.is_empty():
+		style.content_margin_left = 6.0 + ICON_SIZE + 5.0
+		icon = DeviceIcon.make(row.icon, color, ICON_SIZE)
+		icon.name = "Icon"
+		icon.anchor_top = 0.5
+		icon.anchor_bottom = 0.5
+		icon.offset_left = 6.0
+		icon.offset_right = 6.0 + ICON_SIZE
+		icon.offset_top = -ICON_SIZE * 0.5
+		icon.offset_bottom = ICON_SIZE * 0.5
+		button.add_child(icon)
 	add_child(button)
 	status = DeckStyle.label(short_status(row), color, 11)
 	status.name = "Status"
@@ -81,6 +98,8 @@ func align(side: int) -> void:
 ## red-tinted inside); `selected` white and lighter inside (readable on every colour).
 func restyle(row: NetworkRow, selected: bool) -> void:
 	style.border_color = DeckStyle.SELF_COLOR if row.is_self else DeckStyle.row_color(row)
+	if icon != null:
+		icon.colour = style.border_color
 	style.set_border_width_all(3 if row.is_self else 1)
 	style.bg_color = NetworkGraph.DISABLED_FILL if row.disabled else NetworkGraph.NODE_FILL
 	if selected:
