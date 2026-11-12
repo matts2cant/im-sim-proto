@@ -40,6 +40,8 @@ func _init(parent: Node, guard_scene: String) -> void:
 	config = CombatBehaviour.of(guard).config
 	# The shot and hit sounds are left out: a sound player per hit would pile up in the tree.
 	weapon = source.weapons[0].duplicate() as WeaponData
+	weapon.shot_sound = null
+	weapon.suppressed_shot_sound = null
 	weapon.fire_sound = null
 	weapon.hit_sound = null
 	weapon.dry_fire_sound = null
