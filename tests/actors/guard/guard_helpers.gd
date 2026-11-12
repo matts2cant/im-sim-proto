@@ -48,16 +48,23 @@ func setup(p_runner: GdUnitSceneRunner, patrol: bool = false) -> void:
 ## queries come back empty and noise falls back to straight lines. A fixture that switched right
 ## after loading hit this about half the time when it ran first in a fresh process (door_test
 ## alone, ADR 0084). Switching the map back to asynchronous lets the pending iteration land, after
-## which the switch is safe. Costs two physics frames, five when it had to recover.
+## which the switch is safe. Costs a few physics frames when nothing was pending.
 ## The pending iteration runs on a worker thread, so it lands after an amount of real time, not of
 ## frames: the wait for it is capped in wall-clock time (ASYNC_LANDING_MS). A cap of 120 physics
 ## frames was about 30 ms at the runner's fixed fps, and a busy machine (a one-process full run
 ## next to other test runs) kept the worker thread off the CPU longer: the map stayed wedged and
 ## guard_helpers_test and path_partial_test failed (M9h).
+## The region builds its own polygons on a worker thread too, and a build started before the switch
+## still lands after it, in real time: until then the map iterates without the region (its path
+## queries answered from the other regions, 190 m away in guard_helpers_test). A region of 100
+## polygons lost that race every time (no load needed): the switch first waits for the region's own
+## iteration, capped in real time like the map's.
 static func use_sync_iterations(map: RID, region: NavigationRegion3D) -> void:
 	var tree := region.get_tree()
 	NavigationServer3D.map_set_use_async_iterations(map, false)
 	NavigationServer3D.region_set_use_async_iterations(region.get_rid(), false)
+	if not await region_iteration(tree, region):
+		push_error("Navigation region stopped iterating after switching to synchronous iterations")
 	for attempt in 3:
 		var before := NavigationServer3D.map_get_iteration_id(map)
 		# Any region change makes a synchronous map iterate on the next physics frame.
@@ -80,6 +87,22 @@ static func use_sync_iterations(map: RID, region: NavigationRegion3D) -> void:
 static func async_iteration(tree: SceneTree, map: RID, iteration_id: int) -> bool:
 	var deadline := Time.get_ticks_msec() + ASYNC_LANDING_MS
 	while NavigationServer3D.map_get_iteration_id(map) == iteration_id:
+		if Time.get_ticks_msec() > deadline:
+			return false
+		await tree.physics_frame
+	return true
+
+
+## Changes `region` and waits until it has a new iteration of its own (its polygons as the map
+## will use them): a build still running on a worker thread lands first. Capped at
+## ASYNC_LANDING_MS of real time; returns false when none landed.
+static func region_iteration(tree: SceneTree, region: NavigationRegion3D) -> bool:
+	var rid := region.get_rid()
+	var before := NavigationServer3D.region_get_iteration_id(rid)
+	region.enabled = not region.enabled
+	region.enabled = not region.enabled
+	var deadline := Time.get_ticks_msec() + ASYNC_LANDING_MS
+	while NavigationServer3D.region_get_iteration_id(rid) == before:
 		if Time.get_ticks_msec() > deadline:
 			return false
 		await tree.physics_frame
