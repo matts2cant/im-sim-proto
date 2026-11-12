@@ -35,7 +35,7 @@ The main Claude Code session is the chief engineer. It designs, plans, writes br
 - Give tuning targets as measured outcomes (time to kill, time to detect) and ask for a test that measures them; my starting numbers are only a first guess.
 - Briefs tell agents to iterate on a test subset (`tools/run_tests.sh res://tests/<area>`) and run the full suite at the end (about 50 s), and never to stop a running suite mid-way. The runner starts up to 12 Godot processes: when two or more agents run at once, tell each to use `-j 4` for full runs. Point agents writing tests at design/tech/testing.md "Writing fast tests".
 - Briefs describe behaviour in terms of properties (components, tags, stimuli), not specific objects, and diff reviews check for identity branches (names, scene paths, concrete classes): AGENTS.md "Systemic design".
-- Worktree briefs say: check `git log -1` first; if the worktree is not on current master, reset the branch to master before starting (worktrees have been cut from an old commit); name the branch and say "commit in small steps" (M9g: a brief without it came back uncommitted).
+- Worktree briefs say: check `git log -1` first; if the worktree is not on current master, reset the branch to master before starting (worktrees have been cut from an old commit); name the branch and say "commit in small steps" (M9g: a brief without it came back uncommitted). Commit every file the brief points to (mockups, assets) before launching the agent: the worktree is cut from master's last commit.
 - Briefs point sub-agents at AGENTS.md (definition of done) and ask for a short report: files, verification results, deviations, screenshot paths.
 
 ## Playtest gate

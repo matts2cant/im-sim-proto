@@ -34,11 +34,13 @@ Final state on master: 2066 tests, 0 failures, 1 skipped, lint clean (the last a
   - Yellow headshot markers are hard to see on the yellow training dummies.
 - **Playtest (user, 2026-11-12):**
   - The tuned gun values are fine as they are.
-  - Status lights float in the air on some devices (alarms, cameras, computers): the automatic placement (top-front of the visible bounds, +Z as front) does not fit every model. Fixed in `m13-playtest-fixes`; a test now checks every device's light sits on its model.
+  - Status lights float in the air on some devices (alarms, cameras, computers): the automatic placement (top-front of the visible bounds, +Z as front) does not fit every model. Fixed: the light now sits on a flat front face of the model (ADR 0122 amendment); a test checks every device's light is within 1 cm of its model.
   - The SMG uses Kenney `blaster-n` (red, like the pistol: same ammo).
   - Icebreaker: the next letter should cycle rapidly through characters until it locks. Mockup approved: [icebreaker_scramble.html](prototypes/icebreaker_scramble.html).
   - The crosshair is too thick (lines and outline); the scope view should use the same crosshair, centred on the lens; at perfect accuracy the crosshair must not collapse to a dot.
+  - A Deus Ex style interaction frame (corner brackets and a name tag on what E acts on): built as ADR 0129.
   - Still unanswered: pistol guards at 10 m, a gun sound pack, the headshot marker colour.
+- **Playtest fixes (three parallel agents):** all three merged without conflicts (file ownership was named in each brief; the HUD agent was told to keep `hud.gd` changes small). Two snags: the approved mockup was committed after the HUD agent's worktree was cut, so it had to be told where to read it; and an untracked generated `blaster-n.glb.import` in the main checkout blocked a merge. Change: CLAUDE.md, commit every file a brief points to before launching the agent.
 
 ## M12b playtest fixes and M12c — Network consequences (2026-11-12)
 
