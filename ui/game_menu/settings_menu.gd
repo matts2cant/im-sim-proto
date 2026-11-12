@@ -70,6 +70,7 @@ func _ready() -> void:
 		columns.add_child(box)
 		for section: Array in column:
 			_add_section(box, section)
+	_chain_focus()
 
 
 func _exit_tree() -> void:
@@ -127,6 +128,10 @@ func value_text(key: StringName) -> String:
 
 
 func _add_section(box: VBoxContainer, section: Array) -> void:
+	if box.get_child_count() > 0:
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, 6)
+		box.add_child(gap)
 	var title := Label.new()
 	title.text = section[0]
 	title.label_settings = _label_settings(15, SECTION_COLOR)
@@ -175,6 +180,30 @@ func _add_toggle(box: VBoxContainer, row: Array) -> void:
 	_toggles[key] = switch
 	switch.toggled.connect(_on_toggled.bind(key))
 	_highlight_on_focus(switch, line.get_child(0) as Label)
+
+
+## Every control in reading order (the left column, then the right one), then Back.
+func focus_order() -> Array[Control]:
+	var order: Array[Control] = []
+	for column: Array in COLUMNS:
+		for section: Array in column:
+			for i in range(1, section.size()):
+				var key: StringName = (section[i] as Array)[0]
+				order.append(_sliders[key] if _sliders.has(key) else _toggles[key])
+	order.append(back_button)
+	return order
+
+
+# Up / Down (and Tab) walk the rows in reading order, across both columns, wrapping around.
+func _chain_focus() -> void:
+	var order := focus_order()
+	for i in order.size():
+		var next := order[(i + 1) % order.size()]
+		var previous := order[i - 1]
+		order[i].focus_neighbor_bottom = order[i].get_path_to(next)
+		order[i].focus_next = order[i].focus_neighbor_bottom
+		order[i].focus_neighbor_top = order[i].get_path_to(previous)
+		order[i].focus_previous = order[i].focus_neighbor_top
 
 
 func _row(box: VBoxContainer, text: String) -> HBoxContainer:

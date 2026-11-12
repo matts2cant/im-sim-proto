@@ -35,6 +35,7 @@ Every stateful system is saveable from day one so saving and loading never need 
   - panic buttons and radio base stations switched off by a command (`DeviceSwitch`, M12a);
   - alarm devices (M8): the controller's ringing time left and incident point, disarmed state, silenced sirens.
 - Missions (M9, [ADR 0087](../decisions/0087-mission-systems.md)): the `Mission` node saves time, objectives done, tallies (with the player's attributed stimulus ids), briefing seen, first alarm time and point, reinforcements sent, finished; reinforcements and dropped weapons are spawned entities; a guard's `WeaponHolder` saves the loadout it has left (`weapons`), so a guard that dropped its weapon stays unarmed; a turret saves its shots' cause.
+- Settings are not in save games: they live in the player's profile `user://settings.cfg` (`GameSettings`, [ADR 0124](../decisions/0124-settings-profile.md)), so loading a save never changes them.
 - Not saved: the in-flight stimulus queue (`StimulusSystem.clear()` on load, M2), debris, fire / explosion effects and sounds, the EventLog, debug panel state.
 - Contract tests are written with each feature; `tests/core/save/saveable_contract_test.gd` checks every scene's saveables round-trip.
 

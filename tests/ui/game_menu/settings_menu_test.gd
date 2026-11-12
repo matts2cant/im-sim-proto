@@ -92,6 +92,22 @@ func test_back_returns_to_the_esc_menu_and_saves_the_profile() -> void:
 	assert_float(GameSettings.master_volume()).is_equal_approx(0.4, 0.0001)
 
 
+func test_keyboard_walks_the_rows_and_moves_a_slider() -> void:
+	var settings := await _open_settings()
+
+	# Down four times: sensitivity, invert Y, FOV, camera motion, then the right column's first row.
+	for i in 4:
+		await _press(KEY_DOWN)
+	var master := settings.slider(GameSettings.MASTER_VOLUME)
+	assert_bool(master.has_focus()).is_true()
+
+	await _press(KEY_LEFT)
+
+	assert_float(GameSettings.master_volume()).is_equal_approx(0.95, 0.0001)
+	await _press(KEY_UP)
+	assert_bool(settings.slider(GameSettings.CAMERA_MOTION).has_focus()).is_true()
+
+
 func test_the_screen_shows_the_current_settings() -> void:
 	GameSettings.set_value(GameSettings.CAMERA_MOTION, 0.35)
 	GameSettings.set_value(GameSettings.VSYNC, false)
