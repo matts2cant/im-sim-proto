@@ -6,7 +6,9 @@ extends Node
 ## hacked: the security subnet and the second router Rtr02 show), map_chained (Rtr02 hacked too: the
 ## servers), menu (Advanced: the console's menu with crack time and trace estimates), menu_router
 ## (Master: Rtr02's menu with its hidden routes), ice_trained / ice_advanced (the Icebreaker part way
-## through the console's Medium password, with that tier's assists), full_trace (the tracer full: the
+## through the console's Medium password, with that tier's assists; the next letter scrambling),
+## ice_flash (as ice_trained, a letter just locked: its flash, the scramble on the next cell),
+## full_trace (the tracer full: the
 ## address blocked, the incident sent, the console's menu says so), remote (the console's desktop
 ## opened from the Map over the deck, its Security app on the camera), login_trace (the console
 ## bare-handed after a wrong password: the tracer's bar in the computer overlay).
@@ -32,6 +34,7 @@ const TIERS: Dictionary[String, int] = {
 	"menu_router": 3,
 	"ice_trained": 1,
 	"ice_advanced": 2,
+	"ice_flash": 1,
 	"full_trace": 1,
 	"remote": 1,
 	"login_trace": 1,
@@ -164,11 +167,17 @@ func _stage() -> void:
 			_screen.graph.select("SEC-CONSOLE")
 		"menu_router":
 			_screen.graph.select("RTR-02")
-		"ice_trained", "ice_advanced":
+		"ice_trained", "ice_advanced", "ice_flash":
 			_ice.start(_lab.device("Console"), "dmarsh")
 			_ice.job.progress = 0.4
 			_screen.show_tool(DeckScreen.Tool.ICEBREAKER)
 			await _seconds(0.5)
+			if _shot == "ice_flash":
+				# The next letter locks 0.25 s into the closing 0.3 s wait: the shot catches its flash.
+				var length := _ice.job.password.length()
+				var next_lock := float(_ice.job.locked_letters() + 1) / length
+				var crack := _ice.crack_time(_lab.device("Console"), "dmarsh")
+				_ice.job.progress = next_lock - 0.25 / crack
 		"full_trace":
 			_ice.start(_lab.device("Console"), "dmarsh")
 			_ice.job.progress = 0.6
