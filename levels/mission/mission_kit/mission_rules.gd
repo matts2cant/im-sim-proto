@@ -10,6 +10,14 @@ const GHOST := "Ghost"
 const PACIFIST := "Pacifist"
 const GHOST_RULE := "No guard alerted, no alarm, no body found"
 const PACIFIST_RULE := "Nobody killed by you, directly or not"
+const CLEAN_HANDS := "Clean hands"
+const CLEAN_HANDS_RULE := "Nothing broken by you, directly or not"
+## Each badge's rule, in display order.
+const BADGE_RULES: Dictionary[String, String] = {
+	GHOST: GHOST_RULE,
+	PACIFIST: PACIFIST_RULE,
+	CLEAN_HANDS: CLEAN_HANDS_RULE,
+}
 const LOG_SOURCE := "Briefing"
 
 
@@ -69,11 +77,13 @@ static func summary_rows(results: Dictionary) -> Array[PackedStringArray]:
 	return rows
 
 
-## The badges earned, in order (Ghost, Pacifist).
+## The badges earned, in order (Ghost, Pacifist, Clean hands).
 static func badges(results: Dictionary) -> PackedStringArray:
 	var earned := PackedStringArray()
 	if bool(results.get("ghost", false)):
 		earned.append(GHOST)
 	if bool(results.get("pacifist", false)):
 		earned.append(PACIFIST)
+	if bool(results.get("clean_hands", false)):
+		earned.append(CLEAN_HANDS)
 	return earned

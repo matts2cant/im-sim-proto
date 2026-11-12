@@ -171,7 +171,12 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	assert_bool(await _helpers.wait_for(&"camera.detected", 4.0)).is_true()
 	await _helpers.seconds(1.5)
 	assert_int(int(EventLog.find(&"camera.detected")[0].data["controllers"])).is_equal(0)
-	assert_array(EventLog.find(&"alarm.raised")).is_empty()
+	# M12c: the yard's controller sees its switch's devices drop and raises a network fault (loss of
+	# signal), but no incident reaches it and no siren it could still reach starts.
+	var incidents := EventLog.find(&"alarm.raised").filter(
+		func(entry: EventLogEntry) -> bool: return not bool(entry.data.get("fault", false))
+	)
+	assert_array(incidents).is_empty()
 	assert_array(EventLog.find(&"siren.started")).is_empty()
 
 

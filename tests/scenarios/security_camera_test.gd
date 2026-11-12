@@ -113,7 +113,11 @@ func test_a_camera_cut_off_from_its_controller_still_detects_but_tells_nobody() 
 	assert_float(await _show.wait_for(&"camera.detected", 4.0)).is_greater_equal(0.0)
 	await _show.frames(12)
 	assert_int(int(EventLog.find(&"camera.detected")[0].data["controllers"])).is_equal(0)
-	assert_array(EventLog.find(&"alarm.raised")).is_empty()
+	# M12c: the switch dropping may raise a network fault (loss of signal), never an incident.
+	var incidents := EventLog.find(&"alarm.raised").filter(
+		func(entry: EventLogEntry) -> bool: return not bool(entry.data.get("fault", false))
+	)
+	assert_array(incidents).is_empty()
 
 
 func test_pan_commands_turn_the_camera_away_from_the_player() -> void:

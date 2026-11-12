@@ -69,7 +69,7 @@ func is_open() -> bool:
 
 
 ## Shows `results` (Mission.results(): time, alarms, kills, knockouts, optional_done,
-## optional_total, ghost, pacifist).
+## optional_total, ghost, pacifist, clean_hands).
 func open(results: Dictionary) -> void:
 	_values.clear()
 	for child in _rows.get_children():
@@ -83,7 +83,7 @@ func open(results: Dictionary) -> void:
 	for child in _badges.get_children():
 		_badges.remove_child(child)
 		child.free()
-	var rules := {MissionRules.GHOST: MissionRules.GHOST_RULE, MissionRules.PACIFIST: MissionRules.PACIFIST_RULE}
+	var rules := MissionRules.BADGE_RULES
 	for badge: String in rules:
 		var earned := _earned.has(badge)
 		var text := "%s  %s  (%s)" % ["[x]" if earned else "[ ]", badge, rules[badge]]

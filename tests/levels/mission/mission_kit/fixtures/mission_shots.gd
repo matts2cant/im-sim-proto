@@ -2,7 +2,7 @@ extends Node
 ## Screenshot helper for reviews (not a test): the mission fixture's screens (ADR 0087). Run the
 ## scene in a window with `-- shot=<name> out=<png path>`; it plays the steps, saves the window image
 ## (UI included) and quits. Shots: `briefing` (at the start), `toast` (the main objective done),
-## `summary` (extraction with every objective done: both badges), `weapon_drop` (a knocked-out
+## `summary` (extraction with every objective done: the three badges), `weapon_drop` (a knocked-out
 ## pistol guard and its pistol beside it, seen from 2.7 m at eye height).
 
 const SHOTS: Array[String] = ["briefing", "toast", "summary", "weapon_drop"]

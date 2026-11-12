@@ -141,7 +141,8 @@ func test_signs_fit_their_walls_and_do_not_overlap() -> void:
 	var signs: Array[Sign] = []
 	for node in _node("Labels").get_children():
 		signs.append(node as Sign)
-	assert_int(signs.size()).is_equal(22)
+	# 22 until M12c added the mail route station's sign.
+	assert_int(signs.size()).is_equal(23)
 	for sign in signs:
 		var box := _room.global_transform.affine_inverse() * WallDeviceChecks.sign_box(sign)
 		var where := String(sign.name)

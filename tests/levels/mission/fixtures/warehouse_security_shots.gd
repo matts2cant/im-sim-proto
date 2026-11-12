@@ -103,6 +103,27 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"computer": DEVICES + "SecurityConsole",
 		"select": "ALARM",
 	},
+	# M12c (ADR 0115): the vault door's FAIL-SECURE plate; the console's trouble notes with the yard's
+	# circuit off (both yard switches drop); office PC 1's Mail with breaker B off (no route to MAIL-01).
+	"vault_plate": {"feet": Vector3(16.9, 4.5, 6.3), "look": Vector3(16.9, 6.05, 5.13)},
+	"console_trouble":
+	{
+		"feet": Vector3(16.05, 0, 1.0),
+		"look": Vector3(16.05, 1.45, 0.25),
+		"computer": DEVICES + "SecurityConsole",
+		"select": "ALARM",
+		"off": ["warehouse_yard"],
+		"wait": 3.0,
+	},
+	"office_mail_cut":
+	{
+		"feet": Vector3(14.5, 4.5, 14.0),
+		"look": Vector3(14.5, 5.95, 14.74),
+		"computer": NETWORK + "OfficePc1",
+		"app": "mail",
+		"off": ["warehouse_building"],
+		"wait": 2.0,
+	},
 	"office_pc2_mail":
 	{
 		"feet": Vector3(18, 4.5, 14.0),

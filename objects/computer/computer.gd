@@ -9,6 +9,10 @@ extends Node
 ## - Security: devices() lists the devices this computer controls (controls()), each with its kind
 ##   (ComputerConfig.kinds, by entity tag), status words (DeviceStatus), view and the commands of
 ##   the config's table it accepts; send() delivers one (Device.send_command()).
+## - Mail needs a route (M12c, ADR 0115): with a `mail_server`, unread mail is there only while the
+##   computer's Device reaches that server (MailRoute: an in-house MailServer, or an edge router's
+##   InternetLink for an off-site host); while the route is cut Mail lists only the mail the reader
+##   already read (its PersonalLog has it) and mail_route().reason() says what is down.
 ## Bare-handed (ComputerUse, E): the login screen, unless a session is open (`session_user`, saved:
 ## a computer stays logged in until someone logs out, and a level can start it unlocked). Logins go
 ## through the entity's DeviceAccounts.try_login() (a wrong one beeps: a sound, never a noise
@@ -45,6 +49,9 @@ const DEFAULT_APPS: Array[StringName] = [MAIL, FILES]
 @export var label: String = "computer"
 ## The account logged in bare-handed ("": none). Set in a level: an unlocked session.
 @export var session_user: String = ""
+## The mail server its Mail app fetches from (a MailServer's host, or an off-site host an
+## InternetLink serves); empty: the mail is on the computer itself, always there.
+@export var mail_server: String = ""
 ## AudioStreamPlayer3D for the error beep; optional.
 @export var sound_path: NodePath = ^"../Sound"
 @export var entity_path: NodePath = ^".."
@@ -217,10 +224,27 @@ func apps() -> Array[StringName]:
 
 
 ## What app `app` (MAIL or FILES) lists for account `user`: the mails in their inbox, or the files.
-func documents(app: StringName, user: String) -> Array[ComputerDocument]:
+## While the mail server is out of reach (mail_route()), only the mails `reader` already read.
+func documents(app: StringName, user: String, reader: Node = null) -> Array[ComputerDocument]:
 	if data == null:
 		return [] as Array[ComputerDocument]
-	return data.mail_for(user) if app == MAIL else data.files
+	if app != MAIL:
+		return data.files
+	var inbox := data.mail_for(user)
+	if mail_route().reached:
+		return inbox
+	var reader_log := PersonalLog.of(reader)
+	var kept: Array[ComputerDocument] = []
+	for item in inbox:
+		if reader_log != null and reader_log.has(item.id):
+			kept.append(item)
+	return kept
+
+
+## The route to its mail server now (MailRoute; always reached without a `mail_server`); its
+## reason() is Mail's status line.
+func mail_route() -> MailRoute:
+	return MailRoute.of(device, mail_server)
 
 
 ## `reader` reads `document` (source "Mail" or "Files"): it joins their PersonalLog like a datapad,
