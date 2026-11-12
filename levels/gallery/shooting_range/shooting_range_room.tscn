@@ -18,6 +18,20 @@
 [ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="16_sniper_rounds"]
 [ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="17_rifle_rounds"]
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="18_silencer"]
+[ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_pickup.tscn" id="19_pistol"]
+[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="20_pistol_ammo"]
+[ext_resource type="Script" path="res://objects/components/shuttle.gd" id="21_shuttle"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="22_tags"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="23_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="24_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/marked_by_bullets.tres" id="25_marked"]
+[ext_resource type="Script" path="res://objects/components/impact_marks.gd" id="26_marks"]
+[ext_resource type="PackedScene" path="res://objects/range/stats_board.tscn" id="27_board"]
+[ext_resource type="PackedScene" path="res://objects/range/range_button.tscn" id="28_button"]
+[ext_resource type="PackedScene" path="res://objects/range/tuning_terminal.tscn" id="29_terminal"]
+[ext_resource type="Script" path="res://objects/range/body_reset_button.gd" id="30_reset"]
+[ext_resource type="Script" path="res://objects/range/call_button.gd" id="31_call"]
+[ext_resource type="Script" path="res://objects/range/skill_tier_switch.gd" id="32_tier"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -36,7 +50,7 @@ height = 3.0
 script = ExtResource("2_opening")
 node_name = &"FromCorridor"
 wall = 2
-offset = -3.5
+offset = -8.5
 width = 2.0
 height = 3.0
 
@@ -51,25 +65,88 @@ wall_thickness = 0.5
 openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_south"), SubResource("Opening_corridor_north")])
 
 [node name="Hall" parent="Shell" instance=ExtResource("1_room")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -28)
-size = Vector3(14, 5, 48)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, -28)
+size = Vector3(24, 5, 48)
 wall_thickness = 0.5
 openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south")])
 
 [node name="FiringLine" type="Node3D" parent="."]
 
 [node name="Counter" parent="FiringLine" instance=ExtResource("5_ledge")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.1, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.1, 0, -8)
 height = 1.0
-width = 12.8
+width = 22.8
 depth = 0.6
 surface = "wood"
 
 [node name="Stripe" parent="FiringLine" instance=ExtResource("4_floor")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0.02, -7.95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0.02, -7.95)
 material_override = ExtResource("6_hazard")
-size = Vector2(14, 0.1)
+size = Vector2(24, 0.1)
 thickness = 0.1
+
+[node name="StatsBoard" parent="FiringLine" instance=ExtResource("27_board")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 3.35, -12)
+targets = Dictionary[NodePath, String]({
+NodePath("../../Lanes/Dummy5m"): "5 m",
+NodePath("../../Lanes/Dummy10m"): "10 m",
+NodePath("../../Lanes/DummyWalking"): "15 m moving",
+NodePath("../../Lanes/Dummy20m"): "20 m",
+NodePath("../../Lanes/Dummy40m"): "40 m",
+NodePath("../../SprayWall/Board"): "spray wall"
+})
+
+[node name="ResetStats" parent="FiringLine" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.6, 1, -8.3)
+
+[node name="Label" parent="FiringLine/ResetStats"]
+text = "Reset
+stats"
+
+[node name="CallButton" type="Node" parent="FiringLine/ResetStats"]
+script = ExtResource("31_call")
+targets = Array[NodePath]([NodePath("../../StatsBoard")])
+method = &"reset"
+press_verb = "reset"
+label = "stats"
+
+[node name="ClearWall" parent="FiringLine" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, -8.3)
+
+[node name="Label" parent="FiringLine/ClearWall"]
+text = "Clear
+wall"
+
+[node name="CallButton" type="Node" parent="FiringLine/ClearWall"]
+script = ExtResource("31_call")
+targets = Array[NodePath]([NodePath("../../../SprayWall/Board/ImpactMarks")])
+method = &"clear"
+press_verb = "clear"
+label = "spray wall"
+
+[node name="ResetDummies" parent="FiringLine" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.4, 1, -8.3)
+
+[node name="Label" parent="FiringLine/ResetDummies"]
+text = "Reset
+dummies"
+
+[node name="BodyResetButton" type="Node" parent="FiringLine/ResetDummies"]
+script = ExtResource("30_reset")
+scope_path = NodePath("../../..")
+
+[node name="TuningTerminal" parent="FiringLine" instance=ExtResource("29_terminal")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, -8.3)
+
+[node name="TierSwitch" parent="FiringLine" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.6, 1, -8.3)
+
+[node name="Label" parent="FiringLine/TierSwitch"]
+text = "Skill tier
+E: next"
+
+[node name="SkillTierSwitch" type="Node" parent="FiringLine/TierSwitch"]
+script = ExtResource("32_tier")
 
 [node name="Lanes" type="Node3D" parent="."]
 
@@ -109,16 +186,55 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6.75, 0, -28)
 [node name="Dummy40m" parent="Lanes" instance=ExtResource("7_dummy")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.25, 0, -48)
 
+[node name="Divider5" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="Divider6" parent="Lanes" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 0, -10)
+height = 1.2
+width = 0.2
+depth = 6.0
+
+[node name="DummyWalking" parent="Lanes" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 17.5, 0, -23)
+
+[node name="Shuttle" type="Node" parent="Lanes/DummyWalking"]
+script = ExtResource("21_shuttle")
+
+[node name="SprayWall" type="Node3D" parent="."]
+
+[node name="Board" parent="SprayWall" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 0, -18)
+height = 3.0
+width = 3.6
+depth = 0.2
+
+[node name="Tags" type="Node" parent="SprayWall/Board"]
+script = ExtResource("22_tags")
+initial_tags = Array[StringName]([&"object.target"])
+
+[node name="StimulusReceiver" type="Node3D" parent="SprayWall/Board"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+script = ExtResource("23_receiver")
+receptrons = Array[ExtResource("24_receptron")]([ExtResource("25_marked")])
+
+[node name="ImpactMarks" type="Node3D" parent="SprayWall/Board"]
+script = ExtResource("26_marks")
+mark_size = 0.05
+
 [node name="Melee" type="Node3D" parent="."]
 
 [node name="AwareDummy" parent="Melee" instance=ExtResource("7_dummy")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6.9, 0, -5.6)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 16.9, 0, -5.6)
 
 [node name="Awareness" parent="Melee/AwareDummy"]
 aware = true
 
 [node name="UnawareDummy" parent="Melee" instance=ExtResource("7_dummy")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.9, 0, -5.6)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.9, 0, -5.6)
 
 [node name="BlastLane" type="Node3D" parent="."]
 
@@ -220,6 +336,29 @@ count = 90
 [node name="Silencer" parent="Rack" instance=ExtResource("18_silencer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.35, 1.0555, -4.84)
 
+[node name="Rack2" type="Node3D" parent="."]
+
+[node name="Table" parent="Rack2" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 0, -4.1)
+height = 1.0
+width = 2.4
+depth = 0.7
+surface = "wood"
+
+[node name="Pistol" parent="Rack2" instance=ExtResource("19_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.0465, -4.45)
+
+[node name="PistolAmmo" parent="Rack2" instance=ExtResource("20_pistol_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.03, -4.45)
+
+[node name="ItemPickup" parent="Rack2/PistolAmmo"]
+count = 60
+
+[node name="SmgSlot" parent="Rack2" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 0, 1, 0, 1, 0, 5.75, 1.01, -4.45)
+text = "[ SMG slot ]"
+size = 0
+
 [node name="Labels" type="Node3D" parent="."]
 
 [node name="FiringLine" parent="Labels" instance=ExtResource("3_sign")]
@@ -248,12 +387,35 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 9.25, 1.01, -8.3)
 text = "40 m"
 size = 0
 
+[node name="Lane5" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 12.5, 1.01, -8.3)
+text = "10 m spray"
+size = 0
+
+[node name="Lane6" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 17.5, 1.01, -8.3)
+text = "15 m moving"
+size = 0
+
+[node name="SprayWall" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 3.3, -18.1)
+text = "Spray wall · 10 m"
+
+[node name="SprayAim" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 1.4, -17.98)
+text = "+"
+
+[node name="Rack2" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.6, 2.5, -4.05)
+text = "Pistol · SMG (M13a)"
+size = 0
+
 [node name="MeleeUnaware" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.45, 2.8, -6)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 20.45, 2.8, -6)
 text = "Sneak behind · baton KO"
 
 [node name="MeleeAware" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6.9, 2.4, -4.05)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.9, 2.4, -4.05)
 text = "Aware · 3 hits"
 
 [node name="BlastLane" parent="Labels" instance=ExtResource("3_sign")]
@@ -324,6 +486,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 4.4, -6)
 light_energy = 0.8
 shadow_enabled = true
 omni_range = 9.0
+
+[node name="Booth3" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 4.4, -6)
+light_energy = 0.8
+omni_range = 9.0
+
+[node name="Range5" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 4.4, -15)
+light_energy = 1.0
+omni_range = 11.0
+
+[node name="Range6" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4.4, -26)
+light_energy = 1.0
+omni_range = 11.0
 
 [node name="Range1" type="OmniLight3D" parent="Lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 4.4, -16)

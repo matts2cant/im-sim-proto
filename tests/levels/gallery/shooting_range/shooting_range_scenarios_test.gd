@@ -10,8 +10,8 @@ const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const HUB := "res://levels/hub/hub.tscn"
 ## Room-local feet positions (origin on the hub wall's outer face, -Z away from the hub).
 const FIRING_LINE_LANE_2 := Vector3(4.25, 0, -7.45)
-const BEHIND_UNAWARE := Vector3(8.6, 0, -5.6)
-const BEHIND_AWARE := Vector3(8.2, 0, -5.6)
+const BEHIND_UNAWARE := Vector3(18.6, 0, -5.6)
+const BEHIND_AWARE := Vector3(18.2, 0, -5.6)
 const BLAST_BARREL := Vector3(-1.5, 0.45, -20)
 ## A swing's cycle is 0.6 s (36 frames): wait a little longer between swings.
 const SWING_FRAMES := 40

@@ -72,6 +72,28 @@ func test_the_switch_recovers_when_worker_threads_are_busy() -> void:
 	assert_float(path[0].distance_to(NEAR)).is_less(5.0)
 
 
+func test_the_switch_waits_for_the_regions_own_build() -> void:
+	# Regression: the region builds its own polygons on a worker thread, and a 900-polygon build
+	# landed after the map's next iteration every time: the helper saw the map iterate and returned
+	# while the map still had no polygons of this region (path start 190 m off, on FAR). Busy worker
+	# threads (the test above) made the 1-polygon region lose the same race now and then.
+	NavigationServer3D.map_set_use_async_iterations(_map(), true)
+	var far := _square_region(FAR)
+	for i in 10:
+		await get_tree().physics_frame
+	var near := _square_region(NEAR, 30)
+	far.enabled = false
+	far.enabled = true
+	await get_tree().physics_frame
+
+	await GuardHelpers.use_sync_iterations(_map(), near)
+
+	var path := NavigationServer3D.map_get_path(_map(), NEAR + Vector3(-3, 0, 0), NEAR + Vector3(3, 0, 0), true)
+	assert_bool(path.is_empty()).is_false()
+	assert_float(path[0].distance_to(NEAR)).is_less(5.0)
+	assert_float(path[path.size() - 1].distance_to(NEAR)).is_less(5.0)
+
+
 ## Keeps a worker thread busy for BUSY_MS of real time.
 func _busy(_index: int) -> void:
 	var until := Time.get_ticks_msec() + BUSY_MS
@@ -83,18 +105,19 @@ func _map() -> RID:
 	return get_tree().root.find_world_3d().navigation_map
 
 
-## A 20 m square navmesh region centred on `centre`.
-func _square_region(centre: Vector3) -> NavigationRegion3D:
+## A 20 m square navmesh region centred on `centre`, split into `cells` x `cells` square polygons.
+func _square_region(centre: Vector3, cells: int = 1) -> NavigationRegion3D:
 	var mesh := NavigationMesh.new()
-	mesh.vertices = PackedVector3Array(
-		[
-			centre + Vector3(-10, 0, -10),
-			centre + Vector3(10, 0, -10),
-			centre + Vector3(10, 0, 10),
-			centre + Vector3(-10, 0, 10)
-		]
-	)
-	mesh.add_polygon(PackedInt32Array([0, 1, 2, 3]))
+	var vertices := PackedVector3Array()
+	var step := 20.0 / cells
+	for z in cells + 1:
+		for x in cells + 1:
+			vertices.append(centre + Vector3(-10.0 + x * step, 0, -10.0 + z * step))
+	mesh.vertices = vertices
+	for z in cells:
+		for x in cells:
+			var corner := z * (cells + 1) + x
+			mesh.add_polygon(PackedInt32Array([corner, corner + 1, corner + cells + 2, corner + cells + 1]))
 	var region := NavigationRegion3D.new()
 	region.navigation_mesh = mesh
 	add_child(region)
