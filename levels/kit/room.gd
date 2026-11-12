@@ -33,6 +33,13 @@ const MIN_DOOR_WIDTH := 0.8
 	set(value):
 		ceiling_material = value
 		rebuild()
+## A closed room is an indoor space for sound (ADR 0128): an acoustic zone over its interior gives
+## shots and other zone-aware sounds made inside a short indoor echo tail (Acoustics). Off for a
+## room that should sound like outdoors.
+@export var indoor_acoustics: bool = true:
+	set(value):
+		indoor_acoustics = value
+		rebuild()
 @export var openings: Array[RoomOpening] = []:
 	set(value):
 		for opening: RoomOpening in openings:
@@ -80,6 +87,8 @@ func _build() -> void:
 	for i in openings.size():
 		if openings[i] != null:
 			_cut_opening(openings[i], i, Vector3(x, y, z), t, wall)
+	if indoor_acoustics:
+		_add_generated(Acoustics.make_zone(Vector3(x, y, z), Vector3(0.0, y * 0.5, 0.0)))
 
 
 func _cut_opening(opening: RoomOpening, index: int, interior: Vector3, t: float, material: Material) -> void:

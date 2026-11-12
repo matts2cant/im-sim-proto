@@ -623,3 +623,17 @@ Tests measure the targets (pistol 56 / 80 / 92 / 100 % on a torso at 10 m by tie
 - [ ] Volumes: master, effects (gunshots, footsteps, alarms, lockpicking clicks) change at once; 0 % is silent; music has nothing to play yet.
 - [ ] Fullscreen on and off switches the window; vsync off raises the frame rate above the monitor's (debug panel stats).
 - [ ] Quit, start again: the settings are kept (`user://settings.cfg`); loading a save does not change them.
+
+## M13b Weapon motion and sound ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md))
+
+Every value is on the range's tuning panel (the gun's `motion` and `shot_sound` rows); tune by feel and Save.
+
+- [ ] Kick: the pistol snaps back and is settled before the next tap; the shotgun and sniper rifle kick hard and slower; the SMG and rifle shudder while held, never climbing off screen. Does the kick match the camera recoil?
+- [ ] Sway: a quick mouse turn makes the gun lag a little behind and settle; not floaty, not seasick. The sniper lags most.
+- [ ] Bob: none standing still or in the air; a gentle bob walking, stronger sprinting, smaller crouch-walking; it fades out (no snap) when you stop.
+- [ ] Reload (R): the gun dips out of view and comes back as the HUD's "reloading" ends, for every gun (pistol 1.6 s, SMG 1.8 s, rifle 2.2 s, shotgun 2.4 s, sniper 2.5 s).
+- [ ] Draw: pressing a belt key raises the gun from below; switching guns raises the new one; holstering (or the same key) lowers it before it disappears. Firing at once on a draw still works (the shot is not delayed).
+- [ ] Camera shake on firing: slight on the pistol, SMG and rifle, clearly stronger on the shotgun and sniper; the crosshair stays on target (shots go where it points). Settings, camera motion 0 %: no shake and no recoil climb; nothing moves the view but the mouse.
+- [ ] Sounds: with eyes closed, tell the pistol, SMG, assault rifle, shotgun (pump after the bang) and sniper rifle (deep boom, bolt) apart; repeated shots do not sound like one copied sample (pitch and volume vary). Silenced pistol, SMG, rifle and sniper: a muffled thud with the click, no bang.
+- [ ] Echo: shooting in the hub or the shooting range gives a short, dense tail; in the warehouse yard or on the roof a longer, sparser one; step through the hall's dock door while firing and hear it change. A guard firing in the yard echoes outdoors even if you are inside.
+- [ ] Is the one real gunshot recording in the packs (Titan Handgun) enough, or should a gun sound pack be added (the user decides)?

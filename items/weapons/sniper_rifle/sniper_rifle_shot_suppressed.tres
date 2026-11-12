@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ShotSound" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/audio/shot_sound.gd" id="1_sound"]
+[ext_resource type="Script" path="res://items/weapons/audio/shot_sound_layer.gd" id="2_layer"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg" id="3_stream"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_001.ogg" id="4_stream"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_000.ogg" id="5_stream"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_medium_001.ogg" id="6_stream"]
+
+[sub_resource type="Resource" id="Body"]
+script = ExtResource("2_layer")
+streams = Array[AudioStream]([ExtResource("3_stream"), ExtResource("4_stream")])
+volume_db = 2.0
+pitch = 0.8
+pitch_jitter = 0.05
+volume_jitter_db = 0.5
+delay = 0.0
+
+[sub_resource type="Resource" id="Mechanism"]
+script = ExtResource("2_layer")
+streams = Array[AudioStream]([ExtResource("5_stream"), ExtResource("6_stream")])
+volume_db = -13.0
+pitch = 1.1
+pitch_jitter = 0.04
+volume_jitter_db = 1.0
+delay = 0.6
+
+[resource]
+script = ExtResource("1_sound")
+body = SubResource("Body")
+mechanism = SubResource("Mechanism")

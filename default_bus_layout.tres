@@ -1,4 +1,24 @@
-[gd_resource type="AudioBusLayout" format=3]
+[gd_resource type="AudioBusLayout" format=3 uid="uid://yb815c877l6a"]
+
+[sub_resource type="AudioEffectReverb" id="IndoorTail"]
+resource_name = "Reverb"
+predelay_msec = 12.0
+predelay_feedback = 0.15
+room_size = 0.35
+damping = 0.6
+hipass = 0.15
+dry = 0.0
+wet = 0.7
+
+[sub_resource type="AudioEffectReverb" id="OutdoorTail"]
+resource_name = "Reverb"
+predelay_msec = 140.0
+predelay_feedback = 0.35
+room_size = 0.85
+damping = 0.45
+spread = 0.6
+hipass = 0.2
+wet = 0.22
 
 [resource]
 bus/1/name = &"Effects"
@@ -13,3 +33,19 @@ bus/2/mute = false
 bus/2/bypass_fx = false
 bus/2/volume_db = 0.0
 bus/2/send = &"Master"
+bus/3/name = &"ReverbIndoor"
+bus/3/solo = false
+bus/3/mute = false
+bus/3/bypass_fx = false
+bus/3/volume_db = 0.0
+bus/3/send = &"Effects"
+bus/3/effect/0/effect = SubResource("IndoorTail")
+bus/3/effect/0/enabled = true
+bus/4/name = &"ReverbOutdoor"
+bus/4/solo = false
+bus/4/mute = false
+bus/4/bypass_fx = false
+bus/4/volume_db = 0.0
+bus/4/send = &"Effects"
+bus/4/effect/0/effect = SubResource("OutdoorTail")
+bus/4/effect/0/enabled = true
