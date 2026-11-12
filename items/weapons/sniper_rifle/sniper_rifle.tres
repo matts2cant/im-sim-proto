@@ -11,6 +11,9 @@
 [ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_hip_aim.tres" id="9_hip"]
 [ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_scope_aim.tres" id="10_scope"]
 [ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_recoil.tres" id="20_recoil"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_rifle_shot.tres" id="40_shot"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_rifle_shot_suppressed.tres" id="41_shot_suppressed"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_rifle_motion.tres" id="42_motion"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.03
@@ -25,6 +28,9 @@ stream_1/stream = ExtResource("4_shot_1")
 
 [resource]
 script = ExtResource("1_script")
+shot_sound = ExtResource("40_shot")
+suppressed_shot_sound = ExtResource("41_shot_suppressed")
+motion = ExtResource("42_motion")
 id = &"sniper_rifle"
 recoil = ExtResource("20_recoil")
 item_id = &"sniper_rifle"

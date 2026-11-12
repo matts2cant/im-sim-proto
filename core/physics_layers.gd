@@ -4,7 +4,7 @@ extends RefCounted
 ## 1 world (static level geometry and static props), 2 player, 3 actors (guards), 4 objects
 ## (physics props), 5 hitboxes (M4), 6 triggers, 7 static actors (characters that never move: their
 ## static bodies are also on 7 so props collide with them; ADR 0070), 8 downed (bodies lying down:
-## characters walk through them; ADR 0082).
+## characters walk through them; ADR 0082), 9 acoustics (reverb zones; ADR 0128).
 
 const WORLD: int = 1 << 0
 const PLAYER: int = 1 << 1
@@ -20,6 +20,9 @@ const STATIC_ACTORS: int = 1 << 6
 ## its character layer. No character scans it, so the player and guards walk across bodies; queries
 ## that should still meet a body (looking, carry release, doors closing) include it (ADR 0082).
 const DOWNED: int = 1 << 7
+## Acoustic zones (ADR 0128): Area3D volumes whose reverb bus settings give the sounds made inside
+## them an echo tail (Acoustics). Only sound players (`area_mask`) and Acoustics query it.
+const ACOUSTICS: int = 1 << 8
 
 ## What the player's body collides with.
 const PLAYER_MASK: int = WORLD | ACTORS | OBJECTS

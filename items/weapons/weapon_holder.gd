@@ -44,6 +44,8 @@ signal fired(weapon: WeaponData)
 
 const ATTRIBUTE_SPREAD: StringName = &"aim_spread_add"
 const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
+## Ground speed (m/s) above which a step's move counts as a teleport, not walking (the view's bob).
+const MAX_BOB_SPEED: float = 20.0
 
 ## Fixed loadout (optional): one WeaponState each in `states`, saved by the holder.
 @export var weapons: Array[WeaponData] = []
@@ -62,6 +64,15 @@ const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
 ## Shots climb with the weapon's recoil (ADR 0123). Off: shots ignore WeaponData.recoil (guards keep
 ## their aim model until M13b, ADR 0120).
 @export var recoil_enabled: bool = false
+## First-person motion by code (ADR 0128): the view model kicks, sways behind mouse turns
+## (WeaponView.add_turn()), bobs with the user's ground speed, dips over a reload, rises on a draw
+## and lowers on a holster (WeaponData.motion, WeaponView). Off: the fixed recoil tilt (guards,
+## whose arm carries the gun).
+@export var view_motion: bool = false:
+	set(value):
+		view_motion = value
+		if _view != null:
+			_view.motion_enabled = value
 ## The equipped weapon's own AimConfig (WeaponData.aim_config) replaces `aim_config` while drawn. Off:
 ## always `aim_config` (guards keep their aim model until M13b, ADR 0120).
 @export var weapon_aim: bool = true
@@ -90,6 +101,12 @@ var cause_id: int = 0
 ## recoil.view_recoil() (its `view_share` of the climb), the shots add the rest; its blackout() is
 ## the scope blackout after a scoped shot.
 var recoil := RecoilState.new()
+## Degrees (x right, y up) the eye's owner turned the eye by on top of its aim and the recoil it
+## follows (the player's camera shake, ADR 0128): shots and the reticle take it back out
+## (aim_offset()), so a shake never moves where bullets go.
+var eye_shake := Vector2.ZERO
+## Layered shot sounds with their echo tail (WeaponData.shot_sound, ADR 0128).
+var shot_audio: ShotAudio
 
 var _equipped: WeaponState = null
 # The recoil of the last shot: its return runs on even after a switch or holster.
@@ -101,6 +118,9 @@ var _has_floor: bool = false
 var _sway: Vector2 = Vector2.ZERO
 var _view: WeaponView
 var _audio: AudioStreamPlayer3D
+# The user's position at the last physics step (ground speed for the view's bob).
+var _last_user_position := Vector3.ZERO
+var _has_user_position: bool = false
 
 
 func _ready() -> void:
@@ -114,6 +134,7 @@ func _ready() -> void:
 		states.append(WeaponState.new(data))
 	_view = WeaponView.new()
 	_view.shift_deg = view_shift_deg
+	_view.motion_enabled = view_motion
 	add_child(_view)
 	flash = _view.flash
 	_audio = AudioStreamPlayer3D.new()
@@ -121,6 +142,8 @@ func _ready() -> void:
 	_audio.name = "Audio"
 	_audio.max_polyphony = 3
 	add_child(_audio)
+	shot_audio = ShotAudio.new(_recoil_seed(rng_seed))
+	add_child(shot_audio)
 
 
 func setup(p_user: CollisionObject3D, p_eye: Node3D) -> void:
@@ -132,6 +155,8 @@ func setup(p_user: CollisionObject3D, p_eye: Node3D) -> void:
 func seed_rng(value: int) -> void:
 	aim.rng.seed = value
 	recoil.rng.seed = _recoil_seed(value)
+	shot_audio.rng.seed = _recoil_seed(value)
+	_view.motion.rng.seed = _recoil_seed(value)
 
 
 # The recoil generator's seed for a shot seed (0: random), its own sequence so recoil noise does not
@@ -227,7 +252,30 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 			changed.emit()
 	if scope.step(delta, _can_scope()):
 		_on_scope_changed("auto")
+	_set_view_inputs(delta, stance)
 	_view.step(delta, ActorState.has(user, ActorState.CLOAKED))
+
+
+# The view model's motion inputs (view_motion): the user's ground speed from how far it moved since
+# the last step (a jump of more than MAX_BOB_SPEED, a teleport or a load, counts as standing), on
+# the ground unless airborne, crouched, the reload's progress.
+func _set_view_inputs(delta: float, stance: AimModel.Stance) -> void:
+	if not view_motion:
+		return
+	var speed := 0.0
+	if is_instance_valid(user):
+		var here := user.global_position
+		if _has_user_position and delta > 0.0:
+			var moved := Vector2(here.x - _last_user_position.x, here.z - _last_user_position.z)
+			speed = moved.length() / delta
+			if speed > MAX_BOB_SPEED:
+				speed = 0.0
+		_last_user_position = here
+		_has_user_position = true
+	_view.move_speed = speed
+	_view.grounded = stance != AimModel.Stance.AIR
+	_view.crouched = ActorState.has(user, ActorState.CROUCHING)
+	_view.reload_progress = _equipped.reload_progress() if _equipped != null and _equipped.is_reloading() else -1.0
 
 
 # Settle time constant of the cone now: AimConfig.settle_time through the user's
@@ -247,10 +295,10 @@ func settle() -> void:
 
 
 ## Where the shots go relative to the eye's view, in degrees (x right, y up): the aim sway plus the
-## part of the recoil climb the eye's owner has not turned the eye by (RecoilState.unfollowed()).
-## The HUD reticle moves with it.
+## part of the recoil climb the eye's owner has not turned the eye by (RecoilState.unfollowed()),
+## less the eye's shake (`eye_shake`). The HUD reticle moves with it.
 func aim_offset() -> Vector2:
-	return _sway + recoil.unfollowed()
+	return _sway + recoil.unfollowed() - eye_shake
 
 
 ## RMB: scopes in or out (a weapon with a scope, the user able to use its arms, not reloading).
@@ -421,7 +469,7 @@ func _shoot(data: WeaponData) -> void:
 		_play_at(data.hit_sound, point)
 	aim.add_shot(_class_value("spread_mult", 1.0))
 	_add_recoil(data)
-	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
+	_play_shot(data)
 	flash.fire(data, _equipped.stat(&"muzzle_flash_size"))
 	var logged := {
 		"weapon": data.id,
@@ -444,6 +492,17 @@ func _add_recoil(data: WeaponData) -> void:
 	recoil.add_shot(data.recoil, _class_value("recoil_size_mult", 1.0), _class_value("recoil_noise_mult", 1.0))
 	if scope.scoped and data.recoil.scope_blackout_time > 0.0:
 		recoil.black_out(data.recoil.scope_blackout_time)
+
+
+# The shot's sound: the layered one (suppressed while an attachment makes the weapon `suppressed`)
+# through ShotAudio, every layer moved by the attachments' volume change; else the single sound.
+func _play_shot(data: WeaponData) -> void:
+	var suppressed := _equipped.stat(&"suppressed") > 0.0
+	var layered := data.suppressed_shot_sound if suppressed else data.shot_sound
+	if layered == null:
+		_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
+		return
+	shot_audio.play(layered, _equipped.stat(&"fire_volume_db") - data.fire_volume_db)
 
 
 # The shot sound: the suppressed one while an attachment makes the weapon `suppressed`.

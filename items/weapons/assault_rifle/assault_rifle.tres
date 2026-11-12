@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" path="res://items/weapons/assault_rifle/assault_rifle_model.tscn" id="9_model"]
 [ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_aim.tres" id="10_aim"]
 [ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_recoil.tres" id="20_recoil"]
+[ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_shot.tres" id="40_shot"]
+[ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_shot_suppressed.tres" id="41_shot_suppressed"]
+[ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_motion.tres" id="42_motion"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.12
@@ -26,6 +29,9 @@ stream_2/stream = ExtResource("5_shot_2")
 
 [resource]
 script = ExtResource("1_script")
+shot_sound = ExtResource("40_shot")
+suppressed_shot_sound = ExtResource("41_shot_suppressed")
+motion = ExtResource("42_motion")
 id = &"assault_rifle"
 recoil = ExtResource("20_recoil")
 item_id = &"assault_rifle"

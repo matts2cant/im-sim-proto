@@ -107,7 +107,7 @@ func test_editing_an_opening_rebuilds_the_room() -> void:
 	door.width = 2.0
 
 	assert_float((part.get_node("Opening0") as CSGBox3D).size.x).is_equal_approx(2.0, 0.0001)
-	assert_int(KitGeometry.generated_children(part).size()).is_equal(7)
+	assert_int(KitGeometry.generated_children(part).size()).is_equal(8)
 
 
 func test_illegal_values_are_clamped_and_warned() -> void:

@@ -22,6 +22,8 @@ extends CharacterBody3D
 ## the camera follows the holder's scope FOV and mouse look scales with it.
 ## Profile settings (GameSettings, ADR 0124): the hip FOV (applied at once, even while paused), the
 ## mouse sensitivity multiplier and invert Y.
+## Weapon feel (ADR 0128): mouse turns reach the view model (WeaponView.add_turn(): it sways), and a
+## shot shakes the camera (ViewShake, the weapon's WeaponMotionConfig, x the camera motion setting).
 ## Saveable.
 
 signal mantled(height: float)
@@ -100,6 +102,8 @@ var _face_point: Vector3 = Vector3.ZERO
 var _face_left: float = 0.0
 ## LMB was still held when a screen gave the input back: tools wait for a fresh press.
 var _tool_latched: bool = false
+## The camera's shake on firing (WeaponMotionConfig.shake_deg, x the camera motion setting).
+var _shake := ViewShake.new()
 
 @onready var noise: MovementNoise = $Noise
 @onready var fall_impact: FallImpact = $FallImpact
@@ -127,6 +131,7 @@ func _ready() -> void:
 	carry.player = self
 	carry.config = config
 	weapons.setup(self, _camera)
+	weapons.fired.connect(_on_weapon_fired)
 	_apply_view_settings()
 	GameSettings.notifier().changed.connect(_on_setting_changed)
 	inventory.setup(self)
@@ -204,6 +209,7 @@ func _physics_process(delta: float) -> void:
 	weapons.trigger_held = _trigger_held()
 	weapons.recoil.view_share = camera_motion()
 	weapons.physics_step(delta, aim_stance())
+	_shake.step(delta)
 	_apply_view_recoil()
 	_camera.fov = weapons.scope.view_fov(weapons.weapon(), _hip_fov)
 
@@ -221,6 +227,8 @@ func look(screen_delta: Vector2) -> void:
 	var pitch_sign := -1.0 if GameSettings.invert_y() else 1.0
 	pitch = clampf(pitch - screen_delta.y * sensitivity * pitch_sign, -limit, limit)
 	_head.rotation.x = pitch
+	# The view model sways behind the turn (degrees right and up).
+	weapons.view_pivot().add_turn(Vector2(screen_delta.x, -screen_delta.y * pitch_sign) * rad_to_deg(sensitivity))
 
 
 ## Share (0-1) of a weapon's recoil climb the camera follows (ADR 0123): the camera motion
@@ -603,9 +611,25 @@ func _step_face(delta: float) -> void:
 
 # The camera turns by the weapon's recoil climb (its camera share) on top of the mouse look: mouse
 # look moves `pitch` and the yaw as always, so pulling down compensates; the climb returns by itself.
+# The shake of a shot (x the camera motion setting) turns and rolls it too; the holder takes it back
+# out of the shots (eye_shake), so it never moves where bullets go.
 func _apply_view_recoil() -> void:
 	var climb := weapons.recoil.view_recoil()
-	_camera.rotation = Vector3(deg_to_rad(climb.y), -deg_to_rad(climb.x), 0.0)
+	var shake := camera_shake()
+	weapons.eye_shake = Vector2(shake.x, shake.y)
+	_camera.rotation = Vector3(deg_to_rad(climb.y + shake.y), -deg_to_rad(climb.x + shake.x), deg_to_rad(shake.z))
+
+
+## The camera's shake now (degrees right, up and rolled left; ADR 0128): the weapon's shot shake x
+## the camera motion setting (0: none).
+func camera_shake() -> Vector3:
+	return _shake.offset() * camera_motion()
+
+
+# A shot (or swing) shakes the camera by the weapon's shake (WeaponMotionConfig; none without one).
+func _on_weapon_fired(weapon: WeaponData) -> void:
+	if weapon.motion != null:
+		_shake.add(weapon.motion.shake_deg, weapon.motion.shake_time)
 
 
 # A step moved the body by `rise`: the camera stays where it was and eases after it.
