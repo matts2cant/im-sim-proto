@@ -1,0 +1,19 @@
+[gd_resource type="Theme" format=3]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_target_tag"]
+content_margin_left = 5.0
+content_margin_top = 1.0
+content_margin_right = 5.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0, 0, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.7)
+
+[resource]
+HudTargetTag/base_type = &"Label"
+HudTargetTag/colors/font_color = Color(1, 1, 1, 0.95)
+HudTargetTag/font_sizes/font_size = 13
+HudTargetTag/styles/normal = SubResource("StyleBoxFlat_target_tag")

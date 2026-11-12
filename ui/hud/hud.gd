@@ -34,6 +34,8 @@ var _item_name_left: float = 0.0
 ## Hit markers on the crosshair from the player's own hits (ADR 0126).
 @onready var hit_marker: HitMarker = $HitMarker
 @onready var scope_overlay: ScopeOverlay = $ScopeOverlay
+## Corner brackets and a name tag on what the Interactor targets (ADR 0129).
+@onready var target_frame: TargetFrame = $TargetFrame
 @onready var weapon_label: Label = $Weapon/Name
 @onready var ammo_label: Label = $Weapon/Ammo
 @onready var silhouette: BodySilhouette = $Body
@@ -110,6 +112,7 @@ func _process(delta: float) -> void:
 		refresh_reticle()
 		refresh_weapon()
 		prompt_label.text = player.interactor.prompt if ActorState.can_act(player) else ""
+		target_frame.refresh(player)
 		# Every frame: the tags may come from any source (an Effect adding `state.unconscious`).
 		refresh_overlay()
 		var energy := Energy.of(player)
