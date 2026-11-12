@@ -7,5 +7,4 @@
 [node name="Guard" instance=ExtResource("1_guard")]
 
 [node name="WeaponHolder" parent="Aim" index="0"]
-weapon_aim = false
 weapons = Array[ExtResource("2_weapon_data")]([ExtResource("3_smg")])

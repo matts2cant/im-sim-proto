@@ -1,6 +1,6 @@
 # 70. Guard combat: one weapon path for every actor, loadouts as data
 
-Status: Accepted (extends [ADR 0068](0068-awareness-states-and-guard-behaviour.md); amends [ADR 0045](0045-collision-layers.md) and [ADR 0054](0054-player-and-physics-props.md))
+Status: Accepted, amended by [ADR 0127](0127-hit-reactions-and-guard-recoil.md) (guards shoot with the weapon's cone and recoil; accuracy retuned and re-measured) (extends [ADR 0068](0068-awareness-states-and-guard-behaviour.md); amends [ADR 0045](0045-collision-layers.md) and [ADR 0054](0054-player-and-physics-props.md))
 
 Date: 2026-11-06
 
@@ -35,6 +35,8 @@ Measured by `tests/actors/guard/guard_accuracy_test.gd` on the real hitboxes, th
 | Running, 10 m | 32 % | 21 s |
 
 The brief's targets hold: at 10 m in the open the player survives 4.4 s on average (≥ 3 s), at 4 m about 2 s. Crouched-and-still at 15 m is hit about a third as often as running at 6 m. Arm and leg hits do not kill but disable limbs (spread, speed).
+
+**Amended by [ADR 0127](0127-hit-reactions-and-guard-recoil.md) (M13b)**: guards now shoot with the weapon's own cone, bloom and recoil (70 % of the climb pulled back), and `CombatModel.spread_deg()` is only their own error on top of it (0 + 0.05 degrees per metre beyond 4 m, the fast-target and settle terms unchanged). Re-measured through the real `WeaponHolder` (`guard_fire_sim.gd`), medians of time under fire for a pistol / rifle / SMG guard: standing still 4 m 2.35 / 1.98 / 2.88 s, 10 m 6.75 / 5.37 / 3.85 s, 15 m 13.8 / 11.8 / 14.4 s; crouched still 15 m 18.0 / 15.7 / 15.5 s; running 6 m 6.8 / 4.5 / 4.5 s, running 10 m 14.1 / 12.3 / 14.6 s. The targets above still hold.
 
 ## Alternatives considered
 

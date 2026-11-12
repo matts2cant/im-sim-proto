@@ -114,6 +114,34 @@ func test_damage_falls_off_past_its_start() -> void:
 	assert_float(RIFLE.damage_scale_at(70.0)).is_equal(1.0)
 
 
+func test_a_punch_adds_to_the_climb_and_returns_by_itself_armed_or_not() -> void:
+	var recoil := RecoilState.new(5)
+	recoil.add_shot(_quiet(RIFLE.recoil))
+	var climb := recoil.offset
+	recoil.add_punch(Vector2(0.5, 1.0), 0.1)
+	assert_vector(recoil.total()).is_equal_approx(climb + Vector2(0.5, 1.0), Vector2.ONE * 0.0001)
+	# The punch returns with its own time constant (no weapon config needed): 95 % back after 0.3 s,
+	# gone within 0.6 s.
+	var unarmed := RecoilState.new(5)
+	unarmed.add_punch(Vector2(0.0, 1.0), 0.1)
+	for i in 18:
+		unarmed.step(STEP, null)
+	assert_float(unarmed.punch.y).is_between(0.01, 0.06)
+	for i in 18:
+		unarmed.step(STEP, null)
+	assert_vector(unarmed.punch).is_equal(Vector2.ZERO)
+	recoil.reset()
+	assert_vector(recoil.total()).is_equal(Vector2.ZERO)
+
+
+func test_the_view_share_of_a_punch_goes_to_the_eye_and_the_rest_to_the_shots() -> void:
+	var recoil := RecoilState.new(5)
+	recoil.view_share = 0.7
+	recoil.add_punch(Vector2(0.0, 1.0), 0.1)
+	assert_vector(recoil.view_recoil()).is_equal_approx(Vector2(0.0, 0.7), Vector2.ONE * 0.0001)
+	assert_vector(recoil.unfollowed()).is_equal_approx(Vector2(0.0, 0.3), Vector2.ONE * 0.0001)
+
+
 # A copy of `config` without noise.
 func _quiet(config: RecoilConfig) -> RecoilConfig:
 	var copy := config.duplicate() as RecoilConfig

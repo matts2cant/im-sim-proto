@@ -11,6 +11,8 @@ extends Node
 ## follows the aim's pitch), hold (the grip's pose on its arm parts, so the legs keep walking; the
 ## arms follow the aim's pitch), action (a shot or a swing over the hold pose), down (the down clip,
 ## full body, held on its last frame, the model lifted so the lying figure rests on the floor).
+## A staggered character (its HitReaction, ADR 0127) leans: the whole model tips by
+## HitReaction.lean() about its feet.
 ## Visual only: the gameplay aim (the eye, shots, the flashlight's beam direction) never reads the
 ## model. The drawn weapon's view hangs from a mount on the hand part (WeaponView.hang_from()), so
 ## it follows the arm; the off-hand item hangs from the off hand while in use and from the stowed
@@ -55,6 +57,7 @@ var stowed_mount: Node3D
 var off_hand_item: Flashlight
 
 var _aim: Node3D
+var _reaction: HitReaction
 var _animations: Dictionary[StringName, Animation] = {}
 var _parts: Dictionary[StringName, Node3D] = {}
 var _rest: Dictionary[StringName, Transform3D] = {}
@@ -83,6 +86,7 @@ func _ready() -> void:
 	_model_rest = model.transform
 	_pitch_axis = (model.basis.inverse() * Vector3.RIGHT).normalized()
 	_aim = get_node_or_null(aim_path) as Node3D
+	_reaction = HitReaction.of(entity)
 	# Measured before the weapon hangs from the hand: only the model's own meshes count.
 	for clip: StringName in [config.dead_clip, config.unconscious_clip]:
 		if not _lift.has(clip):
@@ -257,7 +261,8 @@ func _pose() -> void:
 		if not slot.clip.is_empty():
 			var weight := down.blend if slot == down.current else 1.0 - down.blend
 			lift += _lift.get(slot.clip, 0.0) * weight * slot.progress()
-	model.transform = Transform3D(_model_rest.basis, _model_rest.origin + Vector3.UP * lift)
+	var lean := _reaction.lean() if _reaction != null else Basis.IDENTITY
+	model.transform = Transform3D(lean * _model_rest.basis, _model_rest.origin + Vector3.UP * lift)
 
 
 # Pitch of the aim above the horizontal (radians), 0 without one.

@@ -4,12 +4,17 @@ extends RefCounted
 ## that every shot adds to (RecoilConfig: a pattern step or a kick, plus noise) and that returns to
 ## zero by itself after firing stops. `heat` is how far into the pattern the next shot is; it decays
 ## with the climb, so a burst after a short pause starts part-way along the pattern again.
+## An aim punch (add_punch(): a hit taken, HitReaction, ADR 0127) kicks the aim the same way on top of
+## the climb and returns with its own time constant, armed or not; the eye's owner and the shots
+## share it like the climb (view_recoil(), unfollowed()).
 
 ## Climb (degrees) below which the return snaps to zero.
 const SNAP_DEG: float = 0.01
 
 ## Current climb: degrees right (x) and up (y).
 var offset: Vector2 = Vector2.ZERO
+## Current aim punch from hits taken: degrees right (x) and up (y), on top of `offset`.
+var punch: Vector2 = Vector2.ZERO
 ## Shots into the pattern (fractional while it returns); the next shot uses step floor(heat).
 var heat: float = 0.0
 ## Seconds since the last shot.
@@ -24,6 +29,8 @@ var _view_applied := Vector2.ZERO
 # Seconds left of a scope blackout after a scoped shot, and its length.
 var _blackout_left: float = 0.0
 var _blackout_time: float = 0.0
+# Time constant (s) of the punch's return.
+var _punch_time: float = 0.1
 
 
 func _init(p_seed: int = 0) -> void:
@@ -56,10 +63,12 @@ func add_shot(config: RecoilConfig, size_mult: float = 1.0, noise_mult: float = 
 func step(delta: float, config: RecoilConfig, recover_mult: float = 1.0) -> void:
 	since_shot += delta
 	_blackout_left = maxf(_blackout_left - delta, 0.0)
+	_step_punch(delta)
 	if offset == Vector2.ZERO and heat == 0.0:
 		return
 	if config == null:
-		reset()
+		offset = Vector2.ZERO
+		heat = 0.0
 		return
 	if since_shot < config.recover_delay:
 		return
@@ -68,26 +77,50 @@ func step(delta: float, config: RecoilConfig, recover_mult: float = 1.0) -> void
 	offset *= keep
 	heat *= keep
 	if offset.length() < SNAP_DEG:
-		reset()
+		offset = Vector2.ZERO
+		heat = 0.0
 
 
-## Back to rest at once (a level start, tests).
+## Back to rest at once (a level start, tests): the climb and the punch.
 func reset() -> void:
 	offset = Vector2.ZERO
 	heat = 0.0
+	punch = Vector2.ZERO
+
+
+## An aim punch of `kick` degrees (x right, y up) on top of the climb (a hit taken), returning
+## exponentially with time constant `recover_time` from the next step on.
+func add_punch(kick: Vector2, recover_time: float) -> void:
+	punch += kick
+	_punch_time = recover_time
+
+
+## The climb and the punch together (degrees, x right, y up).
+func total() -> Vector2:
+	return offset + punch
 
 
 ## The climb the eye's owner should turn the eye by now (degrees, x right, y up): `view_share` of
-## it. Owners that call this every tick turn the eye by exactly what it returns (the player's
-## camera); unfollowed() is the rest, which the shots add.
+## it (the punch included). Owners that call this every tick turn the eye by exactly what it
+## returns (the player's camera); unfollowed() is the rest, which the shots add. An owner that
+## re-aims the eye at its target every tick instead (an AI shooter) pulls that share back: its
+## shots keep only the rest (CombatConfig.recoil_compensation).
 func view_recoil() -> Vector2:
-	_view_applied = offset * clampf(view_share, 0.0, 1.0)
+	_view_applied = total() * clampf(view_share, 0.0, 1.0)
 	return _view_applied
 
 
 ## The part of the climb the eye has not turned by (degrees): the shots and the reticle add it.
 func unfollowed() -> Vector2:
-	return offset - _view_applied
+	return total() - _view_applied
+
+
+func _step_punch(delta: float) -> void:
+	if punch == Vector2.ZERO:
+		return
+	punch *= exp(-delta / _punch_time) if _punch_time > 0.0 else 0.0
+	if punch.length() < SNAP_DEG:
+		punch = Vector2.ZERO
 
 
 ## Starts a scope blackout of `time` seconds (a scoped shot).

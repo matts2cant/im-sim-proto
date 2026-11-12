@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Unit: CombatModel (ADR 0070), pure: reaction, shot intervals, losing the target, the AI aim
-## cone (range, fast targets, settling on a still target) and the preferred-range moves. Tuning: the
+## cone (range, fast targets, settling on a still target), the flinch (ADR 0127) and the
+## preferred-range moves. Tuning: the
 ## guard's combat config (guard_combat.tres); test points sit away from the thresholds.
 
 const CONFIG: CombatConfig = preload("res://actors/guard/guard_combat.tres")
@@ -47,20 +48,48 @@ func test_lost_after_the_grace_and_begin_resets() -> void:
 
 
 func test_spread_grows_with_range_beyond_the_near_distance() -> void:
-	assert_float(CombatModel.spread_deg(CONFIG, 2.0, 0.0, 0.0)).is_equal_approx(2.0, 0.0001)
-	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 0.0)).is_equal_approx(2.9, 0.0001)
-	assert_float(CombatModel.spread_deg(CONFIG, 15.0, 0.0, 0.0)).is_equal_approx(3.65, 0.0001)
-	# Wider than a player's settled cone (0.5 untrained, 0.2 at Master) even point blank.
-	assert_float(CombatModel.spread_deg(CONFIG, 1.0, 0.0, 10.0)).is_greater(0.5)
+	# The shooter's own error on top of the weapon's cone (ADR 0127): base, plus per metre beyond 4 m.
+	var at_10 := CONFIG.spread_base_deg + CONFIG.spread_per_metre * 6.0
+	assert_float(CombatModel.spread_deg(CONFIG, 2.0, 0.0, 0.0)).is_equal_approx(CONFIG.spread_base_deg, 0.0001)
+	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 0.0)).is_equal_approx(at_10, 0.0001)
+	assert_float(CombatModel.spread_deg(CONFIG, 15.0, 0.0, 0.0)).is_greater(at_10)
 
 
 func test_fast_targets_widen_and_still_targets_settle() -> void:
-	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 5.0, 0.0)).is_equal_approx(4.9, 0.0001)
+	var at_10 := CONFIG.spread_base_deg + CONFIG.spread_per_metre * 6.0
+	var fast := at_10 + CONFIG.fast_target_add_deg
+	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 5.0, 0.0)).is_equal_approx(fast, 0.0001)
 	# Not fast below 3 m/s (a crouch-walk at 2 m/s).
-	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 2.0, 0.0)).is_equal_approx(2.9, 0.0001)
-	# Halfway through the 2 s settle: x0.875; settled: x0.75.
-	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 1.0)).is_equal_approx(2.9 * 0.875, 0.0001)
-	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 5.0)).is_equal_approx(2.9 * 0.75, 0.0001)
+	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 2.0, 0.0)).is_equal_approx(at_10, 0.0001)
+	# Halfway through the 2 s settle: halfway to the settled factor; settled: x settled_factor.
+	var halfway := lerpf(1.0, CONFIG.settled_factor, 0.5)
+	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 1.0)).is_equal_approx(at_10 * halfway, 0.0001)
+	assert_float(CombatModel.spread_deg(CONFIG, 10.0, 0.0, 5.0)).is_equal_approx(at_10 * CONFIG.settled_factor, 0.0001)
+
+
+func test_a_flinch_holds_the_fire_and_the_shot_pause() -> void:
+	_steps(40, true, 0.0)
+	_model.fired()
+	var wait := _model.shot_wait
+	# Flinching for 0.3 s (18 ticks): no shot, and the pause does not run down.
+	for i in 18:
+		_model.step(DT, true, 0.0, true)
+		assert_bool(_model.ready_to_fire()).is_false()
+	assert_float(_model.shot_wait).is_equal_approx(wait, 0.0001)
+	# Then the pause runs as before: the next shot comes 0.3 s later than without the flinch.
+	_steps(roundi(wait / DT) - 2, true, 0.0)
+	assert_bool(_model.ready_to_fire()).is_false()
+	_steps(3, true, 0.0)
+	assert_bool(_model.ready_to_fire()).is_true()
+
+
+func test_a_flinch_blocks_a_ready_shot_until_it_ends() -> void:
+	_steps(40, true, 0.0)
+	assert_bool(_model.ready_to_fire()).is_true()
+	_model.step(DT, true, 0.0, true)
+	assert_bool(_model.ready_to_fire()).is_false()
+	_steps(1, true, 0.0)
+	assert_bool(_model.ready_to_fire()).is_true()
 
 
 func test_settle_runs_only_while_the_target_is_still_and_seen() -> void:
@@ -72,7 +101,7 @@ func test_settle_runs_only_while_the_target_is_still_and_seen() -> void:
 	_steps(10, true, 5.0)
 	assert_float(_model.settle).is_equal(0.0)
 	assert_float(_model.target_speed).is_greater(CONFIG.fast_target_speed)
-	assert_float(_model.spread(10.0)).is_greater(4.0)
+	assert_float(_model.spread(10.0)).is_greater(CONFIG.fast_target_add_deg)
 	_steps(30, true, 0.0)
 	_steps(5, false, 0.0)
 	assert_float(_model.settle).is_equal(0.0)

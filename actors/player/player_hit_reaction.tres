@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="HitReactionConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/hit_reaction/hit_reaction_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+punch_up_deg = 1.0
+punch_side_deg = 0.5
+punch_recover_time = 0.1
+spread_add_deg = 1.5
+spread_time = 0.3
+flinch_time = 0.0
+stagger_time = 0.0

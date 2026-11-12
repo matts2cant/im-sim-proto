@@ -68,6 +68,10 @@ func test_the_rifle_guard_fires_bursts() -> void:
 	assert_object(Skills.of(_c.guard)).is_null()
 	for stat: String in ["spread_mult", "reload_mult", "damage_mult", "settle_time", "sway_mult"]:
 		assert_float(Attributes.read(_c.guard, StringName("rifle_" + stat), 1.0)).is_equal(1.0)
+	# ADR 0127: guards shoot with the weapon's own cone and recoil and pull back their share of it.
+	assert_bool(_c.holder.recoil_enabled and _c.holder.weapon_aim).is_true()
+	assert_float(_c.holder.recoil.view_share).is_equal(CONFIG.recoil_compensation)
+	assert_float(_c.holder.recoil.since_shot).is_less(1.0)
 	var shots := EventLog.find(&"stimulus.emitted").filter(
 		func(entry: EventLogEntry) -> bool:
 			return entry.data["type"] == &"damage.ballistic" and entry.source == String(_c.guard.name)

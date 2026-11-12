@@ -7,7 +7,9 @@ extends RefCounted
 ## - Rate: after each shot a random pause in [shot_interval_min, shot_interval_max]; an automatic
 ##   weapon fires a burst of burst_length() shots first.
 ## - Lost: out of sight for lose_grace ends the engagement.
-## - Accuracy (cone half-angle, degrees): spread_deg().
+## - Flinch (a hit taken, HitReaction, ADR 0127): while `flinching` it does not fire and the pause
+##   before the next shot does not run down, so the next shot comes that much later.
+## - Accuracy (cone half-angle, degrees): spread_deg(), added to the weapon's own cone.
 
 enum Move { HOLD, ADVANCE, RETREAT }
 
@@ -24,6 +26,8 @@ var shot_wait: float = 0.0
 var unseen_time: float = 0.0
 ## Smoothed speed of the target (m/s).
 var target_speed: float = 0.0
+## The fighter is flinching from a hit this tick (step()).
+var flinching: bool = false
 var rng := RandomNumberGenerator.new()
 
 
@@ -39,11 +43,15 @@ func begin() -> void:
 	shot_wait = 0.0
 	unseen_time = 0.0
 	target_speed = 0.0
+	flinching = false
 
 
-## One tick. `seen`: the target is in sight now; `raw_speed`: its speed measured this tick.
-func step(delta: float, seen: bool, raw_speed: float) -> void:
-	shot_wait = maxf(shot_wait - delta, 0.0)
+## One tick. `seen`: the target is in sight now; `raw_speed`: its speed measured this tick;
+## `p_flinching`: the fighter flinches from a hit (the shot pause holds).
+func step(delta: float, seen: bool, raw_speed: float, p_flinching: bool = false) -> void:
+	flinching = p_flinching
+	if not flinching:
+		shot_wait = maxf(shot_wait - delta, 0.0)
 	if not seen:
 		unseen_time += delta
 		settle = 0.0
@@ -63,9 +71,9 @@ func reacted() -> bool:
 	return seen_time >= config.reaction_time
 
 
-## True when the reaction is over and the pause after the last shot too.
+## True when the reaction is over, the pause after the last shot too, and it is not flinching.
 func ready_to_fire() -> bool:
-	return reacted() and shot_wait <= 0.0
+	return reacted() and shot_wait <= 0.0 and not flinching
 
 
 ## A shot (or a burst) went off: the next waits a random interval.
