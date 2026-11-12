@@ -80,14 +80,18 @@ func _run(level: Node3D, level_name: String) -> void:
 
 func _pose(light: StatusLight, entity: Node3D, angle: float) -> void:
 	# The LED, else the device's own lamp (its first mesh: a door's front box light).
-	var target := light.indicators()[0].global_position
-	var front := entity.global_basis.z
-	front.y = 0.0
-	if front.length() < 0.1:
-		front = Vector3.BACK
-	front = front.normalized().rotated(Vector3.UP, angle)
-	var eye := target + front * STAND_OFF
+	var indicator := light.indicators()[0]
+	var target := indicator.global_position
 	var space := entity.get_world_3d().direct_space_state
+	# The light's own facing when nothing stands in front of it (a door box on a corridor's side
+	# wall), else the entity's front (a camera's lamp faces back along its head).
+	var front := _flat(entity.global_basis.z)
+	var own := _flat(indicator.global_basis.z)
+	var probe := PhysicsRayQueryParameters3D.create(target + own * 0.05, target + own * STAND_OFF)
+	if space.intersect_ray(probe).is_empty():
+		front = own
+	front = front.rotated(Vector3.UP, angle)
+	var eye := target + front * STAND_OFF
 	var query := PhysicsRayQueryParameters3D.create(eye + Vector3.UP * 0.2, eye + Vector3.DOWN * 4.0)
 	var hit := space.intersect_ray(query)
 	eye.y = (hit["position"] as Vector3).y + EYE_HEIGHT if not hit.is_empty() else target.y
@@ -95,3 +99,9 @@ func _pose(light: StatusLight, entity: Node3D, angle: float) -> void:
 	if eye.distance_to(target) > 0.01:
 		_camera.look_at(target, Vector3.UP)
 	_camera.make_current()
+
+
+# `direction` on the floor plane, normalised (+Z when it points straight up or down).
+func _flat(direction: Vector3) -> Vector3:
+	var flat := Vector3(direction.x, 0.0, direction.z)
+	return flat.normalized() if flat.length() > 0.1 else Vector3.BACK
