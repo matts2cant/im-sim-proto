@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://ui/hud/light_gauge.gd" id="6_light"]
 [ext_resource type="Script" path="res://ui/hud/scope_overlay.gd" id="7_scope"]
 [ext_resource type="Script" path="res://ui/hud/network_feedback.gd" id="8_network_feedback"]
+[ext_resource type="Script" path="res://ui/hud/hit_marker.gd" id="9_hit_marker"]
 
 [sub_resource type="LabelSettings" id="Label_weapon"]
 font_size = 18
@@ -96,6 +97,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_reticle")
+
+[node name="HitMarker" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_hit_marker")
 
 [node name="Body" type="Control" parent="."]
 layout_mode = 3

@@ -73,6 +73,25 @@ func test_past_the_cap_the_oldest_mark_goes() -> void:
 	assert_float(points[-1].x - ORIGIN.x).is_equal_approx(0.001 * (cap + 9), 0.0001)
 
 
+func test_marks_never_fade_unless_asked_then_fade_after_their_time() -> void:
+	await Fixtures.frames(get_tree(), 1)
+	_marks.add_mark(ORIGIN, Vector3.BACK)
+	_marks.step(1000.0)
+
+	assert_int(_marks.visible_count()).is_equal(1)
+
+	_marks.fade_after = 2.0
+	_marks.fade_time = 1.0
+	_marks.step(1.0)
+	_marks.add_mark(ORIGIN, Vector3.BACK, 0.1, Color.WHITE)
+	_marks.step(1.5)
+	# The first mark (aged 2.5 s since fading was asked) is half faded, the second still full.
+	assert_float(_marks.opacity(0)).is_equal_approx(0.5, 0.001)
+	assert_float(_marks.opacity(1)).is_equal(1.0)
+	_marks.step(0.6)
+	assert_int(_marks.visible_count()).is_equal(1)
+
+
 func test_clear_removes_every_mark() -> void:
 	await Fixtures.frames(get_tree(), 1)
 	_marks.add_mark(ORIGIN, Vector3.BACK)

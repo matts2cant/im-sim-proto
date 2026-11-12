@@ -91,6 +91,9 @@ enum Grip { ONE_HAND, TWO_HAND }
 ## RANGED: edge (m) of the muzzle flash box shown at the front of the view model for a moment on
 ## each shot, with a short-range light; 0: no flash (the silenced pistol).
 @export var muzzle_flash_size: float = 0.0
+## RANGED: a tracer streak every this many rounds (ADR 0126: the automatic weapons 3); 0: none
+## unless the holder asks for them (WeaponHolder.tracer_every: guards).
+@export_range(0, 10) var tracer_every: int = 0
 
 @export_group("Audio")
 ## A ranged shot's layered sound (ShotSound: body, bass thump, mechanism; ADR 0128), played by the

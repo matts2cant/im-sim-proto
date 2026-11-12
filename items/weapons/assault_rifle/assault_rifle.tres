@@ -52,6 +52,7 @@ fire_noise = 28.0
 impact_noise = 4.0
 impact_impulse = 2.0
 muzzle_flash_size = 0.12
+tracer_every = 3
 fire_sound = SubResource("Shot")
 suppressed_fire_sound = SubResource("Suppressed")
 fire_volume_db = -6.0

@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone; through a scope the scope
-## overlay replaces it, ADR 0085), the name of the item in
+## overlay replaces it, ADR 0085) and its hit markers (ADR 0126), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log", the
 ## network drops of its NetworkFeedback child, M12c), "AR: cables (RMB)" while the deck's AR view is on,
@@ -31,6 +31,8 @@ var _message_time: float = MESSAGE_TIME
 var _item_name_left: float = 0.0
 
 @onready var reticle: Reticle = $Reticle
+## Hit markers on the crosshair from the player's own hits (ADR 0126).
+@onready var hit_marker: HitMarker = $HitMarker
 @onready var scope_overlay: ScopeOverlay = $ScopeOverlay
 @onready var weapon_label: Label = $Weapon/Name
 @onready var ammo_label: Label = $Weapon/Ammo
@@ -68,6 +70,7 @@ func _ready() -> void:
 	if not player.is_node_ready():
 		await player.ready
 	silhouette.body = player.body
+	hit_marker.watch(player)
 	player.body.damaged.connect(_on_damaged)
 	player.body.died.connect(refresh_overlay)
 	player.body.knocked_out.connect(refresh_overlay)
@@ -203,6 +206,7 @@ func refresh_reticle() -> void:
 		scope_overlay.show_cone(radius, offset)
 		scope_overlay.show_blackout(player.weapons.recoil.blackout())
 	reticle.show_cone(radius, offset)
+	hit_marker.offset = offset
 	var target := aimed_target() if radius > 0.0 and not scoped else null
 	reticle.show_target(target != null, _target_color(target))
 	reticle.visible = ActorState.can_act(player) and not scoped

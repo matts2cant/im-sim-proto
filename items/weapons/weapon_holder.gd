@@ -41,6 +41,8 @@ extends Node3D
 ## dips over a reload and rises on a draw (WeaponView, WeaponData.motion); `eye_shake` (a camera
 ## shake the eye's owner adds) is taken back out of the shots; a shot plays its layered ShotSound
 ## through `shot_audio` with the echo of the shooter's place (Acoustics).
+## Shot feedback (ADR 0126): its ShotFeedback child leaves impacts by material and tracers
+## (`tracer_every`, else the weapon's) through the viewport's ShotFx, for any shooter.
 
 signal changed
 ## A shot or a swing of `weapon` happened (the trigger fired it): animation, effects.
@@ -80,6 +82,9 @@ const MAX_BOB_SPEED: float = 20.0
 ## The equipped weapon's own AimConfig (WeaponData.aim_config) replaces `aim_config` while drawn. Off:
 ## always `aim_config` (guards keep their aim model until M13b, ADR 0120).
 @export var weapon_aim: bool = true
+## A tracer every this many rounds whatever the weapon (guards: 1, every shot; ADR 0126); 0: the
+## weapon's own WeaponData.tracer_every.
+@export_range(0, 10) var tracer_every: int = 0
 
 ## The character holding the weapons (shots come from it; its body and hitboxes are excluded).
 var user: CollisionObject3D
@@ -111,6 +116,8 @@ var recoil := RecoilState.new()
 var eye_shake := Vector2.ZERO
 ## Layered shot sounds with their echo tail (WeaponData.shot_sound, ADR 0128).
 var shot_audio: ShotAudio
+## Impacts, puffs and tracers of the shots and swings (ADR 0126).
+var feedback: ShotFeedback
 
 var _equipped: WeaponState = null
 # The recoil of the last shot: its return runs on even after a switch or holster.
@@ -148,6 +155,9 @@ func _ready() -> void:
 	add_child(_audio)
 	shot_audio = ShotAudio.new(_recoil_seed(rng_seed))
 	add_child(shot_audio)
+	feedback = ShotFeedback.new()
+	feedback.name = "ShotFeedback"
+	add_child(feedback)
 
 
 func setup(p_user: CollisionObject3D, p_eye: Node3D) -> void:
@@ -441,6 +451,7 @@ func _shoot(data: WeaponData) -> void:
 	if data.impact_impulse > 0.0:
 		rays[&"force.impact"] = data.impact_impulse
 	var hits: Array[Dictionary] = []
+	var ends: Array[Vector3] = []
 	# Each projectile: one ray per damage entry and the push, along its own direction.
 	for direction in directions:
 		var query := PhysicsRayQueryParameters3D.create(
@@ -448,6 +459,7 @@ func _shoot(data: WeaponData) -> void:
 		)
 		var hit := space.intersect_ray(query)
 		var falloff := 1.0
+		ends.append(query.to if hit.is_empty() else hit["position"] as Vector3)
 		if not hit.is_empty():
 			hits.append(hit)
 			falloff = data.damage_scale_at(from.origin.distance_to(hit["position"] as Vector3))
@@ -471,6 +483,7 @@ func _shoot(data: WeaponData) -> void:
 		last_hit = {"collider": collider, "position": point}
 		_emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
 		_play_at(data.hit_sound, point)
+	feedback.shot(data, _muzzle(), ends, hits, tracer_every)
 	aim.add_shot(_class_value("spread_mult", 1.0))
 	_add_recoil(data)
 	_play_shot(data)
@@ -587,6 +600,7 @@ func _swing(data: WeaponData) -> void:
 				_emit(hit_stimulus)
 			_emit(Stimulus.make_noise(data.impact_noise, point, user))
 			_play_at(data.hit_sound, point)
+			feedback.swing_hit(data, collider, point, info.get("normal", Vector3.ZERO) as Vector3)
 	_log(&"weapon.swung", {"weapon": data.id, "hit": hit_name})
 
 

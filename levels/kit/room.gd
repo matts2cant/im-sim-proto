@@ -56,6 +56,11 @@ func _surface_name() -> String:
 	return floor_surface if GrayboxMaterials.is_surface(floor_surface) else GrayboxMaterials.DEFAULT_SURFACE
 
 
+## The walls (and ceiling) are graybox concrete whatever the floor (bullet impacts, ADR 0126).
+func _wall_surface_name() -> String:
+	return GrayboxMaterials.DEFAULT_SURFACE
+
+
 func _build() -> void:
 	var x := _clamped("Size x", size.x, 1.0, 500.0)
 	var y := _clamped("Height", size.y, 1.0, 100.0)

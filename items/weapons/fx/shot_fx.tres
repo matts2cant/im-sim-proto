@@ -1,0 +1,121 @@
+[gd_resource type="Resource" script_class="ShotFxConfig" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/fx/shot_fx_config.gd" id="1_config"]
+[ext_resource type="Script" path="res://items/weapons/fx/impact_puff.gd" id="2_puff"]
+
+[sub_resource type="Resource" id="Puff_concrete"]
+script = ExtResource("2_puff")
+color = Color(0.62, 0.6, 0.56, 1)
+amount = 16
+lifetime = 0.8
+speed_min = 0.6
+speed_max = 2.0
+spread_deg = 45.0
+gravity = 1.0
+particle_size = 0.045
+hole_color = Color(0.07, 0.07, 0.07, 0.95)
+hole_size = 0.05
+
+[sub_resource type="Resource" id="Puff_metal"]
+script = ExtResource("2_puff")
+color = Color(1, 0.82, 0.45, 1)
+amount = 12
+lifetime = 0.3
+speed_min = 3.0
+speed_max = 7.0
+spread_deg = 55.0
+gravity = 9.8
+particle_size = 0.02
+shrink = true
+glow = true
+hole_color = Color(0.1, 0.1, 0.11, 0.95)
+hole_size = 0.04
+
+[sub_resource type="Resource" id="Puff_wood"]
+script = ExtResource("2_puff")
+color = Color(0.6, 0.42, 0.24, 1)
+amount = 10
+lifetime = 0.6
+speed_min = 1.5
+speed_max = 4.0
+spread_deg = 50.0
+gravity = 7.0
+particle_size = 0.03
+hole_color = Color(0.17, 0.11, 0.06, 0.95)
+hole_size = 0.05
+
+[sub_resource type="Resource" id="Puff_glass"]
+script = ExtResource("2_puff")
+color = Color(0.82, 0.92, 1, 0.9)
+amount = 12
+lifetime = 0.5
+speed_min = 1.5
+speed_max = 4.5
+spread_deg = 60.0
+gravity = 8.0
+particle_size = 0.02
+glow = true
+hole_color = Color(0.85, 0.93, 1, 0.85)
+hole_size = 0.18
+cracks = true
+
+[sub_resource type="Resource" id="Puff_body"]
+script = ExtResource("2_puff")
+color = Color(0.35, 0.04, 0.05, 1)
+amount = 9
+lifetime = 0.45
+speed_min = 0.4
+speed_max = 1.6
+spread_deg = 50.0
+gravity = 3.0
+particle_size = 0.05
+hole = false
+
+[sub_resource type="Resource" id="Puff_stun"]
+script = ExtResource("2_puff")
+color = Color(0.75, 0.88, 1, 1)
+amount = 16
+lifetime = 0.25
+speed_min = 2.0
+speed_max = 5.0
+spread_deg = 70.0
+gravity = 0.0
+particle_size = 0.024
+shrink = true
+glow = true
+hole = false
+
+[resource]
+script = ExtResource("1_config")
+puffs = Dictionary[StringName, ExtResource("2_puff")]({
+&"body": SubResource("Puff_body"),
+&"concrete": SubResource("Puff_concrete"),
+&"glass": SubResource("Puff_glass"),
+&"metal": SubResource("Puff_metal"),
+&"stun": SubResource("Puff_stun"),
+&"wood": SubResource("Puff_wood")
+})
+surfaces = Dictionary[StringName, StringName]({
+&"carpet": &"concrete",
+&"concrete": &"concrete",
+&"grass": &"concrete",
+&"metal": &"metal",
+&"wood": &"wood"
+})
+tags = Dictionary[StringName, StringName]({
+&"material.cardboard": &"wood",
+&"material.electronics": &"metal",
+&"material.glass": &"glass",
+&"material.metal": &"metal",
+&"material.wood": &"wood"
+})
+default_group = &"concrete"
+max_holes = 200
+hole_life = 30.0
+hole_fade = 3.0
+tracer_speed = 300.0
+tracer_length = 3.0
+tracer_width = 0.04
+tracer_color = Color(1, 0.9, 0.62, 1)
+tracer_fade = 0.06
+tracer_max_distance = 120.0
