@@ -7,7 +7,7 @@ extends RefCounted
 ## turns its camera by it, scaled by the camera motion setting, and the shots take it back out
 ## (WeaponHolder.eye_shake).
 
-const FREQUENCY_HZ: float = 18.0
+const FREQUENCY_HZ: float = 12.0
 
 var rng := RandomNumberGenerator.new()
 
@@ -37,17 +37,18 @@ func add(amplitude: float, time: float) -> void:
 	_offset = _direction * _amplitude
 
 
-## Advances `delta` seconds.
+## The view of this step, then `delta` seconds on: the first step after add() shows the full
+## amplitude.
 func step(delta: float) -> void:
 	if _time <= 0.0:
 		return
-	_age += delta
 	if _age >= _time:
 		_time = 0.0
 		_amplitude = 0.0
 		_offset = Vector3.ZERO
 		return
 	_offset = _direction * remaining() * cos(TAU * FREQUENCY_HZ * _age)
+	_age += delta
 
 
 ## The shake's turn now: degrees right (x), up (y) and rolled left (z).
