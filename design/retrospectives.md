@@ -4,6 +4,35 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M13 — Weapon feel (2026-11-12)
+
+The user and I grilled M13 in three rounds (ADR 0120) and split it into M13a (the feel loop) and M13b (feedback); the user then asked to build both in one go and to playtest M12 and M13 together. Eight agents in two waves of three, plus two small fixes:
+- M13a: aim, recoil, the SMG and (a mid-build user request) a Deus Ex-style crosshair (ADR 0123); the settings menu in the Esc menu (ADR 0124); the shooting range upgrade with a generic tuning panel (ADR 0125).
+- M13b: hit markers, impacts by material and tracers (ADR 0126); hit reactions for any character and guards obeying recoil (ADR 0127); weapon motion, camera shake and layered shot sounds with indoor/outdoor reverb (ADR 0128).
+- Fixes: a race in the guard test helper (`use_sync_iterations()` returned before the region's own build: paths answered from a far region under load), and an unseeded camera shake test.
+
+Final state on master: 2066 tests, 0 failures, 1 skipped, lint clean (the last agent's full run, on exactly the code master has; not rerun, per the one-run rule).
+
+- **Went well:**
+  - **Measured targets held.** Pistol hit share by tier 56/80/92/100 % (target 55/75/90/100), rifle spray 31/49/67/87 % (30/50/70/85), the SMG's 0.6–0.7 s at 5 m, and the survival targets under guard fire for every loadout.
+  - **Contracts named before parallel work** (`GameSettings.camera_motion()`, tuning as `@export_range` read by reflection) let three agents build against each other without waiting; the merge-first order resolved every overlap.
+  - **A flaky test became a real bug fix.** Asking for the root cause instead of a retry found a race in the guard test helper that every guard suite shared.
+  - **Tool failures fell** from 1.4 % to 1.1 % of calls after the AGENTS.md "Tool use" section (worktree refusals ~31 to 11); one agent made 0 failed calls in 406.
+- **Went wrong:**
+  - **I made a mockup the user hadn't asked for** (hit feedback): game feel can't be judged in a browser. Saved as a memory: mockups only when asked, for game UI and minigames.
+  - **Agents ran the full suite twice** again (settings, aim): a first run failed, they fixed and reran, which is right; but one reran only to measure. The one-run rule holds for a run without a change.
+  - **Some rules are still ignored**: 4 of 10 agents called the main session's task-list tool, a few compound shell commands in worktrees, one `sleep; tail`.
+  - **Balance moved as a side effect**: pistol guards are weaker at 10 m (6.75 s survival, was 4.4 s) since they use the pistol's own cone; the rifle at Master kills faster (0.43 s) than the old figure, which was measured Untrained.
+  - **Sound is thin**: the only real gunshot in the packs is one handgun recording; every gun is a pitch and layer variation of it.
+- **Changes:**
+  - AGENTS.md "Tool use": names the exact task-list tools sub-agents must never call, scripts for multi-step shell work, check a path exists before using it, more benign non-zero exits listed, no `sleep; tail`.
+  - Memory: mockups only when the user asks (game UI and minigames), never for game feel.
+- **Open for the user (playtest tonight):**
+  - Tier feel on the range: does Untrained miss enough, does Master feel like Counter-Strike?
+  - Pistol guards weaker at 10 m: fine, or per-loadout tuning / guard skill tiers (ADR 0127)?
+  - Gun sounds: add a gun sound pack (your call; nothing is downloaded without your OK)?
+  - Yellow headshot markers are hard to see on the yellow training dummies.
+
 ## M12b playtest fixes and M12c — Network consequences (2026-11-12)
 
 The user played M12b and asked for: exploits as simple one-use items, icons on the Map, a scan that doesn't look like a bug, and fixes for panel corners and alignment in the deck and computer screens. A mockup (`design/prototypes/hacking_fixes.html`) and ADR 0121 settled the first three; the user then let the work run overnight without the playtest gate (M12c built straight after). Five agents:

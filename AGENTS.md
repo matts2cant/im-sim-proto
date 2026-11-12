@@ -77,13 +77,15 @@ Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "W
 
 Measured over 14 agents (4288 tool calls, 62 failed, retrospective 2026-11-12): half the failures were the worktree sandbox refusing compound shell commands. Each failure costs a call and a retry.
 
-- **One plain command per Bash call in a worktree.** The sandbox refuses what it cannot verify: heredocs (`python - <<'EOF'`, `cat <<EOF`), `for` loops, `cd`, `$(...)`, `&&`/`;` chains, `sed -i` with escapes. Use `git -C <absolute path>` instead of `cd`; create folders with a plain `mkdir -p <path>` call of its own.
+- **One plain command per Bash call in a worktree.** The sandbox refuses what it cannot verify: heredocs (`python - <<'EOF'`, `cat <<EOF`), `for` loops, `cd`, `$(...)`, `&&`/`;` chains, `sed -i` with escapes. Use `git -C <absolute path>` instead of `cd`; create folders with a plain `mkdir -p <path>` call of its own. Multi-step work goes in a scratch script written with the Write tool and run as `bash <script>`; a long commit message goes in a file (`git commit -F <file>`).
+- **Check a path exists before using it** (Glob or `ls` on the parent): guessed paths (`core/network`, `objects/power/powered.gd`) were the second most common failure.
 - **Edit files with Read/Edit/Write**, not shell edits. For a scripted or repeated edit, Write a `.py` file into your scratch subfolder and run `py -3.12 -I <file>` (open files with `encoding='utf-8'`, write with `newline='\n'`); never inline Python in Bash (quotes like `'''` also break the shell).
 - **Re-Read before Write or Edit** when a formatter (`tools/lint.sh --fix`), a generator or another process may have touched the file since you read it.
 - **Lint before staging, as its own call**: `tools/lint.sh --fix`, then `tools/lint.sh`; never chain lint with `git add`/`git commit`. Watch the limits as you write: 1000 lines per file, 120 characters per line, gdlint's class order.
-- **Read a non-zero exit before retrying**: `grep` with no match, `git commit` with nothing staged and a screenshot run that saved its PNG can all exit non-zero. Check `git status --short` before committing.
+- **Read a non-zero exit before retrying**: `grep` with no match, `git merge-base --is-ancestor` answering "no", `gdformat --check` finding changes, `git commit` with nothing staged and a screenshot run that saved its PNG all exit non-zero without anything being broken. Check `git status --short` before committing.
 - **Never `sleep` in the foreground** to wait: run long commands with `run_in_background` and wait for the notification.
-- **Sub-agents never call `update_plan` or `wrap_up`** (the main session's task list); report in your final message.
+- **Sub-agents never call `mcp__ccd_turn__update_plan` or `mcp__ccd_turn__wrap_up`**: they belong to the main session and always fail for you (4 of 10 M13 agents still tried). Keep your plan in your head and report in your final message.
+- **Never wait with `sleep N; tail …`**: the harness blocks it.
 
 ## Godot version
 
