@@ -124,7 +124,7 @@ flowchart TD
 
 **M13b**
 
-- Hit markers (subtle; distinct for a headshot and a kill), impacts by material (metal, concrete, wood, glass; capped, fading), a small dark-red puff on body hits, a blue-white spark for stun hits, tracers on automatic weapons and guards' shots.
+- Hit markers (subtle; distinct for a headshot and a kill), impacts by material (metal, concrete, wood, glass; capped, fading), a small dark-red puff on body hits, a blue-white spark for stun hits, tracers on automatic weapons and guards' shots: built, "Shot feedback" below.
 - Getting hit: the view kicks and spread grows for ~0.3 s; a guard flinches (next shot ~0.3 s later), a limb hit staggers it.
 - Guards obey weapon spread and recoil, compensating ~70 %, retuned so the ADR 0070 survival targets hold (at least 3 s at 10 m, about 2 s at 4 m).
 - Weapon motion by code (kick, sway, bob, reload, draw; no arms), a slight camera shake on firing, per-weapon sounds layered from the packs in the project with an indoor/outdoor echo tail: built, below.
@@ -156,6 +156,24 @@ flowchart TD
 
   Jitter: pitch 2-8 %, volume 0.5-2 dB per layer. The packs hold one real gunshot (Titan Handgun); the guns differ by its pitch and their other layers.
 - **Echo by place** ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md), `core/audio/acoustics.gd`): indoors is an acoustic zone (an `Area3D` on physics layer 9 `acoustics` with Godot's reverb bus settings: `ReverbIndoor`, amount 0.45), which every kit `Room` makes over its interior (`indoor_acoustics`, default on): the hub and its gallery rooms, the warehouse's hall, annex, offices, gate booth and basement. Elsewhere (yards, roof, road, ducts, culvert) is outdoors. A shot's voices sit at the shooter: inside a zone they play on `Effects` and the zone sends 45 % to `ReverbIndoor` (12 ms predelay, small room: short and dense); outside they play on `ReverbOutdoor` (dry plus 22 % wet, 140 ms predelay with feedback, large room: longer and sparse). Both buses send to `Effects`.
+
+### Shot feedback (M13b, built: [ADR 0126](../decisions/0126-shot-feedback.md))
+
+- **Hit markers** (HUD `HitMarker` over the crosshair, `ui/hud/hit_marker.tres`): when the player's own `damage.*` stimuli hurt a character (`HitMarkerRules` over the EventLog: `stimulus.emitted` from the player, then `actor.damaged`/`stunned`/`knocked_out`/`died` whose `by` is one of them; never the player itself, never another shooter, a fire or a blast), four short diagonal ticks 9-16 px from the aim point (at 1080 px tall): white 0.15 s on a body hit, yellow 0.22 s on a headshot, pale blue 0.15 s on a stun hit; an X 6-18 px, 3 px thick, 0.35 s: red on a kill, pale blue on a knockout. A stronger marker replaces a weaker one still showing (kill > knockout > head > stun > body; a weaker one waits). A soft generated tick per marker (2.4 kHz, 30 ms, -16 dB; the X 1.5 kHz, 70 ms, -9 dB); markers within 50 ms of a tick stay silent (eight pellets tick once). No damage numbers. Drawn at the reticle's aim offset; it also shows through the scope.
+- **Impacts** (`ShotFeedback`, a child of every `WeaponHolder`, and `ShotFx`, one pooled node per viewport; tuning `items/weapons/fx/shot_fx.tres`): every projectile that hits plays the puff of the hit's material group and, on a static surface, leaves a hole. The group is data on what was hit: a hitbox or an entity with `BodyParts` is `body`; else the collider's `wall_surface` metadata on a face that is not a floor (a kit `Room` writes `concrete`: its walls and ceiling whatever its floor), else its `surface` metadata (kit parts: concrete, carpet and grass -> concrete, wood, metal), else the `material.*` tags of the entity above the collider (metal and electronics -> metal, wood and cardboard -> wood, glass), else concrete.
+
+  | Group | Puff | Hole |
+  |---|---|---|
+  | Concrete (default) | 16 grey dust motes, 0.8 s, slow (0.6-2 m/s), drifting | dark, 5 cm |
+  | Metal | 12 bright orange sparks, 0.3 s, fast (3-7 m/s), falling, shrinking | dark, 4 cm |
+  | Wood | 10 brown splinters, 0.6 s, 1.5-4 m/s, falling | brown, 5 cm |
+  | Glass | 12 pale blue shards, 0.5 s | a pale crack star, 18 cm |
+  | Body | 9 dark-red motes, 0.45 s, slow | none |
+  | Stun (a melee hit on a body by a weapon dealing `damage.stun`: the baton) | 16 blue-white sparks, 0.25 s, no gravity | none |
+
+  Holes: at most 200 round holes and 50 crack stars in the world (the oldest reused), each fully visible for 30 s then fading over 3 s; only on static surfaces (CSG, static bodies) that keep no marks of their own: none on bodies, rigid props, doors, characters, or the range's spray wall (its `ImpactMarks` keeps every mark as before). A melee hit on a surface leaves nothing. Visual only, not saved; cleared on a scene change.
+- **Tracers**: a 3 m bright streak (4 cm thick, pale yellow) from the muzzle to the first projectile's hit (or 120 m along a miss) at 300 m/s (30 m in 0.1 s), fading over 60 ms on arrival; 16 in the pool. On every N-th round of a holder: its `tracer_every` when set (every guard: 1, `guard.tscn`), else the weapon's `WeaponData.tracer_every` (assault rifle and SMG: 3; others none). The hole appears with the shot, before the tracer arrives.
+- Measured: the effects take about 0.05 ms per shot inside the physics step during a 30-round assault rifle spray at the range (`tests/items/weapons/fixtures/fx_spray_cost.tscn`); the pool is built before the first shot. Review shots: `tests/items/weapons/fixtures/shot_fx_shots.tscn` (`kill_marker`, `head_marker`, `impacts`, `tracer`).
 
 ## Interactions
 

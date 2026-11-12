@@ -637,3 +637,16 @@ Every value is on the range's tuning panel (the gun's `motion` and `shot_sound` 
 - [ ] Sounds: with eyes closed, tell the pistol, SMG, assault rifle, shotgun (pump after the bang) and sniper rifle (deep boom, bolt) apart; repeated shots do not sound like one copied sample (pitch and volume vary). Silenced pistol, SMG, rifle and sniper: a muffled thud with the click, no bang.
 - [ ] Echo: shooting in the hub or the shooting range gives a short, dense tail; in the warehouse yard or on the roof a longer, sparser one; step through the hall's dock door while firing and hear it change. A guard firing in the yard echoes outdoors even if you are inside.
 - [ ] Is the one real gunshot recording in the packs (Titan Handgun) enough, or should a gun sound pack be added (the user decides)?
+
+## M13b Shot feedback ([ADR 0126](../decisions/0126-shot-feedback.md))
+
+Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `items/weapons/fx/shot_fx.tres` (puffs per material, holes, tracers); each weapon's `tracer_every` is on the range's tuning panel.
+
+- [ ] Hit markers at the range: a body hit flashes four small white ticks round the crosshair, a headshot yellow ones a little longer, a kill a red X held a moment; a soft tick with each, the kill's stronger. Subtle enough, or too small at your resolution? No numbers anywhere.
+- [ ] Baton: a hit shows pale blue ticks; the knockout a pale blue X. Shotgun: eight pellets on a dummy tick once, not eight times.
+- [ ] No marker when a guard shoots a dummy or you, when a barrel you shot blows up a dummy, or when you hurt yourself.
+- [ ] Impacts: concrete walls puff grey dust and keep a dark hole; metal (the metal crates, a metal ledge, doors) throws orange sparks; wooden crates and barricades splinters; lamps and bottles pale shards. A room with a wood or carpet floor still gives dust on its walls, splinters only on a wood floor.
+- [ ] Holes stay about 30 s and fade; a long spray keeps at most about 200 in the world. No holes on dummies, guards, crates you can push (they would float), or doors; the spray wall still keeps all its own marks.
+- [ ] Bodies: a small dark-red puff, no decals, no pools. Is it too much or too little for the tone?
+- [ ] Tracers: holding the assault rifle or SMG shows a short bright streak every third round flying to the hit; the pistol, shotgun and sniper show none. A guard's every shot shows one: can you tell where fire comes from in the warehouse yard at night? Too bright or too slow?
+- [ ] No hitch on the first shot after loading a level; a long spray at the range keeps the frame rate (debug panel).

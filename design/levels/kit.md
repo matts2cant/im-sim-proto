@@ -15,7 +15,7 @@ height = 1.5
 ```
 
 - **Origin**: every part documents its anchor point (below); most sit on the ground (y = 0) and extend towards -Z from their front edge, so the transform is the spot where the player meets the part.
-- **Collision and surface**: the part node is the CSG root with `use_collision` and the `surface` metadata (StringName) footsteps read ([ADR 0033](../decisions/0033-floor-surface-metadata.md)); its material follows the surface automatically. `material_override` (inherited) recolours a part without changing its surface, e.g. `hazard` for a "no" ledge.
+- **Collision and surface**: the part node is the CSG root with `use_collision` and the `surface` metadata (StringName) footsteps read ([ADR 0033](../decisions/0033-floor-surface-metadata.md)); its material follows the surface automatically. `material_override` (inherited) recolours a part without changing its surface, e.g. `hazard` for a "no" ledge. A `Room` also writes `wall_surface` = `concrete`: bullet impacts on its walls and ceiling are concrete whatever its floor ([ADR 0126](../decisions/0126-shot-feedback.md)).
 - **Rebuild**: changing any exported property rebuilds the part's generated CSG children, in the editor and at runtime. Generated children are internal: not saved in the scene, not duplicated, hidden in the scene tree. Your own CSG children added to a part are combined after the generated ones (e.g. an extra subtraction).
 - **Warnings**: values outside the legal range are clamped for the geometry and shown as a configuration warning (yellow triangle in the scene tree); metric "grey zones" (a 1.95 m ledge, a 2.6 m gap) warn without clamping.
 - Free CSG is still fine for one-off shapes (e.g. the 1.2 m low ceiling in the movement course); use the graybox materials on it.
