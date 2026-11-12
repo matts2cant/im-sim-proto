@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="7_reload"]
 [ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_model.tscn" id="9_model"]
 [ext_resource type="Resource" path="res://items/weapons/pistol/pistol_recoil.tres" id="20_recoil"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol_aim.tres" id="21_aim"]
 [ext_resource type="Resource" path="res://items/weapons/pistol/pistol_shot.tres" id="40_shot"]
 [ext_resource type="Resource" path="res://items/weapons/pistol/pistol_motion.tres" id="42_motion"]
 
@@ -24,6 +25,7 @@ script = ExtResource("1_script")
 shot_sound = ExtResource("40_shot")
 motion = ExtResource("42_motion")
 id = &"pistol_unsilenced"
+aim_config = ExtResource("21_aim")
 recoil = ExtResource("20_recoil")
 item_id = &"pistol"
 display_name = "Pistol"

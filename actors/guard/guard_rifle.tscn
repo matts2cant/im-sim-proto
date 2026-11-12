@@ -3,11 +3,8 @@
 [ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="1_guard"]
 [ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="2_weapon_data"]
 [ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle.tres" id="3_rifle"]
-[ext_resource type="Resource" path="res://actors/guard/guard_rifle_aim.tres" id="4_aim"]
 
 [node name="Guard" instance=ExtResource("1_guard")]
 
 [node name="WeaponHolder" parent="Aim" index="0"]
-aim_config = ExtResource("4_aim")
-weapon_aim = false
 weapons = Array[ExtResource("2_weapon_data")]([ExtResource("3_rifle")])

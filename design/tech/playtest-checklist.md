@@ -624,7 +624,19 @@ Tests measure the targets (pistol 56 / 80 / 92 / 100 % on a torso at 10 m by tie
 - [ ] Fullscreen on and off switches the window; vsync off raises the frame rate above the monitor's (debug panel stats).
 - [ ] Quit, start again: the settings are kept (`user://settings.cfg`); loading a save does not change them.
 
-## M13b Weapon motion and sound ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md))
+## M13b Feedback ([ADR 0120](../decisions/0120-weapon-feel.md))
+
+### Hit reactions and guard recoil ([ADR 0127](../decisions/0127-hit-reactions-and-guard-recoil.md))
+
+Tests measure the survival targets (a still player at 10 m: pistol guard 6.75 s, rifle 5.37 s, SMG 3.85 s; at 4 m 2.35 / 1.98 / 2.88 s); these checks are how it feels.
+
+- [ ] Taking a guard's shot: the view kicks up slightly (sideways too when shot from the side) and is back within about a third of a second; the crosshair opens for a moment. With camera motion 0 % the camera stays still and the crosshair jumps instead.
+- [ ] Shooting a pistol guard right after its shot visibly delays its next one (about 0.3 s); keeping an SMG on a rifle guard cuts its bursts short.
+- [ ] A leg or arm hit makes a guard lean back away from the shot for half a second and slow down (a chasing guard stumbles); a torso or head hit does not. Does the lean read at 10 m? (Its ground shadow does not lean.)
+- [ ] Standing in the open at 10 m from a pistol guard you have several seconds to reach cover; rifle and SMG guards are clearly more dangerous at that range, all of them deadly within 4-5 m.
+- [ ] Guards' bursts (rifle, SMG) climb a little: later rounds of a burst miss high more often than the first, but they keep firing short bursts (3-4 rounds).
+
+### Weapon motion and sound ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md))
 
 Every value is on the range's tuning panel (the gun's `motion` and `shot_sound` rows); tune by feel and Save.
 
