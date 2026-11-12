@@ -41,6 +41,21 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "assault_rifle", "flash": true},
 	"rack": {"feet": Vector3(-2.2, 0, -6.2), "look": Vector3(-2.2, 1.0, -4.3)},
 	"rack_signs": {"feet": Vector3(-1.2, 0, -7.0), "look": Vector3(-2.4, 1.9, -4.0)},
+	# M13a (ADR 0125): the widened range, its tools and the connections of the new east part.
+	"lanes": {"feet": Vector3(9.5, 0, -7.45), "look": Vector3(13.0, 1.4, -30), "spray": true},
+	"spray_wall": {"feet": Vector3(12.5, 0, -7.45), "look": Vector3(12.5, 1.6, -18), "spray": true},
+	# Beside the line of fire (the spray comes from the firing line).
+	"spray_close": {"feet": Vector3(13.7, 0, -14.0), "look": Vector3(12.5, 1.9, -18), "spray": true},
+	"stats_board": {"feet": Vector3(14.5, 0, -7.45), "look": Vector3(14.5, 3.2, -12), "spray": true},
+	"controls": {"feet": Vector3(14.6, 0, -7.25), "look": Vector3(14.6, 1.0, -8.4)},
+	"tuning_panel":
+	{"feet": Vector3(15, 0, -7.45), "look": Vector3(15, 1.27, -8.3), "weapon": "assault_rifle", "tune": true},
+	"walker": {"feet": Vector3(17.5, 0, -7.45), "look": Vector3(17.5, 1.2, -23), "pistol": true},
+	"booth_east": {"feet": Vector3(11.0, 0, -5.0), "look": Vector3(20.5, 1.4, -6.5)},
+	"rack2": {"feet": Vector3(5.2, 0, -6.4), "look": Vector3(5.2, 1.0, -4.3)},
+	"counter_east_end": {"feet": Vector3(19.4, 0, -7.2), "look": Vector3(20.5, 1.0, -8.6)},
+	"east_wall_far": {"feet": Vector3(18.5, 0, -44.0), "look": Vector3(20.5, 1.2, -52)},
+	"booth_south_east": {"feet": Vector3(18.0, 0, -6.8), "look": Vector3(20.5, 2.0, -4.0)},
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
@@ -99,6 +114,11 @@ func _physics_process(delta: float) -> void:
 			# A blast on the player through the stimulus path: the HUD silhouette must show it.
 			var origin := _player.global_position + Vector3(0, 1.2, 0)
 			StimulusSystem.emit(Stimulus.make_radius(&"damage.explosive", 100.0, origin, 4.0))
+		if _shot.get("spray", false):
+			_spray()
+		if _shot.get("tune", false):
+			var desk := _room.get_node("FiringLine/TuningTerminal/TuningDesk") as TuningDesk
+			desk.use(_player)
 	if _started and (_shot.get("pistol", false) or _shot.has("weapon")):
 		_player.weapons.settle()
 
@@ -133,6 +153,22 @@ func _arm(id: StringName) -> void:
 		_player.weapons.toggle_scope()
 	if _shot.get("flash", false):
 		_player.weapons.flash.hold(item.weapon, _player.weapons.state().stat(&"muzzle_flash_size"))
+
+
+# A scripted 30-round spray from the firing line in lane 5 at the spray wall's aim mark (a climbing,
+# drifting pattern with a little noise), through bullet ray stimuli like a weapon's: marks on the
+# wall, counts on the stats board.
+func _spray() -> void:
+	var eye := _room.to_global(Vector3(12.5, 1.65, -7.45))
+	var aim := _room.to_global(Vector3(12.5, 1.4, -18)) - eye
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for i in 30:
+		var climb := deg_to_rad(minf(i, 12) * 0.55 + rng.randf_range(-0.2, 0.2))
+		var drift := deg_to_rad((sin(i * 0.45) * 1.6 if i > 8 else 0.0) + rng.randf_range(-0.25, 0.25))
+		var direction := aim.normalized().rotated(Vector3.UP, drift)
+		direction = direction.rotated(direction.cross(Vector3.UP).normalized(), climb)
+		StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 14.0, eye, direction, 60.0, null))
 
 
 func _place_player() -> void:

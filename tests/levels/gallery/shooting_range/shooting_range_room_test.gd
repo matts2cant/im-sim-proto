@@ -38,11 +38,11 @@ func before_test() -> void:
 	_room = auto_free(ROOM_SCENE.instantiate())
 
 
-func test_shell_is_a_14_by_48_hall_behind_a_corridor() -> void:
+func test_shell_is_a_24_by_48_hall_behind_a_corridor() -> void:
 	var hall := _room.get_node("Shell/Hall") as Room
 	var corridor := _room.get_node("Shell/Corridor") as Room
 
-	assert_vector(hall.size).is_equal(Vector3(14, 5, 48))
+	assert_vector(hall.size).is_equal(Vector3(24, 5, 48))
 	assert_str(hall.floor_surface).is_equal("concrete")
 	assert_float(corridor.wall_thickness).is_equal(hall.wall_thickness)
 	# Shared walls (ADR 0043): the corridor starts at the hub wall's outer face (origin) and the
