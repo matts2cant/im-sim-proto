@@ -194,8 +194,11 @@ func flash_alpha() -> float:
 ## Shows the scope overlay instead of the reticle while the player is scoped.
 func refresh_reticle() -> void:
 	var radius := reticle_radius()
+	var data := player.weapons.weapon()
+	# A ranged weapon keeps its arms even with a cone of 0 (a Master standing still).
+	var ranged := data != null and not data.is_melee()
 	var offset := Vector2.ZERO
-	if radius > 0.0:
+	if ranged:
 		var camera := player.weapons.eye as Camera3D
 		var height := get_viewport().get_visible_rect().size.y
 		# Sway and the recoil climb the camera does not follow (the camera motion setting).
@@ -205,13 +208,14 @@ func refresh_reticle() -> void:
 		)
 	var scoped := player.weapons.scope.scoped and ActorState.can_act(player)
 	scope_overlay.visible = scoped
+	var target := aimed_target() if ranged else null
 	if scoped:
-		scope_overlay.show_cone(radius, offset)
+		scope_overlay.show_cone(radius, offset, ranged)
+		scope_overlay.show_target(target != null)
 		scope_overlay.show_blackout(player.weapons.recoil.blackout())
-	reticle.show_cone(radius, offset)
+	reticle.show_cone(radius, offset, ranged)
 	hit_marker.offset = offset
-	var target := aimed_target() if radius > 0.0 and not scoped else null
-	reticle.show_target(target != null, _target_color(target))
+	reticle.show_target(target != null and not scoped, _target_color(target))
 	reticle.visible = ActorState.can_act(player) and not scoped
 
 
