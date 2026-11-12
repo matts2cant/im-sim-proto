@@ -37,6 +37,10 @@ extends Node3D
 ## player's camera); the holder adds the rest to the shots, so the bullets follow the whole climb
 ## whatever that share is. The user's `<class>_recoil_size_mult`, `_recoil_noise_mult` and
 ## `_recoil_recover_mult` scale it. Damage falls off with distance (WeaponData.falloff_*).
+## Feel (ADR 0128): with `view_motion` the view model kicks, sways, bobs with the user's ground speed,
+## dips over a reload and rises on a draw (WeaponView, WeaponData.motion); `eye_shake` (a camera
+## shake the eye's owner adds) is taken back out of the shots; a shot plays its layered ShotSound
+## through `shot_audio` with the echo of the shooter's place (Acoustics).
 
 signal changed
 ## A shot or a swing of `weapon` happened (the trigger fired it): animation, effects.
