@@ -138,6 +138,13 @@ func tracer_segment(slot: int) -> PackedVector3Array:
 	return _motions[slot].segment(_ages[slot])
 
 
+## The motion of the latest tracer (null before any).
+func last_tracer() -> TracerMotion:
+	if tracers_started == 0:
+		return null
+	return _motions[(_next_tracer + TRACER_POOL - 1) % TRACER_POOL]
+
+
 ## Holes and cracks shown now.
 func hole_count() -> int:
 	return holes.count() + cracks.count()
