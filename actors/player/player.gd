@@ -20,6 +20,8 @@ extends CharacterBody3D
 ## Weapons (ADR 0085): LMB held sets the WeaponHolder's `trigger_held` (automatic weapons), RMB
 ## (`alt_fire`) toggles a weapon's scope (with a deck in hand: its AR cable view, DeckArView, M12c);
 ## the camera follows the holder's scope FOV and mouse look scales with it.
+## Profile settings (GameSettings, ADR 0124): the hip FOV (applied at once, even while paused), the
+## mouse sensitivity multiplier and invert Y.
 ## Saveable.
 
 signal mantled(height: float)
@@ -91,7 +93,7 @@ var _actions_held: Dictionary[StringName, bool] = {}
 var _belt_steps: int = 0
 ## Camera height minus eye height (m): a step moves the body at once, the view eases after it.
 var _view_offset: float = 0.0
-## The camera's field of view without a scope (player.tscn: 80 degrees vertical).
+## The camera's field of view without a scope (GameSettings.fov(), default 80 degrees vertical).
 var _hip_fov: float = 80.0
 ## face_towards(): the point the view turns to and the seconds left of the turn.
 var _face_point: Vector3 = Vector3.ZERO
@@ -125,7 +127,8 @@ func _ready() -> void:
 	carry.player = self
 	carry.config = config
 	weapons.setup(self, _camera)
-	_hip_fov = _camera.fov
+	_apply_view_settings()
+	GameSettings.notifier().changed.connect(_on_setting_changed)
 	inventory.setup(self)
 	interactor.player = self
 	body.died.connect(_on_died)
@@ -207,28 +210,40 @@ func _physics_process(delta: float) -> void:
 
 ## Turns the view by a mouse delta in screen pixels (and blooms the aim cone). Through a scope the
 ## turn (and the bloom) scales with the field of view, so the crosshair moves as far on screen per
-## pixel as at the hip (ADR 0085).
+## pixel as at the hip (ADR 0085). The profile's sensitivity multiplier scales the turn and the bloom
+## (the bloom follows the turned angle); invert Y flips the pitch.
 func look(screen_delta: Vector2) -> void:
-	var zoom := fov_ratio()
-	weapons.add_look(screen_delta.length() * zoom)
-	var sensitivity := config.mouse_sensitivity * zoom
+	var turn_scale := fov_ratio() * GameSettings.mouse_sensitivity()
+	weapons.add_look(screen_delta.length() * turn_scale)
+	var sensitivity := config.mouse_sensitivity * turn_scale
 	rotation.y = wrapf(rotation.y - screen_delta.x * sensitivity, -PI, PI)
 	var limit := deg_to_rad(config.max_pitch_deg)
-	pitch = clampf(pitch - screen_delta.y * sensitivity, -limit, limit)
+	var pitch_sign := -1.0 if GameSettings.invert_y() else 1.0
+	pitch = clampf(pitch - screen_delta.y * sensitivity * pitch_sign, -limit, limit)
 	_head.rotation.x = pitch
 
 
-## Share (0-1) of a weapon's recoil climb the camera follows (ADR 0123); the shots follow the whole
-## climb whatever it is. The "camera motion" setting (ADR 0120) scales it.
-## TODO(M13a settings): read the camera motion setting from GameSettings once that lands; 1.0 until
-## then.
+## Share (0-1) of a weapon's recoil climb the camera follows (ADR 0123): the camera motion
+## setting (GameSettings, ADR 0124). The shots follow the whole climb whatever it is.
 func camera_motion() -> float:
-	return 1.0
+	return GameSettings.camera_motion()
 
 
-## The camera's field of view over the hip one (1 without a scope, 15 / 80 fully scoped).
+## The camera's field of view over the hip one (1 without a scope, 15 / 80 fully scoped at the
+## default FOV).
 func fov_ratio() -> float:
 	return _camera.fov / _hip_fov if _hip_fov > 0.0 else 1.0
+
+
+## The profile's hip FOV now (the camera follows the scope's FOV from it).
+func _apply_view_settings() -> void:
+	_hip_fov = GameSettings.fov()
+	_camera.fov = weapons.scope.view_fov(weapons.weapon(), _hip_fov)
+
+
+func _on_setting_changed(key: StringName) -> void:
+	if key == GameSettings.FOV:
+		_apply_view_settings()
 
 
 func is_mantling() -> bool:

@@ -117,6 +117,7 @@ func _ready() -> void:
 	add_child(_view)
 	flash = _view.flash
 	_audio = AudioStreamPlayer3D.new()
+	_audio.bus = GameSettings.EFFECTS_BUS
 	_audio.name = "Audio"
 	_audio.max_polyphony = 3
 	add_child(_audio)
@@ -586,6 +587,7 @@ func _play_at(stream: AudioStream, point: Vector3) -> void:
 	if stream == null:
 		return
 	var player := AudioStreamPlayer3D.new()
+	player.bus = GameSettings.EFFECTS_BUS
 	player.name = "HitSound"
 	player.stream = stream
 	player.volume_db = -6.0

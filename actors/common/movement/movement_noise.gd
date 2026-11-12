@@ -40,6 +40,7 @@ func _ready() -> void:
 	_audio = get_node_or_null(^"Audio") as AudioStreamPlayer3D
 	if _audio == null:
 		_audio = AudioStreamPlayer3D.new()
+		_audio.bus = GameSettings.EFFECTS_BUS
 		_audio.name = "Audio"
 		_audio.max_polyphony = 2
 		add_child(_audio)

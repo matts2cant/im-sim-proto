@@ -14,8 +14,8 @@ const DEFAULT_SOUNDS: LockpickSounds = preload("res://items/lockpick/audio/sound
 const GENERATOR_BUFFER_SECONDS: float = 0.03
 
 @export var sounds: LockpickSounds = DEFAULT_SOUNDS
-## The project has no bus layout: everything plays on Master.
-@export var bus: StringName = &"Master"
+## Sound effects bus (GameSettings, default_bus_layout.tres).
+@export var bus: StringName = GameSettings.EFFECTS_BUS
 ## One-shot players; the oldest is reused when all are busy.
 @export_range(1, 16) var pool_size: int = 6
 

@@ -73,6 +73,7 @@ mesh = SubResource("Mesh_keys")
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
 unit_size = 4.0
+bus = &"Effects"
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")

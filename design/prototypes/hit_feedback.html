@@ -1,0 +1,103 @@
+<title>Hit Feedback</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* M13b mockup: the crosshair's hit markers, tracers and impacts, drawn on a 1280x720 game frame scaled to fit.
+   Single dark look (it is a game view). */
+:root {
+  color-scheme: dark;
+  --page: #07090b; --world: #1b2127; --wall: #2a3038; --floor: #14181c;
+  --fg: #e4eaee; --caption: #9eb8c2; --line: rgba(140, 158, 168, 0.35);
+  --hit: #f2f4f5; --head: #ffd14d; --kill: #e5534b; --stun: #9fd8ff; --tracer: #ffe7a8;
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif; --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--page); color: var(--fg); font: 14px var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px;
+  display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.bar { width: 100%; max-width: 1280px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--caption); font-size: 12px; }
+.bar strong { color: var(--fg); font-size: 13px; margin-right: 6px; }
+.bar button { background: #12191d; color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 5px 10px; font: 12px var(--font-ui); cursor: pointer; }
+.bar button:hover, .bar button:focus-visible { border-color: var(--head); outline: none; }
+.wrap { width: 100%; max-width: 1280px; aspect-ratio: 16 / 9; position: relative; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+canvas { width: 100%; height: 100%; display: block; background: var(--world); }
+.notes { width: 100%; max-width: 1280px; color: var(--caption); font-size: 13px; line-height: 1.5; }
+.notes b { color: var(--fg); font-weight: 600; }
+</style>
+
+<div class="bar">
+  <strong>Hit feedback · M13b</strong>
+  <button type="button" data-a="hit">Body hit</button>
+  <button type="button" data-a="head">Headshot</button>
+  <button type="button" data-a="kill">Kill</button>
+  <button type="button" data-a="stun">Baton stun</button>
+  <button type="button" data-a="spray">Rifle burst (tracers)</button>
+  <button type="button" data-a="incoming">Guard fires at you</button>
+  <button type="button" data-a="metal">Metal</button>
+  <button type="button" data-a="concrete">Concrete</button>
+  <button type="button" data-a="wood">Wood</button>
+  <button type="button" data-a="glass">Glass</button>
+</div>
+<div class="wrap"><canvas id="c" width="1280" height="720" aria-label="Game view with crosshair"></canvas></div>
+<div class="notes">
+  <p><b>Hit markers</b>: four short ticks around the crosshair for 0.15 s on a body hit (white), slightly longer and yellow on a headshot, a red X held 0.35 s on a kill. A soft tick sound with each. No damage numbers.</p>
+  <p><b>Tracers</b>: every third round of the assault rifle and the submachine gun, and every guard shot, as a short bright streak travelling at bullet speed (it reads where fire comes from). <b>Impacts</b>: a hole plus a puff by material (metal sparks, concrete dust, wood splinters, glass cracks), capped and fading; a small dark-red puff on bodies; a blue-white spark on stun hits. <b>Getting hit</b>: the view kicks and the crosshair opens for ~0.3 s.</p>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById("c"), g = cv.getContext("2d");
+  const W = 1280, H = 720, CX = W / 2, CY = H / 2;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let marker = null, effects = [], tracers = [], holes = [], punch = 0, spread = 10;
+  const target = { x: 760, y: 330, head: 270 };
+  const MAT = { metal: { col: "#ffd27a", n: 14, sp: 7, life: 0.35, hole: "#0c0c0c" }, concrete: { col: "#a9a39a", n: 18, sp: 3, life: 0.9, hole: "#1a1a1a" },
+    wood: { col: "#a8743f", n: 10, sp: 4, life: 0.7, hole: "#2b1c10" }, glass: { col: "#cfe9ff", n: 12, sp: 5, life: 0.6, hole: "#7aa0b8" } };
+  function burst(x, y, col, n, sp, life) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = sp * (0.4 + Math.random());
+    effects.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, col, t: 0, life }); } }
+  function act(a) {
+    if (a === "hit" || a === "head" || a === "kill") { marker = { kind: a, t: 0 }; burst(target.x, a === "head" ? target.head : target.y, "#6b1416", 9, 2.2, 0.5); }
+    if (a === "stun") { marker = { kind: "stun", t: 0 }; burst(target.x, target.y, css("--stun"), 16, 5, 0.3); }
+    if (a === "spray") { for (let i = 0; i < 9; i++) setTimeout(() => { const ex = 600 + i * 6 + (Math.random() - 0.5) * 20, ey = 300 - i * 9;
+      if (i % 3 === 0) tracers.push({ x0: W * 0.62, y0: H * 0.9, x1: ex, y1: ey, t: 0 }); holes.push({ x: ex, y: ey, col: MAT.concrete.hole, t: 0 }); burst(ex, ey, MAT.concrete.col, 8, 3, 0.8); }, i * 100); }
+    if (a === "incoming") { tracers.push({ x0: 1040, y0: 300, x1: CX + 30, y1: CY + 160, t: 0 }); punch = 1; spread = 26; }
+    if (MAT[a]) { const m = MAT[a], x = 420 + Math.random() * 120, y = 250 + Math.random() * 160; holes.push({ x, y, col: m.hole, t: 0, glass: a === "glass" }); burst(x, y, m.col, m.n, m.sp, m.life); }
+  }
+  document.querySelectorAll("[data-a]").forEach((b) => b.addEventListener("click", () => act(b.dataset.a)));
+  function scene(dy) {
+    g.fillStyle = css("--world"); g.fillRect(0, 0, W, H);
+    g.fillStyle = css("--wall"); g.fillRect(300, 120 + dy, 360, 420);
+    g.fillStyle = css("--floor"); g.fillRect(0, 540 + dy, W, H - 540);
+    g.fillStyle = "#3d4a55"; g.fillRect(target.x - 26, target.y - 40 + dy, 52, 120); g.beginPath(); g.arc(target.x, target.head + dy, 20, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#56616b"; g.fillRect(W * 0.6, H * 0.82 + dy, 120, 60);
+  }
+  function crosshair() {
+    g.strokeStyle = "rgba(242,244,245,0.85)"; g.lineWidth = 1.5; g.beginPath(); g.arc(CX, CY, spread, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = "#f2f4f5"; g.fillRect(CX - 1, CY - 1, 2, 2);
+    if (!marker) return;
+    const k = marker.kind, held = k === "kill" ? 0.35 : k === "head" ? 0.22 : 0.15; if (marker.t > held) { marker = null; return; }
+    const col = k === "kill" ? css("--kill") : k === "head" ? css("--head") : k === "stun" ? css("--stun") : css("--hit");
+    g.strokeStyle = col; g.lineWidth = k === "kill" ? 3 : 2; const r0 = k === "kill" ? 6 : 9, r1 = k === "kill" ? 18 : 16;
+    for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { g.beginPath(); g.moveTo(CX + sx * r0, CY + sy * r0); g.lineTo(CX + sx * r1, CY + sy * r1); g.stroke(); }
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const dy = punch * -14; punch = Math.max(0, punch - dt / 0.3); spread += (10 - spread) * Math.min(1, dt * 6);
+    scene(dy);
+    for (const h of holes) { h.t += dt; g.globalAlpha = Math.max(0, 1 - h.t / 20); g.fillStyle = h.col; g.beginPath(); g.arc(h.x, h.y + dy, 3, 0, Math.PI * 2); g.fill();
+      if (h.glass) { g.strokeStyle = "#cfe9ff"; g.lineWidth = 1; for (let i = 0; i < 5; i++) { const a = i * 1.26; g.beginPath(); g.moveTo(h.x, h.y + dy); g.lineTo(h.x + Math.cos(a) * 14, h.y + dy + Math.sin(a) * 14); g.stroke(); } } }
+    g.globalAlpha = 1; holes = holes.filter((h) => h.t < 20).slice(-60);
+    for (const e of effects) { e.t += dt; e.x += e.vx; e.y += e.vy; e.vy += 0.25; g.globalAlpha = Math.max(0, 1 - e.t / e.life); g.fillStyle = e.col; g.fillRect(e.x - 1.5, e.y - 1.5 + dy, 3, 3); }
+    g.globalAlpha = 1; effects = effects.filter((e) => e.t < e.life);
+    for (const t of tracers) { t.t += dt; const p = Math.min(1, t.t / 0.12), q = Math.max(0, p - 0.35);
+      g.strokeStyle = css("--tracer"); g.lineWidth = 2; g.globalAlpha = 1 - Math.max(0, t.t - 0.12) / 0.1;
+      g.beginPath(); g.moveTo(t.x0 + (t.x1 - t.x0) * q, t.y0 + (t.y1 - t.y0) * q + dy); g.lineTo(t.x0 + (t.x1 - t.x0) * p, t.y0 + (t.y1 - t.y0) * p + dy); g.stroke(); }
+    g.globalAlpha = 1; tracers = tracers.filter((t) => t.t < 0.25);
+    if (marker) marker.t += dt; crosshair();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

@@ -47,6 +47,7 @@ mesh = SubResource("Mesh_lever")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
 stream = ExtResource("5_clunk")
 unit_size = 6.0
+bus = &"Effects"
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("3_tags")

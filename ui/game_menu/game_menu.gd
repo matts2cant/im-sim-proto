@@ -8,6 +8,9 @@ extends CanvasLayer
 ## disabled or a load is running; it opens on the losing screen, dead or knocked out (Load works
 ## there).
 ## After a load the new player's menu shows "Loaded" on the HUD (QuickSave.LOADED_GROUP).
+## Settings opens the nested SettingsMenu (ADR 0124) in place of the buttons: still paused; Back or
+## Esc returns to the buttons (not to the game); closing the menu also leaves it (the profile is
+## saved on leaving).
 
 ## Yes on the quit confirmation, before the game quits (tests turn the quit off).
 signal quit_requested
@@ -24,10 +27,13 @@ var player: Player
 ## False in tests: Yes only emits quit_requested.
 var quit_on_confirm: bool = true
 
+@onready var panel: PanelContainer = %Panel
 @onready var buttons: VBoxContainer = %Buttons
 @onready var resume_button: Button = %Resume
 @onready var save_button: Button = %Save
 @onready var load_button: Button = %Load
+@onready var settings_button: Button = %SettingsButton
+@onready var settings_menu: SettingsMenu = %Settings
 @onready var quit_button: Button = %Quit
 @onready var slot_label: Label = %SlotInfo
 @onready var status_label: Label = %Status
@@ -45,6 +51,8 @@ func _ready() -> void:
 	resume_button.pressed.connect(close)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)
+	settings_button.pressed.connect(open_settings)
+	settings_menu.back_requested.connect(close_settings)
 	quit_button.pressed.connect(ask_quit)
 	yes_button.pressed.connect(confirm_quit)
 	no_button.pressed.connect(cancel_quit)
@@ -65,6 +73,10 @@ func is_confirming_quit() -> bool:
 	return visible and confirm_box.visible
 
 
+func is_in_settings() -> bool:
+	return visible and settings_menu.visible
+
+
 func can_open() -> bool:
 	return (
 		player != null
@@ -80,6 +92,7 @@ func open() -> void:
 		return
 	status_label.text = ""
 	_show_confirm(false)
+	_show_settings(false)
 	refresh_slot()
 	visible = true
 	PauseScreens.update(get_tree())
@@ -89,6 +102,7 @@ func open() -> void:
 func close() -> void:
 	if not visible:
 		return
+	_show_settings(false)
 	# A button keeping focus would take Space / Enter (jump) as a press while playing.
 	var focused := get_viewport().gui_get_focus_owner()
 	if focused != null and is_ancestor_of(focused):
@@ -139,6 +153,21 @@ func load_game() -> bool:
 	return true
 
 
+## Settings: the Settings screen replaces the panel (the game stays paused).
+func open_settings() -> void:
+	if not visible:
+		return
+	_show_settings(true)
+
+
+## Back (or Esc) from Settings: the profile is saved and the buttons come back.
+func close_settings() -> void:
+	if not settings_menu.visible:
+		return
+	_show_settings(false)
+	settings_button.grab_focus()
+
+
 func ask_quit() -> void:
 	_show_confirm(true)
 	no_button.grab_focus()
@@ -162,19 +191,30 @@ func on_quickloaded() -> void:
 		hud.show_message(LOADED)
 
 
+func _show_settings(shown: bool) -> void:
+	if shown:
+		panel.visible = false
+		settings_menu.open()
+	else:
+		settings_menu.close()
+		panel.visible = true
+
+
 func _show_confirm(confirming: bool) -> void:
 	buttons.visible = not confirming
 	confirm_box.visible = confirming
 	hint_label.text = CONFIRM_HINT if confirming else HINT
 
 
-# Esc: back out of the quit confirmation, else close; opens the menu only when no other pause screen
+# Esc: back out of Settings or the quit confirmation, else close; opens the menu only when no other pause screen
 # is open (that screen closes on this Esc instead, never both).
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed(&"ui_cancel"):
 		return
 	if visible:
-		if confirm_box.visible:
+		if settings_menu.visible:
+			close_settings()
+		elif confirm_box.visible:
 			cancel_quit()
 		else:
 			close()
