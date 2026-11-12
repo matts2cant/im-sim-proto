@@ -83,7 +83,41 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"fp_rifle_draw":
 	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "assault_rifle", "wait": 0.42},
 	"fp_shotgun_draw":
+	# M13 playtest (ADR 0123 amendment): the thin crosshair at Master standing still (a cone of 0) on a
+	# bright wall, a dark corner and the 10 m dummy (caps); the scope view at Master, swaying at
 	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "shotgun", "wait": 0.45},
+	# Untrained, and just after a shot (the blackout). tier: skill -> tier; shoot_at: game seconds.
+	"xh_master_dummy":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "pistol", "tier": {"pistols": 3}},
+	"xh_master_wall":
+	{"feet": Vector3(1.5, 0, -6.8), "look": Vector3(-0.5, 1.6, -3.6), "weapon": "pistol", "tier": {"pistols": 3}},
+	"xh_master_dark":
+	{"feet": Vector3(-2.9, 0, -6.0), "look": Vector3(-2.2, 0.8, -13), "weapon": "pistol", "tier": {"pistols": 3}},
+	"scope_master":
+	{
+		"feet": Vector3(9.25, 0, -7.45),
+		"look": Vector3(9.25, 1.21, -48),
+		"weapon": "sniper_rifle",
+		"scope": true,
+		"tier": {"sniper": 3}
+	},
+	"scope_sway":
+	{
+		"feet": Vector3(9.25, 0, -7.45),
+		"look": Vector3(9.25, 1.21, -48),
+		"weapon": "sniper_rifle",
+		"scope": true,
+		"wait": 1.7
+	},
+	"scope_shot":
+	{
+		"feet": Vector3(9.25, 0, -7.45),
+		"look": Vector3(9.25, 1.21, -48),
+		"weapon": "sniper_rifle",
+		"scope": true,
+		"shoot_at": 1.0,
+		"wait": 1.12
+	},
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
@@ -98,6 +132,7 @@ var _shot: Dictionary = {}
 var _out: String = ""
 var _time: float = 0.0
 var _started: bool = false
+var _shot_fired: bool = false
 
 @onready var _room: Node3D = $Hub/ShootingRangeRoom
 @onready var _player: Player = $Hub/Player
@@ -116,8 +151,13 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	# A plain window run ignores --resolution on this machine (840 x 648): force the review size.
-	get_window().size = SHOT_SIZE
+	# A plain window run ignores --resolution on this machine (840 x 648): force the review size
+	# (`size=WxH` overrides it, e.g. 1920x1080).
+	var size := SHOT_SIZE
+	var dims := String(args.get("size", "")).split("x")
+	if dims.size() == 2:
+		size = Vector2i(dims[0].to_int(), dims[1].to_int())
+	get_window().size = size
 
 
 func _physics_process(delta: float) -> void:
@@ -136,6 +176,9 @@ func _physics_process(delta: float) -> void:
 		if _shot.get("baton", false):
 			_player.inventory.give(BATON, 1)
 			_player.inventory.select_slot(0)
+		var tiers := _shot.get("tier", {}) as Dictionary
+		for skill: String in tiers:
+			_player.skills.set_tier(StringName(skill), int(tiers[skill]))
 		if _shot.has("weapon"):
 			_arm(StringName(_shot["weapon"]))
 		if _shot.get("hurt", false):
@@ -150,7 +193,11 @@ func _physics_process(delta: float) -> void:
 	if _started and _shot.get("fire", false):
 		# The trigger kept down: the weapon fires each cycle (recoil climbing the camera) until the shot.
 		_player.weapons.trigger()
-	if _started and (_shot.get("pistol", false) or _shot.has("weapon")) and not _shot.get("fire", false):
+	if _started and _shot.has("shoot_at") and not _shot_fired and _time >= float(_shot["shoot_at"]):
+		_shot_fired = true
+		_player.weapons.trigger()
+	var armed: bool = _shot.get("pistol", false) or _shot.has("weapon")
+	if _started and armed and not _shot.get("fire", false) and not _shot_fired:
 		_player.weapons.settle()
 
 

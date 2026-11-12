@@ -29,7 +29,7 @@ func test_the_arms_draw_at_a_cone_of_0() -> void:
 	var arms := overlay.arm_segments()
 	assert_int(arms.size()).is_equal(4)
 	for arm in arms:
-		assert_float(arm[0].distance_to(overlay.crosshair_centre())).is_equal_approx(5.0, 0.001)
+		assert_float(arm[0].distance_to(overlay.crosshair_centre())).is_equal_approx(7.0, 0.001)
 
 
 func test_the_duplex_lines_stop_short_of_the_arms() -> void:

@@ -26,7 +26,7 @@ const DOT_RADIUS_1080: float = 1.0
 const MIN_DOT_RADIUS: float = 1.0
 ## The arms' inner ends never come closer to the aim point than this (pixels at 1080 px; scaled), so
 ## a cone of radius 0 (a Master standing still) keeps a crosshair, clear of the dot.
-const MIN_GAP_1080: float = 5.0
+const MIN_GAP_1080: float = 7.0
 const REFERENCE_HEIGHT: float = 1080.0
 
 ## Cone radius in pixels (the arms' inner ends, at least the minimum gap).

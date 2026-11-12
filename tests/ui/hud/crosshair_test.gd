@@ -35,7 +35,7 @@ func test_arm_inner_ends_follow_the_cone_radius() -> void:
 	var reticle := auto_free(Reticle.new()) as Reticle
 	reticle.size = Vector2(1920, 1080)
 	assert_array(reticle.arm_segments()).is_empty()
-	for radius: float in [8.0, 37.0]:
+	for radius: float in [10.0, 37.0]:
 		reticle.show_cone(radius, Vector2(4, -3), true)
 		# The aim point is the moved centre on its pixel's centre.
 		assert_vector(reticle.aim_point()).is_equal(Vector2(964.5, 537.5))
@@ -59,21 +59,21 @@ func test_thin_arms_scale_with_the_height_but_never_under_1_px() -> void:
 
 
 func test_a_cone_of_0_keeps_the_arms_at_the_minimum_gap() -> void:
-	# A Master standing still: radius 0; the arms stay, clear of the dot (5 px at 1080 p, 3 px at 648).
+	# A Master standing still: radius 0; the arms stay, clear of the dot (7 px at 1080 p, 4.2 px at 648).
 	var reticle := auto_free(Reticle.new()) as Reticle
 	reticle.size = Vector2(1920, 1080)
 	reticle.show_cone(0.0, Vector2.ZERO, true)
 	var arms := reticle.arm_segments()
 	assert_int(arms.size()).is_equal(4)
 	for arm in arms:
-		assert_float(arm[0].distance_to(reticle.aim_point())).is_equal_approx(5.0, 0.001)
+		assert_float(arm[0].distance_to(reticle.aim_point())).is_equal_approx(7.0, 0.001)
 		assert_float(arm[0].distance_to(arm[1])).is_equal_approx(Reticle.ARM_LENGTH_1080, 0.001)
-	assert_float(Reticle.inner_radius(0.0, 648.0)).is_equal_approx(3.0, 0.001)
+	assert_float(Reticle.inner_radius(0.0, 648.0)).is_equal_approx(4.2, 0.001)
 	# The gap is wider than the dot and its edge.
 	assert_float(Reticle.inner_radius(0.0, 648.0)).is_greater(Reticle.MIN_DOT_RADIUS + Reticle.OUTLINE + 1.0)
 	# A cone wider than the gap: the arms on the cone.
 	reticle.show_cone(2.0, Vector2.ZERO, true)
-	assert_float(reticle.arm_segments()[0][0].distance_to(reticle.aim_point())).is_equal_approx(5.0, 0.001)
+	assert_float(reticle.arm_segments()[0][0].distance_to(reticle.aim_point())).is_equal_approx(7.0, 0.001)
 
 
 func test_melee_or_holstered_shows_the_dot_only() -> void:
