@@ -660,6 +660,7 @@ Every value is on the range's tuning panel (the gun's `motion` and `shot_sound` 
 Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `items/weapons/fx/shot_fx.tres` (puffs per material, holes, tracers); each weapon's `tracer_every` is on the range's tuning panel.
 
 - [ ] Hit markers at the range: a body hit flashes four small white ticks round the crosshair, a headshot yellow ones a little longer, a kill a red X held a moment; a soft tick with each, the kill's stronger. Subtle enough, or too small at your resolution? No numbers anywhere.
+- [ ] Spray the SMG or assault rifle into a dummy, at the hip and through a scope: the hit markers stay centred on the crosshair as it climbs with the recoil, never left behind where the aim was at the hit.
 - [ ] Baton: a hit shows pale blue ticks; the knockout a pale blue X. Shotgun: eight pellets on a dummy tick once, not eight times.
 - [ ] No marker when a guard shoots a dummy or you, when a barrel you shot blows up a dummy, or when you hurt yourself.
 - [ ] Impacts: concrete walls puff grey dust and keep a dark hole; metal (the metal crates, a metal ledge, doors) throws orange sparks; wooden crates and barricades splinters; lamps and bottles pale shards. A room with a wood or carpet floor still gives dust on its walls, splinters only on a wood floor.
@@ -667,3 +668,12 @@ Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `i
 - [ ] Bodies: a small dark-red puff, no decals, no pools. Is it too much or too little for the tone?
 - [ ] Tracers: holding the assault rifle or SMG shows a short bright streak every third round flying to the hit; the pistol, shotgun and sniper show none. A guard's every shot shows one: can you tell where fire comes from in the warehouse yard at night? Too bright or too slow?
 - [ ] No hitch on the first shot after loading a level; a long spray at the range keeps the frame rate (debug panel).
+
+## M13 Interaction frame ([ADR 0129](../decisions/0129-interaction-frame.md))
+
+- [ ] Look at a pickup on a table within reach (inventory bay): four thin white corner brackets hug it and a small boxed name ("Lockpick (3)", the prompt's name with the count) sits just above the small frame; the "E: pick up ..." line under the crosshair is unchanged. Step back out of reach or look away: the frame goes at once.
+- [ ] Walk and turn while looking at a crate: the frame follows it smoothly with no lag or jitter. Carry it: no frame while it is held; put it down: the frame returns.
+- [ ] A door up close: the brackets sit near the screen corners around what you see of the door, the "Door" tag inside the top-left corner, never cut off at the screen edge. A computer, a switch, a datapad and a training dummy are framed with their prompt names.
+- [ ] Knock out a guard and look at the body: the frame fits the lying figure (not the standing height) with "Guard"; the "?" icon over a guard never stretches a frame.
+- [ ] The brackets read on bright (a lit wall) and dark (an unlit corner) backgrounds; at 1080 p the lines are one pixel thin, at 4K still crisp. Too subtle or too strong? Is the tag's size right?
+- [ ] Scoped (sniper RMB): no frame; knocked out or dead: no frame.

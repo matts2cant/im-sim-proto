@@ -115,6 +115,30 @@ func test_each_kind_has_its_colour_shape_and_a_tick() -> void:
 	assert_int(_marker.sounds).is_equal(2)
 
 
+func test_a_showing_marker_follows_the_aim_offset() -> void:
+	var draws: Array[int] = [0]
+	_marker.draw.connect(func() -> void: draws[0] += 1)
+	_marker.show_marker(HitMarkerRules.Kind.BODY)
+	await await_idle_frame()
+	var before := draws[0]
+
+	# The crosshair climbs under recoil while the marker shows.
+	_marker.offset = Vector2(3, -40)
+	await await_idle_frame()
+
+	assert_int(draws[0]).is_greater(before)
+	var ticks := _marker.segments()
+	var centre := _marker.size * 0.5 + Vector2(3, -40)
+	assert_float(ticks[0][0].distance_to(centre)).is_equal_approx(CONFIG.tick_inner, 0.01)
+	# No marker showing: nothing to redraw.
+	_marker.clear()
+	await await_idle_frame()
+	before = draws[0]
+	_marker.offset = Vector2(0, -10)
+	await await_idle_frame()
+	assert_int(draws[0]).is_equal(before)
+
+
 func test_a_burst_of_pellet_hits_ticks_once() -> void:
 	for i in 8:
 		_marker.show_marker(HitMarkerRules.Kind.BODY)

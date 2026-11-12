@@ -17,6 +17,9 @@ var kind: Kind = Kind.NONE
 var target: Node = null
 ## HUD text, "" when there is nothing to do.
 var prompt: String = ""
+## The name the prompt uses for `target` (a stack's count included: "Lockpick (3)"), "" without one.
+## The HUD's interaction frame shows it (ADR 0129).
+var target_name: String = ""
 ## The entity under the crosshair within reach (a hitbox's character), or null; null while carrying.
 var looked_at: Node = null
 
@@ -25,7 +28,7 @@ var looked_at: Node = null
 static func prompt_for(p_kind: Kind, target_name: String, count: int = 1, verb: String = "use") -> String:
 	match p_kind:
 		Kind.PICK_UP:
-			return "E: pick up %s" % (target_name if count <= 1 else "%s (%d)" % [target_name, count])
+			return "E: pick up %s" % counted_name(target_name, count)
 		Kind.USE:
 			return "E: %s %s" % [verb, target_name]
 		Kind.CARRY:
@@ -37,6 +40,11 @@ static func prompt_for(p_kind: Kind, target_name: String, count: int = 1, verb: 
 		Kind.NO_ROOM:
 			return "No room to put down %s" % target_name
 	return ""
+
+
+## A stack's name with its count when above 1 ("Lockpick (3)").
+static func counted_name(item_name: String, count: int) -> String:
+	return item_name if count <= 1 else "%s (%d)" % [item_name, count]
 
 
 ## Readable name of a world entity: its `display_name` metadata, else its node name in words
@@ -61,13 +69,15 @@ static func entity_of(collider: Node) -> Node:
 func refresh() -> void:
 	kind = Kind.NONE
 	target = null
+	target_name = ""
 	looked_at = null
 	if not ActorState.can_act(player):
 		prompt = ""
 		return
 	if player.carry.is_carrying():
 		var carry_kind := Kind.PUT_DOWN if player.carry.has_room() else Kind.NO_ROOM
-		_resolve(carry_kind, player.carry.held, prompt_for(carry_kind, display_name_of(player.carry.held)))
+		var held_name := display_name_of(player.carry.held)
+		_resolve(carry_kind, player.carry.held, prompt_for(carry_kind, held_name), held_name)
 		return
 	var entity := entity_of(_look_collider())
 	looked_at = entity
@@ -80,19 +90,26 @@ func refresh() -> void:
 		usable = null
 	var body := entity as PhysicsBody3D
 	if pickup != null and pickup.count > 0:
-		_resolve(Kind.PICK_UP, entity, prompt_for(Kind.PICK_UP, pickup.item.display_name, pickup.count))
+		var item_name := pickup.item.display_name
+		_resolve(
+			Kind.PICK_UP,
+			entity,
+			prompt_for(Kind.PICK_UP, item_name, pickup.count),
+			counted_name(item_name, pickup.count)
+		)
 	elif usable != null:
+		var usable_name := usable.target_name()
+		if usable_name.is_empty():
+			usable_name = display_name_of(entity)
 		var text := usable.prompt(player)
 		if text.is_empty():
-			var usable_name := usable.target_name()
-			if usable_name.is_empty():
-				usable_name = display_name_of(entity)
 			text = prompt_for(Kind.USE, usable_name, 1, usable.verb)
-		_resolve(Kind.USE, entity, text)
+		_resolve(Kind.USE, entity, text, usable_name)
 	elif body != null and PlayerCarry.can_offer(body):
 		var heavy := not CarryRules.can_carry(Carryable.mass_of(body), player.carry.mass_limit())
 		var carry_kind := Kind.TOO_HEAVY if heavy else Kind.CARRY
-		_resolve(carry_kind, entity, prompt_for(carry_kind, display_name_of(entity)))
+		var body_name := display_name_of(entity)
+		_resolve(carry_kind, entity, prompt_for(carry_kind, body_name), body_name)
 	else:
 		prompt = ""
 
@@ -112,10 +129,11 @@ func perform() -> bool:
 	return false
 
 
-func _resolve(p_kind: Kind, p_target: Node, text: String) -> void:
+func _resolve(p_kind: Kind, p_target: Node, text: String, p_name: String) -> void:
 	kind = p_kind
 	target = p_target
 	prompt = text
+	target_name = p_name
 
 
 ## The entity under the crosshair within `reach` m (a hitbox's character), or null: what a ranged
