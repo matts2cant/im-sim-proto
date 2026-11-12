@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://items/weapons/weapon_holder.gd" id="14_holder"]
 [ext_resource type="Resource" path="res://objects/turret/turret_gun.tres" id="15_gun"]
 [ext_resource type="Resource" path="res://objects/turret/turret_aim.tres" id="16_aim"]
+[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="17_lens"]
 [ext_resource type="Script" path="res://objects/turret/turret.gd" id="20_turret"]
 [ext_resource type="Resource" path="res://objects/turret/turret.tres" id="21_config"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="30_disable"]
@@ -54,7 +55,7 @@ material = SubResource("Material_head")
 size = Vector3(0.36, 0.26, 0.4)
 
 [sub_resource type="BoxMesh" id="Mesh_sight"]
-material = SubResource("Material_laser")
+material = ExtResource("17_lens")
 size = Vector3(0.05, 0.03, 0.02)
 
 [sub_resource type="BoxMesh" id="Mesh_laser"]
@@ -141,7 +142,6 @@ size = 0.6
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Pivot/Sight")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")

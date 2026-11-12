@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
+[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
 [ext_resource type="Script" path="res://objects/alarm/radio_base_station.gd" id="20_station"]
 [ext_resource type="Resource" path="res://objects/alarm/radio_base_station.tres" id="21_config"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_broadcast.tres" id="30_command_broadcast"]
@@ -23,7 +23,7 @@
 size = Vector3(0.4, 0.45, 0.2)
 
 [sub_resource type="BoxMesh" id="Mesh_led"]
-material = ExtResource("12_led")
+material = ExtResource("12_lens")
 size = Vector3(0.04, 0.04, 0.01)
 
 [sub_resource type="StandardMaterial3D" id="Material_paint"]
@@ -88,11 +88,10 @@ size = 0.4
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Indicator")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../Antenna")])
+broken_hide = Array[NodePath]([NodePath("../Antenna")])
 
 [node name="DeviceSwitch" type="Node" parent="."]
 script = ExtResource("40_switch")

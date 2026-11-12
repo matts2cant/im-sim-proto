@@ -5,10 +5,14 @@ extends GdUnitTestSuite
 ## each light's centre and back corners lie within MAX_GAP of a visible mesh of the entity, and it
 ## faces the front (+Z). A minimal entity built from components shows the rule is generic: the LED
 ## skips a protrusion and an antenna for the flat plate, and rides with the part it sits on.
+## One light per device (ADR 0122 amendment 2): every device scene shows its own lamp or the LED,
+## port lights only on network gear, and no other small glowing mesh.
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const ORIGIN := Vector3(-560, 0, 560)
 const MAX_GAP := 0.01
+## A glowing mesh smaller than this (longest side, m) reads as a light (the turret's old 5 cm sight).
+const SMALL := 0.08
 const DEVICE_SCRIPT := "res://objects/devices/device.gd"
 
 var _root: Node3D
@@ -43,11 +47,45 @@ func test_every_device_scene_gets_its_lights_on_its_surface() -> void:
 		var light := StatusLight.of(entity)
 		var label := entity.scene_file_path
 		assert_object(light).override_failure_message(label).is_not_null()
-		_assert_on_surface(entity, light.led, label + " LED")
+		if light.led != null:
+			_assert_on_surface(entity, light.led, label + " LED")
 		for port in light.port_lights:
 			_assert_on_surface(entity, port, label + " " + String(port.name))
 	var switch := StatusLight.of(_by_scene(placed, "network_switch.tscn"))
 	assert_int(switch.port_lights.size()).override_failure_message("gear gets port lights").is_equal(1)
+
+
+func test_every_device_scene_shows_one_light() -> void:
+	# One light per device (ADR 0122 amendment 2): its own lamp or the LED, never both; port lights
+	# only on network gear; no other small glowing mesh left on it (screens are bigger than SMALL).
+	var scenes := _device_scenes("res://objects")
+	var peer := Net.body_device(_root, "Peer", ORIGIN + Vector3(0, 1, -8))
+	ActorState.set_tag(peer, DeviceNetwork.NETWORK_GEAR, true)
+	var placed: Array[Node3D] = []
+	for i in scenes.size():
+		var entity := (load(scenes[i]) as PackedScene).instantiate() as Node3D
+		entity.position = ORIGIN + Vector3(i * 3.0, 1.0, -12.0)
+		_root.add_child(entity)
+		Net.link(entity, peer)
+		placed.append(entity)
+	await get_tree().process_frame
+	var lamps := 0
+	for entity in placed:
+		var light := StatusLight.of(entity)
+		var label := entity.scene_file_path
+		var lamp := DeviceLamp.of(entity)
+		var has_lamp := lamp != null and lamp.has_lamps()
+		lamps += 1 if has_lamp else 0
+		assert_bool(has_lamp != (light.led != null)).override_failure_message(label + ": lamp or LED").is_true()
+		assert_int(light.indicators().size()).override_failure_message(label).is_greater(0)
+		var gear := DeviceNetwork.is_network_gear(Device.of(entity))
+		assert_bool(light.port_lights.is_empty() != gear).override_failure_message(label + " ports").is_true()
+		var allowed: Array[MeshInstance3D] = light.indicators()
+		allowed.append_array(light.port_lights)
+		for glow in _small_glowing(entity):
+			assert_bool(allowed.has(glow)).override_failure_message("%s: %s glows" % [label, glow.name]).is_true()
+	# The camera's watch lamp is one of them (a door's lock lights need a lock: device_lamp_test).
+	assert_int(lamps).is_greater_equal(1)
 
 
 func test_a_door_light_rides_on_its_leaf() -> void:
@@ -172,6 +210,29 @@ func _closest(p: Vector3, a: Vector3, b: Vector3, c: Vector3) -> Vector3:
 		if p.distance_squared_to(edge) < p.distance_squared_to(best):
 			best = edge
 	return best
+
+
+# The visible meshes of `entity` under SMALL (longest side, m) that glow: an emissive or unshaded
+# material, or a shader one (the status lights').
+func _small_glowing(entity: Node3D) -> Array[MeshInstance3D]:
+	var found: Array[MeshInstance3D] = []
+	for node in entity.find_children("*", "MeshInstance3D", true, false):
+		var part := node as MeshInstance3D
+		if part.mesh == null or not part.is_visible_in_tree():
+			continue
+		var size := (part.global_basis.get_scale() * part.get_aabb().size).abs()
+		if maxf(size.x, maxf(size.y, size.z)) >= SMALL:
+			continue
+		var material := part.material_override
+		if material == null and part.mesh.get_surface_count() > 0:
+			material = part.get_active_material(0)
+		var base := material as BaseMaterial3D
+		var glows := material is ShaderMaterial
+		if base != null:
+			glows = base.emission_enabled or base.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED
+		if glows:
+			found.append(part)
+	return found
 
 
 # The .tscn files under `dir` whose scene uses the Device component.

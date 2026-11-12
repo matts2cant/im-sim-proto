@@ -10,6 +10,7 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="Script" path="res://objects/devices/device_lamp.gd" id="14_lamp"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
 [ext_resource type="Script" path="res://actors/common/perception/perception_sensor.gd" id="12_sensor"]
 [ext_resource type="Resource" path="res://objects/camera/security_camera_perception.tres" id="13_perception"]
@@ -137,6 +138,10 @@ script = ExtResource("9_powered")
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
 broken_hide = Array[NodePath]([NodePath("../Pivot/Tilt/Lens")])
+
+[node name="DeviceLamp" type="Node" parent="."]
+script = ExtResource("14_lamp")
+lamps = Array[NodePath]([NodePath("../Pivot/Tilt/Lamp")])
 
 [node name="CameraBehaviour" type="Node" parent="."]
 script = ExtResource("20_camera")

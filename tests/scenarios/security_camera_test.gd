@@ -92,7 +92,8 @@ func test_disabled_unpowered_or_broken_cameras_report_nothing() -> void:
 	await _show.place_player(Showcase.CAMERA_SPOT, PI)
 	await _show.seconds(3.0)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
-	assert_bool((_show.node("Camera").get_node("Pivot/Tilt/Lamp") as Node3D).visible).is_false()
+	var dark := StatusLight.COLORS[StatusLight.State.DARK]
+	assert_bool(DeviceLamp.of(_show.node("Camera")).color().is_equal_approx(dark)).is_true()
 
 	await _show.command(Device.ENABLE, "Camera")
 	Powered.of(_show.node("Camera")).on = false

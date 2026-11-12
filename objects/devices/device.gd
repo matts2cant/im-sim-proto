@@ -34,7 +34,8 @@ extends Node
 ##   `wireless_range` (wireless_link()). It is a link of the reach graph like a cable: a down access
 ##   point cuts its wireless devices off. `links` stays the cables.
 ## - Status light (M12c, ADR 0122): once on a network it attaches a StatusLight to its entity (and
-##   network gear a GearPlate), unless `status_light` is off.
+##   network gear a GearPlate), unless `status_light` is off. An entity with its own lamp
+##   (DeviceLamp) shows the state there instead of on an LED (one light per device).
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
 ##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
@@ -87,7 +88,7 @@ const DECK_NODE: int = -1
 
 ## Devices this one is cabled to: paths to their entities (or their Device nodes).
 @export var links: Array[NodePath] = []
-## Nodes hidden once the device is broken (a siren's horn, an indicator).
+## Nodes hidden once the device is broken (a siren's horn, an antenna, a camera's lens).
 @export var broken_hide: Array[NodePath] = []
 @export var entity_path: NodePath = ^".."
 

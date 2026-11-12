@@ -1,7 +1,7 @@
 extends Node
 ## Screenshot helper (not a test, M13 playtest fix): loads the level named by the LEVEL environment
 ## variable (default the hub), waits for the devices' status lights, then for each light (up to
-## PER_KIND per device scene) looks at its LED from 1 m in front of the device at eye height
+## PER_KIND per device scene) looks at its LED (or its own lamp) from 1 m in front of the device at eye height
 ## (1.65 m above the floor below that spot) and saves a PNG into SHOT_DIR (default
 ## reports/screenshots/status_lights/) named after the level, the device's scene and its node name.
 ## Quits itself when done, with a real-time watchdog. Run (LEVEL=res://levels/mission/warehouse.tscn
@@ -58,7 +58,7 @@ func _run(level: Node3D, level_name: String) -> void:
 	print("status_light_shots: %d lights" % lights.size())
 	for node in lights:
 		var light := node as StatusLight
-		if light == null or light.led == null:
+		if light == null or light.indicators().is_empty():
 			continue
 		var entity := light.get_parent() as Node3D
 		var kind := entity.scene_file_path.get_file().get_basename()
@@ -74,19 +74,24 @@ func _run(level: Node3D, level_name: String) -> void:
 			await get_tree().process_frame
 			var file := "%s/%s_%s_%d_%s_%s.png" % [dir, level_name, kind, per_kind[kind], entity.name, view]
 			get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(file))
-			print("status_light_shots: %s led %s" % [file, light.led.global_position])
+			print("status_light_shots: %s light %s" % [file, light.indicators()[0].global_position])
 	get_tree().quit()
 
 
 func _pose(light: StatusLight, entity: Node3D, angle: float) -> void:
-	var target := light.led.global_position
-	var front := entity.global_basis.z
-	front.y = 0.0
-	if front.length() < 0.1:
-		front = Vector3.BACK
-	front = front.normalized().rotated(Vector3.UP, angle)
-	var eye := target + front * STAND_OFF
+	# The LED, else the device's own lamp (its first mesh: a door's front box light).
+	var indicator := light.indicators()[0]
+	var target := indicator.global_position
 	var space := entity.get_world_3d().direct_space_state
+	# The light's own facing when nothing stands in front of it (a door box on a corridor's side
+	# wall), else the entity's front (a camera's lamp faces back along its head).
+	var front := _flat(entity.global_basis.z)
+	var own := _flat(indicator.global_basis.z)
+	var probe := PhysicsRayQueryParameters3D.create(target + own * 0.05, target + own * STAND_OFF)
+	if space.intersect_ray(probe).is_empty():
+		front = own
+	front = front.rotated(Vector3.UP, angle)
+	var eye := target + front * STAND_OFF
 	var query := PhysicsRayQueryParameters3D.create(eye + Vector3.UP * 0.2, eye + Vector3.DOWN * 4.0)
 	var hit := space.intersect_ray(query)
 	eye.y = (hit["position"] as Vector3).y + EYE_HEIGHT if not hit.is_empty() else target.y
@@ -94,3 +99,9 @@ func _pose(light: StatusLight, entity: Node3D, angle: float) -> void:
 	if eye.distance_to(target) > 0.01:
 		_camera.look_at(target, Vector3.UP)
 	_camera.make_current()
+
+
+# `direction` on the floor plane, normalised (+Z when it points straight up or down).
+func _flat(direction: Vector3) -> Vector3:
+	var flat := Vector3(direction.x, 0.0, direction.z)
+	return flat.normalized() if flat.length() > 0.1 else Vector3.BACK

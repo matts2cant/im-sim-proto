@@ -7,17 +7,13 @@
 material = ExtResource("2_metal_surface")
 size = Vector3(0.12, 0.12, 0.08)
 
-[sub_resource type="StandardMaterial3D" id="Material_lens"]
-shading_mode = 0
-albedo_color = Color(0.9, 0.05, 0.04, 1)
-
 [sub_resource type="StandardMaterial3D" id="Material_glass"]
 albedo_color = Color(0.08, 0.02, 0.02, 1)
 metallic = 0.6
 roughness = 0.15
 
 [sub_resource type="CylinderMesh" id="Mesh_lens"]
-material = SubResource("Material_lens")
+material = SubResource("Material_glass")
 top_radius = 0.022
 bottom_radius = 0.022
 height = 0.012

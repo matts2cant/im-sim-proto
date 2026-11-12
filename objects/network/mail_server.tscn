@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
+[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
 [ext_resource type="Script" path="res://objects/network/mail_server.gd" id="13_mail_server"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
@@ -22,7 +22,7 @@ material = ExtResource("11_metal_surface")
 size = Vector3(0.5, 0.6, 0.28)
 
 [sub_resource type="BoxMesh" id="Mesh_leds"]
-material = ExtResource("12_led")
+material = ExtResource("12_lens")
 size = Vector3(0.3, 0.025, 0.01)
 
 [node name="MailServer" type="StaticBody3D"]
@@ -69,11 +69,9 @@ size = 0.6
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Indicator"), NodePath("../Indicator2")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Indicator"), NodePath("../Indicator2")])
 
 [node name="MailServerBehaviour" type="Node" parent="."]
 script = ExtResource("13_mail_server")
