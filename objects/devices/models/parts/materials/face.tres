@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "face"
+albedo_color = Color(0.0549, 0.0667, 0.0784, 1)
+metallic = 0.2
+roughness = 0.6

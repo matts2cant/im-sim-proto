@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "plate"
+albedo_color = Color(0.8510, 0.8667, 0.8784, 1)
+metallic = 0.0
+roughness = 0.5

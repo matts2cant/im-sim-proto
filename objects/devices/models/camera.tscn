@@ -1,0 +1,80 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/devices/models/parts/device_model.gd" id="1_device_model"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/dark_grey.tres" id="2_dark_grey"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_icon.gd" id="3_kind_icon"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/name_plate.gd" id="4_name_plate"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/rail.tres" id="5_rail"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/housing.tres" id="6_housing"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_strip.gd" id="7_kind_strip"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/status_led.gd" id="8_status_led"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/lens.tres" id="9_lens"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = ExtResource("2_dark_grey")
+size = Vector3(0.07, 0.15, 0.02)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2"]
+material = ExtResource("5_rail")
+size = Vector3(0.03, 0.02, 0.065)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+material = ExtResource("6_housing")
+size = Vector3(0.17, 0.075, 0.07)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+material = ExtResource("2_dark_grey")
+size = Vector3(0.025, 0.055, 0.06)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5"]
+material = ExtResource("9_lens")
+top_radius = 0.011
+bottom_radius = 0.011
+height = 0.005
+radial_segments = 24
+rings = 1
+
+[node name="Camera" type="Node3D"]
+script = ExtResource("1_device_model")
+kind_tag = &"object.camera"
+
+[node name="WallPlate" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.115, 0, 0.01)
+mesh = SubResource("BoxMesh_1")
+
+[node name="KindIcon" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.131, 0.052, 0.02)
+script = ExtResource("3_kind_icon")
+side = 0.022
+
+[node name="NamePlate" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.115, 0.0275, 0.02)
+script = ExtResource("4_name_plate")
+text = "CAM-HALL"
+size = Vector2(0.058, 0.011)
+
+[node name="Arm" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.065, 0.025, 0.0375)
+mesh = SubResource("BoxMesh_2")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.035, 0.0275, 0.065)
+mesh = SubResource("BoxMesh_3")
+
+[node name="KindStrip" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.035, 0.0625, 0.101)
+script = ExtResource("7_kind_strip")
+size = Vector3(0.17, 0.005, 0.002)
+
+[node name="StatusLed" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.035, 0.015, 0.1)
+script = ExtResource("8_status_led")
+size = 0.01
+
+[node name="Hood" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1325, 0.0275, 0.065)
+mesh = SubResource("BoxMesh_4")
+
+[node name="Lens" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.1325, 0.0275, 0.0975)
+mesh = SubResource("CylinderMesh_5")
