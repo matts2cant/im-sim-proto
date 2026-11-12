@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/scenarios/fixtures/combat_yard.tscn" id="1_yard"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="2_guard"]
+[ext_resource type="Script" path="res://tests/actors/guard/fixtures/stagger_shot.gd" id="3_shot"]
+
+[node name="StaggerShot" type="Node3D"]
+
+[node name="Yard" parent="." instance=ExtResource("1_yard")]
+
+[node name="Guard" parent="." instance=ExtResource("2_guard")]
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3.2, 1.0, 0)
+current = true
+fov = 60.0
+
+[node name="Shot" type="Node" parent="."]
+script = ExtResource("3_shot")
