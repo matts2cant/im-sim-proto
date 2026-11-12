@@ -6,13 +6,13 @@
 [sub_resource type="Resource" id="Puff_concrete"]
 script = ExtResource("2_puff")
 color = Color(0.62, 0.6, 0.56, 1)
-amount = 14
+amount = 16
 lifetime = 0.8
 speed_min = 0.6
 speed_max = 2.0
 spread_deg = 45.0
 gravity = 1.0
-particle_size = 0.03
+particle_size = 0.045
 hole_color = Color(0.07, 0.07, 0.07, 0.95)
 hole_size = 0.05
 
@@ -25,7 +25,7 @@ speed_min = 3.0
 speed_max = 7.0
 spread_deg = 55.0
 gravity = 9.8
-particle_size = 0.014
+particle_size = 0.02
 shrink = true
 glow = true
 hole_color = Color(0.1, 0.1, 0.11, 0.95)
@@ -40,7 +40,7 @@ speed_min = 1.5
 speed_max = 4.0
 spread_deg = 50.0
 gravity = 7.0
-particle_size = 0.022
+particle_size = 0.03
 hole_color = Color(0.17, 0.11, 0.06, 0.95)
 hole_size = 0.05
 
@@ -53,7 +53,7 @@ speed_min = 1.5
 speed_max = 4.5
 spread_deg = 60.0
 gravity = 8.0
-particle_size = 0.015
+particle_size = 0.02
 glow = true
 hole_color = Color(0.85, 0.93, 1, 0.85)
 hole_size = 0.18
@@ -68,7 +68,7 @@ speed_min = 0.4
 speed_max = 1.6
 spread_deg = 50.0
 gravity = 3.0
-particle_size = 0.04
+particle_size = 0.05
 hole = false
 
 [sub_resource type="Resource" id="Puff_stun"]
@@ -80,7 +80,7 @@ speed_min = 2.0
 speed_max = 5.0
 spread_deg = 70.0
 gravity = 0.0
-particle_size = 0.016
+particle_size = 0.024
 shrink = true
 glow = true
 hole = false

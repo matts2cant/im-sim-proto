@@ -63,6 +63,9 @@ func _ready() -> void:
 		_tracers.append(streak)
 		_motions.append(null)
 		_ages.append(0.0)
+	# Every group's emitters now, so no shot builds them.
+	for group: StringName in config.puffs:
+		_emitters_of(group, config.puffs[group])
 	var tree := get_tree()
 	if not tree.scene_changed.is_connected(clear):
 		tree.scene_changed.connect(clear)
@@ -138,11 +141,18 @@ func tracer_segment(slot: int) -> PackedVector3Array:
 	return _motions[slot].segment(_ages[slot])
 
 
-## The motion of the latest tracer (null before any).
+## The motion of the latest tracer (null before any, or once it is done).
 func last_tracer() -> TracerMotion:
 	if tracers_started == 0:
 		return null
-	return _motions[(_next_tracer + TRACER_POOL - 1) % TRACER_POOL]
+	return _motions[_last_slot()]
+
+
+## Tail and head of the latest tracer now (empty when it is done; screenshots wait on it).
+func last_tracer_segment() -> PackedVector3Array:
+	if tracers_started == 0:
+		return PackedVector3Array()
+	return tracer_segment(_last_slot())
 
 
 ## Holes and cracks shown now.
@@ -176,21 +186,27 @@ static func leaves_hole(collider: Node) -> bool:
 
 
 func _puff(group: StringName, look: ImpactPuff, point: Vector3, normal: Vector3) -> void:
-	if not _emitters.has(group):
-		var list: Array[CPUParticles3D] = []
-		for i in EMITTERS_PER_GROUP:
-			list.append(_emitter(group, i, look))
-		_emitters[group] = list
-		_next_emitter[group] = 0
+	var list := _emitters_of(group, look)
 	var index := _next_emitter[group]
 	_next_emitter[group] = (index + 1) % EMITTERS_PER_GROUP
-	var emitter := _emitters[group][index] as CPUParticles3D
+	var emitter := list[index] as CPUParticles3D
 	var facing := normal.normalized() if not normal.is_zero_approx() else Vector3.UP
 	var up := Vector3.UP if absf(facing.dot(Vector3.UP)) < 0.99 else Vector3.RIGHT
 	# -Z (the emission direction) along the normal, just off the surface.
 	emitter.global_transform = Transform3D(Basis.looking_at(facing, up), point + facing * 0.01)
 	emitter.restart()
 	puffs_played[group] = puffs_played.get(group, 0) + 1
+
+
+# The pooled emitters of `group`, built on first use.
+func _emitters_of(group: StringName, look: ImpactPuff) -> Array:
+	if not _emitters.has(group):
+		var list: Array[CPUParticles3D] = []
+		for i in EMITTERS_PER_GROUP:
+			list.append(_emitter(group, i, look))
+		_emitters[group] = list
+		_next_emitter[group] = 0
+	return _emitters[group]
 
 
 func _emitter(group: StringName, index: int, look: ImpactPuff) -> CPUParticles3D:
@@ -237,6 +253,10 @@ func _emitter(group: StringName, index: int, look: ImpactPuff) -> CPUParticles3D
 	emitter.mesh = quad
 	add_child(emitter)
 	return emitter
+
+
+func _last_slot() -> int:
+	return (_next_tracer + TRACER_POOL - 1) % TRACER_POOL
 
 
 func _place_tracer(slot: int) -> void:

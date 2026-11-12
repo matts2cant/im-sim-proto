@@ -15,6 +15,16 @@ const STUN_TYPE: StringName = &"damage.stun"
 var rounds: int = 0
 
 
+func _ready() -> void:
+	# The world's pool is built once, before the first shot needs it (no hitch on that shot).
+	_warm_up.call_deferred()
+
+
+func _warm_up() -> void:
+	if is_inside_tree():
+		ShotFx.in_world(self)
+
+
 ## True when round number `round_number` (1-based) carries a tracer, one every `every` rounds.
 static func wants_tracer(round_number: int, every: int) -> bool:
 	return every > 0 and round_number > 0 and round_number % every == 0
