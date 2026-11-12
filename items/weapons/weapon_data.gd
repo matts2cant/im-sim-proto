@@ -93,6 +93,12 @@ enum Grip { ONE_HAND, TWO_HAND }
 @export var muzzle_flash_size: float = 0.0
 
 @export_group("Audio")
+## A ranged shot's layered sound (ShotSound: body, bass thump, mechanism; ADR 0128), played by the
+## holder's ShotAudio with its echo tail. Null: `fire_sound`.
+@export var shot_sound: ShotSound
+## The layered shot sound while the `suppressed` stat is above 0. Null: `suppressed_fire_sound`.
+@export var suppressed_shot_sound: ShotSound
+## The swing (melee) or the shot of a weapon without a `shot_sound`.
 @export var fire_sound: AudioStream
 ## The shot sound while the `suppressed` stat is above 0 (a fitted silencer). Null: fire_sound.
 @export var suppressed_fire_sound: AudioStream
@@ -119,6 +125,9 @@ enum Grip { ONE_HAND, TWO_HAND }
 @export var view_swing_deg: Vector3 = Vector3.ZERO
 ## Melee: share of the swing the chop takes (0..1); the rest is the slower return.
 @export_range(0.05, 0.95) var view_chop_share: float = 0.3
+## First-person motion by code (kick, sway, bob, reload dip, draw) and the camera shake of a shot
+## (ADR 0128). Null: none (the fixed recoil tilt).
+@export var motion: WeaponMotionConfig
 
 @export_group("Held by a character")
 ## How the weapon sits in an animated character's fist (WeaponView.hang_from(), ADR 0105), in the

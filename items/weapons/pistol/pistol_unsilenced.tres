@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://items/weapons/pistol/pistol_model.tscn" id="9_model"]
 [ext_resource type="Resource" path="res://items/weapons/pistol/pistol_recoil.tres" id="20_recoil"]
 [ext_resource type="Resource" path="res://items/weapons/pistol/pistol_aim.tres" id="21_aim"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol_shot.tres" id="40_shot"]
+[ext_resource type="Resource" path="res://items/weapons/pistol/pistol_motion.tres" id="42_motion"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.05
@@ -20,6 +22,8 @@ stream_2/stream = ExtResource("4_shot_2")
 
 [resource]
 script = ExtResource("1_script")
+shot_sound = ExtResource("40_shot")
+motion = ExtResource("42_motion")
 id = &"pistol_unsilenced"
 aim_config = ExtResource("21_aim")
 recoil = ExtResource("20_recoil")

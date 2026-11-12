@@ -24,6 +24,8 @@ var reserve: int:
 var cooldown: float = 0.0
 ## Seconds left of a running reload; 0 when not reloading.
 var reload_left: float = 0.0
+## Seconds the running (or last) reload takes in all.
+var reload_total: float = 0.0
 ## Fitted attachments, in the order they were fitted.
 var attachments: Array[AttachmentData] = []
 
@@ -65,6 +67,13 @@ func is_reloading() -> bool:
 	return reload_left > 0.0
 
 
+## Share (0-1) of the running reload done; 0 when not reloading.
+func reload_progress() -> float:
+	if not is_reloading() or reload_total <= 0.0:
+		return 0.0
+	return clampf(1.0 - reload_left / reload_total, 0.0, 1.0)
+
+
 func step(delta: float) -> void:
 	_late = maxf(delta - cooldown, 0.0) if cooldown > 0.0 else 0.0
 	cooldown = maxf(cooldown - delta, 0.0)
@@ -101,6 +110,7 @@ func start_reload(time_mult: float = 1.0) -> bool:
 	if not data.uses_ammo() or is_reloading() or magazine >= data.magazine_size or reserve <= 0:
 		return false
 	reload_left = data.reload_time * time_mult
+	reload_total = reload_left
 	return true
 
 

@@ -635,3 +635,17 @@ Tests measure the survival targets (a still player at 10 m: pistol guard 6.75 s,
 - [ ] A leg or arm hit makes a guard lean back away from the shot for half a second and slow down (a chasing guard stumbles); a torso or head hit does not. Does the lean read at 10 m? (Its ground shadow does not lean.)
 - [ ] Standing in the open at 10 m from a pistol guard you have several seconds to reach cover; rifle and SMG guards are clearly more dangerous at that range, all of them deadly within 4-5 m.
 - [ ] Guards' bursts (rifle, SMG) climb a little: later rounds of a burst miss high more often than the first, but they keep firing short bursts (3-4 rounds).
+
+### Weapon motion and sound ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md))
+
+Every value is on the range's tuning panel (the gun's `motion` and `shot_sound` rows); tune by feel and Save.
+
+- [ ] Kick: the pistol snaps back and is settled before the next tap; the shotgun and sniper rifle kick hard and slower; the SMG and rifle shudder while held, never climbing off screen. Does the kick match the camera recoil?
+- [ ] Sway: a quick mouse turn makes the gun lag a little behind and settle; not floaty, not seasick. The sniper lags most.
+- [ ] Bob: none standing still or in the air; a gentle bob walking, stronger sprinting, smaller crouch-walking; it fades out (no snap) when you stop.
+- [ ] Reload (R): the gun dips out of view and comes back as the HUD's "reloading" ends, for every gun (pistol 1.6 s, SMG 1.8 s, rifle 2.2 s, shotgun 2.4 s, sniper 2.5 s).
+- [ ] Draw: pressing a belt key raises the gun from below; switching guns raises the new one; holstering (or the same key) lowers it before it disappears. Firing at once on a draw still works (the shot is not delayed).
+- [ ] Camera shake on firing: slight on the pistol, SMG and rifle, clearly stronger on the shotgun and sniper; the crosshair stays on target (shots go where it points). Settings, camera motion 0 %: no shake and no recoil climb; nothing moves the view but the mouse.
+- [ ] Sounds: with eyes closed, tell the pistol, SMG, assault rifle, shotgun (pump after the bang) and sniper rifle (deep boom, bolt) apart; repeated shots do not sound like one copied sample (pitch and volume vary). Silenced pistol, SMG, rifle and sniper: a muffled thud with the click, no bang.
+- [ ] Echo: shooting in the hub or the shooting range gives a short, dense tail; in the warehouse yard or on the roof a longer, sparser one; step through the hall's dock door while firing and hear it change. A guard firing in the yard echoes outdoors even if you are inside.
+- [ ] Is the one real gunshot recording in the packs (Titan Handgun) enough, or should a gun sound pack be added (the user decides)?

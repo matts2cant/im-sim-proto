@@ -10,6 +10,11 @@ extends Node3D
 ## In a character's hand (`in_hand`, hang_from(), ADR 0103) the pivot sits at its
 ## mount instead of the camera offset, the arm's animation carries the swing (only the recoil stays)
 ## (it casts no shadow, like the animated arm holding it).
+## First-person motion by code (ADR 0128, `motion_enabled`: the player's holder, WeaponHolder.view_motion):
+## a WeaponMotion from the weapon's WeaponData.motion adds the kick, sway, bob, reload dip and the
+## raise on drawing on top of the pose; hide_weapon() lowers the model before hiding it. The holder
+## sets the inputs (`move_speed`, `grounded`, `crouched`, `reload_progress`) before each step().
+## Without it (guards, weapons without motion) a shot is the short fixed recoil tilt.
 
 ## Recoil time of a shot; a swing animates over half its cycle.
 const KICK_TIME: float = 0.12
@@ -32,6 +37,16 @@ var model: WeaponModel
 
 ## Held in a character's hand (third person) rather than in front of a camera.
 var in_hand: bool = false
+## Motion by code is on (first person only; WeaponHolder.view_motion).
+var motion_enabled: bool = false
+## The motion of the weapon shown (its WeaponData.motion).
+var motion := WeaponMotion.new()
+## Inputs of the next step(): the user's ground speed (m/s), on the ground, crouched, and the
+## reload's progress (0..1; negative: not reloading).
+var move_speed: float = 0.0
+var grounded: bool = true
+var crouched: bool = false
+var reload_progress: float = -1.0
 
 var _box: MeshInstance3D
 # The holder this view belongs to (its parent before it hung from a hand).
@@ -40,6 +55,8 @@ var _box_material: StandardMaterial3D
 var _cloaked: bool = false
 var _kick: float = 0.0
 var _kick_length: float = KICK_TIME
+# hide_weapon() is lowering the model before hiding it.
+var _holstering: bool = false
 
 
 func _init() -> void:
@@ -54,9 +71,18 @@ func _init() -> void:
 	_box.add_child(flash)
 
 
-## Shows the weapon of `weapon_state` (its model with the fitted attachments, or the box).
+## Shows the weapon of `weapon_state` (its model with the fitted attachments, or the box). With
+## motion on, a weapon that was not already shown rises into view (a draw); the same weapon shown
+## again (an attachment fitted) stays where it is.
 func show_weapon(weapon_state: WeaponState) -> void:
+	var drawn := data != weapon_state.data or not visible or _holstering
+	_holstering = false
 	data = weapon_state.data
+	if drawn:
+		motion.config = data.motion
+		motion.reset()
+		if _motion_on():
+			motion.start_draw()
 	if flash.get_parent() != _box:
 		flash.reparent(_box, false)
 	if model != null:
@@ -104,8 +130,22 @@ func hang_from(mount: Node3D) -> void:
 	_animate()
 
 
-## Nothing in hand.
+## Nothing in hand. With motion on, the model is lowered out of view first (is_holstering()).
 func hide_weapon() -> void:
+	if _motion_on() and visible and not _holstering:
+		_holstering = true
+		motion.start_holster()
+		return
+	_finish_hide()
+
+
+## Lowering the model of a holstered weapon (motion on) before hiding it.
+func is_holstering() -> bool:
+	return _holstering
+
+
+func _finish_hide() -> void:
+	_holstering = false
 	data = null
 	visible = false
 	flash.clear()
@@ -116,18 +156,43 @@ func set_shown(shown: bool) -> void:
 	visible = shown and data != null
 
 
-## Starts the recoil (ranged) or the swing over half the cycle (melee).
+## Starts the recoil (ranged) or the swing over half the cycle (melee); with motion on, a ranged
+## shot kicks the motion's spring instead of the fixed tilt.
 func kick() -> void:
 	_kick_length = data.cycle_time * 0.5 if data.is_melee() else KICK_TIME
 	_kick = _kick_length
+	if _motion_on() and not data.is_melee():
+		motion.kick()
 
 
-## Every physics tick: the kick runs down, the pose follows, the flash fades, cloaking applies.
+## The view turned by `turn_deg` (degrees, x right, y up; mouse look): the model sways behind it.
+func add_turn(turn_deg: Vector2) -> void:
+	if _motion_on():
+		motion.add_turn(turn_deg)
+
+
+## Every physics tick: the kick runs down, the motion steps, the pose follows, the flash fades,
+## cloaking applies; a holstered weapon hides once lowered.
 func step(delta: float, cloaked: bool) -> void:
 	_kick = maxf(_kick - delta, 0.0)
+	if _motion_on():
+		motion.step(delta, move_speed, grounded, crouched, reload_progress)
+		if _holstering and motion.is_lowered():
+			_finish_hide()
+			return
 	_animate()
 	_set_cloaked(cloaked)
 	flash.step(delta)
+
+
+## The motion back to the ready pose at once: a draw finished, no kick, sway or bob (tests that
+## shoot right after drawing; a holster still lowering hides now).
+func settle_motion() -> void:
+	if _holstering:
+		_finish_hide()
+		return
+	motion.reset()
+	_animate()
 
 
 ## Shows the swing frozen at `progress` (0 = start, 1 = end); screenshots and tests. The next step
@@ -188,10 +253,17 @@ func _animate() -> void:
 			else:
 				amount = cos((progress - chop) / (1.0 - chop) * PI * 0.5)
 		pose.basis = _euler_deg(data.view_rest_deg + data.view_swing_deg * amount)
-	else:
+	elif not _motion_on():
 		pose.basis = Basis(Vector3.RIGHT, 0.25 * t) * pose.basis
 		pose.origin += Vector3(0, 0, 0.04 * t)
+	if _motion_on():
+		pose = Transform3D(_euler_deg(motion.turn) * pose.basis, pose.origin + motion.offset)
 	transform = pose
+
+
+# Motion by code applies: enabled, first person, a weapon with a WeaponMotionConfig shown.
+func _motion_on() -> bool:
+	return motion_enabled and not in_hand and data != null and data.motion != null
 
 
 ## The grip pivot's pose in a character's hand mount (WeaponData.hold_offset, hold_rotation_deg).

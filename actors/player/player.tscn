@@ -96,6 +96,7 @@ script = ExtResource("13_weapon_holder")
 aim_config = ExtResource("16_aim")
 view_shift_deg = Vector2(3, 9)
 recoil_enabled = true
+view_motion = true
 
 [node name="Noise" type="Node3D" parent="."]
 script = ExtResource("3_noise")
