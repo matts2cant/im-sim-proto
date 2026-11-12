@@ -598,4 +598,15 @@ Warehouse network:
 - [ ] Tapping the pistol needs no recoil correction; the shotgun and sniper kick hard.
 - [ ] Running, walking, crouching and jumping change accuracy as expected (running clearly worse, walking and crouching close to standing).
 - [ ] Sliders change the feel live and their values survive a restart once saved; the reset button stands every downed dummy back up.
+
+### M13a shooting range ([ADR 0125](../decisions/0125-shooting-range-tools.md), [hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range))
+
+- [ ] From the firing line the six targets read at a glance: 5, 10, 20, 40 m dummies, the spray wall (10 m) and the walking dummy (15 m); lane signs on the counter name them.
+- [ ] The walking dummy crosses its lane at a guard's walking pace (about 4 m, 1.5 m/s) and is a fair moving target at 15 m; shot down it stops and lies still; "Reset dummies" stands it up and it walks on.
+- [ ] A 30-round spray at the spray wall leaves a pattern you can read from the firing line (5 cm marks); "Clear wall" empties it; the marks never run out mid-session (500 kept, oldest go first).
+- [ ] The stats board (above lanes 5 and 6) is readable from the counter: each target's hits / shots, hit share and group (cm) for the last 10 shots; a miss near a target counts against it, a wild one against nothing; "Reset stats" zeroes it.
+- [ ] The tuning terminal (E) opens the panel on the right with the range still visible and running; every slider of the gun in hand changes it at once (fire again with the panel closed); Esc or ✕ closes; Save then a restart keeps the values (editor or a run from the project folder only); Revert brings the saved values back.
+- [ ] Tier buttons in the panel and the "Skill tier" button (E: next, its label says which) change the Weapons skill of the gun in hand; the Skills tab shows the same tier.
+- [ ] "Reset dummies" stands up every downed dummy in the room (lanes, walker and melee pair), dead or knocked out.
+- [ ] The second rack (east of the medkits) holds a pistol and 60 rounds, and a labelled empty SMG slot until the submachine gun lands.
 - [ ] Settings (Esc menu): every setting takes effect and survives a restart; camera motion at 0 % stops shake and the camera's recoil climb, but bullets still follow the pattern.

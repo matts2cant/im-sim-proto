@@ -25,10 +25,15 @@ if [ ${#files[@]} -eq 0 ]; then
 	exit 0
 fi
 
+# Files go in batches: one command line with every path passes Windows' 32 K character limit.
+batched() {
+	printf '%s\0' "${files[@]}" | xargs -0 -n 300 "$@"
+}
+
 if [ "${1:-}" = "--fix" ]; then
-	"$bin_dir/gdformat" "${files[@]}"
+	batched "$bin_dir/gdformat"
 	# gdformat writes CRLF on Windows; the repo is LF-only.
-	sed -i 's/\r$//' "${files[@]}"
+	batched sed -i 's/\r$//'
 fi
-"$bin_dir/gdformat" --check "${files[@]}"
-"$bin_dir/gdlint" "${files[@]}"
+batched "$bin_dir/gdformat" --check
+batched "$bin_dir/gdlint"

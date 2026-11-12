@@ -16,12 +16,12 @@ signal closed
 
 const LAYER: int = 24
 ## The panel's anchors: the right part of the screen, so the range stays in view.
-const AREA := Rect2(0.5, 0.06, 0.47, 0.88)
+const AREA := Rect2(0.46, 0.06, 0.51, 0.88)
 const HINT := "Esc: close · the world keeps running"
 const SAVE_NOTE := "Save writes the .tres files: only in the editor or a run from the project folder."
 const NO_WEAPON := "Draw a gun to tune it."
-const NAME_WIDTH: float = 210.0
-const VALUE_WIDTH: float = 70.0
+const NAME_WIDTH: float = 180.0
+const VALUE_WIDTH: float = 64.0
 
 ## The node using it.
 var user: Node
@@ -284,7 +284,7 @@ func _build() -> void:
 	weapon_label = HalcyonStyle.label("", 16, HalcyonStyle.TEAL)
 	weapon_label.name = "Weapon"
 	column.add_child(weapon_label)
-	column.add_child(_build_tiers())
+	_build_tiers(column)
 	column.add_child(HalcyonStyle.rule())
 	var scroll := ScrollContainer.new()
 	scroll.name = "Scroll"
@@ -315,14 +315,15 @@ func _build() -> void:
 	column.add_child(status_label)
 
 
-func _build_tiers() -> HBoxContainer:
+# The skill line ("Pistols: Trained"), then a row of one button per tier.
+func _build_tiers(column: VBoxContainer) -> void:
+	tier_label = HalcyonStyle.label("", 13)
+	tier_label.name = "Skill"
+	column.add_child(tier_label)
 	var row := HBoxContainer.new()
 	row.name = "Tiers"
 	row.add_theme_constant_override(&"separation", WindowFrame.metric(&"space_s"))
-	tier_label = HalcyonStyle.label("", 13)
-	tier_label.name = "Skill"
-	tier_label.custom_minimum_size.x = NAME_WIDTH
-	row.add_child(tier_label)
+	column.add_child(row)
 	var names := SkillTable.new().tier_names
 	for i in names.size():
 		var button := HalcyonStyle.list_entry(names[i])
@@ -331,4 +332,3 @@ func _build_tiers() -> HBoxContainer:
 		button.pressed.connect(set_tier.bind(i))
 		tier_buttons.append(button)
 		row.add_child(button)
-	return row
