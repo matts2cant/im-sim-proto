@@ -70,6 +70,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"wait": 0.75
 	},
 	"crosshair_nothing": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(6.5, 0.0, -12), "weapon": "pistol"},
+	# M13b weapon motion (ADR 0128): the pistol halfway through its 1.6 s reload (dipped out of view),
+	# the assault rifle and the shotgun halfway through their draws (0.4 s, 0.45 s).
+	"fp_pistol_reload":
+	{
+		"feet": Vector3(4.25, 0, -7.45),
+		"look": Vector3(4.25, 1.21, -18),
+		"weapon": "pistol",
+		"reload": true,
+		"wait": 1.0
+	},
+	"fp_rifle_draw":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "assault_rifle", "wait": 0.42},
+	"fp_shotgun_draw":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "shotgun", "wait": 0.45},
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
@@ -170,6 +184,9 @@ func _arm(id: StringName) -> void:
 		_player.weapons.toggle_scope()
 	if _shot.get("flash", false):
 		_player.weapons.flash.hold(item.weapon, _player.weapons.state().stat(&"muzzle_flash_size"))
+	if _shot.get("reload", false):
+		_player.weapons.state().magazine = 2
+		_player.weapons.reload()
 
 
 # A scripted 30-round spray from the firing line in lane 5 at the spray wall's aim mark (a climbing,

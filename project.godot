@@ -255,6 +255,7 @@ lockpick_fine={
 3d_physics/layer_6="triggers"
 3d_physics/layer_7="static_actors"
 3d_physics/layer_8="downed"
+3d_physics/layer_9="acoustics"
 
 [physics]
 

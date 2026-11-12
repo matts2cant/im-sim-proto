@@ -3,9 +3,11 @@
 [ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="1_script"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Medieval/Weapon Whoosh.wav" id="2_swing"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_heavy_000.ogg" id="3_hit"]
+[ext_resource type="Resource" path="res://items/weapons/baton/baton_motion.tres" id="42_motion"]
 
 [resource]
 script = ExtResource("1_script")
+motion = ExtResource("42_motion")
 id = &"baton"
 item_id = &"baton"
 display_name = "Stun baton"

@@ -63,7 +63,7 @@ The submachine gun (`smg/smg.tres`, M13a, Kenney `blaster-a` at 0.6 scale): `dam
 | Muzzle flash | 0.12 m (none silenced) | 0.2 m | 0.15 m | 0.12 m | none |
 | Physics objects hit | `force.impact` 3 N s at the hit point (an explosive barrel's 25 health: one shot) | 1 N s per pellet | 6 N s | 2 N s | blunt 5 (stun x0 on objects) |
 | Attachment slots | `muzzle` | none | `muzzle` | `muzzle` | none |
-| Sounds | shot: `Hollywood/Titan Handgun` (-4 dB); silenced: `kenney_impact-sounds/impactPunch_medium_000-002` (a muffled thud; random pitch); hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | Titan Handgun +2 dB | Titan Handgun +4 dB; silenced: impactPunch | Titan Handgun -6 dB, random pitch; silenced: impactPunch | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
+| Sounds (M13b: layered, [ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md); table in "Weapon motion and sound" below) | shot: Titan Handgun body + punch thump + metal click; silenced: `kenney_impact-sounds/impactPunch_medium_000-002` thud + click; hit: `impactGeneric_light_000`; dry: `kenney_interface-sounds/click_002`; reload: `Hollywood/Heavy Gun Reload` (-8 dB) | Titan Handgun low + low-frequency boom + pump | Titan Handgun low + long boom + bolt; silenced: thud + bolt | Titan Handgun + crunch + click; silenced: thud + click | swing: `Medieval/Weapon Whoosh` (-10 dB); hit: `impactPunch_heavy_000` |
 
 Measured on a standing guard body, torso-centred, 8 fixed seeds (`tests/items/weapons/weapon_outcomes_test.gd`): shotgun one shot at 5 m on every seed, 1 to 3 shots at 15 m (median 2: its upper pellets reach the model-sized head, [ADR 0105](../decisions/0105-character-model-playtest-fixes.md); the user kept this strength); sniper rifle scoped and still one torso shot at 40 m (the scoped cone settles to 0.25 degrees in 1.4 s); assault rifle at Master held on the torso at 10 m, pulling against the recoil, kills in 0.43 s (7 seeds; 0.53 s on one). Submachine gun (`tests/items/weapons/smg_test.gd`, a component shooter pulling the recoil): Untrained at 5 m 0.60-0.73 s; at 20 m Master 1.3 s against the rifle's 0.43-1.33 s, Untrained no kill within a magazine (the rifle kills in 2 of 4 runs). Untrained against Master ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md), `tests/items/weapons/long_gun_skills_test.gd`): assault rifle 30-round group at 15 m pulling the recoil, mean distance from its centre 0.73 / 0.37 m; sniper scoped settle to 0.25 degrees 1.40 / 0.28 s (to its floor 2.13 / 0.75 s); shotgun pellets on a 0.5 m plate at 10 m 2 to 5 / 8 of 8.
 
@@ -127,7 +127,35 @@ flowchart TD
 - Hit markers (subtle; distinct for a headshot and a kill), impacts by material (metal, concrete, wood, glass; capped, fading), a small dark-red puff on body hits, a blue-white spark for stun hits, tracers on automatic weapons and guards' shots.
 - Getting hit: the view kicks and spread grows for ~0.3 s; a guard flinches (next shot ~0.3 s later), a limb hit staggers it.
 - Guards obey weapon spread and recoil, compensating ~70 %, retuned so the ADR 0070 survival targets hold (at least 3 s at 10 m, about 2 s at 4 m).
-- Weapon motion by code (kick, sway, bob, reload, draw; no arms), a slight camera shake on firing, per-weapon sounds layered from the packs in the project with an indoor/outdoor echo tail.
+- Weapon motion by code (kick, sway, bob, reload, draw; no arms), a slight camera shake on firing, per-weapon sounds layered from the packs in the project with an indoor/outdoor echo tail: built, below.
+
+### Weapon motion and sound (M13b, built: [ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md))
+
+- **View model motion** (`WeaponData.motion`: a `WeaponMotionConfig`, `<weapon>_motion.tres`; pure `WeaponMotion`; on where the holder's `view_motion` is: the player). Added on top of the grip pose, every value an `@export_range` the range's tuning panel lists. Guards' guns (in their animated hands) keep the old fixed 0.12 s tilt.
+
+  | | Pistol | SMG | Assault rifle | Shotgun | Sniper rifle | Baton |
+  |---|---|---|---|---|---|---|
+  | Kick per shot: back, nose up, roll | 4 cm, 7°, ±2° | 2.5 cm, 3°, ±1.5° | 3 cm, 3.5°, ±1.5° | 8 cm, 14°, ±3° | 9 cm, 12°, ±2° | none (the chop) |
+  | Kick peak after (s; back in ~5x), stack cap | 0.035, 1.3 | 0.02, 2 | 0.025, 2 | 0.06, 1.2 | 0.07, 1.2 | |
+  | Sway per degree turned, cap, return | 0.2, 3°, 0.09 s | 0.22, 3°, 0.1 s | 0.25, 3.5°, 0.12 s | 0.25, 3.5°, 0.12 s | 0.3, 4°, 0.14 s | 0.15, 3°, 0.09 s |
+  | Draw / holster (s) | 0.3 / 0.2 | 0.35 / 0.22 | 0.4 / 0.25 | 0.45 / 0.25 | 0.5 / 0.3 | 0.25 / 0.2 |
+  | Camera shake, dying over | 0.25°, 0.12 s | 0.15°, 0.08 s | 0.2°, 0.1 s | 0.8°, 0.25 s | 0.9°, 0.3 s | none |
+
+  Every weapon: bob 1 cm down at each footstep and 0.8 cm side to side at 4 m/s (walking), one side swing per 4 m walked, scaled by ground speed up to x1.5 (sprinting), x0.6 crouched, none still or airborne, easing in and out over ~0.1 s; reload dip 30 cm down, 35° nose down, 20° rolled in, over the first and last quarter of the reload (out of view in between); draw from 30 cm lower and 40° nose down. The kick is a critically damped spring (`kick_time` to the peak), so automatic fire shudders and stacks up to its cap. Ground speed is how far the holder's user moved since the last step (any character). A weapon not already shown rises when drawn or switched to; holstering lowers it, then hides it. All visual: shots, cycles and switches keep their timing.
+- **Camera shake** (`ViewShake` in the player): a shot of a weapon with `shake_deg` jumps the camera by that many degrees (mostly up, a little sideways and rolled), wobbling at 12 Hz and dying out over `shake_time`; a stronger running shake is kept. x the camera motion setting (0: no shake, no recoil climb: only the player moves the camera; there is no camera view bob). The holder subtracts it from the shots and the crosshair (`eye_shake`), so it never moves where bullets go (measured: under 0.05° during a shotgun shake).
+- **Shot sounds** (`WeaponData.shot_sound`, `suppressed_shot_sound`: a `ShotSound` of three `ShotSoundLayer`s, `body`, `bass`, `mechanism`; else `fire_sound`): each shot picks every layer's variant (never the same twice in a row) and a random pitch and volume within its jitter; the holder's `ShotAudio` plays each on its own 3D voice (a pool of 9; delayed layers later). The silencer's -2 dB shifts every layer. All on the Effects bus or the outdoor reverb bus, which sends to it.
+
+  | | Body | Bass thump | Mechanism |
+  |---|---|---|---|
+  | Pistol (and the guards' pistol) | `Hollywood/Titan Handgun` x1.05, -4 dB | `impactPunch_heavy_000-002` x0.75, -12 dB | `impactMetal_light_000-002` x1.6, -18 dB, +0.03 s |
+  | SMG | Titan Handgun x1.32, -9 dB | `impactPunch_medium_000-002` x0.8, -14 dB | `impactMetal_light_000-004` x2.0, -20 dB, +0.015 s |
+  | Assault rifle | Titan Handgun x0.9, -6 dB | `kenney_sci-fi-sounds/explosionCrunch_000-002` x0.85, -13 dB | `impactMetal_light_002-004` x1.25, -17 dB, +0.025 s |
+  | Shotgun | Titan Handgun x0.72, +1 dB | `lowFrequency_explosion_001`, -4 dB | `Hollywood/Heavy Gun Reload` x1.15, -9 dB, +0.4 s (pump) |
+  | Sniper rifle | Titan Handgun x0.8, +3 dB | `lowFrequency_explosion_000` x0.9, -3 dB | `impactMetal_medium_000-001` x1.1, -13 dB, +0.6 s (bolt) |
+  | Silenced | `impactPunch_medium` thud (pistol x1.0 -4 dB, SMG x1.15 -8, rifle x0.95 -6, sniper x0.8 +2) | none | as unsilenced |
+
+  Jitter: pitch 2-8 %, volume 0.5-2 dB per layer. The packs hold one real gunshot (Titan Handgun); the guns differ by its pitch and their other layers.
+- **Echo by place** ([ADR 0128](../decisions/0128-weapon-motion-and-shot-sounds.md), `core/audio/acoustics.gd`): indoors is an acoustic zone (an `Area3D` on physics layer 9 `acoustics` with Godot's reverb bus settings: `ReverbIndoor`, amount 0.45), which every kit `Room` makes over its interior (`indoor_acoustics`, default on): the hub and its gallery rooms, the warehouse's hall, annex, offices, gate booth and basement. Elsewhere (yards, roof, road, ducts, culvert) is outdoors. A shot's voices sit at the shooter: inside a zone they play on `Effects` and the zone sends 45 % to `ReverbIndoor` (12 ms predelay, small room: short and dense); outside they play on `ReverbOutdoor` (dry plus 22 % wet, 140 ms predelay with feedback, large room: longer and sparse). Both buses send to `Effects`.
 
 ## Interactions
 

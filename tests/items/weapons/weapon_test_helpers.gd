@@ -22,11 +22,14 @@ func _init(p_driver: PlayerDriver) -> void:
 
 
 ## Stands the player at `feet` aiming its eye at `target`, lets it land and clears the log. The
-## teleport counts as one airborne frame, so the aim cone is settled to its floor afterwards.
+## teleport counts as one airborne frame, so the aim cone is settled to its floor afterwards (and the
+## view model to its ready pose).
 func aim_at(feet: Vector3, target: Vector3) -> void:
 	player.load_state(Objects.aiming_state(player, feet, target))
 	await driver.frames(5)
 	player.weapons.settle()
+	# A weapon drawn just before rests in its ready pose (its draw raise, ADR 0128, done).
+	player.weapons.view_pivot().settle_motion()
 	EventLog.clear()
 
 
