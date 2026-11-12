@@ -9,6 +9,9 @@ extends CSGCombiner3D
 ## kept so the warning stays visible until it is fixed.
 
 const SURFACE_META: StringName = &"surface"
+## The material of the part's walls when it differs from its floor's (a Room; bullet impacts read
+## it on wall faces, ShotFxConfig, ADR 0126).
+const WALL_SURFACE_META: StringName = &"wall_surface"
 ## Extra length on subtracted shapes so cuts never leave coplanar slivers.
 const CUT_MARGIN := 0.05
 
@@ -32,6 +35,11 @@ func rebuild() -> void:
 	_generated.clear()
 	_warnings = PackedStringArray()
 	set_meta(SURFACE_META, StringName(_surface_name()))
+	var wall := _wall_surface_name()
+	if wall.is_empty():
+		remove_meta(WALL_SURFACE_META)
+	else:
+		set_meta(WALL_SURFACE_META, StringName(wall))
 	_build()
 	update_configuration_warnings()
 
@@ -48,6 +56,12 @@ func _build() -> void:
 ## Overridden by parts: the floor surface written to the `surface` metadata.
 func _surface_name() -> String:
 	return GrayboxMaterials.DEFAULT_SURFACE
+
+
+## Overridden by parts with walls of another material than their floor: written to the
+## `wall_surface` metadata ("" : none).
+func _wall_surface_name() -> String:
+	return ""
 
 
 func _warn(message: String) -> void:

@@ -136,6 +136,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 [node name="WeaponHolder" type="Node3D" parent="Aim"]
 script = ExtResource("37_holder")
 aim_config = ExtResource("38_aim")
+tracer_every = 1
 
 [node name="Flashlight" parent="Aim" instance=ExtResource("52_flashlight")]
 transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0.18, -0.12, -0.25)

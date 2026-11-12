@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="HitMarkerConfig" format=3]
+
+[ext_resource type="Script" path="res://ui/hud/hit_marker_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+body_time = 0.15
+head_time = 0.22
+stun_time = 0.15
+kill_time = 0.35
+knockout_time = 0.35
+body_color = Color(0.95, 0.96, 0.96, 0.95)
+head_color = Color(1, 0.82, 0.3, 1)
+stun_color = Color(0.62, 0.85, 1, 1)
+kill_color = Color(0.9, 0.33, 0.29, 1)
+knockout_color = Color(0.62, 0.85, 1, 1)
+tick_inner = 9.0
+tick_outer = 16.0
+tick_width = 2.0
+cross_inner = 6.0
+cross_outer = 18.0
+cross_width = 3.0
+tick_hz = 2400.0
+tick_length = 0.03
+tick_db = -16.0
+kill_hz = 1500.0
+kill_length = 0.07
+kill_db = -9.0
+sound_gap = 0.05
