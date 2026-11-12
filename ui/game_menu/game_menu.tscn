@@ -1,87 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://ui/game_menu/game_menu.gd" id="1_game_menu"]
-
-[sub_resource type="StyleBoxFlat" id="Style_panel"]
-content_margin_left = 28.0
-content_margin_top = 20.0
-content_margin_right = 28.0
-content_margin_bottom = 18.0
-bg_color = Color(0.04, 0.08, 0.08, 0.97)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.3, 0.7, 0.68, 0.9)
-
-[sub_resource type="StyleBoxFlat" id="Style_button"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
-bg_color = Color(0.07, 0.14, 0.14, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.2, 0.42, 0.41, 1)
-
-[sub_resource type="StyleBoxFlat" id="Style_button_hover"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
-bg_color = Color(0.1, 0.22, 0.21, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.4, 0.8, 0.77, 1)
-
-[sub_resource type="StyleBoxFlat" id="Style_button_pressed"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
-bg_color = Color(0.16, 0.32, 0.31, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.55, 0.92, 0.88, 1)
-
-[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
-bg_color = Color(0.05, 0.09, 0.09, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.14, 0.24, 0.24, 1)
-
-[sub_resource type="StyleBoxFlat" id="Style_button_focus"]
-draw_center = false
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.55, 0.92, 0.88, 1)
-
-[sub_resource type="Theme" id="Theme_menu"]
-Button/colors/font_color = Color(0.85, 0.95, 0.92, 1)
-Button/colors/font_disabled_color = Color(0.4, 0.5, 0.5, 1)
-Button/colors/font_focus_color = Color(1, 1, 1, 1)
-Button/colors/font_hover_color = Color(1, 1, 1, 1)
-Button/colors/font_pressed_color = Color(1, 1, 1, 1)
-Button/font_sizes/font_size = 18
-Button/styles/disabled = SubResource("Style_button_disabled")
-Button/styles/focus = SubResource("Style_button_focus")
-Button/styles/hover = SubResource("Style_button_hover")
-Button/styles/normal = SubResource("Style_button")
-Button/styles/pressed = SubResource("Style_button_pressed")
+[ext_resource type="Theme" path="res://ui/game_menu/game_menu_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://ui/game_menu/settings_menu.tscn" id="3_settings"]
 
 [sub_resource type="LabelSettings" id="Label_header"]
 font_size = 24
@@ -126,10 +47,10 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
-theme = SubResource("Theme_menu")
-theme_override_styles/panel = SubResource("Style_panel")
+theme = ExtResource("2_theme")
 
 [node name="Box" type="VBoxContainer" parent="Center/Panel"]
 layout_mode = 2
@@ -169,6 +90,11 @@ layout_mode = 2
 text = "No save"
 label_settings = SubResource("Label_slot")
 horizontal_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="Center/Panel/Box/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Settings"
 
 [node name="Quit" type="Button" parent="Center/Panel/Box/Buttons"]
 unique_name_in_owner = true
@@ -216,3 +142,8 @@ layout_mode = 2
 text = "Esc: resume"
 label_settings = SubResource("Label_hint")
 horizontal_alignment = 2
+
+[node name="Settings" parent="Center" instance=ExtResource("3_settings")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2

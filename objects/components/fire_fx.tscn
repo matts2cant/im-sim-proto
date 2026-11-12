@@ -67,3 +67,4 @@ color_ramp = SubResource("Gradient_flame")
 [node name="Crackle" type="AudioStreamPlayer3D" parent="."]
 unit_size = 4.0
 max_distance = 20.0
+bus = &"Effects"
