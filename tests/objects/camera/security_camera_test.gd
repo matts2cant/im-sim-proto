@@ -38,7 +38,6 @@ func before_test() -> void:
 	_camera.config = CONFIG
 	_camera.pivot_path = ^"../Pivot"
 	_camera.sensor_path = ^"../Pivot/PerceptionSensor"
-	_camera.lamp_path = ^""
 	_camera.sound_path = ^""
 	_watcher.add_child(_camera)
 	_camera.model.stop_sweep()

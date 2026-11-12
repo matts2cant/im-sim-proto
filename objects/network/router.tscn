@@ -11,7 +11,6 @@
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_led.tres" id="12_led"]
 [ext_resource type="Script" path="res://objects/network/router.gd" id="13_router"]
 [ext_resource type="Script" path="res://objects/network/device_accounts.gd" id="14_accounts"]
 
@@ -21,10 +20,6 @@ size = Vector3(0.48, 0.3, 0.3)
 [sub_resource type="BoxMesh" id="Mesh_box"]
 material = ExtResource("11_metal_surface")
 size = Vector3(0.48, 0.3, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_leds"]
-material = ExtResource("12_led")
-size = Vector3(0.12, 0.025, 0.01)
 
 [node name="Router" type="StaticBody3D"]
 collision_mask = 0

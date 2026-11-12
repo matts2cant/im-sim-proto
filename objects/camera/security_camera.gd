@@ -12,8 +12,9 @@ extends Node
 ##   is seen; at 1.0 it reports an incident at the target's position (Device.report_incident()) to
 ##   every alarm controller it reaches, beeps (noise `beep_loudness`), and reports nothing more until
 ##   no target has been seen for `report_cooldown` seconds.
-## - Status lamp (`lamp_path`, a mesh): green idle, amber above `amber_threshold`, red while detected;
-##   off while blind.
+## - Status lamp (the entity's DeviceLamp, ADR 0122 amendment 2): green idle, amber above
+##   `amber_threshold`, red while detected; dark while blind. On a network the lamp is also its
+##   status light: the network state wins (dark unpowered or disabled, blinking amber cut off).
 ## - Remote commands (receptrons -> DeviceActionEffect -> Device.action_received): `command.disable`
 ##   / `command.enable` (blind, lamp off), `command.stop_sweep`, `command.resume_sweep`,
 ##   `command.pan_left`, `command.pan_right` (one pan step, clamped to the sweep range).
@@ -24,8 +25,6 @@ extends Node
 @export var config: SecurityCameraConfig
 ## The node turned by the sweep (yaw about its local Y).
 @export var pivot_path: NodePath = ^"../Pivot"
-## Mesh of the status lamp (its material is made per camera).
-@export var lamp_path: NodePath = ^"../Pivot/Tilt/Lamp"
 @export var sensor_path: NodePath = ^"../Pivot/Tilt/Eye/PerceptionSensor"
 ## AudioStreamPlayer3D for the beep; optional.
 @export var sound_path: NodePath = ^"../Sound"
@@ -45,8 +44,7 @@ var last_sighting: PerceptionSensor.Sighting
 
 var _pivot: Node3D
 var _rest_yaw: float = 0.0
-var _lamp: MeshInstance3D
-var _lamp_material: StandardMaterial3D
+var _lamp: DeviceLamp
 
 
 func _ready() -> void:
@@ -63,11 +61,7 @@ func _ready() -> void:
 	meter = SightMeter.new(config.meter_decay, config.report_cooldown)
 	disabled = start_disabled
 	_rest_yaw = _pivot.rotation.y
-	_lamp = get_node_or_null(lamp_path) as MeshInstance3D
-	if _lamp != null:
-		_lamp_material = StandardMaterial3D.new()
-		_lamp_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_lamp.material_override = _lamp_material
+	_lamp = DeviceLamp.of(entity)
 	var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
 	if sound != null and sound.stream == null:
 		sound.stream = PlaceholderBeep.tone(config.beep_hz, 0.25)
@@ -182,13 +176,13 @@ func _apply_pose() -> void:
 func _update_lamp() -> void:
 	if _lamp == null:
 		return
-	_lamp.visible = is_watching()
 	var color := config.idle_color
 	if meter.detected:
 		color = config.detected_color
 	elif meter.meter > config.amber_threshold:
 		color = config.suspicious_color
-	_lamp_material.albedo_color = color
+	# Unchanged colours cost nothing (DeviceLamp repaints on a change only).
+	_lamp.show_own(color, is_watching())
 
 
 func save_state() -> Dictionary:

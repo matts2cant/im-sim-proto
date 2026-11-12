@@ -1,7 +1,7 @@
 extends Node
 ## Screenshot helper (not a test, M13 playtest fix): loads the level named by the LEVEL environment
 ## variable (default the hub), waits for the devices' status lights, then for each light (up to
-## PER_KIND per device scene) looks at its LED from 1 m in front of the device at eye height
+## PER_KIND per device scene) looks at its LED (or its own lamp) from 1 m in front of the device at eye height
 ## (1.65 m above the floor below that spot) and saves a PNG into SHOT_DIR (default
 ## reports/screenshots/status_lights/) named after the level, the device's scene and its node name.
 ## Quits itself when done, with a real-time watchdog. Run (LEVEL=res://levels/mission/warehouse.tscn
@@ -58,7 +58,7 @@ func _run(level: Node3D, level_name: String) -> void:
 	print("status_light_shots: %d lights" % lights.size())
 	for node in lights:
 		var light := node as StatusLight
-		if light == null or light.led == null:
+		if light == null or light.indicators().is_empty():
 			continue
 		var entity := light.get_parent() as Node3D
 		var kind := entity.scene_file_path.get_file().get_basename()
@@ -74,12 +74,13 @@ func _run(level: Node3D, level_name: String) -> void:
 			await get_tree().process_frame
 			var file := "%s/%s_%s_%d_%s_%s.png" % [dir, level_name, kind, per_kind[kind], entity.name, view]
 			get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(file))
-			print("status_light_shots: %s led %s" % [file, light.led.global_position])
+			print("status_light_shots: %s light %s" % [file, light.indicators()[0].global_position])
 	get_tree().quit()
 
 
 func _pose(light: StatusLight, entity: Node3D, angle: float) -> void:
-	var target := light.led.global_position
+	# The LED, else the device's own lamp (its first mesh: a door's front box light).
+	var target := light.indicators()[0].global_position
 	var front := entity.global_basis.z
 	front.y = 0.0
 	if front.length() < 0.1:

@@ -1,8 +1,9 @@
 shader_type spatial;
 render_mode unshaded, shadows_disabled;
 
-// A device's status LED (StatusLight, M12c): one shared material, the colour and the blink per
-// instance (GeometryInstance3D.set_instance_shader_parameter), so a blinking LED costs no script.
+// A device's status LED (StatusLight, M12c) and its own lamps (DeviceLamp, ADR 0122 amendment 2):
+// one shared material (status_light_material.tres), the colour and the blink per instance
+// (GeometryInstance3D.set_instance_shader_parameter), so a blinking light costs no script.
 
 instance uniform vec4 led_color : source_color = vec4(0.06, 0.07, 0.06, 1.0);
 // 1: blinks (about 0.4 s on, 0.4 s off); 0: steady.

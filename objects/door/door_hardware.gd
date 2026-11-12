@@ -11,7 +11,9 @@ extends Node3D
 ##   keypad, card reader), else the first indicator lock's (Mount.INDICATOR: an electronic lock's
 ##   status box), else a plain control box when the settings ask for one (`wall_control`: a roller
 ##   door). Each box is a StaticBody3D on the entity's layer with a DoorControl (E on it works the
-##   door through its lock) and the lock light (show_light()).
+##   door through its lock) and the lock light (its `Light` mesh, show_light()). The lock lights are
+##   the door's lamp (the entity's DeviceLamp, ADR 0122 amendment 2): a door with them shows its
+##   network state there and gets no LED on its leaf.
 ## Each lock is placed on its hardware (its noises come from there). A lock added later (in code) has
 ## its hardware built on the next frame.
 
@@ -26,7 +28,8 @@ var handle_box := AABB()
 
 var _handle: CollisionShape3D
 var _handle_mesh: Node3D
-var _light := StandardMaterial3D.new()
+# The entity's DeviceLamp (the boxes' lock lights), or null.
+var _lamp: DeviceLamp
 # The wall boxes, front face first then back face.
 var _boxes: Array[StaticBody3D] = []
 var _pending: bool = false
@@ -46,6 +49,7 @@ func build(p_door: Door) -> void:
 	door = p_door
 	_handle = door.entity.get_node_or_null(^"Handle") as CollisionShape3D
 	_handle_mesh = door.entity.get_node_or_null(^"HandleMesh") as Node3D
+	_lamp = DeviceLamp.of(door.entity)
 	_fit_handle()
 	_build_locks()
 	if not door.entity.child_entered_tree.is_connected(_on_child_entered):
@@ -63,11 +67,11 @@ func follow(leaf: Vector3, broken: bool) -> void:
 		_handle_mesh.visible = not broken
 
 
-## Lights every wall box's lock light in `colour` (unlit when `lit` is false: dead).
+## Lights every wall box's lock light in `colour` (dark when `lit` is false: dead), through the
+## door's lamp (its network state comes first).
 func show_light(colour: Color, lit: bool) -> void:
-	_light.albedo_color = colour
-	_light.emission_enabled = lit
-	_light.emission = colour
+	if _lamp != null:
+		_lamp.show_own(colour, lit)
 
 
 ## The wall boxes on the front (+Z) or back face, top first.
@@ -130,6 +134,13 @@ func _build_locks() -> void:
 		wall.append(null)
 	for front: bool in [true, false]:
 		_build_boxes(scenes, wall, front)
+	if _lamp != null:
+		var lights: Array[MeshInstance3D] = []
+		for box in _boxes:
+			var light := box.get_node_or_null(^"Light") as MeshInstance3D
+			if light != null:
+				lights.append(light)
+		_lamp.set_meshes(lights)
 	if indicator != null and not _boxes.is_empty():
 		indicator.position = _boxes[0].position
 
@@ -156,9 +167,6 @@ func _build_boxes(scenes: Array[PackedScene], locks: Array[Lock], front: bool) -
 		control.door = door
 		control.lock = locks[i]
 		box.add_child(control)
-		var light := box.get_node_or_null(^"Light") as MeshInstance3D
-		if light != null:
-			light.material_override = _light
 		add_child(box)
 		_boxes.append(box)
 		if front and locks[i] != null:

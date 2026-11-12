@@ -1,10 +1,7 @@
-[gd_resource type="BoxMesh" load_steps=3 format=3]
+[gd_resource type="BoxMesh" load_steps=2 format=3]
 
-[ext_resource type="Shader" path="res://objects/devices/status_light.gdshader" id="1_shader"]
-
-[sub_resource type="ShaderMaterial" id="Material_led"]
-shader = ExtResource("1_shader")
+[ext_resource type="Material" path="res://objects/devices/status_light_material.tres" id="1_material"]
 
 [resource]
-material = SubResource("Material_led")
+material = ExtResource("1_material")
 size = Vector3(0.024, 0.024, 0.008)

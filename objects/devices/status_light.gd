@@ -10,6 +10,10 @@ extends Node3D
 ##   a device linked to no gear: none of its links is up; an access point named but out of range);
 ##   red = broken but powered, or switched off by a command (DeviceStatus.is_disabled()); dark =
 ##   unpowered (or gone with its entity).
+## - One light per device (ADR 0122 amendment 2): an entity whose DeviceLamp has a lamp mesh (a
+##   camera's watch lamp, a door's lock lights) gets no LED; the state goes to the lamp instead
+##   (DeviceLamp.show_network(): dark, amber blinking when cut off, else the owner's colours). A lamp
+##   that gains or loses its meshes later (a door's hardware rebuilt) swaps the LED in or out.
 ## - Port lights: one per cabled link (up to MAX_PORTS, then a "+"), green while the gear is up and
 ##   the device at the other end is up, dark otherwise.
 ## - Placement (M13 amendment): a Marker3D anywhere under the entity named LED_MARKER /
@@ -55,7 +59,10 @@ var state: State = State.DARK
 var links: Array[Device] = []
 ## The far ends of its cabled links (network gear only; empty otherwise).
 var ports: Array[Device] = []
+## The LED (null while the device shows its state on its own lamp).
 var led: MeshInstance3D
+## The entity's own lamp (DeviceLamp), or null.
+var lamp: DeviceLamp
 var port_lights: Array[MeshInstance3D] = []
 ## "+" past MAX_PORTS cabled links (null otherwise).
 var more: Label3D
@@ -171,6 +178,9 @@ func _ready() -> void:
 		links = links_of(device)
 	if DeviceNetwork.is_network_gear(device):
 		ports = DeviceNetwork.cabled(device)
+	lamp = DeviceLamp.of(device.entity)
+	if lamp != null:
+		lamp.lamps_changed.connect(_sync_led)
 	_build()
 	device.state_changed.connect(refresh.unbind(1))
 	device.action_received.connect(_refresh_later.unbind(2))
@@ -187,6 +197,9 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_PREDELETE:
 		return
+	# The lamp goes back to its owner's colours.
+	if is_instance_valid(lamp):
+		lamp.show_network(DeviceLamp.NO_NETWORK)
 	for id in _parts:
 		var part := instance_from_id(id) as Node
 		if part != null and not part.is_queued_for_deletion():
@@ -198,6 +211,8 @@ func refresh() -> void:
 	state = state_of(device, links)
 	if is_instance_valid(led):
 		_paint(led, COLORS[state], state == State.CUT_OFF)
+	if is_instance_valid(lamp):
+		lamp.show_network(state)
 	var lit := port_states()
 	for i in port_lights.size():
 		if is_instance_valid(port_lights[i]):
@@ -214,7 +229,34 @@ func port_states() -> Array[bool]:
 	return lit
 
 
+## The meshes that show the device's state: its LED, else its own lamp's meshes.
+func indicators() -> Array[MeshInstance3D]:
+	var result: Array[MeshInstance3D] = []
+	if is_instance_valid(led):
+		result.append(led)
+	elif _uses_lamp():
+		result.append_array(lamp.meshes())
+	return result
+
+
 func _on_link_changed(_up: bool) -> void:
+	refresh()
+
+
+func _uses_lamp() -> bool:
+	return is_instance_valid(lamp) and lamp.has_lamps()
+
+
+# The lamp gained or lost its meshes: the LED goes, or comes back.
+func _sync_led() -> void:
+	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
+		return
+	if _uses_lamp() and is_instance_valid(led):
+		_parts.erase(led.get_instance_id())
+		led.queue_free()
+		led = null
+	elif not _uses_lamp() and not is_instance_valid(led):
+		led = _light(LED_MESH, _led_spot(DeviceSurface.new(device.entity, self)), "Led")
 	refresh()
 
 
@@ -224,15 +266,12 @@ func _refresh_later() -> void:
 
 
 func _build() -> void:
+	if _uses_lamp() and ports.is_empty():
+		return
 	var surface := DeviceSurface.new(device.entity, self)
-	var led_spot := _marker_spot(LED_MARKER)
-	if led_spot == null:
-		var found := surface.find_spot(LED_FOOTPRINT)
-		if found != null:
-			led_spot = _proud(found)
-	if led_spot == null:
-		led_spot = _corner_spot()
-	led = _light(LED_MESH, led_spot, "Led")
+	var led_spot := _led_spot(surface)
+	if not _uses_lamp():
+		led = _light(LED_MESH, led_spot, "Led")
 	if ports.is_empty():
 		return
 	var count := mini(ports.size(), MAX_PORTS)
@@ -255,6 +294,16 @@ func _build() -> void:
 		more.outline_size = 4
 		more.modulate = PORT_ON
 		_attach_part(more, _along(last, (float(count) * 0.5 + 0.4) * PORT_PITCH))
+
+
+# Where the LED goes: its marker, else the top-left flat spot of `surface`, else the bounds' corner.
+func _led_spot(surface: DeviceSurface) -> DeviceSurface.Spot:
+	var spot := _marker_spot(LED_MARKER)
+	if spot == null:
+		var found := surface.find_spot(LED_FOOTPRINT)
+		if found != null:
+			spot = _proud(found)
+	return spot if spot != null else _corner_spot()
 
 
 # The marker `path` (anywhere under the entity) as a spot carried by the marker's parent, or null.

@@ -10,7 +10,9 @@ extends Usable
 ## Hardware (ADR 0098): its DoorHardware (the `Hardware` node) builds the leaf's handle, the leaf
 ## locks' keyholes and the wall boxes beside the frame (keypad, card reader, status, plain control)
 ## from the settings, never per level. Every wall box carries the lock light: red while closed and
-## locked, green while unlocked or open, dark while broken or unpowered. E on the leaf: open /
+## locked, green while unlocked or open, dark while broken or unpowered. The lock lights are the
+## door's lamp (DeviceLamp): on a network they also show its state (blinking amber when cut off) and
+## the leaf gets no status LED; a door without wall boxes shows its LED on the leaf. E on the leaf: open /
 ## close, the leaf locks' offers ("Picking 40%"), else "Locked: <what opens it>"; E on a box
 ## (DoorControl): open / close, its lock's offer ("E: enter code", "E: open (keycard)"), else the
 ## same "Locked: ...".
