@@ -510,8 +510,8 @@ No device carries software any more ([ADR 0121](../decisions/0121-exploits-as-it
 
 | Item | Where | Opens |
 |---|---|---|
-| Camera exploit (`CameraExploit`) | On office desk 1 (14.95, 5.27, 14.15), beside the sticky note, where office PC 1's mail "Camera firmware" used to teach it | Any one camera (CAM-GATE, CAM-YARD, CAM-HALL, CAM-OFFICE, CAM-ROOF): admin at once, no trace |
-| Alarm exploit (`AlarmExploit`) | On the water tower deck (43.9, 20.02, -12.9), beside the datapad "Field service notes" (`warehouse.tower_notes`, kept: it says where AP-YARD is and what it carries, and that the service chip was left there) and the sniper rifle: an optional detour | Any one alarm device (ALARM-YARD to disarm the yard, ALARM, a siren, a panic button, RADIO-BASE, a laser) |
+| Camera exploit (`CameraExploit`) | On office desk 1 (14.95, 5.257, 14.15), beside the sticky note, where office PC 1's mail "Camera firmware" used to teach it | Any one camera (CAM-GATE, CAM-YARD, CAM-HALL, CAM-OFFICE, CAM-ROOF): admin at once, no trace |
+| Alarm exploit (`AlarmExploit`) | On the water tower deck (43.9, 20.007, -12.9), beside the datapad "Field service notes" (`warehouse.tower_notes`, kept: it says where AP-YARD is and what it carries, and that the service chip was left there) and the sniper rifle: an optional detour | Any one alarm device (ALARM-YARD to disarm the yard, ALARM, a siren, a panic button, RADIO-BASE, a laser) |
 
 Both are `items/exploit/exploit_chip.tscn` instances under `population/security.tscn`'s Items. Using one adds no trace, so the Sentry tracer does not see it; the device's log records it.
 

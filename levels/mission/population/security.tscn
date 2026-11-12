@@ -1026,13 +1026,13 @@ title = "Field service notes"
 text = "Skylink job at the riverside warehouse: mounted AP-YARD on the hall's north parapet, over the dock. The yard camera and both roof lasers talk to it by radio now, no more cable runs to the roof. Told them to change the Wi-Fi key from the install default. Left the spare alarm service chip up here: it gets you admin on one of their alarm units, once. Not my job. - R. Okafor"
 
 [node name="CameraExploit" parent="Items" instance=ExtResource("60_exploit_chip")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.95, 5.27, 14.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.95, 5.257, 14.15)
 
 [node name="ItemPickup" parent="Items/CameraExploit"]
 item = ExtResource("61_camera_exploit")
 
 [node name="AlarmExploit" parent="Items" instance=ExtResource("60_exploit_chip")]
-transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.9, 20.02, -12.9)
+transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.9, 20.007, -12.9)
 
 [node name="ItemPickup" parent="Items/AlarmExploit"]
 item = ExtResource("62_alarm_exploit")

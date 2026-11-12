@@ -188,8 +188,9 @@ func test_a_deck_joined_over_ap_yard_reaches_security_without_passing_rtr01() ->
 	for path: String in ["Network/OfficeSwitch", "Network/OfficePc1", "Network/OfficePc2", "Network/OfficeWallJack"]:
 		assert_array(seen).override_failure_message(path + " on the map").not_contains([path])
 		assert_bool(session.source.reaches(get_tree(), _device(path))).override_failure_message(path).is_false()
-	# The Sentry tracer on RTR-01 watches the Security subnet: the scan added trace.
-	assert_float(_tracer().trace_of(user)).is_greater(5.0)
+	# The Security subnet is the one joined: shown at once without a scan, so no trace (ADR 0121).
+	assert_bool(session.scans.is_empty()).is_true()
+	assert_float(_tracer().trace_of(user)).is_equal(0.0)
 	session.unplug()
 	user.free()
 

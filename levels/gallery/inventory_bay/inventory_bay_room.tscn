@@ -23,6 +23,13 @@
 [ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="26_silencer"]
 [ext_resource type="PackedScene" path="res://items/prototype/prototype.tscn" id="27_prototype"]
 [ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="28_deck"]
+[ext_resource type="PackedScene" path="res://items/exploit/exploit_chip.tscn" id="60_exploit_chip"]
+[ext_resource type="Resource" path="res://items/exploit/camera_exploit.tres" id="61_camera_exploit"]
+[ext_resource type="Resource" path="res://items/exploit/turret_exploit.tres" id="62_turret_exploit"]
+[ext_resource type="Resource" path="res://items/exploit/door_exploit.tres" id="63_door_exploit"]
+[ext_resource type="Resource" path="res://items/exploit/alarm_exploit.tres" id="64_alarm_exploit"]
+[ext_resource type="Resource" path="res://items/exploit/computer_exploit.tres" id="65_computer_exploit"]
+[ext_resource type="Resource" path="res://items/exploit/router_exploit.tres" id="66_router_exploit"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -63,9 +70,9 @@ openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south")])
 [node name="ItemTable" type="Node3D" parent="."]
 
 [node name="Table" parent="ItemTable" instance=ExtResource("5_ledge")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.2, 0, -10.2)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.2, 0, -11.15)
 height = 1
-width = 9.6
+width = 11.5
 depth = 0.8
 surface = "wood"
 
@@ -119,6 +126,42 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.08, -14.88)
 
 [node name="Deck" parent="ItemTable" instance=ExtResource("28_deck")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.02, -7.7)
+
+[node name="CameraExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -15.3)
+
+[node name="ItemPickup" parent="ItemTable/CameraExploit"]
+item = ExtResource("61_camera_exploit")
+
+[node name="TurretExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -15.6)
+
+[node name="ItemPickup" parent="ItemTable/TurretExploit"]
+item = ExtResource("62_turret_exploit")
+
+[node name="DoorExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -15.9)
+
+[node name="ItemPickup" parent="ItemTable/DoorExploit"]
+item = ExtResource("63_door_exploit")
+
+[node name="AlarmExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -16.2)
+
+[node name="ItemPickup" parent="ItemTable/AlarmExploit"]
+item = ExtResource("64_alarm_exploit")
+
+[node name="ComputerExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -16.45)
+
+[node name="ItemPickup" parent="ItemTable/ComputerExploit"]
+item = ExtResource("65_computer_exploit")
+
+[node name="RouterExploit" parent="ItemTable" instance=ExtResource("60_exploit_chip")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -16.7)
+
+[node name="ItemPickup" parent="ItemTable/RouterExploit"]
+item = ExtResource("66_router_exploit")
 
 [node name="Stacks" type="Node3D" parent="."]
 
@@ -428,6 +471,48 @@ pixel_size = 0.0025
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.92, -7.7)
 text = "Deck
 2×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="CameraExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -15.3)
+text = "Camera exploit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="TurretExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.92, -15.6)
+text = "Turret exploit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="DoorExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -15.9)
+text = "Door exploit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="AlarmExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.66, -16.2)
+text = "Alarm exploit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="ComputerExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.92, -16.45)
+text = "Computer exploit
+1×1"
+size = 0
+pixel_size = 0.0025
+
+[node name="RouterExploit" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.4, -16.7)
+text = "Router exploit
+1×1"
 size = 0
 pixel_size = 0.0025
 

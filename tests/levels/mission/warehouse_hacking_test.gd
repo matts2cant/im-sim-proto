@@ -216,9 +216,10 @@ func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_rtr01_reveals_
 	seen = _map(session)
 	for path: String in SECURITY_DEVICES:
 		assert_array(seen).override_failure_message(path + " not on the map").contains([path])
-	# The scans added trace on the Sentry tracer (both subnets are watched).
+	# Only the scan behind the router added trace on the Sentry tracer (the office, the jack's own
+	# subnet, shows without a scan: ADR 0121).
 	var tracer := _router().get_node("Tracer") as Tracer
-	assert_float(tracer.trace_of(user)).is_greater(15.0)
+	assert_float(tracer.trace_of(user)).is_between(5.0, 10.5)
 	session.unplug()
 	DeviceAccounts.of(_router()).set_password("admin", DeviceAccounts.of(_router()).account("admin").password)
 	user.free()
