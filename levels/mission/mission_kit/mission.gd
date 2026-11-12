@@ -138,6 +138,7 @@ func results() -> Dictionary:
 		"optional_total": tracker.optional_total(),
 		"ghost": tally.ghost(),
 		"pacifist": tally.pacifist(),
+		"clean_hands": tally.clean_hands(),
 	}
 
 

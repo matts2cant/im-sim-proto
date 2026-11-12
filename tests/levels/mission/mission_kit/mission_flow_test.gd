@@ -111,7 +111,7 @@ func test_objectives_extraction_and_summary() -> void:
 	assert_str(mission.summary.value("Alarms raised")).is_equal("0")
 	assert_str(mission.summary.value("Optional objectives")).is_equal("2 / 2")
 	assert_str(mission.summary.value("Time")).is_equal("0:01")
-	assert_array(Array(mission.summary.earned_badges())).is_equal(["Ghost", "Pacifist"])
+	assert_array(Array(mission.summary.earned_badges())).is_equal(["Ghost", "Pacifist", "Clean hands"])
 	var completed := EventLog.find(&"mission.completed")
 	assert_int(completed.size()).is_equal(1)
 	assert_bool(completed[0].data["ghost"]).is_true()

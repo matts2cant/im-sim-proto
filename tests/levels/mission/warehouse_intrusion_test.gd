@@ -5,10 +5,9 @@ extends GdUnitTestSuite
 ## to teach it) and an alarm exploit beside the field service datapad on the water tower deck. The
 ## alarm item, used over AP-YARD, gives admin on the yard's alarm controller at once, without trace.
 ## No document teaches an exploit any more. RTR-01's rules: Security -> Office allow, Office ->
-## SEC-CONSOLE allow, Office -> Security deny; a deck with access to RTR-01 still passes (only rules
-## from "you" judge it). The sirens and both alarm controllers are on the Security subnet, so no
-## RTR-01 rule silences them. The level is loaded once.
-
+## SEC-CONSOLE allow, Office -> MAIL-01 allow (M12c), Office -> Security deny; a deck with access to
+## RTR-01 still passes (only rules from "you" judge it). The sirens and both alarm controllers are
+## on the Security subnet, so no RTR-01 rule silences them. The level is loaded once.
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const SECURITY := "Population/Security/"
@@ -130,11 +129,12 @@ func test_the_alarm_item_over_ap_yard_opens_the_yard_controller_without_trace() 
 
 func test_rtr01_keeps_the_office_off_security_except_the_console() -> void:
 	var router := Router.of(_entity("Network/Rtr01"))
-	assert_int(router.rules.size()).is_equal(3)
+	assert_int(router.rules.size()).is_equal(4)
 	assert_bool(router.default_allow).is_true()
 	var pc := _device("Network/OfficePc1")
-	# Office devices reach the console only; the security devices reach the office.
+	# Office devices reach the console and MAIL-01 (M12c) only; the security devices reach the office.
 	assert_bool(pc.reaches(_entity("Devices/SecurityConsole"))).is_true()
+	assert_bool(pc.reaches(_entity("Network/MailServer"))).is_true()
 	for path: String in ["Doors/VaultDoor", "Devices/CameraHall", "Devices/AlarmController"]:
 		assert_bool(pc.reaches(_entity(path))).override_failure_message(path).is_false()
 	assert_bool(_device("Devices/SecurityConsole").reaches(_entity("Network/OfficePc1"))).is_true()

@@ -36,6 +36,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"closet_inside": {"feet": Vector3(6.4, 0, -20.2), "look": Vector3(5.6, 1.5, -17.5), "open": ["ClosetDoor"]},
 	"server_corner": {"feet": Vector3(9.8, 0, -14.0), "look": Vector3(12, 1.5, -14.5)},
 	"far_wall": {"feet": Vector3(5, 0, -10), "look": Vector3(5, 2.3, -18)},
+	# M12c: the mail route station (east wall), its PC's Mail with the edge router's breaker off.
+	"mail_route": {"feet": Vector3(9.2, 0, -8.0), "look": Vector3(12, 1.6, -8.0)},
+	"mail_route_close": {"feet": Vector3(10.4, 0, -9.5), "look": Vector3(12, 1.3, -9.5)},
+	"mail_route_cut":
+	{
+		"feet": Vector3(10.4, 0, -9.5),
+		"look": Vector3(12, 1.45, -9.5),
+		"computer": "MailPc",
+		"app": "mail",
+		"off": ["network_lab_edge"],
+	},
 	# M12b annex: the doorway both ways, each station, the floor marks.
 	"annex_doorway_out": {"feet": Vector3(10, 0, -14.5), "look": Vector3(10, 1.5, -20)},
 	"annex_doorway_in": {"feet": Vector3(10.6, 0, -21.5), "look": Vector3(9.8, 1.7, -17)},

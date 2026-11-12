@@ -22,6 +22,7 @@ Break into a logistics company's warehouse at night. Read the shipment manifest 
 |---|---|
 | Ghost | No guard ever reached Alerted, no alarm rang, and no body was found. Suspicious is fine. |
 | Pacifist | No death caused by the player, directly or indirectly (explosions, fire, a turret the player retargeted). Knockouts are fine. |
+| Clean hands (M12c) | Nothing broken by the player, directly or indirectly: no crate, camera, switch, door panel or any other `Breakable` brought to 0 health by the player's damage or a chain they started (a barrel they shot and what its blast breaks, a fire they lit burning something out). Saved with the mission. A thrown prop breaking on impact is not attributed (its source is the prop). |
 
 - **Saving**: one shared quicksave slot that records the level; loading it loads that level. The knocked-out and death losing screens work as everywhere ([../game/saving.md](../game/saving.md)).
 - **Reinforcements**: 30 s after the first alarm, two guards enter through the front gate (once per mission).
@@ -329,7 +330,7 @@ How the level uses the mission systems ([ADR 0087](../decisions/0087-mission-sys
 - **What wave 2 must match**: the manifest datapad's `Readable.entry_id` is `warehouse.manifest`; the prototype is an item with id `prototype` (a new `ItemData` in the catalogue, placed as a pickup in the vault); every part of the shipment carries the tag `mission.shipment` (add it to the props' `Tags.initial_tags`; any one of them broken, exploded or burning completes the objective).
 - **Guards**: `guard_baton.tscn`, `guard_pistol.tscn`, and `guard_rifle.tscn` for the catwalk guard (G4; bursts of 3-5 rounds). Every guard drops its weapon as a pickup beside the body when knocked out or killed, so the assault rifle is found on G4.
 - **Alarms**: any alarm controller's first ring starts the reinforcement timer; the reinforcements search where that alarm was raised.
-- **Flow**: hub west north doorway (`MissionExit`, a `LevelExit`) -> warehouse (briefing, paused) -> extraction -> summary -> "Restart mission" or "Return to hub". The summary shows time, alarms raised, kills, knockouts, optional objectives done and the Ghost and Pacifist badges.
+- **Flow**: hub west north doorway (`MissionExit`, a `LevelExit`) -> warehouse (briefing, paused) -> extraction -> summary -> "Restart mission" or "Return to hub". The summary shows time, alarms raised, kills, knockouts, optional objectives done and the Ghost, Pacifist and Clean hands badges.
 - **Test fixture**: `tests/levels/mission/mission_kit/fixtures/mission_fixture.tscn` is a small mission level with the same contract (see `mission_helpers.gd`); screens can be reviewed with `fixtures/mission_shots.tscn` (`-- shot=briefing|toast|summary|weapon_drop out=<png>`).
 
 ## Doors, locks and keys (M9 wave 2)
@@ -521,12 +522,23 @@ Both are `items/exploit/exploit_chip.tscn` instances under `population/security.
 |---|---|---|---|
 | 1 | SECURITY subnet | OFFICE subnet | ALLOW (incidents, the console's mail) |
 | 2 | OFFICE subnet | SEC-CONSOLE (10.0.20.5) | ALLOW |
-| 3 | OFFICE subnet | SECURITY subnet | DENY |
+| 3 | OFFICE subnet | MAIL-01 (10.0.20.8) | ALLOW (M12c: the office's mail) |
+| 4 | OFFICE subnet | SECURITY subnet | DENY |
 | | no match | | ALLOW (the default) |
 
-The office PCs reach the console only (before M12b they reached every security device, which obeyed none); the deck of a player with access to RTR-01 still passes (only rules from "you" judge it, [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md)); RTR-01 itself sends freely (its tracer's incidents reach both alarm controllers). **No rule silences the sirens here**: both alarm controllers and every siren are on the Security subnet, so ringing never crosses RTR-01 (a level with sirens across a router would offer it).
+The office PCs reach the console and (M12c) MAIL-01 only (before M12b they reached every security device, which obeyed none); the deck of a player with access to RTR-01 still passes (only rules from "you" judge it, [ADR 0116](../decisions/0116-exploits-firewall-tool-and-device-logs.md)); RTR-01 itself sends freely (its tracer's incidents reach both alarm controllers). **No rule silences the sirens here**: both alarm controllers and every siren are on the Security subnet, so ringing never crosses RTR-01 (a level with sirens across a router would offer it).
 
 Tests: `warehouse_ap_yard_test.gd` (AP-YARD on the Security subnet cabled to SW-YARD; the three radio devices within its range with 2 m to spare and watched by the Sentry tracer; both spots' distances (6-7 m, 10-11 m), in range per tier, line of sight, floors, darkness and crouch-walk noise; breaking or unpowering AP-YARD cutting only its radio devices; a deck joined over it reaching the controllers, cameras and lasers without passing RTR-01; the Map from the office jack and from AP-YARD readable, 0 crossings); `warehouse_intrusion_test.gd` (every networked device of a kind with an icon, the cameras, controllers and RTR-01 of their exploit kinds; the two exploit items at their places on something solid, the camera mail gone and the datapad without firmware talk; the alarm item over AP-YARD giving admin on ALARM-YARD without trace, one use; RTR-01's rules). Review shots (`fixtures/warehouse_shots.tscn`): `ap_yard_roof`, `ap_yard_gap`, `ap_yard_apron`, `ap_yard_close`, `deck_map_ap_yard` (joined over AP-YARD), `tower_notes`, and `deck_map_office` / `deck_map_hacked` (the office jack).
+
+## Consequences (M12c)
+
+[ADR 0115](../decisions/0115-m12b-intrusion-and-m12c-consequences.md), [hacking.md](../game/hacking.md#m12c-consequences-as-built), [security.md](../game/security.md#loss-of-signal-m12c-adr-0115).
+
+- **MAIL-01** (`Network/MailServer`, `objects/network/mail_server.tscn`, 10.0.20.8) is the in-house mail server, a box on the basement network closet's east wall at (19.49, -2.4, 9.2), 0.85 m past SW-OFFICE, cabled to SW-SECURITY and on breaker B's circuit (`warehouse_building`). There is no servers subnet here, so it sits on Security; RTR-01's rule 3 lets the office reach it. Office PC 1, office PC 2 and the console fetch their mail from it (`Computer.mail_server`). Cutting RTR-01 (a shot, its account's power) cuts the office's mail ("Can't reach MAIL-01: no route (RTR-01 is down)"), not the console's; SW-SECURITY or breaker B cuts everyone's. Read mail stays in Mail and the Journal.
+- **Supervision**: both alarm controllers supervise every device that reaches them (both stand on Security: they share the same supervised devices, so a drop is a note on both and the console shows it once). Breaking or unpowering one area switch with three or more devices behind it (SW-VAULT: 6 drops with the switch) is a network fault at that switch, raised by both controllers; SW-ROOF with CAM-ROOF is 2 drops, trouble notes only; shooting a single camera is one note. Breaker B (the main switch, the security room's switch, RTR-01, the office switch, MAIL-01, the doors) cuts the building's controller off from its devices, and the yard's controller, still up behind SW-YARD, sees the building drop and raises a fault at SW-SECURITY (the yard's sirens ring the fault pattern; the radio base station is out of its reach). Silencing the compound with breakers now costs an alarm.
+- **Fail-secure**: the vault door is fail-secure (a yellow FAIL-SECURE plate on the leaf's corridor face); the front gate and the security door are fail-secure too; the bridge door is the level's fail-safe door (breaker B opens it), as M9 placed them.
+
+Tests: `warehouse_consequences_test.gd` (MAIL-01 on SW-SECURITY serving both office PCs and the console, RTR-01 cutting the office's mail and not the console's, SW-VAULT unpowered raising one fault per controller at SW-VAULT, SW-ROOF unpowered two notes and no fault, breaker B keeping the vault locked and unlocking the bridge door, the plate). Review shot: `vault_plate` (`fixtures/warehouse_shots.tscn`).
 
 ## Rules
 

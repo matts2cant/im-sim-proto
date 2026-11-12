@@ -15,7 +15,8 @@ extends CanvasLayer
 ##   PersonalLog knows for this computer with a "Fill in" button; Enter in either field logs in
 ##   (Computer.log_in() -> DeviceAccounts.try_login()).
 ## - Desktop: the dock in the frame's sidebar with the apps installed on the computer
-##   (Computer.apps(): Mail, Files, Security; DocumentApp, SecurityApp), the account, Log out.
+##   (Computer.apps(): Mail, Files, Security; DocumentApp, SecurityApp), the account, Log out. Mail
+##   refills when its server's route comes or goes (M12c, Computer.mail_route()).
 ## - Remote (from the deck): the same desktop inside the deck's body (`remote_area`, above the deck's
 ##   layer), "Remote desktop" in its header and "Back to the map", which closes it (so does Esc) and
 ##   emits the computer's `desktop_closed`. Walking away does not close it (the deck's tether does);
@@ -83,6 +84,8 @@ var _input_before: bool = true
 var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _hud_before: bool = true
 var _refresh_left: float = 0.0
+# Whether Mail's server was reached when Mail was last filled (a change refills it).
+var _mail_reached: bool = true
 
 
 func _ready() -> void:
@@ -249,13 +252,21 @@ func show_app(which: App) -> void:
 	security_app.shown = app == App.SECURITY
 	match app:
 		App.MAIL:
-			mail_app.show_documents(computer, user, computer.documents(Computer.MAIL, account), "Mail")
+			show_mail()
 		App.FILES:
 			files_app.show_documents(computer, user, computer.documents(Computer.FILES, account), "Files")
 		App.SECURITY:
 			security_app.bind(computer, user)
-			_refresh_left = computer.config.refresh_interval
+	_refresh_left = computer.config.refresh_interval if computer != null else 0.0
 	security_app.update_feed()
+
+
+## Fills Mail: the inbox while its server is reached, else only the mail already read and what is
+## down (Computer.mail_route(), M12c).
+func show_mail() -> void:
+	var status := computer.mail_route().reason()
+	_mail_reached = status.is_empty()
+	mail_app.show_documents(computer, user, computer.documents(Computer.MAIL, account, user), "Mail", status)
 
 
 ## True while the desktop (not the login) shows.
@@ -282,11 +293,16 @@ func _physics_process(delta: float) -> void:
 	if not _still_usable():
 		close()
 		return
-	if desktop.visible and app == App.SECURITY:
-		_refresh_left -= delta
-		if _refresh_left <= 0.0:
-			_refresh_left = computer.config.refresh_interval
-			security_app.refresh()
+	if not desktop.visible or app == App.FILES:
+		return
+	_refresh_left -= delta
+	if _refresh_left > 0.0:
+		return
+	_refresh_left = computer.config.refresh_interval
+	if app == App.SECURITY:
+		security_app.refresh()
+	elif computer.mail_route().reached != _mail_reached:
+		show_mail()
 
 
 func _still_usable() -> bool:

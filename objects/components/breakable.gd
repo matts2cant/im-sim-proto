@@ -56,6 +56,8 @@ func take_damage(type: StringName, amount: float, cause: Stimulus = null) -> flo
 	var values := attributes.attribute_set
 	values.set_base(HEALTH, values.base(HEALTH) - dealt)
 	var data := {"object": String(entity.name), "type": type, "amount": dealt, "health": health()}
+	# The damaging stimulus (mission tallies attribute what broke an object that stays, a device).
+	data["by"] = cause.id if cause != null else 0
 	EventLog.record(&"object.damaged", cause.source_name() if cause != null else "", String(entity.name), data)
 	if health() <= 0.0:
 		depleted.emit(cause)
