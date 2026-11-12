@@ -38,19 +38,50 @@ display_base = 25.0
 display_decimals = 1
 tier_values = Array[float]([1.0, 1.1, 1.2, 1.3])
 
+[sub_resource type="Resource" id="Effect_pistol_still_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_still_mult"
+op = 1
+label = "Still cone"
+shows_value = true
+display_base = 2.0
+display_unit = "°"
+tier_values = Array[float]([1.0, 0.875, 0.75, 0.0])
+
+[sub_resource type="Resource" id="Effect_pistol_recoil_size_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_recoil_size_mult"
+op = 1
+label = "Recoil size"
+tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+
+[sub_resource type="Resource" id="Effect_pistol_recoil_noise_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_recoil_noise_mult"
+op = 1
+label = "Recoil noise"
+tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+
+[sub_resource type="Resource" id="Effect_pistol_recoil_recover_mult"]
+script = ExtResource("3_effect")
+attribute = &"pistol_recoil_recover_mult"
+op = 1
+label = "Recoil return time"
+tier_values = Array[float]([1.0, 0.85, 0.7, 0.55])
+
 [sub_resource type="Resource" id="Skill_pistols"]
 script = ExtResource("2_skill")
 id = &"pistols"
 display_name = "Pistols"
-description = "Pistol accuracy, settle, reload speed and damage."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_pistol_spread_mult"), SubResource("Effect_pistol_settle_time"), SubResource("Effect_pistol_reload_mult"), SubResource("Effect_pistol_damage_mult")])
+description = "Pistol and submachine gun: accuracy (still cone, bloom, settle), recoil (size, noise, return), reload speed and damage."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_pistol_spread_mult"), SubResource("Effect_pistol_settle_time"), SubResource("Effect_pistol_reload_mult"), SubResource("Effect_pistol_damage_mult"), SubResource("Effect_pistol_still_mult"), SubResource("Effect_pistol_recoil_size_mult"), SubResource("Effect_pistol_recoil_noise_mult"), SubResource("Effect_pistol_recoil_recover_mult")])
 
 [sub_resource type="Resource" id="Effect_rifle_spread_mult"]
 script = ExtResource("3_effect")
 attribute = &"rifle_spread_mult"
 op = 1
 label = "Spread"
-tier_values = Array[float]([1.0, 0.8, 0.6, 0.4])
+tier_values = Array[float]([1.0, 0.65, 0.5, 0.4])
 
 [sub_resource type="Resource" id="Effect_rifle_reload_mult"]
 script = ExtResource("3_effect")
@@ -69,12 +100,43 @@ display_base = 14.0
 display_decimals = 1
 tier_values = Array[float]([1.0, 1.1, 1.2, 1.3])
 
+[sub_resource type="Resource" id="Effect_rifle_still_mult"]
+script = ExtResource("3_effect")
+attribute = &"rifle_still_mult"
+op = 1
+label = "Still cone"
+shows_value = true
+display_base = 1.0
+display_unit = "°"
+tier_values = Array[float]([1.0, 0.4, 0.2, 0.0])
+
+[sub_resource type="Resource" id="Effect_rifle_recoil_size_mult"]
+script = ExtResource("3_effect")
+attribute = &"rifle_recoil_size_mult"
+op = 1
+label = "Recoil size"
+tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+
+[sub_resource type="Resource" id="Effect_rifle_recoil_noise_mult"]
+script = ExtResource("3_effect")
+attribute = &"rifle_recoil_noise_mult"
+op = 1
+label = "Recoil noise"
+tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+
+[sub_resource type="Resource" id="Effect_rifle_recoil_recover_mult"]
+script = ExtResource("3_effect")
+attribute = &"rifle_recoil_recover_mult"
+op = 1
+label = "Recoil return time"
+tier_values = Array[float]([1.0, 0.85, 0.7, 0.55])
+
 [sub_resource type="Resource" id="Skill_rifles"]
 script = ExtResource("2_skill")
 id = &"rifles"
 display_name = "Rifles"
-description = "Assault rifle and shotgun: accuracy (cone, bloom, shotgun pellet spread), reload speed and damage."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_rifle_spread_mult"), SubResource("Effect_rifle_reload_mult"), SubResource("Effect_rifle_damage_mult")])
+description = "Assault rifle and shotgun: accuracy (still cone, bloom, shotgun pellet spread), recoil (size, noise, return), reload speed and damage."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_rifle_spread_mult"), SubResource("Effect_rifle_reload_mult"), SubResource("Effect_rifle_damage_mult"), SubResource("Effect_rifle_still_mult"), SubResource("Effect_rifle_recoil_size_mult"), SubResource("Effect_rifle_recoil_noise_mult"), SubResource("Effect_rifle_recoil_recover_mult")])
 
 [sub_resource type="Resource" id="Effect_sniper_spread_mult"]
 script = ExtResource("3_effect")
@@ -114,12 +176,40 @@ op = 1
 label = "Scope sway"
 tier_values = Array[float]([1.0, 0.75, 0.5, 0.25])
 
+[sub_resource type="Resource" id="Effect_sniper_still_mult"]
+script = ExtResource("3_effect")
+attribute = &"sniper_still_mult"
+op = 1
+label = "Still cone"
+tier_values = Array[float]([1.0, 0.8, 0.6, 0.4])
+
+[sub_resource type="Resource" id="Effect_sniper_recoil_size_mult"]
+script = ExtResource("3_effect")
+attribute = &"sniper_recoil_size_mult"
+op = 1
+label = "Recoil size"
+tier_values = Array[float]([1.5, 1.33, 1.17, 1.0])
+
+[sub_resource type="Resource" id="Effect_sniper_recoil_noise_mult"]
+script = ExtResource("3_effect")
+attribute = &"sniper_recoil_noise_mult"
+op = 1
+label = "Recoil noise"
+tier_values = Array[float]([2.0, 1.5, 1.0, 0.5])
+
+[sub_resource type="Resource" id="Effect_sniper_recoil_recover_mult"]
+script = ExtResource("3_effect")
+attribute = &"sniper_recoil_recover_mult"
+op = 1
+label = "Recoil return time"
+tier_values = Array[float]([1.0, 0.85, 0.7, 0.55])
+
 [sub_resource type="Resource" id="Skill_sniper"]
 script = ExtResource("2_skill")
 id = &"sniper"
 display_name = "Sniper"
-description = "Sniper rifle: accuracy (cone and bloom), a steadier scope (less sway, faster settle), reload speed and damage."
-effects = Array[ExtResource("3_effect")]([SubResource("Effect_sniper_spread_mult"), SubResource("Effect_sniper_reload_mult"), SubResource("Effect_sniper_damage_mult"), SubResource("Effect_sniper_settle_time"), SubResource("Effect_sniper_sway_mult")])
+description = "Sniper rifle: accuracy (cone and bloom), a steadier scope (less sway, faster settle), recoil, reload speed and damage."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_sniper_spread_mult"), SubResource("Effect_sniper_reload_mult"), SubResource("Effect_sniper_damage_mult"), SubResource("Effect_sniper_settle_time"), SubResource("Effect_sniper_sway_mult"), SubResource("Effect_sniper_still_mult"), SubResource("Effect_sniper_recoil_size_mult"), SubResource("Effect_sniper_recoil_noise_mult"), SubResource("Effect_sniper_recoil_recover_mult")])
 
 [sub_resource type="Resource" id="Effect_melee_damage_mult"]
 script = ExtResource("3_effect")

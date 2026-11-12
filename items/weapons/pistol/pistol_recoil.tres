@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RecoilConfig" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/recoil_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+kick_up_deg = 1.2
+kick_side_deg = 0.4
+noise_deg = 0.1
+recover_time = 0.06

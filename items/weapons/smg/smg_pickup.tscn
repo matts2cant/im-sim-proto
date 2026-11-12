@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/physics_object.gd" id="1_physics_object"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
+[ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="3_impact_noise"]
+[ext_resource type="Resource" path="res://objects/materials/metal.tres" id="4_material"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="5_impact_settings"]
+[ext_resource type="Script" path="res://items/item_pickup.gd" id="6_item_pickup"]
+[ext_resource type="Resource" path="res://items/weapons/smg/smg_item.tres" id="7_item"]
+[ext_resource type="PackedScene" path="res://items/weapons/smg/smg_model.tscn" id="8_model"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.26, 0.12, 0.48)
+
+[node name="Smg" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 73
+mass = 2.2
+continuous_cd = true
+script = ExtResource("1_physics_object")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Model" parent="." instance=ExtResource("8_model")]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.03, 0, -0.03)
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("2_tags")
+initial_tags = Array[StringName]([&"object.item", &"object.smg", &"material.metal"])
+
+[node name="ImpactNoise" type="Node" parent="."]
+script = ExtResource("3_impact_noise")
+material = ExtResource("4_material")
+settings = ExtResource("5_impact_settings")
+
+[node name="ItemPickup" type="Node" parent="."]
+script = ExtResource("6_item_pickup")
+item = ExtResource("7_item")

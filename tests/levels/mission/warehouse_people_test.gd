@@ -22,11 +22,11 @@ const DOORWAY_CLEAR := 1.0
 const GUARDS: Dictionary[String, Array] = {
 	"G1GatePost": ["pistol", [], false],
 	"G2YardPatrolWest": ["baton", [], true],
-	"G3YardPatrolEast": ["pistol", [], true],
+	"G3YardPatrolEast": ["smg", [], true],
 	"G4CatwalkRifle": ["assault_rifle", [], true],
 	"G5SecurityOperator": ["pistol", [&"access.warehouse_security"], false],
 	"G6BreakRoom": ["baton", [], false],
-	"G7VaultDoor": ["pistol", [&"access.warehouse_vault"], false],
+	"G7VaultDoor": ["smg", [&"access.warehouse_vault"], false],
 	"G8OffDuty": ["baton", [], false],
 	"G9BackStrip": ["baton", [], true],
 	"G10CatwalkWest": ["pistol", [], true],

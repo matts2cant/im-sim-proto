@@ -10,6 +10,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="8_reload"]
 [ext_resource type="PackedScene" path="res://items/weapons/assault_rifle/assault_rifle_model.tscn" id="9_model"]
 [ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_aim.tres" id="10_aim"]
+[ext_resource type="Resource" path="res://items/weapons/assault_rifle/assault_rifle_recoil.tres" id="20_recoil"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.12
@@ -26,6 +27,7 @@ stream_2/stream = ExtResource("5_shot_2")
 [resource]
 script = ExtResource("1_script")
 id = &"assault_rifle"
+recoil = ExtResource("20_recoil")
 item_id = &"assault_rifle"
 display_name = "Assault rifle"
 kind = 0

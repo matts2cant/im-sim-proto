@@ -51,11 +51,11 @@ GUARD_TAGS = ["actor.guard", "equipment.radio"]
 GUARD_SPECS = [
     ("G1GatePost", "guard_pistol", [], None),
     ("G2YardPatrolWest", "guard_baton", [], [("YardWestA", 2.0), ("YardWestB", 2.0), ("YardWestC", 3.0), ("YardWestD", 2.0)]),
-    ("G3YardPatrolEast", "guard_pistol", [], [("YardEastA", 2.0), ("YardEastB", 2.0), ("YardEastC", 3.0), ("YardEastD", 2.0)]),
+    ("G3YardPatrolEast", "guard_smg", [], [("YardEastA", 2.0), ("YardEastB", 2.0), ("YardEastC", 3.0), ("YardEastD", 2.0)]),
     ("G4CatwalkRifle", "guard_rifle", [], [("CatwalkA", 3.0), ("CatwalkB", 3.0)]),
     ("G5SecurityOperator", "guard_pistol", ["access.warehouse_security"], None),
     ("G6BreakRoom", "guard_baton", [], None),
-    ("G7VaultDoor", "guard_pistol", ["access.warehouse_vault"], None),
+    ("G7VaultDoor", "guard_smg", ["access.warehouse_vault"], None),
     ("G8OffDuty", "guard_baton", [], None),
     ("G9BackStrip", "guard_baton", [], [("BackStripA", 3.0), ("BackStripB", 3.0)]),
     ("G10CatwalkWest", "guard_pistol", [], [("CatwalkWestA", 1.0), ("CatwalkWestB", 3.0)]),
@@ -109,6 +109,7 @@ PICKUPS = {
     "biocell": (ITEMS + "biocell/biocell.tscn", 0.06),
     "medkit": (ITEMS + "medkit/medkit.tscn", 0.045),
     "prototype": (ITEMS + "prototype/prototype.tscn", 0.08),
+    "deck": (ITEMS + "deck/deck.tscn", 0.02),
 }
 PROPS = {
     "small_crate": (OBJECTS + "small_crate/small_crate.tscn", 0.3, ["material.wood", "object.crate"]),
@@ -151,6 +152,8 @@ ITEM_SPECS = [
     ("PistolAmmoBreakRoom", "pistol_ammo", (9.6, wh.OFF_GROUND + 0.75, 3.7), 15.0, 6),
     ("Medkit2", "medkit", (18.5, wh.BASE_Y, -0.9), 0.0, None),
     ("Prototype", "prototype", (19.0, wh.OFF_UP + 0.8, 3.5), 90.0, None),
+    # M12: the deck on the upper office desk.
+    ("Deck", "deck", (17.45, 5.245, 14.1), 0.0, None),
     # M9f: the cache shed behind the large crate (Combat Strength), back strip, south-west corner.
     ("CacheMedkit", "medkit", (-33.95, 0.0, 23.45), 0.0, None),
     ("CacheAmmo", "pistol_ammo", (-33.6, 0.0, 23.4), 20.0, 10),

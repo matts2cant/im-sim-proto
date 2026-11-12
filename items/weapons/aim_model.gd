@@ -29,20 +29,22 @@ func _init(p_config: AimConfig, p_seed: int = 0) -> void:
 		rng.randomize()
 
 
-## The spread the cone settles to in `stance`: the stance floor x `spread_mult` (skill), plus
-## `spread_add` (arm injuries), capped at max.
-func floor_for(stance: Stance, spread_add: float = 0.0, spread_mult: float = 1.0) -> float:
-	var base := config.base_min_deg
+## The spread the cone settles to in `stance`: the still floor x `still_mult` (skill: Master's still
+## cone is 0, ADR 0123), plus the stance's movement term x `spread_mult` (skill), plus `spread_add`
+## (arm injuries), capped at max.
+func floor_for(stance: Stance, spread_add: float = 0.0, spread_mult: float = 1.0, still_mult: float = 1.0) -> float:
+	var still := config.base_min_deg * still_mult
+	var moving := 0.0
 	match stance:
 		Stance.CROUCH_STILL:
-			base *= config.crouch_still_factor
+			still *= config.crouch_still_factor
 		Stance.WALK:
-			base += config.walk_add_deg
+			moving = config.walk_add_deg
 		Stance.SPRINT:
-			base += config.sprint_add_deg
+			moving = config.sprint_add_deg
 		Stance.AIR:
-			base += config.air_add_deg
-	return minf(base * spread_mult + spread_add, config.max_spread_deg)
+			moving = config.air_add_deg
+	return minf(still + moving * spread_mult + spread_add, config.max_spread_deg)
 
 
 ## Advances `delta` seconds toward `floor_deg`: below it the cone snaps up to it, above it the

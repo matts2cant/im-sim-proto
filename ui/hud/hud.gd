@@ -192,14 +192,16 @@ func refresh_reticle() -> void:
 	if radius > 0.0:
 		var camera := player.weapons.eye as Camera3D
 		var height := get_viewport().get_visible_rect().size.y
-		var sway := player.weapons.sway()
+		# Sway and the recoil climb the camera does not follow (the camera motion setting).
+		var aim := player.weapons.aim_offset()
 		offset = Vector2(
-			AimModel.reticle_radius(sway.x, camera.fov, height), -AimModel.reticle_radius(sway.y, camera.fov, height)
+			AimModel.reticle_radius(aim.x, camera.fov, height), -AimModel.reticle_radius(aim.y, camera.fov, height)
 		)
 	var scoped := player.weapons.scope.scoped and ActorState.can_act(player)
 	scope_overlay.visible = scoped
 	if scoped:
 		scope_overlay.show_cone(radius, offset)
+		scope_overlay.show_blackout(player.weapons.recoil.blackout())
 	reticle.show_cone(radius, offset)
 	reticle.visible = ActorState.can_act(player) and not scoped
 

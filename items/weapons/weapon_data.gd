@@ -53,6 +53,14 @@ enum Grip { ONE_HAND, TWO_HAND }
 @export var pellet_spread_deg: float = 0.0
 ## Fires again every cycle while the trigger stays held (WeaponHolder.trigger_held).
 @export var automatic: bool = false
+## Recoil (ADR 0123): the climb each shot adds to the aim (a pattern or a kick) and its return.
+## Null: none.
+@export var recoil: RecoilConfig
+## Damage falloff (ADR 0123): each projectile's damage is full up to `falloff_start` metres from the
+## eye, then falls linearly to `falloff_min` x at `falloff_end` and beyond. `falloff_end` 0: none.
+@export_range(0.0, 150.0, 0.5) var falloff_start: float = 0.0
+@export_range(0.0, 150.0, 0.5) var falloff_end: float = 0.0
+@export_range(0.0, 1.0, 0.05) var falloff_min: float = 1.0
 
 @export_group("Aim")
 ## The aim cone while this weapon is drawn (bloom, cap, settle). Null: the holder's own AimConfig.
@@ -156,3 +164,12 @@ func aim_for(scoped: bool, fallback: AimConfig) -> AimConfig:
 
 func has_scope() -> bool:
 	return scope_fov > 0.0
+
+
+## Damage multiplier of a projectile that hits `distance` metres from the eye (falloff_*).
+func damage_scale_at(distance: float) -> float:
+	if falloff_end <= 0.0 or distance <= falloff_start:
+		return 1.0
+	if distance >= falloff_end or falloff_end <= falloff_start:
+		return falloff_min
+	return lerpf(1.0, falloff_min, (distance - falloff_start) / (falloff_end - falloff_start))

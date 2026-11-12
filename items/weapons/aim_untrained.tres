@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 base_min_deg = 0.5
-walk_add_deg = 3.0
-sprint_add_deg = 6.0
+walk_add_deg = 0.75
+sprint_add_deg = 4.0
 air_add_deg = 6.0
 crouch_still_factor = 0.8
 settle_time = 0.8

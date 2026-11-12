@@ -16,6 +16,8 @@ const SEGMENTS: int = 96
 var radius: float = 0.0
 ## Offset of the aim point from the screen centre in pixels (sway).
 var offset: Vector2 = Vector2.ZERO
+## Opacity (0-1) of the black cover over the lens after a shot (RecoilState.blackout()).
+var blackout: float = 0.0
 
 
 func _ready() -> void:
@@ -27,6 +29,15 @@ func show_cone(p_radius: float, p_offset: Vector2) -> void:
 		return
 	radius = p_radius
 	offset = p_offset
+	queue_redraw()
+
+
+## The lens blacks out after a shot: `amount` 1 is black, 0 clear (ADR 0123).
+func show_blackout(amount: float) -> void:
+	amount = clampf(amount, 0.0, 1.0)
+	if is_equal_approx(amount, blackout):
+		return
+	blackout = amount
 	queue_redraw()
 
 
@@ -47,3 +58,5 @@ func _draw() -> void:
 	draw_line(Vector2(aim.x, aim.y - lens), Vector2(aim.x, aim.y + lens), LINE, 1.0)
 	if radius > 0.0:
 		draw_arc(aim, radius, 0.0, TAU, 48, RING, 1.0, true)
+	if blackout > 0.0:
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, blackout))
