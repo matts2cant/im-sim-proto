@@ -1,0 +1,359 @@
+<meta charset="utf-8">
+<title>Network Gear Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: three stacked sections. 1) A linking bay seen head-on, to scale (metres), holding the large rack-mount
+   gear. 2) A desk close-up with the small consumer switch and router. 3) A first-person view with the interaction
+   frame and its status line on a pickable target. Single dark look: game views. */
+:root {
+  color-scheme: dark;
+  --page: #07090b; --wall: #262b31; --wall-line: #1c2025; --floor: #15181b;
+  --fg: #e4eaee; --caption: #9eb8c2; --line: rgba(140, 158, 168, 0.35); --panel-2: #12191d; --amber: #ffd14d;
+  --body: #14181c; --body-edge: #2d343b; --face: #0e1114; --port: #050607; --plate: #d9dde0; --plate-text: #1a1d20;
+  --rack: #0b0d10; --rail: #3a424a; --blank: #1a1e22; --desk: #6b5137; --desk-edge: #4c3926;
+  --led-up: #26ff4d; --switch: #3f8fd9; --router: #e8862a; --server: #3fc48a;
+  /* StatusLight.COLORS, and the character states */
+  --st-up: #26ff4d; --st-cut: #ff9e0d; --st-off: #ff1f14; --st-dark: #6b7275; --st-ko: #9fd8ff; --st-dead: #b0423b;
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--fg); font: 14px var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 28px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+h2 { width: 100%; max-width: 1180px; margin: 18px 0 0; font: 600 18px var(--font-head); text-wrap: balance; }
+h2 small { font: 400 13px var(--font-ui); color: var(--caption); margin-left: 8px; }
+.bar { width: 100%; max-width: 1180px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; color: var(--caption); font-size: 12px; }
+.bar label { display: flex; gap: 6px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; color: var(--caption); background: var(--panel-2); border: 0; padding: 5px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--page); background: var(--amber); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+input[type="range"] { width: 140px; accent-color: var(--amber); }
+.scene-wrap { width: 100%; max-width: 1180px; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.legend { width: 100%; max-width: 1180px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: #0c1013; min-width: 0; }
+.card h3 { margin: 0 0 6px; font: 600 14px var(--font-head); display: flex; align-items: center; gap: 8px; }
+.card h3 i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.card p { margin: 0; color: var(--caption); font-size: 13px; line-height: 1.5; }
+.card .dims { margin-top: 6px; font: 12px var(--font-mono); color: var(--caption); font-variant-numeric: tabular-nums; }
+.notes { width: 100%; max-width: 1180px; color: var(--caption); font-size: 13px; line-height: 1.55; }
+.notes p { margin: 0 0 8px; max-width: 82ch; }
+.notes b { color: var(--fg); font-weight: 600; }
+.table { width: 100%; max-width: 1180px; overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13px; min-width: 640px; }
+th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); color: var(--caption); vertical-align: top; }
+th { color: var(--fg); font-weight: 600; }
+td .sw { display: inline-block; width: 9px; height: 9px; margin-right: 6px; vertical-align: baseline; }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
+.blink { animation: blink 0.8s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+</style>
+
+<h2>1 · Linking bay <small>large rack-mount gear, front view to scale</small></h2>
+<div class="bar">
+  <label for="dist">Viewing distance <input id="dist" type="range" min="1.5" max="6" step="0.5" value="2.5"> <span id="dist-out">2.5 m</span></label>
+  <span class="seg" role="group" aria-label="Light">
+    <button type="button" id="l-lit" aria-pressed="true">Lit room</button>
+    <button type="button" id="l-dark" aria-pressed="false">Dark corner</button>
+  </span>
+  <label for="glass"><input id="glass" type="checkbox"> Glass door</label>
+  <label for="accent"><input id="accent" type="checkbox" checked> Colour band</label>
+  <label for="icon"><input id="icon" type="checkbox" checked> Map icon on the front</label>
+</div>
+<div class="scene-wrap"><svg id="bay" viewBox="0 0 1180 560" aria-label="A linking bay holding a large switch, a large router and two servers"></svg></div>
+
+<h2>2 · Desk gear <small>small consumer switch and router, close-up at 0.8 m</small></h2>
+<div class="scene-wrap"><svg id="desk" viewBox="0 0 1180 360" aria-label="A desk with a computer, a small switch and a small router"></svg></div>
+
+<div class="legend">
+  <div class="card"><h3><i style="background:var(--rail)"></i>Linking bay</h3>
+    <p>A floor-standing open rack that holds the network gear of an area, with its cables bundled up to the ceiling. Furniture, not a device: the units inside are the devices.</p>
+    <div class="dims">60 × 190 cm, 40 rack units</div></div>
+  <div class="card"><h3><i style="background:var(--switch)"></i>Switch: large / small</h3>
+    <p>Large: a 1-unit rack switch, one long row of 24 sockets. Small: a flat desktop box with 5 sockets. Both: a port light per cabled socket.</p>
+    <div class="dims">large 48 × 4.5 cm (1U) · small 17 × 3.5 cm</div></div>
+  <div class="card"><h3><i style="background:var(--router)"></i>Router: large / small</h3>
+    <p>Large: a 2-unit rack router with a fan grille and few ports; the uplink port is ringed orange. Small: a desktop box, wedge-shaped, with the same orange uplink.</p>
+    <div class="dims">large 48 × 9 cm (2U) · small 22 × 4.5 cm</div></div>
+  <div class="card"><h3><i style="background:var(--server)"></i>Servers</h3>
+    <p>Rack units with drive bays (the Map's server icon). A mail server carries an envelope on its front; other servers do not.</p>
+    <div class="dims">48 × 13 cm (3U) or 9 cm (2U)</div></div>
+</div>
+<div class="notes">
+  <p><b>What tells them apart</b> in a bay, strongest first: the height of the unit (1U switch, 2U router, 3U server), the front (a long socket row, a fan grille with an orange uplink, drive bays), then the colour band on the left ear and the Map icon. Each unit keeps one status light and a name label on its front.</p>
+</div>
+
+<h2>3 · Interaction frame with status <small>first-person view, 1152 × 648</small></h2>
+<div class="bar"><span class="seg" role="group" aria-label="Target" id="targets"></span></div>
+<div class="bar"><label for="kind"><input id="kind" type="checkbox"> Device kind under the name</label></div>
+<div class="scene-wrap"><svg id="fp" viewBox="0 0 1152 648" aria-label="First-person view with the interaction frame"></svg></div>
+<div class="table"><table>
+  <thead><tr><th>What the crosshair is on</th><th>Frame shows from</th><th>Status line</th></tr></thead>
+  <tbody>
+    <tr><td>A device on a network (a unit in a bay, desk gear, camera, door controller, wall jack…)</td><td>8 m, in line of sight</td><td><span class="sw" style="background:var(--st-up)"></span>Online · <span class="sw blink" style="background:var(--st-cut)"></span>Cut off (blinks) · <span class="sw" style="background:var(--st-off)"></span>Disabled / Broken · <span class="sw" style="background:var(--st-dark)"></span>No power</td></tr>
+    <tr><td>A powered thing not on a network (a lamp)</td><td>8 m</td><td><span class="sw" style="background:var(--st-up)"></span>Powered · <span class="sw" style="background:var(--st-dark)"></span>No power · <span class="sw" style="background:var(--st-off)"></span>Broken</td></tr>
+    <tr><td>A character (guard)</td><td>8 m</td><td>awake: name only · <span class="sw" style="background:var(--st-ko)"></span>Unconscious · <span class="sw" style="background:var(--st-dead)"></span>Dead</td></tr>
+    <tr><td>Anything else you can use (a door, a pickup, a crate)</td><td>2 m (reach), as today</td><td>name only</td></tr>
+  </tbody>
+</table></div>
+<div class="notes">
+  <p><b>Rules:</b> no "E: …" prompt any more. Within reach (2 m) the brackets are full white: E acts on the framed thing. Beyond reach, up to 8 m, the brackets are dimmed: the frame only names the thing and shows its status. Walls block it. What the prompt used to warn about ("Too heavy", "Locked: keycard", "No room to put down") shows as a short message when you press E and it fails. The status square uses the status lights' colours; cut off blinks like the light does. A door is not a network device: its controller on the wall beside it is (keypad, card reader or control box), and that is where the light, the cable and the status are. Wall jacks, panic buttons and lasers lose their light and show their status here only.</p>
+</div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  const ICONS = {
+    switch: ["rect 3 7 18 10", "6,12 6,14", "9,12 9,14", "12,12 12,14", "15,12 15,14", "18,12 18,14"],
+    router: ["rect 3 10 18 8", "7,14 7.6,14", "11,14 11.6,14", "15,14 19,14", "6,5 18,5", "15,3 18,5 15,7"],
+    server: ["rect 5 3 14 6", "rect 5 9 14 6", "rect 5 15 14 6", "8,6 9,6", "8,12 9,12", "8,18 9,18"],
+  };
+  function icon(name, x, y, size, color, parent) {
+    const g = el("g", { transform: `translate(${x} ${y}) scale(${size / 24})`, fill: "none", stroke: color, "stroke-width": 1.8, "stroke-linecap": "round", "stroke-linejoin": "round" }, parent);
+    for (const cmd of ICONS[name]) {
+      const p = cmd.split(" ");
+      if (p[0] === "rect") el("rect", { x: p[1], y: p[2], width: p[3], height: p[4], rx: 1 }, g);
+      else el("polyline", { points: cmd }, g);
+    }
+  }
+  const st = { dist: 2.5, dark: false, glass: false, accent: true, icon: true };
+  const U = 0.0445;
+
+  // One rack-mount or desktop unit, drawn at (x, y) top-left, width w, height h (px), s = px per metre.
+  function unit(g, kind, x, y, w, h, s, name, opts) {
+    const o = opts || {};
+    const lw = Math.max(1, 0.004 * s);
+    el("rect", { x, y, width: w, height: h, fill: css("--body"), stroke: css("--body-edge"), "stroke-width": lw, rx: o.small ? 0.006 * s : 0.002 * s }, g);
+    const band = { switch: "--switch", router: "--router", server: "--server" }[kind];
+    if (st.accent) {
+      if (o.small) el("rect", { x, y, width: w, height: Math.max(1.5, 0.004 * s), fill: css(band) }, g);
+      else el("rect", { x: x - 0.025 * s, y, width: 0.025 * s, height: h, fill: css(band) }, g); // left ear
+    }
+    let ledX = x + 0.012 * s, ledY = y + 0.008 * s;
+    const led = Math.max(2, 0.012 * s);
+    if (kind === "switch") {
+      const n = o.small ? 5 : 24, x0 = x + (o.small ? 0.05 * s : 0.08 * s), span = w - (o.small ? 0.06 * s : 0.13 * s), pitch = span / n;
+      for (let k = 0; k < n; k++) {
+        const px = x0 + k * pitch;
+        el("rect", { x: px, y: y + h * 0.42, width: pitch * 0.74, height: h * 0.38, fill: css("--port"), rx: 0.001 * s }, g);
+        el("rect", { x: px + pitch * 0.25, y: y + h * 0.18, width: pitch * 0.26, height: h * 0.12, fill: k < (o.small ? 3 : 9) ? css("--led-up") : "#1b201c" }, g);
+      }
+    } else if (kind === "router") {
+      if (o.small) { el("polygon", { points: `${x},${y + h} ${x + w},${y + h} ${x + w},${y + h * 0.15} ${x},${y + h * 0.45}`, fill: css("--body"), stroke: css("--body-edge"), "stroke-width": lw }, g); }
+      else { const r = h * 0.28; for (const cxk of [0.16, 0.3]) { el("circle", { cx: x + w * cxk, cy: y + h / 2, r, fill: css("--face"), stroke: css("--rail"), "stroke-width": lw }, g); for (let a = 0; a < 3; a++) el("line", { x1: x + w * cxk - r * 0.8, y1: y + h / 2 - r * 0.5 + a * r * 0.5, x2: x + w * cxk + r * 0.8, y2: y + h / 2 - r * 0.5 + a * r * 0.5, stroke: css("--rail"), "stroke-width": lw }, g); } }
+      const pw = 0.016 * s, ph = Math.min(h * 0.4, 0.014 * s), py = y + h * 0.5;
+      const x0 = x + w * (o.small ? 0.35 : 0.48);
+      for (let k = 0; k < 4; k++) el("rect", { x: x0 + k * pw * 1.4, y: py, width: pw, height: ph, fill: css("--port") }, g);
+      el("rect", { x: x0 + 4 * pw * 1.4 + pw * 0.6, y: py, width: pw * 1.3, height: ph, fill: css("--port"), stroke: css("--router"), "stroke-width": Math.max(1, 0.003 * s) }, g);
+      if (o.small) { ledY = y + h * 0.5; }
+    } else {
+      const bays = 6, x0 = x + 0.09 * s, pitch = (w - 0.2 * s) / bays;
+      for (let b = 0; b < bays; b++) el("rect", { x: x0 + b * pitch, y: y + h * 0.18, width: pitch * 0.82, height: h * 0.64, fill: css("--port"), rx: 0.002 * s }, g);
+      if (o.mail) { const ew = 0.045 * s, eh = 0.03 * s, ex = x + w - 0.1 * s, ey = y + h / 2 - eh / 2;
+        el("rect", { x: ex, y: ey, width: ew, height: eh, fill: "none", stroke: css("--plate"), "stroke-width": lw }, g);
+        el("polyline", { points: `${ex},${ey} ${ex + ew / 2},${ey + eh * 0.6} ${ex + ew},${ey}`, fill: "none", stroke: css("--plate"), "stroke-width": lw }, g); }
+    }
+    if (st.icon) { const size = Math.min(h * 0.7, 0.04 * s); icon(kind, x + (o.small ? 0.02 * s : 0.03 * s), y + h / 2 - size / 2, size, st.accent ? css(band) : css("--plate"), g); ledX = x + (o.small ? 0.02 * s : 0.03 * s) + size + 0.006 * s; }
+    el("rect", { x: ledX, y: ledY, width: led, height: led, fill: css("--led-up"), "data-glow": 1 }, g);
+    // name label on the front, right side
+    const lh = Math.min(h * 0.42, 0.018 * s), lwid = name.length * lh * 0.62 + lh;
+    const lx = x + w - lwid - (o.small ? 0.01 * s : 0.012 * s) - (kind === "server" && o.mail ? 0.06 * s : 0), ly = kind === "switch" && !o.small ? y + h + 2 : y + h - lh - 0.006 * s;
+    if (!(kind === "switch" && !o.small)) {
+      el("rect", { x: lx, y: ly, width: lwid, height: lh, fill: css("--plate"), rx: 1 }, g);
+      const t = el("text", { x: lx + lwid / 2, y: ly + lh * 0.78, "text-anchor": "middle", fill: css("--plate-text"), "font-family": "JetBrains Mono, monospace", "font-weight": 600, "font-size": lh * 0.8 }, g); t.textContent = name;
+    } else {
+      // 1U: label on the right rack ear
+      el("rect", { x: x + w + 0.002 * s, y: y + h * 0.1, width: 0.022 * s, height: h * 0.8, fill: css("--plate"), rx: 1 }, g);
+    }
+  }
+
+  // ---------- 1. Linking bay ----------
+  const bay = document.getElementById("bay");
+  function drawBay() {
+    bay.textContent = "";
+    const W = 1180, H = 560, floorY = 520, s = 420 / st.dist;
+    el("rect", { x: 0, y: 0, width: W, height: floorY, fill: css("--wall") }, bay);
+    for (let x = 0; x < W; x += 1.2 * s) el("line", { x1: x, y1: 0, x2: x, y2: floorY, stroke: css("--wall-line"), "stroke-width": 2 }, bay);
+    for (let y = floorY; y > 0; y -= 0.6 * s) el("line", { x1: 0, y1: y, x2: W, y2: y, stroke: css("--wall-line"), "stroke-width": 2 }, bay);
+    el("rect", { x: 0, y: floorY, width: W, height: H - floorY, fill: css("--floor") }, bay);
+    const g = el("g", {}, bay);
+    const bw = 0.6 * s, bh = 1.9 * s, bx = W / 2 - bw / 2, by = floorY - bh;
+    // cable bundle to the ceiling
+    for (let k = 0; k < 5; k++) el("line", { x1: bx + bw * (0.35 + k * 0.07), y1: by, x2: bx + bw * (0.35 + k * 0.07) + (k - 2) * 2, y2: 0, stroke: "#0a0c0e", "stroke-width": Math.max(2, 0.012 * s) }, g);
+    el("rect", { x: bx, y: by, width: bw, height: bh, fill: css("--rack"), stroke: css("--rail"), "stroke-width": Math.max(1, 0.006 * s) }, g);
+    // header plate
+    el("rect", { x: bx + 0.02 * s, y: by + 0.02 * s, width: bw - 0.04 * s, height: 0.06 * s, fill: css("--blank") }, g);
+    el("rect", { x: bx + bw / 2 - 0.12 * s, y: by + 0.032 * s, width: 0.24 * s, height: 0.036 * s, fill: css("--plate"), rx: 2 }, g);
+    const ht = el("text", { x: bx + bw / 2, y: by + 0.058 * s, "text-anchor": "middle", fill: css("--plate-text"), "font-family": "JetBrains Mono, monospace", "font-weight": 600, "font-size": 0.022 * s }, g); ht.textContent = "BAY-A · OFFICE";
+    // rails
+    const rx0 = bx + 0.045 * s, rx1 = bx + bw - 0.045 * s, rw = 0.015 * s;
+    el("rect", { x: rx0, y: by + 0.1 * s, width: rw, height: bh - 0.16 * s, fill: css("--rail") }, g);
+    el("rect", { x: rx1 - rw, y: by + 0.1 * s, width: rw, height: bh - 0.16 * s, fill: css("--rail") }, g);
+    const ux = rx0 + rw, uw = rx1 - rw - ux;
+    let uy = by + 0.14 * s;
+    const slot = (n) => { const y = uy; uy += n * U * s + 0.004 * s; return y; };
+    const blank = (n) => { const y = slot(n); el("rect", { x: ux, y, width: uw, height: n * U * s, fill: css("--blank"), stroke: "#101316", "stroke-width": 1 }, g); };
+    unit(g, "switch", ux, slot(1), uw, U * s, s, "SW-CORE");
+    blank(1);
+    unit(g, "router", ux, slot(2), uw, 2 * U * s, s, "RTR-02");
+    blank(1);
+    unit(g, "switch", ux, slot(1), uw, U * s, s, "SW-OFFICE");
+    blank(2);
+    unit(g, "server", ux, slot(3), uw, 3 * U * s, s, "MAIL-01", { mail: true });
+    unit(g, "server", ux, slot(2), uw, 2 * U * s, s, "FILES-01");
+    while (uy + 2 * U * s < floorY - 0.12 * s) blank(2);
+    // feet
+    for (const fx of [bx + 0.03 * s, bx + bw - 0.07 * s]) el("rect", { x: fx, y: floorY - 0.04 * s, width: 0.04 * s, height: 0.04 * s, fill: "#000" }, g);
+    if (st.glass) {
+      el("rect", { x: bx + 0.01 * s, y: by + 0.09 * s, width: bw - 0.02 * s, height: bh - 0.13 * s, fill: "rgba(150,190,210,0.10)", stroke: css("--rail"), "stroke-width": Math.max(2, 0.012 * s) }, g);
+      el("rect", { x: bx + bw - 0.05 * s, y: by + bh * 0.48, width: 0.012 * s, height: 0.12 * s, fill: "#9aa1a6" }, g);
+      el("line", { x1: bx + 0.1 * s, y1: by + 0.2 * s, x2: bx + 0.25 * s, y2: by + 0.05 * s + 0.45 * s, stroke: "rgba(255,255,255,0.08)", "stroke-width": 0.03 * s }, g);
+    }
+    if (st.dark) {
+      el("rect", { x: 0, y: 0, width: W, height: H, fill: "#000", opacity: 0.74 }, bay);
+      g.querySelectorAll("[data-glow]").forEach((r) => bay.appendChild(r.cloneNode()));
+      g.querySelectorAll("rect").forEach((r) => { if (r.getAttribute("fill") === css("--led-up")) bay.appendChild(r.cloneNode()); });
+    }
+    const ey = floorY - 1.65 * s;
+    if (ey > 0) { el("line", { x1: 0, y1: ey, x2: 36, y2: ey, stroke: css("--amber"), "stroke-width": 2 }, bay);
+      const e = el("text", { x: 42, y: ey + 4, fill: css("--amber"), "font-family": "Inter, sans-serif", "font-size": 12 }, bay); e.textContent = "eye height 1.65 m"; }
+  }
+
+  // ---------- 2. Desk ----------
+  const desk = document.getElementById("desk");
+  function drawDesk() {
+    desk.textContent = "";
+    const W = 1180, H = 360, s = 420 / 0.8, topY = 250;
+    el("rect", { x: 0, y: 0, width: W, height: H, fill: css("--wall") }, desk);
+    el("rect", { x: 0, y: topY, width: W, height: 0.03 * s, fill: css("--desk") }, desk);
+    el("rect", { x: 0, y: topY + 0.03 * s, width: W, height: H, fill: css("--desk-edge") }, desk);
+    // monitor
+    const mx = 120, mw = 0.55 * s * 0.6, mh = 0.33 * s * 0.6;
+    el("rect", { x: mx, y: topY - mh - 30, width: mw, height: mh, fill: "#111417", stroke: "#2a3036", "stroke-width": 3 }, desk);
+    el("rect", { x: mx + 8, y: topY - mh - 22, width: mw - 16, height: mh - 16, fill: "#0f2a26" }, desk);
+    el("rect", { x: mx + mw / 2 - 10, y: topY - 30, width: 20, height: 30, fill: "#2a3036" }, desk);
+    const g = el("g", {}, desk);
+    const sw = 0.17 * s, sh = 0.035 * s;
+    unit(g, "switch", 600, topY - sh, sw, sh, s, "SW-DESK", { small: true });
+    const rw = 0.22 * s, rh = 0.045 * s;
+    unit(g, "router", 860, topY - rh, rw, rh, s, "RTR-HOME", { small: true });
+    // cables
+    el("path", { d: `M ${600 + sw * 0.4} ${topY - sh * 0.4} C ${600 + sw * 0.4} ${topY + 40}, ${mx + mw / 2} ${topY + 40}, ${mx + mw / 2} ${topY}`, fill: "none", stroke: "#0a0c0e", "stroke-width": 4 }, desk);
+    const lbl = (x, text) => { const t = el("text", { x, y: H - 14, "text-anchor": "middle", fill: css("--caption"), "font-family": "Inter, sans-serif", "font-size": 14 }, desk); t.textContent = text; };
+    lbl(600 + sw / 2, "Small switch · 17 × 3.5 cm");
+    lbl(860 + rw / 2, "Small router · 22 × 4.5 cm");
+    lbl(mx + mw / 2, "Computer, for scale");
+  }
+
+  const press = (on, off) => { on.setAttribute("aria-pressed", "true"); off.setAttribute("aria-pressed", "false"); };
+  const lL = document.getElementById("l-lit"), lD = document.getElementById("l-dark");
+  const redraw = () => { drawBay(); drawDesk(); };
+  lL.onclick = () => { st.dark = false; press(lL, lD); drawBay(); };
+  lD.onclick = () => { st.dark = true; press(lD, lL); drawBay(); };
+  const dist = document.getElementById("dist"), out = document.getElementById("dist-out");
+  dist.oninput = () => { st.dist = Number(dist.value); out.textContent = st.dist + " m"; drawBay(); };
+  document.getElementById("glass").onchange = (e) => { st.glass = e.target.checked; drawBay(); };
+  document.getElementById("accent").onchange = (e) => { st.accent = e.target.checked; redraw(); };
+  document.getElementById("icon").onchange = (e) => { st.icon = e.target.checked; redraw(); };
+  redraw();
+
+  // ---------- 3. Interaction frame ----------
+  const fp = document.getElementById("fp");
+  const TARGETS = [
+    { id: "router", label: "Router in a bay", name: "RTR-02", kind: "Router", status: ["Online", "--st-up"], dist: 2.5, prompt: "", shape: "rack-router" },
+    { id: "switch", label: "Switch in a bay, cut off", name: "SW-OFFICE", kind: "Network switch", status: ["Cut off", "--st-cut", true], dist: 2.5, prompt: "", shape: "rack-switch" },
+    { id: "desk", label: "Small switch on a desk", name: "SW-DESK", kind: "Network switch", status: ["Online", "--st-up"], dist: 1.2, prompt: "", shape: "desk-switch" },
+    { id: "ctrl", label: "Door controller", name: "D4 controller", kind: "Door controller", status: ["Online", "--st-up"], dist: 1.4, prompt: "E: use keypad", shape: "ctrl" },
+    { id: "door", label: "Door", name: "Door", kind: "", status: null, dist: 1.6, prompt: "E: open door", shape: "door" },
+    { id: "camera", label: "Camera, disabled", name: "CAM-HALL", kind: "Camera", status: ["Disabled", "--st-off"], dist: 5, prompt: "", shape: "camera" },
+    { id: "jack", label: "Wall jack", name: "OFFICE-JACK", kind: "Wall jack", status: ["Online", "--st-up"], dist: 1.5, prompt: "E: plug in the deck", shape: "jack" },
+    { id: "lamp", label: "Lamp, no power", name: "Ceiling lamp", kind: "", status: ["No power", "--st-dark"], dist: 4, prompt: "", shape: "lamp" },
+    { id: "guard", label: "Guard, awake", name: "Guard", kind: "", status: null, dist: 6, prompt: "", shape: "guard" },
+    { id: "ko", label: "Guard, unconscious", name: "Guard", kind: "", status: ["Unconscious", "--st-ko"], dist: 1.8, prompt: "E: carry Guard", shape: "body" },
+    { id: "dead", label: "Guard, dead", name: "Guard", kind: "", status: ["Dead", "--st-dead"], dist: 3, prompt: "", shape: "body" },
+    { id: "pick", label: "Pickup", name: "Lockpick (3)", kind: "", status: null, dist: 1.4, prompt: "E: pick up Lockpick", shape: "pickup" },
+  ];
+  let current = TARGETS[0], showKind = false;
+  const bar = document.getElementById("targets");
+  TARGETS.forEach((t) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t.label; b.setAttribute("aria-pressed", t === current ? "true" : "false");
+    b.onclick = () => { current = t; bar.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); drawFp(); }; bar.appendChild(b); });
+  document.getElementById("kind").onchange = (e) => { showKind = e.target.checked; drawFp(); };
+
+  // Draws the target around the screen centre; returns its box (px, before clamping).
+  function shape(t, g) {
+    const C = { x: 576, y: 300 }, s = 420 * 1.6 / t.dist; // px per metre at this distance (about a 70-degree view)
+    const R = (x, y, w, h, fill, extra) => el("rect", Object.assign({ x: C.x + x * s, y: C.y + y * s, width: w * s, height: h * s, fill }, extra || {}), g);
+    switch (t.shape) {
+      case "rack-router": case "rack-switch": {
+        // a slice of the bay: rails, the unit under the crosshair, neighbours above and below
+        R(-0.3, -0.5, 0.6, 1.2, css("--rack"));
+        R(-0.255, -0.5, 0.015, 1.2, css("--rail")); R(0.24, -0.5, 0.015, 1.2, css("--rail"));
+        const ux = -0.24, uw = 0.48;
+        const h = t.shape === "rack-router" ? 2 * U : U;
+        const y0 = -h / 2;
+        unit(g, "server", C.x + ux * s, C.y + (y0 - 3 * U - 0.01) * s, uw * s, 3 * U * s, s, "MAIL-01", { mail: true });
+        unit(g, t.shape === "rack-router" ? "router" : "switch", C.x + ux * s, C.y + y0 * s, uw * s, h * s, s, t.name);
+        if (t.status && t.status[2]) { g.querySelectorAll("[data-glow]").forEach((r, i, all) => { if (i === all.length - 1) { r.setAttribute("fill", css("--st-cut")); r.setAttribute("class", "blink"); } }); }
+        unit(g, "server", C.x + ux * s, C.y + (y0 + h + 0.01) * s, uw * s, 2 * U * s, s, "FILES-01");
+        return { x: ux - 0.026, y: y0, w: uw + 0.05, h };
+      }
+      case "desk-switch": R(-0.6, 0.02, 1.2, 0.5, css("--desk")); unit(g, "switch", C.x - 0.085 * s, C.y - 0.015 * s, 0.17 * s, 0.035 * s, s, "SW-DESK", { small: true }); return { x: -0.085, y: -0.015, w: 0.17, h: 0.035 };
+      case "ctrl": R(-0.9, -1.0, 0.7, 2.0, "#2c3a4c", { stroke: "#1b2430", "stroke-width": 3 }); R(-0.06, -0.09, 0.12, 0.18, "#16191c"); R(-0.04, -0.07, 0.08, 0.03, css("--st-off")); for (let i = 0; i < 9; i++) R(-0.04 + (i % 3) * 0.028, -0.025 + Math.floor(i / 3) * 0.028, 0.02, 0.02, "#3a4046"); return { x: -0.06, y: -0.09, w: 0.12, h: 0.18 };
+      case "door": R(-0.45, -1.1, 0.9, 2.1, "#2c3a4c", { stroke: "#1b2430", "stroke-width": 3 }); R(0.55, -0.05, 0.12, 0.18, "#16191c"); R(0.57, -0.03, 0.08, 0.03, css("--st-off")); R(0.32, 0.0, 0.08, 0.03, "#8a9196"); return { x: -0.45, y: -1.1, w: 0.9, h: 2.1 };
+      case "camera": R(-0.02, -0.25, 0.04, 0.1, css("--body-edge")); R(-0.13, -0.16, 0.26, 0.11, "#cfd3d6"); R(0.12, -0.14, 0.04, 0.07, "#20262b"); R(-0.11, -0.13, 0.025, 0.025, css("--st-dark")); return { x: -0.14, y: -0.26, w: 0.31, h: 0.22 };
+      case "jack": R(-0.045, -0.045, 0.09, 0.09, "#d9dde0"); R(-0.025, -0.016, 0.05, 0.034, "#121416"); return { x: -0.046, y: -0.046, w: 0.092, h: 0.092 };
+      case "lamp": R(-0.3, -0.42, 0.6, 0.08, "#3a4046"); R(-0.27, -0.34, 0.54, 0.03, "#7d8489"); return { x: -0.31, y: -0.43, w: 0.62, h: 0.13 };
+      case "guard": R(-0.11, -0.4, 0.22, 0.22, "#c79d78"); R(-0.17, -0.18, 0.34, 0.6, "#1d2e52"); R(-0.16, 0.42, 0.15, 0.5, "#18243f"); R(0.01, 0.42, 0.15, 0.5, "#18243f"); return { x: -0.18, y: -0.41, w: 0.36, h: 1.34 };
+      case "body": R(-0.6, 0.25, 0.95, 0.25, "#1d2e52"); R(0.35, 0.27, 0.21, 0.21, "#c79d78"); return { x: -0.61, y: 0.24, w: 1.18, h: 0.27 };
+      case "pickup": R(-0.8, 0.12, 1.6, 0.5, "#7a5230"); R(-0.06, 0.09, 0.12, 0.03, "#9aa1a6"); return { x: -0.065, y: 0.085, w: 0.13, h: 0.04 };
+    }
+  }
+
+  function drawFp() {
+    fp.textContent = "";
+    el("rect", { x: 0, y: 0, width: 1152, height: 400, fill: "#30363d" }, fp);
+    el("rect", { x: 0, y: 400, width: 1152, height: 248, fill: "#1b1f23" }, fp);
+    for (let x = 0; x < 1152; x += 144) el("line", { x1: x, y1: 0, x2: x, y2: 400, stroke: "#272c32", "stroke-width": 2 }, fp);
+    const g = el("g", {}, fp);
+    const b = shape(current, g);
+    const s = 420 * 1.6 / current.dist, C = { x: 576, y: 300 };
+    let x0 = C.x + b.x * s - 6, y0 = C.y + b.y * s - 6, x1 = C.x + (b.x + b.w) * s + 6, y1 = C.y + (b.y + b.h) * s + 6;
+    x0 = Math.max(10, x0); y0 = Math.max(10, y0); x1 = Math.min(1142, x1); y1 = Math.min(560, y1);
+    const arm = Math.max(5, Math.min(14, 0.15 * Math.min(x1 - x0, y1 - y0)));
+    const inReach = current.dist <= 2;
+    const br = (pts) => { el("polyline", { points: pts, fill: "none", stroke: "rgba(0,0,0,0.45)", "stroke-width": 2.2, opacity: inReach ? 1 : 0.5 }, fp); el("polyline", { points: pts, fill: "none", stroke: "#f2f4f5", "stroke-width": 1, opacity: inReach ? 1 : 0.45 }, fp); };
+    br(`${x0},${y0 + arm} ${x0},${y0} ${x0 + arm},${y0}`); br(`${x1 - arm},${y0} ${x1},${y0} ${x1},${y0 + arm}`);
+    br(`${x0},${y1 - arm} ${x0},${y1} ${x0 + arm},${y1}`); br(`${x1 - arm},${y1} ${x1},${y1} ${x1},${y1 - arm}`);
+    const lines = [current.name];
+    if (showKind && current.kind) lines.push(current.kind);
+    const hasStatus = !!current.status;
+    const tw = Math.max(...lines.map((l) => l.length * 6.6), hasStatus ? current.status[0].length * 6.4 + 16 : 0) + 12;
+    const th = 6 + lines.length * 14 + (hasStatus ? 15 : 0);
+    let tx = x0 + 4, ty = y0 + 4;
+    if (y1 - y0 < th + 12 || x1 - x0 < tw + 8) ty = y0 - th - 4;
+    const tag = el("g", {}, fp);
+    el("rect", { x: tx, y: ty, width: tw, height: th, fill: "rgba(8,10,12,0.72)", stroke: "rgba(242,244,245,0.85)", "stroke-width": 1 }, tag);
+    lines.forEach((l, i) => { const t = el("text", { x: tx + 6, y: ty + 15 + i * 14, fill: i === 0 ? "#f2f4f5" : "#a9b4ba", "font-family": "Inter, sans-serif", "font-size": i === 0 ? 12 : 11, "font-weight": i === 0 ? 500 : 400 }, tag); t.textContent = l; });
+    if (hasStatus) {
+      const sy = ty + 6 + lines.length * 14 + 3;
+      el("rect", Object.assign({ x: tx + 6, y: sy, width: 7, height: 7, fill: css(current.status[1]) }, current.status[2] ? { class: "blink" } : {}), tag);
+      const t = el("text", { x: tx + 18, y: sy + 7, fill: css(current.status[1]), "font-family": "Inter, sans-serif", "font-size": 11, "font-weight": 500 }, tag);
+      t.textContent = current.status[0];
+    }
+    const ch = (xa, ya, xb, yb) => { el("line", { x1: xa, y1: ya, x2: xb, y2: yb, stroke: "rgba(0,0,0,0.5)", "stroke-width": 2 }, fp); el("line", { x1: xa, y1: ya, x2: xb, y2: yb, stroke: "#fff", "stroke-width": 1 }, fp); };
+    ch(576, 288, 576, 281); ch(576, 312, 576, 319); ch(564, 300, 557, 300); ch(588, 300, 595, 300);
+    el("circle", { cx: 576, cy: 300, r: 1, fill: "#fff" }, fp);
+    const d = el("text", { x: 16, y: 632, fill: "#9eb8c2", "font-family": "Inter, sans-serif", "font-size": 12 }, fp);
+    d.textContent = `${current.dist} m away · ${inReach ? "within reach: full white brackets, E acts on it" : "beyond reach: dimmed brackets, look only"}`;
+  }
+  drawFp();
+})();
+</script>
