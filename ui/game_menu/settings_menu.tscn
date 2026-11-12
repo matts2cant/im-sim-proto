@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/game_menu/settings_menu.gd" id="1_settings"]
+[ext_resource type="Theme" path="res://ui/game_menu/game_menu_theme.tres" id="2_theme"]
+
+[sub_resource type="LabelSettings" id="Label_header"]
+font_size = 24
+font_color = Color(0.55, 0.92, 0.88, 1)
+
+[sub_resource type="LabelSettings" id="Label_hint"]
+font_size = 13
+font_color = Color(0.5, 0.64, 0.64, 1)
+
+[node name="SettingsMenu" type="PanelContainer"]
+custom_minimum_size = Vector2(720, 0)
+theme = ExtResource("2_theme")
+script = ExtResource("1_settings")
+
+[node name="Box" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Box"]
+layout_mode = 2
+text = "Settings"
+label_settings = SubResource("Label_header")
+
+[node name="Rule" type="HSeparator" parent="Box"]
+layout_mode = 2
+
+[node name="Columns" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="Rule2" type="HSeparator" parent="Box"]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="Back" type="Button" parent="Box/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Back"
+
+[node name="SettingsHint" type="Label" parent="Box/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Esc: back"
+label_settings = SubResource("Label_hint")
+horizontal_alignment = 2

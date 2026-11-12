@@ -119,9 +119,8 @@ static func load_profile() -> void:
 	var file := ConfigFile.new()
 	if FileAccess.file_exists(_path) and file.load(_path) == OK:
 		for key: StringName in DEFAULTS:
-			var raw: Variant = file.get_value(SECTIONS[key], key, null)
-			if raw != null:
-				_values[key] = _sanitize(key, raw)
+			if file.has_section_key(SECTIONS[key], key):
+				_values[key] = _sanitize(key, file.get_value(SECTIONS[key], key))
 	_loaded = true
 	_dirty = false
 	for key: StringName in DEFAULTS:
