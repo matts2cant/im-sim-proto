@@ -81,7 +81,7 @@ flowchart LR
 
 ## Icebreaker
 
-Brute force, deterministic. The letters lock in one by one.
+Brute force, deterministic. The letters lock in one by one. While it runs, the next letter's cell scrambles through random characters until it locks, then flashes (display only, [ADR 0113 amendment](../decisions/0113-network-layer-tracers-and-the-deck.md#amendment-2026-11-12-playtest-the-icebreakers-scramble)).
 
 | Password strength | Base time |
 |---|---|

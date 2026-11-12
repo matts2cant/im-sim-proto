@@ -216,6 +216,13 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_flash"]
+bg_color = Color(0.55, 0.95, 0.85, 0.35)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iwa2r"]
 content_margin_left = 12.0
 content_margin_top = 8.0
@@ -614,6 +621,10 @@ DeckFrame/colors/subtitle_color = Color(0.5, 0.66, 0.64, 1)
 DeckFrame/colors/title_color = Color(0.55, 0.95, 0.85, 1)
 DeckLetter/base_type = &"Label"
 DeckLetter/styles/normal = SubResource("StyleBoxFlat_vp80i")
+DeckLetterActive/base_type = &"Label"
+DeckLetterActive/styles/normal = SubResource("StyleBoxFlat_iyx2n")
+DeckLetterFlash/base_type = &"Panel"
+DeckLetterFlash/styles/panel = SubResource("StyleBoxFlat_flash")
 DeckLetterLocked/base_type = &"Label"
 DeckLetterLocked/styles/normal = SubResource("StyleBoxFlat_iyx2n")
 DeckToast/base_type = &"Label"
