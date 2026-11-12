@@ -32,6 +32,13 @@ Final state on master: 2066 tests, 0 failures, 1 skipped, lint clean (the last a
   - Pistol guards weaker at 10 m: fine, or per-loadout tuning / guard skill tiers (ADR 0127)?
   - Gun sounds: add a gun sound pack (your call; nothing is downloaded without your OK)?
   - Yellow headshot markers are hard to see on the yellow training dummies.
+- **Playtest (user, 2026-11-12):**
+  - The tuned gun values are fine as they are.
+  - Status lights float in the air on some devices (alarms, cameras, computers): the automatic placement (top-front of the visible bounds, +Z as front) does not fit every model. Fixed in `m13-playtest-fixes`; a test now checks every device's light sits on its model.
+  - The SMG uses Kenney `blaster-n` (red, like the pistol: same ammo).
+  - Icebreaker: the next letter should cycle rapidly through characters until it locks. Mockup approved: [icebreaker_scramble.html](prototypes/icebreaker_scramble.html).
+  - The crosshair is too thick (lines and outline); the scope view should use the same crosshair, centred on the lens; at perfect accuracy the crosshair must not collapse to a dot.
+  - Still unanswered: pistol guards at 10 m, a gun sound pack, the headshot marker colour.
 
 ## M12b playtest fixes and M12c — Network consequences (2026-11-12)
 

@@ -1,0 +1,175 @@
+<meta charset="utf-8">
+<title>Icebreaker Scramble</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: the deck's Icebreaker panel as built (window_theme.tres colours: DeckLetter / DeckLetterLocked
+   cells, teal title, dim text), with a mock bar above to try the next-letter scramble. Single dark look:
+   it is a game screen. */
+:root {
+  color-scheme: dark;
+  --page: #07090b;
+  --line: rgba(140, 158, 168, 0.35);
+  --panel-2: #12191d;
+  --fg: #e4eaee; --caption: #9eb8c2; --amber: #ffd14d;
+  --os-bg: #081816; --os-panel: #0c2220; --os-line: rgba(77, 191, 168, 0.45);
+  --cell: #031010; --cell-line: rgba(77, 191, 168, 0.45);
+  --teal: #8cf2d9; --teal-text: #d1f2e6; --teal-dim: #80a8a3; --self: #73d9ff; --access: #ffd14d;
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--fg); font: 14px var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.mockbar { width: 100%; max-width: 760px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; color: var(--caption); font-size: 12px; }
+.mockbar strong { color: var(--fg); font: 600 14px var(--font-head); margin-right: 4px; }
+.mockbar label { display: flex; gap: 6px; align-items: center; }
+.mockbar select, .mockbar button { font: inherit; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.mockbar button:focus-visible, .mockbar select:focus-visible, .btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+.deck { width: 100%; max-width: 760px; background: var(--os-bg); border: 1px solid var(--os-line); border-radius: 6px; overflow: hidden; color: var(--teal-text); box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+.deck .bar { display: flex; gap: 14px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--os-line); background: var(--os-panel); font: 12px var(--font-mono); color: var(--teal-dim); flex-wrap: wrap; }
+.deck .bar .tab { color: var(--teal-dim); }
+.deck .bar .tab.on { color: var(--teal); }
+.body { padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 16px; }
+h2 { margin: 0; font: 600 20px var(--font-head); color: var(--teal); text-wrap: balance; }
+.mono { font: 12px var(--font-mono); color: var(--teal-dim); }
+.letters { display: flex; flex-wrap: wrap; gap: 6px; }
+.cell { width: 34px; height: 44px; display: grid; place-items: center; font: 600 20px var(--font-mono); color: var(--teal-dim);
+  background: var(--cell); border: 1px solid var(--cell-line); border-radius: 3px; font-variant-numeric: tabular-nums; }
+.cell.locked { color: var(--teal); border-color: var(--teal); }
+.cell.scramble { color: var(--teal-text); border-color: var(--teal); }
+.cell.scramble.blink { color: var(--self); }
+.cell.flash { background: rgba(140, 242, 217, 0.35); color: #ffffff; transition: none; }
+.cell.fade { transition: background 0.25s ease-out, color 0.25s ease-out; }
+.track { width: min(520px, 100%); height: 10px; background: var(--cell); border: 1px solid var(--cell-line); border-radius: 3px; overflow: hidden; }
+.track > div { height: 100%; width: 0; background: var(--teal); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: 13px var(--font-ui); color: var(--teal-text); background: var(--os-panel); border: 1px solid var(--os-line); border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { color: var(--teal); border-color: var(--teal); }
+.assist { font: 12px var(--font-mono); color: var(--self); }
+.done { font: 14px var(--font-ui); color: var(--access); }
+.note { margin: 0; max-width: 62ch; font-size: 12px; color: var(--teal-dim); line-height: 1.5; }
+.notes { width: 100%; max-width: 760px; color: var(--caption); font-size: 13px; line-height: 1.55; }
+.notes p { margin: 0 0 8px; max-width: 72ch; }
+.notes b { color: var(--fg); font-weight: 600; }
+</style>
+
+<div class="mockbar">
+  <strong>Icebreaker · next-letter scramble</strong>
+  <label for="rate">Scramble rate
+    <select id="rate">
+      <option value="25">Fast (40 / s)</option>
+      <option value="45" selected>Medium (22 / s)</option>
+      <option value="80">Slow (12 / s)</option>
+    </select>
+  </label>
+  <label for="time">Crack time
+    <select id="time">
+      <option value="6">6 s</option>
+      <option value="12" selected>12 s</option>
+      <option value="30">30 s</option>
+    </select>
+  </label>
+  <label for="style">Lock
+    <select id="style">
+      <option value="flash" selected>Flash on lock</option>
+      <option value="plain">No flash</option>
+    </select>
+  </label>
+  <button type="button" id="restart">Restart</button>
+</div>
+
+<div class="deck" role="region" aria-label="Deck, Icebreaker tool">
+  <div class="bar"><span class="tab">Map</span><span class="tab on">Icebreaker</span><span style="flex:1"></span><span>Trace 18 %</span></div>
+  <div class="body">
+    <h2>Icebreaker · jhale@SEC-CAM-02</h2>
+    <div class="mono" id="strength">Password strength Medium · base 12 s · deterministic</div>
+    <div class="letters" id="letters" aria-live="off"></div>
+    <div class="track"><div id="bar"></div></div>
+    <div class="actions" id="actions"></div>
+    <p class="note">Adds trace while it runs (4 %/s x your skill's trace gain) to every tracer watching SEC-CAM-02.</p>
+  </div>
+</div>
+
+<div class="notes">
+  <p><b>The effect</b>: while the Icebreaker runs, the next letter to find cycles through random characters; when its share of the progress is reached it locks on the real letter (with a short flash), and the scramble moves to the next cell. Letters further on stay as dots. When you stop it (or the connection drops), the scramble stops and the cell shows a dot again; Resume picks up where it was.</p>
+  <p><b>Unchanged</b>: the timing (letters lock at progress × length, deterministic), the progress bar, the buttons and the assists. The effect is display only; the cycled characters are drawn from the same character set as the password (letters, digits, symbols) and never show the right one by chance.</p>
+</div>
+
+<script>
+(() => {
+  const PASSWORD = "Kx7#pLm2q";
+  const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#$%&@!?*";
+  const lettersEl = document.getElementById("letters"), bar = document.getElementById("bar"), actions = document.getElementById("actions");
+  const rateSel = document.getElementById("rate"), timeSel = document.getElementById("time"), styleSel = document.getElementById("style");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let progress = 0, running = false, lastLocked = 0, scrambleT = 0, last = performance.now(), blinkOn = false;
+
+  const cells = [...PASSWORD].map(() => { const c = document.createElement("div"); c.className = "cell"; c.textContent = "·"; lettersEl.appendChild(c); return c; });
+  const locked = () => progress >= 1 ? PASSWORD.length : Math.floor(progress * PASSWORD.length);
+  const crackTime = () => Number(timeSel.value);
+  function randomChar(real) { let ch; do { ch = CHARS[Math.floor(Math.random() * CHARS.length)]; } while (ch === real); return ch; }
+
+  function renderActions() {
+    actions.textContent = "";
+    if (progress >= 1) {
+      const d = document.createElement("span"); d.className = "done"; d.textContent = "Cracked: added to the Journal (Codes and logins)"; actions.appendChild(d);
+      const b = document.createElement("button"); b.className = "btn"; b.type = "button"; b.id = "back"; b.textContent = "Back to the map"; b.onclick = reset; actions.appendChild(b);
+      return;
+    }
+    const b = document.createElement("button"); b.className = "btn"; b.type = "button"; b.id = "toggle";
+    b.textContent = running ? "Stop (keeps progress)" : (progress > 0 ? "Resume" : "Start");
+    b.onclick = () => { running = !running; renderActions(); paint(true); };
+    actions.appendChild(b);
+    const a = document.createElement("span"); a.className = "assist"; a.id = "left"; actions.appendChild(a);
+  }
+
+  function paint(force) {
+    const n = locked();
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      if (i < n) {
+        if (!c.classList.contains("locked")) {
+          c.textContent = PASSWORD[i]; c.className = "cell locked";
+          if (styleSel.value === "flash" && !force) { c.classList.add("flash"); requestAnimationFrame(() => requestAnimationFrame(() => { c.classList.add("fade"); c.classList.remove("flash"); })); }
+        }
+      } else if (i === n && running) {
+        if (!c.classList.contains("scramble")) c.className = "cell scramble";
+      } else if (c.className !== "cell") { c.className = "cell"; c.textContent = "·"; }
+    }
+    bar.style.width = (progress * 100).toFixed(1) + "%";
+    const left = document.getElementById("left");
+    if (left) left.textContent = "▸ " + ((1 - progress) * crackTime()).toFixed(1) + " s left";
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (running) {
+      progress = Math.min(1, progress + dt / crackTime());
+      const n = locked();
+      if (n !== lastLocked) { lastLocked = n; paint(false); if (progress >= 1) { running = false; renderActions(); } }
+      scrambleT += dt * 1000;
+      const step = reduced ? 250 : Number(rateSel.value);
+      if (scrambleT >= step && n < cells.length) {
+        scrambleT = 0; blinkOn = !blinkOn;
+        const c = cells[n]; c.textContent = randomChar(PASSWORD[n]); c.classList.toggle("blink", blinkOn);
+      }
+      paint(true);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function reset() { progress = 0; lastLocked = 0; running = false; cells.forEach((c) => { c.className = "cell"; c.textContent = "·"; }); renderActions(); paint(true); }
+  document.getElementById("restart").onclick = () => { reset(); running = true; renderActions(); };
+  timeSel.onchange = () => { document.getElementById("strength").textContent = "Password strength Medium · base " + crackTime() + " s · deterministic"; paint(true); };
+
+  // Opens mid-crack, running, so the effect shows at once.
+  progress = 0.36; lastLocked = locked(); running = true; renderActions(); paint(true);
+  requestAnimationFrame(frame);
+})();
+</script>
