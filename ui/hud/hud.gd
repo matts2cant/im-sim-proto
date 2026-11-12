@@ -192,16 +192,43 @@ func refresh_reticle() -> void:
 	if radius > 0.0:
 		var camera := player.weapons.eye as Camera3D
 		var height := get_viewport().get_visible_rect().size.y
-		var sway := player.weapons.sway()
+		# Sway and the recoil climb the camera does not follow (the camera motion setting).
+		var aim := player.weapons.aim_offset()
 		offset = Vector2(
-			AimModel.reticle_radius(sway.x, camera.fov, height), -AimModel.reticle_radius(sway.y, camera.fov, height)
+			AimModel.reticle_radius(aim.x, camera.fov, height), -AimModel.reticle_radius(aim.y, camera.fov, height)
 		)
 	var scoped := player.weapons.scope.scoped and ActorState.can_act(player)
 	scope_overlay.visible = scoped
 	if scoped:
 		scope_overlay.show_cone(radius, offset)
+		scope_overlay.show_blackout(player.weapons.recoil.blackout())
 	reticle.show_cone(radius, offset)
+	var target := aimed_target() if radius > 0.0 and not scoped else null
+	reticle.show_target(target != null, _target_color(target))
 	reticle.visible = ActorState.can_act(player) and not scoped
+
+
+## What the held ranged weapon's aim (the eye turned by the aim offset) is on within its range, when
+## a weapon can damage it (Reticle.is_target()); null otherwise.
+func aimed_target() -> Node:
+	var data := player.weapons.weapon()
+	if data == null or data.is_melee():
+		return null
+	var from := player.weapons.aim_transform()
+	var exclude: Array[RID] = [player.get_rid()]
+	exclude.append_array(Hitboxes.rids_of(player))
+	var query := PhysicsRayQueryParameters3D.create(
+		from.origin, from.origin - from.basis.z * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
+	)
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
+	var collider := hit.get("collider") as Node if not hit.is_empty() else null
+	return collider if Reticle.is_target(collider) else null
+
+
+# The crosshair's colour on `target`: the hook for colouring by hostility once factions exist
+# (red for enemies); white for now.
+func _target_color(_target: Node) -> Color:
+	return Reticle.COLOR
 
 
 # The item put in hand: its name above the belt for a moment; empty hands: no name.

@@ -31,6 +31,12 @@ extends Node3D
 ## the weapon does traces back to whoever made it fire (a turret's last command).
 ## A character with a model hangs the view from its hand (WeaponView.hang_from(), CharacterAnimator,
 ## ADR 0103): the weapon follows the arm; shots still leave the eye.
+## Recoil (ADR 0123, `recoil_enabled`): each shot of a weapon with a RecoilConfig climbs the aim
+## (`recoil`, a RecoilState) and the climb returns by itself; shots follow the climbed aim. Whoever
+## owns the eye may turn the eye itself by a share of the climb (recoil.view_recoil(): the
+## player's camera); the holder adds the rest to the shots, so the bullets follow the whole climb
+## whatever that share is. The user's `<class>_recoil_size_mult`, `_recoil_noise_mult` and
+## `_recoil_recover_mult` scale it. Damage falls off with distance (WeaponData.falloff_*).
 
 signal changed
 ## A shot or a swing of `weapon` happened (the trigger fired it): animation, effects.
@@ -53,6 +59,12 @@ const ATTRIBUTE_SWAY: StringName = &"aim_sway_mult"
 		view_shift_deg = value
 		if _view != null:
 			_view.shift_deg = value
+## Shots climb with the weapon's recoil (ADR 0123). Off: shots ignore WeaponData.recoil (guards keep
+## their aim model until M13b, ADR 0120).
+@export var recoil_enabled: bool = false
+## The equipped weapon's own AimConfig (WeaponData.aim_config) replaces `aim_config` while drawn. Off:
+## always `aim_config` (guards keep their aim model until M13b, ADR 0120).
+@export var weapon_aim: bool = true
 
 ## The character holding the weapons (shots come from it; its body and hitboxes are excluded).
 var user: CollisionObject3D
@@ -74,10 +86,18 @@ var trigger_held: bool = false
 ## Stimulus id every shot, swing and noise names as its cause (Stimulus.cause_id); 0: none (the
 ## stimulus system fills in the stimulus being delivered, if any).
 var cause_id: int = 0
+## The recoil climb of the shots (ADR 0123): the eye's owner turns the eye by
+## recoil.view_recoil() (its `view_share` of the climb), the shots add the rest; its blackout() is
+## the scope blackout after a scoped shot.
+var recoil := RecoilState.new()
 
 var _equipped: WeaponState = null
+# The recoil of the last shot: its return runs on even after a switch or holster.
+var _last_recoil: RecoilConfig
 var _look_pixels: float = 0.0
 var _floor: float = 0.0
+# A physics step has set `_floor` (settle() falls back to the config's floor before that).
+var _has_floor: bool = false
 var _sway: Vector2 = Vector2.ZERO
 var _view: WeaponView
 var _audio: AudioStreamPlayer3D
@@ -89,6 +109,7 @@ func _ready() -> void:
 	# Its own copy: instances of one scene may share the exported array, and a drop removes from it.
 	weapons = weapons.duplicate()
 	aim = AimModel.new(aim_config, rng_seed)
+	recoil = RecoilState.new(_recoil_seed(rng_seed))
 	for data in weapons:
 		states.append(WeaponState.new(data))
 	_view = WeaponView.new()
@@ -107,9 +128,16 @@ func setup(p_user: CollisionObject3D, p_eye: Node3D) -> void:
 	eye = p_eye
 
 
-## Reseeds the shot generator (tests).
+## Reseeds the shot and recoil generators (tests).
 func seed_rng(value: int) -> void:
 	aim.rng.seed = value
+	recoil.rng.seed = _recoil_seed(value)
+
+
+# The recoil generator's seed for a shot seed (0: random), its own sequence so recoil noise does not
+# shift the shots' samples.
+static func _recoil_seed(value: int) -> int:
+	return 0 if value == 0 else value * 7919 + 17
 
 
 func weapon() -> WeaponData:
@@ -142,6 +170,8 @@ func equip_state(weapon_state: WeaponState) -> void:
 	current = states.find(weapon_state)
 	scope.reset()
 	scope.zoom_time = weapon_state.data.scope_time
+	# A new weapon starts its pattern from the first step; the old climb still returns.
+	recoil.heat = 0.0
 	trigger_held = false
 	_view.show_weapon(weapon_state)
 	_log(&"weapon.equipped", {"weapon": weapon_state.data.id})
@@ -176,10 +206,14 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 	if _look_pixels > 0.0:
 		aim.add_look(_look_pixels, spread_mult)
 		_look_pixels = 0.0
-	var stance_floor := aim.floor_for(stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult)
+	var stance_floor := aim.floor_for(
+		stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult, _class_value("still_mult", 1.0)
+	)
 	_floor = minf(stance_floor + floor_add, aim.config.max_spread_deg)
+	_has_floor = true
 	aim.step(delta, _floor, _settle_time())
 	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0) * _class_value("sway_mult", 1.0))
+	recoil.step(delta, _last_recoil, _class_value("recoil_recover_mult", 1.0))
 	# Automatic fire before the cooldowns tick: one shot every cycle_time while held.
 	_auto_fire()
 	var stepped := states.duplicate()
@@ -205,15 +239,18 @@ func _settle_time() -> float:
 	return settle
 
 
-## Snaps the cone to the floor of the last step (tests; a level start).
+## Snaps the cone to the floor of the last step and the recoil back to rest (tests; a level start).
 func settle() -> void:
 	aim.config = _aim_config()
-	aim.spread = maxf(_floor, 0.0) if _floor > 0.0 else aim.config.base_min_deg
+	aim.spread = maxf(_floor, 0.0) if _has_floor else aim.config.base_min_deg
+	recoil.reset()
 
 
-## Current aim sway in degrees (HUD: the reticle moves with it).
-func sway() -> Vector2:
-	return _sway
+## Where the shots go relative to the eye's view, in degrees (x right, y up): the aim sway plus the
+## part of the recoil climb the eye's owner has not turned the eye by (RecoilState.unfollowed()).
+## The HUD reticle moves with it.
+func aim_offset() -> Vector2:
+	return _sway + recoil.unfollowed()
 
 
 ## RMB: scopes in or out (a weapon with a scope, the user able to use its arms, not reloading).
@@ -226,8 +263,9 @@ func toggle_scope() -> bool:
 
 
 ## Fire / swing the equipped weapon (press edge). Returns the WeaponState result, or -1 when
-## nothing happened (holstered, or the user cannot use weapons).
-func trigger() -> int:
+## nothing happened (holstered, or the user cannot use weapons). `held`: a shot of automatic fire
+## (the trigger kept down), which keeps the cycle's rhythm (WeaponState.try_fire()).
+func trigger(held: bool = false) -> int:
 	var data := weapon()
 	if data == null:
 		return -1
@@ -239,7 +277,7 @@ func trigger() -> int:
 		)
 		return -1
 	aim.config = _aim_config()
-	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0))
+	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0), held)
 	match result:
 		WeaponState.Result.FIRED:
 			_view.kick()
@@ -268,10 +306,11 @@ func reload() -> bool:
 	return true
 
 
-## The eye transform shots use: the eye turned by the current sway.
+## The eye transform shots use: the eye turned by the current sway and the recoil climb the eye
+## has not turned by itself (aim_offset()).
 func aim_transform() -> Transform3D:
 	var eye_transform := eye.global_transform
-	return Transform3D(AimModel.swayed(eye_transform.basis, _sway), eye_transform.origin)
+	return Transform3D(AimModel.swayed(eye_transform.basis, aim_offset()), eye_transform.origin)
 
 
 ## Takes `weapon_state` out of the fixed loadout (its weapon was dropped): holstered first when it is
@@ -356,11 +395,14 @@ func _shoot(data: WeaponData) -> void:
 			from.origin, from.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
 		)
 		var hit := space.intersect_ray(query)
+		var falloff := 1.0
 		if not hit.is_empty():
 			hits.append(hit)
+			falloff = data.damage_scale_at(from.origin.distance_to(hit["position"] as Vector3))
 		for type: StringName in rays:
+			var intensity := rays[type] * falloff if data.damage.has(type) else rays[type]
 			var ray := Stimulus.make_ray(
-				type, rays[type], from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
+				type, intensity, from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
 			)
 			ray.exclude = exclude
 			if data.damage.has(type):
@@ -378,6 +420,7 @@ func _shoot(data: WeaponData) -> void:
 		_emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
 		_play_at(data.hit_sound, point)
 	aim.add_shot(_class_value("spread_mult", 1.0))
+	_add_recoil(data)
 	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
 	flash.fire(data, _equipped.stat(&"muzzle_flash_size"))
 	var logged := {
@@ -390,6 +433,17 @@ func _shoot(data: WeaponData) -> void:
 		"noise": _equipped.stat(&"fire_noise"),
 	}
 	_log(&"weapon.fired", logged)
+
+
+# The shot's recoil climbs the aim for the next shots (scaled by the user's skill attributes); a
+# scoped shot blacks the scope out for a moment.
+func _add_recoil(data: WeaponData) -> void:
+	if not recoil_enabled or data.recoil == null:
+		return
+	_last_recoil = data.recoil
+	recoil.add_shot(data.recoil, _class_value("recoil_size_mult", 1.0), _class_value("recoil_noise_mult", 1.0))
+	if scope.scoped and data.recoil.scope_blackout_time > 0.0:
+		recoil.black_out(data.recoil.scope_blackout_time)
 
 
 # The shot sound: the suppressed one while an attachment makes the weapon `suppressed`.
@@ -409,13 +463,14 @@ func _auto_fire() -> void:
 		return
 	if data.uses_ammo() and _equipped.magazine <= 0:
 		return
-	trigger()
+	trigger(true)
 
 
-# The aim cone in use: the equipped weapon's own (scoped or hip), else the holder's.
+# The aim cone in use: the equipped weapon's own (scoped or hip) when the holder follows weapon
+# cones (`weapon_aim`), else the holder's.
 func _aim_config() -> AimConfig:
 	var data := weapon()
-	if data == null:
+	if data == null or not weapon_aim:
 		return aim_config
 	return data.aim_for(scope.scoped, aim_config)
 

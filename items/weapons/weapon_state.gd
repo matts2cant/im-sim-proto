@@ -29,6 +29,8 @@ var attachments: Array[AttachmentData] = []
 
 # Holds the attachments' modifiers; bases come from `data` (evaluate()).
 var _stats := AttributeSet.new()
+# How long before the end of the last step the cycle ran out (try_fire()'s `keep_rhythm`).
+var _late: float = 0.0
 
 
 ## Without `p_ammo` the spare rounds are a plain pool of `data.reserve_ammo`.
@@ -64,6 +66,7 @@ func is_reloading() -> bool:
 
 
 func step(delta: float) -> void:
+	_late = maxf(delta - cooldown, 0.0) if cooldown > 0.0 else 0.0
 	cooldown = maxf(cooldown - delta, 0.0)
 	if not is_reloading():
 		return
@@ -75,13 +78,16 @@ func step(delta: float) -> void:
 
 ## Pulls the trigger: FIRED uses a round (if the weapon has ammo) and starts the cycle (cycle_time x
 ## `cycle_mult`, the user's skill); DRY when the magazine is empty (the click also waits a cycle);
-## BUSY during the cycle; RELOADING.
-func try_fire(cycle_mult: float = 1.0) -> Result:
+## BUSY during the cycle; RELOADING. `keep_rhythm` (automatic fire, ADR 0123): the time the cycle
+## ran out before the last step ended is taken off the next cycle, so a 0.07 s cycle fires every
+## 0.07 s on average at any physics rate instead of every whole number of steps.
+func try_fire(cycle_mult: float = 1.0, keep_rhythm: bool = false) -> Result:
 	if is_reloading():
 		return Result.RELOADING
 	if cooldown > EPSILON:
 		return Result.BUSY
-	cooldown = data.cycle_time * cycle_mult
+	cooldown = data.cycle_time * cycle_mult - (_late if keep_rhythm else 0.0)
+	_late = 0.0
 	if data.uses_ammo():
 		if magazine <= 0:
 			return Result.DRY

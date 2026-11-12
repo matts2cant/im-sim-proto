@@ -31,7 +31,7 @@ func test_reticle_is_the_cone_at_rest_and_while_sprinting() -> void:
 	var height := _hud.get_viewport().get_visible_rect().size.y
 
 	await _driver.frames(2)
-	assert_float(_hud.reticle.radius).is_equal_approx(AimModel.reticle_radius(0.5, 80.0, height), 0.01)
+	assert_float(_hud.reticle.radius).is_equal_approx(AimModel.reticle_radius(2.0, 80.0, height), 0.01)
 
 	_driver.runner.simulate_action_press(&"sprint")
 	_driver.runner.simulate_action_press(&"move_back")
@@ -43,7 +43,8 @@ func test_reticle_is_the_cone_at_rest_and_while_sprinting() -> void:
 	_driver.runner.simulate_action_release(&"sprint")
 
 	assert_int(_player.aim_stance()).is_equal(AimModel.Stance.SPRINT)
-	assert_float(sprinting).is_equal_approx(AimModel.reticle_radius(6.5, 80.0, height), 0.01)
+	# The pistol (pistol_aim.tres, ADR 0123): still 2.0, sprinting 2.0 + 4.
+	assert_float(sprinting).is_equal_approx(AimModel.reticle_radius(6.0, 80.0, height), 0.01)
 
 
 func test_no_cone_holstered_or_with_the_baton() -> void:

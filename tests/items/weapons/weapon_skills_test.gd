@@ -8,8 +8,9 @@ const Weapons := preload("res://tests/items/weapons/weapon_test_helpers.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const WALL_POINT := Vector3(0, 1.5, -5.8)
-## Untrained standing floor (aim_untrained.tres base_min_deg).
-const BASE_FLOOR := 0.5
+## Untrained standing floor of the pistol (pistol_aim.tres base_min_deg); Master's still cone is 0
+## (pistol_still_mult, ADR 0123).
+const BASE_FLOOR := 2.0
 
 var _driver: PlayerDriver
 var _weapons: Weapons
@@ -26,14 +27,15 @@ func after_test() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-func test_pistols_master_settles_to_0_4_of_the_floor() -> void:
+func test_pistols_master_still_cone_settles_to_zero() -> void:
 	await _load(ROOM)
 	await _weapons.equip(1)
 	_player.skills.set_tier(&"pistols", 3)
 	await _weapons.aim_at(Vector3.ZERO, WALL_POINT)
-	await _driver.frames(30)
+	# From the Untrained floor of 2 degrees with Master's 0.2 s settle: below the 0.005 snap in 1.2 s.
+	await _driver.frames(90)
 
-	assert_float(_player.weapons.aim.spread).is_equal_approx(BASE_FLOOR * 0.4, 0.001)
+	assert_float(_player.weapons.aim.spread).is_equal(0.0)
 
 
 func test_pistols_master_settle_time_is_0_2_seconds() -> void:
@@ -78,7 +80,7 @@ func test_arm_injury_still_widens_the_master_cone() -> void:
 	await _weapons.aim_at(Vector3.ZERO, WALL_POINT)
 	await _driver.frames(30)
 
-	assert_float(_player.weapons.aim.spread).is_equal_approx(BASE_FLOOR * 0.4 + 3.0, 0.001)
+	assert_float(_player.weapons.aim.spread).is_equal_approx(3.0, 0.001)
 
 
 func test_pistols_master_reloads_in_half_the_time() -> void:

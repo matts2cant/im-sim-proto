@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## a 0.5 x 0.5 m plate and a 12 x 8 m wall, each moved in front of the player (or out of reach) per
 ## test. Distances are centre to centre, from the player's feet (eye straight above, 1.65 m) to the
 ## plate or wall centre at eye height. Each test prints a MEASURED line for the report.
-## - Assault rifle: the group of a full 30-round magazine held on the wall at 15 m (mean distance of
+## - Assault rifle: the group of a full 30-round magazine held on the wall at 15 m, the recoil pattern
+##   pulled against with the mouse (M13a, ADR 0123) (mean distance of
 ##   the hits from their centre).
 ## - Sniper rifle: scoped and still, the time for the cone to settle from the hip floor to 0.25
 ##   degrees and to its own floor.
@@ -28,6 +29,7 @@ var _player: Player
 var _plate: StaticBody3D
 var _wall: StaticBody3D
 var _hits: Array[Vector3] = []
+var _fired: int = 0
 
 
 func before_test() -> void:
@@ -57,10 +59,11 @@ func test_rifles_master_tightens_the_assault_rifle_group_at_15_m() -> void:
 		)
 	)
 
-	# Untrained: floor 1.0 + 0.25 per shot settling at about 2.1 degrees (0.55 m cone at 15 m);
-	# Master: 0.4 + 0.1 per shot, about 0.85 degrees.
-	assert_float(untrained).is_between(0.15, 0.45)
-	assert_float(master).is_less(untrained * 0.6)
+	# M13a (ADR 0123), recoil pulled against: Untrained blooms 1.4 per shot to the 5 degree cap (a
+	# 1.3 m cone at 15 m, mean radius about 2/3 of it) plus twice the recoil noise; Master 0.56 per
+	# shot settling near 2.5 degrees, half the noise.
+	assert_float(untrained).is_between(0.6, 1.3)
+	assert_float(master).is_less(untrained * 0.7)
 
 
 func test_sniper_master_settles_the_scope_faster() -> void:
@@ -147,6 +150,7 @@ func _group_radius(seed: int) -> float:
 	_player.weapons.state().magazine = 30
 	_player.weapons.seed_rng(seed)
 	_hits.clear()
+	_fired = 0
 	_driver.runner.simulate_action_press(&"fire")
 	var frames := 0
 	while _player.weapons.state().magazine > 0 and frames < 240:
@@ -214,8 +218,20 @@ func _aim_at(point: Vector3) -> void:
 
 
 func _on_entry(entry: EventLogEntry) -> void:
-	if entry.kind == &"weapon.fired" and not _player.weapons.last_hit.is_empty():
+	if entry.kind != &"weapon.fired":
+		return
+	if not _player.weapons.last_hit.is_empty():
 		_hits.append(_player.weapons.last_hit["position"] as Vector3)
+	# M13a (ADR 0123): the player pulls the mouse against the assault rifle's learned pattern (each
+	# shot's step at the skill's size); the noise is not pulled.
+	var recoil := _player.weapons.weapon().recoil
+	if recoil == null or not recoil.has_pattern():
+		return
+	var size := Attributes.read(_player, &"rifle_recoil_size_mult", 1.0)
+	var step := recoil.pattern_step(_fired) * recoil.pattern_scale * size
+	_fired += 1
+	var degrees_per_pixel := rad_to_deg(_player.config.mouse_sensitivity)
+	_player.look(Vector2(-step.x, step.y) / degrees_per_pixel)
 
 
 func _load(item: ItemData) -> void:

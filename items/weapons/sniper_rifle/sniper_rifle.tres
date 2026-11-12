@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_model.tscn" id="8_model"]
 [ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_hip_aim.tres" id="9_hip"]
 [ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_scope_aim.tres" id="10_scope"]
+[ext_resource type="Resource" path="res://items/weapons/sniper_rifle/sniper_recoil.tres" id="20_recoil"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.03
@@ -25,6 +26,7 @@ stream_1/stream = ExtResource("4_shot_1")
 [resource]
 script = ExtResource("1_script")
 id = &"sniper_rifle"
+recoil = ExtResource("20_recoil")
 item_id = &"sniper_rifle"
 display_name = "Sniper rifle"
 kind = 0

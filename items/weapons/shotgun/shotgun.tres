@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="4_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="5_reload"]
 [ext_resource type="PackedScene" path="res://items/weapons/shotgun/shotgun_model.tscn" id="6_model"]
+[ext_resource type="Resource" path="res://items/weapons/shotgun/shotgun_recoil.tres" id="20_recoil"]
 
 [sub_resource type="AudioStreamRandomizer" id="Shot"]
 random_pitch = 1.04
@@ -15,6 +16,7 @@ stream_0/stream = ExtResource("2_bang")
 [resource]
 script = ExtResource("1_script")
 id = &"shotgun"
+recoil = ExtResource("20_recoil")
 item_id = &"shotgun"
 display_name = "Shotgun"
 kind = 0

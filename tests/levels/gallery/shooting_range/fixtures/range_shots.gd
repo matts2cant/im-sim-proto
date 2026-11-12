@@ -56,6 +56,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"counter_east_end": {"feet": Vector3(19.4, 0, -7.2), "look": Vector3(20.5, 1.0, -8.6)},
 	"east_wall_far": {"feet": Vector3(18.5, 0, -44.0), "look": Vector3(20.5, 1.2, -52)},
 	"booth_south_east": {"feet": Vector3(18.0, 0, -6.8), "look": Vector3(20.5, 2.0, -4.0)},
+	# M13a weapon feel (ADR 0123): the SMG at eye height; the crosshair on nothing, and mid-spray
+	# (fire: the trigger held from the start, the recoil climbing the camera) on the 10 m dummy.
+	"fp_smg": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "smg"},
+	"fp_smg_spray":
+	{"feet": Vector3(4.25, 0, -7.45), "look": Vector3(4.25, 1.21, -18), "weapon": "smg", "fire": true, "wait": 0.75},
+	"fp_rifle_spray":
+	{
+		"feet": Vector3(4.25, 0, -7.45),
+		"look": Vector3(4.25, 1.21, -18),
+		"weapon": "assault_rifle",
+		"fire": true,
+		"wait": 0.75
+	},
+	"crosshair_nothing": {"feet": Vector3(4.25, 0, -7.45), "look": Vector3(6.5, 0.0, -12), "weapon": "pistol"},
 }
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
@@ -119,7 +133,10 @@ func _physics_process(delta: float) -> void:
 		if _shot.get("tune", false):
 			var desk := _room.get_node("FiringLine/TuningTerminal/TuningDesk") as TuningDesk
 			desk.use(_player)
-	if _started and (_shot.get("pistol", false) or _shot.has("weapon")):
+	if _started and _shot.get("fire", false):
+		# The trigger kept down: the weapon fires each cycle (recoil climbing the camera) until the shot.
+		_player.weapons.trigger()
+	if _started and (_shot.get("pistol", false) or _shot.has("weapon")) and not _shot.get("fire", false):
 		_player.weapons.settle()
 
 

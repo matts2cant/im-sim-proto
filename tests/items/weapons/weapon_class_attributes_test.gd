@@ -72,8 +72,8 @@ func test_sniper_sway_mult_steadies_any_holder_and_stacks_with_injuries() -> voi
 	for tick in 20:
 		_holder.physics_step(STEP, AimModel.Stance.STILL)
 	var base := _holder.aim.sway(1.0)
-	assert_float(_holder.sway().length()).is_greater(0.01)
-	assert_vector(_holder.sway()).is_equal_approx(base, Vector2.ONE * 0.0001)
+	assert_float(_holder.aim_offset().length()).is_greater(0.01)
+	assert_vector(_holder.aim_offset()).is_equal_approx(base, Vector2.ONE * 0.0001)
 
 	_modify(&"sniper_sway_mult", 0.25)
 	# An injured arm doubles the sway (BodyParts writes `aim_sway_mult` the same way).
@@ -81,7 +81,7 @@ func test_sniper_sway_mult_steadies_any_holder_and_stacks_with_injuries() -> voi
 	_modify(&"aim_sway_mult", 2.0)
 	_holder.physics_step(STEP, AimModel.Stance.STILL)
 
-	assert_vector(_holder.sway()).is_equal_approx(_holder.aim.sway(0.5), Vector2.ONE * 0.0001)
+	assert_vector(_holder.aim_offset()).is_equal_approx(_holder.aim.sway(0.5), Vector2.ONE * 0.0001)
 
 
 # Fires one shotgun shot and returns the widest pellet's angle (degrees) off the eye's -Z.

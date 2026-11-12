@@ -18,9 +18,18 @@ func test_starts_at_the_base_floor() -> void:
 func test_floors_per_stance() -> void:
 	assert_float(_aim.floor_for(AimModel.Stance.STILL)).is_equal_approx(0.5, 0.0001)
 	assert_float(_aim.floor_for(AimModel.Stance.CROUCH_STILL)).is_equal_approx(0.4, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.WALK)).is_equal_approx(3.5, 0.0001)
-	assert_float(_aim.floor_for(AimModel.Stance.SPRINT)).is_equal_approx(6.5, 0.0001)
+	# M13a (ADR 0123): a moderate moving penalty, walking near standing, airborne bad.
+	assert_float(_aim.floor_for(AimModel.Stance.WALK)).is_equal_approx(1.25, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.SPRINT)).is_equal_approx(4.5, 0.0001)
 	assert_float(_aim.floor_for(AimModel.Stance.AIR)).is_equal_approx(6.5, 0.0001)
+
+
+func test_still_mult_scales_only_the_still_floor() -> void:
+	# Master (ADR 0123): still cone 0, the movement terms x the spread multiplier.
+	assert_float(_aim.floor_for(AimModel.Stance.STILL, 0.0, 0.4, 0.0)).is_equal(0.0)
+	assert_float(_aim.floor_for(AimModel.Stance.CROUCH_STILL, 0.0, 0.4, 0.0)).is_equal(0.0)
+	assert_float(_aim.floor_for(AimModel.Stance.WALK, 0.0, 0.4, 0.0)).is_equal_approx(0.3, 0.0001)
+	assert_float(_aim.floor_for(AimModel.Stance.STILL, 0.0, 1.0, 0.5)).is_equal_approx(0.25, 0.0001)
 
 
 func test_arm_penalty_adds_to_the_floor_and_caps_at_max() -> void:
@@ -31,7 +40,7 @@ func test_arm_penalty_adds_to_the_floor_and_caps_at_max() -> void:
 func test_rising_floor_widens_at_once() -> void:
 	_aim.step(FRAME, _aim.floor_for(AimModel.Stance.SPRINT))
 
-	assert_float(_aim.spread).is_equal_approx(6.5, 0.0001)
+	assert_float(_aim.spread).is_equal_approx(4.5, 0.0001)
 
 
 func test_settles_exponentially_with_the_time_constant() -> void:

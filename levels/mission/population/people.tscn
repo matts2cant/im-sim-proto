@@ -3,32 +3,33 @@
 [ext_resource type="PackedScene" path="res://actors/guard/guard_pistol.tscn" id="1_guard_pistol"]
 [ext_resource type="Script" path="res://actors/common/behaviour/patrol_route.gd" id="2_patrol_route"]
 [ext_resource type="PackedScene" path="res://actors/guard/guard_baton.tscn" id="3_guard_baton"]
-[ext_resource type="PackedScene" path="res://actors/guard/guard_rifle.tscn" id="4_guard_rifle"]
-[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="5_ledge"]
-[ext_resource type="Material" path="res://assets/materials/graybox/metal.tres" id="6_metal"]
-[ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="7_silencer_pickup"]
-[ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="8_rifle_rounds"]
-[ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_pickup.tscn" id="9_sniper_rifle_pickup"]
-[ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="10_sniper_rounds"]
-[ext_resource type="PackedScene" path="res://items/weapons/shotgun/shotgun_pickup.tscn" id="11_shotgun_pickup"]
-[ext_resource type="PackedScene" path="res://items/shotgun_shells/shotgun_shells.tscn" id="12_shotgun_shells"]
-[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="13_lockpick"]
-[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="14_biocell"]
-[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="15_pistol_ammo"]
-[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="16_medkit"]
-[ext_resource type="PackedScene" path="res://items/prototype/prototype.tscn" id="17_prototype"]
-[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="18_large_crate"]
-[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="19_small_crate"]
-[ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="20_cardboard_box"]
-[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="21_explosive_barrel"]
-[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="22_sign"]
-[ext_resource type="PackedScene" path="res://objects/breach_panel/breach_panel.tscn" id="23_breach_panel"]
-[ext_resource type="PackedScene" path="res://objects/gas_cylinder/gas_cylinder.tscn" id="24_gas_cylinder"]
-[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="25_metal_crate"]
-[ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="26_glass_bottle"]
-[ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="27_wall_lamp"]
-[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="28_ceiling_lamp"]
-[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="29_deck"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_smg.tscn" id="4_guard_smg"]
+[ext_resource type="PackedScene" path="res://actors/guard/guard_rifle.tscn" id="5_guard_rifle"]
+[ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="6_ledge"]
+[ext_resource type="Material" path="res://assets/materials/graybox/metal.tres" id="7_metal"]
+[ext_resource type="PackedScene" path="res://items/attachments/silencer/silencer_pickup.tscn" id="8_silencer_pickup"]
+[ext_resource type="PackedScene" path="res://items/rifle_rounds/rifle_rounds.tscn" id="9_rifle_rounds"]
+[ext_resource type="PackedScene" path="res://items/weapons/sniper_rifle/sniper_rifle_pickup.tscn" id="10_sniper_rifle_pickup"]
+[ext_resource type="PackedScene" path="res://items/sniper_rounds/sniper_rounds.tscn" id="11_sniper_rounds"]
+[ext_resource type="PackedScene" path="res://items/weapons/shotgun/shotgun_pickup.tscn" id="12_shotgun_pickup"]
+[ext_resource type="PackedScene" path="res://items/shotgun_shells/shotgun_shells.tscn" id="13_shotgun_shells"]
+[ext_resource type="PackedScene" path="res://items/lockpick/lockpick.tscn" id="14_lockpick"]
+[ext_resource type="PackedScene" path="res://items/biocell/biocell.tscn" id="15_biocell"]
+[ext_resource type="PackedScene" path="res://items/pistol_ammo/pistol_ammo.tscn" id="16_pistol_ammo"]
+[ext_resource type="PackedScene" path="res://items/medkit/medkit.tscn" id="17_medkit"]
+[ext_resource type="PackedScene" path="res://items/prototype/prototype.tscn" id="18_prototype"]
+[ext_resource type="PackedScene" path="res://items/deck/deck.tscn" id="19_deck"]
+[ext_resource type="PackedScene" path="res://objects/large_crate/large_crate.tscn" id="20_large_crate"]
+[ext_resource type="PackedScene" path="res://objects/small_crate/small_crate.tscn" id="21_small_crate"]
+[ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="22_cardboard_box"]
+[ext_resource type="PackedScene" path="res://objects/explosive_barrel/explosive_barrel.tscn" id="23_explosive_barrel"]
+[ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="24_sign"]
+[ext_resource type="PackedScene" path="res://objects/breach_panel/breach_panel.tscn" id="25_breach_panel"]
+[ext_resource type="PackedScene" path="res://objects/gas_cylinder/gas_cylinder.tscn" id="26_gas_cylinder"]
+[ext_resource type="PackedScene" path="res://objects/metal_crate/metal_crate.tscn" id="27_metal_crate"]
+[ext_resource type="PackedScene" path="res://objects/glass_bottle/glass_bottle.tscn" id="28_glass_bottle"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="29_wall_lamp"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="30_ceiling_lamp"]
 
 [node name="People" type="Node3D"]
 
@@ -86,7 +87,7 @@ metadata/wait = 3
 transform = Transform3D(0.771, 0, 0.6369, 0, 1, 0, -0.6369, 0, 0.771, 27.5, 0, -6.5)
 metadata/wait = 2
 
-[node name="G3YardPatrolEast" parent="Guards" instance=ExtResource("1_guard_pistol")]
+[node name="G3YardPatrolEast" parent="Guards" instance=ExtResource("4_guard_smg")]
 transform = Transform3D(-0.4211, 0, -0.907, 0, 1, 0, 0.907, 0, -0.4211, 18, 0, -18)
 
 [node name="Behaviour" parent="Guards/G3YardPatrolEast"]
@@ -106,7 +107,7 @@ metadata/wait = 3
 transform = Transform3D(-0.1699, 0, -0.9855, 0, 1, 0, 0.9855, 0, -0.1699, -17, 4.5, -9.25)
 metadata/wait = 3
 
-[node name="G4CatwalkRifle" parent="Guards" instance=ExtResource("4_guard_rifle")]
+[node name="G4CatwalkRifle" parent="Guards" instance=ExtResource("5_guard_rifle")]
 transform = Transform3D(0.1699, 0, 0.9855, 0, 1, 0, -0.9855, 0, 0.1699, 19.25, 4.5, -3)
 
 [node name="Behaviour" parent="Guards/G4CatwalkRifle"]
@@ -121,7 +122,7 @@ initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio", &"access.w
 [node name="G6BreakRoom" parent="Guards" instance=ExtResource("3_guard_baton")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, 2.6)
 
-[node name="G7VaultDoor" parent="Guards" instance=ExtResource("1_guard_pistol")]
+[node name="G7VaultDoor" parent="Guards" instance=ExtResource("4_guard_smg")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 4.5, 6)
 
 [node name="Tags" parent="Guards/G7VaultDoor"]
@@ -169,35 +170,35 @@ patrol_route = NodePath("../../../Routes/G10CatwalkWestRoute")
 
 [node name="Furniture" type="Node3D" parent="."]
 
-[node name="VaultPedestal" parent="Furniture" instance=ExtResource("5_ledge")]
+[node name="VaultPedestal" parent="Furniture" instance=ExtResource("6_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 4.5, 3.9)
 width = 0.8
 depth = 0.8
 height = 0.8
 surface = "metal"
 
-[node name="SecurityGunTable" parent="Furniture" instance=ExtResource("5_ledge")]
+[node name="SecurityGunTable" parent="Furniture" instance=ExtResource("6_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.295, 0.02, 4.74)
 width = 0.89
 depth = 0.99
 height = 0.9
 surface = "metal"
 
-[node name="StoreShelf" parent="Furniture" instance=ExtResource("5_ledge")]
+[node name="StoreShelf" parent="Furniture" instance=ExtResource("6_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.405, -4, 3.7)
 width = 0.79
 depth = 1.4
 height = 0.9
 surface = "metal"
 
-[node name="BreakRoomTable" parent="Furniture" instance=ExtResource("5_ledge")]
+[node name="BreakRoomTable" parent="Furniture" instance=ExtResource("6_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, 0.02, 4.2)
 width = 1.2
 depth = 0.8
 height = 0.75
 surface = "wood"
 
-[node name="OffDutyCot" parent="Furniture" instance=ExtResource("5_ledge")]
+[node name="OffDutyCot" parent="Furniture" instance=ExtResource("6_ledge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.45, -4, 11.4)
 width = 1.9
 depth = 0.8
@@ -211,86 +212,86 @@ metadata/surface = &"metal"
 [node name="Bank" type="CSGBox3D" parent="Furniture/Lockers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.47, 0.97, 12)
 size = Vector3(0.54, 1.9, 3.6)
-material = ExtResource("6_metal")
+material = ExtResource("7_metal")
 
 [node name="Open1" type="CSGBox3D" parent="Furniture/Lockers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.415, 1.415, 11.4)
 size = Vector3(0.53, 0.89, 0.44)
 operation = 2
-material = ExtResource("6_metal")
+material = ExtResource("7_metal")
 
 [node name="Open2" type="CSGBox3D" parent="Furniture/Lockers"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.415, 1.415, 12.6)
 size = Vector3(0.53, 0.89, 0.44)
 operation = 2
-material = ExtResource("6_metal")
+material = ExtResource("7_metal")
 
 [node name="Items" type="Node3D" parent="."]
 
-[node name="Silencer" parent="Items" instance=ExtResource("7_silencer_pickup")]
+[node name="Silencer" parent="Items" instance=ExtResource("8_silencer_pickup")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19.45, 1.031, 12.6)
 
-[node name="RifleRounds" parent="Items" instance=ExtResource("8_rifle_rounds")]
+[node name="RifleRounds" parent="Items" instance=ExtResource("9_rifle_rounds")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19.45, 1.01, 11.4)
 
 [node name="ItemPickup" parent="Items/RifleRounds"]
 count = 30
 
-[node name="SniperRifle" parent="Items" instance=ExtResource("9_sniper_rifle_pickup")]
+[node name="SniperRifle" parent="Items" instance=ExtResource("10_sniper_rifle_pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.6, 20.082, -13.2)
 
-[node name="SniperRounds" parent="Items" instance=ExtResource("10_sniper_rounds")]
+[node name="SniperRounds" parent="Items" instance=ExtResource("11_sniper_rounds")]
 transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, 43.2, 20.03, -13.6)
 
 [node name="ItemPickup" parent="Items/SniperRounds"]
 count = 8
 
-[node name="Shotgun" parent="Items" instance=ExtResource("11_shotgun_pickup")]
+[node name="Shotgun" parent="Items" instance=ExtResource("12_shotgun_pickup")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19.3, 1.033, 4.4)
 
-[node name="ShotgunShells" parent="Items" instance=ExtResource("12_shotgun_shells")]
+[node name="ShotgunShells" parent="Items" instance=ExtResource("13_shotgun_shells")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.1, 0.96, 3.95)
 
 [node name="ItemPickup" parent="Items/ShotgunShells"]
 count = 12
 
-[node name="Lockpicks" parent="Items" instance=ExtResource("13_lockpick")]
+[node name="Lockpicks" parent="Items" instance=ExtResource("14_lockpick")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.4, -3.085, 3)
 
 [node name="ItemPickup" parent="Items/Lockpicks"]
 count = 2
 
-[node name="Biocell1" parent="Items" instance=ExtResource("14_biocell")]
+[node name="Biocell1" parent="Items" instance=ExtResource("15_biocell")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.5, 0.065, 12)
 
-[node name="Biocell2" parent="Items" instance=ExtResource("14_biocell")]
+[node name="Biocell2" parent="Items" instance=ExtResource("15_biocell")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, -2.335, -8.6)
 
-[node name="PistolAmmoRack" parent="Items" instance=ExtResource("15_pistol_ammo")]
+[node name="PistolAmmoRack" parent="Items" instance=ExtResource("16_pistol_ammo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 4.435, 9)
 
 [node name="ItemPickup" parent="Items/PistolAmmoRack"]
 count = 10
 
-[node name="PistolAmmoBreakRoom" parent="Items" instance=ExtResource("15_pistol_ammo")]
+[node name="PistolAmmoBreakRoom" parent="Items" instance=ExtResource("16_pistol_ammo")]
 transform = Transform3D(0.9659, 0, 0.2588, 0, 1, 0, -0.2588, 0, 0.9659, 9.6, 0.805, 3.7)
 
 [node name="ItemPickup" parent="Items/PistolAmmoBreakRoom"]
 count = 6
 
-[node name="Medkit2" parent="Items" instance=ExtResource("16_medkit")]
+[node name="Medkit2" parent="Items" instance=ExtResource("17_medkit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.5, -3.95, -0.9)
 
-[node name="Prototype" parent="Items" instance=ExtResource("17_prototype")]
+[node name="Prototype" parent="Items" instance=ExtResource("18_prototype")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19, 5.385, 3.5)
 
-[node name="Deck" parent="Items" instance=ExtResource("29_deck")]
+[node name="Deck" parent="Items" instance=ExtResource("19_deck")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.45, 5.27, 14.1)
 
-[node name="CacheMedkit" parent="Items" instance=ExtResource("16_medkit")]
+[node name="CacheMedkit" parent="Items" instance=ExtResource("17_medkit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.95, 0.05, 23.45)
 
-[node name="CacheAmmo" parent="Items" instance=ExtResource("15_pistol_ammo")]
+[node name="CacheAmmo" parent="Items" instance=ExtResource("16_pistol_ammo")]
 transform = Transform3D(0.9397, 0, 0.342, 0, 1, 0, -0.342, 0, 0.9397, -33.6, 0.035, 23.4)
 
 [node name="ItemPickup" parent="Items/CacheAmmo"]
@@ -298,55 +299,55 @@ count = 10
 
 [node name="Shipment" type="Node3D" parent="."]
 
-[node name="LargeCrate1" parent="Shipment" instance=ExtResource("18_large_crate")]
+[node name="LargeCrate1" parent="Shipment" instance=ExtResource("20_large_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.605, -6.5)
 
 [node name="Tags" parent="Shipment/LargeCrate1"]
 initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
 
-[node name="LargeCrate2" parent="Shipment" instance=ExtResource("18_large_crate")]
+[node name="LargeCrate2" parent="Shipment" instance=ExtResource("20_large_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.605, -6.5)
 
 [node name="Tags" parent="Shipment/LargeCrate2"]
 initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
 
-[node name="LargeCrate3" parent="Shipment" instance=ExtResource("18_large_crate")]
+[node name="LargeCrate3" parent="Shipment" instance=ExtResource("20_large_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 1.805, -6.5)
 
 [node name="Tags" parent="Shipment/LargeCrate3"]
 initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
 
-[node name="SmallCrate1" parent="Shipment" instance=ExtResource("19_small_crate")]
+[node name="SmallCrate1" parent="Shipment" instance=ExtResource("21_small_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 0.305, -6.2)
 
 [node name="Tags" parent="Shipment/SmallCrate1"]
 initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
 
-[node name="SmallCrate2" parent="Shipment" instance=ExtResource("19_small_crate")]
+[node name="SmallCrate2" parent="Shipment" instance=ExtResource("21_small_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 0.305, -6.85)
 
 [node name="Tags" parent="Shipment/SmallCrate2"]
 initial_tags = Array[StringName]([&"material.wood", &"object.crate", &"mission.shipment"])
 
-[node name="CardboardBox1" parent="Shipment" instance=ExtResource("20_cardboard_box")]
+[node name="CardboardBox1" parent="Shipment" instance=ExtResource("22_cardboard_box")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65, 0.255, -6.15)
 
 [node name="Tags" parent="Shipment/CardboardBox1"]
 initial_tags = Array[StringName]([&"material.cardboard", &"object.box", &"mission.shipment"])
 
-[node name="CardboardBox2" parent="Shipment" instance=ExtResource("20_cardboard_box")]
+[node name="CardboardBox2" parent="Shipment" instance=ExtResource("22_cardboard_box")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65, 0.255, -6.75)
 
 [node name="Tags" parent="Shipment/CardboardBox2"]
 initial_tags = Array[StringName]([&"material.cardboard", &"object.box", &"mission.shipment"])
 
-[node name="FuelDrum" parent="Shipment" instance=ExtResource("21_explosive_barrel")]
+[node name="FuelDrum" parent="Shipment" instance=ExtResource("23_explosive_barrel")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.455, -7.3)
 
 [node name="Tags" parent="Shipment/FuelDrum"]
 initial_tags = Array[StringName]([&"material.metal", &"object.barrel", &"object.explosive", &"mission.shipment"])
 
-[node name="Label" parent="Shipment" instance=ExtResource("22_sign")]
+[node name="Label" parent="Shipment" instance=ExtResource("24_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.1, 2.8, -6.5)
 text = "OUTGOING
 Pier 4, 02:00"
@@ -354,56 +355,56 @@ size = 1
 
 [node name="WeakWall" type="Node3D" parent="."]
 
-[node name="BreachPanel" parent="WeakWall" instance=ExtResource("23_breach_panel")]
+[node name="BreachPanel" parent="WeakWall" instance=ExtResource("25_breach_panel")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 15.25)
 
-[node name="GasCylinder1" parent="WeakWall" instance=ExtResource("24_gas_cylinder")]
+[node name="GasCylinder1" parent="WeakWall" instance=ExtResource("26_gas_cylinder")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.25, 0.655, 15.73)
 
-[node name="GasCylinder2" parent="WeakWall" instance=ExtResource("24_gas_cylinder")]
+[node name="GasCylinder2" parent="WeakWall" instance=ExtResource("26_gas_cylinder")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.65, 0.655, 15.75)
 
-[node name="GasCylinder3" parent="WeakWall" instance=ExtResource("24_gas_cylinder")]
+[node name="GasCylinder3" parent="WeakWall" instance=ExtResource("26_gas_cylinder")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.45, 0.655, 16.1)
 
 [node name="Props" type="Node3D" parent="."]
 
-[node name="BoothBox1" parent="Props" instance=ExtResource("20_cardboard_box")]
+[node name="BoothBox1" parent="Props" instance=ExtResource("22_cardboard_box")]
 transform = Transform3D(0.9848, 0, 0.1736, 0, 1, 0, -0.1736, 0, 0.9848, -14, 0.255, -21)
 
-[node name="BoothBox2" parent="Props" instance=ExtResource("20_cardboard_box")]
+[node name="BoothBox2" parent="Props" instance=ExtResource("22_cardboard_box")]
 transform = Transform3D(0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, 0.9397, -14.3, 0.255, -20.4)
 
-[node name="DockMetalCrate" parent="Props" instance=ExtResource("25_metal_crate")]
+[node name="DockMetalCrate" parent="Props" instance=ExtResource("27_metal_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.405, -8)
 
-[node name="DockBox" parent="Props" instance=ExtResource("20_cardboard_box")]
+[node name="DockBox" parent="Props" instance=ExtResource("22_cardboard_box")]
 transform = Transform3D(0.9659, 0, 0.2588, 0, 1, 0, -0.2588, 0, 0.9659, 7.8, 0.255, -7.5)
 
-[node name="BackStripCrate1" parent="Props" instance=ExtResource("19_small_crate")]
+[node name="BackStripCrate1" parent="Props" instance=ExtResource("21_small_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.5, 0.305, 17.2)
 
-[node name="BackStripCrate2" parent="Props" instance=ExtResource("19_small_crate")]
+[node name="BackStripCrate2" parent="Props" instance=ExtResource("21_small_crate")]
 transform = Transform3D(0.9848, 0, 0.1736, 0, 1, 0, -0.1736, 0, 0.9848, -14.8, 0.305, 17.3)
 
-[node name="BreakRoomBottle1" parent="Props" instance=ExtResource("26_glass_bottle")]
+[node name="BreakRoomBottle1" parent="Props" instance=ExtResource("28_glass_bottle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.2, 0.925, 3.65)
 
-[node name="BreakRoomBottle2" parent="Props" instance=ExtResource("26_glass_bottle")]
+[node name="BreakRoomBottle2" parent="Props" instance=ExtResource("28_glass_bottle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 0.925, 3.95)
 
-[node name="CacheCrate" parent="Props" instance=ExtResource("18_large_crate")]
+[node name="CacheCrate" parent="Props" instance=ExtResource("20_large_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.8, 0.605, 22.5)
 
-[node name="WindowCrate1" parent="Props" instance=ExtResource("19_small_crate")]
+[node name="WindowCrate1" parent="Props" instance=ExtResource("21_small_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.7, 0.305, 14.1)
 
-[node name="WindowCrate2" parent="Props" instance=ExtResource("19_small_crate")]
+[node name="WindowCrate2" parent="Props" instance=ExtResource("21_small_crate")]
 transform = Transform3D(0.9659, 0, 0.2588, 0, 1, 0, -0.2588, 0, 0.9659, -21.1, 0.305, 14.9)
 
 [node name="Lamps" type="Node3D" parent="."]
 
-[node name="CatwalkNorthMid" parent="Lamps" instance=ExtResource("27_wall_lamp")]
+[node name="CatwalkNorthMid" parent="Lamps" instance=ExtResource("29_wall_lamp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 6.5, -9.98)
 
 [node name="Light" parent="Lamps/CatwalkNorthMid"]
@@ -413,7 +414,7 @@ omni_range = 6
 [node name="Powered" parent="Lamps/CatwalkNorthMid"]
 circuit = &"warehouse_building"
 
-[node name="BridgeLamp" parent="Lamps" instance=ExtResource("28_ceiling_lamp")]
+[node name="BridgeLamp" parent="Lamps" instance=ExtResource("30_ceiling_lamp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 8.95, 6)
 
 [node name="Light" parent="Lamps/BridgeLamp"]
@@ -423,7 +424,7 @@ omni_range = 6
 [node name="Powered" parent="Lamps/BridgeLamp"]
 circuit = &"warehouse_building"
 
-[node name="BridgeEastLamp" parent="Lamps" instance=ExtResource("28_ceiling_lamp")]
+[node name="BridgeEastLamp" parent="Lamps" instance=ExtResource("30_ceiling_lamp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 8.95, 6)
 
 [node name="Light" parent="Lamps/BridgeEastLamp"]
@@ -433,7 +434,7 @@ omni_range = 6
 [node name="Powered" parent="Lamps/BridgeEastLamp"]
 circuit = &"warehouse_building"
 
-[node name="CatwalkEast" parent="Lamps" instance=ExtResource("27_wall_lamp")]
+[node name="CatwalkEast" parent="Lamps" instance=ExtResource("29_wall_lamp")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.98, 6.5, -3)
 
 [node name="Light" parent="Lamps/CatwalkEast"]

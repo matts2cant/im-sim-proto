@@ -24,7 +24,8 @@
 [ext_resource type="Resource" path="res://items/exploit/alarm_exploit.tres" id="22_alarm_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/computer_exploit.tres" id="23_computer_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/router_exploit.tres" id="24_router_exploit"]
+[ext_resource type="Resource" path="res://items/weapons/smg/smg_item.tres" id="25_smg"]
 
 [resource]
 script = ExtResource("1_script")
-items = Array[ExtResource("0_item_data")]([ExtResource("2_pistol_item"), ExtResource("3_baton_item"), ExtResource("4_pistol_ammo"), ExtResource("5_medkit"), ExtResource("7_lockpick"), ExtResource("8_biocell"), ExtResource("9_keycard"), ExtResource("10_shotgun"), ExtResource("11_sniper_rifle"), ExtResource("12_assault_rifle"), ExtResource("13_shotgun_shells"), ExtResource("14_sniper_rounds"), ExtResource("15_rifle_rounds"), ExtResource("16_silencer"), ExtResource("17_prototype"), ExtResource("18_deck"), ExtResource("19_camera_exploit"), ExtResource("20_turret_exploit"), ExtResource("21_door_exploit"), ExtResource("22_alarm_exploit"), ExtResource("23_computer_exploit"), ExtResource("24_router_exploit")])
+items = Array[ExtResource("0_item_data")]([ExtResource("2_pistol_item"), ExtResource("3_baton_item"), ExtResource("4_pistol_ammo"), ExtResource("5_medkit"), ExtResource("7_lockpick"), ExtResource("8_biocell"), ExtResource("9_keycard"), ExtResource("10_shotgun"), ExtResource("11_sniper_rifle"), ExtResource("12_assault_rifle"), ExtResource("25_smg"), ExtResource("13_shotgun_shells"), ExtResource("14_sniper_rounds"), ExtResource("15_rifle_rounds"), ExtResource("16_silencer"), ExtResource("17_prototype"), ExtResource("18_deck"), ExtResource("19_camera_exploit"), ExtResource("20_turret_exploit"), ExtResource("21_door_exploit"), ExtResource("22_alarm_exploit"), ExtResource("23_computer_exploit"), ExtResource("24_router_exploit")])

@@ -28,8 +28,9 @@ func test_pistols_settle_time_per_tier_from_the_untrained_base() -> void:
 
 
 func test_rifles_and_sniper_scale_like_pistols_per_tier() -> void:
-	# ADR 0101: spread, reload and damage per tier as Pistols.
-	var spread: Array[float] = [1.0, 0.8, 0.6, 0.4]
+	# ADR 0101: spread, reload and damage per tier as Pistols; since M13a (ADR 0123) the Rifles spread
+	# steps faster at first (1.0 / 0.65 / 0.5 / 0.4), the Sniper's stays.
+	var spreads := {"rifle": [1.0, 0.65, 0.5, 0.4], "sniper": [1.0, 0.8, 0.6, 0.4]}
 	var reload: Array[float] = [1.0, 0.85, 0.7, 0.5]
 	var damage: Array[float] = [1.0, 1.1, 1.2, 1.3]
 	for tier in 4:
@@ -39,7 +40,8 @@ func test_rifles_and_sniper_scale_like_pistols_per_tier() -> void:
 			for modifier in skill.modifiers_for(tier):
 				attributes.add_modifier(modifier)
 			var read := func(stat: String) -> float: return attributes.evaluate(StringName(weapon_class + stat), 1.0)
-			assert_float(read.call("_spread_mult")).is_equal_approx(spread[tier], 0.0001)
+			var spread: Array = spreads[weapon_class]
+			assert_float(read.call("_spread_mult")).is_equal_approx(float(spread[tier]), 0.0001)
 			assert_float(read.call("_reload_mult")).is_equal_approx(reload[tier], 0.0001)
 			assert_float(read.call("_damage_mult")).is_equal_approx(damage[tier], 0.0001)
 

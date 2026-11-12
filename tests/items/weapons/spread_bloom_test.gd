@@ -22,14 +22,14 @@ func test_bloom_stops_at_the_cap() -> void:
 
 func test_a_wider_stance_floor_is_not_narrowed_by_the_cap() -> void:
 	var aim := AimModel.new(RIFLE_AIM, 1)
-	var sprint := aim.floor_for(AimModel.Stance.SPRINT)
+	var sprint := aim.floor_for(AimModel.Stance.AIR)
 	assert_float(sprint).is_greater(RIFLE_AIM.shot_bloom_cap_deg)
 	aim.step(1.0 / 60.0, sprint)
 	aim.add_shot()
 	assert_float(aim.spread).is_equal_approx(sprint, 0.0001)
 
 
-func test_sustained_fire_at_ten_shots_a_second_stays_under_the_cap_and_recovers() -> void:
+func test_sustained_fire_at_ten_shots_a_second_holds_at_most_the_cap_and_recovers() -> void:
 	var aim := AimModel.new(RIFLE_AIM, 1)
 	var floor_deg := aim.floor_for(AimModel.Stance.STILL)
 	for shot in 30:
@@ -38,8 +38,8 @@ func test_sustained_fire_at_ten_shots_a_second_stays_under_the_cap_and_recovers(
 			aim.step(1.0 / 60.0, floor_deg)
 	var sustained := aim.spread
 	assert_float(sustained).is_between(floor_deg + 0.5, RIFLE_AIM.shot_bloom_cap_deg)
-	# Released: back within 0.1 degrees of the floor after about 3 settle times.
-	for tick in ceili(RIFLE_AIM.settle_time * 3.0 * 60.0):
+	# Released: back within 0.1 degrees of the floor after about 5 settle times (M13a: from the cap).
+	for tick in ceili(RIFLE_AIM.settle_time * 5.0 * 60.0):
 		aim.step(1.0 / 60.0, floor_deg)
 	assert_float(aim.spread - floor_deg).is_less(0.1)
 

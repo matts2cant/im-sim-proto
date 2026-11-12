@@ -202,7 +202,9 @@ func _physics_process(delta: float) -> void:
 	_handle_actions()
 	carry.physics_step()
 	weapons.trigger_held = _trigger_held()
+	weapons.recoil.view_share = camera_motion()
 	weapons.physics_step(delta, aim_stance())
+	_apply_view_recoil()
 	_camera.fov = weapons.scope.view_fov(weapons.weapon(), _hip_fov)
 
 
@@ -219,6 +221,12 @@ func look(screen_delta: Vector2) -> void:
 	var pitch_sign := -1.0 if GameSettings.invert_y() else 1.0
 	pitch = clampf(pitch - screen_delta.y * sensitivity * pitch_sign, -limit, limit)
 	_head.rotation.x = pitch
+
+
+## Share (0-1) of a weapon's recoil climb the camera follows (ADR 0123): the camera motion
+## setting (GameSettings, ADR 0124). The shots follow the whole climb whatever it is.
+func camera_motion() -> float:
+	return GameSettings.camera_motion()
 
 
 ## The camera's field of view over the hip one (1 without a scope, 15 / 80 fully scoped at the
@@ -591,6 +599,13 @@ func _step_face(delta: float) -> void:
 	var limit := deg_to_rad(config.max_pitch_deg)
 	pitch = lerpf(pitch, clampf(atan2(to.y, flat), -limit, limit), share)
 	_head.rotation.x = pitch
+
+
+# The camera turns by the weapon's recoil climb (its camera share) on top of the mouse look: mouse
+# look moves `pitch` and the yaw as always, so pulling down compensates; the climb returns by itself.
+func _apply_view_recoil() -> void:
+	var climb := weapons.recoil.view_recoil()
+	_camera.rotation = Vector3(deg_to_rad(climb.y), -deg_to_rad(climb.x), 0.0)
 
 
 # A step moved the body by `rise`: the camera stays where it was and eases after it.

@@ -19,14 +19,20 @@ Four tiers: 0 Untrained, 1 Trained, 2 Advanced, 3 Master. The player starts Untr
 
 | Skill | Attribute | Untrained / Trained / Advanced / Master |
 |---|---|---|
-| Pistols | `pistol_spread_mult` (every cone floor and the look and shot bloom) | ×1.0 / 0.8 / 0.6 / 0.4 |
+| Pistols (pistol and submachine gun) | `pistol_spread_mult` (the movement terms of the cone and the look and shot bloom) | ×1.0 / 0.8 / 0.6 / 0.4 |
+| | `pistol_still_mult` (the still floor, M13a: pistol 2.0 degrees) | ×1.0 / 0.875 / 0.75 / 0 (2.0 / 1.75 / 1.5 / 0 degrees: Master's first still shot is exact) |
+| | `pistol_recoil_size_mult`, `pistol_recoil_noise_mult`, `pistol_recoil_recover_mult` (recoil pattern or kick size, its noise, its return time; M13a, [ADR 0123](../decisions/0123-recoil-and-skill-aim.md)) | size ×1.0 / 0.89 / 0.78 / 0.67, noise ×1.0 / 0.75 / 0.5 / 0.25 (the recoil configs hold the Untrained numbers), return ×1.0 / 0.85 / 0.7 / 0.55 |
 | | `pistol_settle_time` (base AimConfig 0.8 s) | 0.8 / 0.6 / 0.4 / 0.2 s |
 | | `pistol_reload_mult` (base 1.6 s) | ×1.0 / 0.85 / 0.7 / 0.5 |
 | | `pistol_damage_mult` | ×1.0 / 1.1 / 1.2 / 1.3 (torso 25 → 32.5 at Master) |
-| Rifles ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `rifle_spread_mult` (assault rifle and shotgun: every cone floor, the look and shot bloom, the shotgun's 2.5 degree pellet cone) | ×1.0 / 0.8 / 0.6 / 0.4 (pellet cone 2.5 / 2.0 / 1.5 / 1.0 degrees) |
+| Rifles ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `rifle_spread_mult` (assault rifle and shotgun: the movement terms, the look and shot bloom, the shotgun's 2.5 degree pellet cone) | ×1.0 / 0.65 / 0.5 / 0.4 since M13a (pellet cone 2.5 / 1.6 / 1.25 / 1.0 degrees) |
+| | `rifle_still_mult` (the still floor, M13a: assault rifle 1.0, shotgun 0.5 degrees) | ×1.0 / 0.4 / 0.2 / 0 |
+| | `rifle_recoil_size_mult`, `rifle_recoil_noise_mult`, `rifle_recoil_recover_mult` (recoil pattern or kick size, its noise, its return time; M13a, [ADR 0123](../decisions/0123-recoil-and-skill-aim.md)) | size ×1.0 / 0.89 / 0.78 / 0.67, noise ×1.0 / 0.75 / 0.5 / 0.25 (the recoil configs hold the Untrained numbers), return ×1.0 / 0.85 / 0.7 / 0.55 |
 | | `rifle_reload_mult` (shotgun 2.4 s, assault rifle 2.2 s) | ×1.0 / 0.85 / 0.7 / 0.5 |
 | | `rifle_damage_mult` | ×1.0 / 1.1 / 1.2 / 1.3 (assault rifle 14 → 18.2, pellet 12 → 15.6 at Master) |
-| Sniper ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `sniper_spread_mult` (sniper rifle: hip and scoped floors, look and shot bloom) | ×1.0 / 0.8 / 0.6 / 0.4 (scoped floor 0.2 → 0.08 degrees) |
+| Sniper ([ADR 0101](../decisions/0101-rifles-and-sniper-skills.md)) | `sniper_spread_mult` (sniper rifle: movement terms, look and shot bloom) | ×1.0 / 0.8 / 0.6 / 0.4 |
+| | `sniper_still_mult` (hip and scoped still floors, M13a) | ×1.0 / 0.8 / 0.6 / 0.4 (scoped floor 0.2 → 0.08 degrees) |
+| | `sniper_recoil_size_mult`, `sniper_recoil_noise_mult`, `sniper_recoil_recover_mult` (recoil pattern or kick size, its noise, its return time; M13a, [ADR 0123](../decisions/0123-recoil-and-skill-aim.md)) | size ×1.0 / 0.89 / 0.78 / 0.67, noise ×1.0 / 0.75 / 0.5 / 0.25 (the recoil configs hold the Untrained numbers), return ×1.0 / 0.85 / 0.7 / 0.55 |
 | | `sniper_settle_time` (scoped 0.3 s, hip 0.8 s) | ×1.0 / 0.8 / 0.6 / 0.4 |
 | | `sniper_sway_mult` (0.15 degrees) | ×1.0 / 0.75 / 0.5 / 0.25 |
 | | `sniper_reload_mult` (2.5 s) | ×1.0 / 0.85 / 0.7 / 0.5 |

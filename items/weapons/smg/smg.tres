@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/weapon_data.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Titan Handgun.wav" id="2_bang"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_000.ogg" id="3_shot_0"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_001.ogg" id="4_shot_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactPunch_medium_002.ogg" id="5_shot_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_interface-sounds/Audio/click_002.ogg" id="6_dry"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactGeneric_light_000.ogg" id="7_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Heavy Gun Reload.wav" id="8_reload"]
+[ext_resource type="PackedScene" path="res://items/weapons/smg/smg_model.tscn" id="9_model"]
+[ext_resource type="Resource" path="res://items/weapons/smg/smg_aim.tres" id="10_aim"]
+[ext_resource type="Resource" path="res://items/weapons/smg/smg_recoil.tres" id="11_recoil"]
+
+[sub_resource type="AudioStreamRandomizer" id="Shot"]
+random_pitch = 1.14
+streams_count = 1
+stream_0/stream = ExtResource("2_bang")
+
+[sub_resource type="AudioStreamRandomizer" id="Suppressed"]
+random_pitch = 1.12
+streams_count = 3
+stream_0/stream = ExtResource("3_shot_0")
+stream_1/stream = ExtResource("4_shot_1")
+stream_2/stream = ExtResource("5_shot_2")
+
+[resource]
+script = ExtResource("1_script")
+id = &"smg"
+item_id = &"smg"
+display_name = "Submachine gun"
+kind = 0
+damage = Dictionary[StringName, float]({&"damage.ballistic": 9.0})
+cycle_time = 0.07
+max_range = 40.0
+attribute_class = &"pistol"
+automatic = true
+recoil = ExtResource("11_recoil")
+falloff_start = 8.0
+falloff_end = 22.0
+falloff_min = 0.25
+aim_config = ExtResource("10_aim")
+attachment_slots = Array[StringName]([&"muzzle"])
+magazine_size = 30
+reserve_ammo = 90
+ammo_item = &"pistol_ammo"
+reload_time = 1.8
+fire_noise = 22.0
+impact_noise = 4.0
+impact_impulse = 1.5
+muzzle_flash_size = 0.1
+fire_sound = SubResource("Shot")
+suppressed_fire_sound = SubResource("Suppressed")
+fire_volume_db = -8.0
+dry_fire_sound = ExtResource("6_dry")
+hit_sound = ExtResource("7_hit")
+reload_sound = ExtResource("8_reload")
+view_scene = ExtResource("9_model")
+view_size = Vector3(0.05, 0.1, 0.4)
+view_color = Color(0.22, 0.22, 0.26, 1)
+view_offset = Vector3(0.22, -0.22, -0.6)
+view_rest_deg = Vector3(0, 3, 0)
+hold_offset = Vector3(0, 0, -0.05)

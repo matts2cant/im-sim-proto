@@ -35,6 +35,7 @@ The roadmap asks for weapon feel "closer to Counter-Strike". Today accuracy is a
 - **The shooting range** (a new hub gallery room): dummies at 5, 10, 20 and 40 m and one walking side to side; a spray wall that keeps every hole; a stats panel (hit share, group size); live tuning sliders per weapon (pattern size, noise, recovery, spread, kick, shake) that save into the weapon's tuning file; a Weapons skill tier switch; a button resetting every downed dummy. M13's tests measure the targets above there.
 - **A settings menu nested in the Esc menu** (the game stays paused; Back or Esc returns to the Esc menu), stored in the player's profile (`user://`), not in save games: mouse sensitivity, invert Y; field of view (70–100°, default 80); camera motion (0–100 %, scaling shake, bob and the camera's recoil climb, never the bullets' pattern); master, effects and music volume; fullscreen or windowed, vsync. No key rebinding.
 - No mockup: the settings menu follows the Esc menu's style; the range's panel and sliders are a plain debug tool.
+- A Deus Ex style crosshair (four arms on the cone radius, caps on a target in range) replaces the aiming circle (user request 2026-11-12; built in [ADR 0123](0123-recoil-and-skill-aim.md)).
 
 **M13b, feedback** (after the M13a playtest)
 
