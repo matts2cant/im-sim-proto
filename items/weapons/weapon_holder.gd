@@ -263,8 +263,9 @@ func toggle_scope() -> bool:
 
 
 ## Fire / swing the equipped weapon (press edge). Returns the WeaponState result, or -1 when
-## nothing happened (holstered, or the user cannot use weapons).
-func trigger() -> int:
+## nothing happened (holstered, or the user cannot use weapons). `held`: a shot of automatic fire
+## (the trigger kept down), which keeps the cycle's rhythm (WeaponState.try_fire()).
+func trigger(held: bool = false) -> int:
 	var data := weapon()
 	if data == null:
 		return -1
@@ -276,7 +277,7 @@ func trigger() -> int:
 		)
 		return -1
 	aim.config = _aim_config()
-	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0))
+	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0), held)
 	match result:
 		WeaponState.Result.FIRED:
 			_view.kick()
@@ -462,7 +463,7 @@ func _auto_fire() -> void:
 		return
 	if data.uses_ammo() and _equipped.magazine <= 0:
 		return
-	trigger()
+	trigger(true)
 
 
 # The aim cone in use: the equipped weapon's own (scoped or hip) when the holder follows weapon

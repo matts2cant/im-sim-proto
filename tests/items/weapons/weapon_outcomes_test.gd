@@ -23,6 +23,7 @@ const FRAME := 1.0 / 60.0
 var _driver: PlayerDriver
 var _player: Player
 var _target: TrainingDummy
+var _pulled: int = 0
 
 
 func before_test() -> void:
@@ -88,25 +89,33 @@ func test_sniper_scoped_and_still_kills_with_one_torso_shot_at_40_m() -> void:
 	assert_float(settle_frames * FRAME).is_less(2.0)
 
 
-func test_rifle_held_on_the_torso_at_10_m_kills_in_under_1_2_s() -> void:
+func test_rifle_master_pulling_the_recoil_kills_at_10_m_in_about_0_6_s() -> void:
+	# M13a (ADR 0123): was Untrained without recoil (0.53-0.63 s). Now the Master holds the trigger and
+	# pulls the mouse against the learned pattern (the noise is not pulled). Master's 18.2 damage per
+	# hit needs 5 torso hits: 0.4 s at 0.1 s a shot when none misses.
 	await _load(RIFLE)
+	_player.skills.set_tier(&"rifles", 3)
+	EventLog.entry_added.connect(_pull_against_recoil)
 	var times: Array[float] = []
 	for seed in SEEDS:
 		await _place_target(10.0)
 		await _aim_at_torso()
 		_player.weapons.state().magazine = 30
 		_player.weapons.seed_rng(seed)
+		_pulled = 0
 		_driver.runner.simulate_action_press(&"fire")
 		var frames := 0
 		while not _target.body.is_dead() and frames < 120:
 			await _driver.frames(1)
 			frames += 1
 		_driver.runner.simulate_action_release(&"fire")
-		await _driver.frames(8)
+		await _driver.frames(30)
 		times.append(frames * FRAME)
-	print("MEASURED rifle 10 m time to kill (s): ", times)
-	for i in SEEDS.size():
-		assert_float(times[i]).override_failure_message("seed %d: %s" % [SEEDS[i], times]).is_less(1.2)
+	EventLog.entry_added.disconnect(_pull_against_recoil)
+	times.sort()
+	print("MEASURED rifle Master 10 m time to kill pulling the recoil (s, sorted): ", times)
+	assert_float(times[SEEDS.size() / 2]).override_failure_message("%s" % [times]).is_between(0.38, 0.75)
+	assert_float(times[-1]).override_failure_message("%s" % [times]).is_less(1.2)
 
 
 func test_pistol_at_the_head_at_10_m() -> void:
@@ -141,6 +150,17 @@ func test_pistol_at_the_head_at_10_m() -> void:
 		assert_int(patient[i]).override_failure_message("seed %d: %s" % [SEEDS[i], patient]).is_less_equal(2)
 	var quick := snapped.filter(func(time: float) -> bool: return time < 2.0).size()
 	assert_int(quick).override_failure_message("snapped: %s" % [snapped]).is_greater_equal(5)
+
+
+# The player pulls the mouse against each shot's pattern step (at the skill's size) as it fires.
+func _pull_against_recoil(entry: EventLogEntry) -> void:
+	if entry.kind != &"weapon.fired":
+		return
+	var data := _player.weapons.weapon()
+	var size := Attributes.read(_player, data.class_attribute("recoil_size_mult"), 1.0)
+	var step := data.recoil.pattern_step(_pulled) * data.recoil.pattern_scale * size
+	_pulled += 1
+	_player.look(Vector2(-step.x, step.y) / rad_to_deg(_player.config.mouse_sensitivity))
 
 
 # Shots of the drawn weapon (cone settled before each, as a patient shooter) until the target at

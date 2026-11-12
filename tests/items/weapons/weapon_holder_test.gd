@@ -168,7 +168,8 @@ func test_one_disabled_arm_widens_the_cone() -> void:
 
 	assert_float(_player.attributes.value(&"aim_spread_add")).is_equal(3.0)
 	assert_float(_player.attributes.value(&"aim_sway_mult")).is_equal(2.0)
-	assert_float(_player.weapons.aim.spread).is_equal_approx(3.5, 0.001)
+	# The pistol's still floor 2.0 (pistol_aim.tres, ADR 0123) + 3 per disabled arm.
+	assert_float(_player.weapons.aim.spread).is_equal_approx(5.0, 0.001)
 
 
 func test_jumping_widens_the_cone_after_the_grace_time() -> void:
@@ -183,7 +184,8 @@ func test_jumping_widens_the_cone_after_the_grace_time() -> void:
 	_driver.runner.simulate_action_release(&"jump")
 
 	assert_int(_player.aim_stance()).is_equal(AimModel.Stance.AIR)
-	assert_float(_player.weapons.aim.spread).is_equal_approx(6.5, 0.001)
+	# The pistol's still floor 2.0 + 6 airborne.
+	assert_float(_player.weapons.aim.spread).is_equal_approx(8.0, 0.001)
 
 
 func test_both_arms_disabled_cannot_fire() -> void:
