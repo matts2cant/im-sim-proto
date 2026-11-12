@@ -80,7 +80,7 @@ input[type="range"] { width: 150px; accent-color: var(--amber); }
 <div class="wrap">
   <h1>Device design language</h1>
   <div class="notes">
-    <p><b>One language for every device</b>: a strip in the device kind's colour, the kind's Map icon, one status light (none on wall jacks, panic buttons and lasers), every network port visible with a label naming what it is cabled to, and a name plate. Rack and standalone versions of the same device look like the same family. The deck's Map draws the same strip and icon.</p>
+    <p><b>One language for every device</b>: a strip in the device kind's colour, the kind's Map icon, one status light (none on wall jacks, panic buttons and lasers), network ports visible with a label naming what each is cabled to (on network gear, computers, alarm controllers and wall jacks; small single-purpose devices hide theirs), and a name plate. Rack and standalone versions of the same device look like the same family. The deck's Map draws the same strip and icon.</p>
   </div>
   <div class="legend" id="legend"></div>
 
@@ -95,7 +95,7 @@ input[type="range"] { width: 150px; accent-color: var(--amber); }
   </div>
   <div class="grid" id="cards"></div>
   <div class="notes">
-    <p><b>Port labels</b> run vertically under each socket on multi-port gear (your choice a); single-port devices print the label flat under their port. At the 2 m reach most labels are too small to read; lean in (0.5 m or closer) to read a switch's ports. The light on a door controller is its lock light (red locked, green unlocked) and also shows the network problems; the camera keeps its own lamp.</p>
+    <p><b>Port labels</b> run vertically under each socket (your choice a). Cameras, turrets, sirens, radio base stations, panic buttons, lasers and door controllers show no port; the wall jack keeps its socket and label. At the 2 m reach most labels are too small to read; lean in (0.5 m or closer) to read a switch's ports. The light on a door controller is its lock light (red locked, green unlocked) and also shows the network problems; the camera keeps its own lamp.</p>
   </div>
 
   <h2>2 · Linking bays <small>open, and locked glass door (lockpick or key)</small></h2>
@@ -271,34 +271,29 @@ input[type="range"] { width: 150px; accent-color: var(--amber); }
         draw: (p) => { p.body(0, 0, 0.1, 0.2); p.band("door", 0, 0, 0.1, 0.006); p.icon("door", 0.006, 0.012, 0.02); p.led(0.032, 0.015, 0.012, css("--st-off")); p.plate(0.048, 0.015, 0.046, 0.012, "D4-CTRL");
           if (v === "keypad") for (let i = 0; i < 12; i++) p.r(0.02 + (i % 3) * 0.022, 0.045 + Math.floor(i / 3) * 0.022, 0.016, 0.016, "#3a4046", { rx: p.L(0.002) });
           if (v === "card") { p.r(0.02, 0.07, 0.06, 0.008, "#000"); p.r(0.03, 0.09, 0.04, 0.03, "none", { stroke: css("--rail"), "stroke-width": 1 }); }
-          if (v === "control") { p.r(0.02, 0.06, 0.06, 0.025, "#2f5a3a"); p.r(0.02, 0.095, 0.06, 0.025, "#5a2f2f"); p.text(0.05, 0.077, "OPEN", 0.008, "#d9dde0", { "text-anchor": "middle" }); p.text(0.05, 0.112, "CLOSE", 0.008, "#d9dde0", { "text-anchor": "middle" }); }
-          p.ports(0.043, 0.16, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.0042, flat: true }); } })),
+          if (v === "control") { p.r(0.02, 0.06, 0.06, 0.025, "#2f5a3a"); p.r(0.02, 0.095, 0.06, 0.025, "#5a2f2f"); p.text(0.05, 0.077, "OPEN", 0.008, "#d9dde0", { "text-anchor": "middle" }); p.text(0.05, 0.112, "CLOSE", 0.008, "#d9dde0", { "text-anchor": "middle" }); } } })),
     ] },
     { id: "camera", kind: "camera", title: "Security camera", versions: [
-      { name: "Wall", w: 0.3, h: 0.2, ctx: "wall", note: "keeps its own lamp (green idle, amber suspicious, red seen)", draw: (p) => { p.body(0, 0.03, 0.07, 0.15); p.band("camera", 0, 0.03, 0.07, 0.005); p.icon("camera", 0.008, 0.042, 0.022); p.plate(0.006, 0.072, 0.058, 0.011, "CAM-HALL");
-        p.ports(0.028, 0.1, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.0035, flat: true }); p.r(0.07, 0.07, 0.03, 0.02, css("--rail"));
+      { name: "Wall", w: 0.3, h: 0.2, ctx: "wall", note: "keeps its own lamp (green idle, amber suspicious, red seen)", draw: (p) => { p.body(0, 0.03, 0.07, 0.15); p.band("camera", 0, 0.03, 0.07, 0.005); p.icon("camera", 0.008, 0.042, 0.022); p.plate(0.006, 0.072, 0.058, 0.011, "CAM-HALL"); p.r(0.07, 0.07, 0.03, 0.02, css("--rail"));
         p.r(0.1, 0.04, 0.17, 0.075, "#cfd3d6", { rx: p.L(0.006) }); p.band("camera", 0.1, 0.04, 0.17, 0.005); p.r(0.27, 0.05, 0.025, 0.055, "#20262b"); p.c(0.29, 0.0775, 0.012, "#0b0d10"); p.led(0.11, 0.085, 0.01); } },
     ] },
     { id: "turret", kind: "turret", title: "Turret", versions: [
-      { name: "Ceiling", w: 0.32, h: 0.24, ctx: "ceiling", note: "light on the fixed base", draw: (p) => { p.body(0.06, 0, 0.2, 0.09); p.band("turret", 0.06, 0, 0.2, 0.006); p.icon("turret", 0.07, 0.015, 0.03); p.led(0.105, 0.02, 0.01); p.plate(0.12, 0.035, 0.12, 0.014, "TUR-VAULT");
-        p.ports(0.235, 0.015, 1, 0.02, ["SW-SEC"], { sw: 0.012, sh: 0.008, fs: 0.003, flat: true }); p.r(0.15, 0.09, 0.02, 0.04, css("--rail")); p.r(0.07, 0.13, 0.18, 0.08, "#2a3138", { rx: p.L(0.01) }); p.r(0.25, 0.155, 0.07, 0.022, "#0b0d10"); p.c(0.1, 0.17, 0.012, "#0b0d10"); } },
+      { name: "Ceiling", w: 0.32, h: 0.24, ctx: "ceiling", note: "light on the fixed base", draw: (p) => { p.body(0.06, 0, 0.2, 0.09); p.band("turret", 0.06, 0, 0.2, 0.006); p.icon("turret", 0.07, 0.015, 0.03); p.led(0.105, 0.02, 0.01); p.plate(0.12, 0.035, 0.12, 0.014, "TUR-VAULT"); p.r(0.15, 0.09, 0.02, 0.04, css("--rail")); p.r(0.07, 0.13, 0.18, 0.08, "#2a3138", { rx: p.L(0.01) }); p.r(0.25, 0.155, 0.07, 0.022, "#0b0d10"); p.c(0.1, 0.17, 0.012, "#0b0d10"); } },
     ] },
     { id: "siren", kind: "siren", title: "Siren", versions: [
       { name: "Wall", w: 0.2, h: 0.24, ctx: "wall", note: "", draw: (p) => { p.poly([[0.02, 0], [0.18, 0], [0.14, 0.11], [0.06, 0.11]], "#2a3138"); p.c(0.1, 0.05, 0.04, "#0b0d10"); p.body(0.04, 0.11, 0.12, 0.12); p.band("siren", 0.04, 0.11, 0.12, 0.005);
-        p.icon("siren", 0.048, 0.122, 0.024); p.led(0.078, 0.125, 0.008); p.plate(0.05, 0.155, 0.1, 0.012, "SIREN-1"); p.ports(0.093, 0.18, 1, 0.02, ["SW-SEC"], { sw: 0.013, sh: 0.009, fs: 0.0035, flat: true }); } },
+        p.icon("siren", 0.048, 0.122, 0.024); p.led(0.078, 0.125, 0.008); p.plate(0.05, 0.155, 0.1, 0.012, "SIREN-1"); } },
     ] },
     { id: "radio", kind: "radio", title: "Radio base station", versions: [
       { name: "Wall", w: 0.22, h: 0.3, ctx: "wall", note: "", draw: (p) => { p.r(0.17, 0, 0.008, 0.12, "#0b0d10"); p.body(0, 0.12, 0.22, 0.17); p.band("radio", 0, 0.12, 0.22, 0.006); p.icon("radio", 0.01, 0.135, 0.03); p.led(0.05, 0.14, 0.01); p.plate(0.07, 0.138, 0.13, 0.016, "RADIO-BASE");
-        p.r(0.02, 0.18, 0.18, 0.04, css("--face")); for (let k = 0; k < 6; k++) p.line(0.03 + k * 0.028, 0.185, 0.03 + k * 0.028, 0.215, css("--rail"), 0.002); p.ports(0.103, 0.235, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.01, fs: 0.004, flat: true }); } },
+        p.r(0.02, 0.18, 0.18, 0.04, css("--face")); for (let k = 0; k < 6; k++) p.line(0.03 + k * 0.028, 0.185, 0.03 + k * 0.028, 0.215, css("--rail"), 0.002); } },
     ] },
     { id: "panic", kind: "panic", title: "Panic button", versions: [
-      { name: "Wall", w: 0.1, h: 0.16, ctx: "wall", note: "no light", draw: (p) => { p.body(0, 0, 0.1, 0.16); p.band("panic", 0, 0, 0.1, 0.005); p.icon("panic", 0.006, 0.01, 0.016); p.plate(0.026, 0.012, 0.068, 0.011, "PANIC-1"); p.c(0.05, 0.068, 0.03, "#c22b22", { stroke: "#7d1a14", "stroke-width": 2 });
-        p.ports(0.043, 0.115, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.009, fs: 0.0038, flat: true }); } },
+      { name: "Wall", w: 0.1, h: 0.16, ctx: "wall", note: "no light", draw: (p) => { p.body(0, 0, 0.1, 0.16); p.band("panic", 0, 0, 0.1, 0.005); p.icon("panic", 0.006, 0.01, 0.016); p.plate(0.026, 0.012, 0.068, 0.011, "PANIC-1"); p.c(0.05, 0.068, 0.03, "#c22b22", { stroke: "#7d1a14", "stroke-width": 2 }); } },
     ] },
     { id: "laser", kind: "laser", title: "Laser array", versions: [
       { name: "Wall post", w: 0.3, h: 0.5, ctx: "wall", note: "no light; the beam shows it is on", draw: (p) => { p.body(0, 0, 0.05, 0.5); p.band("laser", 0, 0, 0.05, 0.006); p.icon("laser", 0.006, 0.014, 0.038); p.plate(0.004, 0.06, 0.042, 0.011, "LSR-1");
-        for (const ly of [0.15, 0.25, 0.35]) { p.c(0.025, ly, 0.008, "#0b0d10", { stroke: css("--rail"), "stroke-width": 1 }); if (ST.status === "up") p.line(0.04, ly, 0.3, ly, "rgba(255,40,30,0.75)", 0.002); }
-        p.ports(0.018, 0.43, 1, 0.02, ["SW-SEC"], { sw: 0.014, sh: 0.009, fs: 0.0034, flat: true }); } },
+        for (const ly of [0.15, 0.25, 0.35]) { p.c(0.025, ly, 0.008, "#0b0d10", { stroke: css("--rail"), "stroke-width": 1 }); if (ST.status === "up") p.line(0.04, ly, 0.3, ly, "rgba(255,40,30,0.75)", 0.002); } } },
     ] },
   ];
 
