@@ -590,6 +590,7 @@ Warehouse network:
 - [ ] Cut breaker B from far away (more than 30 m from the switches it feeds): the line still shows (your breaker). A guard breaking something far away shows nothing.
 - [ ] Deck in hand (not plugged in), RMB: "AR: cables (RMB)" and the remembered network drawn over the world: ceiling runs in the subnet colours, AP-YARD's wireless links dashed blue, dead links dim. RMB again, switching item or opening any screen turns it off. Is it readable in the office (runs from the basement rise through the floor) or too busy? Do runs fading with distance matter?
 - [ ] A cut device's amber blink, a disabled camera's red LED and a dark unpowered one: is the colour language clear without the Map?
+- [ ] M13 fix: walk past every networked device kind at an angle (camera, siren, panic button, alarm controller, radio base station, computer, wall jack, access point, switch, router, mail server, turret, door, fence gate, laser array): each LED sits on the device (camera: its wall plate; turret: its base; door: the leaf's top-left in the doorway, sliding away with it), never in the air in front of or above it. Reference shots: `tests/objects/fixtures/showcase/status_light_shots.tscn`.
 
 ## M13a Weapon feel loop ([ADR 0120](../decisions/0120-weapon-feel.md), [ADR 0123](../decisions/0123-recoil-and-skill-aim.md))
 

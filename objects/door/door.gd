@@ -39,6 +39,8 @@ const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
 ## Heights of a barred panel's rails, as fractions of its height (the fence's rails: 0.3 and 2.7 m).
 const BAR_RAILS: Array[float] = [0.1, 0.9]
+## The leaf's status LED: in from the doorway's top and left edges (m).
+const STATUS_INSET: float = 0.06
 
 @export var settings: DoorSettings
 ## Open when the level starts.
@@ -406,6 +408,20 @@ func _build_bars(mesh_instance: MeshInstance3D) -> void:
 		mesh_instance.mesh = mesh
 
 
+# The leaf's status LED marker (StatusLight, ADR 0122), a child of the panel mesh so the LED rides
+# with the leaf: the top-left of the front face's part that shows in the doorway (the leaf's rim
+# hides in the jamb and lintel), on the top rail of a barred leaf.
+func _fit_status_marker() -> void:
+	var marker := _panel_mesh.get_node_or_null(^"StatusLedMarker") as Node3D
+	if marker == null:
+		return
+	var half := panel_size * 0.5
+	var top := settings.doorway.y - _closed.y - STATUS_INSET
+	if settings.bar_spacing > 0.0:
+		top = -half.y + BAR_RAILS[BAR_RAILS.size() - 1] * panel_size.y
+	marker.position = Vector3(-settings.doorway.x * 0.5 + STATUS_INSET, top, half.z + StatusLight.FRONT_OFFSET)
+
+
 # Sizes the panel, the doorway's attenuator and navigation carve for the settings'
 # doorway (the scene's own shapes are shared: they are copied first).
 func _fit_doorway() -> void:
@@ -423,6 +439,7 @@ func _fit_doorway() -> void:
 			mesh.size = panel_size
 			mesh_instance.mesh = mesh
 	_closed = DoorLayout.closed_centre(settings)
+	_fit_status_marker()
 	if _attenuator != null:
 		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
 		if doorway != null and doorway.shape is BoxShape3D:

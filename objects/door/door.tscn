@@ -52,6 +52,9 @@ shape = SubResource("Shape_panel")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.13, 0)
 mesh = SubResource("Mesh_panel")
 
+[node name="StatusLedMarker" type="Marker3D" parent="PanelMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.54, 1.01, 0.033)
+
 [node name="Handle" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.59, 1, 0)
 shape = SubResource("Shape_handle")
