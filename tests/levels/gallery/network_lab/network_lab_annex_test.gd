@@ -267,11 +267,12 @@ func test_the_exploit_items_lie_on_the_table_and_open_devices_there() -> void:
 		var pickup := ItemPickup.of(_node(path))
 		assert_object(pickup).override_failure_message(path).is_not_null()
 		assert_str(String(pickup.item.exploit_kind)).is_equal(String(expected[path]))
-		# On the table's top (1.0 m), within its 1.4 x 0.7 m footprint.
-		var at := (_node(path) as Node3D).global_position - table.global_position
+		# On the table's top (1.0 m), within its 1.4 x 0.7 m footprint (a ledge's origin is its lip,
+		# its top extends along its local -z).
+		var at := table.to_local((_node(path) as Node3D).global_position)
 		assert_float(at.y).override_failure_message(path).is_between(0.98, 1.1)
 		assert_float(absf(at.x)).override_failure_message(path).is_less(0.6)
-		assert_float(absf(at.z)).override_failure_message(path).is_less(0.3)
+		assert_float(at.z).override_failure_message(path).is_between(-0.6, -0.1)
 	# Each kind opens devices of the station: the CCTV cameras and RTR-03.
 	for path: String in ["Devices/CamEx1", "Devices/CamEx2", "Devices/CamEx3"]:
 		assert_str(String(kinds.kind_for(_node(path)).exploit)).override_failure_message(path).is_equal("camera")

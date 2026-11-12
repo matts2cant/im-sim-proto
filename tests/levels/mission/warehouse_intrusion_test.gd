@@ -80,10 +80,11 @@ func test_the_exploit_items_lie_at_their_places() -> void:
 	var desk := _entity("Furniture/OfficeDesk1")
 	var camera_item := _entity("Items/CameraExploit")
 	assert_str(String(ItemPickup.of(camera_item).item.exploit_kind)).is_equal("camera")
-	var on_desk := camera_item.global_position - desk.global_position
+	# A ledge's origin is its lip; its top extends `depth` (0.8 m) along its local -z.
+	var on_desk := desk.to_local(camera_item.global_position)
 	assert_float(on_desk.y).is_between(0.74, 0.85)
 	assert_float(absf(on_desk.x)).is_less(0.6)
-	assert_float(absf(on_desk.z)).is_less(0.35)
+	assert_float(on_desk.z).is_between(-0.7, -0.1)
 	var alarm_item := _entity("Items/AlarmExploit")
 	assert_str(String(ItemPickup.of(alarm_item).item.exploit_kind)).is_equal("alarm")
 	var at := alarm_item.global_position

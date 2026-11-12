@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## entity, network_fixtures.gd user()) over two networks with no link between them, the lab (A) and
 ## the annex (B, network_fixtures.gd annex()). Plugged into A then into B, the Map draws only B
 ## (its layout checks passed: 0 crossings); unplugged, raised on the Wi-Fi key screen, the Map
-## button shows an empty Map with one line (DeckScreen.UNPLUGGED_NOTE).
+## button shows an empty Map with one line (DeckScreen.UNPLUGGED_NOTE). Every box shows the icon
+## of its kind (DeviceKinds, ADR 0121).
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
@@ -94,3 +95,26 @@ func test_unplugged_the_map_draws_nothing_and_says_so() -> void:
 	assert_str(_screen.title_meta.text).is_equal("Not plugged in")
 	# The deck still remembers the annex.
 	assert_array(_stack.state[DeckSession.SEEN] as Array).is_not_empty()
+
+
+func test_every_box_shows_the_icon_of_its_kind() -> void:
+	# The lab's shipped jack, switches and router, and its camera tagged as one (ADR 0121).
+	await _plug(_a["Jack"], AT_A)
+	DeviceAccounts.of(_a["Rtr01"]).grant(_user, "admin")
+	_session.refresh()
+	await _frames(15)
+	_screen.refresh()
+	var kinds := DeviceKinds.shipped()
+	var with_icon: Array[String] = []
+	for row in _screen.map_rows():
+		var button := _screen.graph.node_button(row.name)
+		assert_object(button).override_failure_message(row.name).is_not_null()
+		var icon := button.get_node_or_null(^"Icon") as DeviceIcon
+		var kind := kinds.kind_for(row.device.entity)
+		if kind == null:
+			assert_object(icon).override_failure_message(row.name).is_null()
+			continue
+		assert_object(icon).override_failure_message(row.name).is_not_null()
+		assert_array(Array(icon.strokes)).override_failure_message(row.name).is_equal(Array(kind.icon))
+		with_icon.append(row.name)
+	assert_array(with_icon).contains(["OFFICE-JACK", "SW-OFFICE", "RTR-01", "SW-SECURITY", "CAM-GATE", "RTR-02"])
