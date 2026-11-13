@@ -106,6 +106,7 @@ mesh = SubResource("CylinderMesh_8")
 [node name="PortRow" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.215, 0.13, 0.21)
 script = ExtResource("11_port_row")
+label_room = 0.11
 labels = PackedStringArray("SW-OFFICE")
 pitch = 0.02
 socket_size = Vector2(0.014, 0.011)

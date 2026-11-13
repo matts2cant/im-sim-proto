@@ -6,7 +6,8 @@ extends GdUnitTestSuite
 ## faces the front (+Z). A minimal entity built from components shows the rule is generic: the LED
 ## skips a protrusion and an antenna for the flat plate, and rides with the part it sits on.
 ## One light per device (ADR 0122 amendment 2): every device scene shows its own lamp or the LED,
-## port lights only on network gear, and no other small glowing mesh.
+## port lights only on network gear, and no other small glowing mesh. A scene built from a device
+## model (ADR 0130 step 2) places nothing: its model's light (if any) and sockets are its lights.
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const ORIGIN := Vector3(-560, 0, 560)
@@ -76,12 +77,24 @@ func test_every_device_scene_shows_one_light() -> void:
 		var lamp := DeviceLamp.of(entity)
 		var has_lamp := lamp != null and lamp.has_lamps()
 		lamps += 1 if has_lamp else 0
-		assert_bool(has_lamp != (light.led != null)).override_failure_message(label + ": lamp or LED").is_true()
-		assert_int(light.indicators().size()).override_failure_message(label).is_greater(0)
-		var gear := DeviceNetwork.is_network_gear(Device.of(entity))
-		assert_bool(light.port_lights.is_empty() != gear).override_failure_message(label + " ports").is_true()
 		var allowed: Array[MeshInstance3D] = light.indicators()
 		allowed.append_array(light.port_lights)
+		if ModelFace.has_model(entity):
+			# Built from a model (ADR 0130 step 2): its own lights only, each driven (the camera's as its
+			# lamp); a socket's light per port, cabled or free.
+			assert_object(light.led).override_failure_message(label + ": placed LED").is_null()
+			var leds := ModelFace.leds(entity).size()
+			assert_int(leds).override_failure_message(label + ": one light at most").is_less_equal(1)
+			assert_int(light.indicators().size()).override_failure_message(label).is_equal(leds)
+			var rows := ModelFace.rows(entity)
+			assert_bool(light.port_lights.is_empty() == rows.is_empty()).override_failure_message(label).is_true()
+			for row in rows:
+				allowed.append_array(row.lights)
+		else:
+			assert_bool(has_lamp != (light.led != null)).override_failure_message(label + ": lamp or LED").is_true()
+			assert_int(light.indicators().size()).override_failure_message(label).is_greater(0)
+			var gear := DeviceNetwork.is_network_gear(Device.of(entity))
+			assert_bool(light.port_lights.is_empty() != gear).override_failure_message(label + " ports").is_true()
 		for glow in _small_glowing(entity):
 			assert_bool(allowed.has(glow)).override_failure_message("%s: %s glows" % [label, glow.name]).is_true()
 	# The camera's watch lamp is one of them (a door controller's lock lights need a door:

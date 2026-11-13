@@ -10,10 +10,9 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/alarm_panel.tscn" id="11_model"]
 [ext_resource type="Script" path="res://objects/alarm/alarm_controller.gd" id="20_controller"]
 [ext_resource type="Resource" path="res://objects/alarm/alarm_controller.tres" id="21_config"]
-[ext_resource type="Material" path="res://objects/alarm/alarm_red.tres" id="22_red"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/device_incident.tres" id="30_device_incident"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_trigger.tres" id="31_command_trigger"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_reset.tres" id="32_command_reset"]
@@ -22,46 +21,19 @@
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="35_command_enable"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.5, 0.6, 0.15)
-
-[sub_resource type="BoxMesh" id="Mesh_led"]
-material = ExtResource("12_lens")
-size = Vector3(0.04, 0.04, 0.01)
-
-[sub_resource type="StandardMaterial3D" id="Material_paint"]
-albedo_color = Color(0.42, 0.11, 0.09, 1)
-metallic = 0.3
-roughness = 0.45
-
-[sub_resource type="BoxMesh" id="Mesh_box"]
-material = SubResource("Material_paint")
-size = Vector3(0.5, 0.6, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_strip"]
-material = ExtResource("22_red")
-size = Vector3(0.36, 0.06, 0.01)
+size = Vector3(0.3, 0.38, 0.07)
 
 [node name="AlarmController" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 shape = SubResource("Shape_body")
 
-[node name="Box" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
-cast_shadow = 0
-mesh = SubResource("Mesh_box")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
-[node name="Strip" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0.145)
-cast_shadow = 0
-mesh = SubResource("Mesh_strip")
-
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17, -0.22, 0.145)
-cast_shadow = 0
-mesh = SubResource("Mesh_led")
+[node name="PortRow" parent="Model"]
+labels = PackedStringArray("")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
@@ -72,12 +44,12 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 30.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_device_incident"), ExtResource("31_command_trigger"), ExtResource("32_command_reset"), ExtResource("33_command_disarm"), ExtResource("34_command_disable"), ExtResource("35_command_enable")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")
@@ -89,7 +61,7 @@ script = ExtResource("9_powered")
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Strip")])
+broken_hide = Array[NodePath]([NodePath("../Model/DisplayText")])
 
 [node name="AlarmControllerBehaviour" type="Node" parent="."]
 script = ExtResource("20_controller")

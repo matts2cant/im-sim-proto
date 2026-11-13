@@ -3,7 +3,7 @@ class_name StatusLed
 extends ModelPart
 ## A device model's one status light (ADR 0130), in the shared status light material (StatusLight's
 ## shader: per-instance colour and blink). Online green by default; a door controller's lock light
-## shows red (locked). Step 2 hands it to the device's StatusLight. Its shape:
+## shows red (locked). In a device scene the StatusLight (or a DeviceLamp) drives it. Its shape:
 ## - SQUARE: a small square LED `size` metres wide, centred on the node, sitting on the surface (+Z);
 ## - LAMP: a round lamp `size` metres across, centred on the node (half of it shows when the node
 ##   sits on a surface; the camera's lamp under its head);

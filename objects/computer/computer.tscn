@@ -10,68 +10,51 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/computer_desktop.tscn" id="11_model"]
 [ext_resource type="Script" path="res://objects/computer/computer.gd" id="20_computer"]
 [ext_resource type="Resource" path="res://objects/computer/computer.tres" id="21_config"]
 [ext_resource type="Script" path="res://objects/computer/computer_use.gd" id="22_use"]
 [ext_resource type="Script" path="res://objects/network/device_accounts.gd" id="23_accounts"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/rack_frame.tres" id="24_frame"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.56, 0.62, 0.3)
-
-[sub_resource type="StandardMaterial3D" id="Material_screen"]
-albedo_color = Color(0.05, 0.18, 0.16, 1)
-emission_enabled = true
-emission = Color(0.2, 0.75, 0.62, 1)
-emission_energy_multiplier = 0.9
-
-[sub_resource type="StandardMaterial3D" id="Material_keys"]
-albedo_color = Color(0.12, 0.12, 0.13, 1)
-roughness = 0.7
-
-[sub_resource type="BoxMesh" id="Mesh_housing"]
-material = ExtResource("11_metal_surface")
-size = Vector3(0.52, 0.42, 0.12)
-
-[sub_resource type="BoxMesh" id="Mesh_screen"]
-material = SubResource("Material_screen")
-size = Vector3(0.42, 0.3, 0.01)
+size = Vector3(0.72, 0.5, 0.47)
 
 [sub_resource type="BoxMesh" id="Mesh_shelf"]
-material = ExtResource("11_metal_surface")
-size = Vector3(0.52, 0.03, 0.28)
+material = ExtResource("24_frame")
+size = Vector3(0.72, 0.03, 0.47)
 
-[sub_resource type="BoxMesh" id="Mesh_keys"]
-material = SubResource("Material_keys")
-size = Vector3(0.4, 0.02, 0.14)
+[sub_resource type="BoxMesh" id="Mesh_bracket"]
+material = ExtResource("24_frame")
+size = Vector3(0.02, 0.16, 0.26)
 
 [node name="Computer" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.215, 0.235)
 shape = SubResource("Shape_body")
 
-[node name="Housing" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
-mesh = SubResource("Mesh_housing")
+[node name="Model" parent="." instance=ExtResource("11_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45, 0.235)
 
-[node name="Screen" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.125)
-cast_shadow = 0
-mesh = SubResource("Mesh_screen")
+[node name="PortRow" parent="Model"]
+labels = PackedStringArray("")
 
 [node name="Shelf" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.395, 0.14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.465, 0.235)
 mesh = SubResource("Mesh_shelf")
 
-[node name="Keys" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.37, 0.17)
-cast_shadow = 0
-mesh = SubResource("Mesh_keys")
+[node name="BracketLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, -0.56, 0.13)
+mesh = SubResource("Mesh_bracket")
+
+[node name="BracketRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.56, 0.13)
+mesh = SubResource("Mesh_bracket")
 
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0.2)
 unit_size = 4.0
 bus = &"Effects"
 
@@ -84,12 +67,12 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 20.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.215, 0.235)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.215, 0.235)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")
@@ -98,11 +81,11 @@ size = 0.5
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
-targets = Array[NodePath]([NodePath("../Screen")])
+targets = Array[NodePath]([NodePath("../Model/Screen")])
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Screen")])
+broken_hide = Array[NodePath]([NodePath("../Model/Screen")])
 
 [node name="Accounts" type="Node" parent="."]
 script = ExtResource("23_accounts")

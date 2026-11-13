@@ -3,10 +3,14 @@ class_name LinkingBay
 extends ModelPart
 ## A linking bay (ADR 0130): a floor-standing rack cabinet (0.6 m wide, 1.9 m high, 0.6 m deep)
 ## holding an area's rack units, its name plate on top and cables bundled up from its top. Furniture,
-## not a device: the look and a solid body only (step 0). Rack units are its children (DeviceModel
-## with rack_units > 0); on load each snaps to the nearest U slot on the mounting rails (snap_units())
-## and every free slot gets a 1U blank panel. `glass_door`: a closed glass door with a keyhole lock on
-## its right edge (visual only until step 2 adds the lock).
+## not a device: the look and a solid body open at the front (sides, top, plinth, back), so the
+## units' own bodies are what the Interactor's ray reaches. Rack units are its children: a
+## DeviceModel with rack_units > 0, or a device scene whose model is one (rack_units_of()); on load
+## each snaps to the nearest U slot on the mounting rails (snap_units()) and every free slot gets a
+## 1U blank panel. `glass_door`: a glass door with a keyhole lock on its right edge. Built under
+## `door_path` when that names a node (the working door of `linking_bay_locked.tscn`: an entity with
+## its hinge on the left edge, HingedDoor and a MechanicalLock, ADR 0130 step 2), so the look swings
+## with it; else under a plain "Door" node (the look alone, closed).
 ## Origin: the bottom centre of the footprint; the front faces +Z. Slot 0 is the top one.
 
 const WIDTH: float = 0.6
@@ -39,6 +43,11 @@ const PLATE_SIZE := Vector2(0.24, 0.035)
 	set(value):
 		cable_height = value
 		rebuild()
+## The node the glass door's look is built under (a working door's leaf); empty: a plain "Door".
+@export var door_path: NodePath = ^"":
+	set(value):
+		door_path = value
+		rebuild()
 
 ## The door (null without a glass door).
 var door: Node3D
@@ -57,21 +66,34 @@ static func slot_for(y: float, units: int) -> int:
 	return clampi(slot, 0, SLOTS - maxi(units, 1))
 
 
-## The rack units in this bay.
-func units() -> Array[DeviceModel]:
-	var result: Array[DeviceModel] = []
+## The rack units `node` fills: its own (a DeviceModel), else its model child's (a device scene
+## built on a rack model at its origin); 0: not a rack unit.
+static func rack_units_of(node: Node) -> int:
+	if node is DeviceModel:
+		return (node as DeviceModel).rack_units
+	if node == null:
+		return 0
+	for child in node.get_children():
+		if child is DeviceModel:
+			return (child as DeviceModel).rack_units
+	return 0
+
+
+## The rack units in this bay (rack models and device scenes built on them).
+func units() -> Array[Node3D]:
+	var result: Array[Node3D] = []
 	for child in get_children():
-		var model := child as DeviceModel
-		if model != null and model.rack_units > 0:
-			result.append(model)
+		if child is Node3D and rack_units_of(child) > 0:
+			result.append(child as Node3D)
 	return result
 
 
 ## Moves every rack unit onto its nearest slot on the rails, centred.
 func snap_units() -> void:
 	for unit in units():
-		var slot := slot_for(unit.position.y, unit.rack_units)
-		unit.transform = Transform3D(Basis.IDENTITY, Vector3(0.0, slot_y(slot, unit.rack_units), RAIL_Z))
+		var count := rack_units_of(unit)
+		var slot := slot_for(unit.position.y, count)
+		unit.transform = Transform3D(Basis.IDENTITY, Vector3(0.0, slot_y(slot, count), RAIL_Z))
 
 
 ## For each slot, whether a unit fills it.
@@ -80,8 +102,9 @@ func occupied() -> Array[bool]:
 	result.resize(SLOTS)
 	result.fill(false)
 	for unit in units():
-		var top := slot_for(unit.position.y, unit.rack_units)
-		for k in unit.rack_units:
+		var count := rack_units_of(unit)
+		var top := slot_for(unit.position.y, count)
+		for k in count:
 			if top + k < SLOTS:
 				result[top + k] = true
 	return result
@@ -145,25 +168,37 @@ func _cables() -> void:
 	_mesh("Cables", ModelStyle.boxes_mesh(cables, ModelStyle.CABLE), Vector3.ZERO)
 
 
-# A solid body for characters, bullets and props (the world layer).
+# A solid body for characters, bullets and props (the world layer), open at the front between the
+# sides, the top cap and the plinth, back to the rails: the units' own bodies fill the opening.
 func _body() -> void:
 	var body := StaticBody3D.new()
 	body.name = "Body"
 	body.collision_layer = PhysicsLayers.WORLD
 	body.collision_mask = 0
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(WIDTH, HEIGHT, DEPTH)
-	shape.shape = box
-	shape.position = Vector3(0.0, HEIGHT * 0.5, 0.0)
-	body.add_child(shape)
+	var inner := WIDTH * 0.5 - SIDE
+	var boxes: Array[AABB] = [
+		AABB(Vector3(-WIDTH * 0.5, 0.0, -DEPTH * 0.5), Vector3(SIDE, HEIGHT, DEPTH)),
+		AABB(Vector3(inner, 0.0, -DEPTH * 0.5), Vector3(SIDE, HEIGHT, DEPTH)),
+		AABB(Vector3(-inner, HEIGHT - CAP, -DEPTH * 0.5), Vector3(inner * 2.0, CAP, DEPTH)),
+		AABB(Vector3(-inner, 0.0, -DEPTH * 0.5), Vector3(inner * 2.0, CAP, DEPTH)),
+		AABB(Vector3(-inner, CAP, -DEPTH * 0.5), Vector3(inner * 2.0, HEIGHT - CAP * 2.0, RAIL_Z + DEPTH * 0.5 - 0.02)),
+	]
+	for b in boxes:
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = b.size
+		shape.shape = box
+		shape.position = b.get_center()
+		body.add_child(shape)
 	_keep(body)
 
 
 func _door() -> void:
-	door = Node3D.new()
-	door.name = "Door"
-	_keep(door)
+	door = get_node_or_null(door_path) as Node3D if not door_path.is_empty() else null
+	if door == null:
+		door = Node3D.new()
+		door.name = "Door"
+		_keep(door)
 	var inner := WIDTH * 0.5 - SIDE
 	var front := DEPTH * 0.5 + 0.005
 	var bar := 0.03
@@ -194,9 +229,18 @@ func _door() -> void:
 	_door_mesh("Keyhole", ModelStyle.boxes_mesh(keyhole, ModelStyle.SOCKET))
 
 
+# A door mesh built in the bay's frame, under the door node (a working leaf: placed back into the
+# bay's frame from the leaf's closed transform, so it swings with the leaf).
 func _door_mesh(node_name: String, mesh: Mesh) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = mesh
 	door.add_child(instance)
+	if door.get_parent() == self:
+		# (HingedDoor is not a tool script: in the editor the door stands closed.)
+		var hinge := HingedDoor.of(door) if not Engine.is_editor_hint() else null
+		var closed := hinge.closed_transform() if hinge != null else door.transform
+		instance.transform = closed.affine_inverse()
+	if not _built.has(instance):
+		_built.append(instance)
 	return instance

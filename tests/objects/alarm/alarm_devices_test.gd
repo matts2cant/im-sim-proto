@@ -231,7 +231,7 @@ func test_controller_and_siren_survive_save_and_load() -> void:
 	assert_bool(device_saved["broken"]).is_false()
 	Device.of(_siren).load_state({"broken": true})
 	assert_bool(ActorState.has(_siren, Device.BROKEN)).is_true()
-	assert_bool((_siren.get_node("Horn") as Node3D).visible).is_false()
+	assert_bool((_siren.get_node("Model/Beacon") as Node3D).visible).is_false()
 
 
 func _frames(count: int) -> void:

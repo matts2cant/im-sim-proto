@@ -10,73 +10,76 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/siren.tscn" id="11_model"]
+[ext_resource type="Script" path="res://objects/alarm/beacon_glow.gd" id="12_glow"]
 [ext_resource type="Script" path="res://objects/alarm/siren.gd" id="20_siren"]
 [ext_resource type="Resource" path="res://objects/alarm/siren.tres" id="21_config"]
-[ext_resource type="Material" path="res://objects/alarm/alarm_red.tres" id="22_red"]
-[ext_resource type="Material" path="res://objects/alarm/beacon_red.tres" id="23_beacon"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_ring.tres" id="30_command_ring"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_silence.tres" id="31_command_silence"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_test.tres" id="32_command_test"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.3, 0.4, 0.26)
+size = Vector3(0.13, 0.23, 0.1)
 
-[sub_resource type="BoxMesh" id="Mesh_led"]
-material = ExtResource("12_lens")
-size = Vector3(0.04, 0.04, 0.01)
+[sub_resource type="StandardMaterial3D" id="Material_lit"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.32, 0.1, 0.78)
+emission_enabled = true
+emission = Color(1, 0.25, 0.05, 1)
+emission_energy_multiplier = 2.5
 
-[sub_resource type="BoxMesh" id="Mesh_plate"]
-material = ExtResource("11_metal_surface")
-size = Vector3(0.3, 0.3, 0.04)
-
-[sub_resource type="CylinderMesh" id="Mesh_horn"]
-material = ExtResource("22_red")
-top_radius = 0.06
-bottom_radius = 0.12
-height = 0.2
-radial_segments = 16
+[sub_resource type="CylinderMesh" id="Mesh_lit_cover"]
+material = SubResource("Material_lit")
+top_radius = 0.0366
+bottom_radius = 0.0366
+height = 0.05
+radial_segments = 32
 rings = 1
+cap_top = false
+cap_bottom = false
 
-[sub_resource type="CylinderMesh" id="Mesh_beacon"]
-material = ExtResource("23_beacon")
-top_radius = 0.05
-bottom_radius = 0.05
-height = 0.08
-radial_segments = 12
-rings = 1
+[sub_resource type="SphereMesh" id="Mesh_lit_top"]
+material = SubResource("Material_lit")
+radius = 0.0366
+height = 0.0366
+radial_segments = 32
+rings = 8
+is_hemisphere = true
 
 [node name="Siren" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.05)
 shape = SubResource("Shape_body")
 
-[node name="Plate" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
-cast_shadow = 0
-mesh = SubResource("Mesh_plate")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
-[node name="Horn" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.02, 0.145)
-cast_shadow = 0
-mesh = SubResource("Mesh_horn")
-
-[node name="Beacon" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.19, 0.08)
-cast_shadow = 0
-mesh = SubResource("Mesh_beacon")
+[node name="Glow" type="Node3D" parent="Model/Beacon"]
 visible = false
+script = ExtResource("12_glow")
+spin_path = NodePath("../Reflector")
 
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, -0.11, 0.05)
+[node name="LitCover" type="MeshInstance3D" parent="Model/Beacon/Glow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.039, 0)
 cast_shadow = 0
-mesh = SubResource("Mesh_led")
+mesh = SubResource("Mesh_lit_cover")
+
+[node name="LitTop" type="MeshInstance3D" parent="Model/Beacon/Glow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.064, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_lit_top")
+
+[node name="Light" type="OmniLight3D" parent="Model/Beacon/Glow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045, 0.06)
+light_color = Color(1, 0.3, 0.08, 1)
+light_energy = 1.5
+omni_range = 3.0
 
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
 unit_size = 12.0
 bus = &"Effects"
 
@@ -89,27 +92,27 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 20.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.05)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_ring"), ExtResource("31_command_silence"), ExtResource("32_command_test")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.08)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")
 break_on_depleted = false
-size = 0.4
+size = 0.25
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Horn")])
+broken_hide = Array[NodePath]([NodePath("../Model/Beacon")])
 
 [node name="SirenBehaviour" type="Node" parent="."]
 script = ExtResource("20_siren")
 config = ExtResource("21_config")
-beacon_path = NodePath("../Beacon")
+beacon_path = NodePath("../Model/Beacon/Glow")
 sound_path = NodePath("../Sound")

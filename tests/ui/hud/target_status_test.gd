@@ -81,7 +81,7 @@ func test_network_device_words_from_its_components() -> void:
 	panel.add_child(toggle)
 	Net.link(panel, switch)
 	await get_tree().process_frame
-	var links := TargetStatus.network_links(Device.of(panel))
+	var links := NetworkState.links_of(Device.of(panel))
 	assert_array(links).contains_exactly([Device.of(switch)])
 
 	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.ONLINE)
@@ -114,7 +114,7 @@ func test_things_off_any_network_and_characters() -> void:
 	assert_bool(TargetStatus.shows(lamp)).is_true()
 	assert_bool(TargetStatus.shows(guard)).is_true()
 	assert_bool(TargetStatus.shows(crate)).is_false()
-	assert_array(TargetStatus.network_links(Device.of(lone))).is_empty()
+	assert_array(NetworkState.links_of(Device.of(lone))).is_empty()
 	assert_int(TargetStatus.word_of(lone, none)).is_equal(W.POWERED)
 	assert_int(TargetStatus.word_of(lamp, none)).is_equal(W.POWERED)
 	power.on = false

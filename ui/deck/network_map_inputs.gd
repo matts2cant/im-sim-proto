@@ -53,6 +53,8 @@ static func drawn_key(
 			row.position().snapped(Vector3.ONE * 0.01),
 			row.commands,
 			row.icon,
+			row.kind_color,
+			row.light,
 			row.scanning,
 		]
 		parts.append(str(fields))

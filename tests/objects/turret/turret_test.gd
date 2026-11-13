@@ -40,7 +40,7 @@ func test_it_reports_winds_up_then_fires_and_hurts_the_player() -> void:
 	assert_int(int(detected[0].data["controllers"])).is_equal(1)
 	# Wind-up: the laser is on, nothing fired yet.
 	await _show.seconds(0.8)
-	assert_bool((_show.node("Turret").get_node("Pivot/Aim/Laser") as Node3D).visible).is_true()
+	assert_bool((_show.node("Turret").get_node("Model/Head/Aim/Laser") as Node3D).visible).is_true()
 	assert_array(_fired()).is_empty()
 	await _show.seconds(1.0)
 	assert_array(_fired()).is_not_empty()
@@ -62,7 +62,7 @@ func test_it_stops_a_second_after_losing_sight() -> void:
 	var shots := _fired().size()
 	await _show.seconds(1.0)
 	assert_int(_fired().size()).is_equal(shots)
-	assert_bool((_show.node("Turret").get_node("Pivot/Aim/Laser") as Node3D).visible).is_false()
+	assert_bool((_show.node("Turret").get_node("Model/Head/Aim/Laser") as Node3D).visible).is_false()
 
 
 func test_retargeted_at_guards_it_shoots_a_guard_and_ignores_the_player() -> void:

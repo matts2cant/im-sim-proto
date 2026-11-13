@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 ## the annex (B, network_fixtures.gd annex()). Plugged into A then into B, the Map draws only B
 ## (its layout checks passed: 0 crossings); unplugged, raised on the Wi-Fi key screen, the Map
 ## button shows an empty Map with one line (DeckScreen.UNPLUGGED_NOTE). Every box shows the icon
-## of its kind (DeviceKinds, ADR 0121).
+## of its kind (DeviceKinds, ADR 0121), in the kind's colour with its strip (ADR 0130).
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
@@ -116,5 +116,10 @@ func test_every_box_shows_the_icon_of_its_kind() -> void:
 			continue
 		assert_object(icon).override_failure_message(row.name).is_not_null()
 		assert_array(Array(icon.strokes)).override_failure_message(row.name).is_equal(Array(kind.icon))
+		# ADR 0130: the icon and the strip in the kind's colour, a status square on every box.
+		var box := NetworkNodeBox.of(button)
+		assert_object(icon.colour).override_failure_message(row.name).is_equal(kind.color)
+		assert_object(NetworkNodeBox.fill_of(box.strip)).override_failure_message(row.name).is_equal(kind.color)
+		assert_object(box.light).override_failure_message(row.name).is_not_null()
 		with_icon.append(row.name)
 	assert_array(with_icon).contains(["OFFICE-JACK", "SW-OFFICE", "RTR-01", "SW-SECURITY", "CAM-GATE", "RTR-02"])

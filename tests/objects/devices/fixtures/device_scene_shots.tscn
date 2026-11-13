@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/objects/devices/fixtures/device_scene_shots.gd" id="1_shots"]
+
+[node name="DeviceSceneShots" type="Node3D"]
+script = ExtResource("1_shots")

@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="6_breakable"]
+[ext_resource type="Resource" path="res://objects/materials/electronics.tres" id="7_electronics"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
+[ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/switch_desk.tscn" id="11_model"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.2, 0.042, 0.143)
+
+[node name="SwitchDesk" type="StaticBody3D"]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021, 0)
+shape = SubResource("Shape_body")
+
+[node name="Model" parent="." instance=ExtResource("11_model")]
+
+[node name="PortRow" parent="Model"]
+labels = PackedStringArray("", "", "", "", "")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.network_switch", &"object.network_gear"])
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 40.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021, 0)
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage")])
+
+[node name="Breakable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021, 0)
+script = ExtResource("6_breakable")
+material = ExtResource("7_electronics")
+settings = ExtResource("8_break_settings")
+break_on_depleted = false
+size = 0.2
+
+[node name="Powered" type="Node" parent="."]
+script = ExtResource("9_powered")
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("10_device")

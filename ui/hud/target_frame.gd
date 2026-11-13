@@ -178,7 +178,7 @@ func _gather(entity: Node3D) -> void:
 	_links.clear()
 	var device := Device.of(entity) if entity != null else null
 	if device != null and device.is_inside_tree():
-		_links = TargetStatus.network_links(device)
+		_links = NetworkState.links_of(device)
 
 
 func _show_status(p_word: TargetStatus.Word) -> void:

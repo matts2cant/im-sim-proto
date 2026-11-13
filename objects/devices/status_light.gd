@@ -1,22 +1,29 @@
 class_name StatusLight
 extends Node3D
-## Component (M12c readability, ADR 0115, ADR 0122): a networked device's status LED, and on network
-## gear (DeviceNetwork.is_network_gear()) a row of port lights. Nothing in a scene asks for it: every
-## Device attaches one to its entity (attach(), deferred from Device._ready) when the device is on a
-## network (it has a cable either way, a wireless link or wireless clients, or names an access
-## point); a standalone device shows none. Gear also gets its plate (GearPlate).
+## Component (M12c readability, ADR 0115, ADR 0122, ADR 0130): a device's status light and port
+## lights. Nothing in a scene asks for it: every Device attaches one to its entity (attach(), deferred
+## from Device._ready).
+## - A device built from a device model (ModelFace, ADR 0130 step 2) always gets one: it drives the
+##   model's own StatusLed (none when the model has none: jacks, panic buttons, lasers), writes the far
+##   end's name on the socket each cable takes and lights its port light (lit() rule below), and puts
+##   the device's name on the model's name plates. Nothing is placed.
+## - A device without a model (the M12 router, switch and mail server until step 3) gets one when it is
+##   on a network (it has a cable either way, a wireless link or wireless clients, or names an access
+##   point): a placed LED, and on network gear (DeviceNetwork.is_network_gear()) a row of port lights
+##   and its plate (GearPlate); a standalone device shows none.
 ## - The LED (one colour language): green steady = up and on its network; amber blinking = powered
 ##   but cut off (none of the network gear it is linked to is up: its switch, router or access point;
 ##   a device linked to no gear: none of its links is up; an access point named but out of range);
 ##   red = broken but powered, or switched off by a command (DeviceStatus.is_disabled()); dark =
-##   unpowered (or gone with its entity).
+##   unpowered (or gone with its entity). The rule lives in NetworkState (the frame and the Map read it
+##   too).
 ## - One light per device (ADR 0122 amendment 2): an entity whose DeviceLamp has a lamp mesh (a
 ##   camera's watch lamp, a door's lock lights) gets no LED; the state goes to the lamp instead
 ##   (DeviceLamp.show_network(): dark, amber blinking when cut off, else the owner's colours). A lamp
 ##   that gains or loses its meshes later (a door's hardware rebuilt) swaps the LED in or out.
-## - Port lights: one per cabled link (up to MAX_PORTS, then a "+"), green while the gear is up and
-##   the device at the other end is up, dark otherwise.
-## - Placement (M13 amendment): a Marker3D anywhere under the entity named LED_MARKER /
+## - Port lights: one per cabled link (a model's sockets; placed ones up to MAX_PORTS, then a "+"),
+##   green while the device is up and the device at the other end is up, dark otherwise.
+## - Placement without a model (M13 amendment): a Marker3D anywhere under the entity named LED_MARKER /
 ##   PORTS_MARKER (its +Z faces out), else on the surface of the entity's visible meshes seen from
 ##   the front (+Z, as wall-mounted devices are built; DeviceSurface): the LED on the top-left-most
 ##   flat front-facing spot of one mesh, FRONT_OFFSET proud, the ports on the surface ROW_DROP below
@@ -59,7 +66,11 @@ var state: State = State.DARK
 var links: Array[Device] = []
 ## The far ends of its cabled links (network gear only; empty otherwise).
 var ports: Array[Device] = []
-## The LED (null while the device shows its state on its own lamp).
+## Built from a device model (ModelFace): it drives the model's own lights.
+var model: bool = false
+## The model's status lights it drives (its StatusLed meshes not lent to the lamp).
+var model_leds: Array[MeshInstance3D] = []
+## The placed LED of a device without a model (null while it shows its state on its own lamp).
 var led: MeshInstance3D
 ## The entity's own lamp (DeviceLamp), or null.
 var lamp: DeviceLamp
@@ -83,16 +94,19 @@ static func attach(device: Device) -> StatusLight:
 	var existing := of(entity)
 	if existing != null:
 		return existing
-	var found := links_of(device)
-	if found.is_empty() and device.wireless.is_empty():
+	var found := NetworkState.links_of(device)
+	var model := ModelFace.has_model(entity)
+	if found.is_empty() and device.wireless.is_empty() and not model:
 		return null
 	var light := StatusLight.new()
 	light.name = NODE_NAME
 	light.device = device
 	light.links = found
-	light.bounds = local_bounds(entity)
+	light.model = model
+	if not model:
+		light.bounds = local_bounds(entity)
 	entity.add_child(light)
-	if DeviceNetwork.is_network_gear(device):
+	if DeviceNetwork.is_network_gear(device) and not model:
 		GearPlate.attach(device, light.bounds)
 	return light
 
@@ -105,53 +119,6 @@ static func of(node: Node) -> StatusLight:
 	if node is Device and is_instance_valid((node as Device).entity):
 		holder = (node as Device).entity
 	return holder.get_node_or_null(NodePath(String(NODE_NAME))) as StatusLight
-
-
-## The devices `device` is linked to: cables both ways, the access point it links to by radio, and
-## (an access point) the devices linked to it by radio.
-static func links_of(device: Device) -> Array[Device]:
-	var found := DeviceNetwork.cabled(device)
-	var radio := device.wireless_link()
-	if radio != null and not found.has(radio):
-		found.append(radio)
-	if AccessPoint.of(device) != null:
-		for other in DeviceNetwork.wireless_devices(device):
-			if not found.has(other):
-				found.append(other)
-	return found
-
-
-## The LED state of `device` linked to `p_links` (see the class description).
-static func state_of(p_device: Device, p_links: Array[Device]) -> State:
-	if p_device == null or not is_instance_valid(p_device) or not is_instance_valid(p_device.entity):
-		return State.DARK
-	if not p_device.is_powered():
-		return State.DARK
-	if p_device.broken or DeviceStatus.is_disabled(p_device.entity):
-		return State.DISABLED
-	return State.UP if on_network(p_device, p_links) else State.CUT_OFF
-
-
-## True when `p_device` still has its network: one of the gear it is linked to is up (linked to no
-## gear: one of its links is up). Linked to nothing: true, unless it names an access point.
-static func on_network(p_device: Device, p_links: Array[Device]) -> bool:
-	var live: Array[Device] = []
-	for other in p_links:
-		if is_instance_valid(other):
-			live.append(other)
-	if live.is_empty():
-		return p_device.wireless.is_empty()
-	var gear_linked := false
-	var any_up := false
-	for other in live:
-		var up := other.is_up()
-		if DeviceNetwork.is_network_gear(other):
-			if up:
-				return true
-			gear_linked = true
-		elif up:
-			any_up = true
-	return any_up and not gear_linked
 
 
 ## `entity`'s visible geometry (meshes, labels) boxed in its own frame; a 0.2 m cube without any.
@@ -175,8 +142,10 @@ func _ready() -> void:
 	if device == null:
 		return
 	if links.is_empty():
-		links = links_of(device)
-	if DeviceNetwork.is_network_gear(device):
+		links = NetworkState.links_of(device)
+	if not model:
+		model = ModelFace.has_model(device.entity)
+	if model or DeviceNetwork.is_network_gear(device):
 		ports = DeviceNetwork.cabled(device)
 	lamp = DeviceLamp.of(device.entity)
 	if lamp != null:
@@ -208,9 +177,12 @@ func _notification(what: int) -> void:
 
 ## Reads the state again and repaints the LED and the port lights.
 func refresh() -> void:
-	state = state_of(device, links)
+	state = NetworkState.state_of(device, links)
 	if is_instance_valid(led):
 		_paint(led, COLORS[state], state == State.CUT_OFF)
+	for mesh in model_leds:
+		if is_instance_valid(mesh):
+			_paint(mesh, COLORS[state], state == State.CUT_OFF)
 	if is_instance_valid(lamp):
 		lamp.show_network(state)
 	var lit := port_states()
@@ -223,7 +195,7 @@ func refresh() -> void:
 func port_states() -> Array[bool]:
 	var lit: Array[bool] = []
 	var gear_up := device != null and is_instance_valid(device) and device.is_up()
-	for i in mini(ports.size(), MAX_PORTS):
+	for i in ports.size() if model else mini(ports.size(), MAX_PORTS):
 		var other := ports[i]
 		lit.append(gear_up and is_instance_valid(other) and other.is_up())
 	return lit
@@ -232,6 +204,9 @@ func port_states() -> Array[bool]:
 ## The meshes that show the device's state: its LED, else its own lamp's meshes.
 func indicators() -> Array[MeshInstance3D]:
 	var result: Array[MeshInstance3D] = []
+	for mesh in model_leds:
+		if is_instance_valid(mesh):
+			result.append(mesh)
 	if is_instance_valid(led):
 		result.append(led)
 	elif _uses_lamp():
@@ -251,6 +226,10 @@ func _uses_lamp() -> bool:
 func _sync_led() -> void:
 	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
 		return
+	if model:
+		model_leds = _model_leds()
+		refresh()
+		return
 	if _uses_lamp() and is_instance_valid(led):
 		_parts.erase(led.get_instance_id())
 		led.queue_free()
@@ -266,6 +245,9 @@ func _refresh_later() -> void:
 
 
 func _build() -> void:
+	if model:
+		_build_model()
+		return
 	if _uses_lamp() and ports.is_empty():
 		return
 	var surface := DeviceSurface.new(device.entity, self)
@@ -294,6 +276,28 @@ func _build() -> void:
 		more.outline_size = 4
 		more.modulate = PORT_ON
 		_attach_part(more, _along(last, (float(count) * 0.5 + 0.4) * PORT_PITCH))
+
+
+# A device built from a model (ModelFace): its name on the plates, the far ends' names on the
+# sockets, and the model's own status lights (none when the model has none).
+func _build_model() -> void:
+	ModelFace.name_plates(device)
+	var rows := ModelFace.rows(device.entity)
+	if not rows.is_empty():
+		port_lights = ModelFace.label_rows(rows, ports)
+	model_leds = _model_leds()
+
+
+# The model's StatusLed meshes, but those the entity's lamp (DeviceLamp) shows its own colours on.
+func _model_leds() -> Array[MeshInstance3D]:
+	var found: Array[MeshInstance3D] = []
+	var lent: Array[MeshInstance3D] = []
+	if is_instance_valid(lamp):
+		lent = lamp.meshes()
+	for part in ModelFace.leds(device.entity):
+		if is_instance_valid(part.led) and not lent.has(part.led):
+			found.append(part.led)
+	return found
 
 
 # Where the LED goes: its marker, else the top-left flat spot of `surface`, else the bounds' corner.

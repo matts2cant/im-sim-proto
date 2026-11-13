@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 ## The temporary device showroom in the hub (ADR 0130 step 0): every model stands in its area
-## against the east wall (z -5.5 to +5.5, up to 4 m out), wall models sit on the wall surface, models
-## in one wall row keep 0.3 m apart, every item has a sign, and no two meshes z-fight. Loads the
-## showroom scene alone (the hub's own suites cover passages, navigation and the hub's CSG faces).
+## against the east wall (z -5.5 to +5.5, up to 4 m out), wall models sit on the wall surface (the
+## turret stands on the floor), models in one wall row keep 0.3 m apart, every item has a sign, and
+## no two meshes z-fight. Loads the showroom scene alone (the hub's own suites cover passages,
+## navigation and the hub's CSG faces).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const SHOWROOM := preload("res://levels/hub/device_showroom.tscn")
@@ -12,6 +13,9 @@ const WALL_X := 15.0
 const AREA_Z := 5.5
 const AREA_DEPTH := 4.0
 const MIN_GAP := 0.3
+## How far a wall model's meshes may reach behind the wall's face: the access point's dome rounds
+## 2 mm behind its rim (hidden in the wall).
+const BEHIND := 0.003
 
 var _showroom: Node3D
 
@@ -36,7 +40,7 @@ func test_every_model_stands_in_the_showroom_area() -> void:
 	for model in models:
 		var box := _bounds(model)
 		var label := str(_showroom.get_path_to(model))
-		assert_float(box.end.x).override_failure_message(label).is_less_equal(WALL_X + 0.001)
+		assert_float(box.end.x).override_failure_message(label).is_less_equal(WALL_X + BEHIND)
 		assert_float(box.position.x).override_failure_message(label).is_greater_equal(WALL_X - AREA_DEPTH)
 		assert_float(box.position.z).override_failure_message(label).is_greater_equal(-AREA_Z)
 		assert_float(box.end.z).override_failure_message(label).is_less_equal(AREA_Z)
@@ -49,7 +53,10 @@ func test_wall_models_sit_on_the_wall_and_keep_apart() -> void:
 		if model == null:
 			continue
 		var box := _bounds(model)
-		assert_float(box.end.x).override_failure_message(model.name).is_equal_approx(WALL_X, 0.001)
+		if box.position.y < 0.01:
+			# Stands on the floor (the turret).
+			continue
+		assert_float(box.end.x).override_failure_message(model.name).is_between(WALL_X - 0.001, WALL_X + BEHIND)
 		boxes.append(box)
 	for i in boxes.size():
 		for j in range(i + 1, boxes.size()):

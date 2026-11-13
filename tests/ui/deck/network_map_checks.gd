@@ -2,7 +2,8 @@ extends RefCounted
 ## Test helper (not a suite, ADR 0099, 0113): the readability checks of a network map (NetworkGraph,
 ## the deck's Map) run on a whole cabled network: rows_from() gives every device the cables join an
 ## entity to, up or down (its own row first, outlined), online when it reaches them, with their
-## status words and the commands of the deck's table they accept; cables() the links between them.
+## status words, kind and status light (DeckMapView.show_kind_and_light()) and the commands of the
+## deck's table they accept; cables() the links between them.
 ## Asserts: no two node boxes (name and status line) closer than MIN_GAP, no cable crossing another,
 ## no cable under a box other than its two ends', the fitted view shows every node inside the panel,
 ## and the same network gives the same placement.
@@ -14,6 +15,7 @@ const DECK_MAP_SIZE := Vector2(829, 507)
 ## Smallest gap between two boxes (px, edge to edge, at zoom 1).
 const MIN_GAP := 8.0
 const DECK_CONFIG: DeckConfig = preload("res://items/deck/deck_config.tres")
+const KINDS: DeviceKinds = preload("res://objects/devices/device_kinds.tres")
 
 
 ## The map rows of the network `entity` (a device's entity) is cabled into: its own row first, then
@@ -40,6 +42,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 		row.status = DeviceStatus.of(other.entity, row.online)
 		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
+		DeckMapView.show_kind_and_light(row, KINDS)
 		DeckMapView.place_in_network(row, other)
 		if row.online and not row.is_self:
 			for command: StringName in DECK_CONFIG.command_labels:

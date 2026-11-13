@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://objects/devices/models/linking_bay.tscn" id="1_bay"]
+[ext_resource type="Script" path="res://objects/locks/lockable.gd" id="2_lockable"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="3_mechanical"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="4_data"]
+[ext_resource type="Script" path="res://objects/components/hinged_door.gd" id="5_hinged"]
+
+[sub_resource type="BoxShape3D" id="Shape_leaf"]
+size = Vector3(0.56, 1.7, 0.032)
+
+[sub_resource type="Resource" id="Data_lock"]
+script = ExtResource("4_data")
+pins = Array[StringName]([&"standard", &"standard", &"spool", &"standard"])
+pin_seed = 130
+
+[node name="LinkingBayLocked" instance=ExtResource("1_bay")]
+glass_door = true
+door_path = NodePath("GlassDoor")
+
+[node name="GlassDoor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, 0, 0.305)
+collision_mask = 0
+metadata/display_name = "Glass door"
+
+[node name="Shape" type="CollisionShape3D" parent="GlassDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, 0.95, -0.004)
+shape = SubResource("Shape_leaf")
+
+[node name="Lockable" type="Node" parent="GlassDoor"]
+script = ExtResource("2_lockable")
+locked = true
+
+[node name="MechanicalLock" type="Node3D" parent="GlassDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.545, 0.995, 0.02)
+script = ExtResource("3_mechanical")
+data = SubResource("Data_lock")
+
+[node name="HingedDoor" type="Node" parent="GlassDoor"]
+script = ExtResource("5_hinged")

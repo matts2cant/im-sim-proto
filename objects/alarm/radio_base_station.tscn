@@ -10,8 +10,7 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/radio_base_station.tscn" id="11_model"]
 [ext_resource type="Script" path="res://objects/alarm/radio_base_station.gd" id="20_station"]
 [ext_resource type="Resource" path="res://objects/alarm/radio_base_station.tres" id="21_config"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_broadcast.tres" id="30_command_broadcast"]
@@ -20,50 +19,16 @@
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="42_enable"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.4, 0.45, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_led"]
-material = ExtResource("12_lens")
-size = Vector3(0.04, 0.04, 0.01)
-
-[sub_resource type="StandardMaterial3D" id="Material_paint"]
-albedo_color = Color(0.13, 0.24, 0.48, 1)
-metallic = 0.3
-roughness = 0.45
-
-[sub_resource type="BoxMesh" id="Mesh_box"]
-material = SubResource("Material_paint")
-size = Vector3(0.4, 0.45, 0.18)
-
-[sub_resource type="CylinderMesh" id="Mesh_antenna"]
-material = ExtResource("11_metal_surface")
-top_radius = 0.008
-bottom_radius = 0.015
-height = 0.5
-radial_segments = 8
-rings = 1
+size = Vector3(0.22, 0.29, 0.07)
 
 [node name="RadioBaseStation" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 shape = SubResource("Shape_body")
 
-[node name="Box" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
-cast_shadow = 0
-mesh = SubResource("Mesh_box")
-
-[node name="Antenna" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0.47, 0.1)
-cast_shadow = 0
-mesh = SubResource("Mesh_antenna")
-
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0.17, 0.195)
-cast_shadow = 0
-mesh = SubResource("Mesh_led")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
@@ -74,12 +39,12 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 30.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_broadcast"), ExtResource("41_disable"), ExtResource("42_enable")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.035)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")
@@ -91,7 +56,7 @@ script = ExtResource("9_powered")
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Antenna")])
+broken_hide = Array[NodePath]([NodePath("../Model/Antenna")])
 
 [node name="DeviceSwitch" type="Node" parent="."]
 script = ExtResource("40_switch")

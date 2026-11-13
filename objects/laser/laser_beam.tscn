@@ -1,56 +1,18 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://objects/laser/laser_beam.gd" id="1_beam"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="2_metal_surface"]
-
-[sub_resource type="BoxMesh" id="Mesh_box"]
-material = ExtResource("2_metal_surface")
-size = Vector3(0.12, 0.12, 0.08)
-
-[sub_resource type="StandardMaterial3D" id="Material_glass"]
-albedo_color = Color(0.08, 0.02, 0.02, 1)
-metallic = 0.6
-roughness = 0.15
-
-[sub_resource type="CylinderMesh" id="Mesh_lens"]
-material = SubResource("Material_glass")
-top_radius = 0.022
-bottom_radius = 0.022
-height = 0.012
-radial_segments = 12
-rings = 1
-
-[sub_resource type="CylinderMesh" id="Mesh_glass"]
-material = SubResource("Material_glass")
-top_radius = 0.03
-bottom_radius = 0.03
-height = 0.01
-radial_segments = 12
-rings = 1
+[ext_resource type="PackedScene" path="res://objects/devices/models/laser_emitter.tscn" id="2_emitter"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/laser_receiver.tscn" id="3_receiver"]
 
 [node name="LaserBeam" type="Node3D"]
 script = ExtResource("1_beam")
 
-[node name="Head" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
-mesh = SubResource("Mesh_box")
-
-[node name="Lens" type="MeshInstance3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.044)
-cast_shadow = 0
-mesh = SubResource("Mesh_lens")
+[node name="Head" parent="." instance=ExtResource("2_emitter")]
 
 [node name="Receiver" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 3)
 
-[node name="Box" type="MeshInstance3D" parent="Receiver"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
-mesh = SubResource("Mesh_box")
-
-[node name="Window" type="MeshInstance3D" parent="Receiver/Box"]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.043)
-cast_shadow = 0
-mesh = SubResource("Mesh_glass")
+[node name="Box" parent="Receiver" instance=ExtResource("3_receiver")]
 
 [node name="Ray" type="MeshInstance3D" parent="."]
 cast_shadow = 0
