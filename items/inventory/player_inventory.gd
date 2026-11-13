@@ -122,7 +122,7 @@ func cycle(step: int) -> void:
 func hold(stack: ItemStack) -> void:
 	if stack == null or not inventory.stacks.has(stack) or in_hand() == stack:
 		return
-	if stack.item.use_action == ItemData.UseAction.EQUIP_WEAPON:
+	if stack.item.is_weapon():
 		held = null
 		_weapon_stack = stack
 		player.weapons.equip_state(weapon_state(stack))
@@ -142,7 +142,7 @@ func hold(stack: ItemStack) -> void:
 func use_held() -> bool:
 	if held == null:
 		return false
-	if held.item.use_action == ItemData.UseAction.EQUIP_TOOL:
+	if held.item.is_tool():
 		return false
 	return use_stack(held)
 
@@ -159,23 +159,22 @@ func use_stack(stack: ItemStack, part: StringName = &"") -> bool:
 	if not part.is_empty():
 		var hitboxes := Hitboxes.of(player)
 		var box := hitboxes.box(part) if hitboxes != null else null
-		if box == null or stack.item.use_action != ItemData.UseAction.CONSUME:
+		if box == null or not stack.item.is_consumable():
 			return false
 		return _consume(stack, box)
-	match stack.item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
-			_toggle(stack)
-		ItemData.UseAction.CONSUME:
-			return _consume(stack)
-		_:
-			_log_used(stack, "nothing")
-			_say(stack.item.use_message)
+	if stack.item.is_equipped():
+		_toggle(stack)
+	elif stack.item.is_consumable():
+		return _consume(stack)
+	else:
+		_log_used(stack, "nothing")
+		_say(stack.item.use_message)
 	return true
 
 
 ## The kind of tool in hand (ItemData.tool_kind of an EQUIP_TOOL item), or &"".
 func held_tool() -> StringName:
-	if held == null or held.item.use_action != ItemData.UseAction.EQUIP_TOOL:
+	if held == null or not held.item.is_tool():
 		return &""
 	return held.item.tool_kind
 
@@ -401,7 +400,7 @@ func _take_key(pickup: ItemPickup) -> bool:
 func _tool_stacks(kind: StringName) -> Array[ItemStack]:
 	var out: Array[ItemStack] = []
 	for stack in inventory.stacks:
-		if stack.item.use_action == ItemData.UseAction.EQUIP_TOOL and stack.item.tool_kind == kind:
+		if stack.item.is_tool_of(kind):
 			out.append(stack)
 	return out
 

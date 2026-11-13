@@ -29,8 +29,8 @@ var _side_labels: Dictionary[int, Label] = {}
 var _passive_list: VBoxContainer
 var _message: TimedLabel
 var _built: bool = false
-var _card_on := CharacterTabStyle.box(CharacterTabStyle.ENERGY_BG, CharacterTabStyle.ENERGY, 5)
-var _card_off := CharacterTabStyle.box(CharacterTabStyle.CLEAR, CharacterTabStyle.LINE, 5)
+var _card_on := CharacterTabStyle.style(&"CharacterCardOn")
+var _card_off := CharacterTabStyle.style(&"CharacterCardOff")
 
 
 func tab_title() -> String:
@@ -206,9 +206,7 @@ func _card(slot: int) -> PanelContainer:
 	var key_box := PanelContainer.new()
 	key_box.custom_minimum_size = Vector2(52, 0)
 	key_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	key_box.add_theme_stylebox_override(
-		&"panel", CharacterTabStyle.box(CharacterTabStyle.CLEAR, CharacterTabStyle.LINE_STRONG)
-	)
+	CharacterTabStyle.themed(key_box, &"CharacterKey")
 	var key := CharacterTabStyle.label("F%d" % slot, 14, CharacterTabStyle.CAPTION)
 	key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	key_box.add_child(key)

@@ -2,7 +2,10 @@ class_name TabStyle
 extends RefCounted
 ## Look of the Tab interface (ADR 0110): the palette of the inventory view, belt, HUD and energy
 ## colours (design/prototypes/tab_interface.html) and small builders for its labels, captions,
-## buttons and boxes. Pages build their content in code with these.
+## buttons and boxes. Pages build their content in code with these. Panel and button styles are
+## type variations of tab_theme.tres (TabButton, TabRow, TabFuture, TabPanel, ...; also the
+## character pages' Character*): themed() gives a control the theme and a variation, style() reads
+## one style. No style is built in code.
 
 const PANEL := Color(13.0 / 255.0, 18.0 / 255.0, 21.0 / 255.0, 0.94)
 const PANEL_2 := Color("12191d")
@@ -19,6 +22,8 @@ const WARN := Color("e8c547")
 const BAD := Color("e5534b")
 ## The world behind the panel, dimmed but visible.
 const WORLD_DIM := Color(4.0 / 255.0, 6.0 / 255.0, 8.0 / 255.0, 0.55)
+## The Tab interface's type variations.
+const THEME: Theme = preload("res://ui/tab_interface/tab_theme.tres")
 
 static var _mono: SystemFont = null
 
@@ -69,26 +74,22 @@ static func caption(text: String) -> Label:
 	return node
 
 
-static func box(bg: Color, border: Color, width: int = 1, radius: int = 4, margin: float = 0.0) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.set_border_width_all(width)
-	style.set_corner_radius_all(radius)
-	style.set_content_margin_all(margin)
-	return style
+## Gives `control` the Tab theme and its type variation `type` (tab_theme.tres).
+static func themed(control: Control, type: StringName) -> void:
+	control.theme = THEME
+	control.theme_type_variation = type
+
+
+## The style `item` ("panel", "normal"...) of type variation `type` in tab_theme.tres.
+static func style(type: StringName, item: StringName = &"panel") -> StyleBox:
+	return THEME.get_stylebox(item, type)
 
 
 ## A dashed-looking box for what comes in a later milestone ("Money arrives in M19.").
 static func future(text: String) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "Future"
-	var style := box(Color(0, 0, 0, 0), LINE, 1, 4)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	panel.add_theme_stylebox_override(&"panel", style)
+	themed(panel, &"TabFuture")
 	var text_label := paragraph(text, 12, DIM)
 	text_label.name = "Text"
 	panel.add_child(text_label)
@@ -101,22 +102,7 @@ static func button(text: String, primary: bool = false) -> Button:
 	var node := Button.new()
 	node.text = text
 	node.focus_mode = Control.FOCUS_NONE
-	node.add_theme_font_size_override(&"font_size", 13)
-	var colour := AMBER if primary else FG
-	node.add_theme_color_override(&"font_color", colour)
-	node.add_theme_color_override(&"font_hover_color", AMBER)
-	node.add_theme_color_override(&"font_pressed_color", AMBER)
-	node.add_theme_color_override(&"font_disabled_color", Color(FG, 0.45))
-	var normal := box(PANEL_2, AMBER if primary else LINE_STRONG, 1, 4)
-	_pad(normal, 12.0, 7.0)
-	var hover := box(PANEL_2, AMBER, 1, 4)
-	_pad(hover, 12.0, 7.0)
-	var disabled := box(Color(PANEL_2, 0.5), LINE, 1, 4)
-	_pad(disabled, 12.0, 7.0)
-	node.add_theme_stylebox_override(&"normal", normal)
-	node.add_theme_stylebox_override(&"hover", hover)
-	node.add_theme_stylebox_override(&"pressed", hover)
-	node.add_theme_stylebox_override(&"disabled", disabled)
+	themed(node, &"TabButtonPrimary" if primary else &"TabButton")
 	return node
 
 
@@ -126,23 +112,13 @@ static func row_button(text: String, on: bool) -> Button:
 	node.text = text
 	node.focus_mode = Control.FOCUS_NONE
 	node.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	node.add_theme_font_size_override(&"font_size", 13)
 	style_row_button(node, on)
 	return node
 
 
 ## (Re)styles a row_button() as on (selected) or off.
 static func style_row_button(node: Button, on: bool) -> void:
-	node.add_theme_color_override(&"font_color", FG if on else CAPTION)
-	node.add_theme_color_override(&"font_hover_color", FG)
-	node.add_theme_color_override(&"font_pressed_color", FG)
-	var normal := box(Color(AMBER, 0.05) if on else Color(0, 0, 0, 0), AMBER if on else Color(0, 0, 0, 0), 1, 4)
-	_pad(normal, 10.0, 8.0)
-	var hover := box(Color(AMBER, 0.05) if on else Color(0, 0, 0, 0), AMBER if on else LINE, 1, 4)
-	_pad(hover, 10.0, 8.0)
-	node.add_theme_stylebox_override(&"normal", normal)
-	node.add_theme_stylebox_override(&"hover", hover)
-	node.add_theme_stylebox_override(&"pressed", hover)
+	themed(node, &"TabRowOn" if on else &"TabRow")
 
 
 ## A scrolling column with the panel's padding; returns the VBox to fill.
@@ -187,10 +163,3 @@ static func clear(node: Node) -> void:
 	for child in node.get_children():
 		node.remove_child(child)
 		child.queue_free()
-
-
-static func _pad(style: StyleBoxFlat, horizontal: float, vertical: float) -> void:
-	style.content_margin_left = horizontal
-	style.content_margin_right = horizontal
-	style.content_margin_top = vertical
-	style.content_margin_bottom = vertical

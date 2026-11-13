@@ -253,7 +253,7 @@ func _build() -> void:
 	panel.anchor_top = margin
 	panel.anchor_right = 1.0 - margin
 	panel.anchor_bottom = 1.0 - margin
-	panel.add_theme_stylebox_override(&"panel", TabStyle.box(TabStyle.PANEL, TabStyle.LINE_STRONG, 1, 6))
+	TabStyle.themed(panel, &"TabPanel")
 	root.add_child(panel)
 	var box := VBoxContainer.new()
 	box.name = "Box"
@@ -311,6 +311,7 @@ func _add_tab_button(title: String, index: int) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(0, 44)
 	button.add_theme_font_size_override(&"font_size", 15)
+	button.theme = TabStyle.THEME
 	button.pressed.connect(show_tab.bind(index))
 	_tab_bar.add_child(button)
 	_tab_buttons.append(button)
@@ -320,20 +321,8 @@ func _add_tab_button(title: String, index: int) -> void:
 
 
 func _style_tab(index: int) -> void:
-	var button := _tab_buttons[index]
-	var on := index == current
-	var style := TabStyle.box(Color(TabStyle.AMBER, 0.08) if on else Color(0, 0, 0, 0), TabStyle.AMBER, 0, 0)
-	# The amber line under the current tab.
-	style.border_width_bottom = 2 if on else 0
-	style.content_margin_left = 20.0
-	style.content_margin_right = 20.0
-	var colour := TabStyle.FG if on else TabStyle.CAPTION
-	button.add_theme_color_override(&"font_color", colour)
-	button.add_theme_color_override(&"font_hover_color", TabStyle.FG)
-	button.add_theme_color_override(&"font_pressed_color", TabStyle.FG)
-	button.add_theme_color_override(&"font_hover_pressed_color", TabStyle.FG)
-	for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed"]:
-		button.add_theme_stylebox_override(state, style)
+	# The current tab: an amber line under it (TabTabOn).
+	_tab_buttons[index].theme_type_variation = &"TabTabOn" if index == current else &"TabTab"
 
 
 func _make_close_button() -> Button:
@@ -342,13 +331,7 @@ func _make_close_button() -> Button:
 	button.tooltip_text = "Close (Tab or Esc)"
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(46, 44)
-	var normal := TabStyle.box(Color(0, 0, 0, 0), TabStyle.LINE, 0, 0)
-	normal.border_width_left = 1
-	var hover := TabStyle.box(Color(TabStyle.BAD, 0.08), TabStyle.LINE, 0, 0)
-	hover.border_width_left = 1
-	button.add_theme_stylebox_override(&"normal", normal)
-	button.add_theme_stylebox_override(&"hover", hover)
-	button.add_theme_stylebox_override(&"pressed", hover)
+	TabStyle.themed(button, &"TabClose")
 	button.pressed.connect(close)
 	# Drawn as two strokes: the fallback font may not have the multiplication-x glyph.
 	button.draw.connect(_draw_close.bind(button))

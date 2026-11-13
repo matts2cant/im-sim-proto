@@ -218,9 +218,7 @@ func held_deck() -> ItemStack:
 	if hands == null:
 		return null
 	var held := hands.in_hand()
-	if held == null or held.item.use_action != ItemData.UseAction.EQUIP_TOOL:
-		return null
-	return held if held.item.tool_kind == Device.DECK_TOOL else null
+	return held if held != null and held.item.is_tool_of(Device.DECK_TOOL) else null
 
 
 func _physics_process(delta: float) -> void:

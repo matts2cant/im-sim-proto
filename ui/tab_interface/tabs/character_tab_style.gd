@@ -1,7 +1,9 @@
 class_name CharacterTabStyle
 extends RefCounted
 ## Colours and small control builders shared by the Health, Augmentations and Skills pages of the Tab
-## interface (the approved mockup's palette: design/prototypes/tab_interface.html).
+## interface (the approved mockup's palette: design/prototypes/tab_interface.html). Panel and button
+## styles are the Character* type variations of the Tab theme (TabStyle.THEME); only a box whose
+## colour comes from data (a bar's fill, a skill cell) is built in code (_box()).
 
 const FG := Color("e4eaee")
 const CAPTION := Color("9eb8c2")
@@ -17,6 +19,7 @@ const WELL := Color("0a0d10")
 const SELECTED_BG := Color(1.0, 0.82, 0.3, 0.06)
 const ENERGY_BG := Color(0.3, 0.75, 1.0, 0.06)
 const CLEAR := Color(0, 0, 0, 0)
+const THEME: Theme = TabStyle.THEME
 
 
 static func label(text: String, size: int = 14, color: Color = FG) -> Label:
@@ -48,6 +51,18 @@ static func heading(text: String) -> Label:
 	return result
 
 
+## A style of the Character* type variations ("CharacterCardOn", ...; tab_theme.tres).
+static func style(type: StringName, item: StringName = &"panel") -> StyleBox:
+	return THEME.get_stylebox(item, type)
+
+
+## Gives `control` the Tab theme and its type variation `type`.
+static func themed(control: Control, type: StringName) -> void:
+	control.theme = THEME
+	control.theme_type_variation = type
+
+
+## A box in a colour from data (a skill cell's tint); fixed styles live in the theme.
 static func box(bg: Color, border: Color = CLEAR, radius: int = 4, border_width: int = 1) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
@@ -70,10 +85,7 @@ static func bar(height: float, width: float = 0.0) -> ProgressBar:
 	result.step = 0.0
 	result.custom_minimum_size = Vector2(width, height)
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var background := box(WELL, Color(0, 0, 0, 0.7), 0)
-	background.content_margin_top = 0.0
-	background.content_margin_bottom = 0.0
-	result.add_theme_stylebox_override(&"background", background)
+	themed(result, &"CharacterBar")
 	set_bar_color(result, ENERGY)
 	return result
 
@@ -94,23 +106,13 @@ static func button(text: String, primary: bool = false) -> Button:
 	var result := Button.new()
 	result.text = text
 	result.focus_mode = Control.FOCUS_NONE
-	result.add_theme_font_size_override(&"font_size", 13)
-	var accent := AMBER if primary else FG
-	result.add_theme_color_override(&"font_color", accent)
-	result.add_theme_color_override(&"font_hover_color", AMBER)
-	result.add_theme_color_override(&"font_pressed_color", AMBER)
-	result.add_theme_color_override(&"font_disabled_color", Color(FG, 0.35))
-	var normal := box(PANEL_2, AMBER if primary else LINE_STRONG)
-	result.add_theme_stylebox_override(&"normal", normal)
-	result.add_theme_stylebox_override(&"hover", box(PANEL_2, AMBER))
-	result.add_theme_stylebox_override(&"pressed", box(PANEL_2, AMBER))
-	result.add_theme_stylebox_override(&"disabled", box(Color(PANEL_2, 0.5), Color(LINE_STRONG, 0.3)))
+	themed(result, &"CharacterButtonPrimary" if primary else &"CharacterButton")
 	return result
 
 
 ## A row that is a selectable item in a list (body part, skill): transparent, amber when selected.
 static func row_style(selected: bool) -> StyleBoxFlat:
-	return box(SELECTED_BG, AMBER) if selected else box(CLEAR, CLEAR)
+	return style(&"CharacterRowSelected" if selected else &"CharacterRow") as StyleBoxFlat
 
 
 ## Whole points rounded up, so a part or charge reads 0 only when it is empty.
@@ -160,7 +162,7 @@ static func spacer(height: float) -> Control:
 ## A dashed-looking placeholder box for features that come later ("XP arrives in M18").
 static func placeholder(text: String) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override(&"panel", box(CLEAR, LINE))
+	themed(panel, &"CharacterPlaceholder")
 	panel.add_child(paragraph(text, 12, DIM))
 	return panel
 

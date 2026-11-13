@@ -23,14 +23,12 @@ static func rows(stack: ItemStack, holder: Node) -> Array[PackedStringArray]:
 	if stack == null:
 		return result
 	var item := stack.item
-	match item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON:
-			if item.weapon != null:
-				_weapon_rows(stack, holder, result)
-		ItemData.UseAction.CONSUME:
-			_consume_rows(item, holder, result)
-		ItemData.UseAction.EQUIP_TOOL:
-			_add_skill(result, holder, String(item.tool_kind) + "_", true)
+	if item.is_weapon() and item.weapon != null:
+		_weapon_rows(stack, holder, result)
+	elif item.is_consumable():
+		_consume_rows(item, holder, result)
+	elif item.is_tool():
+		_add_skill(result, holder, String(item.tool_kind) + "_", true)
 	if item.stackable():
 		result.append(PackedStringArray(["Count", "%d / %d" % [stack.count, item.max_stack]]))
 	var key := str(stack.state.get("key_id", ""))
@@ -53,7 +51,7 @@ static func value_of(found: Array[PackedStringArray], label: String) -> String:
 
 ## True when the item takes rounds: the tab shows the ammo-type placeholder for it.
 static func uses_ammo(item: ItemData) -> bool:
-	return item.use_action == ItemData.UseAction.EQUIP_WEAPON and item.weapon != null and item.weapon.uses_ammo()
+	return item.is_weapon() and item.weapon != null and item.weapon.uses_ammo()
 
 
 ## "25 ballistic + 5 blunt": each damage stimulus times `mult`.

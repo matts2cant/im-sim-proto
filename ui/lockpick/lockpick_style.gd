@@ -14,6 +14,8 @@ const OK := Color("7fd6a2")
 const WARN := Color("e6b45a")
 const BAD := Color("e2786b")
 const ACRYLIC := Color("9fc3d6")
+## The caption panel's style (LockpickCaption).
+const THEME: Theme = preload("res://ui/lockpick/lockpick_theme.tres")
 
 var _mono: SystemFont = null
 var _textures: Dictionary[String, GradientTexture2D] = {}
@@ -28,19 +30,7 @@ func mono_font() -> Font:
 	return _mono
 
 
-static func caption_box() -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(10.0 / 255.0, 12.0 / 255.0, 15.0 / 255.0, 0.78)
-	box.border_color = LINE
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(6)
-	box.content_margin_left = 10.0
-	box.content_margin_right = 10.0
-	box.content_margin_top = 4.0
-	box.content_margin_bottom = 4.0
-	return box
-
-
+## A box drawn by the side view's _draw() (draw_style_box), in its drawing colours.
 static func rounded_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill

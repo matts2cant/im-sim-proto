@@ -361,7 +361,8 @@ func _build() -> void:
 	view.add_child(tag_label)
 	caption_panel = PanelContainer.new()
 	caption_panel.name = "Caption"
-	caption_panel.add_theme_stylebox_override(&"panel", LockpickStyle.caption_box())
+	caption_panel.theme = LockpickStyle.THEME
+	caption_panel.theme_type_variation = &"LockpickCaption"
 	caption_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	caption_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	caption_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN

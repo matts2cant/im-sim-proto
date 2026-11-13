@@ -158,13 +158,9 @@ func _objective(row: Dictionary) -> PanelContainer:
 	var optional: bool = row["optional"]
 	var panel := PanelContainer.new()
 	panel.name = "Objective_%s" % row["id"]
-	var accent := TabStyle.OK if done else (TabStyle.LINE_STRONG if optional else TabStyle.AMBER)
-	var style := TabStyle.box(Color(0, 0, 0, 0), accent, 0, 0)
-	style.border_width_left = 3
-	style.content_margin_left = 12.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	panel.add_theme_stylebox_override(&"panel", style)
+	# Its accent bar and state pill by state: JournalObjective* and JournalPill* (tab_theme.tres).
+	var state := "Done" if done else ("Secondary" if optional else "Primary")
+	TabStyle.themed(panel, StringName("JournalObjective" + state))
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(&"separation", 4)
 	panel.add_child(box)
@@ -178,10 +174,7 @@ func _objective(row: Dictionary) -> PanelContainer:
 	var pill_colour := TabStyle.OK if done else (TabStyle.CAPTION if optional else TabStyle.AMBER)
 	var pill := PanelContainer.new()
 	pill.name = "State"
-	var pill_style := TabStyle.box(Color(0, 0, 0, 0), pill_colour, 1, 3)
-	pill_style.content_margin_left = 6.0
-	pill_style.content_margin_right = 6.0
-	pill.add_theme_stylebox_override(&"panel", pill_style)
+	TabStyle.themed(pill, StringName("JournalPill" + state))
 	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var pill_label := TabStyle.mono(pill_text, 10, pill_colour)
 	pill_label.name = "Text"
@@ -270,8 +263,7 @@ func _build_notes() -> void:
 	source.name = "Source"
 	box.add_child(source)
 	var text_panel := PanelContainer.new()
-	var text_style := TabStyle.box(Color(1, 1, 1, 0.02), TabStyle.LINE, 1, 4, 14.0)
-	text_panel.add_theme_stylebox_override(&"panel", text_style)
+	TabStyle.themed(text_panel, &"TabTextBox")
 	box.add_child(text_panel)
 	var text := TabStyle.paragraph(shown.text if not shown.text.is_empty() else "(blank)", 14, TabStyle.FG)
 	text.name = "Text"

@@ -61,12 +61,7 @@ func _row(key_name: String, found: String) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "Key"
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := TabStyle.box(TabStyle.CELL, TabStyle.LINE, 1, 3)
-	style.content_margin_left = 8.0
-	style.content_margin_right = 8.0
-	style.content_margin_top = 5.0
-	style.content_margin_bottom = 5.0
-	panel.add_theme_stylebox_override(&"panel", style)
+	TabStyle.themed(panel, &"TabKeyCell")
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 8)
 	panel.add_child(row)

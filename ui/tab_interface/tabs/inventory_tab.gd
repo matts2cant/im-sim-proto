@@ -143,12 +143,7 @@ func drop(stack: ItemStack) -> void:
 
 ## The Use button's text for `stack` ("" when the item has no use button).
 func use_label(stack: ItemStack) -> String:
-	match stack.item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
-			return "Put away" if inventory.in_hand() == stack else "Equip"
-		ItemData.UseAction.CONSUME:
-			return "Use"
-	return ""
+	return stack.item.use_label(inventory.in_hand() == stack)
 
 
 ## Opens the context menu for `stack` at screen position `at`.
@@ -289,16 +284,7 @@ func _make_belt_picker(stack: ItemStack) -> OptionButton:
 	var picker := OptionButton.new()
 	picker.name = "BeltSlot"
 	picker.focus_mode = Control.FOCUS_NONE
-	picker.add_theme_font_size_override(&"font_size", 13)
-	picker.add_theme_color_override(&"font_color", TabStyle.FG)
-	var style := TabStyle.box(TabStyle.PANEL_2, TabStyle.LINE_STRONG, 1, 4)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	picker.add_theme_stylebox_override(&"normal", style)
-	picker.add_theme_stylebox_override(&"hover", style)
-	picker.add_theme_stylebox_override(&"pressed", style)
+	TabStyle.themed(picker, &"TabPicker")
 	picker.add_item(NOT_ON_BELT)
 	for slot in inventory.belt.size():
 		picker.add_item(_slot_text(slot, stack))
