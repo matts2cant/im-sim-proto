@@ -39,6 +39,9 @@ enum UseAction {
 @export var auto_belt: bool = false
 ## Instance state a new stack starts with (`magazine`, `key_id`).
 @export var default_state: Dictionary = {}
+## Picked up onto the holder's Keychain, never into the grid (a key, ADR 0130): no space, cannot be
+## dropped or thrown. Its state's `key_id` and `key_name` name the key.
+@export var keychain: bool = false
 
 @export_group("Use")
 @export var use_action: UseAction = UseAction.NONE

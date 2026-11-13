@@ -64,6 +64,7 @@
 [ext_resource type="Resource" path="res://actors/common/hit_reaction/receptrons/hit_reaction.tres" id="84_hit_reaction_receptron"]
 [ext_resource type="Script" path="res://actors/common/hit_reaction/hit_reaction.gd" id="85_hit_reaction"]
 [ext_resource type="Resource" path="res://actors/player/player_hit_reaction.tres" id="86_hit_reaction_config"]
+[ext_resource type="Script" path="res://actors/common/keychain/keychain.gd" id="87_keychain"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -173,6 +174,9 @@ script = ExtResource("81_deck_screen")
 
 [node name="PersonalLog" type="Node" parent="."]
 script = ExtResource("33_personal_log")
+
+[node name="Keychain" type="Node" parent="."]
+script = ExtResource("87_keychain")
 
 [node name="FallImpact" type="Node" parent="."]
 script = ExtResource("26_fall_impact")

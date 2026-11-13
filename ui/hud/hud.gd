@@ -3,7 +3,8 @@ extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone; through a scope the scope
 ## overlay replaces it, ADR 0085) and its hit markers (ADR 0126), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
-## the Interactor's prompt under the reticle, short messages (inventory feedback, "Added to log", the
+## the interaction frame (no "E: ..." prompt since ADR 0130: the frame names the target and shows its
+## status), short messages (inventory feedback, why E did nothing, "Added to log", the
 ## network drops of its NetworkFeedback child, M12c), "AR: cables (RMB)" while the deck's AR view is on,
 ## the belt (bottom centre) with the name of the item put in hand above it for a moment (ADR 0059),
 ## the energy bar beside the silhouette with chips for the augmentations that are on, the light
@@ -43,7 +44,6 @@ var _item_name_left: float = 0.0
 @onready var death_overlay: Control = $DeathOverlay
 ## "You died" or "Knocked out" (HudRules.overlay_title).
 @onready var overlay_title: Label = $DeathOverlay/Text/Title
-@onready var prompt_label: Label = $Prompt
 @onready var message_label: Label = $Message
 ## "ALARM" while the player hears a siren (its AlarmHearing, ADR 0077).
 @onready var alarm_label: Label = $Alarm
@@ -64,7 +64,6 @@ func _ready() -> void:
 	damage_flash.color.a = 0.0
 	message_label.text = ""
 	item_name_label.text = ""
-	prompt_label.text = ""
 	cloak_tint.visible = false
 	if player == null:
 		return
@@ -81,6 +80,7 @@ func _ready() -> void:
 	belt_bar.bind(player.inventory)
 	player.inventory.message.connect(show_message)
 	player.carry.message.connect(show_message)
+	player.interactor.message.connect(show_message)
 	player.inventory.hand_changed.connect(_on_hand_changed)
 	var energy := Energy.of(player)
 	energy_bar.energy = energy
@@ -111,7 +111,6 @@ func _process(delta: float) -> void:
 	if player != null and player.is_node_ready():
 		refresh_reticle()
 		refresh_weapon()
-		prompt_label.text = player.interactor.prompt if ActorState.can_act(player) else ""
 		target_frame.refresh(player)
 		# Every frame: the tags may come from any source (an Effect adding `state.unconscious`).
 		refresh_overlay()

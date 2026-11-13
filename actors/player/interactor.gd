@@ -5,11 +5,20 @@ extends Node
 ## for its character) and resolves the thing hit by its components, in this order: ItemPickup
 ## (pick up), Usable (use; a Readable is read in place, ADR 0060), Carryable (carry, or "Too
 ## heavy"). While carrying, E puts down ("No room" when PlayerCarry has no free spot to release
-## into, ADR 0053). The HUD shows `prompt`; perform() does it. A Usable may write its whole prompt
-## (`Usable.prompt()`: a door's "Locked: keycard") or be unavailable (`Usable.available()`: a broken
-## door). `looked_at` is the entity under the crosshair (ToolUse works a held tool on it, ADR 0078).
+## into, ADR 0053). perform() does it. `prompt` stays as data (tests, logs): the HUD no longer shows
+## it (ADR 0130); the interaction frame names the target and E's failures show as a `message`. A
+## Usable may write its whole prompt (`Usable.prompt()`: a door's "Locked: keycard") or be
+## unavailable (`Usable.available()`: a broken door). `looked_at` is the entity under the crosshair
+## within reach (ToolUse works a held tool on it, ADR 0078; the frame shows devices, powered things
+## and characters there).
+
+## Why E did nothing (ADR 0130), for the HUD's short message.
+signal message(text: String)
 
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
+
+const TOO_HEAVY := "Too heavy"
+const NO_ROOM := "No room to put down"
 
 var player: Player
 var kind: Kind = Kind.NONE
@@ -114,19 +123,34 @@ func refresh() -> void:
 		prompt = ""
 
 
-## E: does what the prompt says. Returns true when something happened.
+## E: does what the prompt says. Returns true when something happened. When it did nothing, a
+## short `message` says why (ADR 0130): what opens a locked thing (Usable.refusal()), why a usable
+## is unavailable (Usable.unavailable_reason(): "Broken", "No power"), "Too heavy", "No room to put
+## down". (A full inventory says so itself.)
 func perform() -> bool:
 	refresh()
+	var done := false
+	var why := ""
 	match kind:
 		Kind.PICK_UP:
 			return player.inventory.pick_up(ItemPickup.of(target))
 		Kind.USE:
-			return Usable.of(target).use(player)
+			var usable := Usable.of(target)
+			done = usable.use(player)
+			why = usable.refusal(player) if not done else ""
 		Kind.CARRY, Kind.TOO_HEAVY:
-			return player.carry.try_pick_up_body(target as PhysicsBody3D)
+			done = player.carry.try_pick_up_body(target as PhysicsBody3D)
+			why = TOO_HEAVY if not done else ""
 		Kind.PUT_DOWN, Kind.NO_ROOM:
-			return player.carry.put_down()
-	return false
+			done = player.carry.put_down()
+			why = NO_ROOM if not done else ""
+		Kind.NONE:
+			var idle := Usable.of(looked_at)
+			if idle != null and not idle.available(player):
+				why = idle.unavailable_reason(player)
+	if not why.is_empty():
+		message.emit(why)
+	return done
 
 
 func _resolve(p_kind: Kind, p_target: Node, text: String, p_name: String) -> void:
