@@ -27,6 +27,6 @@ func use(user: Node) -> bool:
 			node.call(method)
 			called += 1
 	var by := String(user.name) if user != null else ""
-	EventLog.record(&"range.button", by, label, {"by": by, "method": String(method), "targets": called})
+	EventLog.record(EventKinds.RANGE_BUTTON, by, label, {"by": by, "method": String(method), "targets": called})
 	used.emit(user)
 	return true

@@ -34,3 +34,4 @@ M9 wave 1 builds the systems the warehouse mission needs ([ADR 0086](0086-wareho
 - Mission objectives appear in the personal log alongside datapads.
 - The Pacifist badge depends on every harmful emitter keeping its cause chain; new emitters that act later (timers, AI) should carry a cause like the turret does.
 - Weapon drops and guard bursts: [ADR 0088](0088-weapon-drops-and-bursts.md).
+- [ADR 0136](0136-event-kinds-and-entity-attribution.md) (audit 2026-11-13): "the player" is the entity with `MissionData.player_tag`, read from the entities entries keep, never a node name (the spawned player is no longer renamed); tallies and objectives listen to entries as they are added; reinforcements are told by a radio dispatch (`alert.dispatch` from `ReinforcementSpawn`), so they need a radio and jamming loses it.

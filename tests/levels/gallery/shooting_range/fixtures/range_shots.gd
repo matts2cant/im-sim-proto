@@ -311,10 +311,10 @@ func _effects() -> void:
 		var frag := FRAG_SCENE.instantiate() as RigidBody3D
 		_room.add_child(frag)
 		var normal := _room.global_basis * (mine[2] as Vector3)
-		var side := Vector3.FORWARD if absf(normal.y) > 0.9 else Vector3.UP
-		var x := side.cross(normal).normalized()
-		var pose := Transform3D(Basis(x, normal, x.cross(normal)), _room.to_global(mine[1] as Vector3))
-		Sticky.of(frag).stick(_room.get_node(String(mine[0])) as Node3D, pose)
+		var sticky := Sticky.of(frag)
+		# The listed point is about the centre: the surface is its half height behind it.
+		var point := _room.to_global(mine[1] as Vector3) - normal * sticky.surface_offset
+		sticky.stick(_room.get_node(String(mine[0])) as Node3D, sticky.pose_on(point, normal, -normal))
 	if _shot.has("emp"):
 		StimulusSystem.emit(EmpPulse.make(EMP, _room.to_global(_shot["emp"] as Vector3)))
 	if _shot.has("jam"):

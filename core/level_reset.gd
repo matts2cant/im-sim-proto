@@ -5,9 +5,12 @@ extends RefCounted
 ## overlay and the debug Spawn tab (`debug.reset_level`). Quickload (QuickSave, ADR 0063) loads the
 ## saved level through `load_level()` and then restores the save onto it.
 
+## The EventLog kind of a plain reload (aliased by EventKinds.LEVEL_RESET).
+const RESET_KIND: StringName = &"level.reset"
+
 
 ## Returns the reload error; ERR_UNAVAILABLE, doing nothing, without a current scene file.
-static func reload_level(tree: SceneTree, event: StringName = &"level.reset") -> Error:
+static func reload_level(tree: SceneTree, event: StringName = RESET_KIND) -> Error:
 	var scene := tree.current_scene
 	if scene == null or scene.scene_file_path.is_empty():
 		return ERR_UNAVAILABLE

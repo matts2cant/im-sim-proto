@@ -25,8 +25,12 @@ extends Resource
 
 @export_group("Reinforcements")
 ## Characters that enter at the level's ReinforcementSpawn once, `reinforcement_delay` seconds of
-## mission time after the first alarm rings, and search where it was raised.
+## mission time after the first alarm rings, and search where it was raised (told by a radio
+## dispatch: `dispatch_type`).
 @export var reinforcement_scenes: Array[PackedScene] = []
+## The stimulus type that radios them to the incident: the radio base station's dispatch, so the
+## `heard_dispatch` receptron (a radio, no jamming) decides whether they react.
+@export var dispatch_type: StringName = &"alert.dispatch"
 @export var reinforcement_delay: float = 30.0
 ## Sideways distance between two arrivals, centre to centre (m), along the marker's X.
 @export var reinforcement_spacing: float = 1.5

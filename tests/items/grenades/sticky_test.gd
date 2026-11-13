@@ -45,17 +45,18 @@ func test_a_grenade_stuck_on_a_turning_leaf_turns_with_it() -> void:
 	shape.position = Vector3(0, 0, -0.5)
 	var grenade := Grenades.grenade(_root, ORIGIN + Vector3(5, 1, 0))
 	await Wait.frames(get_tree(), 2)
-	# On the leaf's +X face, 0.7 m from the hinge.
-	var pose := ThrowRules.stick_transform(ORIGIN + Vector3(3.1, 1.2, -0.7), Vector3.RIGHT, Vector3.LEFT, 0.04)
+	# On the leaf's +X face, 0.7 m from the hinge: upright, its +X into the leaf.
+	var pose := Sticky.of(grenade).pose_on(ORIGIN + Vector3(3.1, 1.2, -0.7), Vector3.RIGHT, Vector3.LEFT)
 	Sticky.of(grenade).stick(shape, pose)
 
 	hinge.rotation.y = PI * 0.5
 	await Wait.frames(get_tree(), 2)
 
-	# Turned 90 degrees about the hinge's vertical axis: +X -> -Z, -Z -> -X.
+	# Turned 90 degrees about the hinge's vertical axis: +X -> -Z, -Z -> -X (and -X -> +Z).
 	var expected := ORIGIN + Vector3(3, 1.1, 0) + Basis(Vector3.UP, PI * 0.5) * Vector3(0.14, 0.1, -0.7)
 	assert_vector(grenade.global_position).is_equal_approx(expected, Vector3.ONE * 0.01)
-	assert_vector(grenade.global_basis.y).is_equal_approx(Vector3.FORWARD, Vector3.ONE * 0.01)
+	assert_vector(grenade.global_basis.y).is_equal_approx(Vector3.UP, Vector3.ONE * 0.01)
+	assert_vector(grenade.global_basis.x).is_equal_approx(Vector3.BACK, Vector3.ONE * 0.01)
 
 
 func test_a_grenade_stuck_on_a_crate_rides_it_without_pushing_it() -> void:
@@ -72,7 +73,7 @@ func test_a_grenade_stuck_on_a_crate_rides_it_without_pushing_it() -> void:
 	_root.add_child(crate)
 	var grenade := Grenades.grenade(_root, ORIGIN + Vector3(-5, 1, 0))
 	await Wait.frames(get_tree(), 20)
-	var top := ThrowRules.stick_transform(crate.global_position + Vector3(0, 0.3, 0), Vector3.UP, Vector3.FORWARD, 0.04)
+	var top := Sticky.of(grenade).pose_on(crate.global_position + Vector3(0, 0.3, 0), Vector3.UP, Vector3.FORWARD)
 	Sticky.of(grenade).stick(shape, top)
 	await Wait.frames(get_tree(), 20)
 	# Still at rest with a grenade on it.
@@ -90,7 +91,7 @@ func test_lets_go_when_what_it_sticks_to_is_gone() -> void:
 	var post := Grenades.box(_root, ORIGIN + Vector3(0, 1, 5), Vector3(0.4, 2, 0.4))
 	var grenade := Grenades.grenade(_root, ORIGIN + Vector3(2, 1, 5))
 	await Wait.frames(get_tree(), 2)
-	var pose := ThrowRules.stick_transform(ORIGIN + Vector3(0.2, 1.5, 5), Vector3.RIGHT, Vector3.LEFT, 0.04)
+	var pose := Sticky.of(grenade).pose_on(ORIGIN + Vector3(0.2, 1.5, 5), Vector3.RIGHT, Vector3.LEFT)
 	Sticky.of(grenade).stick(post.get_node("Shape") as Node3D, pose)
 	await Wait.frames(get_tree(), 2)
 

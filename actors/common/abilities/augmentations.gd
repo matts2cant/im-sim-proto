@@ -107,7 +107,7 @@ func set_installed(id: StringName, installed: bool) -> void:
 		deactivate(id, &"uninstalled")
 	_installed[id] = installed
 	_apply(id)
-	EventLog.record(&"augmentation.installed", _who(), "", {"id": String(id), "installed": installed})
+	EventLog.record(EventKinds.AUGMENTATION_INSTALLED, _who(), "", {"id": String(id), "installed": installed})
 	changed.emit()
 
 
@@ -141,14 +141,14 @@ func activate(id: StringName) -> bool:
 	elif _energy == null or _energy.is_empty():
 		reason = "no_energy"
 	if not reason.is_empty():
-		EventLog.record(&"augmentation.refused", _who(), "", {"id": String(id), "reason": reason})
+		EventLog.record(EventKinds.AUGMENTATION_REFUSED, _who(), "", {"id": String(id), "reason": reason})
 		if reason == "no_energy":
 			_say(DEPLETED)
 		return false
 	_active[id] = true
 	_pulse_left[id] = data.pulse_interval
 	_apply(id)
-	EventLog.record(&"augmentation.activated", _who(), "", {"id": String(id), "energy": _energy.current()})
+	EventLog.record(EventKinds.AUGMENTATION_ACTIVATED, _who(), "", {"id": String(id), "energy": _energy.current()})
 	changed.emit()
 	return true
 
@@ -159,7 +159,7 @@ func deactivate(id: StringName, reason: StringName = &"toggled") -> void:
 	_active.erase(id)
 	_pulse_left.erase(id)
 	_apply(id)
-	EventLog.record(&"augmentation.deactivated", _who(), "", {"id": String(id), "reason": String(reason)})
+	EventLog.record(EventKinds.AUGMENTATION_DEACTIVATED, _who(), "", {"id": String(id), "reason": String(reason)})
 	changed.emit()
 
 

@@ -40,15 +40,15 @@ static func is_network_gear(device: Device) -> bool:
 	return Router.of(device.entity) != null or AccessPoint.of(device.entity) != null
 
 
-## True when `device`'s radio link holds by range (Device.wireless_link()) but a jamming field covers
-## either end (JammingField.jams_link(), M14b): the link carries nothing while it lasts.
+## True when `device`'s radio link holds by range (Device.wireless_link()) but either end is jammed
+## (`state.jammed`, set by a jamming field, M14b, ADR 0138): the link carries nothing while it lasts.
 static func is_jammed(device: Device) -> bool:
 	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
 		return false
 	var access_point := device.wireless_link()
 	if access_point == null or not is_instance_valid(access_point.entity):
 		return false
-	return JammingField.jams_link(device.entity.global_position, access_point.entity.global_position)
+	return ActorState.is_jammed(device.entity) or ActorState.is_jammed(access_point.entity)
 
 
 ## The devices linked to the access point `access_point` by radio (Device.wireless_link()).

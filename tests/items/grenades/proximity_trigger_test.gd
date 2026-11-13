@@ -97,6 +97,27 @@ func test_a_rolling_prop_and_a_noise_never_trigger_it() -> void:
 	assert_float(prop.global_position.x).is_greater(ORIGIN.x)
 
 
+func test_its_tag_filter_lets_ignored_characters_pass() -> void:
+	# A mine that ignores `actor.guard`: a guard-tagged walker standing 1.5 m away (centre to centre,
+	# inside the 2.5 m reach) never sets it off; an untagged walker then placed 1.5 m away does.
+	var mine := await _armed_mine(Vector3(-20, 0, -20))
+	var trigger := ProximityTrigger.of(mine)
+	trigger.config = trigger.config.duplicate() as ProximityTriggerConfig
+	trigger.config.ignored_tags = [&"actor.guard"] as Array[StringName]
+	var guard := _walker("Guard", Vector3(-20, 0, -18.5))
+	ActorState.set_tag(guard, &"actor.guard", true)
+
+	await Grenades.seconds(get_tree(), 0.3)
+	assert_bool(is_instance_valid(mine)).is_true()
+
+	_walker("Other", Vector3(-21.5, 0, -20))
+	await Grenades.seconds(get_tree(), 0.3)
+	assert_bool(is_instance_valid(mine)).is_false()
+	var triggered := Grenades.logged(&"mine.triggered")
+	assert_array(triggered).has_size(1)
+	assert_str(str(triggered[0].data["by"])).is_equal("Other")
+
+
 func test_a_wall_hides_a_character_from_it() -> void:
 	var mine := await _armed_mine(Vector3(0, 0, 20))
 	Grenades.box(_root, ORIGIN + Vector3(0, 1.5, 19), Vector3(4, 3, 0.2))
@@ -112,7 +133,7 @@ func _mine(at: Vector3) -> RigidBody3D:
 	var grenade := Grenades.grenade(_root, ORIGIN + at + Vector3(0, 2, 0))
 	await Wait.frames(get_tree(), 1)
 	var shape := _floor.get_node("Shape") as Node3D
-	Sticky.of(grenade).stick(shape, ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, 0.04))
+	Sticky.of(grenade).stick(shape, Sticky.of(grenade).pose_on(ORIGIN + at, Vector3.UP, Vector3.FORWARD))
 	return grenade
 
 

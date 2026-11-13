@@ -25,7 +25,7 @@ func target_name() -> String:
 func use(user: Node) -> bool:
 	var count := reset_downed(user)
 	var by := String(user.name) if user != null else ""
-	EventLog.record(&"range.bodies_reset", by, "", {"by": by, "count": count})
+	EventLog.record(EventKinds.RANGE_BODIES_RESET, by, "", {"by": by, "count": count})
 	used.emit(user)
 	return true
 

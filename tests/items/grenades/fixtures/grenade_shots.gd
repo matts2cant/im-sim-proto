@@ -6,8 +6,9 @@ extends Node3D
 ## ghost on the wall), ghost_floor (crouched, looking down: the ghost on the floor), mine_blink (a
 ## frag mine on the wall, armed, its light lit, crouched 1.6 m back with the frame on it),
 ## thrown_midair (a frag just thrown), highlight_dark (lights off, Demolition Advanced: an armed mine
-## on the floor 5 m away highlighted). It always quits: after saving, on an unknown shot, and after
-## WATCHDOG real seconds (saving what is shown).
+## on the floor 5 m away highlighted), and the STUCK shots (grenades stuck through Sticky.pose_on(),
+## the view on them: upright beside the wall, on the floor, the ceiling and a door). It always
+## quits: after saving, on an unknown shot, and after WATCHDOG real seconds (saving what is shown).
 
 const Wait := preload("res://tests/helpers/wait.gd")
 const SIZE := Vector2i(1152, 648)
@@ -31,6 +32,34 @@ const SHOTS: Array[String] = [
 	"highlight_dark",
 ]
 const FRAG_SCENE := "res://items/grenades/frag/frag_grenade.tscn"
+## Four types side by side on the near wall (face z -1.0), 1.45 m up.
+const ROW: Array = [
+	["frag", "WallNear", Vector3(1.7, 1.45, -1.0), Vector3.BACK],
+	["gas", "WallNear", Vector3(1.9, 1.45, -1.0), Vector3.BACK],
+	["emp", "WallNear", Vector3(2.1, 1.45, -1.0), Vector3.BACK],
+	["jamming", "WallNear", Vector3(2.3, 1.45, -1.0), Vector3.BACK],
+]
+## Stuck shots: grenades [type, surface node, surface point, outward normal], the feet, the point
+## looked at and the stance. Eye to grenade: about 0.7 m close, 2 m far.
+const STUCK: Dictionary[String, Dictionary] = {
+	"wall_frag": {"mines": [["frag", "WallNear", Vector3(0, 1.45, -1.0), Vector3.BACK]], "feet": Vector3(0, 0, -0.3)},
+	"wall_gas": {"mines": [["gas", "WallNear", Vector3(0, 1.45, -1.0), Vector3.BACK]], "feet": Vector3(0, 0, -0.3)},
+	"wall_emp": {"mines": [["emp", "WallNear", Vector3(0, 1.45, -1.0), Vector3.BACK]], "feet": Vector3(0, 0, -0.3)},
+	"wall_jamming":
+	{"mines": [["jamming", "WallNear", Vector3(0, 1.45, -1.0), Vector3.BACK]], "feet": Vector3(0, 0, -0.3)},
+	"wall_row_close": {"mines": ROW, "feet": Vector3(2.0, 0, -0.3), "look": Vector3(2.0, 1.45, -1.0)},
+	"wall_row_far": {"mines": ROW, "feet": Vector3(2.0, 0, 1.0), "look": Vector3(2.0, 1.45, -1.0)},
+	# Along the wall, 0.4 m off it: the side of each against the wall.
+	"wall_row_side": {"mines": ROW, "feet": Vector3(3.0, 0, -0.6), "look": Vector3(2.0, 1.45, -0.96)},
+	"wall_row_side_close": {"mines": ROW, "feet": Vector3(1.25, 0, -0.62), "look": Vector3(1.7, 1.45, -0.97)},
+	"floor_frag":
+	{"mines": [["frag", "Floor", Vector3(-2, 0, 0), Vector3.UP]], "feet": Vector3(-2, 0, 0.6), "crouched": true},
+	# Under the ceiling slab (bottom 2.4 m).
+	"ceiling_frag": {"mines": [["frag", "Ceiling", Vector3(7, 2.4, 2), Vector3.DOWN]], "feet": Vector3(7, 0, 2.5)},
+	# On the door leaf's +Z face (z -0.97), beside the handle.
+	"door_frag":
+	{"mines": [["frag", "Door/Panel", Vector3(10.2, 1.3, -0.97), Vector3.BACK]], "feet": Vector3(10.2, 0, -0.3)},
+}
 
 var _shot: String = "hand_frag"
 var _out: String = "res://reports/screenshots/grenade_shot.png"
@@ -46,7 +75,7 @@ func _ready() -> void:
 			_out = arg.trim_prefix("out=")
 	DisplayServer.window_set_size(SIZE)
 	get_tree().create_timer(WATCHDOG, true, false, true).timeout.connect(_save)
-	if not SHOTS.has(_shot):
+	if not SHOTS.has(_shot) and not STUCK.has(_shot):
 		push_error("grenade_shots: unknown shot '%s'" % _shot)
 		get_tree().quit(1)
 		return
@@ -58,6 +87,9 @@ func _ready() -> void:
 
 
 func _setup() -> void:
+	if STUCK.has(_shot):
+		await _stuck_shot(STUCK[_shot])
+		return
 	if _shot.begins_with("hand_"):
 		_give(_shot.trim_prefix("hand_"), 3)
 		_place(Vector3.ZERO, PI * 0.5, -0.05, false)
@@ -126,12 +158,23 @@ func _look_at(point: Vector3) -> void:
 	_player.load_state(state)
 
 
-# A frag stuck on `on` at `at` (surface normal `normal`), arming.
-func _mine(on: Node3D, at: Vector3, normal: Vector3) -> RigidBody3D:
-	var mine := (load(FRAG_SCENE) as PackedScene).instantiate() as RigidBody3D
+func _stuck_shot(spec: Dictionary) -> void:
+	var stuck: Array[RigidBody3D] = []
+	for mine: Array in spec["mines"]:
+		var scene := "res://items/grenades/%s/%s_grenade.tscn" % [mine[0], mine[0]]
+		stuck.append(_mine(get_node(String(mine[1])) as Node3D, mine[2] as Vector3, mine[3] as Vector3, scene))
+	_place(spec["feet"] as Vector3, 0.0, 0.0, bool(spec.get("crouched", false)))
+	await Wait.frames(get_tree(), 20)
+	_look_at(spec["look"] as Vector3 if spec.has("look") else stuck[0].global_position)
+	await Wait.frames(get_tree(), 20)
+
+
+# A grenade (a frag by default) stuck on `on` at `at` (surface normal `normal`), arming.
+func _mine(on: Node3D, at: Vector3, normal: Vector3, scene: String = FRAG_SCENE) -> RigidBody3D:
+	var mine := (load(scene) as PackedScene).instantiate() as RigidBody3D
 	add_child(mine, true)
 	var sticky := Sticky.of(mine)
-	sticky.stick(on, ThrowRules.stick_transform(at, normal, Vector3.LEFT, sticky.surface_offset))
+	sticky.stick(on, sticky.pose_on(at, normal, -normal))
 	return mine
 
 

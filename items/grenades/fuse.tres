@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="FuseConfig" format=3]
+
+[ext_resource type="Script" path="res://items/grenades/fuse_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+time = 2.5
+hits_characters = true

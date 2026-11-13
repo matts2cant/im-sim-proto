@@ -154,7 +154,7 @@ func _cracked(accounts: DeviceAccounts) -> void:
 		reader_log.add(LogEntry.make(entry_id, title, text, "Deck", codes, labels), job.host)
 	var device_name := _name()
 	EventLog.record(
-		&"deck.cracked", NetworkSource.user_key(entity), device_name, {"device": device_name, "user": job.user}
+		EventKinds.DECK_CRACKED, NetworkSource.user_key(entity), device_name, {"device": device_name, "user": job.user}
 	)
 	Notices.send(entity, DeckSession.access_notice(device, "Cracked %s: added to the Journal" % job.user))
 	session.refresh()
@@ -174,7 +174,7 @@ func _save() -> void:
 
 func _log(action: StringName) -> void:
 	var data := {"device": _name(), "user": job.user, "action": action, "progress": job.progress}
-	EventLog.record(&"deck.icebreaker", NetworkSource.user_key(entity), _name(), data)
+	EventLog.record(EventKinds.DECK_ICEBREAKER, NetworkSource.user_key(entity), _name(), data)
 
 
 func _on_plugged_changed(plugged: bool) -> void:

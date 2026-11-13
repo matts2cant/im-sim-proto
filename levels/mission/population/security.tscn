@@ -48,6 +48,7 @@
 [ext_resource type="PackedScene" path="res://objects/computer/server_rack.tscn" id="74_server_rack"]
 [ext_resource type="PackedScene" path="res://items/key/key.tscn" id="75_key"]
 [ext_resource type="PackedScene" path="res://objects/computer/computer_desk.tscn" id="76_computer_desk"]
+[ext_resource type="Resource" path="res://levels/mission/population/ap_yard_access_point.tres" id="77_ap_yard_config"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -810,7 +811,7 @@ circuit = &"warehouse_yard"
 address = "10.0.20.60"
 
 [node name="AccessPoint" parent="Devices/ApYard"]
-wireless_range = 27.0
+config = ExtResource("77_ap_yard_config")
 key = "dockside7"
 client_address = "10.0.20.90"
 

@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
 [ext_resource type="Script" path="res://objects/components/circuit_breaker.gd" id="4_breaker"]
 [ext_resource type="AudioStream" path="res://assets/audio/kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg" id="5_clunk"]
+[ext_resource type="Resource" path="res://objects/components/circuit_breaker.tres" id="6_config"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
 size = Vector3(0.5, 0.7, 0.14)
@@ -55,5 +56,6 @@ initial_tags = Array[StringName]([&"material.metal", &"object.breaker"])
 
 [node name="CircuitBreaker" type="Node" parent="."]
 script = ExtResource("4_breaker")
+config = ExtResource("6_config")
 lever_path = NodePath("../Lever")
 sound_path = NodePath("../Clunk")

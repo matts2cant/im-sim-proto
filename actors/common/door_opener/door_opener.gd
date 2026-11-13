@@ -1,6 +1,7 @@
 class_name DoorOpener
 extends Node
-## Component of a navigating character (ADR 0078): opens doors as its path reaches them. Every tick
+## Component of a navigating character (ADR 0078): opens doors as its path reaches them. Tuning in
+## `config` (DoorOpenerConfig, ADR 0138). Every tick
 ## while it walks, the next `lookahead` metres of its NavigationAgent3D path (from where it stands)
 ## are checked against the doorways of the doors near it (group Door.GROUP, Door.crosses()); a
 ## closed door on the way is asked to open for it (Door.open_for(): a locked door opens only when
@@ -9,11 +10,10 @@ extends Node
 ## `access.<id>` tag, so paths cross locked doors only for characters with the access. Doors it
 ## opened stay open (nobody closes them behind).
 
+const DEFAULT_CONFIG: DoorOpenerConfig = preload("res://actors/common/door_opener/door_opener.tres")
+
 @export var entity_path: NodePath = ^".."
-## Metres of path ahead in which a door opens (a 0.6 s door clears for a 5 m/s run at 3 m).
-@export var lookahead: float = 3.5
-## Points are raised by this much so a floor-level path passes through the doorway volume.
-@export var path_lift: float = 0.5
+@export var config: DoorOpenerConfig = DEFAULT_CONFIG
 
 var walker: NavWalker
 var _tags: Tags
@@ -21,6 +21,8 @@ var _tags: Tags
 
 func _ready() -> void:
 	walker = get_node_or_null(entity_path) as NavWalker
+	if config == null:
+		config = DEFAULT_CONFIG
 	_tags = ActorState.tags_of(walker)
 	if _tags != null:
 		_tags.container.changed.connect(_on_tag_changed)
@@ -49,7 +51,7 @@ func _physics_process(_delta: float) -> void:
 	var points := path_ahead()
 	if points.size() < 2:
 		return
-	var reach := lookahead + 2.0
+	var reach := config.lookahead + config.search_margin
 	for node in get_tree().get_nodes_in_group(Door.GROUP):
 		var door := node as Door
 		if door == null or door.is_open() or door.entity == null:
@@ -60,17 +62,18 @@ func _physics_process(_delta: float) -> void:
 			door.open_for(walker)
 
 
-## The next `lookahead` metres of the walker's path from where it stands (raised by `path_lift`).
+## The next `config.lookahead` metres of the walker's path from where it stands (raised by
+## `config.path_lift`).
 func path_ahead() -> PackedVector3Array:
 	var points := PackedVector3Array()
-	var lift := Vector3.UP * path_lift
+	var lift := Vector3.UP * config.path_lift
 	var from := walker.global_position + lift
 	points.append(from)
 	var agent := walker.agent
 	if agent == null:
 		return points
 	var path := agent.get_current_navigation_path()
-	var left := lookahead
+	var left := config.lookahead
 	for i in range(agent.get_current_navigation_path_index(), path.size()):
 		var to := path[i] + lift
 		var length := from.distance_to(to)

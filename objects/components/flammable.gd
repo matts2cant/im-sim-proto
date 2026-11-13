@@ -95,7 +95,7 @@ func ignite(cause: Stimulus) -> void:
 	if _tags != null:
 		_tags.add(BURNING_TAG)
 	var data := {"object": String(entity.name), "by": ignition_id, "heat": heat_model.heat}
-	EventLog.record(&"object.ignited", String(entity.name), "", data)
+	EventLog.record(EventKinds.OBJECT_IGNITED, entity, "", data)
 	_start_fx()
 	ignited.emit(ignition_id)
 
@@ -111,7 +111,7 @@ func burn_out() -> void:
 		_tags.add(CHARRED_TAG)
 	_stop_fx()
 	_char_meshes()
-	EventLog.record(&"object.burnt_out", String(entity.name), "", {"object": String(entity.name)})
+	EventLog.record(EventKinds.OBJECT_BURNT_OUT, String(entity.name), "", {"object": String(entity.name)})
 	burnt_out.emit()
 	var breakable := Breakable.of(entity)
 	if breakable != null:

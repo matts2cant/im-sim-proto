@@ -46,10 +46,15 @@ func test_every_grenade_item_is_a_thrown_weapon_whose_entity_is_a_mine() -> void
 		assert_object(ExplosivePayload.of(entity).config).is_not_null()
 		assert_object(Breakable.of(entity)).is_not_null()
 		assert_object(entity.get_node_or_null("ImpactNoise")).is_not_null()
-		assert_float(Fuse.of(entity).time).is_equal(2.5)
+		assert_object(Fuse.of(entity).config).is_same(Fuse.DEFAULT_CONFIG)
+		assert_float(Fuse.of(entity).config.time).is_equal(2.5)
+		assert_bool(Fuse.of(entity).config.hits_characters).is_true()
 		assert_object(Sticky.of(entity)).is_not_null()
-		var trigger := ProximityTrigger.of(entity)
+		var trigger := ProximityTrigger.of(entity).config
 		assert_array([trigger.arm_time, trigger.radius, trigger.crouched_radius]).is_equal([2.0, 2.5, 1.0])
+		# Every character sets it off (no tag filter).
+		assert_array(trigger.required_tags).is_empty()
+		assert_array(trigger.ignored_tags).is_empty()
 		assert_object((Usable.of(entity) as MineDisarm).item).is_same(item)
 		assert_object(entity.get_node_or_null("Payload")).is_same(ExplosivePayload.of(entity))
 		assert_bool(Breakable.of(entity).break_on_depleted).is_false()

@@ -63,7 +63,7 @@ func unlock(by: Node = null, how: StringName = &"", user_wants_open: bool = fals
 	if not locked:
 		return false
 	locked = false
-	_log(&"lock.unlocked", by, how)
+	_log(EventKinds.LOCK_UNLOCKED, by, how)
 	lock_changed.emit(false)
 	if user_wants_open:
 		unlocked_by_user.emit(by)
@@ -75,7 +75,7 @@ func unlock(by: Node = null, how: StringName = &"", user_wants_open: bool = fals
 func grant(by: Node = null, how: StringName = &"") -> bool:
 	if not locked:
 		return false
-	_log(&"lock.granted", by, how)
+	_log(EventKinds.LOCK_GRANTED, by, how)
 	access_granted.emit(by)
 	return true
 
@@ -85,7 +85,7 @@ func lock(by: Node = null, how: StringName = &"") -> bool:
 	if locked:
 		return false
 	locked = true
-	_log(&"lock.locked", by, how)
+	_log(EventKinds.LOCK_LOCKED, by, how)
 	lock_changed.emit(true)
 	return true
 

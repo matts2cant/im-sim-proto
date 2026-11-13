@@ -11,16 +11,21 @@ extends Node
 ##   reading overlay) and the briefing opens (a pause screen; E, Enter or Esc closes it). Nothing
 ##   starts without a player or outside a level (no owner): the scene alone is inert.
 ## - Objectives (ObjectiveTracker): checked every tick against component state and offered every
-##   EventLog entry; a completion shows a toast and logs `mission.objective_completed`.
-## - Tallies (MissionTally): every EventLog entry while the mission runs (not during a quickload).
+##   EventLog entry as it is recorded (EventLog.entry_added, never the log's history); a completion
+##   shows a toast and logs `mission.objective_completed`.
+## - Tallies (MissionTally): every EventLog entry while the mission runs (not during a quickload);
+##   the player is whatever has `MissionData.player_tag` (ADR 0136: never a node name).
 ## - Extraction: while an ExtractionZone (group `extraction_zone`) in the level holds the player and
 ##   every main objective is done, the mission ends: `mission.completed` with the results and the
 ##   summary screen (pauses; "Restart mission" reloads the level, "Return to hub" loads `hub_scene`).
 ##   Entering a zone before that shows the missing objective's hint (`mission.extraction_refused`).
 ## - Reinforcements: `reinforcement_delay` seconds of mission time after the first alarm rings
 ##   (`alarm.raised`), the data's scenes are spawned once at the level's `ReinforcementSpawn`
-##   marker (under `Reinforcements`, so saves keep them) and search where that alarm was raised
-##   (GradedAwareness.search_at, reason `alarm`). Logged `mission.reinforcements`.
+##   marker (under `Reinforcements`, so saves keep them) and are dispatched by radio to search
+##   where that alarm was raised: a CONTACT `MissionData.dispatch_type` stimulus (`alert.dispatch`)
+##   at each, from the marker, about the incident (S22). The radio rules apply as to any dispatch:
+##   only characters with a radio react, and a jamming field over the marker or a guard loses it.
+##   Logged `mission.reinforcements`.
 ## - The timer counts physics time while the mission runs (not while paused).
 ## Saveable: time, objectives done, tallies, briefing seen, first alarm, reinforcements sent,
 ## finished.
@@ -74,8 +79,8 @@ class MissionContext:
 		var reader_log := PersonalLog.of(mission.player)
 		return reader_log != null and reader_log.has(entry_id)
 
-	func is_player(entity_name: String) -> bool:
-		return mission.tally.is_player(entity_name)
+	func is_player(entity: Node) -> bool:
+		return mission.tally.is_player(entity)
 
 	func sabotaged(tag: StringName) -> bool:
 		return mission.target_sabotaged(tag)
@@ -98,7 +103,7 @@ func _ready() -> void:
 	if data != null:
 		objectives = data.objectives
 	tracker = ObjectiveTracker.new(objectives)
-	tally = MissionTally.new()
+	tally = MissionTally.new(data.player_tag if data != null else MissionTally.PLAYER_TAG)
 	_context = MissionContext.new(self)
 	summary.restart_requested.connect(restart)
 	summary.hub_requested.connect(return_to_hub)
@@ -150,19 +155,19 @@ func finish() -> void:
 	var shown := results()
 	var logged := shown.duplicate()
 	logged["mission"] = String(data.id)
-	EventLog.record(&"mission.completed", _player_name(), "", logged)
+	EventLog.record(EventKinds.MISSION_COMPLETED, player, "", logged)
 	summary.open(shown)
 	completed.emit(shown)
 
 
 ## Summary: "Restart mission" (the level from its scene file).
 func restart() -> void:
-	LevelReset.reload_level(get_tree(), &"mission.restarted")
+	LevelReset.reload_level(get_tree(), EventKinds.MISSION_RESTARTED)
 
 
 ## Summary: "Return to hub" (the hub from its scene: its player at its spawn, nothing carried over).
 func return_to_hub() -> void:
-	LevelReset.load_level(get_tree(), hub_scene, &"mission.left")
+	LevelReset.load_level(get_tree(), hub_scene, EventKinds.MISSION_LEFT)
 
 
 ## Spawns the reinforcements now (once) and sends them to search the first alarm's point.
@@ -187,14 +192,16 @@ func send_reinforcements() -> Array[Node3D]:
 		var at := marker.global_position + side * (i - (count - 1) * 0.5) * data.reinforcement_spacing
 		guard.transform = reinforcements.global_transform.affine_inverse() * Transform3D(facing, at)
 		reinforcements.add_child(guard, true)
-		var awareness := GradedAwareness.of_node(guard)
-		if awareness != null:
-			awareness.search_at(incident_point, "alarm")
 		spawned.append(guard)
+	for guard in spawned:
+		var dispatch := Stimulus.make_contact(data.dispatch_type, 1.0, guard, marker)
+		dispatch.origin = marker.global_position
+		dispatch.about_point = incident_point
+		StimulusSystem.emit(dispatch)
 	var names: Array[String] = []
 	for guard in spawned:
 		names.append(String(guard.name))
-	EventLog.record(&"mission.reinforcements", "", "", {"guards": names, "point": incident_point})
+	EventLog.record(EventKinds.MISSION_REINFORCEMENTS, "", "", {"guards": names, "point": incident_point})
 	return spawned
 
 
@@ -246,8 +253,6 @@ func _start() -> void:
 	if player == null:
 		push_warning("Mission %s: no player and no PlayerSpawn" % get_path())
 		return
-	var names: Array[String] = [String(player.name)]
-	tally.player_names = names
 	_collect_targets(level)
 	_equip()
 	_log_objectives()
@@ -256,7 +261,7 @@ func _start() -> void:
 			(zone as ExtractionZone).entered.connect(_on_extraction_entered)
 	EventLog.entry_added.connect(_on_entry)
 	started = true
-	EventLog.record(&"mission.started", _player_name(), "", {"mission": String(data.id)})
+	EventLog.record(EventKinds.MISSION_STARTED, player, "", {"mission": String(data.id)})
 	_open_briefing.call_deferred()
 
 
@@ -278,7 +283,6 @@ func _spawn_player(level: Node) -> Node3D:
 	if marker == null or player_scene == null:
 		return null
 	var spawned := player_scene.instantiate() as Node3D
-	spawned.name = "Player"
 	var target := Transform3D(Basis(Vector3.UP, marker.global_rotation.y), marker.global_position)
 	var level_3d := level as Node3D
 	spawned.transform = level_3d.global_transform.affine_inverse() * target if level_3d != null else target
@@ -335,14 +339,14 @@ func _on_briefing_closed() -> void:
 	if briefing_done:
 		return
 	briefing_done = true
-	EventLog.record(&"mission.briefing_closed", _player_name(), "", {"mission": String(data.id)})
+	EventLog.record(EventKinds.MISSION_BRIEFING_CLOSED, player, "", {"mission": String(data.id)})
 
 
 func _on_entry(entry: EventLogEntry) -> void:
-	if not started or finished or QuickSave.is_loading() or String(entry.kind).begins_with("mission."):
+	if not started or finished or QuickSave.is_loading() or String(entry.kind).begins_with(EventKinds.MISSION_PREFIX):
 		return
 	tally.observe(entry)
-	if entry.kind == MissionTally.ALARM and alarm_time < 0.0:
+	if entry.kind == EventKinds.ALARM_RAISED and alarm_time < 0.0:
 		alarm_time = time
 		var point: Variant = entry.data.get("point")
 		incident_point = point if point is Vector3 else Vector3.ZERO
@@ -353,7 +357,7 @@ func _on_entry(entry: EventLogEntry) -> void:
 func _on_completed(objective: MissionObjective) -> void:
 	toast.show_text(MissionRules.complete_text(objective))
 	var logged := {"mission": String(data.id), "objective": String(objective.id), "optional": objective.optional}
-	EventLog.record(&"mission.objective_completed", _player_name(), "", logged)
+	EventLog.record(EventKinds.MISSION_OBJECTIVE_COMPLETED, player, "", logged)
 	objective_completed.emit(objective)
 
 
@@ -363,7 +367,7 @@ func _on_extraction_entered(_body: Node3D) -> void:
 	var missing := tracker.first_missing()
 	toast.show_text(MissionRules.extraction_hint(data, missing))
 	var missing_id := String(missing.id) if missing != null else ""
-	EventLog.record(&"mission.extraction_refused", _player_name(), "", {"missing": missing_id})
+	EventLog.record(EventKinds.MISSION_EXTRACTION_REFUSED, player, "", {"missing": missing_id})
 
 
 func _zone_holds_player() -> bool:
@@ -372,10 +376,6 @@ func _zone_holds_player() -> bool:
 		if extraction != null and owner.is_ancestor_of(extraction) and extraction.holds_required():
 			return true
 	return false
-
-
-func _player_name() -> String:
-	return String(player.name) if is_instance_valid(player) else ""
 
 
 static func _inventory_of(entity: Node) -> PlayerInventory:

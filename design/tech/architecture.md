@@ -12,6 +12,7 @@ Pure logic (rules, propagation math, AI transitions, inventory, attributes) live
 
 ```text
 core/stimulus/  core/attributes/  core/event_log/  core/save/
+events/         (EventKinds: every EventLog kind, game content)
 actors/player/  actors/guard/
 objects/        items/
 ui/hud/         ui/debug_panel/   ui/window/ (shared window frame and theme)
@@ -30,7 +31,7 @@ Exactly three:
 | Autoload | Role | Added |
 |---|---|---|
 | `StimulusSystem` | Queue, propagate (straight, navmesh path, ray) and deliver stimuli on the physics tick; registry of `StimulusReceiver`s; `stimulus_processed` signal for debug overlays | M2 |
-| `EventLog` | Record emits and receptron firings | M0 |
+| `EventLog` | Record gameplay events (kinds in `EventKinds`), stream them (`entry_added`) and keep a bounded history for debug and tests | M0 |
 | `DebugPanel` | Debug overlays, spawn, time, stats, log UI | M0 (shell) |
 
 ## UI windows (deck, Halcyon OS)
@@ -65,6 +66,21 @@ The deck's screen is a host (`deck_screen.gd`: raise/lower, input, a registry of
 
 - Signals: local events (parent/child, UI).
 - Stimuli: world events that other entities may perceive or react to.
+- Lasting conditions an area puts on what is inside it are tags the area adds and removes, never a query of the area's registry: a jamming field adds `state.jammed` to every entity with Tags it covers; radios, the network and the deck read the tag ([ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)).
+- EventLog entries: what happened, for systems that keep score or give feedback (below).
+
+## Gameplay events ([ADR 0136](../decisions/0136-event-kinds-and-entity-attribution.md))
+
+- **The mechanism** is `core/event_log/` (the `EventLog` autoload and `EventLogEntry`); it knows no kind. `EventLog.entry_added` is the event stream; the ring buffer (2000 entries) is history for the debug panel and tests only. Gameplay consumers listen to `entry_added` and keep what they need (MissionTally's counts and attributed stimulus ids, HitMarkerRules' last 64 shooter stimuli); they never scan `entries()` or `find()`.
+- **The kinds** are game content: `EventKinds` (`events/event_kinds.gd`) lists every one as a constant. Emitters record and consumers match the constants, never string literals (`tests/events/event_kinds_test.gd` scans the code). The few kinds `core/` records itself are core constants that EventKinds aliases.
+- **Naming** (audit S25): `<subject>.<what happened>`, a past participle or an event noun (`actor.died`, `object.broken`, `actor.awareness`). Kinds name events and tags name states; both are dotted, so the test also checks no kind is a tag in any scene or resource.
+- **Entities, not names**: `EventLog.record(kind, source, target, data)` takes entities (Nodes) or display names for source and target, and Node values in `data`. The entry stores the names (debug panel, `str(entry)`, test assertions) and the entities by instance id: `entry.entity(role)` (`source_entity()`, `target_entity()`, or a data key such as `by` on `device.command`) returns the live entity or null. Consumers decide who did something from the entity's tags or components: "the player" is the entity with `actor.player` (MissionTally, PickUpObjective, NetworkFeedback); a HUD's hit markers watch the HUD's own character by reference. Objects remembered across a save (MissionTally's broken and lit objects) are keyed by node path, the identity saves use (`LevelSnapshot`).
+- **Contract**: the kinds gameplay reads carry "Consumed" doc comments with their entities and data keys; `tests/events/event_contract_actor_test.gd` and `event_contract_object_test.gd` drive each real emitter and check them.
+
+## Surfaces and tuning configs
+
+- What a collider is made of is `Surface.of(collider, normal)` (`objects/materials/surface.gd`): static geometry's `wall_surface` / `surface` metadata, else the entity's `material.*` tag. Footsteps (`SurfaceTable`) and bullet impacts (`ShotFxConfig`) read it; nothing else reads the metadata or the material tags for a surface (ADR 0138).
+- Gameplay tuning shared by every instance of a component sits in a `*Config` `.tres` the scenes reference (`config`), with the component's `DEFAULT_CONFIG` as the fallback for instances built in code; a level that needs another value gives that instance its own config (the warehouse's AP-YARD). Per-instance placement and identity (a light offset, a breaker's circuit, a Wi-Fi key) stay node exports (ADR 0138).
 
 ## Determinism and tick model
 

@@ -97,7 +97,7 @@ func explode(cause: Stimulus = null) -> void:
 		if stimulus.radius > 0.0:
 			StimulusSystem.emit(stimulus, cause)
 	var data := {"object": String(entity.name), "by": cause.id if cause != null else 0}
-	EventLog.record(&"object.exploded", String(entity.name), "", data)
+	EventLog.record(EventKinds.OBJECT_EXPLODED, entity, "", data)
 	_spawn_fx(origin)
 	exploded.emit()
 	entity.queue_free()

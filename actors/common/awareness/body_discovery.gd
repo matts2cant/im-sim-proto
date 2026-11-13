@@ -125,7 +125,7 @@ func _found(body: Node3D) -> void:
 		"state": "unconscious" if unconscious else "dead",
 		"point": at,
 	}
-	EventLog.record(&"actor.body_found", String(entity.name), String(body.name), data)
+	EventLog.record(EventKinds.ACTOR_BODY_FOUND, String(entity.name), String(body.name), data)
 	body_found.emit(body)
 	var approach := approach_point(entity.global_position, body, awareness.config.tend_offset)
 	if awareness.notice_body(at, approach, unconscious) and unconscious:
@@ -156,7 +156,7 @@ func _tend(delta: float) -> void:
 
 func _wake(body: Node3D) -> void:
 	var data := {"actor": String(entity.name), "body": String(body.name)}
-	EventLog.record(&"actor.wake", String(entity.name), String(body.name), data)
+	EventLog.record(EventKinds.ACTOR_WAKE, String(entity.name), String(body.name), data)
 	StimulusSystem.emit(Stimulus.make_contact(REVIVE, 1.0, body, entity))
 	tending = null
 	tend_time = 0.0

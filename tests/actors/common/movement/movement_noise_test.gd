@@ -6,7 +6,10 @@ const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const NOISE: MovementNoiseConfig = preload("res://actors/player/player_movement_noise.tres")
+const SHOT_FX: ShotFxConfig = preload("res://items/weapons/fx/shot_fx.tres")
+const METAL_CRATE: PackedScene = preload("res://objects/metal_crate/metal_crate.tscn")
 const WOOD: float = 1.2
+const METAL: float = 1.6
 ## 75 ticks at 4 m/s = 5 m: 2 walk strides (2 m), 4 crouch strides (1.2 m), 1 sprint stride (2.6 m),
 ## each at least 0.2 m (3 ticks) away from the next step.
 const WALK_TICKS: int = 75
@@ -93,6 +96,31 @@ func test_landing_noise_scales_with_the_impact() -> void:
 	assert_float(landings[0].data["loudness"]).is_equal_approx(expected, 0.0001)
 	assert_float((walker.get_node("MovementNoise") as MovementNoise).last_landing_loudness).is_equal(expected)
 	assert_array(EventLog.find(&"actor.footstep")).is_empty()
+
+
+func test_a_metal_tagged_crate_sounds_and_sparks_as_metal() -> void:
+	# Five shipped metal crates (0.8 m, `material.metal`, no surface metadata), frozen side by side
+	# from x = -10 to -6 on the wood floor; the walker starts on the second (x = -8.8, 0.85 m up)
+	# and walks 2.7 m (40 ticks at 4 m/s), staying 0.5 m from the far end.
+	var crates: Array[RigidBody3D] = []
+	for i in 5:
+		var crate := METAL_CRATE.instantiate() as RigidBody3D
+		crate.freeze = true
+		crate.position = Vector3(-9.6 + 0.8 * i, 0.4, 0)
+		_root.add_child(crate)
+		crates.append(crate)
+	var walker := Characters.character(_root, "Walker", Vector3(-8.8, 0.85, 0), [Characters.MOVEMENT_NOISE])
+	await Wait.frames(get_tree(), 10)
+	EventLog.clear()
+
+	await _walk(walker, 40)
+
+	var steps := EventLog.find(&"actor.footstep")
+	assert_array(steps).is_not_empty()
+	for step in steps:
+		assert_str(step.data["surface"]).is_equal("metal")
+		assert_float(step.data["loudness"]).is_equal_approx(NOISE.walk_loudness * METAL, 0.0001)
+	assert_str(String(SHOT_FX.group_for(crates[0], Vector3.BACK))).is_equal("metal")
 
 
 func _standing_walker() -> CharacterBody3D:

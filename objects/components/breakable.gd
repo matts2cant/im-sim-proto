@@ -58,7 +58,7 @@ func take_damage(type: StringName, amount: float, cause: Stimulus = null) -> flo
 	var data := {"object": String(entity.name), "type": type, "amount": dealt, "health": health()}
 	# The damaging stimulus (mission tallies attribute what broke an object that stays, a device).
 	data["by"] = cause.id if cause != null else 0
-	EventLog.record(&"object.damaged", cause.source_name() if cause != null else "", String(entity.name), data)
+	EventLog.record(EventKinds.OBJECT_DAMAGED, cause.source_name() if cause != null else "", entity, data)
 	if health() <= 0.0:
 		depleted.emit(cause)
 		if break_on_depleted:
@@ -85,7 +85,7 @@ func break_apart(reason: StringName, cause: Stimulus = null) -> void:
 		"debris": debris,
 		"contents": spawned,
 	}
-	EventLog.record(&"object.broken", String(entity.name), "", data)
+	EventLog.record(EventKinds.OBJECT_BROKEN, entity, "", data)
 	broken.emit()
 	# Props wake what rested on them when they leave the tree; other bodies (the barricade) here.
 	if entity is CollisionObject3D and not entity is PhysicsObject:
@@ -143,7 +143,7 @@ func _play_sound(origin: Vector3) -> void:
 	player.name = "BreakSound"
 	player.stream = material.break_sound
 	player.volume_db = material.break_volume_db
-	player.unit_size = 6.0
+	player.unit_size = settings.sound_unit_size
 	player.finished.connect(player.queue_free)
 	# Parented to the viewport so the sound outlives the entity.
 	get_viewport().add_child(player)

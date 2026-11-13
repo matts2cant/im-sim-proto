@@ -31,4 +31,5 @@ glance_angle = 45.0
 glance_interval = 6.0
 glance_hold = 1.5
 look_around_angle = 60.0
+look_around_period = 4.0
 patrol_wait = 1.0

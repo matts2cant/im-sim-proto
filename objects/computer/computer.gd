@@ -166,7 +166,7 @@ func log_in(typed_user: String, typed_password: String, by: Node = null) -> bool
 	var list := DeviceAccounts.of(entity)
 	var ok := is_up() and list != null and list.try_login(typed_user, typed_password, by)
 	var who := String(by.name) if by != null else ""
-	EventLog.record(&"computer.login", who, _name(), {"computer": _name(), "user": typed_user, "ok": ok})
+	EventLog.record(EventKinds.COMPUTER_LOGIN, who, _name(), {"computer": _name(), "user": typed_user, "ok": ok})
 	if not ok:
 		var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
 		if sound != null and sound.is_inside_tree():
@@ -182,7 +182,7 @@ func log_out() -> void:
 	if session_user.is_empty():
 		return
 	session_user = ""
-	EventLog.record(&"computer.logout", "", _name(), {"computer": _name()})
+	EventLog.record(EventKinds.COMPUTER_LOGOUT, "", _name(), {"computer": _name()})
 	session_changed.emit(false)
 
 
@@ -298,7 +298,7 @@ func _offered(other: Device) -> Array[StringName]:
 
 func _log_opened(viewer: Node, remote: bool) -> void:
 	var by := String(viewer.name) if viewer != null else ""
-	EventLog.record(&"computer.opened", by, _name(), {"computer": _name(), "by": by, "remote": remote})
+	EventLog.record(EventKinds.COMPUTER_OPENED, by, _name(), {"computer": _name(), "by": by, "remote": remote})
 
 
 func _name() -> String:

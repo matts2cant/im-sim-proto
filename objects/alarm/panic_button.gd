@@ -28,6 +28,6 @@ func use(user: Node) -> bool:
 		told = device.report_incident(entity.global_position)
 	var by := String(user.name) if user != null else ""
 	var button := String(entity.name) if entity != null else ""
-	EventLog.record(&"device.panic", by, button, {"button": button, "by": by, "controllers": told})
+	EventLog.record(EventKinds.DEVICE_PANIC, by, button, {"button": button, "by": by, "controllers": told})
 	used.emit(user)
 	return true

@@ -86,7 +86,7 @@ func react_to(stimulus: Stimulus, part: StringName, amount: float) -> bool:
 		"flinch": config.flinch_time > 0.0,
 		"stagger": staggers,
 	}
-	EventLog.record(&"actor.hit_reacted", stimulus.source_name(), String(entity.name), data)
+	EventLog.record(EventKinds.ACTOR_HIT_REACTED, stimulus.source_name(), String(entity.name), data)
 	return true
 
 

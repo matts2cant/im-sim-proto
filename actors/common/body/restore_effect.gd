@@ -17,7 +17,7 @@ func apply(ctx: EffectContext) -> void:
 		ActorState.set_tag(ctx.entity, ActorState.DEAD, false)
 		ActorState.set_tag(ctx.entity, ActorState.UNCONSCIOUS, false)
 	var data := {"actor": String(ctx.entity.name), "by": by}
-	EventLog.record(&"actor.reset", by, String(ctx.entity.name), data)
+	EventLog.record(EventKinds.ACTOR_RESET, by, String(ctx.entity.name), data)
 
 
 ## Something to restore: a body, or a down tag to remove.

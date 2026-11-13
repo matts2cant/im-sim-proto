@@ -107,7 +107,7 @@ func set_open(value: bool, by: Node = null) -> void:
 	open = value
 	set_physics_process(true)
 	var data := {"by": String(by.name) if is_instance_valid(by) else ""}
-	EventLog.record(&"hinged_door.opened" if open else &"hinged_door.closed", _name(), "", data)
+	EventLog.record(EventKinds.HINGED_DOOR_OPENED if open else EventKinds.HINGED_DOOR_CLOSED, _name(), "", data)
 	state_changed.emit(open)
 
 

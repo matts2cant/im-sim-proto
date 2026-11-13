@@ -86,9 +86,11 @@ Devices and alarms (M8, [ADR 0077](../decisions/0077-devices-cables-and-remote-c
 
 ### EventLog kinds
 
+The EventLog has two roles ([ADR 0136](../decisions/0136-event-kinds-and-entity-attribution.md)): `entry_added` is the stream of gameplay events, and the 2000-entry ring buffer is history for the debug panel and scenario tests. Gameplay consumers (mission tallies and objectives, hit markers, network feedback) listen to `entry_added` and keep what they need; they never read back through the buffer. Every kind is a constant in `EventKinds` (`events/event_kinds.gd`); emitters record and consumers match the constants, never literals. Kinds name events (`<subject>.<what happened>`: `actor.died`, `actor.awareness`) and are never tags, though both are dotted. An entry's source, target and Node data values are display names in the entry and the entities themselves behind it (`EventLogEntry.entity()`, `source_entity()`, `target_entity()`): consumers decide who did something by the entity's tags (`actor.player`), never by its name. The kinds gameplay reads and the keys it reads are documented on their constants and checked by `tests/events/event_contract_*_test.gd`.
+
 | Kind | Source / target | Data |
 |---|---|---|
-| `stimulus.emitted` | source name / contact target | `id, type, intensity, origin, depth, source, shape, cause_id` (logged when the stimulus is processed, i.e. enters the world) |
+| `stimulus.emitted` | source entity / contact target entity | `id, type, intensity, origin, depth, source, shape, cause_id` (logged when the stimulus is processed, i.e. enters the world) |
 | `stimulus.received` | source name / entity name | `id, type, perceived, distance`, plus `propagation` (`straight`, `path`, `straight_fallback`, `line_of_sight`) for RADIUS; `collider` (name) for CONTACT and RAY, `position` and `normal` for RAY |
 | `receptron.fired` | source name / entity name | `id, receptron` (resource_name, else index), `effects` (class names) |
 | `stimulus.dropped` | source name | `id, type, depth` |
@@ -115,6 +117,8 @@ Generic components and receptrons any character composes (the player has all of 
 | `heal` CONTACT on the user, x the user's `medical_heal_mult` | medkit use; Regeneration (2 every 0.5 s, unscaled, only while something is hurt) | `heal` (`HealEffect`) | split over the damaged parts |
 | `restore` CONTACT on the body (intensity unused) | a training dummy's `use` / `reset()`, the range's "Reset dummies" button (to bodies that cannot act) | `restore` (`include_self`; `RestoreEffect`) | `BodyParts.reset()`: full health, `state.dead` / `state.unconscious` removed (without BodyParts: the two tags removed); `actor.reset` |
 | `energy` CONTACT on the user, intensity = energy | biocell use (25) | `energy` (`actors/common/abilities/receptrons/energy.tres`, `ChangeAttributeEffect` on `energy`, max `energy_max`) | restores energy; refused when full ([abilities.md](abilities.md)) |
+
+Jamming is a tag, not a stimulus ([ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)): a jamming field adds `state.jammed` to every entity with Tags inside it and removes it as they leave or the field ends. The `heard_radio` and `heard_dispatch` receptrons (`AwarenessEffect.radio`) drop a radio message, logging `radio.jammed {type, id}`, when the receiving entity or the stimulus source carries it.
 
 Inventory kinds (M5, [inventory.md](inventory.md)): `item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}`, `item.use_refused {item, reason}` (was `{object, reason}` for the M4 world medkit), `debug.gave_item {item, count}`.
 

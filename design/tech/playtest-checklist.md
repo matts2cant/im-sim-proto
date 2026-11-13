@@ -245,6 +245,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
 - [ ] In the booth computer's Security app the three laser arrays (Laser Low, Laser High, Laser Pair: one row each, under Laser arrays) read enabled · clear (tripped right after a break); Disable turns all of an array's beams off (no line, no trip) and Enable brings them back. Breaker B off: every array goes dark and reads offline. One pistol round at any of an array's boxes (the pair's mast too) breaks it for good (all its beams go, the Security app says offline). Quicksave and load keep a disabled or broken array.
 - [ ] Turret on guards (M9h, [ADR 0100](../decisions/0100-laser-arrays-alarm-time-downed-targets.md)): log in at the booth computer, Target guards, open the vault: the turret kills the post guard, then turns back to rest; its beep stops and nothing loops (the sirens ring for 45 s, then stop). Knock a guard out in a turret's view while it targets guards: it never fires at the body.
 - [ ] Alarm length (M9h): after one incident the sirens ring for about 45 s and stop; a second incident while ringing restarts the 45 s. In the warehouse the reinforcements still arrive 30 s after the first alarm.
+- [ ] Reinforcements by radio ([ADR 0136](../decisions/0136-event-kinds-and-entity-attribution.md)): in the warehouse, ring an alarm and wait 30 s: the two reinforcements run to where it was raised, as before. Again with a jamming grenade stuck by the front gate (where they appear) just before they arrive: they appear and stay near the gate. The summary's kills, knockouts, Ghost, Pacifist and Clean hands read as before for the same play.
 
 ## M9 Mission
 
@@ -323,6 +324,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
 ## Generic character components (ADR 0056)
 
 - [ ] Footsteps and landings sound and log as before (walk, sprint, crouch on each surface; `actor.footstep` / `actor.landed` in the Event Log). Sprinting while injured (one leg) still logs `mode: sprint`.
+- [ ] Surfaces from tags ([ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)): walking on a metal crate your steps sound like metal and log `surface: metal`; on a wooden crate `wood`. Shooting either still sparks or splinters as before. Footsteps on floors sound as before.
 - [ ] The 5 m drop in the movement course still hurts both legs by about 32 (HUD silhouette), the 2 m drop does not; the Event Log shows `damage.fall` emitted by the Player and the `fall_damage` receptron firing.
 - [ ] Throw a small crate at a wall so it bounces back into you, or have a crate fall on you from a stack: the HUD flashes and the torso takes about the damage the dummy takes from the same throw (`actor.struck` in the log). Walking or pushing into crates never hurts.
 - [ ] Blow up a barrel about 2 m away: you are shoved clearly away (about a metre), never thrown into the air, and you can walk normally right after. A wall behind you stops the shove without snagging. Standing next to the barrel does not launch you over obstacles.
@@ -754,7 +756,7 @@ Until M14a's grenades and the range are in, use the debug panel's Spawn tab (Gas
 Give yourself grenades from the debug panel (Give item: frag, gas, EMP, jamming grenade). Stuck or thrown, each releases its own effect (M14b, above).
 
 - [ ] Each grenade in hand: the round frag, the canisters with green, blue and cyan caps; held low right, not in the way; the weapon corner says "x3" and counts down per throw; the last one thrown leaves empty hands.
-- [ ] Close to a wall, a door, a crate, the floor (crouch and look down) or a ceiling: the ghost shows where it would stick, its base on the surface. Does the 1.2 m reach feel right? Is the ghost visible enough (60 % opaque)?
+- [ ] Close to a wall, a door, a crate, the floor (crouch and look down) or a ceiling: the ghost shows where it would stick and the grenade lands exactly there: upright with its side against a wall or door (lever in profile, no gap, not sunk into the surface), standing on its base on the floor, upside down on a ceiling. Does it read like Deus Ex? Is the armed blink still visible on a wall above or below eye level? Does the 1.2 m reach feel right? Is the ghost visible enough (60 % opaque)?
 - [ ] Stuck on a sliding door, a hinged leaf or a crate you then carry or push: the mine rides along. Break the crate: the mine drops.
 - [ ] Throws: level, 12 m Untrained (to the first touch-down; it then rolls up to about 4 m: too far?); looking up lobs higher and shorter. Is the fixed 20 degree arc readable without a preview? Off a wall and off a guard it bounces back; never sticks to a person. The bounces clink (impact noise: guards hear them).
 - [ ] Mines: arm 2 s after sticking (a short beep), then blink red about once a second. Walk at a mine: it goes off about 2.5 m away (from your body); crouch-walk: about 1 m. Behind a crate or around a corner it does not see you. Does 2.5 m feel fair?

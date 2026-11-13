@@ -60,6 +60,9 @@
 [ext_resource type="Resource" path="res://actors/common/hit_reaction/receptrons/hit_reaction.tres" id="57_hit_reaction_receptron"]
 [ext_resource type="Script" path="res://actors/common/hit_reaction/hit_reaction.gd" id="58_hit_reaction"]
 [ext_resource type="Resource" path="res://actors/guard/guard_hit_reaction.tres" id="59_hit_reaction_config"]
+[ext_resource type="Resource" path="res://actors/common/movement/fall_impact.tres" id="s11_fall_impact"]
+[ext_resource type="Resource" path="res://actors/common/awareness/alarm_hearing.tres" id="s11_alarm_hearing"]
+[ext_resource type="Resource" path="res://actors/common/door_opener/door_opener.tres" id="s11_door_opener"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -114,6 +117,7 @@ config = ExtResource("19_noise_config")
 
 [node name="FallImpact" type="Node" parent="."]
 script = ExtResource("20_fall_impact")
+config = ExtResource("s11_fall_impact")
 
 [node name="Knockback" type="Node" parent="."]
 script = ExtResource("21_knockback")
@@ -169,6 +173,7 @@ script = ExtResource("44_discovery")
 
 [node name="AlarmHearing" type="Node" parent="."]
 script = ExtResource("50_alarm_hearing")
+config = ExtResource("s11_alarm_hearing")
 
 [node name="Comms" type="Node" parent="."]
 script = ExtResource("45_comms")
@@ -194,6 +199,7 @@ config = ExtResource("36_light_config")
 
 [node name="DoorOpener" type="Node" parent="."]
 script = ExtResource("48_door_opener")
+config = ExtResource("s11_door_opener")
 
 [node name="WeaponDrop" type="Node" parent="."]
 script = ExtResource("51_weapon_drop")

@@ -10,9 +10,9 @@ func has_log_entry(_entry_id: StringName) -> bool:
 	return false
 
 
-## `entity_name` (an EventLog source) is a player character (an entity tagged as the mission's
-## player).
-func is_player(_entity_name: String) -> bool:
+## `entity` (an EventLog entry's entity, EventLogEntry.entity()) is a player character (tagged as
+## the mission's player). Never decided by name.
+func is_player(_entity: Node) -> bool:
 	return false
 
 

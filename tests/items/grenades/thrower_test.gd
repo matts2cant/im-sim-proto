@@ -40,14 +40,14 @@ func test_sticks_on_a_wall_within_reach() -> void:
 	assert_bool(sticky.is_stuck).is_true()
 	assert_bool(grenade.freeze).is_true()
 	assert_bool(Fuse.of(grenade).is_lit).is_false()
-	# On the wall's face, its centre the surface offset out, at eye height.
+	# Upright beside the wall's face, its centre the side offset out, at eye height.
 	assert_vector(grenade.global_position).is_equal_approx(
-		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.surface_offset), Vector3.ONE * 0.01
+		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.side_offset), Vector3.ONE * 0.01
 	)
-	assert_vector(grenade.global_basis.y).is_equal_approx(Vector3.BACK, Vector3.ONE * 0.01)
+	assert_vector(grenade.global_basis.y).is_equal_approx(Vector3.UP, Vector3.ONE * 0.01)
 	await Wait.frames(get_tree(), 10)
 	assert_vector(grenade.global_position).is_equal_approx(
-		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.surface_offset), Vector3.ONE * 0.01
+		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.side_offset), Vector3.ONE * 0.01
 	)
 
 

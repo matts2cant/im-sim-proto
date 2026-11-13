@@ -196,7 +196,7 @@ func _report(sighting: PerceptionSensor.Sighting) -> void:
 	var turret_name := String(entity.name)
 	var target_name := String(sighting.target.name)
 	var data := {"turret": turret_name, "target": target_name, "point": point, "controllers": told}
-	EventLog.record(&"turret.detected", turret_name, target_name, data)
+	EventLog.record(EventKinds.TURRET_DETECTED, turret_name, target_name, data)
 
 
 func _engage(new_target: Node3D) -> void:
@@ -207,7 +207,10 @@ func _engage(new_target: Node3D) -> void:
 		sound.play()
 	var turret_name := String(entity.name)
 	EventLog.record(
-		&"turret.engaged", turret_name, String(target.name), {"turret": turret_name, "target": String(target.name)}
+		EventKinds.TURRET_ENGAGED,
+		turret_name,
+		String(target.name),
+		{"turret": turret_name, "target": String(target.name)}
 	)
 
 
@@ -218,7 +221,7 @@ func _disengage(reason: String) -> void:
 	target = null
 	line_clear = false
 	var turret_name := String(entity.name)
-	EventLog.record(&"turret.disengaged", turret_name, "", {"turret": turret_name, "reason": reason})
+	EventLog.record(EventKinds.TURRET_DISENGAGED, turret_name, "", {"turret": turret_name, "reason": reason})
 
 
 # Turns the pivot toward the target (or what it sees), or back to rest when idle.
@@ -286,7 +289,7 @@ func _set_preset(command: StringName) -> void:
 	sensor.config.hostile_tags = tags
 	var turret_name := String(entity.name)
 	EventLog.record(
-		&"turret.retargeted", turret_name, "", {"turret": turret_name, "preset": String(command), "tags": tags}
+		EventKinds.TURRET_RETARGETED, turret_name, "", {"turret": turret_name, "preset": String(command), "tags": tags}
 	)
 
 

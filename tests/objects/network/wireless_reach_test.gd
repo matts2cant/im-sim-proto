@@ -45,6 +45,13 @@ func _reaches(entity_name: String) -> bool:
 	return _deck().reaches(get_tree(), _dev(entity_name))
 
 
+# An access point config with `metres` of radio range.
+func _range(metres: float) -> AccessPointConfig:
+	var config := AccessPointConfig.new()
+	config.wireless_range = metres
+	return config
+
+
 func test_a_wireless_device_links_through_its_access_point_on_its_subnet() -> void:
 	assert_object(_dev("CamYard").wireless_link()).is_same(_dev("ApYard"))
 	assert_object(_dev("LaserRoof").wireless_link()).is_same(_dev("ApYard"))
@@ -109,12 +116,12 @@ func test_out_of_the_access_points_range_there_is_no_link() -> void:
 	# CAM-YARD stands 4.5 m from AP-YARD (centre to centre); a 3 m range leaves it out.
 	var gap := _n["CamYard"].global_position.distance_to(_n["ApYard"].global_position)
 	assert_float(gap).is_between(4.0, 5.0)
-	radio.wireless_range = 3.0
+	radio.config = _range(3.0)
 	assert_object(_dev("CamYard").wireless_link()).is_null()
 	assert_bool(_reaches("CamYard")).is_false()
 	# LASER-ROOF (3.9 m) also drops at 3 m; back to 6 m both link again.
 	assert_bool(_reaches("LaserRoof")).is_false()
-	radio.wireless_range = 6.0
+	radio.config = _range(6.0)
 	assert_bool(_reaches("CamYard")).is_true()
 	assert_bool(_reaches("LaserRoof")).is_true()
 
@@ -125,7 +132,7 @@ func test_an_access_point_from_components_behaves_the_same() -> void:
 	var ap := Net.body_device(_root, "Ap2", ORIGIN + Vector3(6, 2, 6), [], true, 20.0)
 	var radio := AccessPoint.new()
 	radio.name = "AccessPoint"
-	radio.wireless_range = 5.0
+	radio.config = _range(5.0)
 	ap.add_child(radio)
 	Net.link(_n["SecuritySwitch"], ap)
 	var sensor := Net.body_device(_root, "Sensor", ORIGIN + Vector3(7, 1, 8))

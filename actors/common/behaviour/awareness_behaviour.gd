@@ -5,15 +5,13 @@ extends Node
 ## at each point), or without one hold the post (where it spawned, facing its spawn direction) and
 ## glance `glance_angle` left or right every `glance_interval`. LOOK: stop and face the point.
 ## MOVE: walk to the destination (snapped to the navmesh) at the phase's pace and report arrival.
-## LOOK_AROUND: stop and sweep the view. TEND (by a downed ally, ADR 0071): stop and face it.
+## LOOK_AROUND: stop and sweep the view (`look_around_angle` either side, one sweep per
+## `look_around_period` s). TEND (by a downed ally, ADR 0071): stop and face it.
 ## CHASE: run to the last known position; within
 ## `face_distance` of a seen target, stop and face it (an armed character's CombatBehaviour takes
 ## the walker while it fights, ADR 0070, and this pauses until it is handed back). A character that
 ## cannot act stops. Paces map to the walker's speeds (walk, investigate, run). Saveable (patrol index,
 ## wait, post).
-
-## Period (s) of the look-around sweep.
-const SWEEP_PERIOD: float = 4.0
 
 @export var patrol_route: NodePath
 
@@ -68,7 +66,8 @@ func _physics_process(delta: float) -> void:
 				model.arrived()
 		AwarenessModel.Phase.LOOK_AROUND:
 			body.stop()
-			var swing := deg_to_rad(awareness.config.look_around_angle) * sin(model.phase_time * TAU / SWEEP_PERIOD)
+			var period := maxf(awareness.config.look_around_period, 0.1)
+			var swing := deg_to_rad(awareness.config.look_around_angle) * sin(model.phase_time * TAU / period)
 			body.face_direction(_yaw_direction(_sweep_yaw + swing))
 		AwarenessModel.Phase.CHASE:
 			_chase(model)

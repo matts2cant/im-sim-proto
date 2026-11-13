@@ -59,9 +59,9 @@ func _process(delta: float) -> void:
 	step(delta)
 
 
-## Shows markers for the hits of `shooter` (its node name is the EventLog source of its stimuli).
+## Shows markers for the hits of `shooter` (the entity its stimuli name as their source).
 func watch(shooter: Node) -> void:
-	rules.shooter_names = [String(shooter.name)]
+	rules.watch(shooter)
 	rules.clear()
 
 

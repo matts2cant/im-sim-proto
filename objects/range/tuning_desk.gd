@@ -26,6 +26,6 @@ func target_name() -> String:
 
 func use(user: Node) -> bool:
 	Screens.open(user, SCREEN, self)
-	EventLog.record(&"range.tuning_opened", String(user.name) if user != null else "", "", {})
+	EventLog.record(EventKinds.RANGE_TUNING_OPENED, String(user.name) if user != null else "", "", {})
 	used.emit(user)
 	return true

@@ -8,6 +8,9 @@ extends Node
 ## and ray hits). Debug overlays listen to this; gameplay must not.
 signal stimulus_processed(stimulus: Stimulus, paths: Array[PackedVector3Array])
 
+## EventLog kinds this mechanism records (aliased by EventKinds: STIMULUS_EMITTED, STIMULUS_DROPPED).
+const EMITTED_KIND: StringName = &"stimulus.emitted"
+const DROPPED_KIND: StringName = &"stimulus.dropped"
 const MAX_DEPTH: int = 16
 ## PATH stimuli (noise) follow the navmesh on every navigation layer: they pass doorways characters
 ## may not path through (a locked door's link is off their layer, ADR 0078).
@@ -86,7 +89,7 @@ func _prepare(stimulus: Stimulus, parent: Stimulus) -> bool:
 		stimulus.cause_id = cause.id
 	if stimulus.depth > MAX_DEPTH:
 		var data := {"id": stimulus.id, "type": stimulus.type, "depth": stimulus.depth}
-		EventLog.record(&"stimulus.dropped", stimulus.source_name(), "", data)
+		EventLog.record(DROPPED_KIND, stimulus.source_name(), "", data)
 		return false
 	return true
 
@@ -143,7 +146,6 @@ func would_affect(stimulus: Stimulus) -> bool:
 
 func _process_stimulus(stimulus: Stimulus) -> void:
 	_current = stimulus
-	var target := String(stimulus.target.name) if is_instance_valid(stimulus.target) else ""
 	var emitted := {
 		"id": stimulus.id,
 		"type": stimulus.type,
@@ -157,7 +159,11 @@ func _process_stimulus(stimulus: Stimulus) -> void:
 	if not stimulus.scale_attribute.is_empty():
 		emitted["scale_attribute"] = stimulus.scale_attribute
 		emitted["scale"] = stimulus.scale
-	EventLog.record(&"stimulus.emitted", stimulus.source_name(), target, emitted)
+	# The source and target entities themselves (attribution by tags: MissionTally, HitMarkerRules).
+	var source: Variant = stimulus.source_name()
+	if is_instance_valid(stimulus.source):
+		source = stimulus.source
+	EventLog.record(EMITTED_KIND, source, stimulus.target, emitted)
 	var paths: Array[PackedVector3Array] = []
 	match stimulus.shape:
 		Stimulus.Shape.RADIUS:

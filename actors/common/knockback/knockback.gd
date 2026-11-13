@@ -52,7 +52,7 @@ func push(impulse: Vector3, source_name: String = "") -> Vector3:
 		body.velocity.y = vertical + change.y
 	var applied := carried - before + Vector3.UP * (body.velocity.y - vertical)
 	var data := {"actor": String(body.name), "impulse": impulse.length(), "speed": applied.length()}
-	EventLog.record(&"actor.knocked_back", source_name, String(body.name), data)
+	EventLog.record(EventKinds.ACTOR_KNOCKED_BACK, source_name, String(body.name), data)
 	return applied
 
 
