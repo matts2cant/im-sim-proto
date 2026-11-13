@@ -26,7 +26,10 @@ func before_test() -> void:
 
 
 func test_builds_a_tier_picker_per_skill_and_controls_per_augmentation() -> void:
-	for skill: StringName in [&"pistols", &"rifles", &"sniper", &"low_tech", &"medicine", &"computer", &"lockpicking"]:
+	var skills: Array[StringName] = [
+		&"pistols", &"rifles", &"sniper", &"low_tech", &"medicine", &"computer", &"lockpicking", &"demolition"
+	]
+	for skill in skills:
 		var picker := _tab.find_child("Tier_%s" % skill, true, false) as OptionButton
 		assert_object(picker).is_not_null()
 		assert_int(picker.item_count).is_equal(4)

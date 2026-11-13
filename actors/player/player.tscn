@@ -65,6 +65,9 @@
 [ext_resource type="Script" path="res://actors/common/hit_reaction/hit_reaction.gd" id="85_hit_reaction"]
 [ext_resource type="Resource" path="res://actors/player/player_hit_reaction.tres" id="86_hit_reaction_config"]
 [ext_resource type="Script" path="res://actors/common/keychain/keychain.gd" id="87_keychain"]
+[ext_resource type="Script" path="res://items/grenades/thrower.gd" id="88_thrower"]
+[ext_resource type="Resource" path="res://items/grenades/throw_config.tres" id="89_throw_config"]
+[ext_resource type="Script" path="res://items/grenades/mine_sense.gd" id="90_mine_sense"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -217,5 +220,14 @@ config = ExtResource("48_light_config")
 [node name="WeaponDrop" type="Node" parent="."]
 script = ExtResource("63_weapon_drop")
 holder_path = NodePath("../Head/Camera/WeaponHolder")
+
+[node name="Thrower" type="Node" parent="."]
+script = ExtResource("88_thrower")
+config = ExtResource("89_throw_config")
+holder_path = NodePath("../Head/Camera/WeaponHolder")
+show_ghost = true
+
+[node name="MineSense" type="Node" parent="."]
+script = ExtResource("90_mine_sense")
 
 [node name="GameMenu" parent="." instance=ExtResource("46_game_menu")]

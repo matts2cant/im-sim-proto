@@ -10,10 +10,10 @@ Four grenades give the player loud, quiet, technical and non-lethal answers, and
 
 | Grenade | Model | Effect (centre of the blast) | Noise |
 |---|---|---|---|
-| Frag | Kenney `grenade-a` | Explosive damage: kills a guard or the player within 3 m, badly hurts from 3 to 6 m, nothing beyond 6 m; a blast push on props and bodies; chains to barrels and other explosives. No fire. | Very loud |
-| Gas | `grenade-b`, its yellow part green | A gas cloud about 5 m across for 12 s, drifting a little, blocked by walls: stun damage over time to anyone breathing in it (unconscious after about 3 s inside), the player included. | A short hiss |
-| EMP | `grenade-b`, blue | Within 6 m, everything tagged electronic switches off for 20 s, then comes back by itself: cameras blind, turrets stopped, lasers off, door controllers unpowered (fail-secure doors stay locked, fail-safe doors open), lights out, the deck unplugged; the frame shows "No power". Drains half the bioenergy of anyone inside (the player today). No damage. | A short pop |
-| Jamming | `grenade-b`, cyan | Within 10 m for 20 s, every wireless link drops: wireless devices lose their access point (a camera still sees, its incidents reach no one), the deck's own Wi-Fi connection drops, guards' radios get no dispatches. Jammed devices show **"Jammed"** (blinking amber) on the frame, the deck's Map and their status light; a deck plugged in by cable keeps working. | Silent |
+| Frag | Kenney `grenade-b` (the round one) | Explosive damage: kills a guard or the player within 3 m, badly hurts from 3 to 6 m, nothing beyond 6 m; a blast push on props and bodies; chains to barrels and other explosives. No fire. | Very loud |
+| Gas | `grenade-a` (the canister), its yellow caps green | A gas cloud about 5 m across for 12 s, drifting a little, blocked by walls: stun damage over time to anyone breathing in it (unconscious after about 3 s inside), the player included. | A short hiss |
+| EMP | `grenade-a`, blue | Within 6 m, everything tagged electronic switches off for 20 s, then comes back by itself: cameras blind, turrets stopped, lasers off, door controllers unpowered (fail-secure doors stay locked, fail-safe doors open), lights out, the deck unplugged; the frame shows "No power". Drains half the bioenergy of anyone inside (the player today). No damage. | A short pop |
+| Jamming | `grenade-a`, cyan | Within 10 m for 20 s, every wireless link drops: wireless devices lose their access point (a camera still sees, its incidents reach no one), the deck's own Wi-Fi connection drops, guards' radios get no dispatches. Jammed devices show **"Jammed"** (blinking amber) on the frame, the deck's Map and their status light; a deck plugged in by cable keeps working. | Silent |
 
 The numbers are first guesses, measured by tests and tuned on the range. The jamming numbers come from [ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11).
 
@@ -30,7 +30,8 @@ Each grenade's effect is a payload scene under the grenade entity (`objects/expl
 
 The debug panel's Spawn tab puts a gas cloud, an EMP or a jamming field at the crosshair.
 
-- **Inventory**: each type is a 1x1 item stacking to 5, put on the belt and equipped like a weapon; the HUD shows how many are left.
+- **Inventory**: each type is a 1x1 item stacking to 5, put on the belt and equipped like a weapon (a THROWN weapon: the view swings it like the baton); the HUD's weapon corner shows how many are left ("x3"); each throw or stick takes one and the next stays in hand.
+- **Models**: the round Kenney `grenade-b` is the frag; the canister `grenade-a` is gas, EMP and jamming, its yellow caps recoloured by a material override (the only Kenney grenade with a yellow part is `grenade-a`: the design first had the two swapped).
 - **Chains**: a grenade is a small `Explosive` and `Breakable` like a barrel: shooting a thrown or stuck grenade, or catching it in a blast, sets it off (gas and EMP release their effect, a jammer starts jamming), so grenades and mines chain.
 
 ## Throwing and sticking
@@ -38,6 +39,7 @@ The debug panel's Spawn tab puts a gas cloud, an EMP or a jamming field at the c
 - **LMB** throws or sticks, depending on what the crosshair is on:
   - within **1.2 m** of a surface (wall, floor, ceiling, door, prop), a **ghost grenade** shows where it would stick; LMB sticks it there. A stuck grenade follows what it is stuck to (a door, a crate);
   - further away, LMB **throws** it in a fixed arc (no preview); distance by Demolition skill (12 / 14 / 16 / 18 m on flat ground).
+  - As built (M14a): the stick look is one ray from the eyes; a character (player, guard, dummy, a body lying down) blocks it and the grenade is thrown instead. Stuck, its base sits on the surface, its top along the surface's normal. The throw leaves 20 degrees above the view at the speed that lands the distance when looking level (looking up throws higher and shorter); it starts 0.35 m ahead of the eyes and ignores its thrower for 0.3 s. The ghost is a 60 % opaque copy of the model in hand.
 - A thrown grenade bounces, off characters too (it never sticks to a person), and goes off **2.5 s** after the throw.
 
 ## Mines
@@ -47,6 +49,7 @@ Every stuck grenade is a proximity mine with its own effect.
 - **Arms** 2 s after it is stuck; an armed mine **blinks a small red light**, and the frame within reach shows its name and "Armed" (e.g. "Frag grenade · Armed").
 - **Triggers** on any character in its line of sight, the player and its owner included: within **2.5 m** walking or running, within **1 m** crouched. Characters only (props and noises do not trigger it; hostility to the owner waits for factions, M15).
 - **Disarming**: crouched, 1 to 2 m from it, E picks it back up with Demolition Trained or better; Untrained, E sets it off after a 0.5 s beep.
+- As built (M14a): distances are gaps from the mine's centre to the character's collision shape (its capsule), so "2.5 m" is about 2.85 m centre to centre on level ground. The mine looks every 4 physics ticks (one sphere query on the character layers, a second, 1 m one only when a crouched character is near, then one ray per candidate, blocked by world geometry and props). It triggers on anyone standing still too: "walking or running" means not crouched. Any E that is not a successful disarm (standing, closer than 1 m or further than 2 m, Untrained) beeps and lights a 0.5 s fuse. The light is a small red bulb and glow, lit 0.3 s of every second. The frame says "Armed" in blinking red. The Advanced highlight is a red translucent sphere around the mine, unlit and drawn over smoke, but walls hide it.
 
 ## Demolition skill
 

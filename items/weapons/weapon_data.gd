@@ -5,8 +5,11 @@ extends Resource
 ## accepts, and its view model (a model scene, or a placeholder box). WeaponHolder uses it;
 ## WeaponState tracks ammo, timers and fitted attachments (ADR 0085). Any numeric property is a
 ## stat attachments can modify (base_stat()).
+## A THROWN weapon (a grenade, ADR 0131) is an inventory stack drawn like any weapon: the trigger
+## hands it to the user's Thrower (sticks it or throws it; `thrown_scene` is the entity spawned), the
+## view swings it like a melee weapon, and the stack's count is what is left.
 
-enum Kind { RANGED, MELEE }
+enum Kind { RANGED, MELEE, THROWN }
 ## How a character holds it (CharacterAnimator's hold and shot poses, ADR 0103).
 enum Grip { ONE_HAND, TWO_HAND }
 
@@ -80,6 +83,11 @@ enum Grip { ONE_HAND, TWO_HAND }
 ## Radius of the sphere swept along the view.
 @export var sweep_radius: float = 0.2
 
+@export_group("Thrown")
+## THROWN: the entity a throw or a stick spawns (a grenade: Explosive, Fuse, Sticky, ...). A path,
+## not a PackedScene: the entity's MineDisarm references the item, which references this resource.
+@export_file("*.tscn") var thrown_scene: String = ""
+
 @export_group("Effects")
 ## Noise (audible metres, PATH) at the muzzle on every shot / swing.
 @export var fire_noise: float = 0.0
@@ -152,6 +160,20 @@ func class_attribute(stat: String) -> StringName:
 
 func is_melee() -> bool:
 	return kind == Kind.MELEE
+
+
+## Fires rays (a gun): an aim cone, a reticle, shots. Melee and thrown weapons do not.
+func is_ranged() -> bool:
+	return kind == Kind.RANGED
+
+
+func is_thrown() -> bool:
+	return kind == Kind.THROWN
+
+
+## The view swings it about the grip (a melee chop, a throw) instead of a recoil kick.
+func swings() -> bool:
+	return kind != Kind.RANGED
 
 
 func uses_ammo() -> bool:

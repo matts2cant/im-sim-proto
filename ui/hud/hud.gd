@@ -10,7 +10,9 @@ extends CanvasLayer
 ## the energy bar beside the silhouette with chips for the augmentations that are on, the light
 ## gauge above them (the player's LightExposure level, ADR 0065), a faint tint
 ## while the player is cloaked (`state.cloaked`; ADR 0061), and the losing overlay while the player
-## is dead ("You died") or knocked out ("Knocked out", `state.unconscious` from any source): E resets
+## is dead ("You died") or knocked out ("Knocked out", `state.unconscious` from any source), a
+## grenade's count in place of the ammo and a thrown grenade's fuse time (Demolition Master; ADR
+## 0131): E resets
 ## the level, Esc opens the game menu, whose Load works there (ADR 0064); it goes away if the player
 ## is woken (`revive`, ADR 0071). It only reads the player's components and tags. Layer 10: the debug
 ## panel (layer 100) draws over it.
@@ -23,6 +25,8 @@ const MESSAGE_TIME: float = 2.5
 ## Shown when the player's PersonalLog gets a new entry (ADR 0060).
 const LOG_ADDED := "Added to log: %s"
 const CHIP_SETTINGS: LabelSettings = preload("res://ui/hud/aug_chip_label.tres")
+## The player's attribute that turns the fuse readout on (the Demolition skill at Master).
+const FUSE_READOUT: StringName = &"fuse_readout"
 
 var player: Player
 
@@ -56,6 +60,8 @@ var _item_name_left: float = 0.0
 @onready var light_gauge: LightGauge = $LightGauge
 ## "AR: cables (RMB)" while the deck's AR view is on (M12c).
 @onready var ar_hint: Label = $ArHint
+## A thrown grenade's fuse time left (Demolition Master, ADR 0131).
+@onready var fuse_label: Label = $Fuse
 
 
 func _ready() -> void:
@@ -65,6 +71,7 @@ func _ready() -> void:
 	message_label.text = ""
 	item_name_label.text = ""
 	cloak_tint.visible = false
+	fuse_label.visible = false
 	if player == null:
 		return
 	# The player's _ready runs after ours: wait for it so its components are wired.
@@ -118,6 +125,7 @@ func _process(delta: float) -> void:
 		energy_label.text = HudRules.energy_text(energy.current()) if energy != null else ""
 		cloak_tint.visible = ActorState.has(player, ActorState.CLOAKED)
 		refresh_ar_hint()
+		refresh_fuse()
 	var hearing := AlarmHearing.of(player)
 	alarm_label.visible = hearing != null and hearing.is_hearing()
 
@@ -150,7 +158,7 @@ func chip_texts() -> Array[String]:
 ## Reticle radius in pixels for the player's current spread (0 without a ranged weapon).
 func reticle_radius() -> float:
 	var data := player.weapons.weapon()
-	if data == null or data.is_melee():
+	if data == null or not data.is_ranged():
 		return 0.0
 	var camera := player.weapons.eye as Camera3D
 	var height := get_viewport().get_visible_rect().size.y
@@ -164,7 +172,20 @@ func refresh_weapon() -> void:
 		weapon_label.text = stack.display_name()
 	else:
 		weapon_label.text = data.display_name if data != null else ""
-	ammo_label.text = HudRules.ammo_text(player.weapons.state())
+	if data != null and data.is_thrown() and stack != null:
+		ammo_label.text = HudRules.count_text(stack.count)
+	else:
+		ammo_label.text = HudRules.ammo_text(player.weapons.state())
+
+
+## The fuse readout under the crosshair (ADR 0131): the seconds left on the player's last throw
+## while its `fuse_readout` attribute is on (Demolition Master); hidden otherwise.
+func refresh_fuse() -> void:
+	var thrower := Thrower.of(player)
+	var left := thrower.fuse_left() if thrower != null else -1.0
+	var shown := left >= 0.0 and Attributes.read(player, FUSE_READOUT, 0.0) > 0.0 and ActorState.can_act(player)
+	fuse_label.visible = shown
+	fuse_label.text = HudRules.fuse_text(left) if shown else ""
 
 
 ## Shows `text` above the belt for `duration` seconds ("No room in inventory"), the last half fading.
@@ -195,7 +216,7 @@ func refresh_reticle() -> void:
 	var radius := reticle_radius()
 	var data := player.weapons.weapon()
 	# A ranged weapon keeps its arms even with a cone of 0 (a Master standing still).
-	var ranged := data != null and not data.is_melee()
+	var ranged := data != null and data.is_ranged()
 	var offset := Vector2.ZERO
 	if ranged:
 		var camera := player.weapons.eye as Camera3D
@@ -222,7 +243,7 @@ func refresh_reticle() -> void:
 ## a weapon can damage it (Reticle.is_target()); null otherwise.
 func aimed_target() -> Node:
 	var data := player.weapons.weapon()
-	if data == null or data.is_melee():
+	if data == null or not data.is_ranged():
 		return null
 	var from := player.weapons.aim_transform()
 	var exclude: Array[RID] = [player.get_rid()]

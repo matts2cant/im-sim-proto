@@ -9,7 +9,8 @@ extends Node3D
 ## along the same line (WeaponData.impact_impulse in N s: whatever it hits and has a `force`
 ## receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
 ## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
-## carries its part).
+## carries its part). Thrown weapons (grenades, ADR 0131) go to the user's Thrower component, which
+## sticks or throws the weapon's entity; without one the trigger does nothing.
 ## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
 ## (through Stimulus.scale_attribute), cycle, reload, cone floors, bloom and the pellet cone, settle
 ## time, sway (on top of `aim_sway_mult`); crouching (`stance.crouch`) settles faster
@@ -338,15 +339,21 @@ func trigger(held: bool = false) -> int:
 			{"weapon": data.id, "reason": "arms_disabled" if ActorState.can_act(user) else "incapacitated"}
 		)
 		return -1
+	# A thrown weapon needs someone to throw it (the user's Thrower, ADR 0131).
+	if data.is_thrown() and Thrower.of(user) == null:
+		return -1
 	aim.config = _aim_config()
 	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0), held)
 	match result:
 		WeaponState.Result.FIRED:
 			_view.kick()
-			if data.is_melee():
-				_swing(data)
-			else:
-				_shoot(data)
+			match data.kind:
+				WeaponData.Kind.MELEE:
+					_swing(data)
+				WeaponData.Kind.THROWN:
+					_throw(data)
+				_:
+					_shoot(data)
 			fired.emit(data)
 			changed.emit()
 		WeaponState.Result.DRY:
@@ -602,6 +609,16 @@ func _swing(data: WeaponData) -> void:
 			_play_at(data.hit_sound, point)
 			feedback.swing_hit(data, collider, point, info.get("normal", Vector3.ZERO) as Vector3)
 	_log(&"weapon.swung", {"weapon": data.id, "hit": hit_name})
+
+
+# A thrown weapon (a grenade): the user's Thrower sticks it on the surface in front of the eye or
+# throws it (ADR 0131); a whoosh and its small noise. Whoever owns the stack takes one off on `fired`.
+func _throw(data: WeaponData) -> void:
+	var outcome := Thrower.of(user).release(data)
+	if data.fire_noise > 0.0:
+		_emit(Stimulus.make_noise(data.fire_noise, eye.global_position, user))
+	_play(data.fire_sound, data.fire_volume_db)
+	_log(&"weapon.thrown", {"weapon": data.id, "outcome": outcome})
 
 
 # Emits `stimulus` with the holder's cause (cause_id) when one is set.

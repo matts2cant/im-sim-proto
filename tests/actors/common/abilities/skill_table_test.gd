@@ -83,6 +83,25 @@ func test_tool_skills_only_write_attributes() -> void:
 	assert_float(lockpicking[&"lockpick_assist"]).is_equal_approx(1.0, 0.0001)
 
 
+func test_demolition_per_tier() -> void:
+	# M14a (ADR 0131): throw distance 12 / 14 / 16 / 18 m, disarming from Trained, mines highlighted
+	# within 8 m from Advanced, the fuse readout at Master.
+	var distance: Array[float] = [12.0, 14.0, 16.0, 18.0]
+	var disarm: Array[float] = [0.0, 1.0, 1.0, 1.0]
+	var sense: Array[float] = [0.0, 0.0, 8.0, 8.0]
+	var readout: Array[float] = [0.0, 0.0, 0.0, 1.0]
+	for tier in 4:
+		var attributes := AttributeSet.new()
+		for modifier in TABLE.find(&"demolition").modifiers_for(tier):
+			attributes.add_modifier(modifier)
+		assert_float(attributes.evaluate(&"throw_distance", 12.0)).is_equal_approx(distance[tier], 0.0001)
+		assert_float(attributes.evaluate(&"mine_disarm", 0.0)).is_equal_approx(disarm[tier], 0.0001)
+		assert_float(attributes.evaluate(&"mine_sense_range", 0.0)).is_equal_approx(sense[tier], 0.0001)
+		assert_float(attributes.evaluate(&"fuse_readout", 0.0)).is_equal_approx(readout[tier], 0.0001)
+	var rows := TABLE.find(&"demolition").tier_rows(4)
+	assert_array(Array(rows[0])).is_equal(["Throw distance", "12 m", "14 m", "16 m", "18 m"])
+
+
 func test_modifiers_carry_the_skill_source_and_tiers_clamp() -> void:
 	var skill := TABLE.find(&"low_tech")
 	for modifier in skill.modifiers_for(2):

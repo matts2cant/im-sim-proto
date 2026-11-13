@@ -9,14 +9,19 @@ extends RefCounted
 ##   DeviceStatus.is_disabled()) / Broken / No power in the status light's colours; a powered thing
 ##   off any network says Powered / No power / Broken; a character says nothing while awake,
 ##   Unconscious or Dead; anything else nothing (a Device off any network without power wiring says
-##   only Broken, or No power while an EMP's outage lasts).
+##   only Broken, or No power while an EMP's outage lasts). Before those, any component of the
+##   thing in STATUS_GROUP may say its own word (component_word(): a mine's ProximityTrigger says
+##   Armed, blinking red; ADR 0131).
 ## The network rule is the one the status lights show, read from NetworkState (links_of(),
 ## is_networked(), on_network()) so the HUD does not depend on a light being attached; the colours
 ## are StatusLight.COLORS.
 ## The pure rules (qualifies, *_word, text, color, blink) take plain values; the readers take nodes.
 
-enum Word { NONE, ONLINE, CUT_OFF, DISABLED, BROKEN, NO_POWER, POWERED, UNCONSCIOUS, DEAD, JAMMED }
+enum Word { NONE, ONLINE, CUT_OFF, DISABLED, BROKEN, NO_POWER, POWERED, UNCONSCIOUS, DEAD, JAMMED, ARMED }
 
+## Components that put their own word on the frame join this group and answer
+## `frame_word() -> Word` (NONE: nothing to say).
+const STATUS_GROUP: StringName = &"frame_status"
 const TEXTS: Dictionary[Word, String] = {
 	Word.NONE: "",
 	Word.ONLINE: "Online",
@@ -28,12 +33,15 @@ const TEXTS: Dictionary[Word, String] = {
 	Word.POWERED: "Powered",
 	Word.UNCONSCIOUS: "Unconscious",
 	Word.DEAD: "Dead",
+	Word.ARMED: "Armed",
 }
 ## "No power": the dark light's colour is unreadable on the tag's dark box; a grey instead.
 const NO_POWER_COLOR := Color("8a9296")
 ## The stun colour family (blue-white) and a dim red (the approved mockup's).
 const UNCONSCIOUS_COLOR := Color("9fd8ff")
 const DEAD_COLOR := Color("b0423b")
+## An armed mine: the red of its blinking light.
+const ARMED_COLOR := Color("ff4a3d")
 ## The lock line ("Locked · keycard").
 const LOCKED_COLOR := Color("ffd14d")
 ## Blinks like the status LED (status_light.gdshader): lit while fract(t * BLINK_RATE) >= 0.5, else
@@ -95,11 +103,13 @@ static func color(word: Word) -> Color:
 			return UNCONSCIOUS_COLOR
 		Word.DEAD:
 			return DEAD_COLOR
+		Word.ARMED:
+			return ARMED_COLOR
 	return NO_POWER_COLOR
 
 
 static func blinks(word: Word) -> bool:
-	return word == Word.CUT_OFF or word == Word.JAMMED
+	return word == Word.CUT_OFF or word == Word.JAMMED or word == Word.ARMED
 
 
 ## The square's opacity at `seconds` while blinking: 1 in the lit half of each period, else BLINK_DIM.
@@ -123,6 +133,9 @@ static func is_character(entity: Node) -> bool:
 static func word_of(entity: Node, links: Array[Device]) -> Word:
 	if entity == null or not is_instance_valid(entity):
 		return Word.NONE
+	var own := component_word(entity)
+	if own != Word.NONE:
+		return own
 	if is_character(entity):
 		return character_word(ActorState.is_dead(entity), ActorState.has(entity, ActorState.UNCONSCIOUS))
 	var device := Device.of(entity)
@@ -138,6 +151,16 @@ static func word_of(entity: Node, links: Array[Device]) -> Word:
 		# No power wiring but knocked out (an EMP): no power while it lasts.
 		return powered_word(false, broken)
 	return Word.BROKEN if broken else Word.NONE
+
+
+## The first word one of `entity`'s components in STATUS_GROUP says (frame_word()), or NONE.
+static func component_word(entity: Node) -> Word:
+	for child in entity.get_children():
+		if child.is_in_group(STATUS_GROUP) and child.has_method(&"frame_word"):
+			var word: Word = child.call(&"frame_word")
+			if word != Word.NONE:
+				return word
+	return Word.NONE
 
 
 ## The lock line for `entity` seen by `user` ("Locked · key or lockpick"), "" unless its Lockable

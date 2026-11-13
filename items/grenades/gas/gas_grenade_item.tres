@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/grenades/gas/gas_grenade.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"gas_grenade"
+display_name = "Gas grenade"
+short_name = "GAS"
+description = "Sleep gas: a cloud about 5 m across for 12 s knocks out anyone breathing it, you included. A short hiss. LMB throws it (2.5 s fuse) or sticks it as a proximity mine."
+footprint = Vector2i(1, 1)
+max_stack = 5
+colour = Color(0.3, 0.7, 0.3, 1)
+world_scene = "res://items/grenades/gas/gas_grenade_pickup.tscn"
+auto_belt = true
+default_state = {}
+use_action = 1
+weapon = ExtResource("2_weapon")

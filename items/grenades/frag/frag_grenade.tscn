@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://items/grenades/grenade.tscn" id="1_grenade"]
+[ext_resource type="PackedScene" path="res://items/grenades/models/frag_model.tscn" id="2_model"]
+[ext_resource type="Resource" path="res://items/grenades/frag/frag_grenade_item.tres" id="3_item"]
+[ext_resource type="PackedScene" path="res://objects/explosives/payloads/frag_payload.tscn" id="4_payload"]
+
+[node name="FragGrenade" instance=ExtResource("1_grenade")]
+metadata/display_name = "Frag grenade"
+
+[node name="MineDisarm" parent="."]
+item = ExtResource("3_item")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="Payload" parent="." instance=ExtResource("4_payload")]

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/grenades/jamming/jamming_grenade.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"jamming_grenade"
+display_name = "Jamming grenade"
+short_name = "JAMMER"
+description = "Jammer: every wireless link within 10 m drops for 20 s. Silent. LMB throws it (2.5 s fuse) or sticks it as a proximity mine."
+footprint = Vector2i(1, 1)
+max_stack = 5
+colour = Color(0.15, 0.75, 0.8, 1)
+world_scene = "res://items/grenades/jamming/jamming_grenade_pickup.tscn"
+auto_belt = true
+default_state = {}
+use_action = 1
+weapon = ExtResource("2_weapon")

@@ -48,6 +48,16 @@ static func chip_text(data: AugmentationData) -> String:
 	return data.display_name if key.is_empty() else "%s %s" % [key, data.display_name]
 
 
+## How many of a thrown weapon (grenades) are left in the stack drawn: "x3".
+static func count_text(count: int) -> String:
+	return "x%d" % count
+
+
+## A fuse's time left: "Fuse 1.8 s" (one decimal, never below 0).
+static func fuse_text(seconds: float) -> String:
+	return "Fuse %.1f s" % maxf(seconds, 0.0)
+
+
 ## "10 / 30" for weapons with ammo, "" otherwise; "reloading" while reloading.
 static func ammo_text(state: WeaponState) -> String:
 	if state == null or not state.data.uses_ammo():

@@ -159,9 +159,9 @@ func set_shown(shown: bool) -> void:
 ## Starts the recoil (ranged) or the swing over half the cycle (melee); with motion on, a ranged
 ## shot kicks the motion's spring instead of the fixed tilt.
 func kick() -> void:
-	_kick_length = data.cycle_time * 0.5 if data.is_melee() else KICK_TIME
+	_kick_length = data.cycle_time * 0.5 if data.swings() else KICK_TIME
 	_kick = _kick_length
-	if _motion_on() and not data.is_melee():
+	if _motion_on() and not data.swings():
 		motion.kick()
 
 
@@ -236,14 +236,14 @@ func _animate() -> void:
 	var t := _kick / _kick_length if _kick_length > 0.0 else 0.0
 	if in_hand:
 		var recoil := Transform3D.IDENTITY
-		if not data.is_melee():
+		if not data.swings():
 			recoil.basis = Basis(Vector3.RIGHT, 0.25 * t)
 			recoil.origin = Vector3(0, 0, 0.04 * t)
 		transform = hold_transform(data) * recoil
 		return
 	var pose := Transform3D(_euler_deg(data.view_rest_deg), rest_position(data.view_offset, shift_deg))
-	if data.is_melee():
-		# Fast chop to the bottom of the swing, slower return to the ready pose.
+	if data.swings():
+		# Fast chop (or throw) to the bottom of the swing, slower return to the ready pose.
 		var progress := 1.0 - t
 		var chop := data.view_chop_share
 		var amount := 0.0
