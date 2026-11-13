@@ -4,6 +4,28 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M14 — Explosives (2026-11-13)
+
+Designed in a three-round review while M13c was being built (ADR 0131, [explosives.md](game/explosives.md)); the user then asked to go straight from M13c to M14 without a playtest in between. Three agents: M14a (grenade items, LMB throw or stick with a ghost, fuse, proximity mines, disarming, the Demolition skill) and M14b (the four payloads, the gas cloud, EMP outages, the jamming field and the "Jammed" status) in parallel on a named contract (`Explosive.explode()` as the one detonation entry, payload scenes by path); then M14c (the shooting range's grenade lane, mine corridor and EMP/jamming room; grenades as warehouse loot).
+
+Final state on master (d59c185): 2259 tests, 0 failures, 1 skipped, lint clean (the last agent's full run on exactly master's code).
+
+- **Went well:**
+  - **The detonation contract held**: both parallel agents built against `Explosive.explode()` and payload scene paths named in both briefs; the second to finish only had to instance four scenes and write the cross-feature test (gas cloud from a thrown grenade, an EMP mine blinding a camera, a frag mine chaining a barrel, a shot jammer).
+  - **Systemic choices fell out cheaply**: "electronic" is "has Powered or a Device" (no new tags on any scene), a shot or blasted grenade goes off through Breakable, the range's skill tier switch drives Demolition through the grenades' attribute class with no new switch code, and the restock button works on any pickup.
+  - **Measured targets**: gas knocks out in 3.03 s (target about 3), EMP 20 s outage with save/load, throw distances 11.8 / 13.8 / 15.7 / 17.7 m (targets 12 / 14 / 16 / 18).
+- **Went wrong:**
+  - **One target missed**: the frag "badly hurts" only to about 5 m, not 6 m (linear falloff); noted on the playtest checklist, not retuned.
+  - **The grenade models were swapped** against the approved plan: only `grenade-a` has the yellow part to recolour, so gas, EMP and jamming use `grenade-a` and frag uses `grenade-b` (the brief should have checked the models first).
+  - **The suite is now slow** and one cause is visible: a few hub-loading suites take 20 to 66 s each under 12 shards (movement course 66 s, warehouse patrol timing 41 s, hub start guards 37 s, hub quicksave 35 s, saveable contract 30 s); one shard took 257 s of a 292 s run.
+- **Changes:** none to the process this time; the open items below need the user.
+- **Open for the user (no playtest of M13c or M14 yet):**
+  - Thrown grenades roll about 3.7 m after landing: keep, or add friction?
+  - Standing still near a mine triggers it like walking (only crouching is safe): keep?
+  - The frag's 3 to 6 m band: retune the falloff so 6 m still hurts badly?
+  - The test suite's slowdown (see above): profile and split the heaviest hub suites?
+  - The mine corridor and EMP room are an annex beyond the range hall's east wall (to keep the firing lanes clear); the EMP room's turret targets guards only so it never shoots the tester.
+
 ## M13 playtest fixes and M13c — Device overhaul (2026-11-13)
 
 After the M13 playtest the user asked for fixes (status lights floating, the SMG model, a thinner crosshair and the scope's crosshair, the Icebreaker letter scramble, a Deus Ex interaction frame, one light per device), then a full device overhaul designed in a review and three mockups (ADR 0130): one design language (kind colour strip, Map icon, one light, labelled ports, name plate), rack and desk versions, linking bays, door controllers as the network devices, keys and the keychain, the frame's status line and no E prompts. Built in four steps: 3D models in a hub showroom (three design rounds with the user, tests waived), then three parallel agents (door controllers and mail removal; frame, prompts and keys; device scenes from the models and the Map), then two parallel level agents (hub rooms, warehouse) with the last one deleting the old scenes and code. 14 agents in all.
