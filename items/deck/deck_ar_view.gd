@@ -215,20 +215,35 @@ static func dashes(a: Vector3, b: Vector3, dash: float = DASH, gap: float = DASH
 
 
 # The height of the ceiling run above `device`: just under the ceiling a ray up finds, else
-# CEILING_FALLBACK m above it. Cached (devices do not move).
+# CEILING_FALLBACK m above it. The ray ignores the device's own body and the bodies beside it under
+# its parent (the furniture it is mounted in, such as a linking bay's cabinet, and its neighbours), so
+# a rack unit's run rises from the bay to the ceiling. Cached (devices do not move).
 func _ceiling(device: Device) -> float:
 	if _ceilings.has(device):
 		return _ceilings[device]
 	var from := device.entity.global_position
 	var query := PhysicsRayQueryParameters3D.create(from, from + Vector3.UP * CEILING_RAY, PhysicsLayers.WORLD)
-	if device.entity is CollisionObject3D:
-		query.exclude = [(device.entity as CollisionObject3D).get_rid()]
+	query.exclude = mount_bodies(device.entity)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var height := from.y + CEILING_FALLBACK
 	if not hit.is_empty():
 		height = maxf((hit["position"] as Vector3).y - UNDER_CEILING, from.y)
 	_ceilings[device] = height
 	return height
+
+
+## The bodies a ceiling ray from `entity` ignores: its own and every body beside it under its parent.
+static func mount_bodies(entity: Node3D) -> Array[RID]:
+	var found: Array[RID] = []
+	if entity is CollisionObject3D:
+		found.append((entity as CollisionObject3D).get_rid())
+	var parent := entity.get_parent()
+	if parent == null:
+		return found
+	for sibling in parent.get_children():
+		if sibling != entity and sibling is CollisionObject3D:
+			found.append((sibling as CollisionObject3D).get_rid())
+	return found
 
 
 func _draw() -> void:
