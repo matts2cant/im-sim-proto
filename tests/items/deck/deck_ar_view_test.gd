@@ -34,8 +34,8 @@ func before_test() -> void:
 	_view = DeckArView.of(_player)
 	Net.add_wireless(_lab.network, _lab, Lab.ORIGIN)
 	await _driver.settle()
-	_player.inventory.give(DECK, 1)
-	_stack = _player.inventory.inventory.stacks_of(&"deck")[0]
+	_player.inventory.add(DECK, 1)
+	_stack = _player.inventory.grid.stacks_of(&"deck")[0]
 	_player.inventory.hold(_stack)
 	await _driver.frames(2)
 
@@ -49,10 +49,10 @@ func after_test() -> void:
 
 
 func _see(names: Array[String]) -> void:
-	var paths: Array[String] = []
+	var keys: Array[String] = []
 	for entity_name in names:
-		paths.append(String(_lab.node(entity_name).get_path()))
-	_stack.state[DeckSession.SEEN] = paths
+		keys.append(DeckSession.key_of(Device.of(_lab.node(entity_name))))
+	_stack.state[DeckSession.SEEN] = keys
 
 
 func _pairs() -> Array[String]:
@@ -139,3 +139,16 @@ func test_nothing_for_unseen_or_far_devices() -> void:
 func test_ceiling_run_shape() -> void:
 	var run := DeckArView.ceiling_run(Vector3(0, 1, 0), Vector3(4, 2, 0), 3.5)
 	assert_array(Array(run)).is_equal([Vector3(0, 1, 0), Vector3(0, 3.5, 0), Vector3(4, 3.5, 0), Vector3(4, 2, 0)])
+
+
+func test_a_deck_saved_with_seen_node_paths_still_knows_them() -> void:
+	# Saves from before ADR 0141 kept entity node paths in the SEEN list.
+	var paths: Array[String] = []
+	for entity_name: String in ["Jack", "OfficeSwitch"]:
+		paths.append(String(_lab.node(entity_name).get_path()))
+	paths.append("/root/NoSuchLevel/Gone")
+	_stack.state[DeckSession.SEEN] = paths
+	var names: Array[String] = []
+	for device in _view.seen_devices(_stack):
+		names.append(String(device.entity.name))
+	assert_array(names).contains_exactly(["Jack", "OfficeSwitch"])

@@ -55,7 +55,7 @@ func test_a_barrel_the_player_shot_kills_a_guard_and_breaks_pacifist() -> void:
 	player.load_state(
 		{"position": Missions.at(Vector3(0, 0, 10)), "yaw": 0.0, "pitch": pitch, "velocity": Vector3.ZERO}
 	)
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"pistol")[0])
+	player.inventory.hold(player.inventory.grid.stacks_of(&"pistol")[0])
 	player.weapons.seed_rng(7)
 	await Wait.frames(get_tree(), 3)
 	player.weapons.settle()

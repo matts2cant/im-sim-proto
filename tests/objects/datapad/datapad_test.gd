@@ -57,7 +57,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 	assert_array(Objects.logged(&"log.entry_added", "entry_id", "test.storage")).has_size(1)
 	# Read in place: still in the world, nothing in the inventory.
 	assert_bool(is_instance_valid(pad) and pad.is_inside_tree()).is_true()
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	assert_array(EventLog.find(&"item.picked_up")).is_empty()
 
 	await _driver.press(&"use")
@@ -117,7 +117,7 @@ func test_player_log_survives_save_and_load() -> void:
 	await _spawn_pad(&"test.storage", "Storage access", "Code 2817.", {&"storage_door": "2817"})
 	await _driver.press(&"use")
 	await _driver.press(&"ui_cancel")
-	assert_bool(_log.is_in_group(&"saveable")).is_true()
+	assert_bool(_log.is_in_group(LevelSnapshot.GROUP)).is_true()
 	var saved := _log.save_state()
 
 	_log.load_state({})

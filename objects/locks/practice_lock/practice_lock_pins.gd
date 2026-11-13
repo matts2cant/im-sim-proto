@@ -25,7 +25,7 @@ var _drivers: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
-	_lock = _mechanical_lock(get_node_or_null(entity_path))
+	_lock = _mechanical_lock(Entities.of_component(self, entity_path))
 	if _lock == null:
 		return
 	_build(_lock.pin_count())

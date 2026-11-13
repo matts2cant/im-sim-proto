@@ -10,7 +10,7 @@ func test_initial_tags_are_added_on_ready() -> void:
 
 	assert_bool(tags.has(&"material")).is_true()
 	assert_array(tags.container.tags()).contains_exactly([&"material.wood", &"object.crate"])
-	assert_bool(tags.is_in_group(&"saveable")).is_true()
+	assert_bool(tags.is_in_group(LevelSnapshot.GROUP)).is_true()
 
 
 func test_save_and_load_state() -> void:

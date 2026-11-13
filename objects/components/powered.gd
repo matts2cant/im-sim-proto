@@ -13,7 +13,6 @@ extends Node
 
 signal power_changed(on: bool)
 
-const GROUP: StringName = &"powered"
 const CIRCUIT_GROUP_PREFIX := "circuit."
 
 ## Circuit id, e.g. `perception_lab`; empty: on no circuit (always on).
@@ -37,13 +36,15 @@ var outage: float = 0.0
 var _was_on: bool = true
 
 
-func _ready() -> void:
-	add_to_group(GROUP)
-	add_to_group(&"saveable")
+func _init() -> void:
 	add_to_group(EmpEffect.GROUP)
+
+
+func _ready() -> void:
+	add_to_group(LevelSnapshot.GROUP)
 	if not circuit.is_empty():
 		add_to_group(group_for(circuit))
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 	EmpEffect.listen(entity)
 	_was_on = is_on()
 	set_physics_process(outage > 0.0)

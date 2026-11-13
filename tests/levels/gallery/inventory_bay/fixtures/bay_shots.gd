@@ -137,7 +137,7 @@ func _process(delta: float) -> void:
 func _act() -> void:
 	var gifts: Dictionary = _shot.get("give", {})
 	for id: Variant in gifts:
-		_player.inventory.give(_player.inventory.catalog.find(StringName(str(id))), int(gifts[id]))
+		_player.inventory.add(_player.inventory.catalog.find(StringName(str(id))), int(gifts[id]))
 	if _shot.get("take_table", false):
 		for child: Node in _room.get_node("ItemTable").get_children():
 			var pickup := ItemPickup.of(child)
@@ -167,8 +167,8 @@ func _act_abilities() -> void:
 	for id: Variant in _shot.get("augs", []):
 		_player.augmentations.activate(StringName(str(id)))
 	if _shot.get("pistol", false):
-		_player.inventory.give(PISTOL, 1)
-		_player.inventory.use_stack(_player.inventory.inventory.stacks_of(&"pistol")[0])
+		_player.inventory.add(PISTOL, 1)
+		_player.inventory.use_stack(_player.inventory.grid.stacks_of(&"pistol")[0])
 	if _shot.get("stats", false):
 		DebugPanel.set_open(true)
 		var tabs := DebugPanel.get_node("TabContainer") as TabContainer

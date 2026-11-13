@@ -23,7 +23,7 @@ func before_test() -> void:
 
 
 func test_is_saveable_and_found_on_its_owner() -> void:
-	assert_bool(_log.is_in_group(&"saveable")).is_true()
+	assert_bool(_log.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_object(PersonalLog.of(_actor)).is_same(_log)
 	assert_object(PersonalLog.of(auto_free(Node.new()))).is_null()
 	assert_object(PersonalLog.of(null)).is_null()

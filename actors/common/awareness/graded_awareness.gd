@@ -24,8 +24,8 @@ var _sensor: PerceptionSensor
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_parent() as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self) as Node3D
 	model = AwarenessModel.new(config, hash(String(entity.name)) if entity != null else 0)
 	model.state_changed.connect(_on_model_changed)
 	_sensor = PerceptionSensor.of(entity)

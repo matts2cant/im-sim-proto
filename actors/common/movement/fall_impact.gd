@@ -18,7 +18,7 @@ var _landing := LandingTracker.new()
 
 
 func _ready() -> void:
-	body = get_parent() as CharacterBody3D
+	body = Entities.of_component(self) as CharacterBody3D
 	if config == null:
 		config = DEFAULT_CONFIG
 	if body == null:

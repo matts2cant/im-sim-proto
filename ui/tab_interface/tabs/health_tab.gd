@@ -69,8 +69,8 @@ func tab_title() -> String:
 func bind(player: Node) -> void:
 	entity = player
 	_body = BodyParts.of(entity)
-	_tags = ActorState.tags_of(entity)
-	_inventory = PlayerInventory.of(entity)
+	_tags = Tags.of(entity)
+	_inventory = Inventory.of(entity) as PlayerInventory
 	if _inventory != null and not _inventory.message.is_connected(show_message):
 		_inventory.message.connect(show_message)
 	if not _built:

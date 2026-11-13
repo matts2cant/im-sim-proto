@@ -25,7 +25,7 @@ var _audio: AudioStreamPlayer3D
 
 
 func _ready() -> void:
-	body = get_parent() as RigidBody3D
+	body = Entities.of_component(self) as RigidBody3D
 	body.contact_monitor = true
 	body.max_contacts_reported = maxi(body.max_contacts_reported, 8)
 	_audio = AudioStreamPlayer3D.new()

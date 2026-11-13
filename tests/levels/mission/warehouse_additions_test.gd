@@ -89,7 +89,7 @@ func test_the_annex_window_is_reached_only_from_two_stacked_crates() -> void:
 	ok = ok and await _route.go([Vector3(WINDOW_X, 0, 11.0), Vector3(-24.5, 0, 11.6)], Route.Stance.CROUCH)
 	ok = ok and await hands.use_node(ITEMS + "Biocell1")
 	assert_bool(ok).override_failure_message("%s\n%s" % [player.global_position, _route.report()]).is_true()
-	assert_int(player.inventory.inventory.count_of(&"biocell")).is_equal(1)
+	assert_int(player.inventory.grid.count_of(&"biocell")).is_equal(1)
 
 
 func test_the_cache_crate_moves_only_with_combat_strength() -> void:
@@ -111,16 +111,16 @@ func test_the_cache_crate_moves_only_with_combat_strength() -> void:
 	ok = ok and await hands.put_down(Route.NORTH)
 	await hands.press(&"aug_5")
 	# The opening is clear: crouch in front of it and take the medkit and the rounds.
-	var medkits := player.inventory.inventory.count_of(&"medkit")
-	var rounds := player.inventory.inventory.count_of(&"pistol_ammo")
+	var medkits := player.inventory.grid.count_of(&"medkit")
+	var rounds := player.inventory.grid.count_of(&"pistol_ammo")
 	ok = ok and await _route.go([Vector3(-33.8, 0, 22.7)], Route.Stance.CROUCH)
 	runner_crouch(true)
 	ok = ok and await hands.use_node(ITEMS + "CacheMedkit")
 	ok = ok and await hands.use_node(ITEMS + "CacheAmmo")
 	runner_crouch(false)
 	assert_bool(ok).override_failure_message("%s\n%s" % [player.global_position, _route.report()]).is_true()
-	assert_int(player.inventory.inventory.count_of(&"medkit")).is_equal(medkits + 1)
-	assert_int(player.inventory.inventory.count_of(&"pistol_ammo")).is_equal(rounds + 10)
+	assert_int(player.inventory.grid.count_of(&"medkit")).is_equal(medkits + 1)
+	assert_int(player.inventory.grid.count_of(&"pistol_ammo")).is_equal(rounds + 10)
 
 
 func runner_crouch(down: bool) -> void:

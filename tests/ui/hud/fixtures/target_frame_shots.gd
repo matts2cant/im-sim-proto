@@ -79,8 +79,8 @@ func _set_up(shot: String) -> void:
 			var keychain := Keychain.of(_player)
 			keychain.add(&"bay_a", "Linking bay A", "Found in the office desk")
 			keychain.add(&"office", "Warehouse office", "Taken from a guard")
-			_player.inventory.give(LOCKPICK, 3)
-			_player.inventory.give(KEY, 1, {"key_id": "gate", "key_name": "Gate padlock"})
+			_player.inventory.add(LOCKPICK, 3)
+			_player.inventory.add(KEY, 1, {"key_id": "gate", "key_name": "Gate padlock"})
 			# The tabs open only for a player that takes input.
 			_player.input_enabled = true
 			TabInterface.of(_player).open.call_deferred(0)

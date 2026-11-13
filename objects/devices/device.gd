@@ -1,61 +1,30 @@
 class_name Device
 extends Node
-## Component: makes its entity a network device (ADR 0075, ADR 0077). Any entity can carry it; a
+## Component: makes its entity a network device (ADR 0075, 0077, 0113). Any entity can carry it; a
 ## network switch is just a device with links.
-## - State: it mirrors the entity's state into tags: `state.unpowered` while its Powered is off,
-##   `state.broken` once its Breakable is depleted (device scenes keep the broken husk:
-##   `break_on_depleted` off). No Powered: always powered; no Breakable: never broken. It is up
-##   while powered and unbroken; `state_changed` reports every change.
-## - Cables (M8; addresses, subnets and firewalls are M12): `links` lists the devices this one is
-##   cabled to (their entities or Device nodes); links are undirected, so listing a cable on one end
-##   is enough. Reach is pure logic in DeviceGraph (built from the level by DeviceGraphBuilder): X
-##   reaches Y when a path of links exists whose every node (X, Y and every switch between) is up.
-## - Commands: send_command() delivers a CONTACT stimulus of the command type (`command.ring`, ...)
-##   at the target's entity through StimulusSystem, only when this device reaches the target. The
-##   target's receptrons (objects/devices/receptrons/) run DeviceActionEffect, blocked by
-##   `state.unpowered` and `state.broken`, which calls receive_action(): the `action_received`
-##   signal tells the entity's behaviour components (AlarmController, Siren, ...). Nothing branches
-##   on what a device is: a device accepts a command when one of its receivers wants that type. The
-##   command constants live with the components that handle them (Door.OPEN, Siren.RING, ...;
-##   DeviceStatus: which apply now).
-## - Incidents: report_incident() sends `device.incident` (origin = the incident location) to every
-##   device this one reaches that accepts it (alarm controllers).
-## - Network (M12a, ADR 0113): `address` and `subnet` (empty: the subnet of a cabled device that
-##   names one, else the implicit &"" every level without network data is on); a device with a
-##   Router component is a gate between subnets (DeviceGraph): it lets a device's traffic through by
-##   its rules (default allow) and a user's (the deck) only once that user has an account on it.
-##   `trusted`: the devices allowed to command this one (empty: any device that reaches it, M8's
-##   behaviour); incidents are reports, not commands, and ignore it.
-## - Intrusion (M12b, ADR 0115, 0121): `intrusion` (DeviceIntrusion, saved) holds the users an
-##   exploit item gave admin access and its log (logins, failed logins, exploits used and the
-##   commands it receives, with the source address). Access (has_access(), is_admin()) is an account
-##   (DeviceAccounts) or an exploit item's grant (admin).
-## - Wireless (M12b, ADR 0115, 0117): `wireless` names an access point (an entity with an
-##   AccessPoint) this device links to by radio instead of a cable; the link holds while the device
-##   is not network gear (DeviceNetwork.is_network_gear()) and stands within the access point's
-##   `wireless_range` (wireless_link()). It is a link of the reach graph like a cable: a down access
-##   point cuts its wireless devices off. `links` stays the cables.
-## - Status light (M12c, ADR 0122): it attaches a StatusLight to its entity, unless `status_light`
-##   is off. An entity with its own lamp (DeviceLamp) shows the state there while on a network (one
-##   light per device); without a model or a lamp it shows none. An entity built
-##   from a device model (ADR 0130 step 2) always gets one: it drives the model's own light, sockets
-##   and name plates (ModelFace).
-## - The deck (ADR 0113): `deck_port` (a NetworkSource.Kind: AUTO, NONE, JACK, PORT or HOST) says
-##   how a deck plugs into it (a wall jack joins its subnet, a maintenance port links to this device
-##   only, a computer lends its address); AUTO: a computer (Computer component) is a host, a device
-##   without cables has a maintenance port, else none (DeviceNetwork.port_kind()). It is the deck's
-##   tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock); the user's
-##   deck reacts to ToolUse's `worked` signal (DeckSession plugs in and raises its screen): a device
-##   knows nothing about the deck.
-## - EMP and jamming (M14b, ADR 0131): a device is electronic: an EMP (EmpEffect) cuts its power for
-##   its seconds, through its Powered (Powered.take_emp()), or its own `outage` when it has none (a
-##   door controller without power wiring). A jamming field (JammingField) drops its wireless link
-##   while either end stands inside one: wireless_link() is the radio link the range allows (the
-##   physical link: subnets, the Map); DeviceNetwork.is_jammed() says when the jamming alone cuts
-##   it, and the reach graph then leaves it out.
+## - State: mirrored into the entity's tags: `state.unpowered` while its Powered is off (or an EMP
+##   `outage` runs when it has none), `state.broken` once its Breakable is depleted. Up = powered
+##   and unbroken; `state_changed` reports every change.
+## - Cables and reach: `links` (undirected: one end lists a cable; entities or Device nodes) and
+##   `wireless` (an access point's entity: a radio link while in its range and not jammed,
+##   wireless_link()). Reach is DeviceGraph's (DeviceGraphBuilder): every node on the path is up; a
+##   Router gates subnets (ADR 0113).
+## - Commands: send_command() delivers a CONTACT stimulus of the command type to a target it reaches
+##   (and that `trusted` allows); the target's receptrons run DeviceActionEffect -> receive_action()
+##   -> `action_received` for its behaviour components. A device accepts a command when one of its
+##   receivers wants it; command constants live with their components (DeviceStatus: which apply).
+## - Incidents: report_incident() sends `device.incident` to every device it reaches that accepts it.
+## - Network data: `address`, `subnet` (empty: a cabled device's, else the implicit &""), `deck_port`
+##   (how a deck plugs in: DeviceNetwork.port_kind()). `intrusion` (DeviceIntrusion): exploit grants
+##   and the device's log; access is an account (DeviceAccounts) or a grant (has_access(), is_admin()).
+## - Interfaces (conventions.md): the deck's tool target (ToolUse: accepts_tool(), tool_hold()), the
+##   address source (DeviceNetwork.ADDRESS_GROUP: device_address()) and EMP-reactive (EmpEffect:
+##   take_emp()). It knows nothing about the deck: DeckSession reacts to ToolUse's `worked`.
+## - `status_light`: a StatusLight on the entity (its model's light, or its lamp: ADR 0122, 0130).
+## - `device_id`: its stable key (ADR 0141; the deck's memory, the Journal's code id fallback).
 ## EventLog: `device.command {command, from, to, sent, point}` for every attempt,
 ## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`, `intrusion`,
-## `outage`).
+## `outage`, `id`).
 
 signal state_changed(up: bool)
 signal action_received(action: StringName, stimulus: Stimulus)
@@ -91,6 +60,10 @@ const DECK_NODE: int = -1
 @export var wireless: NodePath = ^""
 ## Shows its state on a StatusLight (its model's light, or its lamp while on a network).
 @export var status_light: bool = true
+## The device's stable key (ADR 0141): what a deck remembers it by (seen, cracks, Wi-Fi keys) and
+## what the Journal files its logins under when it names no credentials id. Set in a level for a
+## fixed one; empty: a random one is made when it enters the tree, and saved.
+@export var device_id: String = ""
 
 var entity: Node3D
 var powered: Powered
@@ -104,17 +77,27 @@ var outage: float = 0.0
 var _was_up: bool = true
 
 
+func _init() -> void:
+	add_to_group(ToolUse.GROUP)
+	add_to_group(DeviceNetwork.ADDRESS_GROUP)
+	add_to_group(EmpEffect.GROUP)
+
+
+func _enter_tree() -> void:
+	if device_id.is_empty():
+		device_id = Device.generate_id()
+
+
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
-	add_to_group(EmpEffect.GROUP)
+	add_to_group(LevelSnapshot.GROUP)
 	set_physics_process(false)
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if entity == null:
 		push_warning("Device %s: entity_path %s is not a Node3D" % [get_path(), entity_path])
 		return
 	EmpEffect.listen(entity)
-	if ActorState.tags_of(entity) == null:
+	if Tags.of(entity) == null:
 		push_warning("Device %s: the entity has no Tags; receptrons cannot block on its state" % get_path())
 	powered = Powered.of(entity)
 	if powered != null:
@@ -149,6 +132,11 @@ static func of(node: Node) -> Device:
 
 
 ## Every device in `tree`.
+## A new random device key (16 hex digits; not affected by the global random seed).
+static func generate_id() -> String:
+	return "d" + Crypto.new().generate_random_bytes(8).hex_encode()
+
+
 static func all(tree: SceneTree) -> Array[Device]:
 	var found: Array[Device] = []
 	if tree == null:
@@ -392,11 +380,15 @@ func save_state() -> Dictionary:
 	var data := intrusion.to_dict()
 	data["broken"] = broken
 	data["outage"] = outage
+	data["id"] = device_id
 	return data
 
 
 func load_state(data: Dictionary) -> void:
 	broken = bool(data.get("broken", broken))
+	var saved_id := str(data.get("id", ""))
+	if not saved_id.is_empty():
+		device_id = saved_id
 	outage = maxf(float(data.get("outage", 0.0)), 0.0)
 	set_physics_process(outage > 0.0)
 	intrusion.from_dict(data)

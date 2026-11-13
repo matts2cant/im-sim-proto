@@ -65,14 +65,6 @@ static func line(dropped_name: String, names: Array[String]) -> String:
 	return "%s down: %d %s offline (%s)" % [dropped_name, names.size(), noun, listed]
 
 
-## line() for `dropped` from offline_after(), with the names screens show.
-static func line_for(dropped: Device) -> String:
-	var names: Array[String] = []
-	for device in offline_after(dropped):
-		names.append(EntityNames.device_name(device))
-	return line(EntityNames.device_name(dropped), names)
-
-
 # The index of the piece that stays the network: the one largest piece of two or more; -1 if none.
 static func _main_piece(sizes: Array[int]) -> int:
 	var best := -1

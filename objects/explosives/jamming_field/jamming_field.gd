@@ -13,6 +13,8 @@ extends Node3D
 ## `config.duration` seconds. Starting, ending and loading refresh the status lights
 ## (StatusLight.refresh_all()).
 ## EventLog: `jamming.started {field, radius}`, `jamming.ended {field}`. Saveable (`age`, place).
+## GROUP is the one index of the running fields (a field asks it whether another still covers an
+## entity; tests find fields by it).
 
 const GROUP: StringName = &"jamming_field"
 
@@ -38,7 +40,7 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	var data := {"field": String(name), "radius": config.radius}
 	EventLog.record(EventKinds.JAMMING_STARTED, String(name), "", data)
 	_update_tags()

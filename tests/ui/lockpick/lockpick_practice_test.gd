@@ -96,7 +96,7 @@ func test_a_practice_lock_shows_every_assist_and_relocks_with_a_new_layout() -> 
 	assert_bool(await _ui.force_snap()).is_true()
 	await _ui.driver.frames(1)
 	assert_bool(_ui.screen.is_open()).is_false()
-	assert_int(_ui.player.inventory.inventory.count_of(&"lockpick")).is_equal(0)
+	assert_int(_ui.player.inventory.grid.count_of(&"lockpick")).is_equal(0)
 
 
 func test_a_practice_lock_relocks_after_the_picker_left() -> void:

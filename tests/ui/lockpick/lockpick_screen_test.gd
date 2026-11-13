@@ -154,7 +154,7 @@ func test_a_picked_door_unlocks_and_opens_and_keeps_the_pick() -> void:
 	assert_bool(_ui.screen.is_open()).is_false()
 	assert_bool(_ui.player.accepts_input()).is_true()
 	assert_bool(_ui.door.is_open()).is_true()
-	assert_int(_ui.player.inventory.inventory.count_of(&"lockpick")).is_equal(1)
+	assert_int(_ui.player.inventory.grid.count_of(&"lockpick")).is_equal(1)
 
 
 func test_a_broken_pick_uses_one_up_and_the_last_ends_it() -> void:
@@ -162,13 +162,13 @@ func test_a_broken_pick_uses_one_up_and_the_last_ends_it() -> void:
 	await _ui.click_at(UiHelpers.DOOR_FEET, UiHelpers.DOOR_PANEL)
 	assert_bool(await _ui.force_snap()).is_true()
 	await _ui.driver.frames(1)
-	assert_int(_ui.player.inventory.inventory.count_of(&"lockpick")).is_equal(1)
+	assert_int(_ui.player.inventory.grid.count_of(&"lockpick")).is_equal(1)
 	assert_bool(_ui.screen.is_open()).is_true()
 	assert_str(String(_ui.player.inventory.held_tool())).is_equal("lockpick")
 
 	assert_bool(await _ui.force_snap()).is_true()
 	await _ui.driver.frames(1)
-	assert_int(_ui.player.inventory.inventory.count_of(&"lockpick")).is_equal(0)
+	assert_int(_ui.player.inventory.grid.count_of(&"lockpick")).is_equal(0)
 	assert_bool(_ui.screen.is_open()).is_false()
 	assert_str(EventLog.find(&"lock.pick_cancelled")[0].data["reason"]).is_equal("no_picks")
 	assert_bool(_ui.door.is_locked()).is_true()

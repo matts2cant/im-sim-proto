@@ -43,16 +43,16 @@ func _ready() -> void:
 		await _player.ready
 	_player.reload_on_reset = false
 	var inventory := _player.inventory
-	inventory.give(Items.PISTOL, 1, {"magazine": 7})
-	inventory.give(Items.BATON, 1)
-	inventory.give(Items.AMMO, 64)
-	inventory.give(Items.MEDKIT, 5)
-	inventory.give(Items.LOCKPICK, 2)
-	inventory.give(Items.BIOCELL, 4)
-	inventory.give(Items.KEYCARD, 1, {"key_id": "warehouse_office"})
+	inventory.add(Items.PISTOL, 1, {"magazine": 7})
+	inventory.add(Items.BATON, 1)
+	inventory.add(Items.AMMO, 64)
+	inventory.add(Items.MEDKIT, 5)
+	inventory.add(Items.LOCKPICK, 2)
+	inventory.add(Items.BIOCELL, 4)
+	inventory.add(Items.KEYCARD, 1, {"key_id": "warehouse_office"})
 	if mode == "attach":
 		for path: String in [SHOTGUN, SNIPER, SILENCER]:
-			inventory.give(load(path) as ItemData, 1)
+			inventory.add(load(path) as ItemData, 1)
 	inventory.select_slot(0)
 	if mode == "prompt":
 		var target := get_node(pickup_path) as Node3D
@@ -86,7 +86,7 @@ func _act() -> void:
 		"attach":
 			screen.open(0)
 			var grid := view
-			var silencer := _player.inventory.inventory.stacks[-1]
+			var silencer := _player.inventory.grid.stacks[-1]
 			_mouse(grid, grid.cell_center(silencer.cell), true)
 			_mouse(grid, grid.cell_center(Vector2i(5, 3)), false)
 		"belt":

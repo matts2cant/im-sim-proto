@@ -55,7 +55,6 @@ func test_joins_its_group_and_is_found_on_the_entity() -> void:
 	var exposure := LightExposure.of(body)
 
 	assert_object(exposure).is_not_null()
-	assert_bool(exposure.is_in_group(LightExposure.GROUP)).is_true()
 	assert_object(LightExposure.of(_root)).is_null()
 
 

@@ -60,7 +60,7 @@ static func wait_for_scene_change(tree: SceneTree, old: Node, max_frames: int = 
 ## Item id -> count over the player's inventory stacks.
 static func inventory_counts(level: Node) -> Dictionary:
 	var counts := {}
-	for stack in player(level).inventory.inventory.stacks:
+	for stack in player(level).inventory.grid.stacks:
 		var id := String(stack.item.id)
 		counts[id] = int(counts.get(id, 0)) + stack.count
 	return counts

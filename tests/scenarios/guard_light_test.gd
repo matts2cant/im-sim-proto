@@ -5,12 +5,17 @@ extends GdUnitTestSuite
 ## shadows the light from the right side without hiding that side from the guard. The guard stands
 ## at the origin facing -Z, no navmesh (it walks straight). Lit spot (-2.5, 0, -5): 5.6 m, 26.6°
 ## in focus; dark spot (2.5, 0, -5): the same distance and angle, in the wall's shadow.
+## Coordinates are local to the fixture, which stands at OFFSET: far from the origin, where other
+## suites put lamps and props that can still be in the tree (freed late) while this one runs, and
+## light or shadow its target (a 0.999 level read as 0.998 under load).
 
 const Wait := preload("res://tests/helpers/wait.gd")
 const GUARD := "res://actors/guard/guard.tscn"
 const PERCEPTION: PerceptionConfig = preload("res://actors/guard/guard_perception.tres")
 const LIT_SPOT := Vector3(-2.5, 0, -5)
 const DARK_SPOT := Vector3(2.5, 0, -5)
+## Where the fixture stands: no other suite's fixture is near it.
+const OFFSET := Vector3(-640, 0, 640)
 
 var _root: Node3D
 var _guard: NavWalker
@@ -21,6 +26,7 @@ func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
 	_root = auto_free(Node3D.new())
+	_root.position = OFFSET
 	add_child(_root)
 	_box(Vector3(0, -0.5, 0), Vector3(30, 1, 30))
 	_box(Vector3(0.5, 1.5, -5), Vector3(0.4, 3, 2))
@@ -60,7 +66,9 @@ func test_target_in_the_light_is_seen_as_predicted() -> void:
 			break
 	# 1 / gain seconds of sight (about 0.8 s), give or take the light's 0.1 s update.
 	assert_float(alerted_after).is_between(1.0 / predicted - 0.15, 1.0 / predicted + 0.15)
-	assert_float(PerceptionSensor.light_level_of(target)).is_equal(level)
+	# The sensor reads the target's LightExposure (compared at one instant, not with the level read
+	# before the timing).
+	assert_float(PerceptionSensor.light_level_of(target)).is_equal(LightExposure.of(target).level)
 
 
 func test_target_in_the_walls_shadow_is_never_seen() -> void:

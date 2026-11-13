@@ -179,7 +179,7 @@ func _is_character(collider: Node) -> bool:
 	var body := collider as CollisionObject3D
 	if body != null and (body.collision_layer & CHARACTER_MASK) != 0:
 		return true
-	return BodyParts.of(Interactor.entity_of(collider)) != null
+	return BodyParts.of(Entities.of_collider(collider)) != null
 
 
 # The node to follow: the collision shape hit (a sliding door's panel moves its shape, not its

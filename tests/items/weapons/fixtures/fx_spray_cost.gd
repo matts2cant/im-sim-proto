@@ -91,9 +91,9 @@ func _physics_process(delta: float) -> void:
 
 func _arm() -> void:
 	var inventory := _player.inventory
-	inventory.give(RIFLE_ITEM, 1)
-	inventory.give(RIFLE_ROUNDS, 60)
-	inventory.hold(inventory.inventory.stacks[0])
+	inventory.add(RIFLE_ITEM, 1)
+	inventory.add(RIFLE_ROUNDS, 60)
+	inventory.hold(inventory.grid.stacks[0])
 	var holder := _player.weapons
 	holder.feedback.queue_free()
 	holder.feedback = TimedFeedback.new() if _fx_on else SilentFeedback.new()

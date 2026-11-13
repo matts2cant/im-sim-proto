@@ -37,7 +37,7 @@ var _pusher: BodyPusher
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	for child in get_children():
 		if child is NavigationAgent3D:
 			agent = child as NavigationAgent3D

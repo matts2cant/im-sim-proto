@@ -6,6 +6,10 @@ extends Node
 var disabled: bool = false
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func device_status() -> Array[StatusWord]:
 	return [DeviceStatus.DISABLED if disabled else DeviceStatus.ENABLED] as Array[StatusWord]
 

@@ -56,6 +56,7 @@ func puff(group: StringName) -> ImpactPuff:
 	return puffs.get(default_group) as ImpactPuff
 
 
-## A character's body: a hitbox (`body_part` metadata) or an entity with BodyParts.
+## A character's body: a hitbox (`body_part` metadata) or what an entity with BodyParts stands for
+## (Entities.of_collider()).
 static func is_body(collider: Node) -> bool:
-	return not Hitboxes.part_of(collider).is_empty() or BodyParts.of(collider) != null
+	return not Hitboxes.part_of(collider).is_empty() or BodyParts.of(Entities.of_collider(collider)) != null

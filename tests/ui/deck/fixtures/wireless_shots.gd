@@ -57,8 +57,8 @@ func _ready() -> void:
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
 	_player.skills.set_tier(&"computer", TIERS[_shot])
-	_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	await _seconds(0.1)
 	await _stage()
 	await _seconds(0.3)

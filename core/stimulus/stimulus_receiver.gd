@@ -22,7 +22,7 @@ var attributes: Attributes
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 	if entity == null:
 		push_warning("StimulusReceiver %s: entity_path %s not found, using the receiver" % [get_path(), entity_path])
 		entity = self

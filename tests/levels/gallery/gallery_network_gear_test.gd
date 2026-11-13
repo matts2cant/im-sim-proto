@@ -63,7 +63,7 @@ func test_no_wall_router_switch_or_mail_server_remains() -> void:
 			var entity := device.entity as Node3D
 			var where := _label(room, entity)
 			# Routers and switches (access points stay on walls and ceilings).
-			var tags := ActorState.tags_of(entity)
+			var tags := Tags.of(entity)
 			if not (tags.has(&"object.router") or tags.has(&"object.network_switch")):
 				continue
 			gear += 1

@@ -74,8 +74,8 @@ func _ready() -> void:
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
 	_player.skills.set_tier(&"computer", TIERS[_shot])
-	_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	var jack := _lab.node("Jack").global_position
 	var feet := Lab.ORIGIN + Lab.AT_JACK
 	var eye := feet + Vector3.UP * _player.config.standing_eye_height
@@ -116,12 +116,12 @@ func _stage() -> void:
 		"map_second":
 			await _plug_second_network()
 		"menu_exploit":
-			_player.inventory.give(Net.exploit_item(&"camera"), 2)
+			_player.inventory.add(Net.exploit_item(&"camera"), 2)
 			_session.refresh()
 			_screen.refresh()
 			_screen.graph.select("CAM-GATE")
 		"scanning":
-			_player.inventory.give(Net.exploit_item(&"router"), 1)
+			_player.inventory.add(Net.exploit_item(&"router"), 1)
 			_session.config.scan_time = 3.0
 			ExploitItems.use_from_deck(_session, _lab.device("Rtr01"))
 			await _seconds(1.0)

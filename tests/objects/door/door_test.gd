@@ -158,7 +158,7 @@ func test_save_and_load_keep_open_and_locked() -> void:
 	assert_bool(_door.is_open()).is_true()
 	assert_float(_door.openness).is_equal(1.0)
 	assert_bool(_door.is_locked()).is_true()
-	assert_bool(_door.is_in_group(&"saveable")).is_true()
+	assert_bool(_door.is_in_group(LevelSnapshot.GROUP)).is_true()
 
 
 func test_navigation_link_layers_follow_the_lock() -> void:

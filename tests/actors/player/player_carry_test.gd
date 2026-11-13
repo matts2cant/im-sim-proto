@@ -29,7 +29,7 @@ func test_pick_up_carry_and_put_down() -> void:
 
 	await _driver.hold(&"use", 2)
 	assert_object(_player.carry.held).is_same(crate)
-	assert_array(Objects.logged(&"player.picked_up", "object", "SmallCrate")).has_size(1)
+	assert_array(Objects.logged(&"carry.picked_up", "object", "SmallCrate")).has_size(1)
 	await _driver.frames(30)
 	# Ghost: frozen kinematic, no layer or mask, exactly at the hold point (0.75 m for a 0.6 m crate).
 	assert_float(crate.global_position.distance_to(_hold_point(0.3))).is_less(0.001)
@@ -44,7 +44,7 @@ func test_pick_up_carry_and_put_down() -> void:
 
 	await _driver.hold(&"use", 2)
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_array(Objects.logged(&"player.dropped", "how", &"put_down")).has_size(1)
+	assert_array(Objects.logged(&"carry.dropped", "how", &"put_down")).has_size(1)
 	assert_bool(crate.freeze).is_false()
 	assert_int(crate.collision_layer).is_equal(PhysicsLayers.OBJECTS)
 	assert_int(crate.collision_mask).is_equal(PhysicsLayers.OBJECT_MASK)
@@ -63,7 +63,7 @@ func test_drop_key_lets_go() -> void:
 	await _driver.hold(&"drop_throw", 2)
 
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_array(Objects.logged(&"player.dropped", "how", &"drop")).has_size(1)
+	assert_array(Objects.logged(&"carry.dropped", "how", &"drop")).has_size(1)
 
 
 func test_throw_speed_is_impulse_over_mass() -> void:
@@ -80,7 +80,7 @@ func test_throw_speed_is_impulse_over_mass() -> void:
 	_driver.runner.simulate_action_release(&"fire")
 	assert_int(crate.collision_layer).is_equal(PhysicsLayers.OBJECTS)
 
-	var thrown := Objects.logged(&"player.threw", "object", "SmallCrate")
+	var thrown := Objects.logged(&"carry.threw", "object", "SmallCrate")
 	assert_array(thrown).has_size(1)
 	assert_float(thrown[0].data["speed"]).is_equal_approx(4.0, 0.0001)
 	assert_bool(_player.carry.is_carrying()).is_false()
@@ -97,7 +97,7 @@ func test_too_heavy_object_is_refused() -> void:
 	await _driver.hold(&"use", 2)
 
 	assert_bool(_player.carry.is_carrying()).is_false()
-	var refused := Objects.logged(&"player.pickup_refused", "object", "MetalCrate")
+	var refused := Objects.logged(&"carry.pickup_refused", "object", "MetalCrate")
 	assert_array(refused).has_size(1)
 	assert_float(refused[0].data["mass"]).is_equal(25.0)
 	assert_float(refused[0].data["limit"]).is_equal(20.0)
@@ -182,7 +182,7 @@ func test_held_object_follows_the_hold_point_instead_of_dropping() -> void:
 
 	assert_bool(_player.carry.is_carrying()).is_true()
 	assert_float(crate.global_position.distance_to(_hold_point(0.3))).is_less(0.001)
-	assert_array(EventLog.find(&"player.dropped")).is_empty()
+	assert_array(EventLog.find(&"carry.dropped")).is_empty()
 
 
 func test_picking_up_the_bottom_crate_drops_the_one_on_top() -> void:

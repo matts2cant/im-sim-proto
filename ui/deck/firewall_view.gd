@@ -214,7 +214,7 @@ func select_rule(index: int) -> void:
 
 func _signature_now() -> String:
 	var current := router()
-	var parts := PackedStringArray([DeckSession.path_of(router_device), str(current != null), str(selected)])
+	var parts := PackedStringArray([DeckSession.key_of(router_device), str(current != null), str(selected)])
 	if current == null:
 		if is_instance_valid(router_device):
 			parts.append("%s|%s" % [session.is_online(router_device), router_device.is_admin(session.entity)])

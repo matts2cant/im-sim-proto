@@ -38,7 +38,7 @@ static func carried_key_ids(user: Node) -> Array[String]:
 func has_access(actor: Node) -> bool:
 	if LockRules.key_matches(access_id(), carried_key_ids(actor)):
 		return true
-	var tags := ActorState.tags_of(actor)
+	var tags := Tags.of(actor)
 	return tags != null and not String(access_id()).is_empty() and tags.has(AccessLayers.access_tag(access_id()))
 
 

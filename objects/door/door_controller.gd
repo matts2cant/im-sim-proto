@@ -30,8 +30,12 @@ var device: Device
 var door: Door
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null:
 		push_warning("DoorController %s: its entity has no Device" % get_path())
@@ -59,7 +63,7 @@ static func of(node: Node) -> DoorController:
 func bind(p_door: Door) -> void:
 	door = p_door
 	if entity == null:
-		entity = get_node_or_null(entity_path) as Node3D
+		entity = Entities.of_component(self, entity_path) as Node3D
 	if entity != null and not entity.has_meta(EntityNames.META) and is_instance_valid(door.entity):
 		var door_name: String = String(door.entity.name).capitalize()
 		if door.entity.has_meta(EntityNames.META):

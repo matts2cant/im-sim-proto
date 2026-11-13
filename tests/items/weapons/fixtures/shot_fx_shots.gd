@@ -140,9 +140,9 @@ func _shoot_at(point: Vector3) -> void:
 func _arm(id: StringName) -> void:
 	var inventory := _player.inventory
 	var item := inventory.catalog.find(id)
-	inventory.give(item, 1)
-	inventory.give(inventory.catalog.find(item.weapon.ammo_item), 30)
-	inventory.hold(inventory.inventory.stacks[0])
+	inventory.add(item, 1)
+	inventory.add(inventory.catalog.find(item.weapon.ammo_item), 30)
+	inventory.hold(inventory.grid.stacks[0])
 
 
 # A bare body at the right of the yard holding the assault rifle with a tracer every round, aimed

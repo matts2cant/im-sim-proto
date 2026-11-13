@@ -94,7 +94,9 @@ func test_a_password_change_takes_the_account_away() -> void:
 
 func test_the_journal_knows_a_login_by_its_code_id() -> void:
 	var accounts := _accounts("OfficePc")
-	assert_str(String(accounts.code_id())).is_equal("office_pc")
+	# Without a credentials id: the device's stable key, never its node name (ADR 0141).
+	assert_str(String(accounts.code_id())).is_equal(Device.of(_n["OfficePc"]).device_id)
+	assert_str(String(accounts.legacy_code_id())).is_equal("office_pc")
 	# A computer's credentials id is the default.
 	Computer.of(_n["OfficePc"]).credentials_id = &"pc_two"
 	assert_str(String(accounts.code_id())).is_equal("pc_two")

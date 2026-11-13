@@ -38,11 +38,11 @@ func test_brazier_ignites_a_thrown_crate() -> void:
 			break
 		await driver.frames(1)
 
-	assert_array(Objects.logged(&"player.threw", "object", "SmallCrate")).has_size(1)
+	assert_array(Objects.logged(&"carry.threw", "object", "SmallCrate")).has_size(1)
 	var ignited := Objects.logged(&"object.ignited", "object", "SmallCrate")
 	assert_array(ignited).has_size(1)
 	var igniter := Objects.emitted(ignited[0].data["by"])
 	assert_str(igniter.source).is_equal("Brazier")
 	assert_str(igniter.data["type"]).is_equal("fire")
 	# Landed next to the brazier and caught within a few seconds of the throw.
-	assert_float((ignited[0].tick - EventLog.find(&"player.threw")[0].tick) / 60.0).is_less(5.0)
+	assert_float((ignited[0].tick - EventLog.find(&"carry.threw")[0].tick) / 60.0).is_less(5.0)

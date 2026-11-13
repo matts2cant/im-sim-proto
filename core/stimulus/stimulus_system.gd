@@ -230,8 +230,10 @@ func _deliver_to_node(stimulus: Stimulus, node: Node, data: Dictionary) -> void:
 			receiver.receive(stimulus, stimulus.intensity, data)
 
 
-## The receivers of `node`, or of its nearest ancestor that has receivers; empty when none has.
+## The receivers of the entity `node` stands for (Entities.of_collider(): a hitbox's character), or
+## of its nearest ancestor that has receivers (a prop's child collider); empty when none has.
 func _receivers_of(node: Node) -> Array[StimulusReceiver]:
+	node = Entities.of_collider(node)
 	while node != null:
 		var owned: Array[StimulusReceiver] = _receivers.filter(
 			func(receiver: StimulusReceiver) -> bool: return _deliverable(receiver) and receiver.entity == node

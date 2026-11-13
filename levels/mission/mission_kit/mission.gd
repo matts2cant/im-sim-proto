@@ -97,7 +97,7 @@ static func of_level(node: Node) -> Mission:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	add_to_group(GROUP)
 	var objectives: Array[MissionObjective] = []
 	if data != null:

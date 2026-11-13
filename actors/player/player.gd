@@ -1,32 +1,19 @@
 class_name Player
 extends CharacterBody3D
-## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects
-## (Carrier), use things (Interactor; reading a datapad logs it in the PersonalLog), inventory and belt
-## (PlayerInventory over the Inventory), weapons (WeaponHolder) and body-part damage (BodyParts,
-## Hitboxes). Carrying, interaction and the inventory are generic components (ADR 0139: any character
-## with Eyes can have them); this script maps the input to them and drives them each tick.
-## A thin adapter over the pure rules (PlayerMotion, MantleRules, CarryRules); tuning comes from
-## `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
-## Physics props do not collide with this body in the solver; the BodyPusher component pushes them
-## and presses on what the player stands on with bounded forces instead (ADR 0054); ImpactSensor turns props
-## flying into it into `damage.blunt`.
-## Generic character components do the rest (ADR 0056): MovementNoise (footsteps, landings; reads
-## the stance tags this script sets), FallImpact (`damage.fall` -> the `fall_damage` receptron),
-## Knockback (`force.*`), BodyParts via the `body_damage` receptron, StepClimber (walks up steps and
-## down stairs, ADR 0058; the camera eases over its `stepped` height changes).
-## State comes from tags (ActorState): `state.dead` / `state.unconscious` stop input except `use`,
-## which asks for a level reset (the HUD's losing overlay), `state.legs_disabled` forces a crawl;
-## `move_speed_mult` scales speed. The attributes `jump_apex_height` and `mantle_max_height` (base:
-## config) change the jump and the highest mantle (Speed Enhancement). Skills, Energy and Augmentations (ADR 0061) are
-## generic components; this script only maps F1-F5 (`aug_<n>`) to Augmentations.toggle_slot().
-## Weapons (ADR 0085): LMB held sets the WeaponHolder's `trigger_held` (automatic weapons), RMB
-## (`alt_fire`) toggles a weapon's scope (with a deck in hand: its AR cable view, DeckArView, M12c);
-## the camera follows the holder's scope FOV and mouse look scales with it.
-## Profile settings (GameSettings, ADR 0124): the hip FOV (applied at once, even while paused), the
-## mouse sensitivity multiplier and invert Y.
-## Weapon feel (ADR 0128): mouse turns reach the view model (WeaponView.add_turn(): it sways), and a
-## shot shakes the camera (ViewShake, the weapon's WeaponMotionConfig, x the camera motion setting).
-## Saveable.
+## First-person player: the input and camera adapter over generic character components. It maps
+## input to them and drives them each tick: movement (walk, sprint, crouch, jump, mantle, mouse look;
+## pure rules in PlayerMotion, MantleRules; tuning in `config`), the Carrier, Interactor and ToolUse,
+## the PlayerInventory (belt and hand), the WeaponHolder (LMB, `trigger_held`; RMB toggles a scope,
+## or the deck's AR view, DeckArView) and Augmentations (F1-F5: `aug_<n>`, toggle_slot()).
+## Everything else is the same components any character has (ADR 0056, 0139): BodyParts and
+## Hitboxes, MovementNoise (it sets the stance tags), FallImpact, Knockback, StepClimber (the camera
+## eases over its `stepped` heights, ADR 0058), BodyPusher (bounded pushes on props, ADR 0054),
+## ImpactSensor, Skills, Energy. Origin at the feet; collision layer 2 (ADR 0045).
+## State comes from tags (ActorState): dead or knocked out, only `use` works (it asks for a level
+## reset: `reset_requested`); `state.legs_disabled` forces a crawl; `move_speed_mult`,
+## `jump_apex_height` and `mantle_max_height` (base: config) change movement.
+## Profile settings (GameSettings, ADR 0124): hip FOV, mouse sensitivity, invert Y. A shot shakes
+## the camera (ViewShake, ADR 0128). Saveable.
 
 signal mantled(height: float)
 ## The player pressed `use` while dead or knocked out (the HUD's losing overlay says so).
@@ -38,32 +25,13 @@ const STATS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/stats_tab.tscn
 const BELT_ACTIONS: Array[StringName] = [
 	&"belt_1", &"belt_2", &"belt_3", &"belt_4", &"belt_5", &"belt_6", &"belt_7", &"belt_8", &"belt_9", &"belt_0"
 ]
-## Actions handled on their press edge in _physics_process (interact, carry, weapons, belt).
-const PRESS_ACTIONS: Array[StringName] = [
-	&"use",
-	&"drop_throw",
-	&"fire",
-	&"alt_fire",
-	&"reload",
-	&"holster",
-	&"belt_1",
-	&"belt_2",
-	&"belt_3",
-	&"belt_4",
-	&"belt_5",
-	&"belt_6",
-	&"belt_7",
-	&"belt_8",
-	&"belt_9",
-	&"belt_0",
-	&"aug_1",
-	&"aug_2",
-	&"aug_3",
-	&"aug_4",
-	&"aug_5",
-]
 ## Augmentation toggle keys (F1-F5), slot 1 first.
 const AUG_ACTIONS: Array[StringName] = [&"aug_1", &"aug_2", &"aug_3", &"aug_4", &"aug_5"]
+## Actions handled on their press edge in _physics_process (interact, carry, weapons, belt,
+## augmentations).
+const PRESS_ACTIONS: Array[StringName] = (
+	[&"use", &"drop_throw", &"fire", &"alt_fire", &"reload", &"holster"] + BELT_ACTIONS + AUG_ACTIONS
+)
 const MOVE_SPEED: StringName = &"move_speed_mult"
 const JUMP_APEX: StringName = &"jump_apex_height"
 const MANTLE_MAX: StringName = &"mantle_max_height"
@@ -129,7 +97,7 @@ var _tool_latched: bool = false
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	add_to_group(DebugPanel.PLAYER_GROUP)
 	weapons.setup(self, _camera)
 	weapons.fired.connect(_on_weapon_fired)
@@ -484,8 +452,9 @@ func _register_debug_tab() -> void:
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
-# medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys: the belt slot
-# (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
+# medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys:
+# the belt slot (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F5:
+# augmentation toggles.
 # Dead or knocked out: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
 	var can_press := accepts_input()

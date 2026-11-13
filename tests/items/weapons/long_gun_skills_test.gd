@@ -117,11 +117,11 @@ func test_master_reload_times_and_damage_scale_of_the_long_guns() -> void:
 	_player.skills.set_tier(&"sniper", 3)
 	var inventory := _player.inventory
 	for item: ItemData in [SNIPER, RIFLE]:
-		inventory.give(item, 1)
-		inventory.give(inventory.catalog.find(item.weapon.ammo_item), 20)
+		inventory.add(item, 1)
+		inventory.add(inventory.catalog.find(item.weapon.ammo_item), 20)
 	# Reload 2.4 / 2.5 / 2.2 s x0.5; damage x1.3.
 	var expected := {&"shotgun": 1.2, &"sniper_rifle": 1.25, &"assault_rifle": 1.1}
-	for stack: ItemStack in inventory.inventory.stacks.filter(func(s: ItemStack) -> bool: return s.item.weapon != null):
+	for stack: ItemStack in inventory.grid.stacks.filter(func(s: ItemStack) -> bool: return s.item.weapon != null):
 		inventory.hold(stack)
 		await _driver.frames(2)
 		EventLog.clear()
@@ -241,8 +241,8 @@ func _load(item: ItemData) -> void:
 	_wall = _driver.runner.find_child("Wall") as StaticBody3D
 	await _driver.settle()
 	var inventory := _player.inventory
-	inventory.give(item, 1)
-	inventory.give(inventory.catalog.find(item.weapon.ammo_item), 60)
+	inventory.add(item, 1)
+	inventory.add(inventory.catalog.find(item.weapon.ammo_item), 60)
 	inventory.select_slot(0)
 	await _driver.frames(2)
 	EventLog.entry_added.connect(_on_entry)

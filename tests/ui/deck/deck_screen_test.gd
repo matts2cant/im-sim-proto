@@ -34,8 +34,8 @@ func before_test() -> void:
 	_session = DeckSession.of(_player)
 	_screen = DeckScreen.of(_player)
 	await _driver.settle()
-	_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	await _driver.frames(2)
 
 
@@ -115,7 +115,7 @@ func test_walking_away_unplugs_the_deck_and_stops_its_tools() -> void:
 	assert_str(String(_session.unplug_reason)).is_equal("walked_away")
 	assert_bool(ice.is_running()).is_false()
 	assert_bool(_screen.is_open()).is_false()
-	var stack := _player.inventory.inventory.stacks_of(&"deck")[0]
+	var stack := _player.inventory.grid.stacks_of(&"deck")[0]
 	assert_bool((stack.state[IcebreakerTool.CRACKS] as Dictionary).is_empty()).is_false()
 
 

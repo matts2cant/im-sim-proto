@@ -45,9 +45,13 @@ var _tone: AudioStream
 var _fault_tone: AudioStream
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null or config == null:
 		push_warning("Siren %s: needs a Device sibling and a config" % get_path())

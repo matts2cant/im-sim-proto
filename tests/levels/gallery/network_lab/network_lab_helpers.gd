@@ -69,7 +69,7 @@ func take_deck() -> bool:
 	await stand(AT_TABLE, node("Items/Deck").position)
 	if not player.inventory.pick_up(ItemPickup.of(node("Items/Deck"))):
 		return false
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"deck")[0])
+	player.inventory.hold(player.inventory.grid.stacks_of(&"deck")[0])
 	await driver.frames(2)
 	return true
 

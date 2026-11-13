@@ -80,7 +80,7 @@ func test_after_network_a_the_map_on_network_b_draws_only_b_and_a_again_without_
 	assert_array(_map()).contains_exactly_in_any_order(LAB)
 	# Everything seen stays on the deck.
 	var seen := _stack.state[DeckSession.SEEN] as Array
-	assert_bool(seen.has(DeckSession.path_of(Device.of(_b["PcB"])))).is_true()
+	assert_bool(seen.has(DeckSession.key_of(Device.of(_b["PcB"])))).is_true()
 
 
 func test_broken_and_unpowered_devices_on_the_plugged_network_are_drawn_down() -> void:

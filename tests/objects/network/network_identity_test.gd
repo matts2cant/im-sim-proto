@@ -92,7 +92,7 @@ func test_a_user_without_an_identity_has_nothing_and_reads_give_none() -> void:
 	assert_object(identity).is_not_null()
 	assert_str(identity.scene_file_path).is_equal(NetworkIdentity.SCENE_PATH)
 	assert_str(identity.id).is_not_empty()
-	assert_bool(identity.is_in_group(&"saveable")).is_true()
+	assert_bool(identity.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_str(NetworkIdentity.ensure(user)).is_equal(identity.id)
 
 

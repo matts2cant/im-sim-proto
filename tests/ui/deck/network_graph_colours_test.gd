@@ -41,7 +41,7 @@ func before_test() -> void:
 	_graph.size = MapChecks.GRAPH_SIZE
 	_graph.request_fit()
 	var rows := MapChecks.rows_from(_console)
-	_graph.show_network(rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG)
+	_graph.show_network(rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG.label_for)
 
 
 func after_test() -> void:

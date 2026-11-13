@@ -83,7 +83,7 @@ func test_a_hit_lowers_a_part_on_the_health_page() -> void:
 
 func test_a_medkit_on_one_part_heals_it_while_the_world_runs() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 2)
+	_player.inventory.add(Items.MEDKIT, 2)
 	_player.body.take_damage(&"damage.blunt", 30.0, &"arm_l")
 	_player.body.take_damage(&"damage.blunt", 30.0, &"leg_r")
 	var ball := _falling_ball()
@@ -100,7 +100,7 @@ func test_a_medkit_on_one_part_heals_it_while_the_world_runs() -> void:
 
 	assert_float(_player.body.health(&"arm_l")).is_greater(arm_before)
 	assert_float(_player.body.health(&"leg_r")).is_equal(leg_before)
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(1)
 	assert_bool(_tabs.is_open()).is_true()
 	assert_bool(get_tree().paused).is_false()
 	assert_float(ball.global_position.y).is_less(ball_y - 0.1)

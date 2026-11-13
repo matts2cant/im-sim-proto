@@ -55,7 +55,7 @@ func test_e_takes_the_item_table_pistol_onto_the_belt_and_key_1_draws_it() -> vo
 
 	assert_bool(is_instance_valid(pistol)).is_false()
 	var inventory := _player.inventory
-	assert_int(inventory.inventory.count_of(&"pistol")).is_equal(1)
+	assert_int(inventory.grid.count_of(&"pistol")).is_equal(1)
 	assert_str(String(inventory.belt.stack_in(0).item.id)).is_equal("pistol")
 	assert_array(Objects.logged(&"item.picked_up", "item", "pistol")).has_size(1)
 

@@ -29,7 +29,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 
 
 ## The NetworkIdentity child of `entity` (or `entity` itself), or null.

@@ -9,7 +9,9 @@ extends RefCounted
 
 ## The tag of network gear (the switch, router and access point scenes carry it).
 const NETWORK_GEAR: StringName = &"object.network_gear"
-## The method a component offers its entity's network address through (address_of()).
+## The component interface (conventions.md) an entity's network address comes from (address_of()):
+## a component in ADDRESS_GROUP with ADDRESS_METHOD (Device).
+const ADDRESS_GROUP: StringName = &"network_addressable"
 const ADDRESS_METHOD: StringName = &"device_address"
 
 
@@ -34,7 +36,7 @@ static func subnet_of(device: Device) -> StringName:
 static func is_network_gear(device: Device) -> bool:
 	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
 		return false
-	var tags := ActorState.tags_of(device.entity)
+	var tags := Tags.of(device.entity)
 	if tags != null and tags.has(NETWORK_GEAR):
 		return true
 	return Router.of(device.entity) != null or AccessPoint.of(device.entity) != null
@@ -120,17 +122,14 @@ static func port_kind(device: Device) -> NetworkSource.Kind:
 	return NetworkSource.Kind.NONE
 
 
-## The address `node` (an entity, or its Device) has on its network, from any of its components
-## offering `device_address() -> String` (the network layer's: Device.device_address()); "" when none
-## says one (screens then show no address).
+## The address `node` (an entity, or its Device) has on its network, from any of its components in
+## ADDRESS_GROUP offering `device_address() -> String` (the network layer's: Device.device_address());
+## "" when none says one (screens then show no address).
 static func address_of(node: Node) -> String:
 	var device := node as Device
 	var entity: Node = device.entity if device != null else node
-	if entity == null or not is_instance_valid(entity):
-		return ""
-	for child in entity.get_children():
-		if child.has_method(ADDRESS_METHOD):
-			var value := str(child.call(ADDRESS_METHOD))
-			if not value.is_empty():
-				return value
+	for child in Entities.members(entity, ADDRESS_GROUP, ADDRESS_METHOD):
+		var value := str(child.call(ADDRESS_METHOD))
+		if not value.is_empty():
+			return value
 	return ""

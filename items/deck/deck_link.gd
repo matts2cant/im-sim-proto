@@ -117,12 +117,12 @@ static func wireless_range(user: Node, config: DeckConfig) -> float:
 	return Attributes.read(user, WIRELESS_RANGE_ATTRIBUTE, base)
 
 
-## Where `user` looks from: its eye (an `eye_transform()` method, the Player's), else its origin.
+## Where `user` looks from: its Eyes' view (the player's camera), else its origin.
 static func eye_of(user: Node) -> Vector3:
 	if user == null or not is_instance_valid(user):
 		return Vector3.ZERO
-	if user.has_method(&"eye_transform"):
-		return (user.call(&"eye_transform") as Transform3D).origin
+	if Eyes.of(user) != null:
+		return Eyes.view_of(user).origin
 	return (user as Node3D).global_position if user is Node3D else Vector3.ZERO
 
 

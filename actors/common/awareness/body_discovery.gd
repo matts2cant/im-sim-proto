@@ -32,8 +32,8 @@ var tend_time: float = 0.0
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_parent() as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self) as Node3D
 	awareness = GradedAwareness.of_node(entity)
 	sensor = PerceptionSensor.of(entity)
 	if awareness == null or sensor == null:

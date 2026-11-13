@@ -34,8 +34,8 @@ func before_test() -> void:
 	await _driver.settle()
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
-	_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
 	await _driver.frames(2)
 	_session.plug_and_raise(_lab.device("Jack"))
@@ -64,8 +64,8 @@ func _press(text: String) -> void:
 
 
 func test_a_router_exploit_from_the_menu_gives_admin_and_scans_behind_it() -> void:
-	_player.inventory.give(Net.exploit_item(&"router"), 1)
-	_player.inventory.give(Net.exploit_item(&"camera"), 2)
+	_player.inventory.add(Net.exploit_item(&"router"), 1)
+	_player.inventory.add(Net.exploit_item(&"camera"), 2)
 	_screen.refresh()
 	var sentry := _lab.node("Rtr01").get_node("Tracer") as Tracer
 	var before := sentry.trace_of(_player)

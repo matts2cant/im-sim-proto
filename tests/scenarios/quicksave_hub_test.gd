@@ -81,10 +81,10 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	# Player: moved, hurt, items (one in hand), a datapad read.
 	player.load_state({"position": SAVED_SPOT, "yaw": 1.0, "pitch": -0.2, "velocity": Vector3.ZERO})
 	player.body.take_damage(&"damage.blunt", 20.0, &"arm_l")
-	player.inventory.give(Items.MEDKIT, 2)
-	player.inventory.give(Items.LOCKPICK, 1)
-	player.inventory.give(Items.BIOCELL, 3)
-	player.inventory.hold(player.inventory.inventory.stacks[1])
+	player.inventory.add(Items.MEDKIT, 2)
+	player.inventory.add(Items.LOCKPICK, 1)
+	player.inventory.add(Items.BIOCELL, 3)
+	player.inventory.hold(player.inventory.grid.stacks[1])
 	_read(hub, DATAPAD)
 	# Objects: one crate burning, one burnt out, one broken (two bottles fall out), the barricade
 	# burnt (level geometry), an item dropped, a crate spawned from the debug panel.
@@ -94,7 +94,7 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	burnt.burn_out()
 	Breakable.of(hub.get_node(BROKEN)).break_apart(&"destroyed")
 	Breakable.of(hub.get_node(BARRICADE)).break_apart(&"burnt_out")
-	var dropped := player.inventory.drop_stack(player.inventory.inventory.stacks[2], 2)
+	var dropped := player.inventory.drop_stack(player.inventory.grid.stacks[2], 2)
 	var spawned := _spawn_tab().spawn(CATALOG.scenes[0])
 	await Wait.frames(get_tree(), 10)
 
@@ -107,7 +107,7 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	# Change everything again.
 	player.load_state({"position": Vector3(-3, 0, 12), "yaw": -1.0, "pitch": 0.0, "velocity": Vector3.ZERO})
 	player.body.take_damage(&"damage.blunt", 30.0, &"leg_r")
-	player.inventory.give(Items.KEYCARD, 1)
+	player.inventory.add(Items.KEYCARD, 1)
 	player.inventory.put_away()
 	_read(hub, OTHER_DATAPAD)
 	Breakable.of(hub.get_node("PhysicsFireRoom/Throwables/TableCrate1")).break_apart(&"destroyed")
@@ -143,9 +143,9 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	assert_vector(restored.global_position).is_equal_approx(saved_position, Vector3.ONE * 0.001)
 	assert_float(restored.body.health(&"arm_l")).is_less(restored.body.model.max_health(&"arm_l"))
 	assert_float(restored.body.health(&"leg_r")).is_equal(restored.body.model.max_health(&"leg_r"))
-	assert_int(restored.inventory.inventory.count_of(&"medkit")).is_equal(2)
-	assert_int(restored.inventory.inventory.count_of(&"biocell")).is_equal(1)
-	assert_int(restored.inventory.inventory.count_of(&"keycard")).is_equal(0)
+	assert_int(restored.inventory.grid.count_of(&"medkit")).is_equal(2)
+	assert_int(restored.inventory.grid.count_of(&"biocell")).is_equal(1)
+	assert_int(restored.inventory.grid.count_of(&"keycard")).is_equal(0)
 	assert_str(String(restored.inventory.in_hand().item.id)).is_equal("lockpick")
 	var reader_log := PersonalLog.of(restored)
 	assert_bool(reader_log.has(&"gallery.inventory_bay.note")).is_true()

@@ -2,47 +2,20 @@ class_name WeaponHolder
 extends Node3D
 ## Component of any character (the player, guards; ADR 0070), child of its eye (the player's camera,
 ## a guard's Aim node): the weapons it holds, the equipped one and its AimModel. Shots and sweeps
-## start at the eye along its -Z; whoever drives the holder points the eye (mouse look, or a combat
-## component aiming at a target) and calls physics_step() and trigger(). Nothing here reads input.
-## The holder coordinates: who may fire, the cycle and ammo (WeaponState), aim, recoil, scope, the
-## view and the loadout. What a fired trigger does is the weapon's delivery (WeaponData.delivery(),
-## a WeaponDelivery per kind): RangedFire (damage and `force.impact` RAYs along the aim cone, muzzle
-## and impact noise), MeleeSweep (a sphere swept along the view, `damage.*` CONTACT) or ThrowRelease
-## (the user's Thrower; without one the trigger does nothing). Sounds are its WeaponAudio child
-## (`audio`); `aimed_hit` is what a shot through the centre of the cone would meet (the crosshair).
-## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
-## (through Stimulus.scale_attribute), cycle, reload, cone floors, bloom and the pellet cone, settle
-## time, sway (on top of `aim_sway_mult`); crouching (`stance.crouch`) settles faster
-## (AimConfig.crouch_settle_factor).
-## Per weapon (ADR 0085): several projectiles per shot spread inside a cone (WeaponData.pellets,
-## PelletPattern), automatic fire while `trigger_held`, the weapon's own aim cone
-## (WeaponData.aim_config) and a scope (toggle_scope(); `scope`, a ScopeState: the scope's cone, the
-## view model hidden; it comes off when the weapon is switched or put away, a reload starts or the
-## user cannot use its arms; whoever owns the camera reads scope.view_fov()). Fitted attachments
-## change the weapon's stats (WeaponState.stat(): fire noise, flash, volume, `suppressed` shot sound)
-## and show on its model.
-## The first-person view (model or placeholder box, recoil and swing, muzzle flash, cloak) is the
-## WeaponView child "ViewPivot" (view_pivot()); on a guard it is the box it holds. Two ways to arm it:
-## a fixed loadout (`weapons`, equip(index); guards' loadouts) that the holder saves itself, or
-## equip_state() with a WeaponState owned elsewhere (the player's inventory weapon stacks, saved by
-## PlayerInventory; ADR 0050). Fixed-loadout weapons can be taken out (remove_from_loadout(): a
-## dropped weapon, WeaponDrop, ADR 0087); the save lists the ones left.
-## `cause_id` (ADR 0087): when set, every stimulus the holder emits names it as its cause, so what
-## the weapon does traces back to whoever made it fire (a turret's last command).
-## A character with a model hangs the view from its hand (WeaponView.hang_from(), CharacterAnimator,
-## ADR 0103): the weapon follows the arm; shots still leave the eye.
-## Recoil (ADR 0123, `recoil_enabled`): each shot of a weapon with a RecoilConfig climbs the aim
-## (`recoil`, a RecoilState) and the climb returns by itself; shots follow the climbed aim. Whoever
-## owns the eye may turn the eye itself by a share of the climb (recoil.view_recoil(): the
-## player's camera); the holder adds the rest to the shots, so the bullets follow the whole climb
-## whatever that share is. The user's `<class>_recoil_size_mult`, `_recoil_noise_mult` and
-## `_recoil_recover_mult` scale it. Damage falls off with distance (WeaponData.falloff_*).
-## Feel (ADR 0128): with `view_motion` the view model kicks, sways, bobs with the user's ground speed,
-## dips over a reload and rises on a draw (WeaponView, WeaponData.motion); `eye_shake` (a camera
-## shake the eye's owner adds) is taken back out of the shots; a shot plays its layered ShotSound
-## through `shot_audio` (WeaponAudio.shots) with the echo of the shooter's place (Acoustics).
-## Shot feedback (ADR 0126): its ShotFeedback child leaves impacts by material and tracers
-## (`tracer_every`, else the weapon's) through the viewport's ShotFx, for any shooter.
+## start at the eye along its -Z; whoever drives the holder points the eye and calls physics_step()
+## and trigger() (`trigger_held` for automatic fire). Nothing here reads input.
+## It coordinates who may fire, the cycle and ammo (WeaponState), aim, recoil (`recoil`, ADR 0123),
+## the scope (toggle_scope(), `scope`: ScopeState), the view and the loadout. What a trigger does is
+## the weapon's delivery (WeaponData.delivery(): RangedFire, MeleeSweep, ThrowRelease); sounds are its
+## WeaponAudio child (`audio`), impacts and tracers its ShotFeedback child (ADR 0126), the view model
+## its WeaponView child (view_pivot(); hung from the hand with a CharacterAnimator, ADR 0103).
+## `aimed_hit` is what a shot through the centre of the cone would meet (the crosshair).
+## Stats: the weapon's data and attachments (WeaponState.stat()), scaled by the user's attributes of
+## its class (WeaponData.attribute_class, ADR 0061) and `aim_sway_mult` / `aim_spread_add`.
+## Arming: a fixed loadout (`weapons`, equip(index); saved by the holder; remove_from_loadout() for a
+## dropped weapon) or equip_state() with a WeaponState owned elsewhere (the player's inventory).
+## `cause_id`: every stimulus it emits names it as its cause (a turret's command, ADR 0087).
+## Feel (ADR 0128): `view_motion` (kick, sway, bob, reload dip), `eye_shake` taken back out of shots.
 
 signal changed
 ## A shot or a swing of `weapon` happened (the trigger fired it): animation, effects.
@@ -145,7 +118,7 @@ var _has_user_position: bool = false
 
 func _ready() -> void:
 	if not weapons.is_empty():
-		add_to_group(&"saveable")
+		add_to_group(LevelSnapshot.GROUP)
 	# Its own copy: instances of one scene may share the exported array, and a drop removes from it.
 	weapons = weapons.duplicate()
 	aim = AimModel.new(aim_config, rng_seed)

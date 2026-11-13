@@ -86,14 +86,14 @@ func test_no_room_against_a_wall_refuses_the_release() -> void:
 	await _driver.hold(&"fire", 2)
 
 	assert_bool(_player.carry.is_carrying()).is_true()
-	var refused := EventLog.find(&"player.release_refused")
+	var refused := EventLog.find(&"carry.release_refused")
 	(
 		assert_array(refused.map(func(entry: EventLogEntry) -> StringName: return entry.data["how"]))
 		. is_equal([&"put_down", &"drop", &"throw"])
 	)
 	assert_str(refused[0].data["reason"]).is_equal("no_room")
-	assert_array(EventLog.find(&"player.dropped")).is_empty()
-	assert_array(EventLog.find(&"player.threw")).is_empty()
+	assert_array(EventLog.find(&"carry.dropped")).is_empty()
+	assert_array(EventLog.find(&"carry.threw")).is_empty()
 	assert_int(crate.collision_layer).is_equal(0)
 
 

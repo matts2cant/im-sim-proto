@@ -56,7 +56,7 @@ var _close_button: Button
 func _ready() -> void:
 	visible = false
 	_build()
-	player = get_parent() as Player
+	player = Entities.of_component(self) as Player
 	if player == null:
 		return
 	if not player.is_node_ready():

@@ -20,7 +20,7 @@ var _entity: Node3D
 
 
 func _ready() -> void:
-	_entity = get_node_or_null(entity_path) as Node3D
+	_entity = Entities.of_component(self, entity_path) as Node3D
 	if not view_path.is_empty():
 		_view = get_node_or_null(view_path) as Node3D
 

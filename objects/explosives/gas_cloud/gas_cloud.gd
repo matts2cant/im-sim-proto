@@ -12,6 +12,8 @@ extends Node3D
 ## swells in, fades out over its last `config.fade_time` s and is removed after `config.duration`.
 ## The look: translucent puffs (cull disabled, so it tints the view from inside).
 ## EventLog: `gas.released {cloud}`, `gas.ended {cloud}`. Saveable (`age`, `drift`, place).
+## GROUP is the index of the clouds in the level (tests and the debug panel's spawns find them by
+## it); nothing in the game reads it.
 
 const GROUP: StringName = &"gas_cloud"
 const STUN_TYPE: StringName = &"damage.stun.gas"
@@ -45,7 +47,7 @@ var _puffs: Node3D
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	_pulse_left = config.pulse_interval
 	_build_look()
 	EventLog.record(EventKinds.GAS_RELEASED, String(name), "", {"cloud": String(name)})

@@ -28,10 +28,10 @@ func after_test() -> void:
 
 func test_drag_moves_a_stack_with_a_fit_check() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1)
-	_player.inventory.give(Items.BATON, 1)
-	var pistol := _player.inventory.inventory.stacks[0]
-	var baton := _player.inventory.inventory.stacks[1]
+	_player.inventory.add(Items.PISTOL, 1)
+	_player.inventory.add(Items.BATON, 1)
+	var pistol := _player.inventory.grid.stacks[0]
+	var baton := _player.inventory.grid.stacks[1]
 	await _open()
 
 	# Grab the pistol by its right cell and drop that cell on (4, 3): the pistol lands at (3, 3).
@@ -48,8 +48,8 @@ func test_drag_moves_a_stack_with_a_fit_check() -> void:
 
 func test_drag_to_a_belt_slot_assigns_and_off_the_belt_clears() -> void:
 	await _load()
-	_player.inventory.give(Items.AMMO, 40)
-	var ammo := _player.inventory.inventory.stacks[0]
+	_player.inventory.add(Items.AMMO, 40)
+	var ammo := _player.inventory.grid.stacks[0]
 	await _open()
 
 	_drag(_view.cell_center(Vector2i(0, 0)), _view.belt_slot_rect(4).get_center())
@@ -63,12 +63,12 @@ func test_drag_to_a_belt_slot_assigns_and_off_the_belt_clears() -> void:
 
 func test_drag_out_of_the_view_drops_into_the_world() -> void:
 	await _load()
-	_player.inventory.give(Items.LOCKPICK, 4)
+	_player.inventory.add(Items.LOCKPICK, 4)
 	await _open()
 
 	_drag(_view.cell_center(Vector2i(0, 0)), Vector2(-120, 40))
 
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	var dropped := EventLog.find(&"item.dropped")
 	assert_array(dropped).has_size(1)
 	assert_int(dropped[0].data["count"]).is_equal(4)
@@ -76,15 +76,15 @@ func test_drag_out_of_the_view_drops_into_the_world() -> void:
 
 func test_a_click_selects_and_the_details_follow() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1)
-	_player.inventory.give(Items.MEDKIT, 2)
+	_player.inventory.add(Items.PISTOL, 1)
+	_player.inventory.add(Items.MEDKIT, 2)
 	await _open()
 	# Nothing in hand: the first stack is selected on open.
-	assert_object(_tab.selected_stack()).is_same(_player.inventory.inventory.stacks[0])
+	assert_object(_tab.selected_stack()).is_same(_player.inventory.grid.stacks[0])
 
-	_click(_view.cell_center(_player.inventory.inventory.stacks[1].cell))
+	_click(_view.cell_center(_player.inventory.grid.stacks[1].cell))
 
-	var medkit := _player.inventory.inventory.stacks[1]
+	var medkit := _player.inventory.grid.stacks[1]
 	assert_object(_tab.selected_stack()).is_same(medkit)
 	assert_str((_tab.detail_box.get_node("Head/Title") as Label).text).is_equal("Medkit  x2")
 	assert_str(_tab.use_button.text).is_equal("Use")
@@ -92,7 +92,7 @@ func test_a_click_selects_and_the_details_follow() -> void:
 
 func test_use_heals_while_the_world_runs() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 3)
+	_player.inventory.add(Items.MEDKIT, 3)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 	await _open()
 
@@ -100,20 +100,20 @@ func test_use_heals_while_the_world_runs() -> void:
 
 	assert_bool(get_tree().paused).is_false()
 	assert_array(EventLog.find(&"actor.healed")).has_size(1)
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(2)
 	assert_bool(_tabs.is_open()).is_true()
 	# Unhurt now: refused, and the tab says why.
 	_player.body.heal(1000.0)
 	_tab.use_button.pressed.emit()
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(2)
 	assert_str(_tab.status_label.text).is_equal(Items.MEDKIT.refused_message)
 
 
 func test_equip_drop_and_the_belt_picker() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1)
-	_player.inventory.give(Items.AMMO, 20)
-	var pistol := _player.inventory.inventory.stacks[0]
+	_player.inventory.add(Items.PISTOL, 1)
+	_player.inventory.add(Items.AMMO, 20)
+	var pistol := _player.inventory.grid.stacks[0]
 	await _open()
 	_tab.select(pistol)
 
@@ -132,7 +132,7 @@ func test_equip_drop_and_the_belt_picker() -> void:
 	assert_int(_player.inventory.belt.slot_of(pistol)).is_equal(-1)
 
 	_tab.drop_button.pressed.emit()
-	assert_int(_player.inventory.inventory.count_of(&"pistol")).is_equal(0)
+	assert_int(_player.inventory.grid.count_of(&"pistol")).is_equal(0)
 	assert_array(EventLog.find(&"item.dropped")).has_size(1)
 	# The selection is gone; the details say so.
 	_tab.refresh()
@@ -142,9 +142,9 @@ func test_equip_drop_and_the_belt_picker() -> void:
 
 func test_right_click_menu_use_split_and_assign() -> void:
 	await _load()
-	_player.inventory.give(Items.AMMO, 41)
+	_player.inventory.add(Items.AMMO, 41)
 	await _open()
-	var ammo := _player.inventory.inventory.stacks[0]
+	var ammo := _player.inventory.grid.stacks[0]
 
 	_view._gui_input(_button(MOUSE_BUTTON_RIGHT, true, _view.cell_center(Vector2i(0, 0))))
 	await _driver.frames(1)
@@ -157,7 +157,7 @@ func test_right_click_menu_use_split_and_assign() -> void:
 	_tab.choose(InventoryTab.MENU_BELT + 9)
 
 	assert_int(ammo.count).is_equal(21)
-	assert_int(_player.inventory.inventory.stacks[1].count).is_equal(20)
+	assert_int(_player.inventory.grid.stacks[1].count).is_equal(20)
 	assert_int(_player.inventory.belt.slot_of(ammo)).is_equal(9)
 
 

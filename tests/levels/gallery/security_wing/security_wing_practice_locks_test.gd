@@ -160,8 +160,8 @@ func test_the_player_picks_each_practice_lock_from_in_front_of_it() -> void:
 	player.reload_on_reset = false
 	var wing := runner.find_child("SecurityWing") as Node3D
 	await driver.settle()
-	player.inventory.give(Items.LOCKPICK, 1)
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"lockpick")[0])
+	player.inventory.add(Items.LOCKPICK, 1)
+	player.inventory.hold(player.inventory.grid.stacks_of(&"lockpick")[0])
 	var screen := LockpickScreen.of(player)
 	var reach := player.interactor.config.reach
 	for spec: Array in LOCKS:

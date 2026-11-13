@@ -151,7 +151,7 @@ func _signature_of(tier: String) -> String:
 	var session := wireless.session
 	return str(
 		[
-			DeckSession.path_of(target),
+			DeckSession.key_of(target),
 			_number(wireless.distance_to(target)),
 			wireless.has_sight(target),
 			wireless.is_running(),

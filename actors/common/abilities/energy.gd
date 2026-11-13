@@ -16,14 +16,17 @@ var _attributes: Attributes
 
 
 static func of(entity: Node) -> Energy:
-	if not is_instance_valid(entity):
+	if entity == null or not is_instance_valid(entity):
 		return null
-	return entity.get_node_or_null(^"Energy") as Energy
+	for child in entity.get_children():
+		if child is Energy:
+			return child as Energy
+	return null
 
 
 func _ready() -> void:
-	EmpEffect.listen(get_parent())
-	_attributes = Attributes.of(get_parent())
+	EmpEffect.listen(Entities.of_component(self))
+	_attributes = Attributes.of(Entities.of_component(self))
 	if _attributes == null:
 		push_warning("Energy %s: no sibling Attributes" % get_path())
 		return
@@ -46,10 +49,6 @@ func fraction() -> float:
 
 func is_empty() -> bool:
 	return current() <= 0.0
-
-
-func is_full() -> bool:
-	return current() >= maximum()
 
 
 ## Sets the charge, clamped to 0..maximum.

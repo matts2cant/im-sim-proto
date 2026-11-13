@@ -13,13 +13,13 @@ extends Node
 ## see-through. It still burns, hurts its carrier when burning and receives stimuli (they reach
 ## receivers by distance, not by collision). Every release looks for a free spot first: the shape is
 ## cast from the chest towards the hold point (pushed clear of the carrier's body) and placed short
-## of the first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No
+## of the first contact; put down, drop and throw are refused (`carry.release_refused`, HUD "No
 ## room") when that spot overlaps anything (the EventLog kinds keep their `player.` names).
 ## The mass limit is the carrier's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on);
 ## the mass is Carryable.mass_of() (a character's `carry_mass`). A Carryable's carry_speed_factor
 ## slows the carrier on top of the heavy-load factor (speed_factor(), read by its controller).
 ## When the limit falls below the held mass (Combat Strength switched off or out of energy), the
-## object is dropped at once (`player.dropped` how `too_heavy`) with the notice "Too heavy".
+## object is dropped at once (`carry.dropped` how `too_heavy`) with the notice "Too heavy".
 ## Not saved: loading a save drops what is held where it is (a carried character is saved where it
 ## is held and falls to the floor on load).
 
@@ -62,7 +62,7 @@ var _room: bool = true
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if config == null:
 		config = DEFAULT_CONFIG
 
@@ -86,8 +86,7 @@ func held_mass() -> float:
 
 
 func mass_limit() -> float:
-	var attributes := Attributes.of(entity)
-	return attributes.value(LIMIT_ATTRIBUTE) if attributes != null else 0.0
+	return Attributes.value_of(entity, LIMIT_ATTRIBUTE)
 
 
 func speed_factor() -> float:
@@ -110,12 +109,12 @@ func use() -> void:
 
 
 ## Picks up the Carryable body under the crosshair within reach; false when there is none or it is
-## too heavy (logged as `player.pickup_refused`).
+## too heavy (logged as `carry.pickup_refused`).
 func try_pick_up() -> bool:
 	var hit := _look_hit(config.carry_reach)
 	if hit.is_empty():
 		return false
-	var body := Interactor.entity_of(hit["collider"] as Node) as PhysicsBody3D
+	var body := Entities.of_collider(hit["collider"] as Node) as PhysicsBody3D
 	if body == null or not can_offer(body):
 		return false
 	return try_pick_up_body(body)
@@ -127,13 +126,13 @@ static func can_offer(body: Node) -> bool:
 	return body is PhysicsBody3D and carryable != null and carryable.is_offered() and not carryable.is_carried()
 
 
-## Picks up `body` if it is within the mass limit; otherwise logs `player.pickup_refused`.
+## Picks up `body` if it is within the mass limit; otherwise logs `carry.pickup_refused`.
 func try_pick_up_body(body: PhysicsBody3D) -> bool:
 	var limit := mass_limit()
 	var mass := Carryable.mass_of(body)
 	if not CarryRules.can_carry(mass, limit):
 		var data := {"object": String(body.name), "mass": mass, "limit": limit}
-		EventLog.record(EventKinds.PLAYER_PICKUP_REFUSED, String(entity.name), String(body.name), data)
+		EventLog.record(EventKinds.CARRY_PICKUP_REFUSED, String(entity.name), String(body.name), data)
 		return false
 	pick_up(body)
 	return true
@@ -158,7 +157,7 @@ func pick_up(body: PhysicsBody3D) -> void:
 	var carryable := Carryable.of(body)
 	if carryable != null:
 		carryable.set_carrier(entity)
-	EventLog.record(EventKinds.PLAYER_PICKED_UP, String(entity.name), String(body.name), {"object": String(body.name)})
+	EventLog.record(EventKinds.CARRY_PICKED_UP, String(entity.name), String(body.name), {"object": String(body.name)})
 	picked_up.emit(body)
 
 
@@ -189,7 +188,7 @@ func throw() -> bool:
 	if not _try_release(&"throw", direction * speed):
 		return false
 	var data := {"object": String(body.name), "speed": speed}
-	EventLog.record(EventKinds.PLAYER_THREW, String(entity.name), String(body.name), data)
+	EventLog.record(EventKinds.CARRY_THREW, String(entity.name), String(body.name), data)
 	return true
 
 
@@ -276,7 +275,7 @@ func _try_release(how: StringName, velocity: Vector3) -> bool:
 		_room = false
 		var body := held
 		var data := {"object": String(body.name), "how": how, "reason": &"no_room"}
-		EventLog.record(EventKinds.PLAYER_RELEASE_REFUSED, String(entity.name), String(body.name), data)
+		EventLog.record(EventKinds.CARRY_RELEASE_REFUSED, String(entity.name), String(body.name), data)
 		release_refused.emit(body, how)
 		return false
 	_let_go(how, spot["transform"], velocity)
@@ -306,7 +305,7 @@ func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
 		carryable.set_carrier(null)
 	if how != &"throw":
 		var data := {"object": String(body.name), "how": how}
-		EventLog.record(EventKinds.PLAYER_DROPPED, String(entity.name), String(body.name), data)
+		EventLog.record(EventKinds.CARRY_DROPPED, String(entity.name), String(body.name), data)
 	released.emit(body, how)
 
 

@@ -17,7 +17,7 @@ var entity: Node3D
 
 func _ready() -> void:
 	verb = "tune"
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 
 
 func target_name() -> String:

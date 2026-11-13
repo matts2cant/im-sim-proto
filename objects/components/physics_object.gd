@@ -9,7 +9,6 @@ extends RigidBody3D
 ## `force_receptron` to its StimulusReceiver, creating one at the body's origin when the scene has
 ## none (item pickups), so no prop scene repeats it.
 
-const GROUP: StringName = &"physics_object"
 const RECEIVER_NAME: String = "StimulusReceiver"
 
 ## Appended to the prop's StimulusReceiver; null: never pushed by force stimuli.
@@ -17,8 +16,7 @@ const RECEIVER_NAME: String = "StimulusReceiver"
 
 
 func _ready() -> void:
-	add_to_group(GROUP)
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	# Props never scan the moving characters' layers (player, actors), whatever their scene says
 	# (ADR 0054), and always scan static characters (ADR 0070).
 	collision_mask = (collision_mask & ~PhysicsLayers.CHARACTER_LAYERS) | PhysicsLayers.STATIC_ACTORS

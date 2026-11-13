@@ -61,10 +61,10 @@ See [../levels/kit.md](../levels/kit.md).
 
 Start the hub and go through doorway "3 Physics & Fire" (east wall) into the gallery room ([../levels/hub-and-gallery.md](../levels/hub-and-gallery.md#3-physics-and-fire)); the debug panel (`) Spawn tab spawns more objects 2 m in front of you and "Reset level" brings everything back. Keep the Event Log tab (filter `object.` / `player.`) and Overlays > Heat at hand. See [../game/objects-and-fire.md](../game/objects-and-fire.md).
 
-- [ ] Pick up a small crate, cardboard box and bottle with E (look at it within 2 m): it sits close in the lower part of the view (crate 0.75 m ahead), half see-through, the crosshair clear above it, and follows the view exactly without lag or jitter. The large and metal crates and the barrel refuse (`player.pickup_refused`).
+- [ ] Pick up a small crate, cardboard box and bottle with E (look at it within 2 m): it sits close in the lower part of the view (crate 0.75 m ahead), half see-through, the crosshair clear above it, and follows the view exactly without lag or jitter. The large and metal crates and the barrel refuse (`carry.pickup_refused`).
 - [ ] Knock a small crate onto its side (or spawn one and push it over), pick it up: within a blink it turns upright and square to the view (never diagonal), and turns with you as you look around.
 - [ ] Carry a crate through a doorway and along a wall: it passes into the jambs and the wall (see-through) without snagging, stopping you or being dropped; you stop at walls exactly as without it.
-- [ ] Walk up to a wall until you touch it and press E / Q / LMB: nothing is released, the prompt reads "No room to put down Small crate" (`player.release_refused`). Step back a little (about 0.7 m between you and the wall): E sets it down between you and the wall, never inside the wall or you.
+- [ ] Walk up to a wall until you touch it and press E / Q / LMB: nothing is released, the prompt reads "No room to put down Small crate" (`carry.release_refused`). Step back a little (about 0.7 m between you and the wall): E sets it down between you and the wall, never inside the wall or you.
 - [ ] Stack crates: put one down, stand about a metre from it, look at the middle of its top and press E: the carried crate is set on top, upright, and stays. Stack a third one the same way (the second is at chest height).
 - [ ] Walking with the small crate (10 kg) feels a bit slower (x0.8); with a box or bottle it does not. Mantling does nothing while carrying; jumping still works.
 - [ ] E puts the object down gently; Q drops it; LMB throws it: a crate flies a short arc (4 m/s), a box or bottle flies fast and far (12 m/s). A throw starts from a free spot in front of you, never inside a wall or another object.
@@ -89,7 +89,7 @@ Gallery room 3 (Physics and fire):
 - [ ] C Barrel chain: from behind the parapet, "Damage looked-at" barrel 1 until it blows (or throw a burning box at it): barrel 2 goes off right after, the crate stack is thrown and burns (since ADR 0057 all three stack crates usually catch at once). The pushes look as strong as before (blast push is now a `force.blast` stimulus). The blast reads well from the parapet; nothing at the fire row or the brazier is touched.
 - [ ] D Barricade: set a burning crate in the barricaded doorway: the barricade catches within about 10 s, burns for 30 s, then disappears and you can walk into the side room. Throw or break its crate: two glass bottles drop out whole.
 - [ ] E Throwables: bottles thrown at a wall shatter; boxes and crates thrown onto the metal floor sound and log louder (`object.impact` loudness) than on concrete; the table items are easy to pick off the 1.0 m table.
-- [ ] F Too heavy: E on the large and the metal crate is refused (`player.pickup_refused`), the sign explains why.
+- [ ] F Too heavy: E on the large and the metal crate is refused (`carry.pickup_refused`), the sign explains why.
 - [ ] Reset level (Spawn tab) after a few fires: the hub reloads with every object back, nothing still burning, the panel still works, and the time scale you set stays.
 
 ## M4 Damage and weapons (Shooting range)

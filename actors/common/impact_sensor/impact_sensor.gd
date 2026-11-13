@@ -24,7 +24,7 @@ var _time: float = 0.0
 
 
 func _ready() -> void:
-	entity = get_parent() as CollisionObject3D
+	entity = Entities.of_component(self) as CollisionObject3D
 	active = entity != null and props_pass_through(entity.collision_layer)
 	set_physics_process(active)
 

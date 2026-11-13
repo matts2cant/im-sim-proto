@@ -10,6 +10,10 @@ const OFF: StringName = &"command.fixture_off"
 var on: bool = false
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func device_status() -> Array[StatusWord]:
 	return [StatusWord.make("on" if on else "off")] as Array[StatusWord]
 

@@ -164,7 +164,7 @@ func test_baton_post_never_sees_the_downed_guard_while_glancing() -> void:
 
 func test_downed_guard_lies_unconscious_beside_route_a_with_room_to_stand() -> void:
 	var downed := _guard("GuardBatonDowned")
-	var tags := ActorState.tags_of(downed)
+	var tags := Tags.of(downed)
 
 	assert_bool(tags.has(ActorState.UNCONSCIOUS)).is_true()
 	assert_bool(tags.has(&"actor.guard")).is_true()

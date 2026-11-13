@@ -31,7 +31,6 @@ signal desktop_closed
 ## The bare-handed session opened or closed.
 signal session_changed(logged_in: bool)
 
-const GROUP: StringName = &"computer"
 ## The screen id a computer asks its viewer's Screens for (the Halcyon OS overlay), and its options:
 ## the account the desktop shows ("": the login) and whether it is remote (inside the deck).
 const SCREEN: StringName = &"computer"
@@ -83,10 +82,13 @@ class DeviceRow:
 	var has_view: bool = false
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	add_to_group(GROUP)
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null or config == null:
 		push_warning("Computer %s: needs a Device sibling and a config" % get_path())

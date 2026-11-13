@@ -157,7 +157,7 @@ func test_f6_combat_strength_lifts_the_large_crate_only_while_on() -> void:
 	assert_float(_player.carry.mass_limit()).is_equal_approx(20.0, 0.001)
 
 	assert_bool(_player.carry.try_pick_up_body(crate)).is_false()
-	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
+	assert_array(EventLog.find(&"carry.pickup_refused")).has_size(1)
 	await _driver.press(&"aug_5")
 	assert_float(_player.carry.mass_limit()).is_equal_approx(70.0, 0.001)
 	assert_bool(_player.carry.try_pick_up_body(crate)).is_true()
@@ -185,7 +185,7 @@ func test_switching_combat_strength_off_drops_a_heavy_crate_with_a_message() -> 
 
 	assert_bool(_player.carry.is_carrying()).is_false()
 	assert_str(_hud.message_label.text).is_equal(Carrier.TOO_HEAVY)
-	var dropped := EventLog.find(&"player.dropped")
+	var dropped := EventLog.find(&"carry.dropped")
 	assert_array(dropped).has_size(1)
 	assert_str(String(dropped[0].data["how"])).is_equal("too_heavy")
 	assert_int(crate.collision_layer).is_not_equal(0)
@@ -204,7 +204,7 @@ func test_running_out_of_energy_drops_a_heavy_crate_but_keeps_a_light_one() -> v
 
 	assert_bool(_player.augmentations.is_active(&"combat_strength")).is_false()
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_str(String(EventLog.find(&"player.dropped")[0].data["how"])).is_equal("too_heavy")
+	assert_str(String(EventLog.find(&"carry.dropped")[0].data["how"])).is_equal("too_heavy")
 
 	# A 20 kg-or-lighter object stays held when Combat Strength goes off.
 	_player.energy.set_current(50.0)

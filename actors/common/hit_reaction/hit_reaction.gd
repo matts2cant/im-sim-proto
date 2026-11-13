@@ -39,13 +39,13 @@ var _lean_axis: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	holder = get_node_or_null(holder_path) as WeaponHolder
 	if entity == null or config == null:
 		push_warning("HitReaction %s: needs a Node3D parent and a config" % get_path())
 		set_physics_process(false)
 		return
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 
 
 static func of(node: Node) -> HitReaction:

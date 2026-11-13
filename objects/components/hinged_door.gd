@@ -32,8 +32,8 @@ var _closed: Transform3D
 
 func _ready() -> void:
 	verb = "open"
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if entity == null:
 		push_warning("HingedDoor %s: entity_path %s is not a Node3D" % [get_path(), entity_path])
 		return
@@ -63,7 +63,7 @@ func is_locked() -> bool:
 
 ## The leaf's transform (in its parent) while closed.
 func closed_transform() -> Transform3D:
-	return _closed if entity != null else (get_node_or_null(entity_path) as Node3D).transform
+	return _closed if entity != null else (Entities.of_component(self, entity_path) as Node3D).transform
 
 
 ## True once it has swung fully open or shut, as `open` says.

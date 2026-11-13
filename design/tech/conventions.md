@@ -19,7 +19,16 @@
 - Pure logic in RefCounted/Resource classes; nodes are thin adapters.
 - Exactly three autoloads: `StimulusSystem`, `EventLog`, `DebugPanel`.
 - Signals for local events; stimuli for world events.
-- Every stateful system is saveable (group `saveable`, `save_state()` / `load_state()`).
+- Every stateful system is saveable (group `saveable`: `LevelSnapshot.GROUP`, never the literal; `save_state()` / `load_state()`).
+
+## Entities and components ([ADR 0141](../decisions/0141-lookup-conventions-interfaces-device-keys.md))
+
+- **Finding a component**: `X.of(entity)`, a static that scans the entity's direct children by class (`if child is X`), null-safe. The one exception is the two core components every scene names the same: `Tags.of()` and `Attributes.of()` look up `Tags.NODE_NAME` / `Attributes.NODE_NAME` (hot paths). Never `get_node("Tags")`, `$Attributes` on another entity, or a character helper (`ActorState` reads tags through `Tags.of()`); `Tags.above(node)` is the nearest ancestor with Tags.
+- **A component's entity**: `Entities.of_component(self, entity_path)` (`@export var entity_path: NodePath = ^".."`), or `Entities.of_component(self)` for a component that is always a direct child; resolved once in `_ready` into an `entity` (or typed `body`) field. Not `get_parent()` or `get_node(entity_path)`.
+- **What a collider stands for**: `Entities.of_collider(collider)`: a collider under a node in `Entities.PARTS_GROUP` (a character's `Hitboxes`) is its character, anything else itself. Ray and shape queries resolve hits through it.
+- **Reading attributes**: `Attributes.value_of(entity, attribute)` for a value the entity stores (health, energy, carry limit; 0 without Attributes), `Attributes.read(entity, attribute, base)` for a tuning value whose base is in a config and that modifiers change. A component holding its own `Attributes` reference may call `value()` on it.
+- **Component interfaces are group + method.** The class that calls the interface owns `GROUP` and the method name constants and documents the signatures (`HeatEffect`, `EmpEffect`, `DeviceStatus`, `ToolUse`, `DeviceNetwork.ADDRESS_GROUP`, `StatusWord.FRAME_GROUP`). An implementing component joins the group in `_init()` (it then counts out of the tree and when built in code) and implements the methods; callers iterate `Entities.members(entity, GROUP, METHOD)`. No bare `has_method()` probing and no duck typing on a user or a resource: ask a component (`Eyes.view_of()`) or take a `Callable`. A level's data may still name a method to call (`CallButton.method`, like a signal connection).
+- **Groups are indexes someone reads.** Do not add a group nothing reads; a group kept only as an index for tests and the debug panel says so in its class header (`GasCloud.GROUP`).
 
 ## UI plumbing ([ADR 0133](../decisions/0133-ui-plumbing-focus-notices-screens.md))
 

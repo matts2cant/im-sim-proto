@@ -56,7 +56,7 @@ func test_trained_crouched_player_disarms_a_mine_into_the_inventory() -> void:
 func test_save_and_load_keep_fuses_mines_and_the_inventory() -> void:
 	var room := await _room()
 	_place(Vector3.ZERO, 0.0, 0.0, false)
-	_player.inventory.give(FRAG, 3)
+	_player.inventory.add(FRAG, 3)
 	_player.inventory.select_slot(0)
 	await Wait.frames(get_tree(), 1)
 	# Stick one on the wall 1.0 m ahead, then turn to the open floor (-X) and throw one.

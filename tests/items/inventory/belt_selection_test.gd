@@ -55,14 +55,14 @@ func test_wheel_up_from_holstered_takes_the_last_item_and_wraps() -> void:
 
 func test_scrolling_onto_a_medkit_does_not_use_it() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 2)
+	_player.inventory.add(Items.MEDKIT, 2)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 	EventLog.clear()
 
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
 
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(2)
 	assert_array(EventLog.find(&"actor.healed")).is_empty()
 	# The HUD updates in _process, which lags physics frames under the time factor: refresh it now.
 	_hud.refresh_weapon()
@@ -90,7 +90,7 @@ func test_h_holsters_the_drawn_pistol_and_clears_the_highlight() -> void:
 
 func test_h_puts_a_held_item_away() -> void:
 	await _load()
-	_player.inventory.give(Items.LOCKPICK, 1)
+	_player.inventory.add(Items.LOCKPICK, 1)
 	await _driver.press(&"belt_1")
 	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
@@ -147,10 +147,10 @@ func test_wheel_and_h_are_ignored_when_dead() -> void:
 # Pistol in slot 0 (key 1), baton moved to slot 3, medkits moved to slot 6; the rest empty.
 func _loadout_with_gap() -> void:
 	Items.arm(_player)
-	_player.inventory.give(Items.MEDKIT, 2)
+	_player.inventory.add(Items.MEDKIT, 2)
 	var inventory := _player.inventory
-	inventory.belt.assign(3, inventory.inventory.stacks_of(&"baton")[0])
-	inventory.belt.assign(6, inventory.inventory.stacks_of(&"medkit")[0])
+	inventory.belt.assign(3, inventory.grid.stacks_of(&"baton")[0])
+	inventory.belt.assign(6, inventory.grid.stacks_of(&"medkit")[0])
 	assert_object(inventory.belt.stack_in(1)).is_null()
 
 

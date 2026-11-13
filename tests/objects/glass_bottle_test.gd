@@ -36,7 +36,7 @@ func test_thrown_bottle_breaks_on_the_wall_and_makes_noise() -> void:
 	await _driver.hold(&"fire", 2)
 	await _driver.frames(40)
 
-	assert_float(Objects.logged(&"player.threw", "object", "GlassBottle")[0].data["speed"]).is_equal(12.0)
+	assert_float(Objects.logged(&"carry.threw", "object", "GlassBottle")[0].data["speed"]).is_equal(12.0)
 	var impact: EventLogEntry = Objects.logged(&"object.impact", "object", "GlassBottle")[0]
 	assert_str(impact.data["other"]).is_equal("Wall")
 	assert_float(impact.data["speed"]).is_greater(4.0)

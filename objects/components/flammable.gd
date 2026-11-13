@@ -42,12 +42,15 @@ var _fx: FireFx
 var _tags: Tags
 
 
+func _init() -> void:
+	add_to_group(HeatEffect.GROUP)
+
+
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(HeatEffect.GROUP)
-	add_to_group(&"saveable")
-	entity = get_node(entity_path) as Node3D
-	_tags = entity.get_node_or_null(^"Tags") as Tags
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
+	_tags = Tags.of(entity)
 	heat_model = HeatModel.new(config.ignition_threshold, config.cool_rate)
 	fuel_left = config.fuel_seconds
 	if burning_at_start:
@@ -55,6 +58,8 @@ func _ready() -> void:
 
 
 static func of(node: Node) -> Flammable:
+	if node == null or not is_instance_valid(node):
+		return null
 	for child in node.get_children():
 		if child is Flammable:
 			return child as Flammable

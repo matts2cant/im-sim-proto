@@ -3,7 +3,8 @@ extends Node3D
 ## Component of a door (ADR 0098; the `Hardware` node of `objects/door/door.tscn`, at the entity's
 ## origin): the lock hardware, placed by DoorLayout from the door's settings and wall, never per
 ## level.
-## - The leaf's handle (the entity's `Handle` shape and `HandleMesh`) on its leading edge, proud of
+## - The leaf's handle (`handle_path` and `handle_mesh_path`: the entity's `Handle` shape and
+##   `HandleMesh` in door.tscn; empty: no handle) on its leading edge, proud of
 ##   both faces; a leaf that slides into the wall carries it past its edge, so it stands out of the
 ##   jamb when open (E closes the door there). It follows the leaf (follow()).
 ## - Each leaf lock's fitting (Lock.Mount.LEAF: a keyhole) on both faces of the handle.
@@ -30,6 +31,10 @@ const CONTROLLER: PackedScene = preload("res://objects/door/door_controller.tscn
 const BUILT_META: StringName = &"door_hardware"
 ## Metadata on the default controller built here.
 const DEFAULT_META: StringName = &"door_hardware_default"
+
+## The handle's collision shape and its mesh (from this node; set by the door scene).
+@export var handle_path: NodePath
+@export var handle_mesh_path: NodePath
 
 var door: Door
 ## The handle's box relative to the leaf's centre (DoorLayout.handle_box()).
@@ -60,8 +65,8 @@ static func of(node: Node) -> DoorHardware:
 ## Builds the handle and the hardware of `p_door`'s locks (its entity's Lock components).
 func build(p_door: Door) -> void:
 	door = p_door
-	_handle = door.entity.get_node_or_null(^"Handle") as CollisionShape3D
-	_handle_mesh = door.entity.get_node_or_null(^"HandleMesh") as Node3D
+	_handle = (get_node_or_null(handle_path) if not handle_path.is_empty() else null) as CollisionShape3D
+	_handle_mesh = (get_node_or_null(handle_mesh_path) if not handle_mesh_path.is_empty() else null) as Node3D
 	_fit_handle()
 	_build_locks()
 	if not door.entity.child_entered_tree.is_connected(_on_child_entered):

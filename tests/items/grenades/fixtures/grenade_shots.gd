@@ -137,7 +137,7 @@ func _setup() -> void:
 
 func _give(kind: String, count: int) -> void:
 	var item := load(ITEMS[kind]) as ItemData
-	_player.inventory.give(item, count)
+	_player.inventory.add(item, count)
 	_player.inventory.select_slot(0)
 
 

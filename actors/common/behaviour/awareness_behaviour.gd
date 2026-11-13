@@ -31,8 +31,8 @@ var _sweep_yaw: float = 0.0
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	body = get_parent() as NavWalker
+	add_to_group(LevelSnapshot.GROUP)
+	body = Entities.of_component(self) as NavWalker
 	if body == null:
 		push_warning("AwarenessBehaviour %s: the parent is not a NavWalker" % get_path())
 		set_physics_process(false)

@@ -38,7 +38,7 @@ func test_holds_keys_by_id_once_and_saves() -> void:
 	assert_bool(keychain.has_key(&"bay_a")).is_true()
 	assert_bool(keychain.has_key(&"office")).is_false()
 	assert_bool(keychain.has_key(&"")).is_false()
-	assert_bool(keychain.is_in_group(&"saveable")).is_true()
+	assert_bool(keychain.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_array(EventLog.find(&"keychain.key_added")).has_size(1)
 
 	var other := Keychain.new()
@@ -86,7 +86,7 @@ func test_picking_up_a_key_puts_it_on_the_keychain_not_the_grid() -> void:
 	var keychain := Keychain.of(_player)
 	assert_bool(keychain.has_key(&"bay_a")).is_true()
 	assert_bool(is_instance_valid(pickup) and not pickup.is_queued_for_deletion()).is_false()
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	var hud := _player.get_node("Hud") as Hud
 	assert_str(hud.message_label.text).is_equal("Key added to the keychain: Linking bay A")
 	# Nothing in hand to drop: Q does nothing and the key stays.
@@ -104,7 +104,7 @@ func test_the_inventory_tab_lists_the_keys() -> void:
 	await _load()
 	var keychain := Keychain.of(_player)
 	keychain.add(&"bay_a", "Linking bay A", "Found in the office desk")
-	_player.inventory.give(KEY, 1, {"key_id": "gate", "key_name": "Gate padlock"})
+	_player.inventory.add(KEY, 1, {"key_id": "gate", "key_name": "Gate padlock"})
 	var tab := TabInterface.of(_player).page(0) as InventoryTab
 
 	await _driver.hold(&"inventory", 2)
@@ -113,7 +113,7 @@ func test_the_inventory_tab_lists_the_keys() -> void:
 	assert_bool(TabInterface.of(_player).is_open()).is_true()
 	assert_bool(tab.keychain_list.is_visible_in_tree()).is_true()
 	assert_array(tab.keychain_list.names()).contains_exactly(["Linking bay A", "Gate padlock"])
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	var head := tab.keychain_list.get_child(0) as Label
 	assert_str(head.text).is_equal(KeychainList.caption_text(2).to_upper())
 

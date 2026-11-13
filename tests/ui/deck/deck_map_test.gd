@@ -33,8 +33,8 @@ func before_test() -> void:
 	_ice = IcebreakerTool.of(_player)
 	_screen = DeckScreen.of(_player)
 	await _driver.settle()
-	_player.inventory.give(DECK, 1)
-	var stack := _player.inventory.inventory.stacks_of(&"deck")[0]
+	_player.inventory.add(DECK, 1)
+	var stack := _player.inventory.grid.stacks_of(&"deck")[0]
 	_player.inventory.hold(stack)
 	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
 	await _driver.frames(2)
@@ -184,7 +184,7 @@ func test_saving_and_loading_keeps_crack_progress_and_trace() -> void:
 	assert_float(_lab.tracer().trace_of(_player)).is_equal_approx(trace, 0.001)
 	assert_bool(DeviceAccounts.of(_lab.node("Rtr01")).has_access(_player)).is_true()
 	# Plugged in again with the loaded deck: the crack resumes where it stopped.
-	var stack := _player.inventory.inventory.stacks_of(&"deck")[0]
+	var stack := _player.inventory.grid.stacks_of(&"deck")[0]
 	_player.inventory.hold(stack)
 	assert_bool(_session.plug(_lab.device("Jack"), stack)).is_true()
 	assert_float(_ice.saved_progress(_lab.device("Console"), "dmarsh")).is_equal_approx(kept, 0.0001)

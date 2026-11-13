@@ -80,7 +80,7 @@ func test_resolves_pickup_carry_and_too_heavy() -> void:
 	await _look_at(heavy.global_position)
 	assert_str(_player.interactor.prompt).is_equal("Too heavy")
 	await _driver.hold(&"use", 2)
-	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
+	assert_array(EventLog.find(&"carry.pickup_refused")).has_size(1)
 	await _look_at(Vector3(0, 1.5, -5.8))
 	assert_str(_player.interactor.prompt).is_equal("")
 

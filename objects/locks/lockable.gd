@@ -30,9 +30,13 @@ const UNLOCKED: StatusWord = preload("res://objects/devices/status_words/unlocke
 var entity: Node
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path)
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path)
 	var device := Device.of(entity)
 	if device != null:
 		device.action_received.connect(_on_action)

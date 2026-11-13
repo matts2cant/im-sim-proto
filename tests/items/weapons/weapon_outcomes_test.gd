@@ -211,7 +211,7 @@ func _load(item: ItemData) -> void:
 	_target = _driver.runner.find_child("Target") as TrainingDummy
 	await _driver.settle()
 	var inventory := _player.inventory
-	inventory.give(item, 1)
-	inventory.give(inventory.catalog.find(item.weapon.ammo_item), 60)
+	inventory.add(item, 1)
+	inventory.add(inventory.catalog.find(item.weapon.ammo_item), 60)
 	inventory.select_slot(0)
 	await _driver.frames(2)

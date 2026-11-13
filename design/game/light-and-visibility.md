@@ -13,7 +13,7 @@ A HUD light gauge (a gem and a bar above the body silhouette and energy bar) sho
 ## Rules
 
 - Light level is computed analytically ([ADR 0013](../decisions/0013-light-analytic.md), model in [ADR 0065](../decisions/0065-light-level-model.md)). No render-based light gem.
-- `LightExposure` component (`actors/common/light/`), on any entity (the player now, guards later): group `light_exposure`, `level` in [0, 1] (1 fully lit, 0.04 ambient darkness), `LightExposure.of(entity)`. Pure logic in `LightModel`, tuning in `light_exposure.tres`. Updates at 10 Hz.
+- `LightExposure` component (`actors/common/light/`), on any entity (the player now, guards later): `level` in [0, 1] (1 fully lit, 0.04 ambient darkness), `LightExposure.of(entity)`. Pure logic in `LightModel`, tuning in `light_exposure.tres`. Updates at 10 Hz.
 - Lights: every visible `OmniLight3D` / `SpotLight3D` whose range reaches the entity (fire and explosion lights included). `DirectionalLight3D` is ignored (no level uses one indoors).
 - Per light and body point: `energy x luminance(colour) x (1 - (d / range)^4)^2 / d^attenuation` (Godot's own falloff) x the spot cone factor, 0 when the shadow ray from the light hits world geometry or a prop (layers 1 and 4; the entity's own colliders and the light's lamp never block).
 - Body points above the feet: 0.2, 1.0, 1.6 m standing; 0.2, 0.55, 0.85 m with `stance.crouch`; weights 0.25 / 0.5 / 0.25.

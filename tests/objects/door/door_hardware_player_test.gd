@@ -48,7 +48,7 @@ func test_each_box_and_the_leaf_do_their_own_thing() -> void:
 	Helpers.add_keycard(_entity, &"vault")
 	Helpers.add_mechanical(_entity, 3)
 	Helpers.lock(_entity)
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "vault"})
 	await _driver.frames(2)
 	# Two boxes on each face, the keypad on top; the pin lock's keyholes on the leaf.
 	assert_int(_door.hardware.controls(true).size()).is_equal(2)
@@ -96,8 +96,8 @@ func test_each_box_and_the_leaf_do_their_own_thing() -> void:
 func test_a_pin_lock_is_picked_on_the_leaf_from_either_face() -> void:
 	var lock := Helpers.add_mechanical(_entity, 3)
 	Helpers.lock(_entity)
-	_player.inventory.give(Items.LOCKPICK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"lockpick")[0])
+	_player.inventory.add(Items.LOCKPICK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"lockpick")[0])
 	await _driver.frames(2)
 	var picking := LockpickScreen.of(_player)
 	for feet: Vector3 in [FEET_FRONT, FEET_BACK]:

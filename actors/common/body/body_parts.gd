@@ -48,12 +48,12 @@ var _state := TagContainer.new()
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node(entity_path) as Node3D
-	var tags := ActorState.tags_of(entity)
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
+	var tags := Tags.of(entity)
 	if tags != null:
 		_state = tags.container
-	_attributes = entity.get_node_or_null(^"Attributes") as Attributes
+	_attributes = Attributes.of(entity)
 	model = BodyDamageModel.new(profile)
 	if _attributes != null:
 		var values := _attributes.attribute_set
@@ -179,7 +179,7 @@ func save_state() -> Dictionary:
 func load_state(data: Dictionary) -> void:
 	model.from_dict(data.get("parts", {}))
 	stun = float(data.get("stun", stun))
-	if ActorState.tags_of(entity) == null:
+	if Tags.of(entity) == null:
 		_set_tag(DEAD_TAG, bool(data.get("dead", is_dead())))
 		_set_tag(UNCONSCIOUS_TAG, bool(data.get("unconscious", is_unconscious())))
 	_apply_injuries()

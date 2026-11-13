@@ -5,7 +5,7 @@ extends Node
 ## it runs each tick advances it by the user's crack time and adds trace to every tracer watching
 ## the device (Tracer.report_running()). It stops, keeping its progress, on stop(), when the device
 ## goes out of reach or a tracer blocks the deck's address, and when the deck unplugs. Progress is
-## kept on the deck's stack (`state.cracks` {"<device path>|<user>": {progress, hash}}) and resumed
+## kept on the deck's stack (`state.cracks` {"<device key>|<user>": {progress, hash}}) and resumed
 ## on the same account while its password is unchanged (a changed password starts over). A finished
 ## crack gives the user the account and is learned into the PersonalLog like a datapad's credential
 ## (the Journal's Codes and logins list it).
@@ -24,7 +24,7 @@ var device: Device
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	session = DeckSession.of(entity)
 	if session == null:
 		push_warning("IcebreakerTool %s: needs a DeckSession beside it" % get_path())
@@ -193,7 +193,9 @@ func _cracks() -> Dictionary:
 		return {}
 	if not stack.state.has(CRACKS) or not stack.state[CRACKS] is Dictionary:
 		stack.state[CRACKS] = {}
-	return stack.state[CRACKS] as Dictionary
+	var cracks := stack.state[CRACKS] as Dictionary
+	DeckDiscovery.migrate_keys(cracks, entity, "|")
+	return cracks
 
 
 func _account(target: Device, user: String) -> DeviceAccount:
@@ -202,4 +204,4 @@ func _account(target: Device, user: String) -> DeviceAccount:
 
 
 static func _key(target: Device, user: String) -> String:
-	return "%s|%s" % [DeckSession.path_of(target), user.to_lower()]
+	return "%s|%s" % [DeckSession.key_of(target), user.to_lower()]

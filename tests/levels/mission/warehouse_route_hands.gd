@@ -154,7 +154,7 @@ func clear_shot(character: Node3D, point: Vector3) -> bool:
 	)
 	query.exclude = _own_rids()
 	var hit := route.player.get_world_3d().direct_space_state.intersect_ray(query)
-	return not hit.is_empty() and Interactor.entity_of(hit["collider"] as Node) == character
+	return not hit.is_empty() and Entities.of_collider(hit["collider"] as Node) == character
 
 
 ## The first of `spots` (feet) from which a standing player's eyes have a clear shot at `point` on
@@ -170,7 +170,7 @@ func shooting_spot(spots: Array[Vector3], target: Node3D, point: Vector3) -> Vec
 			var query := PhysicsRayQueryParameters3D.create(eye + offset, point, PhysicsLayers.WEAPON_MASK)
 			query.exclude = _own_rids()
 			var hit := space.intersect_ray(query)
-			clear = clear and not hit.is_empty() and Interactor.entity_of(hit["collider"] as Node) == target
+			clear = clear and not hit.is_empty() and Entities.of_collider(hit["collider"] as Node) == target
 		if clear:
 			return feet
 	route.notes.append("no clear shot at %s from any spot" % target.name)

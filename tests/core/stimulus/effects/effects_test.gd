@@ -105,3 +105,18 @@ func test_play_cue_without_stream_does_nothing() -> void:
 	PlayCueEffect.new().apply(_ctx)
 
 	assert_int(viewport.get_child_count()).is_equal(before)
+
+
+func test_log_event_records_its_kind_with_the_stimulus() -> void:
+	EventLog.clear()
+	var effect := LogEventEffect.new()
+	effect.apply(_ctx)
+	# No kind: nothing recorded.
+	assert_array(EventLog.entries()).is_empty()
+	effect.kind = &"test.reacted"
+	effect.apply(_ctx)
+	var found := EventLog.find(&"test.reacted")
+	assert_int(found.size()).is_equal(1)
+	assert_str(found[0].target).is_equal("Crate")
+	assert_int(found[0].data["id"]).is_equal(_ctx.stimulus.id)
+	assert_float(found[0].data["perceived"]).is_equal(0.75)

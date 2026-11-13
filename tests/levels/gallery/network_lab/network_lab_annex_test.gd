@@ -152,7 +152,7 @@ func test_annex_devices_hang_flush_on_its_walls_and_its_gear_stands_in_bay_c() -
 		# ADR 0130 step 3: the annex's routers and switches stand in bay C on the far wall.
 		if MountChecks.bay_of(_node(path)) != null:
 			assert_object(MountChecks.bay_of(_node(path))).is_same(_node("Devices/BayC"))
-			var gear := ActorState.tags_of(_node(path)).has(&"object.network_gear")
+			var gear := Tags.of(_node(path)).has(&"object.network_gear")
 			assert_bool(gear).override_failure_message(path).is_true()
 			continue
 		assert_int(MountChecks.mount(_node(path))).override_failure_message(path).is_equal(MountChecks.Mount.WALL)

@@ -61,8 +61,8 @@ func test_dropping_it_on_the_pistol_fits_it_and_quiets_the_shots() -> void:
 
 	_drag(_view.cell_center(_silencer.cell), _view.cell_center(_pistol.cell))
 
-	assert_bool(_player.inventory.inventory.stacks.has(_silencer)).is_false()
-	assert_int(_player.inventory.inventory.count_of(&"silencer")).is_equal(0)
+	assert_bool(_player.inventory.grid.stacks.has(_silencer)).is_false()
+	assert_int(_player.inventory.grid.count_of(&"silencer")).is_equal(0)
 	assert_dict(Attachments.fitted_ids(_pistol.state)).is_equal({"muzzle": "silencer"})
 	assert_str(_pistol.display_name()).is_equal("Pistol (silenced)")
 	assert_str(InventoryView.tooltip_text(_pistol)).contains("Fitted: silenced")
@@ -102,7 +102,7 @@ func test_dropping_it_on_the_shotgun_is_refused_as_a_move() -> void:
 
 	_drag(_view.cell_center(cell), _view.cell_center(_shotgun.cell))
 
-	assert_bool(_player.inventory.inventory.stacks.has(_silencer)).is_true()
+	assert_bool(_player.inventory.grid.stacks.has(_silencer)).is_true()
 	assert_vector(_silencer.cell).is_equal(cell)
 	assert_dict(Attachments.fitted_ids(_shotgun.state)).is_empty()
 	assert_array(EventLog.find(&"item.attached")).is_empty()
@@ -111,8 +111,8 @@ func test_dropping_it_on_the_shotgun_is_refused_as_a_move() -> void:
 
 func test_a_second_silencer_does_not_fit_the_same_weapon() -> void:
 	await _load()
-	_player.inventory.give(SILENCER, 1)
-	var second := _player.inventory.inventory.stacks[-1]
+	_player.inventory.add(SILENCER, 1)
+	var second := _player.inventory.grid.stacks[-1]
 	assert_bool(_player.inventory.attach(_silencer, _pistol)).is_true()
 
 	assert_bool(_player.inventory.can_attach(second, _pistol)).is_false()
@@ -125,13 +125,13 @@ func test_it_stays_fitted_through_save_and_load() -> void:
 	var saved := _player.save_state()
 
 	_player.load_state({"inventory": {"inventory": {}, "belt": {}, "in_hand": -1}})
-	assert_int(_player.inventory.inventory.stacks.size()).is_equal(0)
+	assert_int(_player.inventory.grid.stacks.size()).is_equal(0)
 	_player.load_state(saved)
 
 	var pistol := _first(&"pistol")
 	assert_str(pistol.display_name()).is_equal("Pistol (silenced)")
 	assert_float(_player.inventory.weapon_state(pistol).stat(&"fire_noise")).is_equal_approx(6.25, 0.0001)
-	assert_int(_player.inventory.inventory.count_of(&"silencer")).is_equal(0)
+	assert_int(_player.inventory.grid.count_of(&"silencer")).is_equal(0)
 
 
 func test_it_stays_fitted_when_dropped_and_picked_up() -> void:
@@ -154,7 +154,7 @@ func test_it_stays_fitted_when_dropped_and_picked_up() -> void:
 
 
 func _first(id: StringName) -> ItemStack:
-	for stack in _player.inventory.inventory.stacks:
+	for stack in _player.inventory.grid.stacks:
 		if stack.item.id == id:
 			return stack
 	return null
@@ -194,12 +194,12 @@ func _load() -> void:
 	await _driver.settle()
 	await _driver.place(Vector3.ZERO)
 	var inventory := _player.inventory
-	inventory.give(PISTOL, 1)
-	inventory.give(SHOTGUN, 1)
-	inventory.give(SNIPER, 1)
-	inventory.give(SILENCER, 1)
-	inventory.give(AMMO, 20)
-	var stacks := inventory.inventory.stacks
+	inventory.add(PISTOL, 1)
+	inventory.add(SHOTGUN, 1)
+	inventory.add(SNIPER, 1)
+	inventory.add(SILENCER, 1)
+	inventory.add(AMMO, 20)
+	var stacks := inventory.grid.stacks
 	_pistol = stacks[0]
 	_shotgun = stacks[1]
 	_sniper = stacks[2]

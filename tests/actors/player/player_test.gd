@@ -33,7 +33,7 @@ func test_save_load_round_trip() -> void:
 	_player.load_state(PlayerDriver.state(Vector3.ZERO, 0.0))
 	_player.load_state(saved)
 
-	assert_bool(_player.is_in_group(&"saveable")).is_true()
+	assert_bool(_player.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_vector(saved["position"]).is_equal_approx(state["position"], Vector3.ONE * 0.0001)
 	assert_float(saved["yaw"]).is_equal_approx(state["yaw"], 0.0001)
 	assert_float(saved["pitch"]).is_equal_approx(state["pitch"], 0.0001)

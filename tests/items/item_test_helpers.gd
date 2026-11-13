@@ -13,9 +13,9 @@ const KEYCARD: ItemData = preload("res://items/keycard/keycard.tres")
 
 ## Pistol (belt 1), baton (belt 2) and 30 pistol rounds: the M4 loadout the weapon tests expect.
 static func arm(player: Player) -> void:
-	player.inventory.give(PISTOL, 1)
-	player.inventory.give(BATON, 1)
-	player.inventory.give(AMMO, 30)
+	player.inventory.add(PISTOL, 1)
+	player.inventory.add(BATON, 1)
+	player.inventory.add(AMMO, 30)
 
 
 ## Instances `item`'s world scene under `parent` at `position` with `count` and state overrides.

@@ -97,7 +97,7 @@ func _load() -> void:
 	_player = _driver.player
 	await _driver.settle()
 	var inventory := _player.inventory
-	inventory.give(SHOTGUN, 1)
-	inventory.give(inventory.catalog.find(SHOTGUN.weapon.ammo_item), 12)
+	inventory.add(SHOTGUN, 1)
+	inventory.add(inventory.catalog.find(SHOTGUN.weapon.ammo_item), 12)
 	inventory.select_slot(0)
 	await _driver.frames(2)

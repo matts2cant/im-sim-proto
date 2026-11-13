@@ -24,7 +24,7 @@ static func of(node: Node) -> ItemPickup:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	refresh_model()
 
 

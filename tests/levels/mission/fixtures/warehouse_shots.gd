@@ -346,13 +346,13 @@ func _physics_process(_delta: float) -> void:
 
 # M12c: a deck in hand that has seen every device of the level (its AR view goes on a moment later).
 func _hold_seeing_deck() -> void:
-	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
-		_player.inventory.give(DECK, 1)
-	var stack: ItemStack = _player.inventory.inventory.stacks_of(&"deck")[0]
+	if _player.inventory.grid.stacks_of(&"deck").is_empty():
+		_player.inventory.add(DECK, 1)
+	var stack: ItemStack = _player.inventory.grid.stacks_of(&"deck")[0]
 	_player.inventory.hold(stack)
 	var seen: Array[String] = []
 	for device in Device.all(get_tree()):
-		seen.append(DeckSession.path_of(device))
+		seen.append(DeckSession.key_of(device))
 	stack.state[DeckSession.SEEN] = seen
 
 
@@ -399,9 +399,9 @@ func _plug_deck() -> void:
 	var radio := AccessPoint.of(_level.get_node(String(_shot["deck"])))
 	if radio != null:
 		radio.grant_key(_player)
-	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
-		_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	if _player.inventory.grid.stacks_of(&"deck").is_empty():
+		_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	session.plug_and_raise(Device.of(_level.get_node(String(_shot["deck"]))))
 
 

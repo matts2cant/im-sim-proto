@@ -21,7 +21,7 @@ signal access_changed(by_key: String)
 
 @export var accounts: Array[DeviceAccount] = []
 ## Where the Journal files this device's logins (code_id()); empty: its Computer's credentials id,
-## else the entity's node name in snake_case.
+## else its Device's key (Device.device_id, ADR 0141).
 @export var credentials_id: StringName = &""
 @export var entity_path: NodePath = ^".."
 
@@ -32,8 +32,8 @@ var _access: Dictionary[String, PackedStringArray] = {}
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path)
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path)
 	# Own copies: a password change must not reach other devices sharing the resources.
 	var own: Array[DeviceAccount] = []
 	for each in accounts:
@@ -162,14 +162,24 @@ func set_password(user: String, password: String) -> void:
 	EventLog.record(EventKinds.NETWORK_PASSWORD, "", own_name, {"device": own_name, "user": found.user})
 
 
-## The Journal code id of this device's logins: `credentials_id`, else its Computer's, else the
-## entity's node name in snake_case. Every login is one entry's code "user:password" under it.
+## The Journal code id of this device's logins: `credentials_id`, else its Computer's, else its
+## Device's key (Device.device_id: stable, never a node name; ADR 0141), else (no Device) the
+## legacy id. Every login is one entry's code "user:password" under it.
 func code_id() -> StringName:
 	if not credentials_id.is_empty():
 		return credentials_id
 	var computer := Computer.of(entity)
 	if computer != null and not computer.credentials_id.is_empty():
 		return computer.credentials_id
+	var device := Device.of(entity)
+	if device != null and not device.device_id.is_empty():
+		return StringName(device.device_id)
+	return legacy_code_id()
+
+
+## The code id saves from before ADR 0141 filed a device without a credentials id under: the
+## entity's node name in snake_case. known_login() still reads it.
+func legacy_code_id() -> StringName:
 	return StringName(EntityNames.log_name(entity, self).to_snake_case())
 
 
@@ -181,12 +191,17 @@ func known_login(viewer: Node, user: String) -> LoginCredentials:
 		return null
 	var wanted := user.strip_edges().to_lower()
 	var found: LoginCredentials = null
-	var id := code_id()
-	for entry in reader_log.code_entries(id):
-		var login := LoginCredentials.parse(entry.codes[id])
-		if login != null and login.user.to_lower() == wanted:
-			login.source = entry.title
-			found = login
+	var ids: Array[StringName] = [code_id()]
+	var device := Device.of(entity)
+	if device != null and String(ids[0]) == device.device_id:
+		# A Journal saved before ADR 0141 filed a crack here under the legacy id: read it first.
+		ids.push_front(legacy_code_id())
+	for id in ids:
+		for entry in reader_log.code_entries(id):
+			var login := LoginCredentials.parse(entry.codes[id])
+			if login != null and login.user.to_lower() == wanted:
+				login.source = entry.title
+				found = login
 	return found
 
 

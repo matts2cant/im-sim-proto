@@ -74,7 +74,7 @@ func test_weapon_and_interaction_rays_still_hit_a_downed_guard_where_it_lies() -
 		var query := PhysicsRayQueryParameters3D.create(torso + Vector3.UP * 1.5, torso + Vector3.DOWN, mask)
 		var hit := space.intersect_ray(query)
 		assert_bool(hit.is_empty()).is_false()
-		assert_object(Interactor.entity_of(hit["collider"] as Node)).is_same(guard)
+		assert_object(Entities.of_collider(hit["collider"] as Node)).is_same(guard)
 
 
 func _load() -> void:

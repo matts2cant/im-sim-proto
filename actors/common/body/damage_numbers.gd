@@ -17,7 +17,7 @@ var _stack: int = 0
 
 
 func _ready() -> void:
-	entity = get_node(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if config == null:
 		config = DamageNumbersConfig.new()
 	var body := BodyParts.of(entity)

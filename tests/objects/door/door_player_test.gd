@@ -152,7 +152,7 @@ func test_keypad_shows_the_reminder_of_a_code_read_earlier() -> void:
 func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	Helpers.add_keycard(_entity, &"vault")
 	Helpers.lock(_entity)
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "office"})
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "office"})
 	await _driver.frames(2)
 	await _aim_world(Helpers.box_point(_door))
 	assert_str(_player.interactor.prompt).is_equal("Locked: keycard")
@@ -162,7 +162,7 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	await _hold_pick(1.5)
 	assert_bool(_door.is_locked()).is_true()
 
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "vault"})
 	await _driver.frames(2)
 	assert_str(_player.interactor.prompt).is_equal("E: open (keycard)")
 	await _driver.press(&"use")
@@ -194,7 +194,7 @@ func test_lmb_with_a_lockpick_on_the_leaf_starts_the_lockpicking_minigame() -> v
 	await _driver.frames(45)
 	assert_bool(_door.is_locked()).is_false()
 	assert_bool(_door.is_open()).is_true()
-	assert_int(_player.inventory.inventory.count_of(&"lockpick")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"lockpick")).is_equal(1)
 
 
 func test_a_keypad_is_not_picked() -> void:
@@ -210,9 +210,9 @@ func test_a_keypad_is_not_picked() -> void:
 
 # A lockpick in hand (given if missing), LMB held for `seconds`, then released.
 func _hold_pick(seconds: float) -> void:
-	if _player.inventory.inventory.count_of(&"lockpick") == 0:
-		_player.inventory.give(Items.LOCKPICK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"lockpick")[0])
+	if _player.inventory.grid.count_of(&"lockpick") == 0:
+		_player.inventory.add(Items.LOCKPICK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"lockpick")[0])
 	await _driver.frames(2)
 	await _driver.hold(&"fire", roundi(seconds * 60.0))
 	await _driver.frames(2)

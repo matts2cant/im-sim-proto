@@ -73,7 +73,7 @@ func test_mouse_look_scales_with_the_zoom() -> void:
 
 func test_reload_switch_and_holster_scope_out() -> void:
 	await _load()
-	_player.inventory.give(PISTOL, 1)
+	_player.inventory.add(PISTOL, 1)
 
 	await _scope_in()
 	_player.weapons.state().magazine = 2
@@ -116,7 +116,7 @@ func test_scopes_out_when_the_player_cannot_act() -> void:
 
 func test_rmb_does_nothing_with_a_weapon_without_a_scope() -> void:
 	await _load()
-	_player.inventory.give(PISTOL, 1)
+	_player.inventory.add(PISTOL, 1)
 	await _driver.press(&"belt_2")
 
 	await _driver.press(&"alt_fire")
@@ -138,7 +138,7 @@ func _load() -> void:
 	_camera = _player.get_node("Head/Camera") as Camera3D
 	await _driver.settle()
 	await _driver.place(Vector3.ZERO)
-	_player.inventory.give(SNIPER, 1)
-	_player.inventory.give(SNIPER_AMMO, 20)
+	_player.inventory.add(SNIPER, 1)
+	_player.inventory.add(SNIPER_AMMO, 20)
 	await _driver.press(&"belt_1")
 	EventLog.clear()
