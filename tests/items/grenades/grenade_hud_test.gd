@@ -56,7 +56,8 @@ func test_ghost_shows_near_a_wall_and_not_three_metres_away() -> void:
 	var thrower := Thrower.of(_player)
 
 	assert_bool(thrower.ghost_visible()).is_true()
-	assert_float(thrower._ghost.global_position.z).is_equal_approx(-1.0 + 0.053, 0.01)
+	# Upright beside the wall: the frag's side offset out.
+	assert_float(thrower._ghost.global_position.z).is_equal_approx(-1.0 + 0.046, 0.005)
 
 	_player.load_state(PlayerDriver.state(Vector3.ZERO, PI))
 	await _driver.frames(2)

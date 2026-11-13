@@ -112,7 +112,7 @@ func _mine(at: Vector3) -> RigidBody3D:
 	var grenade := Grenades.grenade(_root, ORIGIN + at + Vector3(0, 2, 0))
 	await Wait.frames(get_tree(), 1)
 	var shape := _floor.get_node("Shape") as Node3D
-	Sticky.of(grenade).stick(shape, ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, 0.04))
+	Sticky.of(grenade).stick(shape, Sticky.of(grenade).pose_on(ORIGIN + at, Vector3.UP, Vector3.FORWARD))
 	return grenade
 
 

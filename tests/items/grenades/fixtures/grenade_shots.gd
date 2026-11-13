@@ -131,7 +131,7 @@ func _mine(on: Node3D, at: Vector3, normal: Vector3) -> RigidBody3D:
 	var mine := (load(FRAG_SCENE) as PackedScene).instantiate() as RigidBody3D
 	add_child(mine, true)
 	var sticky := Sticky.of(mine)
-	sticky.stick(on, ThrowRules.stick_transform(at, normal, Vector3.LEFT, sticky.surface_offset))
+	sticky.stick(on, sticky.pose_on(at, normal, -normal))
 	return mine
 
 

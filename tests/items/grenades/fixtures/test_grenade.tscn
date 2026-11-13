@@ -61,6 +61,7 @@ script = ExtResource("10_fuse")
 [node name="Sticky" type="Node" parent="."]
 script = ExtResource("11_sticky")
 surface_offset = 0.04
+side_offset = 0.04
 
 [node name="ProximityTrigger" type="Node3D" parent="."]
 script = ExtResource("12_trigger")

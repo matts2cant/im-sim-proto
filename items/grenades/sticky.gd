@@ -1,7 +1,8 @@
 class_name Sticky
 extends Node
 ## Component of a RigidBody3D entity (ADR 0131): stick() fixes it on a surface and keeps it there
-## while the surface moves. The body is frozen (kinematic) and follows the node it was stuck to (the
+## while the surface moves (its pose: pose_on(), upright beside walls, on its base on floors and
+## ceilings). The body is frozen (kinematic) and follows the node it was stuck to (the
 ## collision shape hit: a sliding door's panel, a hinged leaf, a crate) every physics tick at the same
 ## relative pose, and never collides with that node's body. If that node goes away (a crate broken)
 ## the body is let go and falls. `stuck` tells the entity's other components (a ProximityTrigger
@@ -10,8 +11,11 @@ extends Node
 
 signal stuck
 
-## Centre of the entity this far out from the surface it sticks to (m): its half height.
+## Centre of the entity this far out from a floor or ceiling it sticks to (m): its half height.
 @export var surface_offset: float = 0.05
+## Centre of the entity this far out from a wall it stands upright against (m): its radius, at
+## least its collision shape's and enough for its model's side.
+@export var side_offset: float = 0.05
 @export var entity_path: NodePath = ^".."
 
 var body: RigidBody3D
@@ -36,6 +40,12 @@ static func of(node: Node) -> Sticky:
 		if child is Sticky:
 			return child as Sticky
 	return null
+
+
+## The pose the entity takes stuck at `point` on a surface with outward `normal`, seen along
+## `view_forward` (ThrowRules.stick_transform() with its offsets).
+func pose_on(point: Vector3, normal: Vector3, view_forward: Vector3) -> Transform3D:
+	return ThrowRules.stick_transform(point, normal, view_forward, surface_offset, side_offset)
 
 
 ## Sticks the entity at `pose` (world) on `on` (the node hit, usually a CollisionShape3D; null: in
