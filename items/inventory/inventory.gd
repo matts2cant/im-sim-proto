@@ -1,13 +1,13 @@
 class_name Inventory
 extends Node
-## Component of any character (ADR 0139): the items it carries. An InventoryGrid of item stacks
-## (ADR 0050) with the queries world systems ask (`Inventory.of(user)`: a keycard reader's key ids,
-## a mine giving its grenade back, exploits, the deck), picking up ItemPickups (a key goes onto the
-## holder's Keychain instead), the WeaponState of each weapon stack (its `magazine` state mirrors the
-## loaded rounds; spare rounds are the ammo stacks, InventoryAmmo) and fitting attachments to weapon
-## stacks (ADR 0085). Nothing here knows about a belt, a hand or input: the player's PlayerInventory
-## extends it with those. Saveable (group `saveable`) unless `saved_by_entity` (the Player saves its
-## own with its belt and hand).
+## Component of any character or container (ADR 0139, ADR 0142): the items it carries. An
+## InventoryGrid of item stacks (ADR 0050) with the queries world systems ask (`Inventory.of(user)`:
+## a mine giving its grenade back, exploits, the deck, the loot screen), picking up ItemPickups (a
+## key or keycard goes onto the holder's Keychain instead), the WeaponState of each weapon stack
+## (its `magazine` state mirrors the loaded rounds; spare rounds are the ammo stacks, InventoryAmmo)
+## and fitting attachments to weapon stacks (ADR 0085). Nothing here knows about a belt, a hand or
+## input: the player's PlayerInventory extends it with those. Saveable (group `saveable`) unless
+## `saved_by_entity` (the Player saves its own with its belt and hand).
 ## EventLog: `item.picked_up`, `item.pickup_refused`, `item.attached`.
 
 ## Any change of the stacks (add, move, remove, split, load).
@@ -77,15 +77,16 @@ func count(item: ItemData) -> int:
 
 
 ## Adds `amount` of `item` (new stacks start from item.make_state(`state`)). Returns how many did not
-## fit (0: everything went in). A keychain item (a key) goes onto the holder's Keychain instead (0:
-## taken; `amount` when there is no keychain).
+## fit (0: everything went in). A keychain item (a key, a keycard) goes onto the holder's Keychain
+## instead, as an entry of the item's `keychain_kind` (0: taken; `amount` when there is no keychain).
 func add(item: ItemData, amount: int = 1, state: Dictionary = {}) -> int:
 	if item.keychain:
 		var keychain := Keychain.of(entity)
 		if keychain == null:
 			return amount
 		var full := item.make_state(state)
-		keychain.add(StringName(str(full.get(ItemStack.KEY_ID, ""))), Keychain.key_name_of(item, full))
+		var key_id := StringName(str(full.get(ItemStack.KEY_ID, "")))
+		keychain.add(key_id, Keychain.key_name_of(item, full), "", item.keychain_kind)
 		return 0
 	return grid.add(item, amount, state)
 
@@ -100,19 +101,9 @@ func remove(stack: ItemStack, amount: int = -1) -> int:
 	return grid.remove(stack, amount)
 
 
-## The `key_id`s of the stacks carried that have one (keycards).
-func key_ids() -> Array[String]:
-	var ids: Array[String] = []
-	for stack in grid.stacks:
-		var key := str(stack.state.get(ItemStack.KEY_ID, ""))
-		if not key.is_empty():
-			ids.append(key)
-	return ids
-
-
 ## Puts what fits of `pickup` in; the rest stays in the world. False (and a "No room in inventory"
-## message) when nothing fits. A key goes onto the holder's Keychain ("Key added to the keychain:
-## <name>"), never into the grid.
+## message) when nothing fits. A key or keycard goes onto the holder's Keychain ("Key added to the
+## keychain: <name>"), never into the grid.
 func pick_up(pickup: ItemPickup) -> bool:
 	if pickup.item.keychain:
 		return _take_key(pickup)
@@ -226,7 +217,7 @@ func _take_key(pickup: ItemPickup) -> bool:
 	EventLog.record(
 		EventKinds.ITEM_PICKED_UP, entity, entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0}
 	)
-	_say(Keychain.ADDED % key_name)
+	_say(Keychain.added_message(pickup.item.keychain_kind, key_name))
 	return true
 
 

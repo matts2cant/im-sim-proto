@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="1_metal"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
+[ext_resource type="Script" path="res://items/inventory/inventory.gd" id="3_inventory"]
+[ext_resource type="Script" path="res://items/inventory/inventory_config.gd" id="4_inventory_config"]
+[ext_resource type="Script" path="res://actors/common/keychain/keychain.gd" id="5_keychain"]
+[ext_resource type="Script" path="res://items/inventory/item_loadout.gd" id="6_loadout"]
+[ext_resource type="Script" path="res://items/inventory/lootable.gd" id="7_lootable"]
+[ext_resource type="Script" path="res://objects/locks/lockable.gd" id="8_lockable"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock.gd" id="9_mechanical"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="10_lock_data"]
+[ext_resource type="PackedScene" path="res://objects/locks/hardware/keyhole.tscn" id="11_keyhole"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(0.54, 0.75, 0.64)
+
+[sub_resource type="StandardMaterial3D" id="Material_body"]
+albedo_color = Color(0.32, 0.34, 0.3, 1)
+metallic = 0.2
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+material = SubResource("Material_body")
+size = Vector3(0.5, 0.72, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_top"]
+material = SubResource("Material_body")
+size = Vector3(0.54, 0.03, 0.64)
+
+[sub_resource type="StandardMaterial3D" id="Material_front"]
+albedo_color = Color(0.44, 0.46, 0.42, 1)
+metallic = 0.2
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="Mesh_front"]
+material = SubResource("Material_front")
+size = Vector3(0.46, 0.21, 0.01)
+
+[sub_resource type="BoxMesh" id="Mesh_handle"]
+material = ExtResource("1_metal")
+size = Vector3(0.16, 0.02, 0.025)
+
+[sub_resource type="Resource" id="Config_grid"]
+script = ExtResource("4_inventory_config")
+grid_size = Vector2i(6, 3)
+
+[sub_resource type="Resource" id="Data_lock"]
+script = ExtResource("10_lock_data")
+pins = Array[StringName]([&"standard", &"standard", &"standard"])
+pin_seed = 2203
+
+[node name="DeskDrawers" type="StaticBody3D"]
+collision_mask = 0
+metadata/display_name = "Desk drawers"
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.375, 0)
+shape = SubResource("Shape_body")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, 0)
+mesh = SubResource("Mesh_body")
+
+[node name="Top" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.735, 0)
+mesh = SubResource("Mesh_top")
+
+[node name="Drawer1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.59, 0.305)
+mesh = SubResource("Mesh_front")
+
+[node name="Drawer2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, 0.305)
+mesh = SubResource("Mesh_front")
+
+[node name="Drawer3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0.305)
+mesh = SubResource("Mesh_front")
+
+[node name="Handle1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0.3225)
+mesh = SubResource("Mesh_handle")
+
+[node name="Handle2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, 0.3225)
+mesh = SubResource("Mesh_handle")
+
+[node name="Handle3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0.3225)
+mesh = SubResource("Mesh_handle")
+
+[node name="Keyhole" parent="." instance=ExtResource("11_keyhole")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0.31)
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("2_tags")
+initial_tags = Array[StringName]([&"material.metal", &"object.container"])
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("3_inventory")
+config = SubResource("Config_grid")
+
+[node name="Keychain" type="Node" parent="."]
+script = ExtResource("5_keychain")
+
+[node name="Loadout" type="Node" parent="."]
+script = ExtResource("6_loadout")
+
+[node name="Lockable" type="Node" parent="."]
+script = ExtResource("8_lockable")
+
+[node name="MechanicalLock" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0.31)
+script = ExtResource("9_mechanical")
+data = SubResource("Data_lock")
+
+[node name="Lootable" type="Node" parent="."]
+script = ExtResource("7_lootable")

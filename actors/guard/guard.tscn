@@ -63,6 +63,10 @@
 [ext_resource type="Resource" path="res://actors/common/movement/fall_impact.tres" id="s11_fall_impact"]
 [ext_resource type="Resource" path="res://actors/common/awareness/alarm_hearing.tres" id="s11_alarm_hearing"]
 [ext_resource type="Resource" path="res://actors/common/door_opener/door_opener.tres" id="s11_door_opener"]
+[ext_resource type="Script" path="res://items/inventory/inventory.gd" id="m14d_inventory"]
+[ext_resource type="Script" path="res://actors/common/keychain/keychain.gd" id="m14d_keychain"]
+[ext_resource type="Script" path="res://items/inventory/lootable.gd" id="m14d_lootable"]
+[ext_resource type="Script" path="res://items/inventory/item_loadout.gd" id="m14d_loadout"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 radius = 0.35
@@ -203,6 +207,20 @@ config = ExtResource("s11_door_opener")
 
 [node name="WeaponDrop" type="Node" parent="."]
 script = ExtResource("51_weapon_drop")
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("m14d_inventory")
+
+[node name="Keychain" type="Node" parent="."]
+script = ExtResource("m14d_keychain")
+
+[node name="Lootable" type="Node" parent="."]
+script = ExtResource("m14d_lootable")
+
+[node name="Loadout" type="Node" parent="."]
+script = ExtResource("m14d_loadout")
+weapon_ammo = 10
+holder_path = NodePath("../Aim/WeaponHolder")
 
 [node name="Animator" type="Node" parent="."]
 script = ExtResource("54_animator")

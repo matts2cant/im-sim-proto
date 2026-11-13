@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://objects/materials/wood_surface.tres" id="1_wood"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="2_metal"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="3_tags"]
+[ext_resource type="Script" path="res://items/inventory/inventory.gd" id="4_inventory"]
+[ext_resource type="Script" path="res://items/inventory/inventory_config.gd" id="5_inventory_config"]
+[ext_resource type="Script" path="res://actors/common/keychain/keychain.gd" id="6_keychain"]
+[ext_resource type="Script" path="res://items/inventory/item_loadout.gd" id="7_loadout"]
+[ext_resource type="Script" path="res://items/inventory/lootable.gd" id="8_lootable"]
+
+[sub_resource type="BoxShape3D" id="Shape_body"]
+size = Vector3(1.02, 0.61, 0.62)
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+material = ExtResource("1_wood")
+size = Vector3(1, 0.55, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_lid"]
+material = ExtResource("1_wood")
+size = Vector3(1.02, 0.06, 0.62)
+
+[sub_resource type="BoxMesh" id="Mesh_band"]
+material = ExtResource("2_metal")
+size = Vector3(1.01, 0.05, 0.61)
+
+[sub_resource type="Resource" id="Config_grid"]
+script = ExtResource("5_inventory_config")
+grid_size = Vector2i(6, 4)
+
+[node name="SupplyCrate" type="StaticBody3D"]
+collision_mask = 0
+metadata/display_name = "Supply crate"
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.305, 0)
+shape = SubResource("Shape_body")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+mesh = SubResource("Mesh_body")
+
+[node name="Lid" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.58, 0)
+mesh = SubResource("Mesh_lid")
+
+[node name="BandLow" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("Mesh_band")
+
+[node name="BandHigh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("Mesh_band")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("3_tags")
+initial_tags = Array[StringName]([&"material.wood", &"object.container"])
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("4_inventory")
+config = SubResource("Config_grid")
+
+[node name="Keychain" type="Node" parent="."]
+script = ExtResource("6_keychain")
+
+[node name="Loadout" type="Node" parent="."]
+script = ExtResource("7_loadout")
+
+[node name="Lootable" type="Node" parent="."]
+script = ExtResource("8_lootable")

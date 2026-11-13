@@ -145,6 +145,7 @@ const JAMMING_STARTED: StringName = &"jamming.started"
 
 # keychain
 const KEYCHAIN_KEY_ADDED: StringName = &"keychain.key_added"
+const KEYCHAIN_KEY_REMOVED: StringName = &"keychain.key_removed"
 
 # laser
 const LASER_TOGGLED: StringName = &"laser.toggled"
@@ -171,6 +172,9 @@ const LOCK_UNLOCKED: StringName = &"lock.unlocked"
 
 # log
 const LOG_ENTRY_ADDED: StringName = &"log.entry_added"
+
+# loot
+const LOOT_OPENED: StringName = &"loot.opened"
 
 # mine
 const MINE_ARMED: StringName = &"mine.armed"
@@ -273,6 +277,7 @@ const WEAPON_RELOAD_STARTED: StringName = &"weapon.reload_started"
 const WEAPON_RELOADED: StringName = &"weapon.reloaded"
 const WEAPON_REMOVED: StringName = &"weapon.removed"
 const WEAPON_SCOPED: StringName = &"weapon.scoped"
+const WEAPON_STOWED: StringName = &"weapon.stowed"
 const WEAPON_SWUNG: StringName = &"weapon.swung"
 const WEAPON_THROWN: StringName = &"weapon.thrown"
 

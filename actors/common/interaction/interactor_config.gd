@@ -4,3 +4,7 @@ extends Resource
 
 ## Reach of the interaction ray from the eyes (m): E picks up, uses or carries what it hits.
 @export var reach: float = 2.0
+
+## Holding the use key this long (s) on a target with a hold action carries it (a downed body: a
+## tap loots it, ADR 0142).
+@export var hold_time: float = 0.5

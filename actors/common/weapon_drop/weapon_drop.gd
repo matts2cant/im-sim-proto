@@ -2,17 +2,19 @@ class_name WeaponDrop
 extends Node
 ## Component of any character with a WeaponHolder (ADR 0087): once the character can no longer act
 ## (`state.dead` or `state.unconscious`, ActorState.can_act, from any source), every weapon of the
-## holder's fixed loadout becomes a world pickup beside the body: the weapon's item
-## (WeaponData.item_id in the ItemCatalog) with its current magazine. The holder no longer has it
-## (WeaponHolder.remove_from_loadout()), so a woken character stays unarmed (CombatBehaviour does not
-## engage without a loadout).
+## holder's fixed loadout leaves the holder as its item (WeaponData.item_id in the ItemCatalog) with
+## its current magazine: into the character's own Inventory when it has one with room (ADR 0142: a
+## downed guard is looted for it; EventLog `weapon.stowed`), else as a world pickup beside the body.
+## The holder no longer has it (WeaponHolder.remove_from_loadout()), so a woken character stays
+## unarmed (CombatBehaviour does not engage without a loadout).
 ## Weapons armed from an inventory (WeaponHolder.equip_state(), the player's) belong to that
 ## inventory and stay in it: only weapons the holder owns are dropped.
 ## The pickup is added next to the character (under its parent, so saves keep it as a spawned
 ## entity), `side_distance` to its right at `drop_height` (left, then at its feet, when a wall is in
 ## the way), with a small sideways toss. A weapon without an item (a turret's gun) is not dropped.
 ## Polled every physics tick, so a quickload (tree paused while the holder restores its saved
-## loadout) never drops twice. EventLog: `weapon.dropped {actor, weapon, item, magazine}`.
+## loadout) never drops twice. EventLog: `weapon.dropped {actor, weapon, item, magazine}`,
+## `weapon.stowed {actor, weapon, item, magazine}`.
 
 @export var holder_path: NodePath = ^"../Aim/WeaponHolder"
 @export var entity_path: NodePath = ^".."
@@ -63,19 +65,40 @@ func _leaving() -> bool:
 	return false
 
 
-## Drops every fixed-loadout weapon that has an item; returns the pickups' bodies.
+## Takes every fixed-loadout weapon from the holder: into the character's Inventory when it fits,
+## else dropped beside the body. Returns the dropped pickups' bodies.
 func drop_all() -> Array[RigidBody3D]:
 	var bodies: Array[RigidBody3D] = []
 	var loadout: Array[WeaponState] = holder.states.duplicate()
 	for weapon_state in loadout:
-		var body := _drop(weapon_state, bodies.size())
+		var item := _item_of(weapon_state)
+		if item != null and _stow(weapon_state, item):
+			continue
+		var body := _drop(weapon_state, item, bodies.size())
 		if body != null:
 			bodies.append(body)
 	return bodies
 
 
-func _drop(weapon_state: WeaponState, index: int) -> RigidBody3D:
-	var item := catalog.find(weapon_state.data.item_id) if not weapon_state.data.item_id.is_empty() else null
+func _item_of(weapon_state: WeaponState) -> ItemData:
+	return catalog.find(weapon_state.data.item_id) if not weapon_state.data.item_id.is_empty() else null
+
+
+func _state_of(weapon_state: WeaponState) -> Dictionary:
+	return {ItemStack.MAGAZINE: weapon_state.magazine} if weapon_state.data.uses_ammo() else {}
+
+
+# Into the character's own Inventory (with its magazine); false when it has none or no room.
+func _stow(weapon_state: WeaponState, item: ItemData) -> bool:
+	var inventory := Inventory.of(entity)
+	if inventory == null or inventory.add(item, 1, _state_of(weapon_state)) > 0:
+		return false
+	holder.remove_from_loadout(weapon_state)
+	EventLog.record(EventKinds.WEAPON_STOWED, String(entity.name), "", _log_data(weapon_state, item))
+	return true
+
+
+func _drop(weapon_state: WeaponState, item: ItemData, index: int) -> RigidBody3D:
 	if item == null or item.world_scene.is_empty() or entity.get_parent() == null:
 		holder.remove_from_loadout(weapon_state)
 		return null
@@ -84,20 +107,23 @@ func _drop(weapon_state: WeaponState, index: int) -> RigidBody3D:
 	pickup.item = item
 	pickup.count = 1
 	if weapon_state.data.uses_ammo():
-		pickup.state = {ItemStack.MAGAZINE: weapon_state.magazine}
+		pickup.state = _state_of(weapon_state)
 	var side := _side()
 	entity.get_parent().add_child(body, true)
 	body.global_transform = Transform3D(entity.global_basis, _drop_point(side, index))
 	body.linear_velocity = side * toss_speed
 	holder.remove_from_loadout(weapon_state)
-	var data := {
+	EventLog.record(EventKinds.WEAPON_DROPPED, String(entity.name), String(body.name), _log_data(weapon_state, item))
+	return body
+
+
+func _log_data(weapon_state: WeaponState, item: ItemData) -> Dictionary:
+	return {
 		"actor": String(entity.name),
 		"weapon": String(weapon_state.data.id),
 		"item": String(item.id),
 		"magazine": weapon_state.magazine,
 	}
-	EventLog.record(EventKinds.WEAPON_DROPPED, String(entity.name), String(body.name), data)
-	return body
 
 
 # The character's right, flat.
