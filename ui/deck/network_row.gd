@@ -3,6 +3,9 @@ extends RefCounted
 ## One device as a network map shows it (NetworkGraph; ADR 0099, 0113): filled by the screen that
 ## owns the map (the deck's Map, the M8 terminal's rows extend it).
 
+## No status square (a row without a device state: synthetic rows).
+const NO_LIGHT: int = -1
+
 var device: Device
 var name: String
 ## Reached by the screen's network (or it is the screen's own device).
@@ -29,6 +32,11 @@ var joins: Array[StringName] = []
 var role: String = ""
 ## Its kind's icon on the Map (DeviceIcon strokes, from DeviceKinds; ADR 0121), or empty.
 var icon: PackedStringArray = []
+## Its kind's colour (SecurityKind.color, ADR 0130): the strip on its node's left edge and its icon;
+## transparent without a kind (no strip).
+var kind_color: Color = Color.TRANSPARENT
+## Its status square (a StatusLight.State: light_of()), or NO_LIGHT (none drawn).
+var light: int = NO_LIGHT
 ## Its subnet is being scanned (ADR 0121): laid out where it will appear but not drawn; the Map
 ## shows the scan there instead.
 var scanning: bool = false
@@ -41,6 +49,20 @@ func is_between() -> bool:
 
 func is_online() -> bool:
 	return online
+
+
+## The status square of `p_device` on a map that reaches it (`reached`) or not (ADR 0130): its
+## status light's state (StatusLight.state_of(): UP, CUT_OFF, DISABLED when broken or switched off,
+## DARK when unpowered or gone). A device the map no longer reaches but whose light is green shows
+## CUT_OFF: the viewer is cut off from it, as its grey "offline" words say. The Map's "disabled" is
+## the light's DISABLED.
+static func light_of(p_device: Device, reached: bool) -> StatusLight.State:
+	if p_device == null or not is_instance_valid(p_device) or not p_device.is_inside_tree():
+		return StatusLight.State.DARK
+	var state := StatusLight.state_of(p_device, StatusLight.links_of(p_device))
+	if not reached and state == StatusLight.State.UP:
+		return StatusLight.State.CUT_OFF
+	return state
 
 
 ## Its entity's world position (zero once freed).

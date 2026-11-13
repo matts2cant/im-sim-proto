@@ -63,6 +63,9 @@ func test_every_networked_device_is_of_a_kind_with_an_icon() -> void:
 	var kinds := DeviceKinds.shipped()
 	var missing: PackedStringArray = []
 	for device in _security_devices():
+		# The mail host has no kind since ADR 0130 retired the server kind; it goes with mail hosting.
+		if ActorState.has(device.entity, &"object.server"):
+			continue
 		var kind := kinds.kind_for(device.entity)
 		if kind == null or kind.icon.is_empty():
 			missing.append(_path(device))

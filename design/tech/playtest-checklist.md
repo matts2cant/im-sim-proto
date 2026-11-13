@@ -692,3 +692,11 @@ Walk to the hub's east wall between the two east doorways (the `DeviceShowroom`,
 - [ ] Bays: the U steps of the units and the blank panels, the name plate on top, the cables rising to the ceiling, the glass door of BAY-B (the lights show through, the keyhole lock on its right edge). Walk round them: does the depth look right (0.6 m)?
 - [ ] The desk gear (desktop with monitor, laptop marked "later", desk switch, wedge-shaped desk router) sits on the desk without floating or sinking; wall models sit flat on the wall, with no gap and no flicker at the joins.
 - [ ] The LEDs, port lights and ARMED displays glow; name plates, port labels and icons do not (they are printed, lit by the room). Are the showroom's two lamps enough to judge the colours?
+
+## M13c the deck's Map nodes ([ADR 0130](../decisions/0130-device-overhaul.md))
+
+Plug the deck into the network lab's jack and hack RTR-01.
+
+- [ ] Each box has its kind's colour strip on its left edge and its icon in the same colour; at the fitted zoom, can you tell switches, routers, cameras and alarm gear apart by the strip alone?
+- [ ] The status square at each box's right matches the device's light in the room: green up, amber blinking when its switch is down, red when disabled or broken, dark when unpowered. Cut a switch's power: do the squares behind it blink, and is the blink calm enough not to distract on a big map?
+- [ ] A selected, disabled (red tint) or out-of-reach (grey) box keeps its strip and icon colours; is the grey "offline" box with an amber square clear enough as "cut off from you"?
