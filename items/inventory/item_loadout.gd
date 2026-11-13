@@ -2,17 +2,23 @@ class_name ItemLoadout
 extends Node
 ## Component of any entity with an Inventory (ADR 0142): what it carries when the level starts, as
 ## data. Fills the entity's Inventory once: every StartingItem of `items` (keys and keycards go onto
-## its Keychain through Inventory.add()), then `weapon_ammo` rounds of the ammo of each weapon of its
-## WeaponHolder's fixed loadout (`holder_path`; a guard's pistol: pistol rounds). Guards carry their
-## ammo by default; a level adds keycards, keys and other items per guard or per container.
+## its Keychain through Inventory.add()), then the ammo of each weapon of its WeaponHolder's fixed
+## loadout (`holder_path`; a guard's pistol: pistol rounds): `weapon_magazines` magazines of that
+## weapon (its `magazine_size`: one pistol magazine is 10 rounds, one rifle magazine 30), or
+## `weapon_ammo` rounds when set (an override per entity). Guards carry one magazine by default; a
+## level adds keycards, keys and other items per guard or per container.
 ## Filled once, when it is ready (or, when its Inventory is not ready yet, deferred after the
 ## entity is); what does not fit is left out with a warning. Saveable (`filled`): a loaded level never fills again,
 ## the Inventory and Keychain restore their own contents.
 
 ## The items given, in order.
 @export var items: Array[StartingItem] = []
-## Rounds of ammo given for each weapon of the holder's fixed loadout that uses ammo (0: none).
-@export var weapon_ammo: int = 0
+## Magazines of ammo given for each weapon of the holder's fixed loadout that uses ammo, each the
+## weapon's `magazine_size` rounds (0: none). Ignored when `weapon_ammo` is set.
+@export var weapon_magazines: int = 1
+## Rounds of ammo given for each such weapon instead of `weapon_magazines` (-1: unset, use magazines;
+## 0: none).
+@export var weapon_ammo: int = -1
 ## The entity's WeaponHolder (empty: none; `weapon_ammo` then gives nothing).
 @export var holder_path: NodePath = ^""
 @export var entity_path: NodePath = ^".."
@@ -54,9 +60,21 @@ func fill() -> bool:
 	for entry in items:
 		if entry != null and entry.item != null:
 			_give(inventory, entry.item, entry.count, entry.state)
-	for ammo in _weapon_ammo_items():
-		_give(inventory, ammo, weapon_ammo, {})
+	for data in ammo_weapons():
+		var rounds := rounds_for(data)
+		if rounds > 0:
+			_give(inventory, catalog.find(data.ammo_item), rounds, {})
 	return true
+
+
+## Rounds of ammo given for a weapon of the fixed loadout: `weapon_ammo` when set, else
+## `weapon_magazines` of its magazines.
+func rounds_for(data: WeaponData) -> int:
+	if data == null or not data.uses_ammo():
+		return 0
+	if weapon_ammo >= 0:
+		return weapon_ammo
+	return maxi(weapon_magazines, 0) * data.magazine_size
 
 
 func save_state() -> Dictionary:
@@ -67,18 +85,17 @@ func load_state(data: Dictionary) -> void:
 	filled = bool(data.get("filled", filled))
 
 
-# The ammo items of the holder's fixed loadout (one per weapon that uses ammo, in order).
-func _weapon_ammo_items() -> Array[ItemData]:
-	var found: Array[ItemData] = []
+## The weapons of the holder's fixed loadout whose ammo is a catalogue item, in order.
+func ammo_weapons() -> Array[WeaponData]:
+	var found: Array[WeaponData] = []
 	var holder := get_node_or_null(holder_path) as WeaponHolder if not holder_path.is_empty() else null
-	if holder == null or weapon_ammo <= 0:
+	if holder == null:
 		return found
 	for data in holder.weapons:
 		if data == null or not data.uses_ammo() or data.ammo_item.is_empty():
 			continue
-		var ammo := catalog.find(data.ammo_item)
-		if ammo != null:
-			found.append(ammo)
+		if catalog.find(data.ammo_item) != null:
+			found.append(data)
 	return found
 
 
