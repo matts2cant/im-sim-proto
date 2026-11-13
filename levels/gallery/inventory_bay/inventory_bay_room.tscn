@@ -35,6 +35,19 @@
 [ext_resource type="PackedScene" path="res://items/grenades/gas/gas_grenade_pickup.tscn" id="71_gas_grenade"]
 [ext_resource type="PackedScene" path="res://items/grenades/emp/emp_grenade_pickup.tscn" id="72_emp_grenade"]
 [ext_resource type="PackedScene" path="res://items/grenades/jamming/jamming_grenade_pickup.tscn" id="73_jamming_grenade"]
+[ext_resource type="PackedScene" path="res://objects/containers/supply_crate.tscn" id="80_supply_crate"]
+[ext_resource type="PackedScene" path="res://objects/containers/desk_drawers.tscn" id="81_desk_drawers"]
+[ext_resource type="PackedScene" path="res://objects/containers/locker.tscn" id="82_locker"]
+[ext_resource type="Script" path="res://items/inventory/starting_item.gd" id="83_starting_item"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="84_lock_data"]
+[ext_resource type="Resource" path="res://items/medkit/medkit.tres" id="85_medkit_item"]
+[ext_resource type="Resource" path="res://items/pistol_ammo/pistol_ammo.tres" id="86_pistol_ammo_item"]
+[ext_resource type="Resource" path="res://items/grenades/frag/frag_grenade_item.tres" id="87_frag_item"]
+[ext_resource type="Resource" path="res://items/biocell/biocell.tres" id="88_biocell_item"]
+[ext_resource type="Resource" path="res://items/key/key.tres" id="89_key_item"]
+[ext_resource type="Resource" path="res://items/grenades/gas/gas_grenade_item.tres" id="90_gas_item"]
+[ext_resource type="Resource" path="res://items/grenades/emp/emp_grenade_item.tres" id="91_emp_item"]
+[ext_resource type="Resource" path="res://items/rifle_rounds/rifle_rounds.tres" id="92_rifle_rounds_item"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -55,6 +68,52 @@ node_name = &"FromCorridor"
 wall = 2
 width = 2.0
 height = 3.0
+
+[sub_resource type="Resource" id="Loot_crate_medkit"]
+script = ExtResource("83_starting_item")
+item = ExtResource("85_medkit_item")
+count = 2
+
+[sub_resource type="Resource" id="Loot_crate_ammo"]
+script = ExtResource("83_starting_item")
+item = ExtResource("86_pistol_ammo_item")
+count = 20
+
+[sub_resource type="Resource" id="Loot_crate_frag"]
+script = ExtResource("83_starting_item")
+item = ExtResource("87_frag_item")
+
+[sub_resource type="Resource" id="Loot_crate_biocell"]
+script = ExtResource("83_starting_item")
+item = ExtResource("88_biocell_item")
+
+[sub_resource type="Resource" id="Loot_drawer_key"]
+script = ExtResource("83_starting_item")
+item = ExtResource("89_key_item")
+state = {"key_id": "inventory_bay_locker", "key_name": "Bay locker key"}
+
+[sub_resource type="Resource" id="Loot_drawer_medkit"]
+script = ExtResource("83_starting_item")
+item = ExtResource("85_medkit_item")
+
+[sub_resource type="Resource" id="Loot_locker_gas"]
+script = ExtResource("83_starting_item")
+item = ExtResource("90_gas_item")
+
+[sub_resource type="Resource" id="Loot_locker_emp"]
+script = ExtResource("83_starting_item")
+item = ExtResource("91_emp_item")
+
+[sub_resource type="Resource" id="Loot_locker_rounds"]
+script = ExtResource("83_starting_item")
+item = ExtResource("92_rifle_rounds_item")
+count = 30
+
+[sub_resource type="Resource" id="Lock_bay_locker"]
+script = ExtResource("84_lock_data")
+pins = Array[StringName]([&"standard", &"standard", &"standard"])
+pin_seed = 1418
+key_id = &"inventory_bay_locker"
 
 [node name="InventoryBayRoom" type="Node3D"]
 
@@ -330,6 +389,29 @@ size = Vector2(1, 8)
 thickness = 0.1
 surface = "metal"
 
+[node name="LootCorner" type="Node3D" parent="."]
+
+[node name="SupplyCrate" parent="LootCorner" instance=ExtResource("80_supply_crate")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.66, 0, -15.45)
+
+[node name="ItemLoadout" parent="LootCorner/SupplyCrate"]
+items = Array[ExtResource("83_starting_item")]([SubResource("Loot_crate_medkit"), SubResource("Loot_crate_ammo"), SubResource("Loot_crate_frag"), SubResource("Loot_crate_biocell")])
+
+[node name="DeskDrawers" parent="LootCorner" instance=ExtResource("81_desk_drawers")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.65, 0, -16.35)
+
+[node name="ItemLoadout" parent="LootCorner/DeskDrawers"]
+items = Array[ExtResource("83_starting_item")]([SubResource("Loot_drawer_key"), SubResource("Loot_drawer_medkit")])
+
+[node name="Locker" parent="LootCorner" instance=ExtResource("82_locker")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.71, 0, -17.2)
+
+[node name="ItemLoadout" parent="LootCorner/Locker"]
+items = Array[ExtResource("83_starting_item")]([SubResource("Loot_locker_gas"), SubResource("Loot_locker_emp"), SubResource("Loot_locker_rounds")])
+
+[node name="MechanicalLock" parent="LootCorner/Locker"]
+data = SubResource("Lock_bay_locker")
+
 [node name="Labels" type="Node3D" parent="."]
 
 [node name="ItemTable" parent="Labels" instance=ExtResource("3_sign")]
@@ -570,6 +652,12 @@ text = "Jamming grenade
 1×1"
 size = 0
 pixel_size = 0.0018
+
+[node name="LootCorner" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.98, 2.55, -16.0)
+text = "Tap E: search · Hold E: carry a body
+Locker key: in the drawers"
+size = 0
 
 [node name="StackTags" type="Node3D" parent="Labels"]
 
