@@ -778,3 +778,10 @@ Shooting range (hub doorway 4), then the warehouse. No debug panel needed.
 - [ ] Disarm a corridor mine Untrained (it beeps and goes off), then Trained (switch the tier at the grenade table first): crouched 1 to 2 m away, E takes it back.
 - [ ] EMP and jamming room: the turret does not shoot you (guards only), the camera watches the door. An EMP thrown under the camera stops the camera alone ("No power" on its frame); one mid-room puts the lamp out and stops the turret and the access point (the camera stands right at its 6 m edge). A jammer anywhere in the room: the camera blinks amber, "Jammed". Everything comes back after 20 s.
 - [ ] Warehouse: a frag on the security room's gun table by the shotgun shells, a frag on the dock's metal crate by roller door 2, gas in the locker room's north open locker, EMP on the basement store shelf by the lockpicks, the jammer on the manager's desk between the datapads. Each is easy to see and to pick up. Does each spot suggest a use nearby (the jammer for AP-YARD's cameras, the EMP for the vault turret, the gas for the break room)?
+
+## UI plumbing refactor ([ADR 0133](../decisions/0133-ui-plumbing-focus-notices-screens.md))
+
+- [ ] Network lab: plug the deck in, open a computer's remote desktop, press Esc (back to the map), then Esc again: the HUD comes back and you can move and look at once; the mouse is captured again. Repeat closing the deck with the ✕ while the desktop is open.
+- [ ] Lockpick a door, open the debug panel (`) over it: the mouse is free; close the panel: the pick moves with the mouse again; leave with E: you can walk at once.
+- [ ] Notices still show above the belt: "No room in inventory", "Too heavy", "Energy depleted" (F-key with no energy), a deck notice after lowering the deck ("Wi-Fi crack stopped").
+- [ ] The shooting range tuning desk still opens its panel (E) and it closes when you walk away.
