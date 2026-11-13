@@ -19,6 +19,7 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 ## Where things live
 
 - `core/` framework only, no game content: `core/stimulus/`, `core/attributes/`, `core/event_log/`, `core/save/`
+- `events/` `EventKinds`: every EventLog kind (game content)
 - `actors/player/`, `actors/guard/`
 - `objects/` crates, barrels, doors, lights
 - `items/`
@@ -51,6 +52,7 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 - Emergence = effects emitting new stimuli. Guard perception is just another receiver.
 - Stimuli emitted during processing are queued for the next fixed tick (`_physics_process`); no recursion; chain depth is tracked.
 - Every emit and every receptron firing is written to the `EventLog` (tick, kind, source, target, data). Scenario tests assert on it.
+- EventLog kinds are `EventKinds` constants (`events/event_kinds.gd`), never literals. Pass entities (Nodes) to `EventLog.record()`, not `String(node.name)`, where a consumer needs them; gameplay listens to `EventLog.entry_added` (never `entries()`/`find()`) and attributes by the entry's entities' tags (`entry.source_entity()`), never names ([ADR 0136](design/decisions/0136-event-kinds-and-entity-attribution.md)).
 - Attributes: `AttributeSet` + `Modifier` (add | multiply | override). Skills, augmentations and damage effects are modifiers.
 - Saveable contract: nodes in group `saveable` implement `save_state() -> Dictionary` and `load_state(data: Dictionary) -> void`.
 - See [design/game/stimulus-response.md](design/game/stimulus-response.md) and [design/game/attributes-and-tags.md](design/game/attributes-and-tags.md).
