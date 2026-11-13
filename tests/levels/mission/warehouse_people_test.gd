@@ -5,9 +5,9 @@ extends GdUnitTestSuite
 ## routes cross no doorway (the doors there are locked to guards or loud); every item to find is
 ## placed and reachable on foot from the player's start (a navmesh point within pick-up reach,
 ## through every door: the keys are found on the way, warehouse_doors_test), or lies where a listed
-## climb leads. Guards reach their posts through the doors their access tags open. The five M14c
-## grenades (2 frag, gas, EMP, jamming; ADR 0131) have their types and rest on a surface without
-## overlapping anything. Positions and routes come from the layout markers
+## climb leads. Guards reach their posts through the doors their access tags open. The two M14c
+## grenades left as pickups (a frag and the EMP; ADR 0131) have their types and rest on a surface
+## without overlapping anything. Positions and routes come from the layout markers
 ## (tools/level_gen/warehouse_people.py).
 
 const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
@@ -53,18 +53,14 @@ const ITEMS: Dictionary[String, int] = {
 	"medkit": 2,
 	"prototype": 1,
 	"deck": 1,
-	"frag_grenade": 2,
-	"gas_grenade": 1,
+	"frag_grenade": 1,
 	"emp_grenade": 1,
-	"jamming_grenade": 1,
 }
-## M14c grenade loot (ADR 0131) -> item id.
+## M14c grenade loot (ADR 0131) left as pickups -> item id (M14d: the dock frag, the gas grenade and
+## the jammer moved into containers, warehouse_loot_test.gd).
 const GRENADES: Dictionary[String, String] = {
 	"FragSecurity": "frag_grenade",
-	"FragDock": "frag_grenade",
-	"GasLocker": "gas_grenade",
 	"EmpStore": "emp_grenade",
-	"JammerManager": "jamming_grenade",
 }
 ## Half the grenade pickup's box (0.08 x 0.105 x 0.08 m).
 const GRENADE_HALF := Vector3(0.04, 0.0525, 0.04)
@@ -199,6 +195,21 @@ func test_every_item_is_placed_and_reachable() -> void:
 			unreachable.append("%s at %s" % [node.name, at])
 	for id: String in ITEMS:
 		assert_int(int(counts.get(id, 0))).override_failure_message("%s pickups" % id).is_equal(ITEMS[id])
+	assert_array(unreachable).is_empty()
+
+
+func test_every_container_is_searched_from_a_spot_reached_on_foot() -> void:
+	# M14d (warehouse_loot_test.gd checks their loot and footprint): a navmesh spot reached from the
+	# start (with the keys) has the container's front, 0.6 m up, within reach.
+	var start := (_level.get_node("PlayerSpawn") as Node3D).global_position
+	var unreachable: PackedStringArray = []
+	var containers := _level.get_node(PEOPLE + "/Containers").get_children()
+	assert_int(containers.size()).is_greater(5)
+	for node: Node in containers:
+		var container := node as Node3D
+		var front := container.global_transform * Vector3(0, 0.6, 0.35)
+		if not _stand_spot_reaches(start, front):
+			unreachable.append("%s at %s" % [container.name, front])
 	assert_array(unreachable).is_empty()
 
 

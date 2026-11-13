@@ -12,7 +12,6 @@
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="9_radio_base_station"]
 [ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="11_breaker_panel"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="12_datapad"]
-[ext_resource type="PackedScene" path="res://items/keycard/keycard.tscn" id="13_keycard"]
 [ext_resource type="PackedScene" path="res://levels/kit/ledge.tscn" id="14_ledge"]
 [ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="15_sign"]
 [ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="16_keypad_lock"]
@@ -46,7 +45,6 @@
 [ext_resource type="PackedScene" path="res://objects/network/switch_rack.tscn" id="72_switch_rack"]
 [ext_resource type="PackedScene" path="res://objects/network/switch_desk.tscn" id="73_switch_desk"]
 [ext_resource type="PackedScene" path="res://objects/computer/server_rack.tscn" id="74_server_rack"]
-[ext_resource type="PackedScene" path="res://items/key/key.tscn" id="75_key"]
 [ext_resource type="PackedScene" path="res://objects/computer/computer_desk.tscn" id="76_computer_desk"]
 [ext_resource type="Resource" path="res://levels/mission/population/ap_yard_access_point.tres" id="77_ap_yard_config"]
 
@@ -110,6 +108,7 @@ access_id = &"warehouse_vault"
 [sub_resource type="Resource" id="Pins_9"]
 script = ExtResource("19_mechanical_lock_data")
 pins = Array[StringName]([&"standard", &"standard"])
+key_id = &"warehouse_office_two"
 
 [sub_resource type="Resource" id="Pins_10"]
 script = ExtResource("19_mechanical_lock_data")
@@ -1089,18 +1088,6 @@ text = "PC login: lpetrova / tulip24"
 codes = Dictionary[StringName, String]({&"warehouse_office_pc1": "lpetrova:tulip24"})
 code_labels = Dictionary[StringName, String]({&"warehouse_office_pc1": "Office PC 1 login"})
 
-[node name="KeycardSecurity" parent="Items" instance=ExtResource("13_keycard")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.53, 10.2)
-
-[node name="ItemPickup" parent="Items/KeycardSecurity"]
-state = {"key_id": "warehouse_security", "key_name": "Security keycard"}
-
-[node name="KeycardVault" parent="Items" instance=ExtResource("13_keycard")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.35, 0.83, 2.4)
-
-[node name="ItemPickup" parent="Items/KeycardVault"]
-state = {"key_id": "warehouse_vault", "key_name": "Vault keycard"}
-
 [node name="TowerNotes" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.5, 20.03, -12.6)
 
@@ -1120,10 +1107,3 @@ transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.9, 20.007, -1
 
 [node name="ItemPickup" parent="Items/AlarmExploit"]
 item = ExtResource("62_alarm_exploit")
-
-[node name="OfficeBayKey" parent="Items" instance=ExtResource("75_key")]
-transform = Transform3D(0.9397, 0, 0.342, 0, 1, 0, -0.342, 0, 0.9397, 19.3, 0.81, 2.85)
-
-[node name="ItemPickup" parent="Items/OfficeBayKey"]
-state = {"key_id": "warehouse_bay", "key_name": "Office bay key"}
-found_text = "On the security room desk"

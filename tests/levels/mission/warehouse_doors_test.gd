@@ -315,11 +315,16 @@ func _key_options(level: Node, door: Door) -> Array[Array]:
 			for pad in _readables_with((lock as KeypadLock).data.code_id):
 				options.append([_area(pad.global_position)])
 		elif lock is KeycardLock:
-			for card in _keycards((lock as KeycardLock).access_id()):
+			for card in _key_holders((lock as KeycardLock).access_id()):
 				options.append([_area(card.global_position)])
 		elif lock is MechanicalLock:
 			# Lockpicks: placed by the population (the layout's marker in the basement store).
 			options.append([_area((level.get_node("LayoutMarkers/Items/Lockpicks") as Node3D).global_position)])
+			# Its key, when it has one (M14d: the second office's key in the manager's drawers).
+			var key_id := (lock as MechanicalLock).data.key_id
+			if not key_id.is_empty():
+				for key in _key_holders(key_id):
+					options.append([_area(key.global_position)])
 		elif lock is ElectronicLock:
 			# The lock's power and network are its door controller's (ADR 0130).
 			var controller := door.hardware.controller
@@ -346,11 +351,16 @@ func _readables_with(code_id: StringName) -> Array[Node3D]:
 	return result
 
 
-func _keycards(access_id: StringName) -> Array[Node3D]:
+# Where a key or keycard with `key_id` is found: a pickup in the world, or an entity carrying it on
+# its keychain (M14d: a guard's or a container's loadout; the guard is met at its post or its first
+# patrol point, a container where it stands).
+func _key_holders(key_id: StringName) -> Array[Node3D]:
 	var result: Array[Node3D] = []
 	for node in _all():
-		if node is ItemPickup and str((node as ItemPickup).state.get("key_id", "")) == String(access_id):
+		if node is ItemPickup and str((node as ItemPickup).state.get("key_id", "")) == String(key_id):
 			result.append(node.get_parent() as Node3D)
+		elif node is Keychain and (node as Keychain).has_key(key_id):
+			result.append(Entities.of_component(node) as Node3D)
 	return result
 
 
