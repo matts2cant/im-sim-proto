@@ -871,6 +871,18 @@ visible = false
 [node name="BracketRight" parent="Network/OfficePc2"]
 visible = false
 
+[node name="OfficeSwitch" parent="Network" instance=ExtResource("73_switch_desk")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18.5, 5.25, 14.5)
+metadata/display_name = "SW-OFFICE"
+
+[node name="Powered" parent="Network/OfficeSwitch"]
+circuit = &"warehouse_building"
+
+[node name="Device" parent="Network/OfficeSwitch"]
+links = Array[NodePath]([NodePath("../../OfficeWallJack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
+address = "10.0.10.2"
+subnet = &"office"
+
 [node name="OfficeBay" parent="Network" instance=ExtResource("70_bay")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 19.43, 4.5, 12.5)
 bay_name = "BAY-OFFICE"
@@ -878,32 +890,6 @@ cable_height = 0.71
 
 [node name="MechanicalLock" parent="Network/OfficeBay/GlassDoor"]
 data = SubResource("Pins_bay")
-[node name="Rtr01" parent="Network/OfficeBay" instance=ExtResource("71_router_rack")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
-metadata/display_name = "RTR-01"
-
-[node name="Powered" parent="Network/OfficeBay/Rtr01"]
-circuit = &"warehouse_building"
-
-[node name="Device" parent="Network/OfficeBay/Rtr01"]
-links = Array[NodePath]([NodePath("../../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
-address = "10.0.10.1"
-subnet = &"office"
-
-[node name="DeviceAccounts" parent="Network/OfficeBay/Rtr01"]
-accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr01")])
-credentials_id = &"warehouse_rtr01"
-
-[node name="Router" parent="Network/OfficeBay/Rtr01"]
-rules = Array[ExtResource("50_router_rule")]([SubResource("Rule_security_office"), SubResource("Rule_office_console"), SubResource("Rule_office_mail"), SubResource("Rule_office_security")])
-subnet_data = Array[ExtResource("47_subnet")]([ExtResource("47_office"), ExtResource("47_security")])
-side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.1"})
-
-[node name="Tracer" type="Node" parent="Network/OfficeBay/Rtr01"]
-script = ExtResource("46_tracer")
-label = "Sentry tracer"
-watched = Array[StringName]([&"office", &"security"])
-
 [node name="SecuritySwitch" parent="Network/OfficeBay" instance=ExtResource("72_switch_rack")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3505, 0.24)
 metadata/display_name = "SW-SECURITY"
@@ -979,17 +965,31 @@ label = "mail server"
 address = "10.0.20.8"
 subnet = &"security"
 
-[node name="OfficeSwitch" parent="Network" instance=ExtResource("73_switch_desk")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18.5, 5.25, 14.5)
-metadata/display_name = "SW-OFFICE"
+[node name="Rtr01" parent="Network/OfficeBay" instance=ExtResource("71_router_rack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
+metadata/display_name = "RTR-01"
 
-[node name="Powered" parent="Network/OfficeSwitch"]
+[node name="Powered" parent="Network/OfficeBay/Rtr01"]
 circuit = &"warehouse_building"
 
-[node name="Device" parent="Network/OfficeSwitch"]
-links = Array[NodePath]([NodePath("../../OfficeWallJack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
-address = "10.0.10.2"
+[node name="Device" parent="Network/OfficeBay/Rtr01"]
+links = Array[NodePath]([NodePath("../../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
+address = "10.0.10.1"
 subnet = &"office"
+
+[node name="DeviceAccounts" parent="Network/OfficeBay/Rtr01"]
+accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr01")])
+credentials_id = &"warehouse_rtr01"
+
+[node name="Router" parent="Network/OfficeBay/Rtr01"]
+rules = Array[ExtResource("50_router_rule")]([SubResource("Rule_security_office"), SubResource("Rule_office_console"), SubResource("Rule_office_mail"), SubResource("Rule_office_security")])
+subnet_data = Array[ExtResource("47_subnet")]([ExtResource("47_office"), ExtResource("47_security")])
+side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.1"})
+
+[node name="Tracer" type="Node" parent="Network/OfficeBay/Rtr01"]
+script = ExtResource("46_tracer")
+label = "Sentry tracer"
+watched = Array[StringName]([&"office", &"security"])
 
 [node name="Furniture" type="Node3D" parent="."]
 
