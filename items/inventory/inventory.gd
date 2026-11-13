@@ -100,6 +100,13 @@ func remove(stack: ItemStack, amount: int = -1) -> int:
 	return grid.remove(stack, amount)
 
 
+## A copy of `stack`'s state as it is now, its weapon's loaded rounds included (`magazine`): what a
+## copy of the stack in another inventory starts from (the loot screen moving it).
+func state_of(stack: ItemStack) -> Dictionary:
+	_sync_magazines()
+	return stack.state.duplicate(true)
+
+
 ## The `key_id`s of the stacks carried that have one (keycards).
 func key_ids() -> Array[String]:
 	var ids: Array[String] = []

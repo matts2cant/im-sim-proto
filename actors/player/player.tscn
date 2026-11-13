@@ -74,6 +74,7 @@
 [ext_resource type="Script" path="res://actors/common/notices/notices.gd" id="91_notices"]
 [ext_resource type="Script" path="res://ui/window/screens.gd" id="92_screens"]
 [ext_resource type="PackedScene" path="res://ui/tuning_panel/tuning_panel.tscn" id="93_tuning_panel"]
+[ext_resource type="PackedScene" path="res://ui/loot/loot_screen.tscn" id="m14d_loot_screen"]
 [ext_resource type="Resource" path="res://actors/common/movement/fall_impact.tres" id="s11_fall_impact"]
 [ext_resource type="Resource" path="res://actors/common/awareness/alarm_hearing.tres" id="s11_alarm_hearing"]
 
@@ -164,7 +165,7 @@ script = ExtResource("91_notices")
 
 [node name="Screens" type="Node" parent="."]
 script = ExtResource("92_screens")
-scenes = Dictionary[StringName, PackedScene]({&"tuning": ExtResource("93_tuning_panel")})
+scenes = Dictionary[StringName, PackedScene]({&"loot": ExtResource("m14d_loot_screen"), &"tuning": ExtResource("93_tuning_panel")})
 
 [node name="Hud" parent="." instance=ExtResource("17_hud")]
 

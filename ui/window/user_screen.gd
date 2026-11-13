@@ -1,8 +1,9 @@
 class_name UserScreen
 extends CanvasLayer
 ## Base of a screen its user's Screens component opens on request (ADR 0133): the keypad, the
-## lockpicking minigame, the computer overlay, the deck and the tuning panel. A screen is a child of
-## its user (or instanced there by Screens on first use) and answers to one id (screen_id(): the
+## lockpicking minigame, the computer overlay, the deck, the tuning panel and the loot screen. A
+## screen is a child of its user (or instanced there by Screens on first use) and answers to one id
+## (screen_id(): the
 ## constant of the thing that asks for it, KeypadLock.SCREEN, Computer.SCREEN...). World objects and
 ## items never name a screen class: they call Screens.open(user, id, subject, options). Each screen
 ## keeps its own pause and leave rules.
