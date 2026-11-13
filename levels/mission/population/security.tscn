@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="2_security_camera"]
 [ext_resource type="PackedScene" path="res://objects/laser/laser_array.tscn" id="3_laser_array"]
@@ -169,11 +170,13 @@ initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail
 wall_thickness = 0.4
 settings = ExtResource("24_vehicle_gate_settings")
 
-[node name="Device" parent="Doors/FrontGate"]
-address = "10.0.20.51"
-trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+[node name="Controller" parent="Doors/FrontGate/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/FrontGate"]
+[node name="Device" parent="Doors/FrontGate/Hardware/Controller"]
+address = "10.0.20.51"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/SecurityConsole")])
+
+[node name="Powered" type="Node" parent="Doors/FrontGate/Hardware/Controller"]
 script = ExtResource("23_powered")
 circuit = &"warehouse_yard"
 
@@ -304,11 +307,13 @@ locked = true
 [node name="Door" parent="Doors/SecurityDoor"]
 wall_thickness = 0.25
 
-[node name="Device" parent="Doors/SecurityDoor"]
-address = "10.0.20.52"
-trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+[node name="Controller" parent="Doors/SecurityDoor/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/SecurityDoor"]
+[node name="Device" parent="Doors/SecurityDoor/Hardware/Controller"]
+address = "10.0.20.52"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/SecurityConsole")])
+
+[node name="Powered" type="Node" parent="Doors/SecurityDoor/Hardware/Controller"]
 script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
@@ -347,11 +352,13 @@ locked = true
 wall_thickness = 0.25
 front_side_wall = 0.75
 
-[node name="Device" parent="Doors/BridgeDoor"]
-address = "10.0.20.53"
-trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+[node name="Controller" parent="Doors/BridgeDoor/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/BridgeDoor"]
+[node name="Device" parent="Doors/BridgeDoor/Hardware/Controller"]
+address = "10.0.20.53"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/SecurityConsole")])
+
+[node name="Powered" type="Node" parent="Doors/BridgeDoor/Hardware/Controller"]
 script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
@@ -386,11 +393,13 @@ locked = true
 [node name="Door" parent="Doors/VaultDoor"]
 wall_thickness = 0.25
 
-[node name="Device" parent="Doors/VaultDoor"]
-address = "10.0.20.54"
-trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
+[node name="Controller" parent="Doors/VaultDoor/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/VaultDoor"]
+[node name="Device" parent="Doors/VaultDoor/Hardware/Controller"]
+address = "10.0.20.54"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/SecurityConsole")])
+
+[node name="Powered" type="Node" parent="Doors/VaultDoor/Hardware/Controller"]
 script = ExtResource("23_powered")
 circuit = &"warehouse_building"
 
@@ -647,8 +656,6 @@ data = ExtResource("41_console_data")
 credentials_id = &"warehouse_security_console"
 host_name = "SEC-CONSOLE"
 label = "security console"
-mail_server = "MAIL-01"
-
 [node name="Device" parent="Devices/SecurityConsole"]
 address = "10.0.20.5"
 
@@ -798,7 +805,7 @@ metadata/display_name = "SW-YARD"
 circuit = &"warehouse_yard"
 
 [node name="Device" parent="Devices/YardSwitch"]
-links = Array[NodePath]([NodePath("../../../Doors/FrontGate"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/ApYard"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
+links = Array[NodePath]([NodePath("../../../Doors/FrontGate/Hardware/Controller"), NodePath("../../../Devices/CameraGate"), NodePath("../../../Devices/ApYard"), NodePath("../../../Devices/PanicButtonBooth"), NodePath("../../../Devices/AlarmControllerYard"), NodePath("../../../Devices/SirenDock"), NodePath("../../../Devices/SirenEastYard"), NodePath("../../../Devices/SirenBackStrip"), NodePath("../../../Devices/SirenWestYard")])
 address = "10.0.20.3"
 subnet = &"security"
 
@@ -810,7 +817,7 @@ metadata/display_name = "SW-SEC-ROOM"
 circuit = &"warehouse_building"
 
 [node name="Device" parent="Devices/SecurityRoomSwitch"]
-links = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Doors/SecurityDoor")])
+links = Array[NodePath]([NodePath("../../../Devices/SecurityConsole"), NodePath("../../../Devices/AlarmController"), NodePath("../../../Devices/RadioBaseStation"), NodePath("../../../Devices/PanicButtonSecurity"), NodePath("../../../Doors/SecurityDoor/Hardware/Controller")])
 address = "10.0.20.4"
 subnet = &"security"
 
@@ -822,7 +829,7 @@ metadata/display_name = "SW-VAULT"
 circuit = &"warehouse_building"
 
 [node name="Device" parent="Devices/VaultSwitch"]
-links = Array[NodePath]([NodePath("../../../Devices/VaultTurret"), NodePath("../../../Doors/VaultDoor"), NodePath("../../../Doors/BridgeDoor"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/SirenOfficeUpper")])
+links = Array[NodePath]([NodePath("../../../Devices/VaultTurret"), NodePath("../../../Doors/VaultDoor/Hardware/Controller"), NodePath("../../../Doors/BridgeDoor/Hardware/Controller"), NodePath("../../../Devices/CameraOffice"), NodePath("../../../Devices/SirenOfficeUpper")])
 address = "10.0.20.6"
 subnet = &"security"
 
@@ -924,8 +931,6 @@ data = ExtResource("42_pc1_data")
 credentials_id = &"warehouse_office_pc1"
 host_name = "OFFICE-PC1"
 label = "office PC 1"
-mail_server = "MAIL-01"
-
 [node name="Device" parent="Network/OfficePc1"]
 address = "10.0.10.11"
 
@@ -941,8 +946,6 @@ data = ExtResource("43_pc2_data")
 credentials_id = &"warehouse_office_pc2"
 host_name = "OFFICE-PC2"
 label = "office PC 2"
-mail_server = "MAIL-01"
-
 [node name="Device" parent="Network/OfficePc2"]
 address = "10.0.10.12"
 

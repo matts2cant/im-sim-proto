@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="1_door"]
 [ext_resource type="PackedScene" path="res://objects/door/breakable_door.tscn" id="2_breakable"]
 [ext_resource type="Script" path="res://objects/locks/keypad_lock.gd" id="3_keypad"]
@@ -144,7 +145,9 @@ initial_tags = Array[StringName]([&"object.door", &"material.metal", &"door.fail
 [node name="Lockable" parent="DoorElectronic"]
 locked = true
 
-[node name="Powered" type="Node" parent="DoorElectronic"]
+[node name="Controller" parent="DoorElectronic/Hardware" instance=ExtResource("m13c_door_controller")]
+
+[node name="Powered" type="Node" parent="DoorElectronic/Hardware/Controller"]
 script = ExtResource("10_powered")
 circuit = &"door_showcase"
 

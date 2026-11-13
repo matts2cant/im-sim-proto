@@ -73,6 +73,15 @@ static func add_mechanical(entity: Node, pins: int) -> MechanicalLock:
 	return lock
 
 
+## Puts a door controller (objects/door/door_controller.tscn) under the door's hardware, as a level
+## does to network the door (ADR 0130); the hardware rebuilds its boxes on the next frame.
+static func add_controller(entity: Node) -> DoorController:
+	var controller := (load("res://objects/door/door_controller.tscn") as PackedScene).instantiate() as Node3D
+	controller.name = "Controller"
+	DoorHardware.of(entity).add_child(controller)
+	return DoorController.of(controller)
+
+
 ## Locks the door (through its Lockable, so the door updates its link and light).
 static func lock(entity: Node) -> void:
 	Lockable.of(entity).lock(null, &"test")
