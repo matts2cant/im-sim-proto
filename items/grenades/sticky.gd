@@ -21,6 +21,8 @@ var target: Node3D = null
 ## The entity's transform relative to `target`.
 var offset := Transform3D.IDENTITY
 
+var _following: bool = false
+
 
 func _ready() -> void:
 	add_to_group(&"saveable")
@@ -49,7 +51,8 @@ func stick(on: Node3D, pose: Transform3D) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if not is_stuck or target == null:
+	# A freed target compares equal to null: `_following` remembers there was one.
+	if not is_stuck or not _following:
 		return
 	if not is_instance_valid(target) or not target.is_inside_tree() or target.is_queued_for_deletion():
 		_let_go()
@@ -59,7 +62,7 @@ func _physics_process(_delta: float) -> void:
 
 func save_state() -> Dictionary:
 	var path := ""
-	if is_stuck and target != null and is_instance_valid(target) and body.get_parent() != null:
+	if is_stuck and _following and is_instance_valid(target) and body.get_parent() != null:
 		path = String(body.get_parent().get_path_to(target))
 	return {"stuck": is_stuck, "target": path, "offset": offset}
 
@@ -75,6 +78,7 @@ func load_state(data: Dictionary) -> void:
 	if not path.is_empty() and body.get_parent() != null:
 		on = body.get_parent().get_node_or_null(NodePath(path)) as Node3D
 	target = on
+	_following = on != null
 	if on != null:
 		_except(on)
 		body.global_transform = on.global_transform * offset
@@ -89,6 +93,7 @@ func _freeze() -> void:
 
 func _follow(on: Node3D) -> void:
 	target = on
+	_following = on != null
 	if on == null:
 		return
 	offset = on.global_transform.affine_inverse() * body.global_transform
@@ -106,5 +111,6 @@ func _except(on: Node) -> void:
 
 func _let_go() -> void:
 	target = null
+	_following = false
 	is_stuck = false
 	body.freeze = false
