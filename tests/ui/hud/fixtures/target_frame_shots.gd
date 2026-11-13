@@ -13,8 +13,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"computer": {"feet": Vector3(4.0, 0, -0.75), "look": Vector3(4.0, 1.18, -1.9)},
 	"door": {"feet": Vector3(0.25, 0, -9.35), "look": Vector3(0.25, 1.45, -10.0)},
 	"guard": {"feet": Vector3(0.2, 0, -4.8), "look": Vector3(-0.2, 0.3, -6.0)},
-	"device_online": {"feet": Vector3(7.6, 0, -1.8), "look": Vector3(7.6, 1.5, -2.9)},
-	"device_cut": {"feet": Vector3(7.6, 0, -1.8), "look": Vector3(7.6, 1.5, -2.9)},
+	# The rack switch's 1U body (1.5 to 1.54 m): the look ray meets its front face.
+	"device_online": {"feet": Vector3(7.6, 0, -1.8), "look": Vector3(7.6, 1.522, -2.9)},
+	"device_cut": {"feet": Vector3(7.6, 0, -1.8), "look": Vector3(7.6, 1.522, -2.9)},
 	"lamp_off": {"feet": Vector3(-8.0, 0, -1.6), "look": Vector3(-8.0, 1.8, -2.8)},
 	"guard_dead": {"feet": Vector3(0.2, 0, -4.8), "look": Vector3(-0.2, 0.3, -6.0)},
 	"door_locked": {"feet": Vector3(0.25, 0, -8.6), "look": Vector3(0.25, 1.45, -10.0)},
