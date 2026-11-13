@@ -10,7 +10,9 @@ extends Node3D
 ## plugs a deck into that device (a path under Devices/) and raises its Map, `hack` grants those
 ## routers' first account first, `menu` opens that device's menu (its display name); `wifi` grants
 ## the access point's key first (the deck joins its Wi-Fi), `aim` aims the deck at it instead and
-## starts the crack (the Wi-Fi key screen). States last for the rest of the run: put such shots last.
+## starts the crack (the Wi-Fi key screen); `ar` closes the Map and turns the deck's AR cable view on;
+## `bays` opens those linking bays' glass doors (paths under Devices/). States last for the rest of
+## the run: put such shots last.
 
 const SHOT_SIZE := Vector2i(1152, 648)
 const WAIT := 1.2
@@ -26,19 +28,35 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"overview": {"feet": Vector3(11, 0, -4.6), "look": Vector3(2, 0.6, -14)},
 	"deck_table": {"feet": Vector3(2.6, 0, -5.9), "look": Vector3(2.6, 1.0, -4.3)},
 	"jack": {"feet": Vector3(-0.6, 0, -6), "look": Vector3(-2, 0.6, -6)},
-	"office_pc1": {"feet": Vector3(-0.4, 0, -8.5), "look": Vector3(-2, 1.3, -8.5)},
-	"office_pc2": {"feet": Vector3(-0.4, 0, -12), "look": Vector3(-2, 1.3, -12)},
+	"office_pc1": {"feet": Vector3(-0.4, 0, -8.5), "look": Vector3(-2, 0.95, -8.5)},
+	"office_pc2": {"feet": Vector3(-0.4, 0, -12), "look": Vector3(-2, 0.95, -12)},
+	# ADR 0130 step 3: the bays from 1.5 m and their units from 0.5 m, the desk gear.
+	"bay_a": {"feet": Vector3(0.1, 0, -15.7), "look": Vector3(-1.7, 1.15, -15.7)},
+	"bay_a_units": {"feet": Vector3(-0.95, 0, -15.7), "look": Vector3(-1.45, 1.45, -15.7)},
+	"bay_a_blanks": {"feet": Vector3(-0.95, 0, -15.7), "look": Vector3(-1.45, 0.9, -15.7)},
+	"bay_a_side": {"feet": Vector3(0.2, 0, -13.6), "look": Vector3(-1.7, 1.4, -15.6)},
+	"bay_b": {"feet": Vector3(9.9, 0, -15.7), "look": Vector3(11.4, 1.15, -15.7)},
+	"bay_b_open": {"feet": Vector3(9.7, 0, -14.8), "look": Vector3(11.4, 1.2, -15.9), "bays": ["BayB"]},
+	"bay_b_units": {"feet": Vector3(10.85, 0, -15.7), "look": Vector3(11.45, 1.4, -15.7), "bays": ["BayB"]},
+	"bay_b_lock": {"feet": Vector3(10.6, 0, -15.3), "look": Vector3(11.37, 1.0, -15.45)},
+	"bay_c": {"feet": Vector3(13.3, 0, -30.4), "look": Vector3(13.3, 1.15, -32.2)},
+	"bay_c_units": {"feet": Vector3(13.3, 0, -31.35), "look": Vector3(13.3, 1.35, -31.95)},
+	"desk_gear": {"feet": Vector3(-0.3, 0, -12.4), "look": Vector3(-1.75, 0.85, -12.5)},
+	"office_switch_close": {"feet": Vector3(-1.0, 0, -12.7), "look": Vector3(-1.7, 0.77, -12.7)},
+	"mail_desk": {"feet": Vector3(10.2, 0, -9.1), "look": Vector3(11.8, 0.9, -9.1)},
+	"edge_router_close": {"feet": Vector3(11.1, 0, -8.72), "look": Vector3(11.75, 0.77, -8.72)},
 	"rtr01": {"feet": Vector3(0.0, 0, -15.0), "look": Vector3(-2, 1.7, -15.4)},
 	"security_corner": {"feet": Vector3(0.6, 0, -15.6), "look": Vector3(0.2, 1.6, -18)},
-	"console": {"feet": Vector3(2.6, 0, -16.2), "look": Vector3(2.6, 1.4, -18)},
+	"console": {"feet": Vector3(2.6, 0, -16.2), "look": Vector3(2.6, 1.0, -18)},
 	"closet_door": {"feet": Vector3(5.85, 0, -15.6), "look": Vector3(5.85, 1.8, -18.25)},
 	"closet_open": {"feet": Vector3(5.85, 0, -16.6), "look": Vector3(6, 0.9, -20.7), "open": ["ClosetDoor"]},
 	"closet_inside": {"feet": Vector3(6.4, 0, -20.2), "look": Vector3(5.6, 1.5, -17.5), "open": ["ClosetDoor"]},
+	"closet_shelf": {"feet": Vector3(6.0, 0, -19.2), "look": Vector3(6.0, 0.8, -20.7), "open": ["ClosetDoor"]},
 	"server_corner": {"feet": Vector3(9.8, 0, -14.0), "look": Vector3(12, 1.5, -14.5)},
 	"far_wall": {"feet": Vector3(5, 0, -10), "look": Vector3(5, 2.3, -18)},
 	# The mail PC (east wall; its mail is on the PC, ADR 0130), and its Mail with the edge router off.
 	"mail_pc": {"feet": Vector3(9.2, 0, -8.0), "look": Vector3(12, 1.6, -8.0)},
-	"mail_pc_close": {"feet": Vector3(10.4, 0, -9.5), "look": Vector3(12, 1.3, -9.5)},
+	"mail_pc_close": {"feet": Vector3(10.4, 0, -9.5), "look": Vector3(12, 1.0, -9.5)},
 	"mail_pc_offline":
 	{
 		"feet": Vector3(10.4, 0, -9.5),
@@ -79,13 +97,37 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"select": "CAM-CLOSET",
 	},
 	"deck_map_start": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack"},
-	"deck_map_rtr01": {"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01"]},
+	"deck_map_rtr01":
+	{"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["BayA/Rtr01"]},
 	"deck_map_chained":
-	{"feet": Vector3(-0.9, 0, -6), "look": Vector3(-2, 0.6, -6), "deck": "Jack", "hack": ["Rtr01", "Rtr02"]},
+	{
+		"feet": Vector3(-0.9, 0, -6),
+		"look": Vector3(-2, 0.6, -6),
+		"deck": "Jack",
+		"hack": ["BayA/Rtr01", "BayB/Rtr02"],
+	},
+	# The deck's AR cable view (RMB) from the hall with the whole M12a chain seen: runs rise from the
+	# bays' units to the ceiling.
+	"deck_ar_bays":
+	{
+		"feet": Vector3(4, 0, -10),
+		"look": Vector3(-1.5, 1.6, -15.7),
+		"deck": "Jack",
+		"hack": ["BayA/Rtr01", "BayB/Rtr02"],
+		"ar": true,
+	},
+	"deck_ar_bay_b":
+	{
+		"feet": Vector3(6, 0, -12),
+		"look": Vector3(11.5, 1.8, -15.7),
+		"deck": "Jack",
+		"hack": ["BayA/Rtr01", "BayB/Rtr02"],
+		"ar": true,
+	},
 	"deck_map_cctv":
 	{"feet": Vector3(11.6, 0, -31.6), "look": Vector3(11.6, 0.5, -32.5), "deck": "CctvJack", "menu": "CAM-EX3"},
 	"deck_map_alarm":
-	{"feet": Vector3(8.65, 0, -22), "look": Vector3(7.75, 0.5, -22), "deck": "AlarmJack", "hack": ["Rtr04"]},
+	{"feet": Vector3(8.65, 0, -22), "look": Vector3(7.75, 0.5, -22), "deck": "AlarmJack", "hack": ["BayC/Rtr04"]},
 	"deck_wifi_paused":
 	{"feet": Vector3(16.0, 0, -27.9), "look": Vector3(21.6, 2.6, -25.5), "deck": "ApLab", "aim": true, "wait": 2.0},
 	"deck_map_wifi":
@@ -143,6 +185,8 @@ func _next() -> void:
 		Door.of(_lab.get_node("Doors/" + door_name)).open()
 	for circuit: String in _shot.get("off", []):
 		Powered.set_circuit(get_tree(), StringName(circuit), false)
+	for bay: String in _shot.get("bays", []):
+		HingedDoor.of(_lab.get_node("Devices/%s/GlassDoor" % bay)).set_open(true)
 
 
 func _physics_process(_delta: float) -> void:
@@ -171,6 +215,12 @@ func _process(delta: float) -> void:
 		screen.graph.fit_view()
 		if _shot.has("menu"):
 			screen.graph.select(String(_shot["menu"]))
+	# The AR cable view: the Map closed, then RMB's view turned on.
+	if _shot.get("ar", false) and _time > wait - 0.4 and not _shot.has("ar_on"):
+		_shot["ar_on"] = true
+		DeckScreen.of(_player).close()
+	if _shot.has("ar_on") and _time > wait - 0.25:
+		DeckArView.of(_player).set_active(true)
 	if _time < wait:
 		return
 	var path := "%s/%s.png" % [_out, _shot["name"]]
