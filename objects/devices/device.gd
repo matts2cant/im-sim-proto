@@ -35,7 +35,9 @@ extends Node
 ##   point cuts its wireless devices off. `links` stays the cables.
 ## - Status light (M12c, ADR 0122): once on a network it attaches a StatusLight to its entity (and
 ##   network gear a GearPlate), unless `status_light` is off. An entity with its own lamp
-##   (DeviceLamp) shows the state there instead of on an LED (one light per device).
+##   (DeviceLamp) shows the state there instead of on an LED (one light per device). An entity built
+##   from a device model (ADR 0130 step 2) always gets one: it drives the model's own light, sockets
+##   and name plates (ModelFace).
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
 ##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It

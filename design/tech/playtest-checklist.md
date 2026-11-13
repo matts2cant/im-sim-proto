@@ -720,3 +720,14 @@ Plug the deck into the network lab's jack and hack RTR-01.
 - [ ] The deck plugs into either box of a door (LMB with the deck) and its Map shows the controller as a violet "Door controller" node; Open from the Map or the booth's Security app opens the door. The door exploit (from the Map) works on a door controller.
 - [ ] Breaker A in the security wing: D4 (fail-safe) unlocks and its lights go dark; breaker B: the vault door (fail-secure) stays locked, lights dark.
 - [ ] Mechanical doors (D2, the warehouse's pin-lock doors) show no light and no status line: they are not devices.
+
+## M13c device scenes in the new look ([ADR 0130](../decisions/0130-device-overhaul.md) step 2)
+
+- [ ] Security wing, network lab, warehouse: every camera, turret, siren, radio base station, panic button, alarm panel, wall jack, laser pair, access point and wall computer shows its new model in the old spot, flat on its wall or floor, nothing floating or sunk. The computers stand on a wall shelf: does that read as a standing terminal, or do they want desks (step 3)?
+- [ ] One light per device: the access point's ring, a siren's or a switch's LED, the camera's lamp follow the device (green, amber blinking cut off, red disabled or broken, dark unpowered) in step with the frame's status word and the Map's square. Wall jacks, panic buttons and lasers show no light at all: is their state clear enough from the frame?
+- [ ] Ports: on a jack, an alarm panel, a computer, the socket a cable takes is labelled with the far end's network name and its light is lit; unpower the far end: the light goes dark, the label stays. Are long names (cut or shrunk to fit) still recognisable?
+- [ ] Name plates show the device's network name, and the frame names a device the same way ("SW-OFFICE", not "Switch a"), also on computers and panic buttons.
+- [ ] Ring a siren (alarm or debug): the beacon's cover glows red-orange, lights the wall around it and its reflector turns; silenced, it goes dark and still. Is the light too strong in small rooms?
+- [ ] Baton a high siren (3 m and more): from right under it the swing hits the wall; step back to about 1 m. Acceptable, or should high sirens be shot?
+- [ ] The rack scenes (switch, router, server, alarm controller) in a bay: E on the rack server opens its OS screen like a desktop; the deck plugs into rack gear like into the old boxes.
+- [ ] The locked bay (`objects/devices/linking_bay_locked.tscn`, step 3 places them): the glass door blocks E and the deck on the units while the lights show through; pick its lock: it swings open; E closes and opens it again. Does the leaf swing the right way and fast enough (0.5 s)?

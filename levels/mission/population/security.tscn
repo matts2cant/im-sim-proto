@@ -153,7 +153,7 @@ allow = false
 
 [sub_resource type="BoxMesh" id="Mesh_ap_bracket"]
 material = ExtResource("52_metal")
-size = Vector3(0.06, 1.375, 0.07)
+size = Vector3(0.06, 1.375, 0.14)
 
 [node name="Security" type="Node3D"]
 
@@ -846,11 +846,11 @@ address = "10.0.20.7"
 subnet = &"security"
 
 [node name="ApYard" parent="Devices" instance=ExtResource("51_access_point")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 11.3, -10.51)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 11.3, -10.62)
 metadata/display_name = "AP-YARD"
 
 [node name="Bracket" type="MeshInstance3D" parent="Devices/ApYard"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7125, -0.095)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7125, -0.07)
 cast_shadow = 0
 mesh = SubResource("Mesh_ap_bracket")
 

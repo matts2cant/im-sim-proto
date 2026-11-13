@@ -6,7 +6,8 @@ extends ModelPart
 ## the label naming the connected device under its socket, running vertically (read top to bottom),
 ## or flat under it (`flat_labels`: a wall jack). `uplink` rings one socket in the kind's colour.
 ## Origin: the top-left corner of the first socket on the surface; sockets run along +X, everything
-## sits proud of the surface (+Z). Step 2 drives the lights from the device's cables.
+## sits proud of the surface (+Z). In a device scene the StatusLight writes the labels
+## and drives the lights from its cables (ModelFace).
 
 const SOCKET_DEPTH: float = 0.001
 const LIGHT_SIZE := Vector2(0.0022, 0.0015)
