@@ -4,6 +4,34 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M13 playtest fixes and M13c — Device overhaul (2026-11-13)
+
+After the M13 playtest the user asked for fixes (status lights floating, the SMG model, a thinner crosshair and the scope's crosshair, the Icebreaker letter scramble, a Deus Ex interaction frame, one light per device), then a full device overhaul designed in a review and three mockups (ADR 0130): one design language (kind colour strip, Map icon, one light, labelled ports, name plate), rack and desk versions, linking bays, door controllers as the network devices, keys and the keychain, the frame's status line and no E prompts. Built in four steps: 3D models in a hub showroom (three design rounds with the user, tests waived), then three parallel agents (door controllers and mail removal; frame, prompts and keys; device scenes from the models and the Map), then two parallel level agents (hub rooms, warehouse) with the last one deleting the old scenes and code. 14 agents in all.
+
+Final state on master (7b8c828): 2182 tests, 0 failures, 1 skipped, lint clean (one full run after the last merge).
+
+- **Went well:**
+  - **Design before build, in the user's own medium.** HTML mockups for UI and layout, then a 3D showroom for the models: the user converged in three quick rounds (the camera, turret and access point were redone from their feedback) before any behaviour was built on them.
+  - **File ownership in parallel briefs** ("it owns X; do not edit") kept five parallel agents to one trivial merge conflict; the contracts between them (the frame's refusal hook on door controllers, one shared network state rule) were settled by messages after the first merges, each with its integration test.
+  - **The last agent cleans up**: deleting the old wall router/switch/mail server scenes and the LED placement code was left to whoever merged last, so no agent broke another's levels.
+  - **An agent caught a performance regression** it caused (alarm supervision 6 to 10 ms instead of 2.5 ms because the device graph searched through a router first) by measuring the frame cost before and after, as briefed.
+- **Went wrong:**
+  - **I briefed an agent on a design while building the mockup the user had asked for** ("Make the mockup BEFORE sending the agent"). Stopped it; memory updated: when a mockup is asked for, nothing on that design is briefed until it is approved.
+  - **A brief pointed at a file I had not committed** (the Icebreaker mockup): the agent's worktree did not have it. CLAUDE.md now says to commit brief files first.
+  - **Two writers on design/README.md** (me adding M14, an agent updating M13c's row) conflicted at merge.
+  - **Untracked generated `.import` files** in the main checkout blocked a merge twice (blaster-n, then the agent's own import). Committing a new asset's `.import` with it avoids it.
+  - **The suite is slower**: full runs take 140 to 220 s at 12 shards (about 50 s before M13); the shared suites ran 59 % slower than at the last main-checkout run. Not investigated (the user was away); one background program (EasySettingBox) used about one CPU core throughout.
+  - **Generators drift**: `tools/level_gen/warehouse_security.py` stops at M9, so the warehouse was edited by hand (its header now says so).
+- **Changes:**
+  - CLAUDE.md: commit the files a brief points to before launching; parallel briefs leave design/README.md entirely to the chief engineer (not only the ADR count line); commit a new asset's `.import` file with it.
+  - Memory: mockups before briefs; fast visual iteration (no tests while the user iterates on a look, tests after approval).
+- **Open for the user:**
+  - The slower suite: is something heavy running (EasySettingBox uses a core), or should I profile the suites (M13c's models add many labels and meshes to every level load)?
+  - Warehouse: every switch now sits in the one office bay, so breaking switches silences the compound from one place (it was two since M9e); a small second bay in the gate booth for SW-YARD would restore it.
+  - Alarm supervision rebuilds the level's device graph and runs a search per device every 0.5 s per controller, and its cost depends on node order: worth a fix before M16's larger levels.
+  - Small wording: a controller without a name shows its door's node name spaced ("D 1 Keypad"); the lock line says "remote access" for network-only doors.
+  - The warehouse's SEC-CONSOLE still stands on the wall shelf (a desk would crowd duct C's exit).
+
 ## M13 — Weapon feel (2026-11-12)
 
 The user and I grilled M13 in three rounds (ADR 0120) and split it into M13a (the feel loop) and M13b (feedback); the user then asked to build both in one go and to playtest M12 and M13 together. Eight agents in two waves of three, plus two small fixes:
