@@ -11,6 +11,8 @@ const INVENTORY_CONFIG: InventoryConfig = preload("res://items/inventory/invento
 const PISTOL_DATA: WeaponData = preload("res://items/weapons/pistol/pistol_unsilenced.tres")
 const AIM: AimConfig = preload("res://actors/guard/guard_aim.tres")
 const PISTOL_GUARD: PackedScene = preload("res://actors/guard/guard_pistol.tscn")
+const SMG_GUARD: PackedScene = preload("res://actors/guard/guard_smg.tscn")
+const RIFLE_GUARD: PackedScene = preload("res://actors/guard/guard_rifle.tscn")
 const ORIGIN := Vector3(-720, 0, -320)
 
 var _root: Node3D
@@ -53,18 +55,31 @@ func test_saved_filled_so_a_loaded_copy_keeps_the_saved_contents() -> void:
 	assert_int(Inventory.of(copy).count(Items.MEDKIT)).is_equal(1)
 
 
-func test_the_pistol_guard_carries_its_pistols_ammo() -> void:
-	var guard := PISTOL_GUARD.instantiate() as Node3D
-	guard.position = ORIGIN + Vector3(0, 0, -4)
-	guard.process_mode = Node.PROCESS_MODE_DISABLED
-	_root.add_child(guard)
+func test_magazines_by_default_and_rounds_as_an_override() -> void:
+	var by_magazines := _entity("Magazines", [] as Array[StartingItem], -1, true, 2)
+	var by_rounds := _entity("Rounds", [] as Array[StartingItem], 7, true, 2)
 	await get_tree().process_frame
 
-	var inventory := Inventory.of(guard)
-	assert_int(inventory.count(Items.AMMO)).is_equal(ItemLoadout.of(guard).weapon_ammo)
-	assert_int(inventory.count(Items.AMMO)).is_greater(0)
-	assert_object(Lootable.of(guard)).is_not_null()
-	assert_object(Keychain.of(guard)).is_not_null()
+	assert_int(Inventory.of(by_magazines).count(Items.AMMO)).is_equal(2 * PISTOL_DATA.magazine_size)
+	assert_int(Inventory.of(by_rounds).count(Items.AMMO)).is_equal(7)
+
+
+func test_each_guard_carries_one_magazine_of_its_weapon() -> void:
+	for scene: PackedScene in [PISTOL_GUARD, SMG_GUARD, RIFLE_GUARD]:
+		var guard := scene.instantiate() as Node3D
+		guard.position = ORIGIN + Vector3(_root.get_child_count() * 2.0, 0, -4)
+		guard.process_mode = Node.PROCESS_MODE_DISABLED
+		_root.add_child(guard)
+	await get_tree().process_frame
+
+	for guard in _root.get_children():
+		var loadout := ItemLoadout.of(guard)
+		var weapons := loadout.ammo_weapons()
+		assert_int(weapons.size()).is_equal(1)
+		var ammo := ItemCatalog.default().find(weapons[0].ammo_item)
+		assert_int(Inventory.of(guard).count(ammo)).is_equal(weapons[0].magazine_size)
+		assert_object(Lootable.of(guard)).is_not_null()
+		assert_object(Keychain.of(guard)).is_not_null()
 
 
 func _items() -> Array[StartingItem]:
@@ -79,7 +94,7 @@ func _items() -> Array[StartingItem]:
 
 # A minimal entity with an Inventory, a Keychain, an ItemLoadout and (`armed`) a WeaponHolder with
 # the pistol.
-func _entity(entity_name: String, items: Array[StartingItem], ammo: int, armed: bool) -> Node3D:
+func _entity(entity_name: String, items: Array[StartingItem], ammo: int, armed: bool, magazines: int = 1) -> Node3D:
 	var entity := Node3D.new()
 	var inventory := Inventory.new()
 	inventory.name = "Inventory"
@@ -98,6 +113,7 @@ func _entity(entity_name: String, items: Array[StartingItem], ammo: int, armed: 
 	loadout.name = "ItemLoadout"
 	loadout.items = items
 	loadout.weapon_ammo = ammo
+	loadout.weapon_magazines = magazines
 	loadout.holder_path = ^"../WeaponHolder" if armed else ^""
 	entity.add_child(loadout)
 	return Fixtures.compose(entity, _root, entity_name, ORIGIN, [])

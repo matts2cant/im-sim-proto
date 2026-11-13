@@ -28,12 +28,18 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"office_cutaway": {"cam": true, "eye": Vector3(4, 14, -14), "look": Vector3(14, 2, 6), "hide": ["Hall/Shell/Hall"]},
 	"basement_cutaway":
 	{"cam": true, "eye": Vector3(4, 10, -20), "look": Vector3(16, -4, 0), "hide": ["Hall", "Exterior/Ground"]},
-	# M14c grenade loot (ADR 0131).
+	# M14c grenade loot (ADR 0131); M14d moved the dock's, the locker's and the manager's into containers.
 	"grenade_security": {"feet": Vector3(18.0, 0.02, 4.0), "look": Vector3(19.5, 0.95, 3.95)},
-	"grenade_dock": {"feet": Vector3(7.0, 0, -6.4), "look": Vector3(7.0, 0.85, -8.0)},
-	"grenade_locker": {"feet": Vector3(18.2, 0.02, 11.4), "look": Vector3(19.3, 1.05, 11.4)},
 	"grenade_store": {"feet": Vector3(9.5, -4, 2.6), "look": Vector3(8.4, -3.05, 2.6)},
-	"grenade_manager": {"feet": Vector3(9.25, 4.5, 1.9), "look": Vector3(9.25, 5.35, 0.5)},
+	# M14d containers (ADR 0142) at eye height, and the loot screen on the vault door guard (`loot`: the
+	# guard knocked out, then E on it).
+	"loot_dock": {"feet": Vector3(9.6, 0, -6.6), "look": Vector3(8.3, 0.4, -9.6)},
+	"loot_store": {"feet": Vector3(10.4, -4, 5.8), "look": Vector3(8.4, -3.6, 4.7)},
+	"loot_back_strip": {"feet": Vector3(-25.8, 0, 24.0), "look": Vector3(-25.0, 0.3, 21.9)},
+	"loot_lockers": {"feet": Vector3(15.8, 0.02, 11.4), "look": Vector3(14.95, 1.0, 14.4)},
+	"loot_manager_drawers": {"feet": Vector3(11.7, 4.5, 1.6), "look": Vector3(10.3, 4.95, 0.6)},
+	"loot_office_drawers": {"feet": Vector3(16.4, 4.5, 12.2), "look": Vector3(16.25, 4.95, 14.3)},
+	"loot_g7": {"feet": Vector3(13.8, 4.5, 6.0), "look": Vector3(16.0, 4.7, 6.3), "loot": "G7VaultDoor", "wait": 2.0},
 	# Start and the approach.
 	"start": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(-4, 1.5, -16)},
 	"start_east": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(40, 8, -20)},
@@ -326,6 +332,8 @@ func _physics_process(_delta: float) -> void:
 		return
 	_camera.current = false
 	_place_player()
+	if _shot.has("loot"):
+		_loot_guard()
 	if _shot.has("computer") and not _shot.has("opened") and _time > 0.2:
 		_shot["opened"] = true
 		_open_computer()
@@ -342,6 +350,17 @@ func _physics_process(_delta: float) -> void:
 		var view := DeckArView.of(_player)
 		if not view.active:
 			view.toggle()
+
+
+# M14d: knocks out the shot's `loot` guard, then opens the loot screen on it (the tree pauses).
+func _loot_guard() -> void:
+	var guard := _level.get_node("Population/People/Guards/" + String(_shot["loot"]))
+	if not _shot.has("downed"):
+		_shot["downed"] = true
+		ActorState.set_tag(guard, ActorState.UNCONSCIOUS, true)
+	if not _shot.has("opened") and _time > 1.2:
+		_shot["opened"] = true
+		Lootable.of(guard).use(_player)
 
 
 # M12c: a deck in hand that has seen every device of the level (its AR view goes on a moment later).
@@ -418,7 +437,8 @@ func _device_view(entity: Node) -> Node3D:
 func _process(delta: float) -> void:
 	if _mission.briefing.is_open():
 		_mission.briefing.close()
-	if _shot.is_empty() or get_tree().paused:
+	# The briefing pauses the tree (wait); so does a loot shot's screen (go on to the shot).
+	if _shot.is_empty() or (get_tree().paused and not _shot.has("opened")):
 		return
 	_time += delta
 	if _time > 0.5:
@@ -444,6 +464,9 @@ func _process(delta: float) -> void:
 	var screen := ComputerScreen.of(_player)
 	if screen != null and screen.is_open():
 		screen.close()
+	var loot := Screens.find(_player, Lootable.SCREEN)
+	if loot != null:
+		loot.close_screen()
 	for hidden: String in _shot.get("hide", []):
 		(_level.get_node(hidden) as Node3D).visible = true
 	_shot = {}

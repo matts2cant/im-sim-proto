@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://ui/hud/network_feedback.gd" id="8_network_feedback"]
 [ext_resource type="Script" path="res://ui/hud/hit_marker.gd" id="9_hit_marker"]
 [ext_resource type="PackedScene" path="res://ui/hud/target_frame.tscn" id="20_target_frame"]
+[ext_resource type="Script" path="res://ui/hud/hold_ring.gd" id="21_hold_ring"]
+[ext_resource type="Theme" path="res://ui/hud/hud_theme.tres" id="22_hud_theme"]
 
 [sub_resource type="LabelSettings" id="Label_weapon"]
 font_size = 18
@@ -103,6 +105,19 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("9_hit_marker")
+
+[node name="HoldRing" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("22_hud_theme")
+theme_type_variation = &"HudHoldRing"
+script = ExtResource("21_hold_ring")
 
 [node name="TargetFrame" parent="." instance=ExtResource("20_target_frame")]
 

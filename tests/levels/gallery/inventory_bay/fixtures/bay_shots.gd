@@ -38,6 +38,9 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"on_dais": {"feet": Vector3(-2.15, 0.3, -17.8), "look": Vector3(-2.15, 0.5, -19.0)},
 	"on_ledge": {"feet": Vector3(-5.1, 2.3, -18.0), "look": Vector3(0, 1.0, -12)},
 	"heavy_crate": {"feet": Vector3(4.6, 0, -16.6), "look": Vector3(5.2, 0.8, -18.6)},
+	# M14d: the looting corner (supply crate, desk drawers, locked locker) and its sign.
+	"loot_corner": {"feet": Vector3(2.4, 0, -14.6), "look": Vector3(5.7, 1.2, -16.6)},
+	"loot_corner_close": {"feet": Vector3(4.5, 0, -15.9), "look": Vector3(5.7, 0.8, -16.4)},
 	"hud_augs":
 	{
 		"feet": Vector3(1.5, 0, -9.0),

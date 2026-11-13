@@ -6,7 +6,8 @@ extends Node3D
 ## SAVE_AT seconds and quits (a real-time watchdog saves and quits after WATCHDOG seconds).
 ## Shots: pickup, computer, door, guard; with the status line (ADR 0130): device_online,
 ## device_cut (its only link, the other switch, unpowered), lamp_off, guard_dead, door_locked (a
-## mechanical lock with a key), keychain (the Inventory tab with two keys).
+## mechanical lock with a key), keychain (the Inventory tab with two keys); hold_ring (M14d: E held
+## 0.25 s on the unconscious guard, the ring around the crosshair half full).
 
 const SHOTS: Dictionary[String, Dictionary] = {
 	"pickup": {"feet": Vector3(-4.0, 0, -0.9), "look": Vector3(-4.0, 0.78, -2.0)},
@@ -20,18 +21,23 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"guard_dead": {"feet": Vector3(0.2, 0, -4.8), "look": Vector3(-0.2, 0.3, -6.0)},
 	"door_locked": {"feet": Vector3(0.25, 0, -8.6), "look": Vector3(0.25, 1.45, -10.0)},
 	"keychain": {"feet": Vector3(0, 0, 3.0), "look": Vector3(0, 1.6, 6.0)},
+	# M14d: E held on the unconscious guard for half the hold time (the hold ring half full).
+	"hold_ring": {"feet": Vector3(0.2, 0, -4.8), "look": Vector3(-0.2, 0.3, -6.0)},
 }
 const LOCKPICK: ItemData = preload("res://items/lockpick/lockpick.tres")
 const KEY: ItemData = preload("res://items/key/key.tres")
 ## Game seconds before the shot (the pickup lands, the guard lies down).
 const SAVE_AT: float = 1.2
 const PICKUP_AT: float = 0.2
+## `hold_ring`: E goes down this long before the shot (half the 0.5 s hold time).
+const HOLD_FOR: float = 0.25
 const WATCHDOG: float = 25.0
 
 var _shot: Dictionary = {}
 var _out: String = ""
 var _time: float = 0.0
 var _started_msec: int = 0
+var _holds: bool = false
 
 @onready var _player: Player = $Player
 @onready var _guard: Node3D = $Guard
@@ -68,6 +74,9 @@ func _set_up(shot: String) -> void:
 			(Powered.of($WallLamp) as Powered).on = false
 		"guard_dead":
 			ActorState.set_tag(_guard, ActorState.DEAD, true)
+		"hold_ring":
+			_player.input_enabled = true
+			_holds = true
 		"door_locked":
 			var lock := MechanicalLock.new()
 			lock.name = "MechanicalLock"
@@ -89,6 +98,8 @@ func _set_up(shot: String) -> void:
 func _physics_process(delta: float) -> void:
 	if _shot.is_empty():
 		return
+	if _holds and _time < SAVE_AT - HOLD_FOR and _time + delta >= SAVE_AT - HOLD_FOR:
+		Input.action_press(&"use")
 	if _time < PICKUP_AT and _time + delta >= PICKUP_AT:
 		# Once the table's CSG collision is built (a few frames after load).
 		var pickup := (load(LOCKPICK.world_scene) as PackedScene).instantiate() as Node3D

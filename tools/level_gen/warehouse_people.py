@@ -64,6 +64,22 @@ GUARD_SPECS = [
 # patrols (routes outside the buildings) also keep it on while patrolling.
 FLASHLIGHT_PATROLS = {"G2YardPatrolWest", "G3YardPatrolEast", "G9BackStrip"}
 
+# M14d (ADR 0142): what guards carry beyond one magazine of their weapon's ammo (guard.tscn's
+# ItemLoadout), looted with E once they are down. Keys and keycards go onto their keychain.
+# (item kind, count or None, state or None)
+KEY_ID = "key_id"
+KEY_NAME = "key_name"
+GUARD_LOOT = {
+    # The break room guard keeps the shift's security keycard (the security door across the corridor).
+    "G6BreakRoom": [("keycard", None, {KEY_ID: "warehouse_security", KEY_NAME: "Security keycard"})],
+    # The vault door guard carries the vault's keycard.
+    "G7VaultDoor": [("keycard", None, {KEY_ID: "warehouse_vault", KEY_NAME: "Vault keycard"})],
+    # The off-duty guard's own locker in the locker room.
+    "G8OffDuty": [("key", None, {KEY_ID: "warehouse_locker", KEY_NAME: "Locker key"})],
+    # The west catwalk patrol carries the office bay key (the bay is on the far side of its bridge).
+    "G10CatwalkWest": [("key", None, {KEY_ID: "warehouse_bay", KEY_NAME: "Office bay key"})],
+}
+
 
 def build_guards(b):
     s = b.scene
@@ -83,13 +99,113 @@ def build_guards(b):
                 s.add(point, route_path, "Marker3D", props={"transform": Raw(transform(at, yaw_basis(facing))), "metadata/wait": float(wait)})
             yaw = yaw_towards(points[0], points[1])
         inst = s.ext_res("PackedScene", GUARDS + scene + ".tscn")
-        path = s.add(name, guards, instance=inst, props={"transform": Raw(transform(pos, yaw_basis(yaw)))})
+        # M14d: screens name them "Guard" (the interaction frame, the loot screen), not "G 7 vault door".
+        props = {"transform": Raw(transform(pos, yaw_basis(yaw))), "metadata/display_name": "Guard"}
+        path = s.add(name, guards, instance=inst, props=props)
         if route_path:
             s.override(path + "/Behaviour", {"patrol_route": Raw(f'NodePath("../../../{route_path}")')})
         if extra_tags:
             s.override(path + "/Tags", {"initial_tags": tag_list(GUARD_TAGS + extra_tags)})
         if name in FLASHLIGHT_PATROLS:
             s.override(path + "/Aim/Flashlight", {"on_while_patrolling": Raw("true")})
+        if name in GUARD_LOOT:
+            s.override(path + "/ItemLoadout", {"items": starting_items(s, name, GUARD_LOOT[name])})
+
+
+# --- loot (M14d) ----------------------------------------------------------------------------------
+
+ITEM_DATA = {
+    "keycard": "keycard/keycard.tres",
+    "key": "key/key.tres",
+    "medkit": "medkit/medkit.tres",
+    "pistol_ammo": "pistol_ammo/pistol_ammo.tres",
+    "rifle_rounds": "rifle_rounds/rifle_rounds.tres",
+    "shotgun_shells": "shotgun_shells/shotgun_shells.tres",
+    "frag_grenade": "grenades/frag/frag_grenade_item.tres",
+    "gas_grenade": "grenades/gas/gas_grenade_item.tres",
+    "jamming_grenade": "grenades/jamming/jamming_grenade_item.tres",
+}
+
+
+def state_text(state):
+    return "{" + ", ".join(f'"{k}": "{v}"' for k, v in state.items()) + "}"
+
+
+def starting_items(s, owner, entries):
+    """An ItemLoadout's `items`: one StartingItem sub-resource per (kind, count, state) entry."""
+    script = s.ext_res("Script", "res://items/inventory/starting_item.gd")
+    refs = []
+    for index, (kind, count, state) in enumerate(entries):
+        props = {"script": script, "item": s.ext_res("Resource", "res://items/" + ITEM_DATA[kind])}
+        if count is not None:
+            props["count"] = count
+        if state:
+            props["state"] = Raw(state_text(state))
+        refs.append(s.sub_res("Resource", props, prefix=f"Loot_{owner}_{index}").text)
+    return Raw(f'Array[{script.text}]([' + ", ".join(refs) + "])")
+
+
+# Inner faces of the office block's north (manager office) and south (locker room, second office) walls.
+OFFICE_NORTH, OFFICE_SOUTH = 0.25, 14.75
+CONTAINER_SCENES = {
+    "supply_crate": "res://objects/containers/supply_crate.tscn",
+    "locker": "res://objects/containers/locker.tscn",
+    "desk_drawers": "res://objects/containers/desk_drawers.tscn",
+}
+# Back from the origin to the back face (the scenes' front is +Z), plus 2 cm off the wall.
+CONTAINER_BACK = {"supply_crate": 0.33, "locker": 0.27, "desk_drawers": 0.34}
+# (name, kind, wall the back stands against: (x or z of its face, "N"/"S"/"E"/"W" = the wall's side
+# of the container), the coordinate along the wall, floor y, items, lock: None (scene default),
+# "open" (unlocked) or a key id (locked with that key).
+CONTAINERS = [
+    # Hall, dock: against the north wall east of roller door 2, beside the metal crate (FragDock moved in).
+    ("SupplyCrateDock", "supply_crate", (wh.HALL_Z0, "N"), 8.3, 0.0, [("frag_grenade", None, None), ("pistol_ammo", 10, None), ("rifle_rounds", 15, None)], None),
+    # Basement store: against the west wall south of the lockpick shelf.
+    ("SupplyCrateStore", "supply_crate", (8.0, "W"), 4.85, wh.BASE_Y, [("medkit", None, None), ("pistol_ammo", 10, None), ("shotgun_shells", 6, None)], None),
+    # Back strip: a stash in the dark behind the back container (south face z 21.5), east of the hiding spot.
+    ("SupplyCrateBackStrip", "supply_crate", (21.5, "N"), -25.0, 0.0, [("medkit", None, None), ("pistol_ammo", 10, None)], None),
+    # Locker room, south wall: G8's locker (locked; his key, or lockpicks: the gas grenade moved in) and an open one.
+    ("LockerOffDuty", "locker", (OFFICE_SOUTH, "S"), 14.6, wh.OFF_GROUND, [("gas_grenade", None, None), ("medkit", None, None), ("pistol_ammo", 10, None)], "warehouse_locker"),
+    ("LockerSpare", "locker", (OFFICE_SOUTH, "S"), 15.3, wh.OFF_GROUND, [("shotgun_shells", 6, None)], "open"),
+    # Manager office: drawers right of the desk (the manager's jammer moved in) with the second office's key.
+    ("DrawersManager", "desk_drawers", (OFFICE_NORTH, "N"), 10.35, wh.OFF_UP, [("jamming_grenade", None, None), ("key", None, {KEY_ID: "warehouse_office_two", KEY_NAME: "Office two key"})], None),
+    # Second office: drawers between the two desks (south wall).
+    ("DrawersOffice", "desk_drawers", (OFFICE_SOUTH, "S"), 16.25, wh.OFF_UP, [("medkit", None, None), ("pistol_ammo", 6, None)], None),
+]
+# Front (the scenes' +Z) facing away from the wall the back stands against.
+CONTAINER_YAW = {"N": 0.0, "S": 180.0, "W": 90.0, "E": -90.0}
+
+
+def build_containers(b):
+    s = b.scene
+    group = b.group("Containers")
+    for name, kind, (face, side), along, floor_y, items, lock in CONTAINERS:
+        back = CONTAINER_BACK[kind]
+        if side == "N":
+            pos = (along, floor_y, face + back)
+        elif side == "S":
+            pos = (along, floor_y, face - back)
+        elif side == "W":
+            pos = (face + back, floor_y, along)
+        else:
+            pos = (face - back, floor_y, along)
+        inst = s.ext_res("PackedScene", CONTAINER_SCENES[kind])
+        path = s.add(name, group, instance=inst, props={"transform": Raw(transform(pos, yaw_basis(CONTAINER_YAW[side])))})
+        s.override(path + "/ItemLoadout", {"items": starting_items(s, name, items)})
+        if lock == "open":
+            s.override(path + "/Lockable", {"locked": Raw("false")})
+        elif lock is not None:
+            data = s.sub_res(
+                "Resource",
+                {
+                    "script": s.ext_res("Script", "res://objects/locks/mechanical_lock_data.gd"),
+                    "pins": Raw('Array[StringName]([&"standard", &"standard", &"standard"])'),
+                    "pin_seed": 1420 + len(name),
+                    "key_id": Raw(f'&"{lock}"'),
+                },
+                prefix=f"Lock_{name}",
+            )
+            s.override(path + "/MechanicalLock", {"data": data})
 
 
 # --- furniture, items and props -------------------------------------------------------------------
@@ -162,14 +278,10 @@ ITEM_SPECS = [
     ("CacheMedkit", "medkit", (-33.95, 0.0, 23.45), 0.0, None),
     ("CacheAmmo", "pistol_ammo", (-33.6, 0.0, 23.4), 20.0, 10),
     # M14c (ADR 0131): grenades as loot, none on guards. A frag on the security room's gun table by the
-    # shotgun shells; a frag on the dock's metal supply crate by roller door 2 (DockMetalCrate's top);
-    # gas in the locker room's north open locker, in front of the rifle rounds; EMP on the basement
-    # store shelf by the lockpicks; the jammer on the manager's desk between the two datapads.
+    # shotgun shells; EMP on the basement store shelf by the lockpicks. M14d: the dock's frag, the
+    # locker room's gas grenade and the manager's jammer moved into containers (CONTAINERS).
     ("FragSecurity", "frag_grenade", (19.5, wh.OFF_GROUND + 0.9, 3.95), 0.0, None),
-    ("FragDock", "frag_grenade", (7.0, 0.805, -8.0), 0.0, None),
-    ("GasLocker", "gas_grenade", (19.27, wh.OFF_GROUND + LOCKER_SHELF, 11.4), 0.0, None),
     ("EmpStore", "emp_grenade", (8.4, wh.BASE_Y + 0.9, 2.6), 0.0, None),
-    ("JammerManager", "jamming_grenade", (9.25, wh.OFF_UP + 0.8, 0.5), 0.0, None),
 ]
 
 # The outgoing shipment on the dock (between the roller doors, around the Shipment marker).
@@ -273,6 +385,7 @@ def build():
     build_guards(b)
     build_items(b)
     build_props(b)
+    build_containers(b)
     return b
 
 

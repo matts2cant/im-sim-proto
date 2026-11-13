@@ -22,6 +22,7 @@ const SIGNS: Dictionary[String, String] = {
 	"SpeedLedge": "Speed (F3)\nmantle me",
 	"HeavyCrate": "F5 Combat Strength\nlift me",
 	"RunSilent": "Run Silent (F2)\nsprint here",
+	"LootCorner": "Tap E: search · Hold E: carry a body\nLocker key: in the drawers",
 }
 const PLAYER: PlayerConfig = preload("res://actors/player/player_config.tres")
 const SPEED: AugmentationData = preload("res://actors/common/abilities/augmentations/speed_enhancement.tres")

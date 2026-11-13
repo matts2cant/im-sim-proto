@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 ## a desk or in a bay but the security console (a standing console on its wall shelf). The
 ## one bay stands in the second office with 1 m of clear floor in front of it and holds RTR-01, the
 ## five security switches and MAIL-01 (a rack server: a computer); its glass door is locked, opens
-## when picked or with its key, which lies on the security room desk. Walking at the bay and the
+## when picked or with its key, which the west catwalk patrol carries (M14d). Walking at the bay and the
 ## lockpick's loudest noise reach no guard post or patrol point (straight line, the shortest a path
 ## can be); the office's meshes have no coplanar faces. The populated level is loaded once (no
 ## navmesh: warehouse_door_navigation_test checks the office's floor around the bay).
@@ -17,10 +17,9 @@ const MountChecks := preload("res://tests/levels/device_mount_checks.gd")
 const SECURITY := "Population/Security/"
 ## The one computer on a wall shelf: a standing console between duct C's mouth and the window.
 const CONSOLE := "SEC-CONSOLE"
-## The second office on the upper floor (x, z) and its floor; the security room (ground floor).
+## The second office on the upper floor (x, z) and its floor.
 const OFFICE := Rect2(13.25, 7.0, 6.5, 7.75)
 const OFFICE_FLOOR := 4.5
-const SECURITY_ROOM := Rect2(14.0, 0.25, 5.75, 4.75)
 ## The gear in the bay, by network name.
 const BAY_GEAR: Array[String] = ["RTR-01", "SW-SECURITY", "SW-SEC-ROOM", "SW-VAULT", "SW-YARD", "SW-ROOF", "MAIL-01"]
 ## Clear floor in front of the bay (m, from its glass door) and the feet's distance from the door.
@@ -96,25 +95,25 @@ func test_the_locked_bay_stands_in_the_second_office_with_the_network_gear() -> 
 	assert_array(blocking).is_empty()
 
 
-func test_its_glass_door_opens_when_picked_or_with_its_key_found_on_the_security_desk() -> void:
+func test_its_glass_door_opens_when_picked_or_with_its_key_carried_by_a_guard() -> void:
 	var glass := _bay().get_node("GlassDoor")
 	var hinge := HingedDoor.of(glass)
 	var lock := Lock.locks_of(glass)[0] as MechanicalLock
 	var key_id := lock.data.key_id
 	assert_str(String(key_id)).is_not_empty()
 	assert_str(lock.locked_reason(null)).is_equal("key or lockpick")
-	# Its key: one pickup naming it, on the security room desk (outside the office), found_text set.
-	var keys: Array[ItemPickup] = []
+	# Its key (M14d): no pickup; one character carries it on its keychain (the west catwalk patrol,
+	# looted once down), outside the office.
 	for node in _level.find_children("*", "ItemPickup", true, false):
-		if str((node as ItemPickup).state.get("key_id", "")) == String(key_id):
-			keys.append(node as ItemPickup)
-	assert_int(keys.size()).is_equal(1)
-	var key := keys[0].get_parent() as Node3D
-	assert_bool(keys[0].item.keychain).is_true()
-	assert_str(keys[0].found_text).is_not_empty()
-	assert_bool(SECURITY_ROOM.has_point(Vector2(key.global_position.x, key.global_position.z))).is_true()
-	var under := _ray(key.global_position + Vector3.UP * 0.05, key.global_position + Vector3.DOWN * 0.1)
-	assert_bool(under.is_empty()).override_failure_message("nothing under the key").is_false()
+		assert_str(str((node as ItemPickup).state.get("key_id", ""))).is_not_equal(String(key_id))
+	var holders: Array[Node3D] = []
+	for node in _level.find_children("*", "Keychain", true, false):
+		if (node as Keychain).has_key(key_id, Keychain.KEY):
+			holders.append(Entities.of_component(node) as Node3D)
+	assert_int(holders.size()).is_equal(1)
+	assert_object(BodyParts.of(holders[0])).is_not_null()
+	assert_str(String(holders[0].name)).is_equal("G10CatwalkWest")
+	assert_bool(OFFICE.has_point(Vector2(holders[0].global_position.x, holders[0].global_position.z))).is_false()
 
 	# Without the key: locked, E does nothing; picked, it swings open.
 	var picker := _stand_in("Picker")

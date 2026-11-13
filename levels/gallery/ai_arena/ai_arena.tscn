@@ -15,6 +15,19 @@
 [ext_resource type="PackedScene" path="res://objects/network/switch_desk.tscn" id="12_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="13_panic_button"]
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="14_base_station"]
+[ext_resource type="Script" path="res://items/inventory/starting_item.gd" id="15_starting_item"]
+[ext_resource type="Resource" path="res://items/keycard/keycard.tres" id="16_keycard"]
+[ext_resource type="Resource" path="res://items/pistol_ammo/pistol_ammo.tres" id="17_pistol_ammo"]
+
+[sub_resource type="Resource" id="Loot_keycard"]
+script = ExtResource("15_starting_item")
+item = ExtResource("16_keycard")
+state = {"key_id": "security_booth", "key_name": "Security booth keycard"}
+
+[sub_resource type="Resource" id="Loot_ammo"]
+script = ExtResource("15_starting_item")
+item = ExtResource("17_pistol_ammo")
+count = 10
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -171,6 +184,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, 0, 9)
 [node name="Tags" parent="Guards/GuardBatonDowned"]
 initial_tags = Array[StringName]([&"actor.guard", &"equipment.radio", &"state.unconscious"])
 
+[node name="ItemLoadout" parent="Guards/GuardBatonDowned"]
+items = Array[ExtResource("15_starting_item")]([SubResource("Loot_keycard"), SubResource("Loot_ammo")])
+
 [node name="GuardPistolRadio" parent="Guards" instance=ExtResource("8_guard")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -15, 0, 1.6)
 
@@ -244,7 +260,7 @@ size = 0
 [node name="Wake" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.95, 2.3, 9.9)
 text = "A guard who finds an unconscious ally wakes it
-Carry a downed guard: E on the body · Q drops it"
+Search a downed guard: tap E · Carry it: hold E · Q drops it"
 size = 0
 
 [node name="Comms" parent="Labels" instance=ExtResource("3_sign")]

@@ -183,6 +183,15 @@ func test_downed_guard_lies_unconscious_beside_route_a_with_room_to_stand() -> v
 		assert_float(gap).override_failure_message(crate.name).is_greater(1.5)
 
 
+func test_downed_guard_carries_the_booth_keycard_and_pistol_rounds() -> void:
+	var downed := _guard("GuardBatonDowned")
+
+	# M14d: tap E loots it; its keycard is a second way into the security wing's booth.
+	assert_bool(Keychain.of(downed).has_key(&"security_booth", Keychain.CARD)).is_true()
+	assert_int(Inventory.of(downed).grid.count_of(&"pistol_ammo")).is_equal(10)
+	assert_object(Lootable.of(downed)).is_not_null()
+
+
 func test_routes_and_posts_keep_clear_of_the_crates() -> void:
 	# Legs as consecutive pairs (start, end) of route points, each route looped.
 	var legs := PackedVector3Array()
@@ -234,7 +243,7 @@ func test_signs() -> void:
 		texts += String(sign.get("text")) + "\n"
 
 	for phrase: String in [
-		"6 AI arena", "behind", "dark corner", "wakes it", "E on the body", "Q drops", "17 m", "30 m", "alarm", "34 m"
+		"6 AI arena", "behind", "dark corner", "wakes it", "tap E", "hold E", "Q drops", "17 m", "30 m", "alarm", "34 m"
 	]:
 		assert_str(texts.to_lower()).override_failure_message(phrase).contains(phrase.to_lower())
 
