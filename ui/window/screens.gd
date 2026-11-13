@@ -1,11 +1,11 @@
 class_name Screens
 extends Node
-## Component of a user (the Player; ADR 0133): the screens it can be shown, found by id. World
-## objects and items ask it to open a screen (Screens.open(user, KeypadLock.SCREEN, lock)) instead of
-## instancing or naming a concrete UI class; a user without the component (or without that screen)
-## has no screen, and the caller does what it does for such a user.
-## A screen is a UserScreen child of the user answering to the id (screen_id()), or the scene
-## registered for the id in `scenes`, instanced as the user's child on first use (the tuning panel).
+## The screens a user can be shown, found by id (ADR 0133). World objects and items ask for one
+## (Screens.open(user, KeypadLock.SCREEN, lock)) instead of instancing or naming a concrete UI class;
+## a user without that screen has none, and the caller does what it does for such a user.
+## A screen is a UserScreen child of the user answering to the id (screen_id()). This component
+## (optional, on the user) adds screens made on demand: the scene registered for an id in `scenes`
+## is instanced as the user's child the first time it is asked for (the tuning panel).
 
 ## Screen id -> the UserScreen scene instanced as the user's child when it is first asked for.
 @export var scenes: Dictionary[StringName, PackedScene] = {}
@@ -30,14 +30,15 @@ static func open(user: Node, id: StringName, subject: Object, options: Dictionar
 
 ## True when `user` has screen `id` (or can make it).
 static func has(user: Node, id: StringName) -> bool:
+	if find(user, id) != null:
+		return true
 	var screens := of(user)
-	return screens != null and (screens.find(id) != null or screens.scenes.has(id))
+	return screens != null and screens.scenes.has(id)
 
 
 ## True while `user`'s screen `id` is open (on `subject`, when given).
 static func is_open(user: Node, id: StringName, subject: Object = null) -> bool:
-	var screens := of(user)
-	var found := screens.find(id) if screens != null else null
+	var found := find(user, id)
 	if found == null:
 		return false
 	return found.shows(subject) if subject != null else found.is_open()
@@ -46,19 +47,21 @@ static func is_open(user: Node, id: StringName, subject: Object = null) -> bool:
 ## Closes `user`'s screen `id` if it is open (on `subject`, when given).
 static func close(user: Node, id: StringName, subject: Object = null) -> void:
 	if is_open(user, id, subject):
-		of(user).find(id).close_screen()
+		find(user, id).close_screen()
 
 
-## `user`'s screen `id`, instanced from `scenes` when it has none yet; null when it has none.
+## `user`'s screen `id`, instanced from its Screens' `scenes` when it has none yet; null when none.
 static func screen_of(user: Node, id: StringName) -> UserScreen:
+	var found := find(user, id)
+	if found != null:
+		return found
 	var screens := of(user)
-	return screens.get_screen(id) if screens != null else null
+	return screens.make(id) if screens != null else null
 
 
-## The screen `id` among the user's children (null: none yet).
-func find(id: StringName) -> UserScreen:
-	var user := get_parent()
-	if user == null:
+## The screen `id` among `user`'s children (null: none, or not made yet).
+static func find(user: Node, id: StringName) -> UserScreen:
+	if user == null or not is_instance_valid(user):
 		return null
 	for child in user.get_children():
 		var screen := child as UserScreen
@@ -67,14 +70,14 @@ func find(id: StringName) -> UserScreen:
 	return null
 
 
-## The screen `id`, instanced from `scenes` as the user's child when missing; null when it has none.
-func get_screen(id: StringName) -> UserScreen:
-	var found := find(id)
-	if found != null or not scenes.has(id) or get_parent() == null:
-		return found
-	found = scenes[id].instantiate() as UserScreen
+## Instances the scene registered for `id` as the user's child; null when none is registered.
+func make(id: StringName) -> UserScreen:
+	var user := get_parent()
+	if user == null or not scenes.has(id):
+		return null
+	var found := scenes[id].instantiate() as UserScreen
 	if found == null:
 		push_warning("Screens: the scene for %s is not a UserScreen" % id)
 		return null
-	get_parent().add_child(found)
+	user.add_child(found)
 	return found
