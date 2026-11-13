@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ProximityTriggerConfig" format=3]
+
+[ext_resource type="Script" path="res://items/grenades/proximity_trigger_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+arm_time = 2.0
+radius = 2.5
+crouched_radius = 1.0
+check_ticks = 4
+character_mask = 6
+sight_mask = 9
+required_tags = Array[StringName]([])
+ignored_tags = Array[StringName]([])
+blink_period = 1.0
+blink_lit_share = 0.3

@@ -31,8 +31,6 @@ extends Node
 ## incapacitated, unarmed, target_down). Not saveable: engagements are transient (a loaded game re-engages on
 ## sight with a fresh reaction); the holder saves the loadout's ammo.
 
-const STILL_SPEED: float = 0.5
-
 @export var config: CombatConfig
 @export var holder_path: NodePath = ^"../Aim/WeaponHolder"
 
@@ -93,7 +91,7 @@ func is_engaged() -> bool:
 func _physics_process(delta: float) -> void:
 	var distance := _target_distance()
 	var floor_add := model.spread(distance) if is_engaged() else 0.0
-	var stance := AimModel.Stance.WALK if body.horizontal_speed() > STILL_SPEED else AimModel.Stance.STILL
+	var stance := AimModel.Stance.WALK if body.horizontal_speed() > config.still_speed else AimModel.Stance.STILL
 	# The eye is aimed at the target every tick (_fight), so the share of the climb it would follow
 	# is pulled back: the shots keep the rest.
 	holder.recoil.view_recoil()

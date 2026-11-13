@@ -23,6 +23,8 @@ extends Resource
 @export var distance_margin: float = 1.0
 ## Fires only while its own horizontal speed is below this (it stops to shoot).
 @export var fire_max_speed: float = 0.3
+## Above this horizontal speed (m/s) it aims with the walking stance's spread, below with the still one.
+@export var still_speed: float = 0.5
 ## Fires (and swings) only while its facing is within this angle of the target.
 @export var fire_max_angle: float = 15.0
 ## With no clear line of fire for this long, it steps `sidestep_distance` sideways (alternating).

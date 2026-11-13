@@ -143,7 +143,7 @@ func _play_sound(origin: Vector3) -> void:
 	player.name = "BreakSound"
 	player.stream = material.break_sound
 	player.volume_db = material.break_volume_db
-	player.unit_size = 6.0
+	player.unit_size = settings.sound_unit_size
 	player.finished.connect(player.queue_free)
 	# Parented to the viewport so the sound outlives the entity.
 	get_viewport().add_child(player)

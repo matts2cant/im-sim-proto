@@ -74,5 +74,7 @@ extends Resource
 @export var glance_hold: float = 1.5
 ## Looking around (Suspicious, Searching) sweeps this many degrees either side.
 @export var look_around_angle: float = 60.0
+## ...one full sweep (left, right and back) taking this many seconds.
+@export var look_around_period: float = 4.0
 ## Wait at a patrol point without its own `wait` metadata.
 @export var patrol_wait: float = 1.0

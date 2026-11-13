@@ -4,6 +4,8 @@ extends Resource
 
 ## `noise` (PATH) loudness of a break, audible metres.
 @export var noise_loudness: float
+## Unit size (m) of the break sound's 3D player (the distance at which it plays at full volume).
+@export var sound_unit_size: float = 6.0
 @export var debris_min: int
 @export var debris_max: int
 ## Seconds before a debris piece despawns.

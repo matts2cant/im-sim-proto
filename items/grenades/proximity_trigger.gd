@@ -1,9 +1,11 @@
 class_name ProximityTrigger
 extends Node3D
-## Component (ADR 0131): turns its entity into a proximity mine. Arming starts when a sibling Sticky
+## Component (ADR 0131): turns its entity into a proximity mine. Tuning in `config`
+## (ProximityTriggerConfig, `proximity_trigger.tres`, ADR 0138). Arming starts when a sibling Sticky
 ## sticks the entity (or arm() is called) and takes `arm_time` s; armed, a small red light blinks
 ## about once a second, and every `check_ticks` physics ticks it looks for characters (bodies on
-## `character_mask`: players and guards, its owner included; never props or noises): one within
+## `character_mask`: players and guards, its owner included; never props or noises) that its tag
+## filter accepts (`required_tags` / `ignored_tags`; by default every character): one within
 ## `radius` m of its centre (the gap to the character's collision shape), or within `crouched_radius`
 ## when the character is crouched (its `stance.crouch` tag), and in its line of sight (a ray to the
 ## shape's centre that nothing on `sight_mask` blocks) sets off the entity's Explosive
@@ -17,18 +19,11 @@ signal armed
 
 const GROUP: StringName = &"proximity_trigger"
 const ARMED_BEEP_HZ: float = 2400.0
+const DEFAULT_CONFIG: ProximityTriggerConfig = preload("res://items/grenades/proximity_trigger.tres")
 
-@export var arm_time: float = 2.0
-@export var radius: float = 2.5
-@export var crouched_radius: float = 1.0
-@export var check_ticks: int = 4
-@export_flags_3d_physics var character_mask: int = PhysicsLayers.CHARACTER_LAYERS
-@export_flags_3d_physics var sight_mask: int = PhysicsLayers.WORLD | PhysicsLayers.OBJECTS
+@export var config: ProximityTriggerConfig = DEFAULT_CONFIG
 ## Where the blinking light sits (local to this node: the top of the entity).
 @export var light_offset: Vector3 = Vector3(0, 0.05, 0)
-## Blink period (s) and the lit share of it.
-@export var blink_period: float = 1.0
-@export_range(0.0, 1.0) var blink_lit_share: float = 0.3
 @export var entity_path: NodePath = ^".."
 
 var entity: Node3D
@@ -49,7 +44,9 @@ func _ready() -> void:
 	add_to_group(TargetStatus.STATUS_GROUP)
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
-	arming_left = arm_time
+	if config == null:
+		config = DEFAULT_CONFIG
+	arming_left = config.arm_time
 	_build_visuals()
 	var sticky := Sticky.of(entity)
 	if sticky != null:
@@ -71,7 +68,7 @@ func arm() -> void:
 	if is_armed or is_arming:
 		return
 	is_arming = true
-	arming_left = arm_time
+	arming_left = config.arm_time
 
 
 func _physics_process(delta: float) -> void:
@@ -84,7 +81,7 @@ func _physics_process(delta: float) -> void:
 	_blink_time += delta
 	_show_light()
 	_tick += 1
-	if _tick % maxi(check_ticks, 1) != 0:
+	if _tick % maxi(config.check_ticks, 1) != 0:
 		return
 	var who := _intruder()
 	if who != null:
@@ -141,9 +138,9 @@ func _become_armed() -> void:
 	armed.emit()
 
 
-# The first character close enough for its stance and in sight, or null.
+# The first character the tag filter accepts, close enough for its stance and in sight, or null.
 func _intruder() -> Node:
-	var hits := _query(radius)
+	var hits := _query(config.radius)
 	if hits.is_empty():
 		return null
 	var close: Array[Node] = []
@@ -152,9 +149,12 @@ func _intruder() -> Node:
 		var collider := hit["collider"] as CollisionObject3D
 		if collider == null:
 			continue
+		var tags := ActorState.tags_of(collider)
+		if not config.accepts(tags.container if tags != null else null):
+			continue
 		if ActorState.has(collider, ActorState.CROUCHING):
 			if not checked_close:
-				close = characters_within(crouched_radius)
+				close = characters_within(config.crouched_radius)
 				checked_close = true
 			if not close.has(collider):
 				continue
@@ -169,7 +169,7 @@ func _query(reach: float) -> Array[Dictionary]:
 	var params := PhysicsShapeQueryParameters3D.new()
 	params.shape = sphere
 	params.transform = Transform3D(Basis.IDENTITY, global_position)
-	params.collision_mask = character_mask
+	params.collision_mask = config.character_mask
 	params.collide_with_areas = false
 	var body := entity as CollisionObject3D
 	if body != null:
@@ -191,7 +191,7 @@ func _sees(character: CollisionObject3D, shape_index: int) -> bool:
 	var exclude: Array[RID] = []
 	if entity is CollisionObject3D:
 		exclude.append((entity as CollisionObject3D).get_rid())
-	return PhysicsLayers.segment_clear(get_world_3d().direct_space_state, from, to, sight_mask, exclude)
+	return PhysicsLayers.segment_clear(get_world_3d().direct_space_state, from, to, config.sight_mask, exclude)
 
 
 func _trigger(who: Node) -> void:
@@ -207,7 +207,8 @@ func _trigger(who: Node) -> void:
 func _show_light() -> void:
 	if _light == null:
 		return
-	var lit := is_armed and fposmod(_blink_time, blink_period) < blink_period * blink_lit_share
+	var period := config.blink_period
+	var lit := is_armed and fposmod(_blink_time, period) < period * config.blink_lit_share
 	_light.visible = lit
 	_glow.visible = lit
 	if not is_armed:

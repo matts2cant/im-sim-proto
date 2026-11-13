@@ -1,17 +1,18 @@
 class_name Fuse
 extends Node
 ## Component (ADR 0131): once lit, sets off its entity's Explosive (`Explosive.explode()`, the one
-## detonation entry) after `time` seconds: a thrown grenade, a mine whose disarming failed (lit for
-## 0.5 s). While lit and when `hits_characters` is on, a body entity also collides with characters
-## (players, guards) so a thrown grenade bounces off people; props never scan them otherwise
-## (PhysicsObject, ADR 0054). EventLog `fuse.lit {object, time}`. Saveable (lit, time left).
+## detonation entry) after `config.time` seconds: a thrown grenade, a mine whose disarming failed
+## (lit for 0.5 s). While lit and when `config.hits_characters` is on, a body entity also collides
+## with characters (players, guards) so a thrown grenade bounces off people; props never scan them
+## otherwise (PhysicsObject, ADR 0054). Tuning: FuseConfig (`fuse.tres`, ADR 0138).
+## EventLog `fuse.lit {object, time}`. Saveable (lit, time left).
 
 ## Lit (any source), with the seconds it burns.
 signal lit(seconds: float)
 
-@export var time: float = 2.5
-## While lit, the body entity also collides with the character layers (bounces off people).
-@export var hits_characters: bool = true
+const DEFAULT_CONFIG: FuseConfig = preload("res://items/grenades/fuse.tres")
+
+@export var config: FuseConfig = DEFAULT_CONFIG
 @export var entity_path: NodePath = ^".."
 
 var entity: Node3D
@@ -23,7 +24,9 @@ var is_lit: bool = false
 func _ready() -> void:
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
-	left = time
+	if config == null:
+		config = DEFAULT_CONFIG
+	left = config.time
 
 
 static func of(node: Node) -> Fuse:
@@ -35,9 +38,9 @@ static func of(node: Node) -> Fuse:
 	return null
 
 
-## Lights it for `seconds` (negative: `time`); lit again, it keeps the shorter time left.
+## Lights it for `seconds` (negative: `config.time`); lit again, it keeps the shorter time left.
 func light(seconds: float = -1.0) -> void:
-	var burn := time if seconds < 0.0 else seconds
+	var burn := config.time if seconds < 0.0 else seconds
 	left = minf(left, burn) if is_lit else burn
 	is_lit = true
 	_collide_with_characters()
@@ -71,5 +74,5 @@ func load_state(data: Dictionary) -> void:
 
 func _collide_with_characters() -> void:
 	var body := entity as CollisionObject3D
-	if hits_characters and body != null:
+	if config.hits_characters and body != null:
 		body.collision_mask |= PhysicsLayers.CHARACTER_LAYERS

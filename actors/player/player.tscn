@@ -71,6 +71,8 @@
 [ext_resource type="Script" path="res://actors/common/notices/notices.gd" id="91_notices"]
 [ext_resource type="Script" path="res://ui/window/screens.gd" id="92_screens"]
 [ext_resource type="PackedScene" path="res://ui/tuning_panel/tuning_panel.tscn" id="93_tuning_panel"]
+[ext_resource type="Resource" path="res://actors/common/movement/fall_impact.tres" id="s11_fall_impact"]
+[ext_resource type="Resource" path="res://actors/common/awareness/alarm_hearing.tres" id="s11_alarm_hearing"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -131,6 +133,7 @@ receptrons = Array[ExtResource("8_receptron")]([ExtResource("9_body_damage"), Ex
 
 [node name="AlarmHearing" type="Node" parent="."]
 script = ExtResource("61_alarm_hearing")
+config = ExtResource("s11_alarm_hearing")
 
 [node name="BodyParts" type="Node" parent="."]
 script = ExtResource("10_body_parts")
@@ -193,6 +196,7 @@ script = ExtResource("87_keychain")
 
 [node name="FallImpact" type="Node" parent="."]
 script = ExtResource("26_fall_impact")
+config = ExtResource("s11_fall_impact")
 
 [node name="Knockback" type="Node" parent="."]
 script = ExtResource("28_knockback")

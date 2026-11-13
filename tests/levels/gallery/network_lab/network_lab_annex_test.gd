@@ -222,7 +222,7 @@ func test_the_access_point_covers_its_wireless_devices_and_its_breaker_cuts_them
 	# Well inside its range (15 m), centre to centre.
 	for path: String in ["Devices/WifiCamera", "Devices/WifiLaser"]:
 		var distance := _node(path).global_position.distance_to(_ap().global_position)
-		assert_float(distance).override_failure_message(path).is_less(radio.wireless_range - 5.0)
+		assert_float(distance).override_failure_message(path).is_less(radio.wireless_range() - 5.0)
 	var switch := _device("Devices/BayC/WifiSwitch")
 	assert_bool(switch.reaches(_node("Devices/WifiCamera"))).is_true()
 	assert_bool(switch.reaches(_node("Devices/WifiLaser"))).is_true()
