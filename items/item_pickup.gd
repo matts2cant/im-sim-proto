@@ -1,7 +1,7 @@
 class_name ItemPickup
 extends Node
 ## Component of an item's world scene (a RigidBody3D on layer 4 with ImpactNoise): looking at it
-## and pressing E puts `count` of `item` into the player's inventory (PlayerInventory.pick_up()).
+## and pressing E puts `count` of `item` into the user's Inventory (Inventory.pick_up(), ADR 0139).
 ## What does not fit stays here. `state` overrides the item's default instance state: `magazine`
 ## (pistol), `key_id` (keycard), fitted `attachments` (ADR 0085: a WeaponModel in the pickup shows
 ## them). Saveable (count and state).
