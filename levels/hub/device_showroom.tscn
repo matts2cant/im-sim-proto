@@ -21,18 +21,23 @@
 [ext_resource type="PackedScene" path="res://objects/devices/models/radio_base_station.tscn" id="19_radio_base_station"]
 [ext_resource type="PackedScene" path="res://objects/devices/models/panic_button.tscn" id="20_panic_button"]
 [ext_resource type="PackedScene" path="res://objects/devices/models/wall_jack.tscn" id="21_wall_jack"]
-[ext_resource type="PackedScene" path="res://objects/devices/models/laser_post.tscn" id="22_laser_post"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/laser_emitter.tscn" id="22_laser_emitter"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/laser_receiver.tscn" id="26_laser_receiver"]
 [ext_resource type="Material" path="res://objects/devices/models/parts/materials/rail.tres" id="23_rail"]
 [ext_resource type="PackedScene" path="res://objects/devices/models/turret.tscn" id="24_turret"]
 [ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="25_sign"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 material = ExtResource("23_rail")
-size = Vector3(0.12, 0.16, 0.015)
+size = Vector3(0.17, 0.2, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beam"]
+shading_mode = 0
+albedo_color = Color(1, 0.08, 0.05, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_2"]
-material = ExtResource("23_rail")
-size = Vector3(0.04, 0.04, 0.25)
+material = SubResource("StandardMaterial3D_beam")
+size = Vector3(0.016, 0.016, 0.404)
 
 [node name="DeviceShowroom" type="Node3D"]
 
@@ -155,24 +160,31 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 1.3, 2.4)
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 1.3, 3)
 
 [node name="WallJack" parent="WallGear" instance=ExtResource("21_wall_jack")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 0.3, 3.8)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 0.3, 3.5)
 
-[node name="LaserPost" parent="WallGear" instance=ExtResource("22_laser_post")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 0.55, 4.6)
+[node name="Laser" type="Node3D" parent="WallGear"]
 
-[node name="TurretBracket" type="Node3D" parent="WallGear"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 15, 2.75, 3.6)
-
-[node name="Plate" type="MeshInstance3D" parent="WallGear/TurretBracket"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0075)
+[node name="EmitterFin" type="MeshInstance3D" parent="WallGear/Laser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.925, 0.55, 3.9)
 mesh = SubResource("BoxMesh_1")
 
-[node name="Arm" type="MeshInstance3D" parent="WallGear/TurretBracket"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.14)
+[node name="ReceiverFin" type="MeshInstance3D" parent="WallGear/Laser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.925, 0.55, 4.5)
+mesh = SubResource("BoxMesh_1")
+
+[node name="LaserEmitter" parent="WallGear/Laser" instance=ExtResource("22_laser_emitter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.92, 0.55, 3.91)
+
+[node name="LaserReceiver" parent="WallGear/Laser" instance=ExtResource("26_laser_receiver")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.92, 0.55, 4.49)
+
+[node name="Beam" type="MeshInstance3D" parent="WallGear/Laser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.92, 0.55, 4.2025)
+cast_shadow = 0
 mesh = SubResource("BoxMesh_2")
 
-[node name="Turret" parent="WallGear/TurretBracket" instance=ExtResource("24_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.2)
+[node name="Turret" parent="WallGear" instance=ExtResource("24_turret")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.6, 0, 4.95)
 
 [node name="Signs" type="Node3D" parent="."]
 
@@ -226,7 +238,7 @@ size = 0
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 2.12, -0.3)
 pixel_size = 0.0012
 text = "Access point
-wall"
+wall or ceiling"
 size = 0
 
 [node name="Camera" parent="Signs" instance=ExtResource("25_sign")]
@@ -240,14 +252,14 @@ size = 0
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 2.12, 2.2)
 pixel_size = 0.0012
 text = "Siren
-wall"
+wall, beacon"
 size = 0
 
 [node name="Turret" parent="Signs" instance=ExtResource("25_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 2.36, 3.6)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 1.6, 4.95)
 pixel_size = 0.0012
 text = "Turret
-wall bracket"
+floor"
 size = 0
 
 [node name="AlarmPanel" parent="Signs" instance=ExtResource("25_sign")]
@@ -300,17 +312,17 @@ wall"
 size = 0
 
 [node name="WallJack" parent="Signs" instance=ExtResource("25_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 0.52, 3.8)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 0.52, 3.5)
 pixel_size = 0.0012
 text = "Wall jack
 wall"
 size = 0
 
-[node name="LaserPost" parent="Signs" instance=ExtResource("25_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 0.95, 4.6)
+[node name="Laser" parent="Signs" instance=ExtResource("25_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.99, 0.9, 4.2)
 pixel_size = 0.0012
-text = "Laser array
-post"
+text = "Laser emitter
+and receiver"
 size = 0
 
 [node name="Title" parent="Signs" instance=ExtResource("25_sign")]
