@@ -15,6 +15,9 @@ extends RefCounted
 ## (LevelNavigation) -> clear stimuli -> unpause -> log `game.loaded` -> `on_quickloaded()` on
 ## every node in LOADED_GROUP (the player's HUD message).
 
+## EventLog kinds this mechanism records (aliased by EventKinds).
+const SAVED_KIND: StringName = &"game.saved"
+const LOADED_KIND: StringName = &"game.loaded"
 const DEFAULT_PATH: String = "user://saves/quicksave.save"
 ## Nodes rebuilt from level geometry; they implement `bake()`, called after a load removed geometry.
 const REBAKE_GROUP: StringName = &"rebake_after_load"
@@ -48,7 +51,7 @@ static func save_game(tree: SceneTree) -> SaveFile.Status:
 	snapshot[STIMULUS_IDS] = StimulusSystem.last_id()
 	var status := SaveFile.write(path, level.scene_file_path, snapshot)
 	if status == SaveFile.Status.OK:
-		EventLog.record(&"game.saved", "", "", _summary(level.scene_file_path, snapshot))
+		EventLog.record(SAVED_KIND, "", "", _summary(level.scene_file_path, snapshot))
 	return status
 
 
@@ -100,7 +103,7 @@ static func load_game(tree: SceneTree) -> SaveFile.Status:
 	_loading = false
 	var summary := _summary(level_path, data)
 	summary["skipped"] = report.skipped.size()
-	EventLog.record(&"game.loaded", "", "", summary)
+	EventLog.record(LOADED_KIND, "", "", summary)
 	tree.call_group(LOADED_GROUP, &"on_quickloaded")
 	return SaveFile.Status.OK
 

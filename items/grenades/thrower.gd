@@ -5,7 +5,8 @@ extends Node
 ## weapon's entity (WeaponData.thrown_scene) is spawned beside the user:
 ## - when the eye looks at a surface within `config.stick_reach` m (walls, floors, ceilings, doors,
 ##   props: anything solid but a character, which blocks the look but takes nothing), it is stuck
-##   there (its Sticky; a ProximityTrigger then arms it as a mine);
+##   there (its Sticky; a ProximityTrigger then arms it as a mine): upright beside a wall, on its
+##   base on a floor or ceiling (ThrowRules.stick_transform());
 ## - otherwise it is thrown in a fixed arc (ThrowRules.launch_velocity(): `config.lift_deg` above the
 ##   view, at the speed that lands the user's `throw_distance` attribute, base `config.base_distance`,
 ##   away on flat ground when looking level), its Fuse lit; it ignores the thrower's body for
@@ -38,7 +39,7 @@ var last_fuse: Fuse = null
 
 var _ghost: Node3D = null
 var _ghost_data: WeaponData = null
-var _offsets: Dictionary[String, float] = {}
+var _offsets: Dictionary[String, Vector2] = {}
 # Thrown bodies still ignoring the thrower: [WeakRef, seconds left].
 var _ignoring: Array[Array] = []
 
@@ -71,8 +72,8 @@ func throw_distance() -> float:
 func stick_spot(data: WeaponData) -> Dictionary:
 	if data == null or not data.is_thrown() or holder == null or holder.eye == null:
 		return {}
-	var offset := _surface_offset(data.thrown_scene)
-	if offset < 0.0:
+	var offsets := _stick_offsets(data.thrown_scene)
+	if offsets.x < 0.0:
 		return {}
 	var eye := holder.eye.global_transform
 	var forward := -eye.basis.z.normalized()
@@ -90,7 +91,9 @@ func stick_spot(data: WeaponData) -> Dictionary:
 	var collider := hit["collider"] as Node3D
 	if collider == null or _is_character(collider):
 		return {}
-	var pose := ThrowRules.stick_transform(hit["position"] as Vector3, hit["normal"] as Vector3, forward, offset)
+	var pose := ThrowRules.stick_transform(
+		hit["position"] as Vector3, hit["normal"] as Vector3, forward, offsets.x, offsets.y
+	)
 	return {"pose": pose, "on": _shape_node(collider, int(hit["shape"]))}
 
 
@@ -190,20 +193,21 @@ static func _shape_node(collider: Node3D, shape_index: int) -> Node3D:
 	return shape if shape != null else collider
 
 
-# The scene's Sticky.surface_offset (read once per scene), or -1 when it cannot stick.
-func _surface_offset(scene_path: String) -> float:
+# The scene's Sticky offsets (read once per scene): x surface_offset, y side_offset; x is -1 when it
+# cannot stick.
+func _stick_offsets(scene_path: String) -> Vector2:
 	if _offsets.has(scene_path):
 		return _offsets[scene_path]
-	var offset := -1.0
+	var offsets := Vector2(-1.0, -1.0)
 	var packed := load(scene_path) as PackedScene if not scene_path.is_empty() else null
 	if packed != null:
 		var node := packed.instantiate()
 		var sticky := Sticky.of(node)
 		if sticky != null:
-			offset = sticky.surface_offset
+			offsets = Vector2(sticky.surface_offset, sticky.side_offset)
 		node.free()
-	_offsets[scene_path] = offset
-	return offset
+	_offsets[scene_path] = offsets
+	return offsets
 
 
 func _show_ghost(data: WeaponData, pose: Transform3D) -> void:

@@ -34,10 +34,10 @@ func leave(by: Node = null) -> bool:
 		return false
 	var who := String(by.name) if is_instance_valid(by) else ""
 	if not ResourceLoader.exists(scene_path, "PackedScene"):
-		EventLog.record(&"level.exit_refused", who, "", {"scene": scene_path, "reason": "missing"})
+		EventLog.record(EventKinds.LEVEL_EXIT_REFUSED, who, "", {"scene": scene_path, "reason": "missing"})
 		return false
 	used = true
-	EventLog.record(&"level.exit", who, "", {"scene": scene_path, "by": who})
+	EventLog.record(EventKinds.LEVEL_EXIT, who, "", {"scene": scene_path, "by": who})
 	return LevelReset.load_level(get_tree(), scene_path) == OK
 
 

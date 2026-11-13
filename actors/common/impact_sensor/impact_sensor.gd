@@ -85,7 +85,7 @@ func _struck_by(prop: RigidBody3D, shape_node: CollisionShape3D) -> void:
 		return
 	var damage := ImpactRules.damage(speed, prop.mass, settings)
 	var data := {"actor": String(entity.name), "object": String(prop.name), "speed": speed, "damage": damage}
-	EventLog.record(&"actor.struck", String(prop.name), String(entity.name), data)
+	EventLog.record(EventKinds.ACTOR_STRUCK, String(prop.name), String(entity.name), data)
 	if damage > 0.0:
 		StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", damage, entity, prop))
 

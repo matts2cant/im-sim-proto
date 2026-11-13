@@ -27,7 +27,7 @@ func apply(ctx: EffectContext) -> void:
 		return
 	if radio and _jammed(ctx):
 		var data := {"type": ctx.stimulus.type, "id": ctx.stimulus.id}
-		EventLog.record(&"radio.jammed", ctx.stimulus.source_name(), String(ctx.entity.name), data)
+		EventLog.record(EventKinds.RADIO_JAMMED, ctx.stimulus.source_name(), String(ctx.entity.name), data)
 		return
 	var stimulus := ctx.stimulus
 	var source: Node = stimulus.source if is_instance_valid(stimulus.source) else null

@@ -45,4 +45,4 @@ func deliver(holder: WeaponHolder, data: WeaponData) -> void:
 			emit(holder, Stimulus.make_noise(weapon_state.stat(&"impact_noise"), point, holder.user))
 			holder.audio.play_hit(data, point)
 			holder.feedback.swing_hit(data, collider, point, info.get("normal", Vector3.ZERO) as Vector3)
-	log_event(holder, &"weapon.swung", {"weapon": data.id, "hit": hit_name})
+	log_event(holder, EventKinds.WEAPON_SWUNG, {"weapon": data.id, "hit": hit_name})

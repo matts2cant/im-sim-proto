@@ -399,8 +399,8 @@ func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by:
 		if command != INCIDENT:
 			other.intrusion.device_log.record(DeviceLog.REMOTE, address, NetworkSource.user_key(by), String(command))
 	if is_instance_valid(by):
-		data["by"] = String(by.name)
-	EventLog.record(&"device.command", _entity_name(), target_name, data)
+		data["by"] = by
+	EventLog.record(EventKinds.DEVICE_COMMAND, _entity_name(), target_name, data)
 	return sent
 
 
@@ -449,7 +449,7 @@ func _apply() -> void:
 	if up != _was_up:
 		_was_up = up
 		var data := {"device": _entity_name(), "up": up, "unpowered": not is_powered(), "broken": broken}
-		EventLog.record(&"device.state", _entity_name(), "", data)
+		EventLog.record(EventKinds.DEVICE_STATE, entity, "", data)
 		state_changed.emit(up)
 
 

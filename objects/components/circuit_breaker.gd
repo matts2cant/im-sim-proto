@@ -6,7 +6,7 @@ extends Usable
 ## from the entity, `config.noise_loudness`, and the `sound_path` player) and the change is logged
 ## (`power.switched`). Saveable (`closed`).
 
-const LOG_KIND: StringName = &"power.switched"
+const LOG_KIND: StringName = EventKinds.POWER_SWITCHED
 const DEFAULT_CONFIG: CircuitBreakerConfig = preload("res://objects/components/circuit_breaker.tres")
 ## Lever angle (degrees about its X axis, from pointing up) when closed (up, tilted out) and open (down).
 const LEVER_CLOSED_DEG: float = 35.0
@@ -58,9 +58,8 @@ func set_closed(value: bool, user: Node = null) -> void:
 	var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
 	if sound != null and sound.is_inside_tree():
 		sound.play()
-	var by := String(user.name) if user != null else ""
 	var data := {"circuit": circuit, "on": closed, "powered": count}
-	EventLog.record(LOG_KIND, by, String(entity.name) if entity != null else "", data)
+	EventLog.record(LOG_KIND, user, entity, data)
 
 
 func _apply() -> int:

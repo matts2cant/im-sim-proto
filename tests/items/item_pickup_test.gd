@@ -40,6 +40,8 @@ func test_e_picks_up_a_stack_and_belts_it() -> void:
 	var picked := EventLog.find(&"item.picked_up")
 	assert_array(picked).has_size(1)
 	assert_dict(picked[0].data).is_equal({"item": "lockpick", "count": 3, "left": 0})
+	# The contract PickUpObjective reads (ADR 0136): the picker as an entity.
+	assert_object(picked[0].source_entity()).is_same(_player)
 
 
 func test_ammo_and_keycards_are_not_belted() -> void:

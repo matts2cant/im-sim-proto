@@ -93,7 +93,7 @@ func test_a_far_drop_from_a_breaker_the_player_switched_shows_the_line() -> void
 	await _driver.frames(1)
 	# What a CircuitBreaker does when the player uses it: the circuit drops, then the switch is logged.
 	(n["Switch"].get_node("Powered") as Powered).on = false
-	EventLog.record(&"power.switched", String(_player.name), "Breaker", {"circuit": &"test", "on": false})
+	EventLog.record(EventKinds.POWER_SWITCHED, _player, "Breaker", {"circuit": &"test", "on": false})
 	await _driver.frames(2)
 	assert_str(_feedback.last_line).starts_with("SW-T down: 3 devices offline (")
 

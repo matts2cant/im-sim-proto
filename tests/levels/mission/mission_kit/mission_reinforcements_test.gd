@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
-## Integration (ADR 0087): 30 s of mission time after the first alarm rings (a real alarm
-## controller raised), the mission data's two guards spawn at ReinforcementSpawn (12, 0, 12) and
-## search where the alarm was raised; later alarms bring nobody else. The mission clock is moved on
+## Integration (ADR 0087, ADR 0136): 30 s of mission time after the first alarm rings (a real alarm
+## controller raised), the mission data's two guards spawn at ReinforcementSpawn (12, 0, 12) and,
+## told by a radio dispatch, search where the alarm was raised; later alarms bring nobody else; a
+## jamming field over their arrival loses the dispatch. The mission clock is moved on
 ## by hand (25 s: nobody yet; 5.5 s more: they arrive) instead of simulating half a minute. The
 ## player drops its `actor.player` tag so nobody fights it.
 
@@ -9,6 +10,7 @@ const Wait := preload("res://tests/helpers/wait.gd")
 const Missions := preload("res://tests/levels/mission/mission_kit/mission_helpers.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const INCIDENT := Vector3(-6, 0, -4)
+const JAMMER: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
 
 var _original: Node
 
@@ -71,3 +73,30 @@ func test_two_guards_arrive_once_30_s_after_the_first_alarm() -> void:
 	assert_int(arrivals.get_child_count()).is_equal(2)
 	assert_int(EventLog.find(&"mission.reinforcements").size()).is_equal(1)
 	assert_bool(mission.save_state()["reinforcements_sent"]).is_true()
+
+
+func test_a_jamming_field_over_the_arrival_loses_their_dispatch() -> void:
+	# They are told by radio (S22, ADR 0136): the dispatch rules apply, so a jamming field (radius
+	# 10 m) centred on ReinforcementSpawn loses the message; they arrive but search nowhere.
+	var level := await Missions.open(get_tree())
+	var mission := Missions.mission(level)
+	await Missions.close_briefing(level)
+	ActorState.set_tag(Missions.player(level), &"actor.player", false)
+	var field := JAMMER.instantiate() as Node3D
+	level.add_child(field)
+	field.global_position = Missions.at(Vector3(12, 0, 12))
+	var arrivals := mission.get_node("Reinforcements")
+
+	_controller(level).raise(Missions.at(INCIDENT), "test", true)
+	await Wait.frames(get_tree(), 3)
+	mission.time += 30.5
+	await Wait.frames(get_tree(), 4)
+
+	assert_int(arrivals.get_child_count()).is_equal(2)
+	for guard: Node3D in arrivals.get_children():
+		var awareness := GradedAwareness.of_node(guard)
+		assert_str(awareness.state_name()).override_failure_message(guard.name).is_not_equal("searching")
+	var jammed := EventLog.find(&"radio.jammed").filter(
+		func(entry: EventLogEntry) -> bool: return entry.data.get("type") == &"alert.dispatch"
+	)
+	assert_int(jammed.size()).is_equal(2)

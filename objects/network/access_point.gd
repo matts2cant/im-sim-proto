@@ -92,7 +92,7 @@ func grant_key(by: Node) -> void:
 		return
 	_known.append(who)
 	var device_name := String(entity.name) if is_instance_valid(entity) else String(name)
-	EventLog.record(&"network.wifi_key", who, device_name, {"device": device_name, "by": who})
+	EventLog.record(EventKinds.NETWORK_WIFI_KEY, who, device_name, {"device": device_name, "by": who})
 	key_learned.emit(who)
 
 

@@ -43,7 +43,7 @@ func add(entry: LogEntry, from: String = "") -> bool:
 	for code_id: StringName in entry.codes:
 		code_ids.append(String(code_id))
 	var data := {"entry_id": String(entry.id), "title": entry.title, "codes": code_ids}
-	EventLog.record(&"log.entry_added", _who(), from, data)
+	EventLog.record(EventKinds.LOG_ENTRY_ADDED, _who(), from, data)
 	entry_added.emit(entry)
 	return true
 

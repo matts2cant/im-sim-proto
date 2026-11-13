@@ -8,6 +8,9 @@
 [node name="FragGrenade" instance=ExtResource("1_grenade")]
 metadata/display_name = "Frag grenade"
 
+[node name="Sticky" parent="."]
+side_offset = 0.046
+
 [node name="MineDisarm" parent="."]
 item = ExtResource("3_item")
 

@@ -36,7 +36,7 @@ func is_hearing() -> bool:
 func hear(at: Vector3) -> void:
 	if not is_hearing():
 		var actor := String(get_parent().name) if get_parent() != null else ""
-		EventLog.record(&"actor.heard_alarm", "", actor, {"actor": actor, "point": at})
+		EventLog.record(EventKinds.ACTOR_HEARD_ALARM, "", actor, {"actor": actor, "point": at})
 	_left = (config if config != null else DEFAULT_CONFIG).hold
 	point = at
 	heard.emit(at)

@@ -158,7 +158,7 @@ func _edited(action: StringName, index: int, source: NetworkSource) -> void:
 	var router_name := String(entity.name) if is_instance_valid(entity) else String(name)
 	var data := {"router": router_name, "action": action, "index": index, "rules": save_state()["rules"]}
 	var by := NetworkSource.user_key(source.user) if source != null else ""
-	EventLog.record(&"router.rules", by, router_name, data)
+	EventLog.record(EventKinds.ROUTER_RULES, by, router_name, data)
 	var device := Device.of(entity)
 	if source != null and device != null:
 		var detail := "firewall: %s rule %d" % [action, index + 1]

@@ -4,6 +4,10 @@ extends Node3D
 ## head); distances are measured to this node. Holds Receptrons; each one that matches a delivered
 ## stimulus runs its effects in order. Registers itself with StimulusSystem while in the tree.
 
+## EventLog kinds this component records (aliased by EventKinds).
+const RECEIVED_KIND: StringName = &"stimulus.received"
+const FIRED_KIND: StringName = &"receptron.fired"
+
 @export var receptrons: Array[Receptron] = []
 ## The entity this receiver belongs to: its own stimuli are ignored unless a receptron opts in.
 @export var entity_path: NodePath = ^".."
@@ -86,7 +90,7 @@ func receive(stimulus: Stimulus, perceived: float, data: Dictionary = {}) -> voi
 			received[key] = String((value as Node).name) if is_instance_valid(value) and value is Node else ""
 		else:
 			received[key] = value
-	EventLog.record(&"stimulus.received", stimulus.source_name(), entity_name, received)
+	EventLog.record(RECEIVED_KIND, stimulus.source_name(), entity_name, received)
 	var own := is_own(stimulus)
 	var container := tags.container if tags != null else null
 	for index in receptrons.size():
@@ -97,7 +101,7 @@ func receive(stimulus: Stimulus, perceived: float, data: Dictionary = {}) -> voi
 			continue
 		var label: Variant = receptron.resource_name if not receptron.resource_name.is_empty() else index
 		var fired := {"id": stimulus.id, "receptron": label, "effects": receptron.effect_names()}
-		EventLog.record(&"receptron.fired", stimulus.source_name(), entity_name, fired)
+		EventLog.record(FIRED_KIND, stimulus.source_name(), entity_name, fired)
 		var ctx := EffectContext.new(self, stimulus, perceived, data)
 		for effect in receptron.effects:
 			if effect != null:

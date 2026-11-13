@@ -40,7 +40,7 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	add_to_group(&"saveable")
 	var data := {"field": String(name), "radius": config.radius}
-	EventLog.record(&"jamming.started", String(name), "", data)
+	EventLog.record(EventKinds.JAMMING_STARTED, String(name), "", data)
 	_update_tags()
 	_refresh_later()
 
@@ -65,7 +65,7 @@ func end() -> void:
 	if _ended:
 		return
 	_ended = true
-	EventLog.record(&"jamming.ended", String(name), "", {"field": String(name)})
+	EventLog.record(EventKinds.JAMMING_ENDED, String(name), "", {"field": String(name)})
 	if is_inside_tree():
 		_update_tags()
 		StatusLight.refresh_all(get_tree())

@@ -14,21 +14,26 @@ const DUMMY: PackedScene = preload("res://actors/dummy/training_dummy.tscn")
 const GUARD_BODY: BodyProfile = preload("res://actors/guard/guard_body.tres")
 const CONFIG: HitMarkerConfig = preload("res://ui/hud/hit_marker.tres")
 const ORIGIN := Vector3(660, 0, -380)
+const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _rules: HitMarkerRules
 var _marker: HitMarker
 var _root: Node3D
+## Character stand-ins for hand-built entries, by name.
+var _people: Dictionary[String, Node3D] = {}
 
 
 func before_test() -> void:
 	EventLog.clear()
 	StimulusSystem.clear()
-	_rules = HitMarkerRules.new(["Player"] as Array[String])
 	_marker = auto_free(HitMarker.new()) as HitMarker
 	_marker.size = Vector2(1920, 1080)
 	add_child(_marker)
 	_root = auto_free(Node3D.new()) as Node3D
 	add_child(_root)
+	_people.clear()
+	# The watched shooter is an entity reference, never a name.
+	_rules = HitMarkerRules.new(_person("Player"))
 
 
 func after_test() -> void:
@@ -213,13 +218,40 @@ func _shoot(shooter: Shooter, point: Vector3) -> void:
 		await get_tree().physics_frame
 
 
+func _person(person_name: String) -> Node3D:
+	if not _people.has(person_name):
+		_people[person_name] = Fixtures.entity(_root, person_name, ORIGIN, [])
+	return _people[person_name]
+
+
 func _emitted(id: int, source: String, type: StringName = &"damage.ballistic") -> void:
-	_rules.observe(_entry(&"stimulus.emitted", "", {"id": id, "type": type, "source": source}, source))
+	var data := {"id": id, "type": type, "source": source}
+	_rules.observe(_entry(EventKinds.STIMULUS_EMITTED, "", data, _person(source)))
 
 
 func _observe(kind: StringName, target: String, data: Dictionary) -> int:
-	return _rules.observe(_entry(kind, target, data))
+	return _rules.observe(_entry(kind, _person(target), data))
 
 
-func _entry(kind: StringName, target: String, data: Dictionary, source: String = "") -> EventLogEntry:
-	return EventLogEntry.new(0, kind, source, target, data)
+func _entry(kind: StringName, target: Variant, data: Dictionary, source: Variant = "") -> EventLogEntry:
+	return EventLogEntry.make(0, kind, source, target, data)
+
+
+func test_a_namesake_of_the_shooter_is_not_the_shooter() -> void:
+	var namesake := Fixtures.entity(_root, "Watched", ORIGIN, [])
+	var shooter := Fixtures.entity(_root, "Other", ORIGIN, [])
+	var rules := HitMarkerRules.new(shooter)
+	# Renamed like the shooter: still someone else.
+	shooter.name = "Shooter"
+	namesake.name = "Shooter2"
+	rules.observe(_entry(EventKinds.STIMULUS_EMITTED, "", {"id": 3, "type": &"damage.ballistic"}, namesake))
+	rules.observe(_entry(EventKinds.STIMULUS_EMITTED, "", {"id": 4, "type": &"damage.ballistic"}, shooter))
+	var hit := {"part": "torso", "amount": 10.0}
+	hit["by"] = 3
+	assert_int(rules.observe(_entry(EventKinds.ACTOR_DAMAGED, _person("Dummy"), hit))).is_equal(
+		HitMarkerRules.Kind.NONE
+	)
+	hit["by"] = 4
+	assert_int(rules.observe(_entry(EventKinds.ACTOR_DAMAGED, _person("Dummy"), hit))).is_equal(
+		HitMarkerRules.Kind.BODY
+	)

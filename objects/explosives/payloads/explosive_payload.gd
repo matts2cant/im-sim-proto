@@ -82,4 +82,4 @@ func _on_exploded() -> void:
 	if lasting != null:
 		spawned = String(ExplosivePayload.spawn_in_level(lasting, self, origin).name)
 	var entity_name := String(entity.name) if is_instance_valid(entity) else ""
-	EventLog.record(&"payload.released", entity_name, spawned, {"entity": entity_name, "lasting": spawned})
+	EventLog.record(EventKinds.PAYLOAD_RELEASED, entity_name, spawned, {"entity": entity_name, "lasting": spawned})

@@ -86,9 +86,11 @@ Devices and alarms (M8, [ADR 0077](../decisions/0077-devices-cables-and-remote-c
 
 ### EventLog kinds
 
+The EventLog has two roles ([ADR 0136](../decisions/0136-event-kinds-and-entity-attribution.md)): `entry_added` is the stream of gameplay events, and the 2000-entry ring buffer is history for the debug panel and scenario tests. Gameplay consumers (mission tallies and objectives, hit markers, network feedback) listen to `entry_added` and keep what they need; they never read back through the buffer. Every kind is a constant in `EventKinds` (`events/event_kinds.gd`); emitters record and consumers match the constants, never literals. Kinds name events (`<subject>.<what happened>`: `actor.died`, `actor.awareness`) and are never tags, though both are dotted. An entry's source, target and Node data values are display names in the entry and the entities themselves behind it (`EventLogEntry.entity()`, `source_entity()`, `target_entity()`): consumers decide who did something by the entity's tags (`actor.player`), never by its name. The kinds gameplay reads and the keys it reads are documented on their constants and checked by `tests/events/event_contract_*_test.gd`.
+
 | Kind | Source / target | Data |
 |---|---|---|
-| `stimulus.emitted` | source name / contact target | `id, type, intensity, origin, depth, source, shape, cause_id` (logged when the stimulus is processed, i.e. enters the world) |
+| `stimulus.emitted` | source entity / contact target entity | `id, type, intensity, origin, depth, source, shape, cause_id` (logged when the stimulus is processed, i.e. enters the world) |
 | `stimulus.received` | source name / entity name | `id, type, perceived, distance`, plus `propagation` (`straight`, `path`, `straight_fallback`, `line_of_sight`) for RADIUS; `collider` (name) for CONTACT and RAY, `position` and `normal` for RAY |
 | `receptron.fired` | source name / entity name | `id, receptron` (resource_name, else index), `effects` (class names) |
 | `stimulus.dropped` | source name | `id, type, depth` |

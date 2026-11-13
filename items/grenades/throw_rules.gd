@@ -6,6 +6,9 @@ extends RefCounted
 
 ## Highest launch elevation (degrees): looking straight up still throws slightly forward.
 const MAX_ELEVATION_DEG: float = 85.0
+## A stuck body stands upright beside surfaces steeper than this (degrees from level), on its base
+## on the others.
+const WALL_SLOPE_DEG: float = 45.0
 
 
 ## Horizontal distance (m) a body launched at `speed` m/s, `elevation` radians above the horizontal,
@@ -50,16 +53,35 @@ static func launch_velocity(
 	return (flat * cos(elevation) + Vector3.UP * sin(elevation)) * speed
 
 
-## The pose of a body stuck on a surface at `point` with outward `normal`: its +Y along the normal,
-## its centre `offset` m out from the surface, its -Z along the view projected on the surface.
-static func stick_transform(point: Vector3, normal: Vector3, view_forward: Vector3, offset: float) -> Transform3D:
-	var up := normal.normalized()
-	var forward := view_forward - up * view_forward.dot(up)
-	if forward.length_squared() < 0.000001:
-		forward = up.cross(Vector3.RIGHT)
-		if forward.length_squared() < 0.000001:
-			forward = up.cross(Vector3.BACK)
-	forward = forward.normalized()
-	var back := -forward
-	var right := up.cross(back).normalized()
-	return Transform3D(Basis(right, up, back), point + up * offset)
+## The pose of a body stuck on a surface at `point` with outward `normal`, seen along `view_forward`.
+## The body's long axis is its +Y; its centre is `end_offset` m from either end and `side_offset` m
+## from its side (an upright cylinder: half height and radius).
+## - A floor or a ceiling (at most WALL_SLOPE_DEG from level): its base on the surface, +Y along the
+##   normal (on a ceiling it hangs upside down, its top and the mine's light towards the room).
+## - A wall (steeper): upright, +Y world up, its side against the surface.
+## Its +X points along the view (projected on a floor or ceiling, straight into a wall), so the user
+## sees its -X side (a grenade's lever in profile). Its centre sits where that cylinder just touches
+## the surface's plane: `end_offset` out on a floor or ceiling, `side_offset` out on a vertical wall.
+static func stick_transform(
+	point: Vector3, normal: Vector3, view_forward: Vector3, end_offset: float, side_offset: float
+) -> Transform3D:
+	var out := normal.normalized()
+	var up := out
+	var into := view_forward - out * view_forward.dot(out)
+	if absf(out.y) < cos(deg_to_rad(WALL_SLOPE_DEG)):
+		up = Vector3.UP
+		into = -Vector3(out.x, 0.0, out.z)
+	if into.length_squared() < 0.000001:
+		into = Vector3.RIGHT - up * up.x
+		if into.length_squared() < 0.000001:
+			into = Vector3.BACK - up * up.z
+	into = into.normalized()
+	var basis := Basis(into, up, into.cross(up).normalized())
+	return Transform3D(basis, point + out * stick_reach(out, up, end_offset, side_offset))
+
+
+## How far (m) out along `normal` the centre of an upright cylinder with axis `axis`, `end_offset`
+## half height and `side_offset` radius sits when it just touches the surface's plane.
+static func stick_reach(normal: Vector3, axis: Vector3, end_offset: float, side_offset: float) -> float:
+	var along := absf(normal.normalized().dot(axis.normalized()))
+	return end_offset * along + side_offset * sqrt(maxf(1.0 - along * along, 0.0))

@@ -71,7 +71,7 @@ func deliver(holder: WeaponHolder, data: WeaponData) -> void:
 		"hits": hits.size(),
 		"noise": weapon_state.stat(&"fire_noise"),
 	}
-	log_event(holder, &"weapon.fired", logged)
+	log_event(holder, EventKinds.WEAPON_FIRED, logged)
 
 
 ## The first thing on the line through the centre of the aim cone (the holder's aim transform: sway

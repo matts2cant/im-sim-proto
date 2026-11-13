@@ -134,7 +134,7 @@ func _become_armed() -> void:
 	_blink_time = 0.0
 	_show_light()
 	_audio.play()
-	EventLog.record(&"mine.armed", String(entity.name), "", {"object": String(entity.name)})
+	EventLog.record(EventKinds.MINE_ARMED, String(entity.name), "", {"object": String(entity.name)})
 	armed.emit()
 
 
@@ -179,8 +179,9 @@ func _query(reach: float) -> Array[Dictionary]:
 	return hits
 
 
-# Nothing on `sight_mask` between its centre (a little out along its +Y, off the surface) and the
-# centre of the character's shape `shape_index`.
+# Nothing on `sight_mask` between its centre (a little along its +Y: off a floor or ceiling, up
+# beside a wall, which its centre already clears) and the centre of the character's shape
+# `shape_index`.
 func _sees(character: CollisionObject3D, shape_index: int) -> bool:
 	var to := character.global_position
 	var owner_id := character.shape_find_owner(shape_index)
@@ -196,7 +197,7 @@ func _sees(character: CollisionObject3D, shape_index: int) -> bool:
 
 func _trigger(who: Node) -> void:
 	var data := {"object": String(entity.name), "by": String(who.name)}
-	EventLog.record(&"mine.triggered", String(who.name), String(entity.name), data)
+	EventLog.record(EventKinds.MINE_TRIGGERED, String(who.name), String(entity.name), data)
 	is_armed = false
 	_show_light()
 	var explosive := Explosive.of(entity)

@@ -240,7 +240,7 @@ func _cracked(radio: AccessPoint) -> void:
 	_saved().erase(job.key)
 	radio.grant_key(entity)
 	var device_name := _name()
-	EventLog.record(&"deck.wifi_cracked", NetworkSource.user_key(entity), device_name, {"device": device_name})
+	EventLog.record(EventKinds.DECK_WIFI_CRACKED, NetworkSource.user_key(entity), device_name, {"device": device_name})
 	var joined := session.plug(target, stack)
 	var text := "Wi-Fi key cracked"
 	if joined:
@@ -279,7 +279,7 @@ func _log(action: StringName) -> void:
 		"progress": job.progress if job != null else 0.0,
 		"reason": _paused,
 	}
-	EventLog.record(&"deck.wifi", NetworkSource.user_key(entity), _name(), data)
+	EventLog.record(EventKinds.DECK_WIFI, NetworkSource.user_key(entity), _name(), data)
 
 
 func _has_deck() -> bool:

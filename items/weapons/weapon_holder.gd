@@ -218,7 +218,7 @@ func equip_state(weapon_state: WeaponState) -> void:
 	recoil.heat = 0.0
 	trigger_held = false
 	_view.show_weapon(weapon_state)
-	_log(&"weapon.equipped", {"weapon": weapon_state.data.id})
+	_log(EventKinds.WEAPON_EQUIPPED, {"weapon": weapon_state.data.id})
 	changed.emit()
 
 
@@ -233,7 +233,7 @@ func holster() -> void:
 	scope.reset()
 	trigger_held = false
 	_view.hide_weapon()
-	_log(&"weapon.holstered", {"weapon": data.id})
+	_log(EventKinds.WEAPON_HOLSTERED, {"weapon": data.id})
 	changed.emit()
 
 
@@ -267,7 +267,7 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 		var was_reloading := weapon_state.is_reloading()
 		weapon_state.step(delta)
 		if was_reloading and not weapon_state.is_reloading():
-			_log(&"weapon.reloaded", {"weapon": weapon_state.data.id, "magazine": weapon_state.magazine})
+			_log(EventKinds.WEAPON_RELOADED, {"weapon": weapon_state.data.id, "magazine": weapon_state.magazine})
 			changed.emit()
 	if scope.step(delta, _can_scope()):
 		_on_scope_changed("auto")
@@ -358,7 +358,7 @@ func trigger(held: bool = false) -> int:
 			changed.emit()
 		WeaponState.Result.DRY:
 			audio.play_dry(data)
-			_log(&"weapon.dry_fire", {"weapon": data.id})
+			_log(EventKinds.WEAPON_DRY_FIRE, {"weapon": data.id})
 	return result
 
 
@@ -368,7 +368,7 @@ func reload() -> bool:
 	if weapon_state == null or not weapon_state.start_reload(_class_value("reload_mult", 1.0)):
 		return false
 	audio.play_reload(weapon_state.data)
-	_log(&"weapon.reload_started", {"weapon": weapon_state.data.id, "time": weapon_state.reload_left})
+	_log(EventKinds.WEAPON_RELOAD_STARTED, {"weapon": weapon_state.data.id, "time": weapon_state.reload_left})
 	if scope.step(0.0, false):
 		_on_scope_changed("reload")
 	changed.emit()
@@ -393,7 +393,7 @@ func remove_from_loadout(weapon_state: WeaponState) -> bool:
 	states.remove_at(index)
 	weapons.remove_at(index)
 	current = states.find(_equipped) if _equipped != null else -1
-	_log(&"weapon.removed", {"weapon": weapon_state.data.id})
+	_log(EventKinds.WEAPON_REMOVED, {"weapon": weapon_state.data.id})
 	changed.emit()
 	return true
 
@@ -488,7 +488,7 @@ func _on_scope_changed(reason: String) -> void:
 	_view.set_shown(not scope.scoped)
 	var data := weapon()
 	var weapon_id := data.id if data != null else &""
-	_log(&"weapon.scoped", {"weapon": weapon_id, "scoped": scope.scoped, "reason": reason})
+	_log(EventKinds.WEAPON_SCOPED, {"weapon": weapon_id, "scoped": scope.scoped, "reason": reason})
 	changed.emit()
 
 

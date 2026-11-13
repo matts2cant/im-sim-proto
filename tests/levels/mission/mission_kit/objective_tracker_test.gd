@@ -8,24 +8,30 @@ class FakeWorld:
 	extends ObjectiveContext
 	var entries: Array[StringName] = []
 	var sabotaged_tags: Array[StringName] = []
-	var players: Array[String] = ["Player"]
+	var player_tag: StringName = &"actor.player"
 
 	func has_log_entry(entry_id: StringName) -> bool:
 		return entries.has(entry_id)
 
-	func is_player(entity_name: String) -> bool:
-		return players.has(entity_name)
+	func is_player(entity: Node) -> bool:
+		return ActorState.has(entity, player_tag)
 
 	func sabotaged(tag: StringName) -> bool:
 		return sabotaged_tags.has(tag)
 
 
+const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+
 var _world: FakeWorld
 var _tracker: ObjectiveTracker
+var _player: Node3D
+var _guard: Node3D
 
 
 func before_test() -> void:
 	_world = FakeWorld.new()
+	_player = auto_free(Fixtures.entity(self, "Hero", Vector3(0, -50, 0), [], [&"actor.player"])) as Node3D
+	_guard = auto_free(Fixtures.entity(self, "Player", Vector3(0, -50, 0), [], [&"actor.guard"])) as Node3D
 	var read := ReadEntryObjective.new()
 	read.id = &"manifest"
 	read.title = "Read the manifest"
@@ -45,8 +51,10 @@ func before_test() -> void:
 	_tracker = ObjectiveTracker.new(objectives)
 
 
-func _picked(source: String, item: String) -> EventLogEntry:
-	return EventLogEntry.new(0, &"item.picked_up", source, "Pickup", {"item": item, "count": 1, "left": 0})
+# An `item.picked_up` entry as the inventory records it (the picker as an entity).
+func _picked(source: Node, item: String) -> EventLogEntry:
+	var data := {"item": item, "count": 1, "left": 0}
+	return EventLogEntry.make(0, EventKinds.ITEM_PICKED_UP, source, "Pickup", data)
 
 
 func test_reading_the_entry_completes_the_main_objective_once() -> void:
@@ -64,10 +72,11 @@ func test_reading_the_entry_completes_the_main_objective_once() -> void:
 
 
 func test_picking_up_the_item_counts_only_for_the_player() -> void:
-	assert_array(_tracker.observe(_picked("Guard", "prototype"), _world)).is_empty()
-	assert_array(_tracker.observe(_picked("Player", "keycard"), _world)).is_empty()
+	# The untagged one is named "Player": names never count.
+	assert_array(_tracker.observe(_picked(_guard, "prototype"), _world)).is_empty()
+	assert_array(_tracker.observe(_picked(_player, "keycard"), _world)).is_empty()
 
-	var done := _tracker.observe(_picked("Player", "prototype"), _world)
+	var done := _tracker.observe(_picked(_player, "prototype"), _world)
 
 	assert_int(done.size()).is_equal(1)
 	assert_bool(_tracker.is_done(&"prototype")).is_true()
@@ -99,7 +108,7 @@ func test_first_missing_names_the_main_objective_and_its_hint() -> void:
 func test_round_trip_keeps_what_is_done() -> void:
 	_world.entries.append(&"site.manifest")
 	_tracker.update(_world)
-	_tracker.observe(_picked("Player", "prototype"), _world)
+	_tracker.observe(_picked(_player, "prototype"), _world)
 	var loaded := ObjectiveTracker.new(_tracker.objectives)
 
 	loaded.from_dict(_tracker.to_dict())

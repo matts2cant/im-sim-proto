@@ -44,7 +44,7 @@ func light(seconds: float = -1.0) -> void:
 	left = minf(left, burn) if is_lit else burn
 	is_lit = true
 	_collide_with_characters()
-	EventLog.record(&"fuse.lit", String(entity.name), "", {"object": String(entity.name), "time": left})
+	EventLog.record(EventKinds.FUSE_LIT, String(entity.name), "", {"object": String(entity.name), "time": left})
 	lit.emit(left)
 
 

@@ -216,7 +216,7 @@ func _trip(blocker: Node3D, beam: LaserBeam) -> void:
 	var laser_name := String(entity.name)
 	var by := String(_entity_of(blocker).name)
 	var data := {"laser": laser_name, "beam": String(beam.name), "by": by, "point": point, "controllers": told}
-	EventLog.record(&"laser.tripped", laser_name, by, data)
+	EventLog.record(EventKinds.LASER_TRIPPED, laser_name, by, data)
 
 
 func _on_action(action: StringName, _stimulus: Stimulus) -> void:
@@ -235,7 +235,7 @@ func _set_disabled(off: bool) -> void:
 	last_blocker = null
 	last_beam = null
 	var laser_name := String(entity.name)
-	EventLog.record(&"laser.toggled", laser_name, "", {"laser": laser_name, "enabled": not off})
+	EventLog.record(EventKinds.LASER_TOGGLED, laser_name, "", {"laser": laser_name, "enabled": not off})
 	_update_beams()
 
 

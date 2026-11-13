@@ -114,7 +114,7 @@ func take_damage(
 			"health": model.health(hit_part),
 			"by": cause.id if cause != null else 0,
 		}
-		EventLog.record(&"actor.damaged", _source_name(cause), String(entity.name), data)
+		EventLog.record(EventKinds.ACTOR_DAMAGED, _source_name(cause), entity, data)
 		damaged.emit(hit_part, type, dealt)
 	_after_change(cause)
 	return total
@@ -128,7 +128,7 @@ func heal(amount: float, source_name: String = "", part: StringName = &"") -> fl
 	if restored <= 0.0:
 		return 0.0
 	var data := {"actor": String(entity.name), "amount": restored, "requested": amount, "part": String(part)}
-	EventLog.record(&"actor.healed", source_name, String(entity.name), data)
+	EventLog.record(EventKinds.ACTOR_HEALED, source_name, String(entity.name), data)
 	healed.emit(restored)
 	_after_change(null)
 	return restored
@@ -156,7 +156,9 @@ func revive(by_name: String = "") -> bool:
 	stun = 0.0
 	_set_tag(UNCONSCIOUS_TAG, false)
 	if was_down:
-		EventLog.record(&"actor.revived", by_name, String(entity.name), {"actor": String(entity.name), "by": by_name})
+		EventLog.record(
+			EventKinds.ACTOR_REVIVED, by_name, String(entity.name), {"actor": String(entity.name), "by": by_name}
+		)
 	changed.emit()
 	return was_down
 
@@ -205,12 +207,12 @@ func _take_stun(type: StringName, amount: float, cause: Stimulus, attacker: Node
 		"aware": aware,
 		"by": cause.id if cause != null else 0,
 	}
-	EventLog.record(&"actor.stunned", _source_name(cause), String(entity.name), data)
+	EventLog.record(EventKinds.ACTOR_STUNNED, _source_name(cause), entity, data)
 	stunned.emit(points, stun)
 	if not is_unconscious() and StunRules.knocks_out(stun, profile.knockout_threshold):
 		_set_tag(UNCONSCIOUS_TAG, true)
 		var knocked := {"actor": String(entity.name), "stun": stun, "by": data["by"]}
-		EventLog.record(&"actor.knocked_out", _source_name(cause), String(entity.name), knocked)
+		EventLog.record(EventKinds.ACTOR_KNOCKED_OUT, _source_name(cause), entity, knocked)
 		knocked_out.emit()
 	changed.emit()
 	return points
@@ -221,7 +223,7 @@ func _after_change(cause: Stimulus) -> void:
 	if model.is_dead() and not is_dead():
 		_set_tag(DEAD_TAG, true)
 		var data := {"actor": String(entity.name), "by": cause.id if cause != null else 0}
-		EventLog.record(&"actor.died", _source_name(cause), String(entity.name), data)
+		EventLog.record(EventKinds.ACTOR_DIED, _source_name(cause), entity, data)
 		died.emit()
 	changed.emit()
 
