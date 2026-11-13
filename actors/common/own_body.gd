@@ -7,12 +7,12 @@ extends RefCounted
 
 
 ## RIDs of `entity`'s own body (when it is a CollisionObject3D) and of every hitbox under it; empty
-## for a freed or null entity.
-static func rids(entity: Node) -> Array[RID]:
+## for a freed or null entity (a Variant: a typed parameter rejects a freed one).
+static func rids(entity: Variant) -> Array[RID]:
 	var result: Array[RID] = []
-	if not is_instance_valid(entity):
+	if not is_instance_valid(entity) or not entity is Node:
 		return result
 	if entity is CollisionObject3D:
 		result.append((entity as CollisionObject3D).get_rid())
-	result.append_array(Hitboxes.rids_of(entity))
+	result.append_array(Hitboxes.rids_of(entity as Node))
 	return result
