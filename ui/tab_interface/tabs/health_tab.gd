@@ -1,9 +1,10 @@
 class_name HealthTab
 extends TabPage
 ## Tab interface page: the character's body (ADR 0111). A clickable silhouette and one row per part
-## (health bar, value / max, what happens at 0 from the body profile); the current effects from the
-## body and the state tags; treatment with the healing items carried: how many and how much one
-## heals (with the user's scale attribute, Medicine for a medkit), "Use a medkit on the <part>"
+## (health bar, value / max, what happens at 0 from the body profile); the current effects: the
+## injury modifiers the body applies (source BodyParts.MODIFIER_SOURCE) and the state tags;
+## treatment with the healing items carried: how many and how much one heals (with the user's scale
+## attribute, Medicine for a medkit), "Use a medkit on the <part>"
 ## (PlayerInventory.use_stack() with the part: the item's stimuli touch that part's hitbox) and
 ## "Heal all" (the belt's use: spread over the hurt parts). Works for any character with BodyParts;
 ## treatment needs a PlayerInventory. The world keeps running: the page refreshes itself every frame while visible.
@@ -17,11 +18,20 @@ extends TabPage
 	&"leg_l": "Left leg",
 	&"leg_r": "Right leg",
 }
-## State tags listed under Current effects, with their text (the injury tags have their own wording).
+## State tags listed under Current effects, with their text: a neutral name of the state (what it
+## does belongs to the systems that read the tag).
 @export var tag_effects: Dictionary[StringName, String] = {
+	&"state.legs_disabled": "Legs disabled",
+	&"state.arms_disabled": "Arms disabled",
 	&"state.burning": "Burning",
 	&"state.unconscious": "Unconscious",
-	&"state.cloaked": "Cloaked: guards cannot see you",
+	&"state.cloaked": "Cloaked",
+}
+## How the injuries line words an attribute the body's modifiers change ("%s": the change, "x0.6").
+@export var modifier_labels: Dictionary[StringName, String] = {
+	&"move_speed_mult": "move speed %s",
+	&"aim_spread_add": "aim spread %s°",
+	&"aim_sway_mult": "sway %s",
 }
 ## Use stimulus that makes an item a healing item (a medkit's `heal`).
 @export var heal_stimulus: StringName = &"heal"
@@ -141,9 +151,11 @@ func show_message(text: String) -> void:
 	_message_left = message_seconds
 
 
-## The texts under Current effects.
+## The texts under Current effects: the injury modifiers the body applies, then the state tags.
 func effect_texts() -> PackedStringArray:
-	return HealthTabRules.current_effects(_body, _tags, tag_effects)
+	var attributes := Attributes.of(entity)
+	var values: AttributeSet = attributes.attribute_set if attributes != null else null
+	return HealthTabRules.current_effects(values, BodyParts.MODIFIER_SOURCE, modifier_labels, _tags, tag_effects)
 
 
 ## "22 / 60" for a part.
