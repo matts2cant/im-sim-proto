@@ -59,7 +59,8 @@ flowchart LR
     M13a --> M13b["M13b Weapon feedback"]
     M13b --> M13c["M13c Device overhaul"]
     M13c --> M14["M14 Explosives"]
-    M14 --> M15["M15 Factions"]
+    M14 --> M14d["M14d Looting"]
+    M14d --> M15["M15 Factions"]
     M15 --> M16["M16 AI overhaul"]
     M16 --> M17["M17 Dialogue"]
     M17 --> M18["M18 Experience"]
@@ -88,7 +89,8 @@ flowchart LR
 | M13b | Weapon feedback ([ADR 0120](decisions/0120-weapon-feel.md)): hit markers, impacts by material, tracers, aim punch and guard flinch, guards obeying recoil, weapon motion, per-weapon sounds | Shooting range |
 | M13c | Device overhaul ([ADR 0130](decisions/0130-device-overhaul.md)): one design language (kind colour strip, Map icon, one light, labelled ports, name plate), rack and desk versions of routers, switches, computers and alarm controllers, linking bays, door controllers as the network devices, keys and the keychain, the frame's status line and no E prompts; 3D models first, shown in a hub showroom | Network lab, security wing, warehouse (the step 0 hub showroom was removed in step 3) |
 | M14 | Explosives ([ADR 0131](decisions/0131-grenades-mines-and-effects.md), [explosives.md](game/explosives.md)): frag, gas, EMP and jamming grenades, thrown or stuck as proximity mines (one LMB, a ghost within 1.2 m), chains through Explosive and Breakable, the "Jammed" network status, the Demolition skill; a grenade lane, a mine corridor and an EMP/jamming corner in the shooting range, grenades as warehouse loot | Shooting range, warehouse |
-| M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
+| M14d | Looting ([ADR 0142](decisions/0142-looting-and-the-keychain.md), [looting.md](game/looting.md)): loot downed characters and containers in a side-by-side screen (drag both ways, Take all), weapons and keys in guards' inventories, keycards on the keychain with keys | Warehouse, inventory bay |
+| M15 | Factions ([ADR 0143](decisions/0143-factions-territory-and-provocation.md), [factions.md](game/factions.md)): faction tags, per-level relations (hostile, neutral, allied) that can change, territory and restricted zones with Hitman-style escalation and illegal actions, provocation, fight or flee by capability, red / white / green feedback, per-faction models | Hub factions room |
 | M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space; guards logging in at devices, the security operator and the deck's Sniffer (moved from M12, [ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)) (to be designed) | AI arena |
 | M17 | Dialogue: branching conversations whose choices set story flags (to be designed) | to be designed |
 | M18 | Experience: XP from objectives, dialogue, discoveries and hacks; spent on skills in the Tab interface (to be designed) | none |
@@ -133,6 +135,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (134 decisions, 0001–0140; 0134 and 0135 unused; 0062, 0081, 0118 and 0119 unused).
+- [decisions/README.md](decisions/README.md): ADR index (136 decisions, 0001–0143; 0141 reserved; 0134 and 0135 unused; 0062, 0081, 0118 and 0119 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.
