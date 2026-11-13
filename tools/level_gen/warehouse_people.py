@@ -110,6 +110,10 @@ PICKUPS = {
     "medkit": (ITEMS + "medkit/medkit.tscn", 0.045),
     "prototype": (ITEMS + "prototype/prototype.tscn", 0.08),
     "deck": (ITEMS + "deck/deck.tscn", 0.02),
+    "frag_grenade": (ITEMS + "grenades/frag/frag_grenade_pickup.tscn", 0.0525),
+    "gas_grenade": (ITEMS + "grenades/gas/gas_grenade_pickup.tscn", 0.0525),
+    "emp_grenade": (ITEMS + "grenades/emp/emp_grenade_pickup.tscn", 0.0525),
+    "jamming_grenade": (ITEMS + "grenades/jamming/jamming_grenade_pickup.tscn", 0.0525),
 }
 PROPS = {
     "small_crate": (OBJECTS + "small_crate/small_crate.tscn", 0.3, ["material.wood", "object.crate"]),
@@ -157,6 +161,15 @@ ITEM_SPECS = [
     # M9f: the cache shed behind the large crate (Combat Strength), back strip, south-west corner.
     ("CacheMedkit", "medkit", (-33.95, 0.0, 23.45), 0.0, None),
     ("CacheAmmo", "pistol_ammo", (-33.6, 0.0, 23.4), 20.0, 10),
+    # M14c (ADR 0131): grenades as loot, none on guards. A frag on the security room's gun table by the
+    # shotgun shells; a frag on the dock's metal supply crate by roller door 2 (DockMetalCrate's top);
+    # gas in the locker room's north open locker, in front of the rifle rounds; EMP on the basement
+    # store shelf by the lockpicks; the jammer on the manager's desk between the two datapads.
+    ("FragSecurity", "frag_grenade", (19.5, wh.OFF_GROUND + 0.9, 3.95), 0.0, None),
+    ("FragDock", "frag_grenade", (7.0, 0.805, -8.0), 0.0, None),
+    ("GasLocker", "gas_grenade", (19.27, wh.OFF_GROUND + LOCKER_SHELF, 11.4), 0.0, None),
+    ("EmpStore", "emp_grenade", (8.4, wh.BASE_Y + 0.9, 2.6), 0.0, None),
+    ("JammerManager", "jamming_grenade", (9.25, wh.OFF_UP + 0.8, 0.5), 0.0, None),
 ]
 
 # The outgoing shipment on the dock (between the roller doors, around the Shipment marker).

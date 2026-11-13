@@ -2,13 +2,18 @@ extends GdUnitTestSuite
 ## The range's controls (ADR 0125): BodyResetButton stands downed bodies (dead or knocked out) back
 ## up when they carry its tag and leaves the rest alone; CallButton calls its method on its targets;
 ## SkillTierSwitch moves the user's tier of the skill training the weapon in its hand (through
-## Skills, so the weapon's class attributes change). Minimal users and bodies built in code.
+## Skills, so the weapon's class attributes change), Demolition for a grenade (M14c); PickupRestock
+## puts back the pickups under its scope (made again, moved back, refilled), whatever they hold.
+## Minimal users and bodies built in code.
 
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const DUMMY: PackedScene = preload("res://actors/dummy/training_dummy.tscn")
 const SKILL_TABLE: SkillTable = preload("res://actors/common/abilities/skill_table.tres")
 const PISTOL: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
 const AIM: AimConfig = preload("res://items/weapons/aim_untrained.tres")
+const FRAG: WeaponData = preload("res://items/grenades/frag/frag_grenade.tres")
+## Any item pickup: the restock button does not care what it holds.
+const PICKUP: PackedScene = preload("res://items/medkit/medkit.tscn")
 const ORIGIN := Vector3(-340, 0, 300)
 
 var _root: Node3D
@@ -97,6 +102,64 @@ func test_tier_switch_without_a_weapon_changes_nothing() -> void:
 	assert_int(Skills.of(user).tier(&"pistols")).is_equal(SkillTable.UNTRAINED)
 
 
+func test_tier_switch_with_a_grenade_in_hand_cycles_demolition() -> void:
+	var user := _user(FRAG)
+	var switch := SkillTierSwitch.new()
+	_root.add_child(switch)
+	assert_str(String(WeaponSkill.skill_of(user))).is_equal("demolition")
+
+	switch.use(user)
+
+	assert_int(Skills.of(user).tier(&"demolition")).is_equal(SkillTable.UNTRAINED + 1)
+	# Trained: +2 m of throw distance and disarming (ADR 0131).
+	assert_float(Attributes.read(user, &"throw_distance", 12.0)).is_equal_approx(14.0, 0.0001)
+	assert_float(Attributes.read(user, &"mine_disarm", 0.0)).is_equal_approx(1.0, 0.0001)
+
+
+func test_restock_puts_taken_moved_and_emptied_pickups_back() -> void:
+	var shelf := Node3D.new()
+	shelf.name = "Shelf"
+	_root.add_child(shelf)
+	var taken := _pickup(shelf, "Taken", Vector3(0, 1, 0), 5)
+	var moved := _pickup(shelf, "Moved", Vector3(0.5, 1, 0), 3)
+	var emptied := _pickup(shelf, "Emptied", Vector3(1.0, 1, 0), 4)
+	var restock := PickupRestock.new()
+	restock.scope_path = NodePath("../Shelf")
+	_root.add_child(restock)
+	await _frames(1)
+	assert_int(restock.recorded()).is_equal(3)
+	ItemPickup.of(taken).consume()
+	moved.position = Vector3(3, 0.2, 2)
+	ItemPickup.of(emptied).count = 1
+	await _frames(2)
+	assert_object(shelf.get_node_or_null("Taken")).is_null()
+
+	restock.use(null)
+
+	var again := shelf.get_node_or_null("Taken") as RigidBody3D
+	assert_object(again).is_not_null()
+	assert_vector(again.position).is_equal_approx(Vector3(0, 1, 0), Vector3.ONE * 0.0001)
+	assert_int(ItemPickup.of(again).count).is_equal(5)
+	assert_str(again.scene_file_path).is_equal(PICKUP.resource_path)
+	assert_vector(moved.position).is_equal_approx(Vector3(0.5, 1, 0), Vector3.ONE * 0.0001)
+	assert_int(ItemPickup.of(emptied).count).is_equal(4)
+	var logged := EventLog.find(&"range.restocked")
+	assert_int(logged[0].data["count"]).is_equal(3)
+	# Nothing to do the second time.
+	restock.use(null)
+	assert_int(EventLog.find(&"range.restocked")[1].data["count"]).is_equal(0)
+
+
+func _pickup(parent: Node3D, pickup_name: String, at: Vector3, count: int) -> RigidBody3D:
+	var body := PICKUP.instantiate() as RigidBody3D
+	body.name = pickup_name
+	body.position = at
+	body.freeze = true
+	ItemPickup.of(body).count = count
+	parent.add_child(body)
+	return body
+
+
 func _dummy(dummy_name: String, x: float) -> TrainingDummy:
 	var dummy := DUMMY.instantiate() as TrainingDummy
 	dummy.name = dummy_name
@@ -112,8 +175,8 @@ func _reset_button() -> BodyResetButton:
 	return button
 
 
-## A user holding the pistol, with Attributes and Skills (every skill Untrained).
-func _user() -> Node3D:
+## A user holding `weapon` (the pistol), with Attributes and Skills (every skill Untrained).
+func _user(weapon: WeaponData = PISTOL) -> Node3D:
 	var user := Node3D.new()
 	user.name = "User"
 	var attributes := Attributes.new()
@@ -126,7 +189,7 @@ func _user() -> Node3D:
 	var holder := WeaponHolder.new()
 	holder.name = "WeaponHolder"
 	holder.aim_config = AIM
-	holder.weapons = [PISTOL]
+	holder.weapons = [weapon]
 	user.add_child(holder)
 	_root.add_child(user)
 	holder.equip(0)

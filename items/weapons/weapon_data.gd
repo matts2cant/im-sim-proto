@@ -34,7 +34,8 @@ enum Grip { ONE_HAND, TWO_HAND }
 ## `<class>_spread_mult` (cone floors, bloom and the pellet cone), `<class>_settle_time` (base:
 ## AimConfig) and `<class>_sway_mult`. The Pistols (`pistol`), Rifles (`rifle`: assault rifle and
 ## shotgun), Sniper (`sniper`) and Low-Tech (`melee`) skills and Combat Strength write them (ADR
-## 0101). Empty: nothing scales it.
+## 0101); grenades are `throw` (the Demolition skill writes `throw_distance`, read by the Thrower), so
+## the range's tier switch and the item details name Demolition for them. Empty: nothing scales it.
 @export var attribute_class: StringName = &""
 
 @export_group("Ammo")

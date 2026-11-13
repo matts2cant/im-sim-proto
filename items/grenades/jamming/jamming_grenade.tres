@@ -13,6 +13,7 @@ display_name = "Jamming grenade"
 kind = 2
 cycle_time = 0.8
 max_range = 0.0
+attribute_class = &"throw"
 thrown_scene = "res://items/grenades/jamming/jamming_grenade.tscn"
 fire_sound = ExtResource("2_whoosh")
 fire_volume_db = -12.0

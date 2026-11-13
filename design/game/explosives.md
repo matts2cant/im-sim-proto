@@ -71,6 +71,13 @@ Guards do not react to grenades until the AI overhaul (M16): no fleeing, no thro
 - **Shooting range** (hub room 4): a grenade lane with dummies at 2, 4 and 6 m; a mine corridor; an EMP and jamming corner with a wireless camera, a turret and a light.
 - **Warehouse**: 2 frag, 1 gas, 1 EMP and 1 jamming grenade placed as loot in plausible spots (the security office, the armoury crate). Guards carry none yet.
 
+As built (M14c, [hub-and-gallery.md](../levels/hub-and-gallery.md#4-shooting-range), [mission-warehouse.md](../levels/mission-warehouse.md#equipment-to-find)):
+
+- **Grenade lane** (behind the spray wall): a table with 5 of each grenade, "Restock grenades" (puts every pickup on it back, whatever it is), "Reset dummies" and "Skill tier" (with a grenade in hand it switches Demolition: grenades' `WeaponData.attribute_class` is `throw`, the class of the skill's `throw_distance`); a throwing line 12 m from a target square, dummies at 2, 4 and 6 m from the target (centre to centre), off the throw's path. Untrained, looking level from the line, a frag first lands 0.2 m short of the target and rolls on to go off about 3.7 m past it; stuck on the target and shot, it kills the 2 m dummy, leaves the 4 m one with almost no torso (0.7 of 80) and gives the 6 m one a light wound (66.6 of 80): the "badly hurts" band stops at about 5 m (M14b), not 6 m. Not retuned.
+- **Mine corridor**: an annex off the hall's east wall, 1.6 m wide, 6 m long, walls, floor and a plain sliding door to stick mines on; signs for triggering and disarming.
+- **EMP and jamming room** behind that door: a wireless camera on its access point, a turret that shoots guards only, a powered lamp; an EMP thrown under the camera takes it alone, a jammer anywhere in the room jams it. No other device within 12.5 m.
+- **Warehouse**: frags on the security room's gun table and on the dock's metal supply crate, gas in a locker room locker, EMP on the basement store shelf, the jammer on the manager's desk.
+
 ## Build order
 
 1. Grenade items, throwing and sticking (the ghost), the proximity-mine trigger, arming, disarming and the red blink, the Demolition skill; in parallel with

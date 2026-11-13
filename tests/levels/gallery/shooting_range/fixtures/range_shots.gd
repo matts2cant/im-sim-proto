@@ -5,6 +5,8 @@ extends Node3D
 ## item (`weapon`: its id; `silencer`: fit one first; `scope`: scope in, ADR 0085), waits, saves the
 ## window image and quits. Positions are room-local (origin on the hub wall, -Z into the room).
 
+## A frag on the mine corridor door's corridor face (the panel, 1.3 m up).
+const MINE_ON_DOOR: Array = ["MineCorridor/Door/Panel", Vector3(27.17, 1.3, -12.3), Vector3.LEFT]
 ## feet / look: room-local points; pistol: draw it so the reticle shows; wait: game seconds.
 const SHOTS: Dictionary[String, Dictionary] = {
 	"corridor_entry": {"feet": Vector3(0, 0, 3.0), "look": Vector3(0, 1.6, -6)},
@@ -120,7 +122,42 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"shoot_at": 1.0,
 		"wait": 1.12
 	},
+	# M14c (ADR 0131): the grenade lane, the mine corridor (`mines`: frags stuck there first, each
+	# [node path, room-local centre, surface normal]) and the EMP and jamming room (`emp`, `jam`: a
+	# pulse or a field at a room-local point first).
+	"grenade_lane": {"feet": Vector3(12.5, 0, -24.6), "look": Vector3(13, 0.8, -40)},
+	"grenade_table": {"feet": Vector3(12.5, 0, -24.9), "look": Vector3(12.5, 1.0, -26.1)},
+	"grenade_line": {"feet": Vector3(13, 0, -28.0), "look": Vector3(13, 0.3, -40), "weapon": "frag_grenade"},
+	"grenade_dummies": {"feet": Vector3(13, 0, -31.5), "look": Vector3(14.5, 1.2, -40)},
+	"range_east_doorway": {"feet": Vector3(16.5, 0, -12.5), "look": Vector3(21, 2.0, -12.5)},
+	"mine_corridor":
+	{
+		"feet": Vector3(20.0, 0, -12.5),
+		"look": Vector3(27, 1.2, -12.5),
+		"mines": [MINE_ON_DOOR, ["Shell/MineCorridor", Vector3(25.5, 0.05, -12.9), Vector3.UP]],
+		"wait": 2.6
+	},
+	"mine_door":
+	{"feet": Vector3(23.8, 0, -12.5), "look": Vector3(27.2, 1.3, -12.4), "mines": [MINE_ON_DOOR], "wait": 2.6},
+	"mine_corridor_back": {"feet": Vector3(26.0, 0, -12.5), "look": Vector3(20, 1.6, -12.5)},
+	"mine_sign_north": {"feet": Vector3(23.2, 0, -11.9), "look": Vector3(23.2, 2.0, -13.3)},
+	"mine_sign_south": {"feet": Vector3(24.3, 0, -13.0), "look": Vector3(24.3, 2.0, -11.7)},
+	"emp_room": {"feet": Vector3(28.3, 0, -12.5), "look": Vector3(37, 1.6, -12.5)},
+	"emp_room_back": {"feet": Vector3(36.5, 0, -14.5), "look": Vector3(27.5, 1.6, -11.0)},
+	"emp_sign": {"feet": Vector3(32.5, 0, -10.5), "look": Vector3(32.5, 2.6, -7.5)},
+	"emp_camera": {"feet": Vector3(34.5, 0, -10.5), "look": Vector3(37.49, 2.3, -10)},
+	"emp_turret_ap": {"feet": Vector3(31.5, 0, -12.0), "look": Vector3(32.5, 1.5, -17.5)},
+	"emp_pulse":
+	{"feet": Vector3(28.3, 0, -12.5), "look": Vector3(36, 1.6, -13), "emp": Vector3(32.5, 0.1, -12.5), "wait": 1.0},
+	"jammed":
+	{"feet": Vector3(34.5, 0, -10.5), "look": Vector3(37.49, 2.4, -10), "jam": Vector3(36.5, 0.1, -10), "wait": 1.6},
+	"camera_close": {"feet": Vector3(36.4, 0, -10.6), "look": Vector3(37.4, 2.55, -10)},
+	"jammed_close":
+	{"feet": Vector3(36.4, 0, -10.6), "look": Vector3(37.4, 2.55, -10), "jam": Vector3(36.5, 0.1, -12), "wait": 1.35},
 }
+const FRAG_SCENE: PackedScene = preload("res://items/grenades/frag/frag_grenade.tscn")
+const JAMMING_FIELD: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
+const EMP: EmpConfig = preload("res://objects/explosives/emp/emp.tres")
 
 const PISTOL: ItemData = preload("res://items/weapons/pistol/pistol_item.tres")
 const BATON: ItemData = preload("res://items/weapons/baton/baton_item.tres")
@@ -192,6 +229,7 @@ func _physics_process(delta: float) -> void:
 		if _shot.get("tune", false):
 			var desk := _room.get_node("FiringLine/TuningTerminal/TuningDesk") as TuningDesk
 			desk.use(_player)
+		_effects()
 	if _started and _shot.get("fire", false):
 		# The trigger kept down: the weapon fires each cycle (recoil climbing the camera) until the shot.
 		_player.weapons.trigger()
@@ -223,7 +261,8 @@ func _arm(id: StringName) -> void:
 	var inventory := _player.inventory
 	var item := inventory.catalog.find(id)
 	inventory.give(item, 1)
-	inventory.give(inventory.catalog.find(item.weapon.ammo_item), 30)
+	if not item.weapon.ammo_item.is_empty():
+		inventory.give(inventory.catalog.find(item.weapon.ammo_item), 30)
 	var weapon := inventory.inventory.stacks[0]
 	if _shot.get("silencer", false):
 		inventory.give(SILENCER, 1)
@@ -236,6 +275,22 @@ func _arm(id: StringName) -> void:
 	if _shot.get("reload", false):
 		_player.weapons.state().magazine = 2
 		_player.weapons.reload()
+
+
+# M14c: stuck frags (`mines`), an EMP pulse (`emp`) or a jamming field (`jam`) before the shot.
+func _effects() -> void:
+	for mine: Array in _shot.get("mines", []):
+		var frag := FRAG_SCENE.instantiate() as RigidBody3D
+		_room.add_child(frag)
+		var normal := _room.global_basis * (mine[2] as Vector3)
+		var side := Vector3.FORWARD if absf(normal.y) > 0.9 else Vector3.UP
+		var x := side.cross(normal).normalized()
+		var pose := Transform3D(Basis(x, normal, x.cross(normal)), _room.to_global(mine[1] as Vector3))
+		Sticky.of(frag).stick(_room.get_node(String(mine[0])) as Node3D, pose)
+	if _shot.has("emp"):
+		StimulusSystem.emit(EmpPulse.make(EMP, _room.to_global(_shot["emp"] as Vector3)))
+	if _shot.has("jam"):
+		ExplosivePayload.spawn_in_level(JAMMING_FIELD, _room, _room.to_global(_shot["jam"] as Vector3))
 
 
 # A scripted 30-round spray from the firing line in lane 5 at the spray wall's aim mark (a climbing,

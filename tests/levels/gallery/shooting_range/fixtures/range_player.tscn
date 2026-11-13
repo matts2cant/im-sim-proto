@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/gallery/shooting_range/shooting_range_room.tscn" id="1_range"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="3_navigation"]
+
+[sub_resource type="Environment" id="Environment_fixture"]
+background_mode = 1
+background_color = Color(0.05, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+
+[node name="RangePlayer" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fixture")
+
+[node name="ShootingRangeRoom" parent="." instance=ExtResource("1_range")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -640, 0, 300)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -640, 0, 299)
+
+[node name="Navigation" type="NavigationRegion3D" parent="."]
+script = ExtResource("3_navigation")

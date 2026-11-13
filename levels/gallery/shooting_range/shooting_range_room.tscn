@@ -33,6 +33,17 @@
 [ext_resource type="Script" path="res://objects/range/call_button.gd" id="31_call"]
 [ext_resource type="Script" path="res://objects/range/skill_tier_switch.gd" id="32_tier"]
 [ext_resource type="PackedScene" path="res://items/weapons/smg/smg_pickup.tscn" id="40_smg"]
+[ext_resource type="PackedScene" path="res://items/grenades/frag/frag_grenade_pickup.tscn" id="41_frag"]
+[ext_resource type="PackedScene" path="res://items/grenades/gas/gas_grenade_pickup.tscn" id="42_gas"]
+[ext_resource type="PackedScene" path="res://items/grenades/emp/emp_grenade_pickup.tscn" id="43_emp"]
+[ext_resource type="PackedScene" path="res://items/grenades/jamming/jamming_grenade_pickup.tscn" id="44_jamming"]
+[ext_resource type="Script" path="res://objects/range/pickup_restock.gd" id="45_restock"]
+[ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="46_door"]
+[ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="47_camera"]
+[ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="48_turret"]
+[ext_resource type="PackedScene" path="res://objects/network/access_point.tscn" id="49_ap"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/ceiling_lamp.tscn" id="50_lamp"]
+[ext_resource type="Resource" path="res://levels/gallery/shooting_range/range_turret.tres" id="51_range_turret"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -55,6 +66,31 @@ offset = -8.5
 width = 2.0
 height = 3.0
 
+[sub_resource type="Resource" id="Opening_hall_east"]
+script = ExtResource("2_opening")
+node_name = &"ToMineCorridor"
+wall = 1
+offset = 15.5
+width = 1.6
+height = 2.4
+
+[sub_resource type="Resource" id="Opening_mine_west"]
+script = ExtResource("2_opening")
+node_name = &"FromHall"
+wall = 3
+width = 1.6
+height = 2.4
+
+[sub_resource type="Resource" id="Opening_mine_east"]
+script = ExtResource("2_opening")
+node_name = &"ToEmpRoom"
+wall = 1
+
+[sub_resource type="Resource" id="Opening_emp_west"]
+script = ExtResource("2_opening")
+node_name = &"FromMineCorridor"
+wall = 3
+
 [node name="ShootingRangeRoom" type="Node3D"]
 
 [node name="Shell" type="Node3D" parent="."]
@@ -69,7 +105,19 @@ openings = Array[ExtResource("2_opening")]([SubResource("Opening_corridor_south"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, -28)
 size = Vector3(24, 5, 48)
 wall_thickness = 0.5
-openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south")])
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_hall_south"), SubResource("Opening_hall_east")])
+
+[node name="MineCorridor" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -12.5)
+size = Vector3(6, 3, 1.6)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_mine_west"), SubResource("Opening_mine_east")])
+
+[node name="EmpRoom" parent="Shell" instance=ExtResource("1_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, 0, -12.5)
+size = Vector3(10, 4, 10)
+wall_thickness = 0.5
+openings = Array[ExtResource("2_opening")]([SubResource("Opening_emp_west")])
 
 [node name="FiringLine" type="Node3D" parent="."]
 
@@ -542,3 +590,238 @@ transform = Transform3D(1, 0, 0, 0, 0.842, 0.539, 0, -0.539, 0.842, 9.25, 4.4, -
 light_energy = 2.0
 spot_range = 9.0
 spot_angle = 18.0
+
+[node name="GrenadeLane" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 4.4, -40)
+light_energy = 1.0
+omni_range = 10.0
+
+[node name="MineCorridor" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2.7, -12.5)
+light_energy = 0.8
+omni_range = 5.0
+
+[node name="EmpRoomFill" type="OmniLight3D" parent="Lights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 3.5, -12.5)
+light_energy = 0.2
+omni_range = 10.0
+
+[node name="GrenadeLane" type="Node3D" parent="."]
+
+[node name="ThrowLine" parent="GrenadeLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.02, -28)
+material_override = ExtResource("6_hazard")
+size = Vector2(3.6, 0.1)
+thickness = 0.1
+
+[node name="Target" parent="GrenadeLane" instance=ExtResource("4_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.02, -40)
+material_override = ExtResource("6_hazard")
+size = Vector2(1.2, 1.2)
+thickness = 0.1
+
+[node name="Dummy2m" parent="GrenadeLane" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11, 0, -40)
+
+[node name="Dummy4m" parent="GrenadeLane" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 17, 0, -40)
+
+[node name="Dummy6m" parent="GrenadeLane" instance=ExtResource("7_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 17.2426, 0, -35.7574)
+
+[node name="Table" parent="GrenadeLane" instance=ExtResource("5_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 0, -25.7)
+height = 1.0
+width = 3.4
+depth = 0.7
+surface = "wood"
+
+[node name="Frag" parent="GrenadeLane" instance=ExtResource("41_frag")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.1, 1.0575, -26.15)
+
+[node name="ItemPickup" parent="GrenadeLane/Frag"]
+count = 5
+
+[node name="Gas" parent="GrenadeLane" instance=ExtResource("42_gas")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, 1.0575, -26.15)
+
+[node name="ItemPickup" parent="GrenadeLane/Gas"]
+count = 5
+
+[node name="Emp" parent="GrenadeLane" instance=ExtResource("43_emp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.9, 1.0575, -26.15)
+
+[node name="ItemPickup" parent="GrenadeLane/Emp"]
+count = 5
+
+[node name="Jamming" parent="GrenadeLane" instance=ExtResource("44_jamming")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.3, 1.0575, -26.15)
+
+[node name="ItemPickup" parent="GrenadeLane/Jamming"]
+count = 5
+
+[node name="Restock" parent="GrenadeLane" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.9, 1, -25.9)
+
+[node name="Label" parent="GrenadeLane/Restock"]
+text = "Restock
+grenades"
+
+[node name="PickupRestock" type="Node" parent="GrenadeLane/Restock"]
+script = ExtResource("45_restock")
+label = "grenades"
+
+[node name="ResetDummies" parent="GrenadeLane" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.35, 1, -25.9)
+
+[node name="Label" parent="GrenadeLane/ResetDummies"]
+text = "Reset
+dummies"
+
+[node name="BodyResetButton" type="Node" parent="GrenadeLane/ResetDummies"]
+script = ExtResource("30_reset")
+scope_path = NodePath("../../..")
+
+[node name="TierSwitch" parent="GrenadeLane" instance=ExtResource("28_button")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.8, 1, -25.9)
+
+[node name="Label" parent="GrenadeLane/TierSwitch"]
+text = "Skill tier
+E: next"
+
+[node name="SkillTierSwitch" type="Node" parent="GrenadeLane/TierSwitch"]
+script = ExtResource("32_tier")
+
+[node name="MineCorridor" type="Node3D" parent="."]
+
+[node name="Door" parent="MineCorridor" instance=ExtResource("46_door")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 27.25, 0, -12.5)
+
+[node name="Door" parent="MineCorridor/Door"]
+wall_thickness = 0.5
+
+[node name="EmpCorner" type="Node3D" parent="."]
+
+[node name="Ap" parent="EmpCorner" instance=ExtResource("49_ap")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 2.6, -17.49)
+metadata/display_name = "AP-RANGE"
+
+[node name="Device" parent="EmpCorner/Ap"]
+address = "10.0.90.5"
+
+[node name="AccessPoint" parent="EmpCorner/Ap"]
+key = "range1"
+
+[node name="Camera" parent="EmpCorner" instance=ExtResource("47_camera")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 37.49, 2.6, -10)
+metadata/display_name = "CAM-RANGE"
+
+[node name="Device" parent="EmpCorner/Camera"]
+address = "10.0.90.21"
+wireless = NodePath("../../Ap")
+
+[node name="Turret" parent="EmpCorner" instance=ExtResource("48_turret")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 34, 0, -16)
+metadata/display_name = "TURRET-RANGE"
+
+[node name="TurretBehaviour" parent="EmpCorner/Turret"]
+config = ExtResource("51_range_turret")
+
+[node name="Lamp" parent="EmpCorner" instance=ExtResource("50_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, 4, -12.5)
+
+[node name="Light" parent="EmpCorner/Lamp"]
+light_energy = 1.5
+omni_range = 8.0
+
+[node name="GrenadeTable" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 2.4, -26.45)
+pixel_size = 0.0025
+text = "Grenades · E takes 5 · Restock puts them back
+LMB: throw (12 m Untrained), or stick within 1.2 m
+Thrown, a grenade rolls on: for exact distances
+stick one on the target, step back and shoot it"
+size = 0
+
+[node name="GrenadeTarget" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 3.2, -40)
+text = "Target · 12 m from the line"
+
+[node name="ThrowLine" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 13, 0.03, -27.7)
+text = "Throwing line"
+size = 0
+
+[node name="Grenade2m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 2.3, -40)
+text = "2 m from the target
+(centre to centre)"
+size = 0
+pixel_size = 0.003
+
+[node name="Grenade4m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 2.3, -40)
+text = "4 m from the target
+(centre to centre)"
+size = 0
+pixel_size = 0.003
+
+[node name="Grenade6m" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.2426, 2.3, -35.7574)
+text = "6 m from the target
+(centre to centre)"
+size = 0
+pixel_size = 0.003
+
+[node name="MineCorridorEntrance" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 20.48, 2.95, -12.5)
+text = "Mine corridor · EMP and jamming room"
+size = 0
+pixel_size = 0.0035
+
+[node name="MineCorridor" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.2, 2.1, -13.29)
+text = "Mine corridor
+LMB within 1.2 m of a wall, the floor or the door sticks a grenade
+Armed after 2 s: it goes off when anyone in its line of sight
+comes within 2.5 m walking, 1 m crouched"
+size = 0
+pixel_size = 0.0018
+
+[node name="MineDisarm" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 24.3, 2.1, -11.71)
+text = "Disarm: crouch 1 to 2 m from it, E
+Needs Demolition Trained or better
+(skill tier switch at the grenade table, grenade in hand)
+Untrained, it beeps and goes off"
+size = 0
+pixel_size = 0.0018
+
+[node name="EmpRoom" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 32.5, 2.7, -7.52)
+text = "EMP and jamming room
+EMP: electronics within 6 m off for 20 s (camera, turret, lamp, access point)
+thrown under the camera, it takes the camera alone
+Jamming: wireless links within 10 m drop for 20 s (the camera)"
+size = 0
+pixel_size = 0.0035
+
+[node name="EmpCamera" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 37.48, 1.9, -10)
+text = "CAM-RANGE · wireless camera
+linked to AP-RANGE"
+size = 0
+pixel_size = 0.003
+
+[node name="EmpAp" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 1.9, -17.48)
+text = "AP-RANGE · access point"
+size = 0
+pixel_size = 0.003
+
+[node name="EmpTurret" parent="Labels" instance=ExtResource("3_sign")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.6, 2.2, -17.48)
+text = "TURRET-RANGE
+shoots guards only"
+size = 0
+pixel_size = 0.003
