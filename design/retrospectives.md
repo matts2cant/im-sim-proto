@@ -4,6 +4,26 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## M14d — Looting (2026-11-14)
+
+Designed with M15 in the same review (ADR 0142, [looting.md](game/looting.md), the approved mockup [looting.html](prototypes/looting.html)); the user, away for the weekend, asked to finish M14 without a playtest in between. Three agents: the loot screen and the looting systems in parallel on a named contract (`Lootable.SCREEN`, `Keychain.add(..., kind)` / `remove()`), then the levels.
+
+Final state on master (a44038d): 2441 tests, 0 failures, 1 skipped, lint clean (the last agent's full run on exactly master's code).
+
+- **Went well:**
+  - **The contract was settled by message before code**: the screen agent asked two precise questions (pause or not, how a card keeps its kind) and both agents built against the same signatures; the second merge only removed a stand-in and wrote the cross-feature test (tap E on a downed guard, Take all, the keycard opens a reader).
+  - **Systemic choices again cost nothing**: `Lootable` is a `Usable`, so the frame, lock lines and failure messages work for containers like for doors; containers and guard loadouts are pure data (`ItemLoadout`).
+  - **The level agent kept every route solvable** with a key-graph test that now reads keychains, and measured the warehouse frame cost (unchanged).
+- **Went wrong:**
+  - **The brief's "pauses like the Tab interface" was wrong**: the Tab interface does not pause (ADR 0110). The agent asked; the spec's "pauses" won. Briefs should check claims about existing behaviour.
+  - **A flat ammo count for every guard** (10 rounds whatever the weapon) slipped through the systems brief; fixed in the level wave (one magazine of the held weapon).
+  - **The user's editor was open on `hub.tscn`** (PID 3020) while agents changed hub scenes: reload the editor before saving anything.
+- **Changes:** none to the process.
+- **Open for the user (no playtest yet of M13c, M14, the quality pass or M14d):**
+  - Old saves keep a keycard in the grid, where it opens nothing (no migration).
+  - A woken guard does not re-arm from its own inventory (M16).
+  - Datapads stay on desks (they are read in place, not inventory items).
+
 ## Quality pass — test speed, code quality, systemic design (2026-11-13)
 
 The user paused features for three passes. One agent profiled the test suite; two read-only agents audited code quality and the systemic design rules ([audit-2026-11-13.md](tech/audit-2026-11-13.md): 25 systemic and 40 quality findings, each now marked done or skipped with a reason). Fixes ran in four waves of agents owning separate files (UI plumbing, weapons, body state; events, device status, surfaces and tuning; generic inventory, network identity; lookups and cleanup), plus the user's upright stuck grenades. ADRs 0132 to 0141.
