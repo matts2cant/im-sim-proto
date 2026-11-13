@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="PackedScene" path="res://objects/devices/models/access_point.tscn" id="11_model"]
 [ext_resource type="Script" path="res://objects/network/access_point.gd" id="13_access_point"]
+[ext_resource type="Resource" path="res://objects/network/access_point.tres" id="14_config"]
 
 [sub_resource type="CylinderShape3D" id="Shape_body"]
 height = 0.04
@@ -55,3 +56,4 @@ script = ExtResource("10_device")
 
 [node name="AccessPoint" type="Node" parent="."]
 script = ExtResource("13_access_point")
+config = ExtResource("14_config")

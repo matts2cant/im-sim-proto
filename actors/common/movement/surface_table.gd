@@ -1,10 +1,9 @@
 class_name SurfaceTable
 extends Resource
 ## Floor surfaces: noise multiplier and footstep sound per surface name.
-## A floor declares its surface with node metadata `surface` (StringName) on the collider
-## a character stands on; for CSG that is the CSG root node with use_collision (ADR 0033).
-
-const SURFACE_META: StringName = &"surface"
+## The surface a character stands on is Surface.of() its floor collider (ADR 0138): the `surface`
+## metadata of static geometry (for CSG the root node with use_collision, ADR 0033), else the
+## `material.*` tag of the entity (a metal crate sounds like metal).
 
 @export var default_surface: StringName
 @export var multipliers: Dictionary[StringName, float] = {}
@@ -13,11 +12,10 @@ const SURFACE_META: StringName = &"surface"
 @export var pitches: Dictionary[StringName, float] = {}
 
 
-## Surface name of a floor collider, or the default when it declares none.
+## Surface name of a floor collider (Surface.of()), or the default when it has none.
 func surface_of(collider: Object) -> StringName:
-	if collider != null and collider.has_meta(SURFACE_META):
-		return StringName(collider.get_meta(SURFACE_META))
-	return default_surface
+	var surface := Surface.of(collider)
+	return default_surface if surface.is_empty() else surface
 
 
 ## Noise multiplier of a surface; unknown surfaces sound like the default surface.

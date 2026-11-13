@@ -18,6 +18,8 @@
 [ext_resource type="Script" path="res://items/grenades/sticky.gd" id="17_sticky"]
 [ext_resource type="Script" path="res://items/grenades/proximity_trigger.gd" id="18_trigger"]
 [ext_resource type="Script" path="res://items/grenades/mine_disarm.gd" id="19_disarm"]
+[ext_resource type="Resource" path="res://items/grenades/fuse.tres" id="20_fuse_config"]
+[ext_resource type="Resource" path="res://items/grenades/proximity_trigger.tres" id="21_trigger_config"]
 
 [sub_resource type="CylinderShape3D" id="Shape_body"]
 height = 0.105
@@ -64,6 +66,7 @@ settings = ExtResource("14_impact_settings")
 
 [node name="Fuse" type="Node" parent="."]
 script = ExtResource("16_fuse")
+config = ExtResource("20_fuse_config")
 
 [node name="Sticky" type="Node" parent="."]
 script = ExtResource("17_sticky")
@@ -72,6 +75,7 @@ side_offset = 0.0405
 
 [node name="ProximityTrigger" type="Node3D" parent="."]
 script = ExtResource("18_trigger")
+config = ExtResource("21_trigger_config")
 light_offset = Vector3(0, 0.055, 0)
 
 [node name="MineDisarm" type="Node" parent="."]

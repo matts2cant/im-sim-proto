@@ -9,8 +9,8 @@ extends Effect
 ## `heard_dispatch` receptron, ADR 0077); both pass `reason`. The Awareness decides what it means
 ## (allies' noise ignored, harm only from hostiles, calls only from allies). Nothing happens on
 ## entities without an Awareness.
-## `radio` (M14b, ADR 0131): the message comes by radio (a dispatch, a radio call): lost while a
-## jamming field covers the receiver or the sender (JammingField.jams_link()).
+## `radio` (M14b, ADR 0131): the message comes by radio (a dispatch, a radio call): lost while the
+## receiving entity or the sender (the stimulus source) is jammed (`state.jammed`, ADR 0138).
 
 enum Kind { NOISE, HARM, ALERT, CALL, SEARCH }
 
@@ -51,7 +51,8 @@ func can_apply(ctx: EffectContext) -> bool:
 	return Awareness.of(ctx.entity) != null and not (radio and _jammed(ctx))
 
 
-# A jamming field covers the receiver or the sender (the stimulus origin).
+# The receiving entity or the sender (the stimulus source) is jammed.
 func _jammed(ctx: EffectContext) -> bool:
-	var at := ctx.receiver.global_position if is_instance_valid(ctx.receiver) else ctx.stimulus.origin
-	return JammingField.jams_link(at, ctx.stimulus.origin)
+	if ActorState.is_jammed(ctx.entity):
+		return true
+	return is_instance_valid(ctx.stimulus.source) and ActorState.is_jammed(ctx.stimulus.source)

@@ -150,6 +150,24 @@ func test_a_radio_inside_gets_no_dispatch() -> void:
 	assert_array(EventLog.find(&"radio.jammed")).has_size(1)
 
 
+func test_tags_what_it_covers_while_it_lasts_and_overlapping_fields_share_the_tag() -> void:
+	# A tagged stand-in 4 m east of F2's centre (inside), then moved 14 m east (outside).
+	var probe := Fixtures.entity(_root, "Probe", ORIGIN + F2 + Vector3(4, 0, 0), [], [])
+	var first := _field(F2)
+	assert_bool(ActorState.is_jammed(probe)).is_true()
+	assert_bool(ActorState.is_jammed(_n["ApYard"])).is_false()
+	probe.position.x += 10.0
+	await Wait.frames(get_tree(), 2)
+	assert_bool(ActorState.is_jammed(probe)).is_false()
+	# Back inside, with a second field over it: the first ending keeps the tag, the second removes it.
+	probe.position.x -= 10.0
+	var second := _field(F2 + Vector3(2, 0, 0))
+	first.end()
+	assert_bool(ActorState.is_jammed(probe)).is_true()
+	second.end()
+	assert_bool(ActorState.is_jammed(probe)).is_false()
+
+
 func test_saves_its_time_and_place() -> void:
 	var field := _field(F2)
 	field.age = 12.0

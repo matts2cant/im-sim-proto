@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DoorOpenerConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/door_opener/door_opener_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+lookahead = 3.5
+path_lift = 0.5
+search_margin = 2.0

@@ -101,7 +101,7 @@ static func floor_box(parent: Node, top: float = 0.0, surface: StringName = &"")
 	floor_body.collision_layer = PhysicsLayers.WORLD
 	floor_body.collision_mask = 0
 	if not surface.is_empty():
-		floor_body.set_meta(SurfaceTable.SURFACE_META, surface)
+		floor_body.set_meta(Surface.META, surface)
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	box.size = Vector3(40, 1, 40)

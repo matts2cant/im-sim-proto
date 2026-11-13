@@ -3,7 +3,8 @@ extends Node
 ## Component (M12b, ADR 0115, 0117): makes its entity's Device a Wi-Fi access point. Network gear like
 ## a switch: powered and breakable through its Device, cabled into one subnet (a switch or a router),
 ## never linked wirelessly itself. Any other device names it in its Device's `wireless` and links to
-## it by radio instead of a cable while it stands within `wireless_range` (Device.wireless_link()):
+## it by radio instead of a cable while it stands within `config.wireless_range` (AccessPointConfig,
+## ADR 0138; Device.wireless_link()):
 ## the link is part of the reach graph, so breaking or unpowering the access point takes its wireless
 ## devices offline as a cut cable would.
 ## Its Wi-Fi key is a password with a strength (DeviceAccount.Strength). A deck in hand aimed at it
@@ -16,8 +17,10 @@ extends Node
 ## `by_key` learned the key.
 signal key_learned(by_key: String)
 
-## How far its radio reaches a wireless device (m, centre to centre: the entities' origins).
-@export var wireless_range: float = 15.0
+const DEFAULT_CONFIG: AccessPointConfig = preload("res://objects/network/access_point.tres")
+
+## Its radio range.
+@export var config: AccessPointConfig = DEFAULT_CONFIG
 ## The Wi-Fi key and how hard it is to brute-force (the Icebreaker's base times).
 @export var key: String = ""
 @export var key_strength: DeviceAccount.Strength = DeviceAccount.Strength.WEAK
@@ -57,7 +60,12 @@ static func of(node: Node) -> AccessPoint:
 
 ## True when a device at `position` (its entity's origin) is within its radio range.
 func covers(position: Vector3) -> bool:
-	return is_instance_valid(entity) and entity.global_position.distance_to(position) <= wireless_range
+	return is_instance_valid(entity) and entity.global_position.distance_to(position) <= wireless_range()
+
+
+## How far its radio reaches (m, centre to centre).
+func wireless_range() -> float:
+	return (config if config != null else DEFAULT_CONFIG).wireless_range
 
 
 ## The address a deck joined over Wi-Fi gets on its subnet.

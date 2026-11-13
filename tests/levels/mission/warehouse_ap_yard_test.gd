@@ -84,7 +84,7 @@ func test_ap_yard_links_the_yard_camera_and_roof_lasers_by_radio() -> void:
 		# Within range with at least 2 m to spare (centre to centre).
 		var distance := _entity(path).global_position.distance_to(_entity(AP).global_position)
 		assert_float(distance).override_failure_message("%s %.2f m" % [path, distance]).is_less(
-			radio.wireless_range - 2.0
+			radio.wireless_range() - 2.0
 		)
 		assert_bool(Tracer.watching(device).has(_tracer())).override_failure_message(path).is_true()
 	# Its bracket (a mesh: KitGeometry's CSG check does not see it) reaches from the box down into the

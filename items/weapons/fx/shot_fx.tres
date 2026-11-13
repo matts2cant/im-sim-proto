@@ -96,18 +96,14 @@ puffs = Dictionary[StringName, ExtResource("2_puff")]({
 &"wood": SubResource("Puff_wood")
 })
 surfaces = Dictionary[StringName, StringName]({
+&"cardboard": &"wood",
 &"carpet": &"concrete",
 &"concrete": &"concrete",
+&"electronics": &"metal",
+&"glass": &"glass",
 &"grass": &"concrete",
 &"metal": &"metal",
 &"wood": &"wood"
-})
-tags = Dictionary[StringName, StringName]({
-&"material.cardboard": &"wood",
-&"material.electronics": &"metal",
-&"material.glass": &"glass",
-&"material.metal": &"metal",
-&"material.wood": &"wood"
 })
 default_group = &"concrete"
 max_holes = 200

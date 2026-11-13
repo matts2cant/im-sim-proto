@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="AccessPointConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/network/access_point_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+wireless_range = 27.0

@@ -23,10 +23,12 @@ extends Resource
 @export var landing_max_factor: float
 
 @export_group("Surfaces")
-## Surface multipliers and sounds; the floor's surface comes from its `surface` metadata (ADR 0033).
+## Surface multipliers and sounds; the floor's surface is Surface.of() its collider (`surface`
+## metadata, else the entity's `material.*` tag; ADR 0033, ADR 0138).
 @export var surfaces: SurfaceTable
-## Collision layers of the downward probe that reads the floor's surface.
-@export_flags_3d_physics var surface_probe_mask: int = 1
+## Collision layers of the downward probe that reads the floor's surface: world and objects (a prop
+## stood on reads its material tag).
+@export_flags_3d_physics var surface_probe_mask: int = 9
 
 @export_group("Audio")
 ## Loudness that plays at 0 dB; louder or quieter noises scale 10 dB per decade, clamped.
