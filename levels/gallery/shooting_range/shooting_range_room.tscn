@@ -696,6 +696,7 @@ script = ExtResource("32_tier")
 
 [node name="Door" parent="MineCorridor" instance=ExtResource("46_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 27.25, 0, -12.5)
+metadata/display_name = "Door"
 
 [node name="Door" parent="MineCorridor/Door"]
 wall_thickness = 0.5

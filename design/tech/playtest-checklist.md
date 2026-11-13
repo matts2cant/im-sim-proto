@@ -486,6 +486,12 @@ Review shots: `lab_shots.tscn -- shots=deck_map_start,deck_map_rtr01,deck_map_ch
 - [ ] The warehouse Map after hacking RTR-01 (fit zoom about 0.48): the switch tree (main switch on top, the four area switches below) is easy to follow without crossings; zooming in to read the labels is comfortable.
 - [ ] The office PCs' dock shows Mail and Files only, bare-handed and as a remote desktop; the consoles still have Security.
 
+### Network identity and names ([ADR 0140](../decisions/0140-network-identity-and-entity-names.md))
+
+- [ ] Refactor check, nothing should feel different: in the warehouse, hack RTR-01 (login or crack), log in on a PC, use an exploit, crack AP-YARD and join it, let a tracer fill; quicksave, quickload: accounts (amber on the Map), the exploit's admin, the known Wi-Fi key and the trace are all still yours.
+- [ ] A quicksave made before this change (if you kept one) still loads with your accounts, traces, exploit grants and Wi-Fi keys.
+- [ ] Doors and devices show the same names as before in the interaction frame and on the Map (the security wing's doors now read "D1 keypad", not "D 1 keypad").
+
 ## M10 Lockpicking sounds ([ADR 0108](../decisions/0108-lockpick-sounds.md))
 
 Audition scene: run `items/lockpick/audio/fixtures/lockpick_audio_audition.tscn` (F6), keys 1-0 or the buttons play the cues, the sliders drive the voices. Compare with the prototype (`design/prototypes/lockpicking_bench.html`, sound on).

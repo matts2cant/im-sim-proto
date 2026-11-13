@@ -394,6 +394,7 @@ light_energy = 0.8
 
 [node name="D1Keypad" parent="Doors" instance=ExtResource("6_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 0, 6.25)
+metadata/display_name = "D1 keypad"
 
 [node name="Lockable" parent="Doors/D1Keypad"]
 locked = true
@@ -407,6 +408,7 @@ data = SubResource("Keypad_data")
 
 [node name="D2Mechanical" parent="Doors" instance=ExtResource("6_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4, 0, 6.25)
+metadata/display_name = "D2 mechanical"
 
 [node name="Lockable" parent="Doors/D2Mechanical"]
 locked = true
@@ -420,6 +422,7 @@ data = SubResource("Mechanical_data")
 
 [node name="D3Keycard" parent="Doors" instance=ExtResource("6_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0, 6.25)
+metadata/display_name = "D3 keycard"
 
 [node name="Lockable" parent="Doors/D3Keycard"]
 locked = true
@@ -459,6 +462,7 @@ script = ExtResource("14_electronic")
 
 [node name="D5Breakable" parent="Doors" instance=ExtResource("7_breakable_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0, 6.25)
+metadata/display_name = "D5 breakable"
 
 [node name="Lockable" parent="Doors/D5Breakable"]
 locked = true
