@@ -50,9 +50,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.05)
 mesh = SubResource("BoxMesh_3")
 
 [node name="KindStrip" type="Node3D" parent="Pivot/Tilt"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.051, -0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.067)
 script = ExtResource("5_kind_strip")
-size = Vector3(0.124, 0.01, 0.264)
+size = Vector3(0.124, 0.124, 0.006)
+
+[node name="KindStrip2" type="Node3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.055)
+script = ExtResource("5_kind_strip")
+size = Vector3(0.124, 0.124, 0.006)
+
+[node name="KindStrip3" type="Node3D" parent="Pivot/Tilt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.043)
+script = ExtResource("5_kind_strip")
+size = Vector3(0.124, 0.124, 0.006)
 
 [node name="Lens" type="MeshInstance3D" parent="Pivot/Tilt"]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -0.19)
