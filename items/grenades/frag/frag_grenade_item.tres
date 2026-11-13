@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://items/grenades/frag/frag_grenade.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"frag_grenade"
+display_name = "Frag grenade"
+short_name = "FRAG"
+description = "Fragmentation grenade: kills within about 3 m, hurts to 6 m, very loud. LMB throws it (it goes off 2.5 s later); with a surface within reach, LMB sticks it there as a proximity mine that arms after 2 s."
+footprint = Vector2i(1, 1)
+max_stack = 5
+colour = Color(0.4, 0.42, 0.38, 1)
+world_scene = "res://items/grenades/frag/frag_grenade_pickup.tscn"
+auto_belt = true
+default_state = {}
+use_action = 1
+weapon = ExtResource("2_weapon")

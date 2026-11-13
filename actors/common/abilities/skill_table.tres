@@ -394,7 +394,49 @@ display_name = "Lockpicking"
 description = "Lockpicking minigame: a wider sweet spot and lift tolerance, a shorter set dwell, a lower drop threshold, slower pin drops; assists (Trained: tension gauge, Advanced: + captions, Master: + clear lock view); Master rakes Simple and Standard locks."
 effects = Array[ExtResource("3_effect")]([SubResource("Effect_lockpick_window_low"), SubResource("Effect_lockpick_window_high"), SubResource("Effect_lockpick_drop_threshold"), SubResource("Effect_lockpick_drop_delay"), SubResource("Effect_lockpick_lift_tolerance"), SubResource("Effect_lockpick_set_dwell"), SubResource("Effect_lockpick_rake"), SubResource("Effect_lockpick_assist")])
 
+[sub_resource type="Resource" id="Effect_throw_distance"]
+script = ExtResource("3_effect")
+attribute = &"throw_distance"
+op = 0
+label = "Throw distance"
+shows_value = true
+display_base = 12.0
+display_unit = " m"
+display_decimals = 0
+tier_values = Array[float]([0.0, 2.0, 4.0, 6.0])
+
+[sub_resource type="Resource" id="Effect_mine_disarm"]
+script = ExtResource("3_effect")
+attribute = &"mine_disarm"
+op = 0
+label = "Disarm a mine"
+tier_texts = Array[String](["No (it goes off)", "Yes", "Yes", "Yes"])
+tier_values = Array[float]([0.0, 1.0, 1.0, 1.0])
+
+[sub_resource type="Resource" id="Effect_mine_sense_range"]
+script = ExtResource("3_effect")
+attribute = &"mine_sense_range"
+op = 0
+label = "Armed mines highlighted"
+tier_texts = Array[String](["-", "-", "Within 8 m", "Within 8 m"])
+tier_values = Array[float]([0.0, 0.0, 8.0, 8.0])
+
+[sub_resource type="Resource" id="Effect_fuse_readout"]
+script = ExtResource("3_effect")
+attribute = &"fuse_readout"
+op = 0
+label = "Fuse time on the HUD"
+tier_texts = Array[String](["-", "-", "-", "Yes"])
+tier_values = Array[float]([0.0, 0.0, 0.0, 1.0])
+
+[sub_resource type="Resource" id="Skill_demolition"]
+script = ExtResource("2_skill")
+id = &"demolition"
+display_name = "Demolition"
+description = "Grenades and mines: throw distance; disarming mines from Trained; armed mines within 8 m highlighted from Advanced; a thrown grenade's fuse time on the HUD at Master. Blast strength does not change."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_throw_distance"), SubResource("Effect_mine_disarm"), SubResource("Effect_mine_sense_range"), SubResource("Effect_fuse_readout")])
+
 [resource]
 script = ExtResource("1_table")
 tier_names = Array[String](["Untrained", "Trained", "Advanced", "Master"])
-skills = Array[ExtResource("2_skill")]([SubResource("Skill_pistols"), SubResource("Skill_rifles"), SubResource("Skill_sniper"), SubResource("Skill_low_tech"), SubResource("Skill_medicine"), SubResource("Skill_computer"), SubResource("Skill_lockpicking")])
+skills = Array[ExtResource("2_skill")]([SubResource("Skill_pistols"), SubResource("Skill_rifles"), SubResource("Skill_sniper"), SubResource("Skill_low_tech"), SubResource("Skill_medicine"), SubResource("Skill_computer"), SubResource("Skill_lockpicking"), SubResource("Skill_demolition")])

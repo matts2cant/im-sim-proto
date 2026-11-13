@@ -9,7 +9,8 @@ extends Node
 ## magazine is mirrored into the stack's `magazine` state and whose spare rounds
 ## are the inventory's ammo stacks (InventoryAmmo). Attachment items are fitted to compatible weapon
 ## stacks (attach(): the attachment is used up, the weapon's state records it, its WeaponState applies
-## it; ADR 0085). Saved through the Player (ADR 0050).
+## it; ADR 0085). A thrown weapon (grenade) is one item of its stack: each throw takes one (ADR 0131).
+## Saved through the Player (ADR 0050).
 ## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`,
 ## `item.attached`.
 
@@ -54,6 +55,7 @@ static func of(node: Node) -> PlayerInventory:
 func setup(p_player: Player) -> void:
 	player = p_player
 	player.weapons.changed.connect(_sync_magazines)
+	player.weapons.fired.connect(_on_weapon_fired)
 
 
 ## Adds items (debug Give item, pickups). Returns how many did not fit. A keychain item (a key)
@@ -353,6 +355,23 @@ func _consume(stack: ItemStack, target: Node = null) -> bool:
 func _sync_magazines() -> void:
 	for stack: ItemStack in _weapon_states:
 		stack.state["magazine"] = _weapon_states[stack].magazine
+
+
+# A thrown weapon (a grenade, ADR 0131) left the hand: one is taken from the stack drawn; while any
+# of that item is left, one stays in hand (the next stack when this one ran out).
+func _on_weapon_fired(weapon: WeaponData) -> void:
+	if not weapon.is_thrown() or _weapon_stack == null or _weapon_stack.item.weapon != weapon:
+		return
+	var stack := _weapon_stack
+	var item := stack.item
+	inventory.remove(stack, 1)
+	_log_used(stack, "thrown")
+	if in_hand() != null:
+		return
+	for other in inventory.stacks:
+		if other.item == item:
+			hold(other)
+			return
 
 
 func _on_stack_added(stack: ItemStack) -> void:

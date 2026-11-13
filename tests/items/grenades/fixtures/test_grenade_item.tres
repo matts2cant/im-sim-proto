@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://items/item_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://tests/items/grenades/fixtures/test_grenade_weapon.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"test_grenade"
+display_name = "Test grenade"
+short_name = "TEST"
+footprint = Vector2i(1, 1)
+max_stack = 5
+auto_belt = true
+default_state = {}
+use_action = 1
+weapon = ExtResource("2_weapon")

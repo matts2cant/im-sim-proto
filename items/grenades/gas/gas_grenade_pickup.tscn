@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/components/physics_object.gd" id="1_physics_object"]
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="2_tags"]
+[ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="3_impact_noise"]
+[ext_resource type="Resource" path="res://objects/materials/metal.tres" id="4_material"]
+[ext_resource type="Resource" path="res://objects/components/impact_settings.tres" id="5_impact_settings"]
+[ext_resource type="Script" path="res://items/item_pickup.gd" id="6_item_pickup"]
+[ext_resource type="Resource" path="res://items/grenades/gas/gas_grenade_item.tres" id="7_item"]
+[ext_resource type="PackedScene" path="res://items/grenades/models/gas_model.tscn" id="8_model"]
+[ext_resource type="PhysicsMaterial" path="res://items/grenades/grenade_physics.tres" id="9_physics"]
+
+[sub_resource type="CylinderShape3D" id="Shape_body"]
+height = 0.105
+radius = 0.04
+
+[node name="GasGrenadePickup" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 73
+mass = 0.4
+continuous_cd = true
+script = ExtResource("1_physics_object")
+physics_material_override = ExtResource("9_physics")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_body")
+
+[node name="Model" parent="." instance=ExtResource("8_model")]
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("2_tags")
+initial_tags = Array[StringName]([&"object.item", &"material.metal"])
+
+[node name="ImpactNoise" type="Node" parent="."]
+script = ExtResource("3_impact_noise")
+material = ExtResource("4_material")
+settings = ExtResource("5_impact_settings")
+
+[node name="ItemPickup" type="Node" parent="."]
+script = ExtResource("6_item_pickup")
+item = ExtResource("7_item")

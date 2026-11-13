@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponMotionConfig" format=3]
+
+[ext_resource type="Script" path="res://items/weapons/weapon_motion_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+kick_back = 0.0
+kick_pitch_deg = 0.0
+kick_roll_deg = 0.0
+kick_time = 0.035
+kick_stack_max = 1.0
+sway_per_deg = 0.15
+sway_max_deg = 3.0
+sway_return_time = 0.09
+draw_time = 0.25
+holster_time = 0.2
+shake_deg = 0.0
+shake_time = 0.15

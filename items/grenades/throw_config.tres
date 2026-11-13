@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ThrowConfig" format=3]
+
+[ext_resource type="Script" path="res://items/grenades/throw_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+stick_reach = 1.2
+base_distance = 12.0
+lift_deg = 20.0
+spawn_forward = 0.35
+ignore_thrower_time = 0.3
+ghost_alpha = 0.45

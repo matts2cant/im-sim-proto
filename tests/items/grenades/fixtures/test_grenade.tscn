@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/attributes/attributes.gd" id="2_attributes"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="3_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="4_receptron"]
+[ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="5_take_damage"]
+[ext_resource type="Script" path="res://objects/components/explosive.gd" id="6_explosive"]
+[ext_resource type="Resource" path="res://tests/items/grenades/fixtures/test_blast.tres" id="7_blast"]
+[ext_resource type="Script" path="res://objects/components/breakable.gd" id="8_breakable"]
+[ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="9_break_settings"]
+[ext_resource type="Script" path="res://items/grenades/fuse.gd" id="10_fuse"]
+[ext_resource type="Script" path="res://items/grenades/sticky.gd" id="11_sticky"]
+[ext_resource type="Script" path="res://items/grenades/proximity_trigger.gd" id="12_trigger"]
+[ext_resource type="Script" path="res://items/grenades/mine_disarm.gd" id="13_disarm"]
+[ext_resource type="Resource" path="res://tests/items/grenades/fixtures/test_grenade_item.tres" id="14_item"]
+
+[sub_resource type="BoxShape3D" id="Shape_box"]
+size = Vector3(0.08, 0.08, 0.08)
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+size = Vector3(0.08, 0.08, 0.08)
+
+[node name="TestGrenade" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 73
+mass = 0.4
+continuous_cd = true
+linear_damp_mode = 1
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_box")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_box")
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+
+[node name="Attributes" type="Node" parent="."]
+script = ExtResource("2_attributes")
+base_values = Dictionary[StringName, float]({&"health": 5.0})
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+script = ExtResource("3_receiver")
+receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage")])
+
+[node name="Explosive" type="Node3D" parent="."]
+script = ExtResource("6_explosive")
+config = ExtResource("7_blast")
+
+[node name="Breakable" type="Node3D" parent="."]
+script = ExtResource("8_breakable")
+settings = ExtResource("9_break_settings")
+size = 0.08
+break_on_depleted = false
+
+[node name="Fuse" type="Node" parent="."]
+script = ExtResource("10_fuse")
+
+[node name="Sticky" type="Node" parent="."]
+script = ExtResource("11_sticky")
+surface_offset = 0.04
+
+[node name="ProximityTrigger" type="Node3D" parent="."]
+script = ExtResource("12_trigger")
+
+[node name="MineDisarm" type="Node" parent="."]
+script = ExtResource("13_disarm")
+item = ExtResource("14_item")
