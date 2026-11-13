@@ -56,6 +56,8 @@ mesh = SubResource("Mesh_handle")
 
 [node name="Hardware" type="Node3D" parent="."]
 script = ExtResource("14_hardware")
+handle_path = NodePath("../Handle")
+handle_mesh_path = NodePath("../HandleMesh")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("2_tags")
@@ -97,3 +99,10 @@ end_position = Vector3(0, 0, -0.8)
 [node name="Door" type="Node" parent="."]
 script = ExtResource("11_door")
 settings = ExtResource("12_settings")
+panel_path = NodePath("../Panel")
+panel_mesh_path = NodePath("../PanelMesh")
+attenuator_path = NodePath("../SoundAttenuator")
+doorway_path = NodePath("../SoundAttenuator/Doorway")
+carve_path = NodePath("../NavCarve")
+link_path = NodePath("../NavigationLink3D")
+free_link_path = NodePath("../FreeSideLink")

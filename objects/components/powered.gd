@@ -13,7 +13,6 @@ extends Node
 
 signal power_changed(on: bool)
 
-const GROUP: StringName = &"powered"
 const CIRCUIT_GROUP_PREFIX := "circuit."
 
 ## Circuit id, e.g. `perception_lab`; empty: on no circuit (always on).
@@ -42,7 +41,6 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	add_to_group(GROUP)
 	add_to_group(LevelSnapshot.GROUP)
 	if not circuit.is_empty():
 		add_to_group(group_for(circuit))

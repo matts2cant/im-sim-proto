@@ -16,8 +16,6 @@ extends Node3D
 ## The blast went off at `origin`; `cause` set it off (null: none).
 signal released(origin: Vector3, cause: Stimulus)
 
-const GROUP: StringName = &"explosive_payload"
-
 ## The blast (Explosive's config).
 @export var config: ExplosiveConfig
 ## Spawned in the level at the blast centre when it goes off (null: nothing lasts).
@@ -29,7 +27,6 @@ var explosive: Explosive
 
 
 func _ready() -> void:
-	add_to_group(GROUP)
 	entity = Entities.of_component(self, entity_path) as Node3D
 	explosive = Explosive.of(entity) if entity != null else null
 	if explosive == null:

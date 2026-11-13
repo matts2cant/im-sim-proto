@@ -4,8 +4,6 @@ extends RigidBody3D
 ## no layer itself, so it never blocks the player (who has no step-up), objects or queries.
 ## Despawns after its lifetime. Transient: not saveable.
 
-const GROUP: StringName = &"debris"
-
 var lifetime: float = 10.0
 var _age: float = 0.0
 
@@ -31,7 +29,6 @@ func setup(piece_size: float, color: Color, p_lifetime: float, p_mass: float) ->
 	var visual := MeshInstance3D.new()
 	visual.mesh = mesh
 	add_child(visual)
-	add_to_group(GROUP)
 
 
 func _physics_process(delta: float) -> void:

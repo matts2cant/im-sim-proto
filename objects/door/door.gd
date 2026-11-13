@@ -7,6 +7,8 @@ extends Usable
 ## (ADR 0090). While closed the panel blocks bodies and sight and the
 ## `SoundAttenuator` adds its metres to noise paths through the doorway (enabled while less than
 ## `attenuate_below` is open).
+## Its parts are exported NodePaths the scene sets (`door.tscn`; empty: the door has none): the
+## panel shape and mesh, the attenuator and its doorway shape, the navigation carve and links.
 ## Hardware (ADR 0098): its DoorHardware (the `Hardware` node) builds the leaf's handle, the leaf
 ## locks' keyholes and the wall boxes beside the frame (keypad, card reader, status, plain control)
 ## from the settings, never per level. The wall boxes are its door controller (DoorController, ADR
@@ -59,6 +61,19 @@ const BAR_RAILS: Array[float] = [0.1, 0.9]
 ## The same for the back (-Z) face.
 @export var back_side_wall: float = 0.0
 @export var entity_path: NodePath = ^".."
+@export_group("Parts")
+## The leaf's collision shape (sized from the settings, moved while opening).
+@export var panel_path: NodePath
+## The leaf's mesh (a MeshInstance3D with a BoxMesh is sized like the panel).
+@export var panel_mesh_path: NodePath
+## The doorway's SoundAttenuator, and its shape filling the doorway.
+@export var attenuator_path: NodePath
+@export var doorway_path: NodePath
+## The NavigationObstacle3D carving the doorway out of the navmesh.
+@export var carve_path: NodePath
+## The NavigationLink3D bridging the doorway, and the one-way link from a lock's free side.
+@export var link_path: NodePath
+@export var free_link_path: NodePath
 
 var entity: StaticBody3D
 var lockable: Lockable
@@ -89,11 +104,11 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	add_to_group(LevelSnapshot.GROUP)
 	entity = Entities.of_component(self, entity_path) as StaticBody3D
-	_panel = entity.get_node(^"Panel") as CollisionShape3D
-	_panel_mesh = entity.get_node(^"PanelMesh") as Node3D
-	_attenuator = entity.get_node_or_null(^"SoundAttenuator") as SoundAttenuator
-	_link = entity.get_node_or_null(^"NavigationLink3D") as NavigationLink3D
-	_free_link = entity.get_node_or_null(^"FreeSideLink") as NavigationLink3D
+	_panel = _part(panel_path) as CollisionShape3D
+	_panel_mesh = _part(panel_mesh_path) as Node3D
+	_attenuator = _part(attenuator_path) as SoundAttenuator
+	_link = _part(link_path) as NavigationLink3D
+	_free_link = _part(free_link_path) as NavigationLink3D
 	_fit_doorway()
 	lockable = Lockable.of(entity)
 	if lockable != null:
@@ -112,6 +127,11 @@ func _ready() -> void:
 	_open = start_open
 	openness = 1.0 if start_open else 0.0
 	_apply()
+
+
+# The node at `path` from this component, or null (an empty path: none).
+func _part(path: NodePath) -> Node:
+	return get_node_or_null(path) if not path.is_empty() else null
 
 
 static func of(node: Node) -> Door:
@@ -308,10 +328,12 @@ func _set_open(value: bool, by: Node) -> void:
 
 func _apply() -> void:
 	var offset := _closed + openness * settings.travel
-	_panel.position = offset
-	_panel_mesh.position = offset
-	_panel.disabled = broken
-	_panel_mesh.visible = not broken
+	if _panel != null:
+		_panel.position = offset
+		_panel.disabled = broken
+	if _panel_mesh != null:
+		_panel_mesh.position = offset
+		_panel_mesh.visible = not broken
 	if hardware != null:
 		hardware.follow(offset, broken)
 	if _attenuator != null:
@@ -407,7 +429,8 @@ func _build_bars(mesh_instance: MeshInstance3D) -> void:
 	var shape := ConcavePolygonShape3D.new()
 	shape.set_faces(faces)
 	shape.backface_collision = true
-	_panel.shape = shape
+	if _panel != null:
+		_panel.shape = shape
 	if mesh_instance != null:
 		var material := (mesh_instance.mesh as PrimitiveMesh).material if mesh_instance.mesh is PrimitiveMesh else null
 		var mesh := tool.commit()
@@ -425,22 +448,22 @@ func _fit_doorway() -> void:
 	if settings.bar_spacing > 0.0:
 		_build_bars(mesh_instance)
 	else:
-		var panel_shape := _panel.shape.duplicate() as BoxShape3D
-		panel_shape.size = panel_size
-		_panel.shape = panel_shape
+		if _panel != null and _panel.shape is BoxShape3D:
+			var panel_shape := _panel.shape.duplicate() as BoxShape3D
+			panel_shape.size = panel_size
+			_panel.shape = panel_shape
 		if mesh_instance != null and mesh_instance.mesh is BoxMesh:
 			var mesh := mesh_instance.mesh.duplicate() as BoxMesh
 			mesh.size = panel_size
 			mesh_instance.mesh = mesh
 	_closed = DoorLayout.closed_centre(settings)
-	if _attenuator != null:
-		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
-		if doorway != null and doorway.shape is BoxShape3D:
-			var box := doorway.shape.duplicate() as BoxShape3D
-			box.size = Vector3(size.x, size.y, box.size.z)
-			doorway.shape = box
-			doorway.position.y = size.y * 0.5
-	var carve := entity.get_node_or_null(^"NavCarve") as NavigationObstacle3D
+	var doorway := _part(doorway_path) as CollisionShape3D
+	if doorway != null and doorway.shape is BoxShape3D:
+		var box := doorway.shape.duplicate() as BoxShape3D
+		box.size = Vector3(size.x, size.y, box.size.z)
+		doorway.shape = box
+		doorway.position.y = size.y * 0.5
+	var carve := _part(carve_path) as NavigationObstacle3D
 	if carve != null:
 		var half := size.x * 0.5 + 0.1
 		carve.height = size.y

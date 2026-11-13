@@ -7,9 +7,8 @@ extends Node
 ## reaches the entity (DirectionalLight3D is ignored: no level uses one indoors) and a shadow ray
 ## from each light to each point. Shadow rays hit `config.shadow_mask` (world geometry and props),
 ## never the entity's own colliders or the body the light hangs from (its lamp).
-## Joins group `light_exposure`; readers (guard sight, HUD, debug panel) read `level`.
+## Readers (guard sight, HUD, debug panel) read `level` (LightExposure.of(entity)).
 
-const GROUP: StringName = &"light_exposure"
 const DEFAULT_CONFIG: LightExposureConfig = preload("res://actors/common/light/light_exposure.tres")
 ## Height above the feet of the point a light's reach is measured to, and the slack added to its
 ## range so every sample point is covered.
@@ -33,7 +32,6 @@ var _own_rids_known: bool = false
 
 
 func _ready() -> void:
-	add_to_group(GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
 	entity = Entities.of_component(self, entity_path) as Node3D
