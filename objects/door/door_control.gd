@@ -13,8 +13,29 @@ var door: Door
 var lock: Lock
 
 
+## The frame names the box after its controller (the door's name, DoorController).
+func target_name() -> String:
+	var device := Device.of(get_parent())
+	if device != null:
+		return NetworkSource.display_name(device)
+	return Interactor.display_name_of(door.entity) if door != null else ""
+
+
 func available(user: Node) -> bool:
 	return door != null and door.available(user)
+
+
+## The box works its door's lock: the frame's lock line and E's refusal read the door's Lockable.
+func lock_target() -> Lockable:
+	return door.lockable if door != null else null
+
+
+## E without what opens the door: "Locked: needs a keycard" (its door's Lockable, LockRules).
+func refusal(user: Node) -> String:
+	var target := lock_target()
+	if target == null or not target.locked:
+		return ""
+	return LockRules.needs_message(target.reasons(user))
 
 
 func prompt(user: Node) -> String:
