@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="TurretConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/turret/turret_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+presets = Dictionary[StringName, Array]({
+&"command.target_everyone": [&"actor.player", &"actor.guard"],
+&"command.target_guards": [&"actor.guard"],
+&"command.target_intruders": [&"actor.player"]
+})
+default_preset = &"command.target_guards"
+meter_decay = 0.25
+report_cooldown = 10.0
+windup_time = 1.0
+lose_time = 1.0
+burst_time = 1.5
+pause_time = 0.75
+turn_speed = 120.0
+fire_max_angle = 10.0
+spread_base = 3.0
+spread_per_metre = 0.1
+spread_from = 4.0
+warning_loudness = 10.0
+warning_hz = 880.0
+laser_range = 15.0
