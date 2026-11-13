@@ -5,7 +5,10 @@ extends Usable
 ## same parent, at the same place and count; one still there but moved or partly taken is put back
 ## and refilled. What the pickups are does not matter (any entity with an ItemPickup); the layout is
 ## read from the scope when it is ready, so nothing lists the pickups. EventLog:
-## `range.restocked {by, count}` (the pickups made again or refilled).
+## `range.restocked {by, count}` (the pickups made again, put back or refilled).
+
+## A pickup further than this from where it was placed (m) has been moved.
+const MOVED := 0.02
 
 ## Only pickups under this node count (the station's group).
 @export var scope_path: NodePath = ^"../.."
@@ -37,7 +40,7 @@ func recorded() -> int:
 	return _records.size()
 
 
-## Puts every recorded pickup back; returns how many were made again or refilled.
+## Puts every recorded pickup back; returns how many were made again, put back or refilled.
 func restock() -> int:
 	var scope := get_node_or_null(scope_path)
 	if scope == null:
@@ -57,10 +60,13 @@ func restock() -> int:
 				count += 1
 			continue
 		var pickup := ItemPickup.of(entity)
+		var placed: Transform3D = record["transform"]
 		if pickup == null:
 			continue
-		if pickup.count != int(record["count"]) or not entity.transform.is_equal_approx(record["transform"]):
-			count += 1
+		# Settled on its surface (a few mm) is still in place.
+		if pickup.count == int(record["count"]) and entity.position.distance_to(placed.origin) < MOVED:
+			continue
+		count += 1
 		_put_back(entity, pickup, record)
 	return count
 

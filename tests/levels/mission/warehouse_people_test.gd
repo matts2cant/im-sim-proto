@@ -5,8 +5,10 @@ extends GdUnitTestSuite
 ## routes cross no doorway (the doors there are locked to guards or loud); every item to find is
 ## placed and reachable on foot from the player's start (a navmesh point within pick-up reach,
 ## through every door: the keys are found on the way, warehouse_doors_test), or lies where a listed
-## climb leads. Guards reach their posts through the doors their access tags open. Positions and
-## routes come from the layout markers (tools/level_gen/warehouse_people.py).
+## climb leads. Guards reach their posts through the doors their access tags open. The five M14c
+## grenades (2 frag, gas, EMP, jamming; ADR 0131) have their types and rest on a surface without
+## overlapping anything. Positions and routes come from the layout markers
+## (tools/level_gen/warehouse_people.py).
 
 const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const PEOPLE := "Population/People"
@@ -51,7 +53,21 @@ const ITEMS: Dictionary[String, int] = {
 	"medkit": 2,
 	"prototype": 1,
 	"deck": 1,
+	"frag_grenade": 2,
+	"gas_grenade": 1,
+	"emp_grenade": 1,
+	"jamming_grenade": 1,
 }
+## M14c grenade loot (ADR 0131) -> item id.
+const GRENADES: Dictionary[String, String] = {
+	"FragSecurity": "frag_grenade",
+	"FragDock": "frag_grenade",
+	"GasLocker": "gas_grenade",
+	"EmpStore": "emp_grenade",
+	"JammerManager": "jamming_grenade",
+}
+## Half the grenade pickup's box (0.08 x 0.105 x 0.08 m).
+const GRENADE_HALF := Vector3(0.04, 0.0525, 0.04)
 ## Pickups off the navmesh -> [a navmesh point the player walks from, the stand spot it walks to]:
 ## the 4.4 m rack deck is a step down off the bridge between two rack posts (the railing has a gap);
 ## the cache shed's opening is behind a large crate (props are not in the walk check).
@@ -184,6 +200,32 @@ func test_every_item_is_placed_and_reachable() -> void:
 	for id: String in ITEMS:
 		assert_int(int(counts.get(id, 0))).override_failure_message("%s pickups" % id).is_equal(ITEMS[id])
 	assert_array(unreachable).is_empty()
+
+
+func test_grenades_rest_on_a_surface_clear_of_everything_else() -> void:
+	var space := _level.get_world_3d().direct_space_state
+	for grenade_name: String in GRENADES:
+		var body := _level.get_node(PEOPLE + "/Items/" + grenade_name) as RigidBody3D
+		assert_str(String(ItemPickup.of(body).item.id)).override_failure_message(grenade_name).is_equal(
+			GRENADES[grenade_name]
+		)
+		# Something solid within 1 cm under its box (a table, a shelf, a floor): not floating.
+		var bottom := body.global_position - Vector3(0, GRENADE_HALF.y, 0)
+		var down := PhysicsRayQueryParameters3D.create(bottom + Vector3.UP * 0.02, bottom + Vector3.DOWN * 0.01)
+		down.exclude = [body.get_rid()]
+		assert_bool(space.intersect_ray(down).is_empty()).override_failure_message(grenade_name + " floats").is_false()
+		# Its box, shrunk 2 mm, overlaps nothing (no wall, shelf or other pickup inside it).
+		var box := BoxShape3D.new()
+		box.size = (GRENADE_HALF - Vector3.ONE * 0.002) * 2.0
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.shape = box
+		query.transform = body.global_transform
+		query.exclude = [body.get_rid()]
+		var hits := space.intersect_shape(query, 4)
+		var names: Array[String] = []
+		for hit: Dictionary in hits:
+			names.append(String((hit["collider"] as Node).name))
+		assert_array(names).override_failure_message("%s overlaps %s" % [grenade_name, names]).is_empty()
 
 
 # True when a navmesh point reachable from `start` has the item at `at` within pick-up reach: the
