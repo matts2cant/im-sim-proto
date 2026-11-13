@@ -255,6 +255,13 @@ func _build() -> void:
 	panel.anchor_bottom = 1.0 - margin
 	TabStyle.themed(panel, &"TabPanel")
 	root.add_child(panel)
+	_build_pages(panel)
+	_build_flash()
+	show_tab(current)
+
+
+# The tab bar (one button per page, the close button), the rule under it and the pages.
+func _build_pages(panel: PanelContainer) -> void:
 	var box := VBoxContainer.new()
 	box.name = "Box"
 	box.add_theme_constant_override(&"separation", 0)
@@ -290,6 +297,10 @@ func _build() -> void:
 	_tab_bar.add_child(spacer)
 	_close_button = _make_close_button()
 	_tab_bar.add_child(_close_button)
+
+
+# The edge flash over everything (a hit while open).
+func _build_flash() -> void:
 	var flash := ColorRect.new()
 	flash.name = "Flash"
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -301,7 +312,6 @@ func _build() -> void:
 	flash.material = _flash_material
 	root.add_child(flash)
 	_apply_flash()
-	show_tab(current)
 
 
 func _add_tab_button(title: String, index: int) -> void:

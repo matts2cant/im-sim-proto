@@ -225,20 +225,7 @@ func _rebuild_details() -> void:
 	if stack == null:
 		detail_box.add_child(TabStyle.paragraph(NO_SELECTION))
 		return
-	var head := HBoxContainer.new()
-	head.name = "Head"
-	head.add_theme_constant_override(&"separation", 16)
-	detail_box.add_child(head)
-	var icon := DetailIcon.new()
-	icon.name = "Icon"
-	icon.stack = stack
-	head.add_child(icon)
-	var title := TabStyle.label(stack.display_name(), 18, TabStyle.FG)
-	title.name = "Title"
-	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	if stack.count > 1:
-		title.text += "  x%d" % stack.count
-	head.add_child(title)
+	_add_head(stack)
 	var description := TabStyle.paragraph(stack.item.description)
 	description.name = "Description"
 	detail_box.add_child(description)
@@ -257,6 +244,29 @@ func _rebuild_details() -> void:
 	if ItemDetails.uses_ammo(stack.item):
 		detail_box.add_child(TabStyle.caption("Ammo type"))
 		detail_box.add_child(TabStyle.future(AMMO_TYPES))
+	_add_actions(stack)
+
+
+# The selected stack's icon and name (with its count).
+func _add_head(stack: ItemStack) -> void:
+	var head := HBoxContainer.new()
+	head.name = "Head"
+	head.add_theme_constant_override(&"separation", 16)
+	detail_box.add_child(head)
+	var icon := DetailIcon.new()
+	icon.name = "Icon"
+	icon.stack = stack
+	head.add_child(icon)
+	var title := TabStyle.label(stack.display_name(), 18, TabStyle.FG)
+	title.name = "Title"
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if stack.count > 1:
+		title.text += "  x%d" % stack.count
+	head.add_child(title)
+
+
+# Use / Equip / Put away, Drop, the belt-slot picker and the menu hint.
+func _add_actions(stack: ItemStack) -> void:
 	detail_box.add_child(TabStyle.caption("Actions"))
 	var actions := HFlowContainer.new()
 	actions.name = "Actions"
@@ -299,6 +309,25 @@ func _build() -> void:
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override(&"separation", 0)
 	add_child(row)
+	_build_left(row)
+	row.add_child(TabStyle.divider())
+	var right := TabStyle.column()
+	right.name = "Right"
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(right)
+	detail_box = TabStyle.column_box(right)
+	row.add_child(TabStyle.divider())
+	var keys := TabStyle.column(KEYCHAIN_WIDTH)
+	keys.name = "Keys"
+	row.add_child(keys)
+	keychain_list = KeychainList.new()
+	keychain_list.name = "Keychain"
+	TabStyle.column_box(keys).add_child(keychain_list)
+	_build_menu()
+
+
+# The left column: the grid with the belt, Credits and the status line.
+func _build_left(row: HBoxContainer) -> void:
 	var left := TabStyle.column(LEFT_WIDTH)
 	left.name = "Left"
 	row.add_child(left)
@@ -315,19 +344,10 @@ func _build() -> void:
 	status_label.name = "Status"
 	status_label.visible = false
 	left_box.add_child(status_label)
-	row.add_child(TabStyle.divider())
-	var right := TabStyle.column()
-	right.name = "Right"
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(right)
-	detail_box = TabStyle.column_box(right)
-	row.add_child(TabStyle.divider())
-	var keys := TabStyle.column(KEYCHAIN_WIDTH)
-	keys.name = "Keys"
-	row.add_child(keys)
-	keychain_list = KeychainList.new()
-	keychain_list.name = "Keychain"
-	TabStyle.column_box(keys).add_child(keychain_list)
+
+
+# The right-click menu and its belt submenu.
+func _build_menu() -> void:
 	menu = PopupMenu.new()
 	menu.name = "Menu"
 	add_child(menu)

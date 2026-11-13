@@ -278,6 +278,11 @@ func _build() -> void:
 	column.add_child(weapon_label)
 	_build_tiers(column)
 	column.add_child(HalcyonStyle.rule())
+	_build_list(column)
+
+
+# The slider list, the Save / Revert row and the status line.
+func _build_list(column: VBoxContainer) -> void:
 	var scroll := ScrollContainer.new()
 	scroll.name = "Scroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL

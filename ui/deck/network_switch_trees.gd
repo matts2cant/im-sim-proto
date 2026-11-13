@@ -114,13 +114,69 @@ func _insert(block: Vector2i, direction: int) -> void:
 # inside a tree, it puts that hub's branch last at every level, so its cable comes down the box's
 # right side and in above that hub's row without crossing anything.
 func _build_trees() -> void:
-	var region_of := _layout.region_of
-	var hub_of := _layout.hub_of
 	var kids := _state.kids
 	_state.roots.clear()
 	kids.clear()
 	_state.uplink.clear()
 	_state.up_hub.clear()
+	var between := _hub_links()
+	var seen: Dictionary[int, bool] = {}
+	for region in _state.region_count:
+		_state.roots.append(PackedInt32Array(_region_roots(region, between, seen)))
+
+
+# Region `region`'s roots, in order: the hubs its entries reach (from the left first), then the
+# hubs cabled to the most other hubs; each root's tree grown (_grow()).
+func _region_roots(region: int, between: Dictionary[int, Array], seen: Dictionary[int, bool]) -> Array[int]:
+	var region_of := _layout.region_of
+	var hub_of := _layout.hub_of
+	var kids := _state.kids
+	var entries := _state.entries[region]
+	var candidates: Array[int] = []
+	var right_targets: Array[int] = []
+	for k in entries:
+		var hub := hub_of[_state.inside(k, region)]
+		if _state.from_left[k]:
+			candidates.append(hub)
+		elif not right_targets.has(hub):
+			right_targets.append(hub)
+	candidates.append_array(right_targets)
+	# Then the hubs cabled to the most other hubs (a building's main switch), west first.
+	var members: Array[int] = []
+	for hub in _layout.hubs:
+		if region_of[hub] == region:
+			members.append(hub)
+	var fan := func(hub: int) -> int: return between.get(hub, []).size()
+	members.sort_custom(
+		func(a: int, b: int) -> bool:
+			return fan.call(a) > fan.call(b) or (fan.call(a) == fan.call(b) and _state.before(a, b, 0))
+	)
+	candidates.append_array(members)
+	var roots: Array[int] = []
+	for root in candidates:
+		if not seen.has(root):
+			roots.append(root)
+			_grow(root, between, seen)
+	for target in right_targets:
+		var node := target
+		while _state.up_hub.has(node):
+			var up := _state.up_hub[node]
+			kids[up].erase(node)
+			kids[up].append(node)
+			node = up
+		var lead_by_left := false
+		for k in entries:
+			lead_by_left = lead_by_left or (_state.from_left[k] and hub_of[_state.inside(k, region)] == node)
+		if not lead_by_left:
+			roots.erase(node)
+			roots.append(node)
+	return roots
+
+
+# Hub -> the hubs it is cabled to in its region, [hub, cable index] each, in order.
+func _hub_links() -> Dictionary[int, Array]:
+	var region_of := _layout.region_of
+	var hub_of := _layout.hub_of
 	var between: Dictionary[int, Array] = {}
 	for k in _state.cables.size():
 		var cable := _state.cables[k]
@@ -134,48 +190,7 @@ func _build_trees() -> void:
 			between[pair.x] = list
 	for hub: int in between:
 		between[hub].sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return _state.before(a.x, b.x, 0))
-	var seen: Dictionary[int, bool] = {}
-	for region in _state.region_count:
-		var entries := _state.entries[region]
-		var candidates: Array[int] = []
-		var right_targets: Array[int] = []
-		for k in entries:
-			var hub := hub_of[_state.inside(k, region)]
-			if _state.from_left[k]:
-				candidates.append(hub)
-			elif not right_targets.has(hub):
-				right_targets.append(hub)
-		candidates.append_array(right_targets)
-		# Then the hubs cabled to the most other hubs (a building's main switch), west first.
-		var members: Array[int] = []
-		for hub in _layout.hubs:
-			if region_of[hub] == region:
-				members.append(hub)
-		var fan := func(hub: int) -> int: return between.get(hub, []).size()
-		members.sort_custom(
-			func(a: int, b: int) -> bool:
-				return fan.call(a) > fan.call(b) or (fan.call(a) == fan.call(b) and _state.before(a, b, 0))
-		)
-		candidates.append_array(members)
-		var roots: Array[int] = []
-		for root in candidates:
-			if not seen.has(root):
-				roots.append(root)
-				_grow(root, between, seen)
-		for target in right_targets:
-			var node := target
-			while _state.up_hub.has(node):
-				var up := _state.up_hub[node]
-				kids[up].erase(node)
-				kids[up].append(node)
-				node = up
-			var lead_by_left := false
-			for k in entries:
-				lead_by_left = lead_by_left or (_state.from_left[k] and hub_of[_state.inside(k, region)] == node)
-			if not lead_by_left:
-				roots.erase(node)
-				roots.append(node)
-		_state.roots.append(PackedInt32Array(roots))
+	return between
 
 
 # The tree from `root`, breadth first (each hub under the hub fewest cables from the root).

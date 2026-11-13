@@ -148,6 +148,13 @@ func _build() -> void:
 	columns.add_theme_constant_override(&"separation", 0)
 	add_child(columns)
 
+	_build_list(columns)
+	columns.add_child(CharacterTabStyle.separator())
+	_build_detail(columns)
+
+
+# The left column: the skill list and the XP placeholder.
+func _build_list(columns: HBoxContainer) -> void:
 	var left := CharacterTabStyle.column(columns, 340.0)
 	left.add_child(CharacterTabStyle.heading("Skills"))
 	var list := VBoxContainer.new()
@@ -160,7 +167,9 @@ func _build() -> void:
 	left.add_child(CharacterTabStyle.heading("Experience"))
 	left.add_child(CharacterTabStyle.placeholder("XP shows here and buys tiers in M18."))
 
-	columns.add_child(CharacterTabStyle.separator())
+
+# The right column: the selected skill, its testing tier buttons and its tier table.
+func _build_detail(columns: HBoxContainer) -> void:
 	var right := CharacterTabStyle.column(columns, 0.0, true)
 	_title = CharacterTabStyle.label("", 18)
 	right.add_child(_title)
