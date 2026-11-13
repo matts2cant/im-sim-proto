@@ -147,7 +147,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# M12a network: the office wall jack, the deck's Map from the jack before and after hacking RTR-01.
 	# ADR 0130 step 3: the office's locked linking bay (RTR-01, the five security switches, MAIL-01) from
 	# 1.5 m and its units at 0.5 m behind the swung glass door, the desk gear (SW-OFFICE, office PC 2),
-	# office PC 1 on its desk, the office from its doorway, the bay's key on the security room desk.
+	# office PC 1 on its desk, the office from its doorway (M14d: the bay's key moved onto G10).
 	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
 	"office_bay": {"feet": Vector3(17.6, 4.5, 12.5), "look": Vector3(19.43, 5.55, 12.5)},
 	"office_bay_units":
@@ -167,7 +167,6 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"office_desk_gear": {"feet": Vector3(17.7, 4.5, 13.2), "look": Vector3(18.4, 5.3, 14.5)},
 	"office_pc1": {"feet": Vector3(14.5, 4.5, 13.2), "look": Vector3(14.5, 5.4, 14.5)},
 	"office_doorway": {"feet": Vector3(16.5, 4.5, 7.4), "look": Vector3(17.5, 5.4, 13.5)},
-	"office_bay_key": {"feet": Vector3(17.9, 0, 2.9), "look": Vector3(19.3, 0.81, 2.85)},
 	# M12c readability: the deck's AR cable view from the office; SW-OFFICE broken on its desk (the HUD
 	# line), then the office jack it fed blinking amber (`break` lasts for the rest of the run: put them
 	# last).

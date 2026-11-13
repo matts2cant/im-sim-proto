@@ -286,7 +286,7 @@ Room 5, behind hub doorway "5 Security" ([hub-and-gallery.md](../levels/hub-and-
   - [ ] The front gate slides along the outside of the fence in about 3 s and reads as a gate, not a wall; the roller doors rise into the wall in about 2.5 s and are clearly loud; nothing clips through posts or walls while they move.
   - [ ] Back gate: from the quay it says "Locked: lockpick" and is picked with the lockpicking minigame (4 pins); from inside it just opens ("E: open") and locks again once closed. Same for the tunnel gate (picked from the ditch), the annex roof door and the fire escape door (opened from inside).
   - [ ] Side door: the code note in the dumpster gives 2390 and the keypad shows the reminder. Manager office: 4471 from the night shift notes in the break room; from inside (after duct B) the door just opens.
-  - [ ] Keycards: the security keycard on the locker room bench opens the security room; the vault keycard on the security room desk opens the vault. The console login is on the manager's desk next to the manifest.
+  - [ ] Keycards (M14d: on guards): the security keycard on G6 (break room) opens the security room; the vault keycard on G7 (vault door) opens the vault. The console login is on the manager's desk next to the manifest.
   - [ ] Security console (Network tab): every device is listed with readable labels; it disables the turret, opens the vault, locks or opens the front gate. Cutting breaker B or shooting the switch in the basement store turns everything offline.
   - [ ] Cameras: the gate, yard, hall and office cameras spot you lit within a couple of seconds and every siren rings; the dark corners (dumpster corner, truck gap, behind the containers) stay unseen. With the switch broken, the cameras still turn red but nothing rings.
   - [ ] Sirens: when the alarm rings, guards in the yard, on the catwalks, in the offices and in the basement react; you can hear a siren from every guard post.
@@ -742,7 +742,7 @@ Plug the deck into the network lab's jack and hack RTR-01.
 ## M13c warehouse office bay ([ADR 0130](../decisions/0130-device-overhaul.md) step 3, [mission-warehouse.md](../levels/mission-warehouse.md#office-bay-m13c))
 
 - [ ] Second office: from its door the bay (BAY-OFFICE, east wall) reads as the network's home; its lights show through the glass; the frame on the door says "Locked · key or lockpick". Nothing in the room is in the way (1 m clear in front of the bay, the desks along the south wall).
-- [ ] The key on the security room desk (beside the vault keycard): noticed when you search the room? "Key added to the keychain: Office bay key"; with it, E on the bay opens the door. Without it, picking works (4 pins, one spool) and G7 in the corridor does not hear the picking or a broken pick.
+- [ ] The office bay key (M14d: carried by G10, the west catwalk patrol; until M14d on the security room desk): "Key added to the keychain: Office bay key" when you take it from his keychain; with it, E on the bay opens the door. Without it, picking works (4 pins, one spool) and G7 in the corridor does not hear the picking or a broken pick.
 - [ ] Open bay: the units read top to bottom (RTR-01, five switches, MAIL-01) by their plates; the port labels are legible leaning in (0.3-0.5 m); E on MAIL-01 opens its OS screen (no account: a login only); shooting SW-YARD silences the yard as the booth switch did, shooting SW-SECURITY cuts the area switches apart. Is one bay for every switch too easy a way to silence the compound (it used to take the store and the booth)?
 - [ ] Desks: both office PCs stand on their desks (no shelf), the sticky note, the camera exploit, the deck and SW-OFFICE stay readable and pickable around them; E on each PC opens it; SW-OFFICE's port labels name the jack and both PCs.
 - [ ] Deck on the office jack: the Map shows SW-OFFICE, both PCs, the jack and RTR-01 as before; hacking RTR-01 shows Security with MAIL-01 under SW-SECURITY.
@@ -805,9 +805,25 @@ Shooting range (hub doorway 4), then the warehouse. No debug panel needed.
 
 ## M14d looting systems ([ADR 0142](../decisions/0142-looting-and-the-keychain.md#as-built-m14d-systems), [looting.md](../game/looting.md#as-built-m14d-systems))
 
-- [ ] Knock a pistol guard out: no pistol lands on the floor; tap E on him and his pistol (with the rounds it had loaded) and 10 rounds are in his grid.
-- [ ] Hold E on a downed guard: after half a second you pick the body up and the loot screen does not open. Is 0.5 s right, or does the tap feel slow to register (the screen opens on release)? With no ring on the HUD, is it clear that holding does something different?
+- [ ] Knock a pistol guard out: no pistol lands on the floor; tap E on him and his pistol (with the rounds it had loaded) and 10 rounds are in his grid (M14d levels: one magazine of his weapon, so 30 on an SMG or rifle guard).
+- [ ] Hold E on a downed guard: after half a second you pick the body up and the loot screen does not open. Is 0.5 s right, or does the tap feel slow to register (the screen opens on release)? With the hold ring (M14d levels), is it clear that holding does something different?
 - [ ] Start holding E on a body and look away before half a second: nothing happens. Hold E on a crate, a door or an item: it acts at once as before.
 - [ ] Pick up a keycard (the warehouse security room, the security wing booth): "Keycard added to the keychain: Security keycard", it shows on the keychain with the card icon and not in the grid; its reader still opens the door. A key does not open a reader and a keycard does not open a keyhole.
 - [ ] Place a locker (`objects/containers/locker.tscn`): the frame reads "Locker" / "Locked · lockpick"; E says "Locked: needs a lockpick"; pick it, then E opens the loot screen. With a key id set and the key on your keychain, E unlocks it and opens the screen at once. The supply crate and the desk drawers open on E.
 - [ ] Do the containers read at a glance in a level (size, colour against the graybox walls)? Is the locker's keyhole visible enough to suggest a lock?
+
+## M14d looting walk-through ([ADR 0142](../decisions/0142-looting-and-the-keychain.md#as-built-m14d-levels), [looting.md](../game/looting.md#as-built-m14d-levels), [mission-warehouse.md](../levels/mission-warehouse.md#loot-m14d))
+
+Hub:
+- [ ] Hold ring: hold E on a downed body (the AI arena's downed guard): a ring fills around the crosshair over half a second, then you carry the body; let go early and the ring vanishes and the loot screen opens. Does the ring read against bright and dark backgrounds? Is it too small or too big at your resolution?
+- [ ] AI arena: tap E on the downed guard by the west wall: a security booth keycard and 10 pistol rounds; the keycard opens the security wing's booth (D3) without the closet shelf's card. The sign says tap E searches, hold E carries.
+- [ ] Inventory bay, the looting corner (east wall, back right): read the sign, open the drawers (tap E), take the Bay locker key from its keychain column, then E on the locker unlocks it and opens its screen (gas, EMP, rifle rounds). Before that, E on the locker says it needs a key or a lockpick. Take all on the supply crate.
+
+Warehouse (start to boat, looting on the way):
+- [ ] Knock out G6 in the break room and search him: the security keycard opens the security room door from the corridor. Duct C still gets you in without it.
+- [ ] Knock out G7 in the upper corridor (from the stairwell or the bridge door) and search him: the vault keycard; it opens the vault door (the turret still fires: disable it first). The loot screen names him "Guard".
+- [ ] Catch G10 on the west catwalk or the bridge, search him: the office bay key opens the bay in the second office. Is chasing a patrol for the key worth it against picking the bay's 4 pins?
+- [ ] G8 in the basement store carries his locker key: his locker (locker room, south wall, left) holds the gas grenade, a medkit and pistol rounds; the one beside it is open (shotgun shells).
+- [ ] The manager's desk drawers (right of the desk): the jammer and the office two key; the key opens the second office door from the corridor without lockpicks.
+- [ ] Supply crates: on the dock by roller door 2 (the frag that lay on the metal crate, pistol and rifle rounds), in the basement store by the lockpick shelf, and behind the back container on the back strip (in the dark: found without a hint?). Too much ammo now for a loud run, or still tight?
+- [ ] Every guard you search holds one magazine for its weapon (pistol 10, SMG 30, rifle 30, baton none): enough to make looting worth it, not so much that loud play is easy?

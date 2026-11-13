@@ -26,7 +26,7 @@ Break into a logistics company's warehouse at night. Read the shipment manifest 
 
 - **Saving**: one shared quicksave slot that records the level; loading it loads that level. The knocked-out and death losing screens work as everywhere ([../game/saving.md](../game/saving.md)).
 - **Reinforcements**: 30 s after the first alarm, two guards enter through the front gate (once per mission).
-- **Weapon drops**: a character with a weapon (not only guards) drops it as a pickup beside the body when knocked out or killed.
+- **Weapon drops**: a character with a weapon (not only guards) drops it as a pickup beside the body when knocked out or killed. Since M14d ([ADR 0142](../decisions/0142-looting-and-the-keychain.md)) a character with an inventory stows it there instead, and the player loots the body (tap E): see [Loot (M14d)](#loot-m14d).
 
 ## Level
 
@@ -233,7 +233,7 @@ Physics props to stack and throw, cover crates and the shipment are wave 2's (on
 
 ### Equipment to find
 
-Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-population.md)); `warehouse_people_test.gd` checks each is there and within pick-up reach of a spot the player walks to from the start, and (M14c) that the five grenades have their types, rest on a surface and overlap nothing. No guard carries a grenade.
+Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-population.md)); `warehouse_people_test.gd` checks each is there and within pick-up reach of a spot the player walks to from the start, and (M14c) that the grenades left as pickups (two since M14d moved three into containers) have their types, rest on a surface and overlap nothing. No guard carries a grenade.
 
 | Item (count) | Where (resting position) | Opens |
 |---|---|---|
@@ -241,21 +241,22 @@ Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-po
 | Rifle rounds (30) | Locker room, the north open locker (19.45, 0.97, 11.4) | Ammunition for the rifle guard's dropped assault rifle |
 | Sniper rifle, sniper rounds (8) | Water tower deck, by the west railing (42.6, 20, -13.2), (43.2, 20, -13.6) | The perch's long lines over the yard and through the skylights |
 | Shotgun, shotgun shells (12) | Security room, gun table in the south-east corner (0.9 m), behind the operator (19.3, 0.92, 4.4) | Close fights in the offices |
-| Assault rifle | The catwalk rifle guard G4 (weapon drop) | |
+| Assault rifle | The catwalk rifle guard G4 (looted from the body since M14d, with one magazine of rifle rounds) | |
 | Lockpicks (2) | Basement store, shelf on the west wall (8.4, -3.1, 3) | The mechanical locks (back gate, tunnel gate, annex, fire escape door, second office) |
-| Keycards | Locker room bench (13.65, 0.53, 10.2): `warehouse_security`; security room desk (19.35, 0.83, 2.4): `warehouse_vault` (`Population/Security`, [Keys](#keys-codes-and-credentials)) | The security room door; the vault door |
+| Keycards | M14d: on guards, looted with E once they are down: `warehouse_security` on G6 (break room), `warehouse_vault` on G7 (vault door); until M14d on the locker room bench and the security room desk ([Keys](#keys-codes-and-credentials)) | The security room door; the vault door |
 | Biocells (1 each) | Annex (-25.5, 0, 12); drain chamber floor (32, -2.4, -8.6) | Energy for the augmentations |
 | Pistol rounds (10, 6) | Rack deck at 4.4 m (-13, 4.4, 9: step off the bridge between the rack posts); break-room table (9.6, 0.77, 3.7) | |
+| Containers (M14d) | Supply crates on the dock, in the basement store and behind the back container; two lockers in the locker room (G8's locked); desk drawers in the manager office and the second office ([Loot (M14d)](#loot-m14d)) | Medkits, ammo, three grenades, G8's locker, the second office's key |
 | Medkit | Boiler room (18.5, -4, -0.9) | |
 | Medkit, pistol rounds (10) | Cache shed, back strip's south-west corner (-33.95, 0, 23.45), (-33.6, 0, 23.4), behind a large crate (M9f) | Combat Strength |
 | Prototype | Vault, on a 0.8 m pedestal (19, 5.3, 3.5) | Optional objective A |
 | Deck (M12a) | Second office, desk 2 beside office PC 2 (17.45, 5.27, 14.1) | The office wall jack, a maintenance port, plugging into a computer: the network ([Network](#network-m12a)) |
-| Office bay key (M13c) | Security room desk (19.3, 0.81, 2.85), beside the vault keycard | BAY-OFFICE's glass door, the network gear ([Office bay](#office-bay-m13c)); lockpicks open it too |
+| Office bay key (M13c) | M14d: G10, the west catwalk patrol (until M14d the security room desk) | BAY-OFFICE's glass door, the network gear ([Office bay](#office-bay-m13c)); lockpicks open it too |
 | Frag grenade (M14c) | Security room gun table (19.5, 0.92, 3.95), by the shotgun shells (`FragSecurity`) | A loud answer, a mine ([explosives](../game/explosives.md)) |
-| Frag grenade (M14c) | On the dock's metal supply crate by roller door 2 (7.0, 0.805, -8.0) (`FragDock`); in the hall camera's view | |
-| Gas grenade (M14c) | Locker room, the north open locker, in front of the rifle rounds (19.27, 0.97, 11.4) (`GasLocker`) | Knocks out whoever is in the cloud (5 m, 12 s): a non-lethal way past a post |
+| Frag grenade (M14c) | M14d: in the dock's supply crate by roller door 2 (`SupplyCrateDock`; until M14d on the metal crate beside it, `FragDock`); in the hall camera's view | |
+| Gas grenade (M14c) | M14d: in G8's locked locker in the locker room (`LockerOffDuty`; until M14d in the north open locker, `GasLocker`) | Knocks out whoever is in the cloud (5 m, 12 s): a non-lethal way past a post |
 | EMP grenade (M14c) | Basement store shelf by the lockpicks (8.4, -3.1, 2.6) (`EmpStore`) | Cameras, the turret, lights and door controllers off for 20 s within 6 m |
-| Jamming grenade (M14c) | The manager's desk, between the two datapads (9.25, 5.3, 0.5) (`JammerManager`): the manager keeps one for his calls | Wireless links within 10 m drop for 20 s: AP-YARD's devices, guards' radios |
+| Jamming grenade (M14c) | M14d: in the manager's desk drawers (`DrawersManager`; until M14d on the desk, `JammerManager`): the manager keeps one for his calls | Wireless links within 10 m drop for 20 s: AP-YARD's devices, guards' radios |
 
 Every main route works without any of them; each find opens an option.
 
@@ -357,11 +358,11 @@ Lock hardware comes from the doors themselves ([ADR 0098](../decisions/0098-door
 | WeakWall | no door: the people population's breach panel closes it (explosives only) | | | |
 | FireEscapeDoor | door | yes | Mechanical, 3 pins (lockpicks) | inside (upper corridor) |
 | OfficeEntrance, BreakRoomHall, BreakRoomCorridor, StairsGround, LockerRoom, StairsUpper, CatwalkStairsDoor, BoilerStore, BoilerTunnel | doors | no | | |
-| SecurityDoor | door | yes | Keycard `warehouse_security` (locker room bench) + electronic fail-secure (circuit `warehouse_building`, cabled: the console opens it) | inside (security room) |
+| SecurityDoor | door | yes | Keycard `warehouse_security` (G6, break room; the locker room bench until M14d) + electronic fail-secure (circuit `warehouse_building`, cabled: the console opens it) | inside (security room) |
 | BridgeDoor | door | yes | Electronic **fail-safe** (circuit `warehouse_building`, cabled): cutting breaker B or the console opens it | inside (upper corridor) |
 | ManagerDoor | door | yes | Keypad `warehouse_manager_office` 4471 (night shift notes, break room table) | inside (office) |
-| VaultDoor | door | yes | Keycard `warehouse_vault` (security room desk) + electronic fail-secure (circuit `warehouse_building`, cabled: the console opens it) | inside (vault) |
-| OfficeTwo | door | yes | Mechanical, 2 pins (lockpicks) | inside (office) |
+| VaultDoor | door | yes | Keycard `warehouse_vault` (G7, the vault door guard; the security room desk until M14d) + electronic fail-secure (circuit `warehouse_building`, cabled: the console opens it) | inside (vault) |
+| OfficeTwo | door | yes | Mechanical, 2 pins (lockpicks; M14d: its key `warehouse_office_two` in the manager's desk drawers) | inside (office) |
 | TunnelGate | door (grille gate) | yes | Mechanical, 4 pins (lockpicks) | inside (tunnel, west) |
 
 The BridgeDoor was "plain" in the doorway table; it is the level's fail-safe door (the bridge stays a route through the console or breaker B, and the corridor side always opens it). Doors at the end of a 1.5 m corridor (OfficeEntrance, BridgeDoor, CatwalkStairsDoor, FireEscapeDoor) hang their corridor-side control panel on the corridor's side wall (`Door.front_side_wall` / `back_side_wall`, M9e). Guards plan out through a locked door from its free side (a one-way navigation link) but never in: they follow a player out of the side door, the back gate, the offices or the tunnel gate ([ADR 0092](../decisions/0092-warehouse-polish.md)).
@@ -377,12 +378,14 @@ Signs (`Population/Security/Signs`, kit Sign, M9e) name the rooms over their doo
 | Console audit (`warehouse.console_audit`): `warehouse_security_console` = `dmarsh:harbor77` | Manager office desk (9.6, 5.33, 0.7) | SecurityConsole |
 | Shipment manifest (`warehouse.manifest`, the main objective) | Manager office desk (8.9, 5.33, 0.7) | |
 | Sticky note (`warehouse.pc1_note`): office PC 1 login `lpetrova:tulip24` | Second office, PC 1's desk (14.1, 5.28, 14.3) | OfficePc1 |
-| Keycard `warehouse_security` | Locker room bench (13.65, 0.53, 10.2) | SecurityDoor |
-| Keycard `warehouse_vault` | Security room desk (19.35, 0.83, 2.4) | VaultDoor |
+| Keycard `warehouse_security` | M14d: G6 (break room guard), on his keychain: knock him out and tap E (until M14d the locker room bench) | SecurityDoor |
+| Keycard `warehouse_vault` | M14d: G7 (vault door guard; until M14d the security room desk) | VaultDoor |
 | Lockpicks (placed by the people population) | Basement store, marker `Items/Lockpicks` | Every mechanical lock |
-| Office bay key (M13c, `items/key/key.tscn`, key id `warehouse_bay`, "Office bay key") | Security room desk (19.3, 0.81, 2.85): the keychain, "On the security room desk" | BAY-OFFICE's glass door (also lockpicks) |
+| Office bay key (M13c, key id `warehouse_bay`, "Office bay key") | M14d: G10 (west catwalk patrol; until M14d the security room desk) | BAY-OFFICE's glass door (also lockpicks) |
+| Office two key (M14d, key id `warehouse_office_two`) | Manager office, desk drawers right of the desk (`DrawersManager`) | OfficeTwo (also lockpicks) |
+| Locker key (M14d, key id `warehouse_locker`) | G8 (off duty, basement store) | G8's locker in the locker room (`LockerOffDuty`; also lockpicks) |
 
-Guards that need the keycard doors carry `access.warehouse_security` (the security operator G5: his post is behind the SecurityDoor) and `access.warehouse_vault` (G7); `warehouse_door_navigation_test.gd` checks every placed guard reaches its post and patrol points with its own access tags, and `warehouse_people_test.gd` finds the items through the doors (the player's keys) ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). No key is behind its own lock: `warehouse_doors_test.gd` walks an area graph (doors, climbs, ducts) from the road and checks that each lock's key is reachable without passing that lock, with forced entries (the weak wall's breach panel) left out. The security room is the hub of the chain: duct C from the boiler room reaches it without a key; it holds the console (log in with the manager's audit note) and the vault keycard.
+Guards that need the keycard doors carry `access.warehouse_security` (the security operator G5: his post is behind the SecurityDoor) and `access.warehouse_vault` (G7); `warehouse_door_navigation_test.gd` checks every placed guard reaches its post and patrol points with its own access tags, and `warehouse_people_test.gd` finds the items through the doors (the player's keys) ([ADR 0078](../decisions/0078-doors-locks-and-door-navigation.md)). No key is behind its own lock: `warehouse_doors_test.gd` walks an area graph (doors, climbs, ducts) from the road and checks that each lock's key is reachable without passing that lock, with forced entries (the weak wall's breach panel) left out; since M14d a key or card on a keychain (a guard's, a container's) counts where its holder stands (a guard's post or first patrol point). The security room holds the console (log in with the manager's audit note); duct C from the boiler room reaches it without a key. Since M14d the vault keycard is on G7, the security keycard on G6 and the bay key on G10: the guards are the key chain ([Loot (M14d)](#loot-m14d)).
 
 ### Desks
 
@@ -581,12 +584,44 @@ Tests: `warehouse_consequences_test.gd` (the mail-route tests went with ADR 0130
 | SEC-CONSOLE | security room north wall, on its shelf | unchanged: a standing console between duct C's mouth (x 14.1..15.7) and the window (x 16.4..18.8); a desk under it would crowd the duct's exit |
 
 - **The bay** (`Network/OfficeBay`, `objects/devices/linking_bay_locked.tscn`, plate BAY-OFFICE): centre (19.43, 4.5, 12.5), back 2 cm off the east wall, front to the west; cables rise 0.71 m into the ceiling (7.1). Units top to bottom: RTR-01 (slots 6-7), a blank, the five switches (9-13), a blank, MAIL-01 (15-16): router at 1.44-1.53 m, switches 1.17-1.39 m, server 1.04-1.13 m above the floor. 1 m clear in front (x 18.1..19.1); the open door swings out to the north-west, about 2 m short of the jack. Node order matters for performance: RTR-01 is the bay's last child and SW-OFFICE comes before the bay, as on master's walls (the device graph links in tree order; with RTR-01 first, every alarm supervision search crossed its gate first: 6-10 ms per check instead of 2.5 ms, +5 ms of physics per frame).
-- **Its lock**: the glass door's MechanicalLock (4 pins, one spool, seed 131) names key `warehouse_bay`: the **Office bay key** on the security room desk (19.3, 0.81, 2.85), beside the vault keycard (the security room is the hub of the key chain: keycard from the locker room or duct C). Lockpicks open it too. Closed, the glass blocks the Interactor and shots: the switches cannot be broken through it.
+- **Its lock**: the glass door's MechanicalLock (4 pins, one spool, seed 131) names key `warehouse_bay`: the **Office bay key**, on the security room desk until M14d, now carried by G10, the west catwalk patrol ([Loot (M14d)](#loot-m14d)). Lockpicks open it too. Closed, the glass blocks the Interactor and shots: the switches cannot be broken through it.
 - **Alarm controllers stay on their walls** (security room east wall, booth east wall): the rack version (`alarm_controller_rack.tscn`) would take a 2U slot, but a controller belongs with its room (G5's console and panic button, G1's booth); moving the building's controller into the office would also put the alarm's brain behind the same two locks as its switches.
 - **Removed**: the M9 stub `Network/AccessPointGuest` (a plain wall switch on no subnet, never used since AP-YARD in M12b) and the store's `NetworkPanelBasement`.
 - **Design consequence**: the switches no longer sit where their parts are. Silencing the network by breaking switches now happens in one place (behind the second office's 2-pin lock and the bay's lock), not two (store and booth, M9e finding 2); the booth window shot at SW-YARD is gone. The breakers (A in the annex, B in the store) still split the compound in two places.
-- **Tests**: `warehouse_office_bay_test.gd` (every device's cables fit its model's sockets, every device has a model, every router and switch in a bay or on a desk and every computer on a desk or in a bay but the security console, rack units only in a bay; the bay in the second office with 1 m clear and its seven units; picking or the key opens its door, the key on the security desk; walking at the bay and the loudest pick noise (snap, 6) reach no guard post or patrol point in a straight line, G7 nearest, about 7.5 m from the lock; no coplanar meshes in the office gear), `warehouse_office_passage_test.gd` (the player walks from the corridor through the office door to the bay and both desks), `warehouse_door_navigation_test.gd` (the navmesh joins the office doorway to the bay's front and both desks); the network suites use the bay's paths (`warehouse_security_helpers.gd` finds a device under Devices or in the bay).
-- **Review shots** (`fixtures/warehouse_shots.tscn`; `swing` opens a hinged door first): `office_bay` (1.5 m), `office_bay_units` and `office_bay_units_top` (0.5 m, door open), `office_desk_gear`, `office_pc1`, `office_pcs`, `office_doorway`, `office_bay_key`, `ar_office_bay`, `office_feedback`, `office_amber`, `deck_map_office`, `deck_map_hacked`, `booth_controller`.
+- **Tests**: `warehouse_office_bay_test.gd` (every device's cables fit its model's sockets, every device has a model, every router and switch in a bay or on a desk and every computer on a desk or in a bay but the security console, rack units only in a bay; the bay in the second office with 1 m clear and its seven units; picking or the key opens its door, the key on G10 (M14d); walking at the bay and the loudest pick noise (snap, 6) reach no guard post or patrol point in a straight line, G7 nearest, about 7.5 m from the lock; no coplanar meshes in the office gear), `warehouse_office_passage_test.gd` (the player walks from the corridor through the office door to the bay and both desks), `warehouse_door_navigation_test.gd` (the navmesh joins the office doorway to the bay's front and both desks); the network suites use the bay's paths (`warehouse_security_helpers.gd` finds a device under Devices or in the bay).
+- **Review shots** (`fixtures/warehouse_shots.tscn`; `swing` opens a hinged door first): `office_bay` (1.5 m), `office_bay_units` and `office_bay_units_top` (0.5 m, door open), `office_desk_gear`, `office_pc1`, `office_pcs`, `office_doorway`, `ar_office_bay`, `office_feedback`, `office_amber`, `deck_map_office`, `deck_map_hacked`, `booth_controller`.
+
+## Loot (M14d)
+
+[ADR 0142](../decisions/0142-looting-and-the-keychain.md), [looting.md](../game/looting.md#as-built-m14d-levels). Downed guards and containers are searched with a tap of E (the loot screen; holding E carries a body). Generated by `tools/level_gen/warehouse_people.py` (`GUARD_LOOT`, `CONTAINERS`) into `Population/People` (`Guards/<name>/ItemLoadout`, `Containers/`). Screens name the guards "Guard" (`display_name` metadata).
+
+**What guards carry.** Every guard carries one magazine of its weapon's ammo (`ItemLoadout.weapon_magazines` = 1 by default: pistol guards 10 pistol rounds, SMG guards 30, G4 30 rifle rounds, baton guards none) and its weapon, stowed in its inventory when it goes down. Keys and keycards moved from tables onto guards:
+
+| Key or card | On | Why there | Opens (other ways) |
+|---|---|---|---|
+| Security keycard `warehouse_security` | G6, break room (was the locker room bench) | The break room is across the corridor from the security door; the shift's card stays with the relief | SecurityDoor (duct C from the boiler room; the console from inside) |
+| Vault keycard `warehouse_vault` | G7, upper corridor, facing the vault door (was the security room desk) | The vault door guard carries the vault's card (he already has the `access.warehouse_vault` tag) | VaultDoor (the console, with the manager's audit note) |
+| Office bay key `warehouse_bay` | G10, west catwalk patrol (was the security room desk) | His route ends at the bridge door, the way to the second office; catching a patrol is a choice with a cost | BAY-OFFICE (lockpicks, 4 pins) |
+| Locker key `warehouse_locker` | G8, off duty in the basement store | His own locker in the locker room | LockerOffDuty (lockpicks, 3 pins) |
+| Office two key `warehouse_office_two` (new) | Manager office desk drawers | The manager keeps a key to the second office | OfficeTwo (lockpicks, 2 pins) |
+
+Every route stays solvable: the manifest needs no key (ducts, keypad code); the vault opens with G7's card or the console; the security room is reached by duct C or G6's card; the bay and the second office open with lockpicks as before. `warehouse_doors_test.gd` checks the key graph with the keys on guards.
+
+**Containers** (`objects/containers/`; fronts face the room, backs 2 cm off the wall; free floor measured from the scenes):
+
+| Container | Where (feet of the container) | Contents | Lock |
+|---|---|---|---|
+| `SupplyCrateDock` | Hall dock, north wall east of roller door 2 (8.3, 0, -9.67): 1.4 m from the door's opening, 1 m from the metal crate, 1.6 m from the hatch railing | Frag grenade (was `FragDock` on the metal crate), 10 pistol rounds, 15 rifle rounds | none |
+| `SupplyCrateStore` | Basement store, west wall south of the lockpick shelf (8.33, -4, 4.85), facing east | Medkit, 10 pistol rounds, 6 shotgun shells | none |
+| `SupplyCrateBackStrip` | Back strip, against the back container's south face (-25, 0, 21.83), 3 m east of the dark hiding spot, 2.9 m to the fence | Medkit, 10 pistol rounds: a reason to visit the dead end (review finding 11) | none |
+| `LockerOffDuty` | Locker room, south wall (14.6, 0.02, 14.48), facing north | Gas grenade (was `GasLocker` in the open locker), medkit, 10 pistol rounds | locked: G8's key or lockpicks |
+| `LockerSpare` | Beside it (15.3, 0.02, 14.48) | 6 shotgun shells | unlocked |
+| `DrawersManager` | Manager office, right of the desk (10.35, 4.5, 0.59), facing south; 1.3 m from the duct B cabinet | Jamming grenade (was `JammerManager` on the desk), the office two key | unlocked |
+| `DrawersOffice` | Second office, between the desks (16.25, 4.5, 14.41), facing north; 0.8 m from each desk | Medkit, 6 pistol rounds | unlocked |
+
+Datapads are read in place ([ADR 0060](../decisions/0060-datapads-read-in-place-personal-log.md)), not inventory items, so none went into drawers: the manifest, the audit note and the sticky note stay on their desks. Grenades left as pickups: the security room's frag and the store's EMP.
+
+**Tests**: `warehouse_loot_test.gd` (every guard's ammo is one magazine of its weapon; the keycards and the bay key on their guards and on no pickup; every key a lock names, doors, the bay and containers, is carried or lies outside what it opens; each container stands on the floor with its loot, its box overlapping nothing and 1.2 m clear in front; the moved grenades in their containers, no coplanar container meshes; G8's key, taken as the loot screen does, opens his locker), `warehouse_people_test.gd` (every container's front within reach of a navmesh spot reached from the start), `warehouse_doors_test.gd` (the key graph with keys on keychains), `warehouse_office_bay_test.gd` (the bay key on G10). Review shots (`fixtures/warehouse_shots.tscn`): `loot_dock`, `loot_store`, `loot_back_strip`, `loot_lockers`, `loot_manager_drawers`, `loot_office_drawers`, `loot_g7` (the loot screen on G7 with the vault keycard). Physics cost with every actor active unchanged (`perf=1`: 6.4-10.2 ms before, 6.4-10.0 ms after, five spots).
 
 ## Rules
 

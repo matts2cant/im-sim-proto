@@ -15,7 +15,7 @@ script = ExtResource("2_document")
 id = &"warehouse.console.mail_keycard"
 title = "Vault keycard"
 sender = "E. Hale"
-text = "The vault keycard stays on the security room desk, nowhere else. The vault door opens from this console too, but only while the building has power: it is fail-secure."
+text = "The vault keycard stays on whoever stands the vault door shift, nowhere else. The vault door opens from this console too, but only while the building has power: it is fail-secure."
 
 [sub_resource type="Resource" id="File_cameras"]
 script = ExtResource("2_document")
