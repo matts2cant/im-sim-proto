@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## opening without unlocking, ADR 0098), and remote lock / unlock
 ## commands reach a bare Lockable on a Device, blocked by `state.unpowered` / `state.broken`.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const COMMAND_LOCK: Receptron = preload("res://objects/devices/receptrons/command_lock.tres")
 const COMMAND_UNLOCK: Receptron = preload("res://objects/devices/receptrons/command_unlock.tres")
@@ -27,7 +28,7 @@ func test_keypad_opens_only_with_its_code() -> void:
 	Lockable.of(box).unlocked_by_user.connect(func(by: Node) -> void: wanted.append(by))
 
 	assert_bool(keypad.submit("1234", user)).is_false()
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Lockable.of(box).locked).is_true()
 	var beeps := EventLog.find(&"stimulus.emitted").filter(
@@ -88,7 +89,7 @@ func test_mechanical_lock_noises_come_from_the_lock() -> void:
 	var lock := _mechanical(box, 3)
 	lock.position = Vector3(0, 1, 0.1)
 	lock.pick_noise(2.0)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var emitted := EventLog.find(&"stimulus.emitted")
 	assert_array(emitted).has_size(1)
 	assert_str(String(emitted[0].data["type"])).is_equal("noise")
@@ -170,17 +171,17 @@ func test_lock_and_unlock_commands_reach_a_bare_lockable() -> void:
 	var box := _locked_box([], false, [COMMAND_LOCK, COMMAND_UNLOCK])
 
 	StimulusSystem.emit(Stimulus.make_contact(&"command.unlock", 1.0, box, _root))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(Lockable.of(box).locked).is_false()
 
 	ActorState.set_tag(box, &"state.unpowered", true)
 	StimulusSystem.emit(Stimulus.make_contact(&"command.lock", 1.0, box, _root))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(Lockable.of(box).locked).is_false()
 
 	ActorState.set_tag(box, &"state.unpowered", false)
 	StimulusSystem.emit(Stimulus.make_contact(&"command.lock", 1.0, box, _root))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(Lockable.of(box).locked).is_true()
 
 

@@ -30,7 +30,7 @@ func after_test() -> void:
 func test_rmb_toggles_the_scope_zoom_overlay_and_view_model() -> void:
 	await _load()
 
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	assert_bool(_player.weapons.scope.scoped).is_true()
 	assert_bool(get_tree().paused).is_false()
 	await _driver.frames(10)
@@ -41,7 +41,7 @@ func test_rmb_toggles_the_scope_zoom_overlay_and_view_model() -> void:
 	assert_bool(_player.weapons.view_pivot().visible).is_false()
 	assert_float(_player.weapons.aim.config.base_min_deg).is_equal(0.2)
 
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	await _driver.frames(10)
 	assert_float(_camera.fov).is_equal_approx(80.0, 0.01)
@@ -54,7 +54,7 @@ func test_rmb_toggles_the_scope_zoom_overlay_and_view_model() -> void:
 
 func test_zoom_takes_about_0_15_s() -> void:
 	await _load()
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	# The press tick plus the next: 3 of the 9 zoom ticks done, the FOV part way.
 	assert_float(_camera.fov).is_between(15.5, 79.0)
 
@@ -64,7 +64,7 @@ func test_mouse_look_scales_with_the_zoom() -> void:
 	var yaw := _player.rotation.y
 	_player.look(Vector2(100, 0))
 	var hip_turn := absf(_player.rotation.y - yaw)
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	await _driver.frames(10)
 	yaw = _player.rotation.y
 	_player.look(Vector2(100, 0))
@@ -77,23 +77,23 @@ func test_reload_switch_and_holster_scope_out() -> void:
 
 	await _scope_in()
 	_player.weapons.state().magazine = 2
-	await _press(&"reload")
+	await _driver.press(&"reload")
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	# RMB during the reload is refused.
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	await _driver.frames(ceili(SNIPER.weapon.reload_time * 60.0) + 2)
 
 	await _scope_in()
-	await _press(&"belt_2")
+	await _driver.press(&"belt_2")
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	await _driver.frames(1)
 	assert_float(_camera.fov).is_equal(80.0)
 
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	await _scope_in()
-	await _press(&"holster")
+	await _driver.press(&"holster")
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	assert_float(_camera.fov).is_equal(80.0)
 
@@ -117,23 +117,18 @@ func test_scopes_out_when_the_player_cannot_act() -> void:
 func test_rmb_does_nothing_with_a_weapon_without_a_scope() -> void:
 	await _load()
 	_player.inventory.give(PISTOL, 1)
-	await _press(&"belt_2")
+	await _driver.press(&"belt_2")
 
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 
 	assert_bool(_player.weapons.scope.scoped).is_false()
 	assert_float(_camera.fov).is_equal(80.0)
 
 
 func _scope_in() -> void:
-	await _press(&"alt_fire")
+	await _driver.press(&"alt_fire")
 	await _driver.frames(10)
 	assert_bool(_player.weapons.scope.scoped).is_true()
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:
@@ -145,5 +140,5 @@ func _load() -> void:
 	await _driver.place(Vector3.ZERO)
 	_player.inventory.give(SNIPER, 1)
 	_player.inventory.give(SNIPER_AMMO, 20)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	EventLog.clear()

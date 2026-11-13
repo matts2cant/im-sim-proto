@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## tree, a jamming field by the camera jams it and an EMP under it switches it off alone.
 ## Room-local coordinates.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/shooting_range/shooting_range_room.tscn")
@@ -119,7 +120,7 @@ func test_the_table_holds_every_grenade_type_and_restocks() -> void:
 	var emp := _room.get_node("GrenadeLane/Emp") as RigidBody3D
 	var emp_place := emp.position
 	emp.position += Vector3(0.5, -0.9, 1.0)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	Usable.of(_room.get_node("GrenadeLane/Restock")).use(null)
 	for pickup_name: String in ["Frag", "Gas", "Emp", "Jamming"]:
 		var pickup := ItemPickup.of(_room.get_node_or_null("GrenadeLane/" + pickup_name))
@@ -234,15 +235,15 @@ func test_no_coplanar_meshes_in_the_new_parts() -> void:
 func test_a_jammer_jams_the_camera_and_an_emp_at_its_foot_catches_it_alone() -> void:
 	var camera := Device.of(_room.get_node("EmpCorner/Camera"))
 	var field := ExplosivePayload.spawn_in_level(JAMMING_FIELD, _room, _room.to_global(Vector3(36.5, 0.1, -10)))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_int(NetworkState.state_of(camera, NetworkState.links_of(camera))).is_equal(StatusLight.State.JAMMED)
 	field.free()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_int(NetworkState.state_of(camera, NetworkState.links_of(camera))).is_equal(StatusLight.State.UP)
 
 	# On the floor under the camera: the turret, the lamp and the access point are beyond 6 m.
 	StimulusSystem.emit(EmpPulse.make(EMP, _room.to_global(Vector3(37.0, 0.1, -10))))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(Powered.of(camera.entity).is_on()).is_false()
 	for entity_name: String in ["Lamp", "Turret", "Ap"]:
@@ -252,8 +253,3 @@ func test_a_jammer_jams_the_camera_and_an_emp_at_its_foot_catches_it_alone() -> 
 
 func _pos(path: String) -> Vector3:
 	return (_room.get_node(path) as Node3D).position
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

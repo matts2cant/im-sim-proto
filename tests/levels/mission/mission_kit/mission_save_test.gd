@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## tallies, first alarm), the player as saved, no briefing and the game running. The Mission node's
 ## state round-trips on its own.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Missions := preload("res://tests/levels/mission/mission_kit/mission_helpers.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 
@@ -36,10 +37,10 @@ func test_quicksave_in_the_mission_loads_back_from_the_hub() -> void:
 	await Missions.close_briefing(level)
 	Missions.read_manifest(level)
 	_controller(level).raise(Missions.at(Vector3(-6, 0, -4)), "test", true)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	mission.time += 100.0
 	Missions.place(level, Vector3(1, 0, 2))
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var saved_time := mission.time
 	assert_bool(mission.tracker.is_done(&"manifest")).is_true()
 	assert_int(mission.tally.alarms).is_equal(1)
@@ -77,7 +78,7 @@ func test_mission_state_round_trips() -> void:
 	var mission := Missions.mission(level)
 	await Missions.close_briefing(level)
 	Missions.read_manifest(level)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	mission.time = 42.0
 	mission.alarm_time = 12.0
 	mission.incident_point = Vector3(1, 2, 3)

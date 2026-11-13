@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## metres past it. A frag stuck on the target and shot from the line goes off there: the dummies 2, 4
 ## and 6 m from the target take what the frag does at those distances (dead, badly hurt, light).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/shooting_range/shooting_range_room.tscn")
 const FRAG: WeaponData = preload("res://items/grenades/frag/frag_grenade.tres")
@@ -23,7 +24,7 @@ func before_test() -> void:
 	_room = auto_free(ROOM_SCENE.instantiate()) as Node3D
 	_room.position = ORIGIN
 	add_child(_room)
-	await Grenades.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func after_test() -> void:
@@ -34,7 +35,7 @@ func test_a_frag_thrown_from_the_line_lands_on_the_target() -> void:
 	var line := _local("GrenadeLane/ThrowLine")
 	var target := _local("GrenadeLane/Target")
 	var user := Grenades.thrower(_room, Vector3(line.x, 0, line.z), 0.0, 0.0, FRAG)
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	Grenades.holder_of(user).trigger()
 	var grenade := Thrower.of(user).last_fuse.entity as RigidBody3D
@@ -66,13 +67,13 @@ func test_a_frag_stuck_on_the_target_and_shot_hurts_the_dummies_by_distance() ->
 	var floor_node := _room.get_node("GrenadeLane/Target") as Node3D
 	var pose := Transform3D(Basis.IDENTITY, _room.to_global(target + Vector3(0, Sticky.of(frag).surface_offset, 0)))
 	Sticky.of(frag).stick(floor_node, pose)
-	await Grenades.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	# A pistol round from the line's eye height at the stuck frag.
 	var eye := _room.to_global(Vector3(line.x, EYE, line.z))
 	var at := frag.global_position
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 25.0, eye, (at - eye).normalized(), 30.0))
-	await Grenades.frames(get_tree(), 6)
+	await Wait.frames(get_tree(), 6)
 
 	assert_bool(is_instance_valid(frag)).is_false()
 	var torso: Dictionary[int, float] = {}

@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## the oldest goes past the cap, clear() removes them. Built on a minimal static box in code (not the
 ## range's spray wall).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const MARKED: Receptron = preload("res://objects/components/receptrons/marked_by_bullets.tres")
 const ORIGIN := Vector3(-300, 1, 300)
@@ -30,10 +31,10 @@ func before_test() -> void:
 
 
 func test_a_bullet_ray_leaves_a_mark_where_it_hit() -> void:
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	_shoot(Vector2(0.3, -0.2))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(_marks.count()).is_equal(1)
 	# On the front face (z + 0.1), at the aimed point.
@@ -41,26 +42,26 @@ func test_a_bullet_ray_leaves_a_mark_where_it_hit() -> void:
 
 
 func test_marks_stay() -> void:
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	for i in 3:
 		_shoot(Vector2(0.2 * i, 0))
-	await Fixtures.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	assert_int(_marks.count()).is_equal(3)
 
 
 func test_other_rays_leave_nothing() -> void:
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var origin := ORIGIN + Vector3(0, 0, 5)
 	StimulusSystem.emit(Stimulus.make_ray(&"force.impact", 3.0, origin, Vector3.FORWARD, 10.0))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(_marks.count()).is_equal(0)
 
 
 func test_past_the_cap_the_oldest_mark_goes() -> void:
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	var cap := _marks.max_marks
 	for i in cap + 10:
 		_marks.add_mark(ORIGIN + Vector3(0.001 * i, 0, 0.1), Vector3.BACK)
@@ -74,7 +75,7 @@ func test_past_the_cap_the_oldest_mark_goes() -> void:
 
 
 func test_marks_never_fade_unless_asked_then_fade_after_their_time() -> void:
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	_marks.add_mark(ORIGIN, Vector3.BACK)
 	_marks.step(1000.0)
 
@@ -93,7 +94,7 @@ func test_marks_never_fade_unless_asked_then_fade_after_their_time() -> void:
 
 
 func test_clear_removes_every_mark() -> void:
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	_marks.add_mark(ORIGIN, Vector3.BACK)
 	_marks.clear()
 

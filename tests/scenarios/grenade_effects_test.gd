@@ -11,6 +11,7 @@ extends GdUnitTestSuite
 ## Each case has its own spot 30 m from the others (x east): gas lane (0, 0, 0) to -Z, EMP (30, 0,
 ## 0), frag (60, 0, 0), jammer (90, 0, 0). Distances centre to centre unless stated.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Effects := preload("res://tests/objects/explosives/explosive_fixtures.gd")
@@ -43,7 +44,7 @@ func after_test() -> void:
 
 func test_a_thrown_gas_grenade_leaves_a_cloud_where_it_lands_after_the_fuse() -> void:
 	var user := Grenades.thrower(_root, ORIGIN, 0.0, 0.0, GAS_WEAPON)
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	Grenades.holder_of(user).trigger()
 	var grenade := Thrower.of(user).last_fuse.entity as RigidBody3D
 	var landed := Vector3.INF
@@ -118,14 +119,14 @@ func test_a_shot_sets_off_a_stuck_grenade() -> void:
 	var shooter := Node3D.new()
 	shooter.name = "Shooter"
 	_root.add_child(shooter)
-	await Grenades.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	# A pistol shot (damage 25, ballistic) from 5 m away at its centre.
 	var from := grenade.global_position + Vector3(0, 0, 5)
 	StimulusSystem.emit(
 		Stimulus.make_ray(&"damage.ballistic", 25.0, from, Vector3.FORWARD, 10.0, shooter, PhysicsLayers.WEAPON_MASK)
 	)
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(is_instance_valid(grenade)).is_false()
 	assert_object(Effects.first(get_tree(), JammingField.GROUP)).is_not_null()

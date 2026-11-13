@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## character; the Demolition tier sets the throw distance (12 / 14 / 16 / 18 m, measured where it
 ## first lands on flat ground).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const ORIGIN := Vector3(700, 0, 0)
@@ -30,7 +31,7 @@ func test_sticks_on_a_wall_within_reach() -> void:
 	var user := Grenades.thrower(_root, ORIGIN)
 	# Wall face 1.0 m ahead of the eye (gap, eye to surface).
 	Grenades.box(_root, ORIGIN + Vector3(0, 1.5, -1.2), Vector3(4, 3, 0.4))
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(Grenades.holder_of(user).trigger()).is_equal(WeaponState.Result.FIRED)
 
@@ -44,7 +45,7 @@ func test_sticks_on_a_wall_within_reach() -> void:
 		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.surface_offset), Vector3.ONE * 0.01
 	)
 	assert_vector(grenade.global_basis.y).is_equal_approx(Vector3.BACK, Vector3.ONE * 0.01)
-	await Grenades.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	assert_vector(grenade.global_position).is_equal_approx(
 		ORIGIN + Vector3(0, Grenades.EYE_HEIGHT, -1.0 + sticky.surface_offset), Vector3.ONE * 0.01
 	)
@@ -54,7 +55,7 @@ func test_throws_when_the_surface_is_beyond_reach() -> void:
 	var user := Grenades.thrower(_root, ORIGIN)
 	# Wall face 1.6 m ahead of the eye.
 	Grenades.box(_root, ORIGIN + Vector3(0, 1.5, -1.8), Vector3(4, 3, 0.4))
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	Grenades.holder_of(user).trigger()
 
@@ -71,7 +72,7 @@ func test_a_character_in_front_blocks_sticking() -> void:
 	# A character 0.8 m ahead (centre to eye axis), a wall face 1.1 m ahead behind it.
 	Characters.character(_root, "Blocker", ORIGIN + Vector3(0, 0, -0.8), [])
 	Grenades.box(_root, ORIGIN + Vector3(0, 1.5, -1.3), Vector3(4, 3, 0.4))
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	Grenades.holder_of(user).trigger()
 
@@ -83,7 +84,7 @@ func test_a_thrown_grenade_bounces_off_a_character() -> void:
 	# Looking 15 degrees down: the arc meets the character's chest 3 m ahead.
 	var user := Grenades.thrower(_root, ORIGIN, 0.0, deg_to_rad(-15.0))
 	Characters.character(_root, "Target", ORIGIN + Vector3(0, 0, -3.0), [])
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	Grenades.holder_of(user).trigger()
 	var grenade := _spawned()
@@ -101,7 +102,7 @@ func test_throw_distance_per_demolition_tier() -> void:
 		var user := Grenades.thrower(_root, ORIGIN + Vector3(-12 + tier * 8, 0, 0))
 		Skills.of(user).set_tier(&"demolition", tier)
 		users.append(user)
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	for user in users:
 		Grenades.holder_of(user).trigger()
 		grenades.append(Thrower.of(user).last_fuse.entity as RigidBody3D)

@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: RAY collision masks and exclusions, and the `collider` the receivers' effects get
 ## for RAY and CONTACT (ADR 0047: hitboxes on layer 5 and part-aware delivery).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 
@@ -27,10 +28,10 @@ func before_test() -> void:
 
 func test_ray_gives_the_hitbox_collider_and_hit_point() -> void:
 	var guard := _guard(Vector3(0, 0, -4))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(_ray(PhysicsLayers.WEAPON_MASK))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_capture.contexts).has_size(1)
 	var ctx := _capture.contexts[0]
@@ -47,36 +48,36 @@ func test_weapon_mask_skips_the_actor_body() -> void:
 	var guard := _guard(Vector3(0, 0, -4))
 	# The actor body stands in front of the hitbox.
 	(guard.get_node("Body") as Node3D).position = Vector3(0, 0, 1)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(_ray(PhysicsLayers.WEAPON_MASK))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_object(_capture.contexts[0].collider()).is_same(guard.get_node("Hitbox"))
 
 	StimulusSystem.emit(_ray(0xFFFFFFFF))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_object(_capture.contexts[1].collider()).is_same(guard)
 
 
 func test_ray_exclude_list_is_ignored() -> void:
 	var guard := _guard(Vector3(0, 0, -4))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var ray := _ray(PhysicsLayers.WEAPON_MASK)
 	ray.exclude = [(guard.get_node("Hitbox") as CollisionObject3D).get_rid()]
 
 	StimulusSystem.emit(ray)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_capture.contexts).is_empty()
 
 
 func test_contact_gives_the_touched_node() -> void:
 	var guard := _guard(Vector3(0, 0, -4))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.stun", 20.0, guard.get_node("Hitbox")))
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 5.0, guard))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_capture.contexts).has_size(2)
 	assert_str(Hitboxes.part_of(_capture.contexts[0].collider())).is_equal("head")

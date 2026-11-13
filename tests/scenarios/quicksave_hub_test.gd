@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## held, and the abilities (skill tiers, energy, installed and active augmentations with their tags
 ## and modifiers) come back without duplicate modifiers (ADR 0061, ADR 0063).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Items := preload("res://tests/items/item_test_helpers.gd")
@@ -67,10 +68,6 @@ func _spawn_tab() -> SpawnTab:
 	return null
 
 
-func _frames(count: int) -> void:
-	await Objects.frames(get_tree(), count)
-
-
 func _read(level: Node, readable_path: String) -> void:
 	(level.get_node(readable_path) as Readable).use(_player(level))
 	(_player(level).get_node("ReadingOverlay") as ReadingOverlay).close()
@@ -99,7 +96,7 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	Breakable.of(hub.get_node(BARRICADE)).break_apart(&"burnt_out")
 	var dropped := player.inventory.drop_stack(player.inventory.inventory.stacks[2], 2)
 	var spawned := _spawn_tab().spawn(CATALOG.scenes[0])
-	await _frames(10)
+	await Wait.frames(get_tree(), 10)
 
 	var saved_position := player.global_position
 	assert_int(QuickSave.save_game(get_tree())).is_equal(SaveFile.Status.OK)
@@ -117,7 +114,7 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 	Flammable.of(hub.get_node("PhysicsFireRoom/BrazierCorner/BrazierBox1")).ignite(null)
 	dropped.free()
 	spawned.free()
-	await _frames(5)
+	await Wait.frames(get_tree(), 5)
 
 	var status: SaveFile.Status = await QuickSave.load_game(get_tree())
 	var fresh := get_tree().current_scene
@@ -173,7 +170,7 @@ func test_hub_round_trip_restores_what_was_saved() -> void:
 func test_save_and_load_through_the_game_menu_on_the_hub() -> void:
 	var hub := await Saves.open_level(get_tree(), HUB)
 	_player(hub).load_state({"position": SAVED_SPOT, "yaw": 0.3, "pitch": 0.0, "velocity": Vector3.ZERO})
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var saved := _player(hub).global_position
 	var menu := _player(hub).get_node("GameMenu") as GameMenu
 
@@ -187,7 +184,7 @@ func test_save_and_load_through_the_game_menu_on_the_hub() -> void:
 	await get_tree().process_frame
 	assert_bool(menu.is_open()).is_false()
 	_player(hub).load_state({"position": Vector3(-3, 0, 12), "yaw": 0.0, "pitch": 0.0, "velocity": Vector3.ZERO})
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	Saves.press(KEY_ESCAPE)
 	await get_tree().process_frame
 	menu.load_button.pressed.emit()
@@ -206,9 +203,9 @@ func test_a_carried_object_is_dropped_where_it_was_held() -> void:
 	var player := _player(room)
 	player.load_state({"position": Vector3.ZERO, "yaw": 0.0, "pitch": 0.0, "velocity": Vector3.ZERO})
 	var crate := Objects.spawn(room, Objects.SMALL_CRATE, Vector3(0, 0.3, -1.5), "Crate")
-	await _frames(5)
+	await Wait.frames(get_tree(), 5)
 	player.carry.pick_up(crate)
-	await _frames(10)
+	await Wait.frames(get_tree(), 10)
 	assert_bool(player.carry.is_carrying()).is_true()
 	var held := crate.global_position
 	assert_int(QuickSave.save_game(get_tree())).is_equal(SaveFile.Status.OK)
@@ -222,7 +219,7 @@ func test_a_carried_object_is_dropped_where_it_was_held() -> void:
 
 	assert_bool(fresh_player.carry.is_carrying()).is_false()
 	assert_vector(restored.global_position).is_equal_approx(held, Vector3.ONE * 0.01)
-	await _frames(40)
+	await Wait.frames(get_tree(), 40)
 	# It fell in front of the player, clear of the capsule (radius 0.35 m, crate half-size 0.3 m).
 	var offset := restored.global_position - fresh_player.global_position
 	assert_float(Vector2(offset.x, offset.z).length()).is_greater(0.65)
@@ -239,7 +236,7 @@ func test_abilities_round_trip_without_duplicate_modifiers() -> void:
 	player.augmentations.set_installed(&"run_silent", false)
 	assert_bool(player.augmentations.activate(&"cloak")).is_true()
 	assert_bool(player.augmentations.activate(&"speed_enhancement")).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	# Set right before saving (no tick in between): exactly 63 in the save.
 	player.energy.set_current(63.0)
 	var before := _ability_values(player)
@@ -257,7 +254,7 @@ func test_abilities_round_trip_without_duplicate_modifiers() -> void:
 	player.augmentations.deactivate(&"speed_enhancement")
 	player.augmentations.activate(&"combat_strength")
 	player.energy.set_current(10.0)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	var status: SaveFile.Status = await QuickSave.load_game(get_tree())
 	var restored := _player(get_tree().current_scene)

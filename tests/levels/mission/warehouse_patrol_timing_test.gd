@@ -61,6 +61,13 @@ func test_patrols_leave_crossing_gaps_of_four_to_forty_five_seconds() -> void:
 	# (they shape the navmesh), and so does the weak wall's panel.
 	for path: String in [SECURITY + "/Devices", PEOPLE + "/Items", PEOPLE + "/Props", PEOPLE + "/Shipment"]:
 		level.get_node(path).free()
+	# The same for the patrols' components that never change a walk here (a third of each tick): the
+	# animator (visual only), body discovery (no bodies left) and light exposure (no one looks at
+	# them). Paused, not freed: other components may still ask them.
+	for guard in level.get_node(PEOPLE + "/Guards").get_children():
+		for component in guard.get_children():
+			if component is CharacterAnimator or component is BodyDiscovery or component is LightExposure:
+				component.process_mode = Node.PROCESS_MODE_DISABLED
 	# One bake, on the synchronous map (none at load).
 	var region := level.get_node("Navigation") as LevelNavigation
 	region.bake_on_ready = false

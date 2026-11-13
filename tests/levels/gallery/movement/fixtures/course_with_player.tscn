@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/gallery/movement/movement_course.tscn" id="1_course"]
+[ext_resource type="PackedScene" path="res://actors/player/player.tscn" id="2_player"]
+
+[node name="CourseWithPlayer" type="Node3D"]
+
+[node name="MovementCourse" parent="." instance=ExtResource("1_course")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)

@@ -10,8 +10,19 @@ extends NavigationRegion3D
 ## higher ledges (jumped or mantled) are not.
 ## Place it last among the level's children; call `bake()` again after changing the geometry
 ## (a quickload that removed geometry, such as a burnt barricade, does: QuickSave.REBAKE_GROUP).
+## The voxel bake is the slow part (about 1 s in the hub, the source geometry about 0.13 s): bakes
+## are kept per source geometry and bake settings for the running process (the last CACHE_SIZE), so
+## a level loaded again with the same geometry (a level reset, a quickload, the hub after a mission)
+## reuses its navmesh. Only exactly equal source geometry hits.
 
 const SOURCE_GROUP: StringName = &"navigation_source"
+## Bakes kept (least recently used dropped first).
+const CACHE_SIZE := 4
+
+## {hash, settings, vertices, indices, obstructions, mesh} per kept bake, most recently used last.
+static var _cache: Array[Dictionary] = []
+## Bakes answered from the cache since the start of the process (for tests).
+static var cache_hits := 0
 
 @export var source_root: NodePath = ^".."
 @export_range(0.1, 2.0, 0.05, "suffix:m") var agent_radius := 0.35
@@ -52,11 +63,62 @@ func bake() -> void:
 	var source := NavigationMeshSourceGeometryData3D.new()
 	NavigationServer3D.parse_source_geometry_data(nav_mesh, source, root)
 	_add_csg_faces(root, source)
-	NavigationServer3D.bake_from_source_geometry_data(nav_mesh, source)
 	var map := get_navigation_map()
 	NavigationServer3D.map_set_cell_size(map, cell_size)
 	NavigationServer3D.map_set_cell_height(map, cell_height)
-	navigation_mesh = nav_mesh
+	navigation_mesh = _baked(nav_mesh, source)
+
+
+## Clears the kept bakes (tests).
+static func clear_cache() -> void:
+	_cache.clear()
+
+
+# `nav_mesh` baked from `source`, or a copy of a kept bake of the same source and settings (a new
+# resource either way, so the region always registers the update).
+static func _baked(nav_mesh: NavigationMesh, source: NavigationMeshSourceGeometryData3D) -> NavigationMesh:
+	var settings := [
+		nav_mesh.agent_radius,
+		nav_mesh.agent_height,
+		nav_mesh.agent_max_climb,
+		nav_mesh.agent_max_slope,
+		nav_mesh.cell_size,
+		nav_mesh.cell_height,
+	]
+	var vertices := source.get_vertices()
+	var indices := source.get_indices()
+	var obstructions := source.get_projected_obstructions()
+	var key := hash([settings, vertices, indices, obstructions])
+	for i in _cache.size():
+		var entry := _cache[i]
+		if (
+			entry["hash"] == key
+			and entry["settings"] == settings
+			and entry["vertices"] == vertices
+			and entry["indices"] == indices
+			and entry["obstructions"] == obstructions
+		):
+			_cache.remove_at(i)
+			_cache.append(entry)
+			cache_hits += 1
+			return (entry["mesh"] as NavigationMesh).duplicate() as NavigationMesh
+	NavigationServer3D.bake_from_source_geometry_data(nav_mesh, source)
+	(
+		_cache
+		. append(
+			{
+				"hash": key,
+				"settings": settings,
+				"vertices": vertices,
+				"indices": indices,
+				"obstructions": obstructions,
+				"mesh": nav_mesh.duplicate(),
+			}
+		)
+	)
+	if _cache.size() > CACHE_SIZE:
+		_cache.remove_at(0)
+	return nav_mesh
 
 
 func _add_csg_faces(node: Node, source: NavigationMeshSourceGeometryData3D) -> void:

@@ -87,11 +87,6 @@ static func lock(entity: Node) -> void:
 	Lockable.of(entity).lock(null, &"test")
 
 
-static func frames(tree: SceneTree, count: int) -> void:
-	for i in count:
-		await tree.physics_frame
-
-
 ## The middle of the front face of the door's wall box `index` (top first) on its front (+Z) or back
 ## face (world): where to look to use it (ADR 0098).
 static func box_point(door: Door, front: bool = true, index: int = 0) -> Vector3:

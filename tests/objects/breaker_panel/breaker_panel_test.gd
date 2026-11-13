@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## placed open cuts its circuit at start; breaker and lamp states save and load. Powered works on
 ## any entity, not only the shipping lamps.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -55,7 +56,7 @@ func test_breaker_switches_its_circuit_only() -> void:
 	var a2 := _lamp(WALL_LAMP, Vector3(3, 2, 0), &"lab", "A2")
 	var b := _lamp(CEILING_LAMP, Vector3(6, 4, 0), &"hall", "B")
 	var breaker := _breaker(&"lab")
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_str(breaker.verb).is_equal("switch off")
 
 	assert_bool(breaker.use(null)).is_true()
@@ -79,10 +80,10 @@ func test_breaker_switches_its_circuit_only() -> void:
 
 func test_breaker_clunks_through_the_noise_path() -> void:
 	var breaker := _breaker(&"lab")
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	breaker.use(null)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var noises := EventLog.find(&"stimulus.emitted").filter(
 		func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"noise"
@@ -95,7 +96,7 @@ func test_breaker_clunks_through_the_noise_path() -> void:
 func test_breaker_placed_open_cuts_its_circuit_at_start() -> void:
 	var lamp := _lamp(CEILING_LAMP, Vector3(0, 4, 0), &"lab", "Lamp")
 	_breaker(&"lab", false)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(_light_visible(lamp)).is_false()
 	assert_array(EventLog.find(&"stimulus.emitted")).is_empty()
@@ -104,7 +105,7 @@ func test_breaker_placed_open_cuts_its_circuit_at_start() -> void:
 func test_breaker_and_lamp_states_save_and_load() -> void:
 	var lamp := _lamp(CEILING_LAMP, Vector3(0, 4, 0), &"lab", "Lamp")
 	var breaker := _breaker(&"lab")
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	breaker.use(null)
 	var breaker_state := breaker.save_state()
 	var lamp_state := Powered.of(lamp).save_state()
@@ -112,7 +113,7 @@ func test_breaker_and_lamp_states_save_and_load() -> void:
 	breaker.get_parent().free()
 	var fresh_lamp := _lamp(CEILING_LAMP, Vector3(0, 4, 0), &"lab", "Lamp")
 	var fresh_breaker := _breaker(&"lab")
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(_light_visible(fresh_lamp)).is_true()
 
 	fresh_breaker.load_state(breaker_state)

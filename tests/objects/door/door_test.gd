@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## to its controller: door_controller_test.gd), keeps open / locked across save and load, and puts
 ## its navigation link on the layers its lock state allows.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 ## Noise source and listener 3 m either side of the doorway (centre to centre), relative to the
@@ -26,7 +27,7 @@ func before_test() -> void:
 	_scene = auto_free(load(Helpers.WALL).instantiate())
 	_scene.position = Helpers.ORIGIN
 	add_child(_scene)
-	await Helpers.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	await _helpers.sync_navigation(_scene)
 	_entity = Helpers.door_entity(_scene)
 	_door = Door.of(_entity)
@@ -41,15 +42,15 @@ func test_opens_and_closes_in_0_6_seconds() -> void:
 	assert_bool(_door.is_open()).is_false()
 	assert_bool(_door.open()).is_true()
 
-	await Helpers.frames(get_tree(), 18)
+	await Wait.frames(get_tree(), 18)
 	assert_float(_door.openness).is_between(0.4, 0.6)
-	await Helpers.frames(get_tree(), 24)
+	await Wait.frames(get_tree(), 24)
 	assert_float(_door.openness).is_equal(1.0)
 	var panel := _entity.get_node("Panel") as CollisionShape3D
 	assert_float(panel.position.x).is_equal_approx(1.3, 0.001)
 
 	assert_bool(_door.close()).is_true()
-	await Helpers.frames(get_tree(), 42)
+	await Wait.frames(get_tree(), 42)
 	assert_float(_door.openness).is_equal(0.0)
 	assert_float(panel.position.x).is_equal_approx(0.0, 0.001)
 	assert_array(EventLog.find(&"door.opened")).has_size(1)
@@ -63,18 +64,18 @@ func test_closed_door_blocks_sight_and_open_door_does_not() -> void:
 	assert_bool(PhysicsLayers.segment_clear(space, from, to)).is_false()
 
 	_door.open()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 
 	assert_bool(PhysicsLayers.segment_clear(space, from, to)).is_true()
 
 
 func test_closed_door_adds_6_m_to_noise_paths_and_open_door_does_not() -> void:
 	var listener := Fixtures.entity(_scene, "Listener", LISTENER, [Fixtures.receptron(&"noise")])
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var closed := await _noise_distance(listener)
 
 	_door.open()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	var open := await _noise_distance(listener)
 
 	# Straight through the doorway when open: 6 m, plus 0.4 m down to the navmesh at each end.
@@ -86,7 +87,7 @@ func test_locked_door_still_carries_noise_with_the_6_m() -> void:
 	Helpers.add_keypad(_entity, &"vault", "1234")
 	Helpers.lock(_entity)
 	var listener := Fixtures.entity(_scene, "Listener", LISTENER, [Fixtures.receptron(&"noise")])
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var distance := await _noise_distance(listener)
 
@@ -95,7 +96,7 @@ func test_locked_door_still_carries_noise_with_the_6_m() -> void:
 
 func test_does_not_close_on_a_body_in_the_doorway() -> void:
 	_door.open()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	var crate := StaticBody3D.new()
 	crate.collision_layer = PhysicsLayers.OBJECTS
 	var shape := CollisionShape3D.new()
@@ -105,10 +106,10 @@ func test_does_not_close_on_a_body_in_the_doorway() -> void:
 	crate.add_child(shape)
 	_scene.add_child(crate)
 	crate.global_position = Helpers.ORIGIN + Vector3(0, 0.2, 0)
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(_door.close()).is_false()
-	await Helpers.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_float(_door.openness).is_equal(1.0)
 	assert_array(EventLog.find(&"door.blocked")).has_size(1)
@@ -142,14 +143,14 @@ func test_fail_safe_electronic_lock_unlocks_the_door_on_power_loss() -> void:
 func test_save_and_load_keep_open_and_locked() -> void:
 	Helpers.add_keypad(_entity, &"vault", "1234")
 	_door.open()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	Helpers.lock(_entity)
 	var door_state := _door.save_state()
 	var lock_state := Lockable.of(_entity).save_state()
 
 	_door.close()
 	Lockable.of(_entity).unlock()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	assert_bool(_door.is_open()).is_false()
 	_door.load_state(door_state)
 	Lockable.of(_entity).load_state(lock_state)
@@ -177,13 +178,13 @@ func test_navigation_link_layers_follow_the_lock() -> void:
 
 func _command(type: StringName) -> void:
 	StimulusSystem.emit(Stimulus.make_contact(type, 1.0, _entity, _scene))
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 
 func _noise_distance(listener: Node3D) -> float:
 	EventLog.clear()
 	StimulusSystem.emit(Stimulus.make_noise(30.0, Helpers.ORIGIN + SOURCE))
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var received := EventLog.find(&"stimulus.received").filter(
 		func(entry: EventLogEntry) -> bool: return entry.target == listener.name
 	)

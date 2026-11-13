@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## too). A guard breaking something on its own is not the player's. The tally listens to
 ## EventLog.entry_added like the mission does.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const CRATE: PackedScene = preload("res://objects/small_crate/small_crate.tscn")
 const BARREL: PackedScene = preload("res://objects/explosive_barrel/explosive_barrel.tscn")
 const CAMERA: PackedScene = preload("res://objects/camera/security_camera.tscn")
@@ -27,7 +28,7 @@ func before_test() -> void:
 	var names: Array[String] = ["Player"]
 	_tally = MissionTally.new(names)
 	EventLog.entry_added.connect(_tally.observe)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 
 func after_test() -> void:
@@ -52,11 +53,6 @@ func _add(scene: PackedScene, node_name: String, offset: Vector3) -> Node3D:
 	return node
 
 
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
-
-
 # Hits `target` with a heavy ballistic hit from `by` (delivered on the next tick).
 func _hit(target: Node3D, by: Node3D) -> void:
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 500.0, target, by))
@@ -64,14 +60,14 @@ func _hit(target: Node3D, by: Node3D) -> void:
 
 func test_nothing_broken_keeps_clean_hands() -> void:
 	_add(CRATE, "Crate", Vector3(0, 0.3, 0))
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(_tally.clean_hands()).is_true()
 
 
 func test_breaking_a_crate_loses_it() -> void:
 	var crate := _add(CRATE, "Crate", Vector3(0, 0.3, 0))
 	_hit(crate, _player)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(_tally.clean_hands()).is_false()
 	assert_array(_tally.broken.keys()).contains_exactly(["Crate"])
 
@@ -80,11 +76,11 @@ func test_breaking_a_camera_or_a_switch_loses_it() -> void:
 	var camera := _add(CAMERA, "Camera", Vector3(0, 2.5, 0))
 	var switch := _add(SWITCH, "Switch", Vector3(3, 1.5, 0))
 	_hit(camera, _player)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(Device.of(camera).broken).is_true()
 	assert_array(_tally.broken.keys()).contains_exactly(["Camera"])
 	_hit(switch, _player)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_array(_tally.broken.keys()).contains_exactly(["Camera", "Switch"])
 	# Saved and loaded with the mission's tally.
 	var loaded := MissionTally.new()
@@ -97,7 +93,7 @@ func test_a_barrel_the_player_shot_breaks_it_and_what_its_blast_breaks() -> void
 	var barrel := _add(BARREL, "Barrel", Vector3(0, 0.5, 0))
 	_add(CRATE, "Crate", Vector3(1.2, 0.3, 0))
 	_hit(barrel, _player)
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 	assert_bool(_tally.broken.has("Barrel")).is_true()
 	assert_bool(_tally.broken.has("Crate")).is_true()
 	assert_bool(_tally.clean_hands()).is_false()
@@ -108,6 +104,6 @@ func test_a_guard_breaking_things_on_its_own_keeps_clean_hands() -> void:
 	var camera := _add(CAMERA, "Camera", Vector3(3, 2.5, 0))
 	_hit(crate, _guard)
 	_hit(camera, _guard)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(Device.of(camera).broken).is_true()
 	assert_bool(_tally.clean_hands()).is_true()

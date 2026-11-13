@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## gain; a full trace reports an incident at the user's entry point to the alarm controller its
 ## host reaches and blocks the user's address for the lockout.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const ORIGIN := Vector3(300, 0, -380)
@@ -111,7 +112,7 @@ func test_a_full_trace_reports_the_entry_point_and_blocks_the_address() -> void:
 	assert_str(str(command.data["to"])).is_equal("Alarm")
 	# The incident is at the entry point (the jack), not where the user stands.
 	assert_vector(command.data["point"] as Vector3).is_equal_approx(_n["Jack"].global_position, Vector3.ONE * 0.001)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(ActorState.has(_n["Alarm"], Net.ALARMED)).is_true()
 	# Blocked on every watched device, for 30 s; not on unwatched ones nor for another address.
 	assert_bool(Tracer.blocks(_dev("Console"), source.address)).is_true()
@@ -148,8 +149,3 @@ func test_trace_and_lockouts_are_saved() -> void:
 	_tracer().load_state(saved)
 	assert_float(_tracer().trace_of(_user)).is_equal(100.0)
 	assert_bool(_tracer().is_blocked(source.address)).is_true()
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

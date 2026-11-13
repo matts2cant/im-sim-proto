@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## jack and sees the office and RTR-01 only; hacking RTR-01 reveals the Security subnet. The level is
 ## loaded once (the tests leave it as they found it, design/tech/testing.md "Writing fast tests").
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const SECURITY := "Population/Security/"
@@ -147,10 +148,10 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 	# The console's known login (the audit note) works bare-handed; it opens the vault door remotely.
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
 	assert_bool(console.send(Device.UNLOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_false()
 	assert_bool(console.send(Device.LOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_true()
 	console.log_out()
 
@@ -178,20 +179,20 @@ func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() ->
 	# subnet (the security room, the hall, the yard and the roof) stays reachable.
 	var powered := Powered.of(_entity("Network/OfficeBay/VaultSwitch"))
 	powered.on = false
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, vault, false)
 	_assert_reached(console, roof + others, true)
 	powered.on = true
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, vault, true)
 	# The roof's switch broken: the roof's devices go offline, the yard's switch above it does not.
 	var roof_switch := _device("Network/OfficeBay/RoofSwitch")
 	roof_switch.load_state({"broken": true})
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, roof, false)
 	_assert_reached(console, vault + others, true)
 	roof_switch.load_state({"broken": false})
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, roof, true)
 
 
@@ -211,13 +212,13 @@ func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_rtr01_reveals_
 	session.config.scan_time = 0.1
 	assert_bool(session.plug(_device("Network/OfficeWallJack"), Net.deck_stack())).is_true()
 	assert_str(session.source.address).is_equal("10.0.10.40")
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	var seen := _map(session)
 	assert_array(seen).contains_exactly_in_any_order(OFFICE + ["Network/OfficeBay/Rtr01"])
 	# Hacking the router (an account on it: the Icebreaker at Trained, or a login) opens Security.
 	DeviceAccounts.of(_router()).grant(user, "admin")
 	session.refresh()
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	seen = _map(session)
 	for path: String in SECURITY_DEVICES:
 		assert_array(seen).override_failure_message(path + " not on the map").contains([path])
@@ -259,8 +260,3 @@ func _level_texts() -> Array[String]:
 			texts.append(document.text)
 			texts.append(str(document.codes))
 	return texts
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

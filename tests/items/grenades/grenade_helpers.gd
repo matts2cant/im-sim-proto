@@ -82,11 +82,6 @@ static func seconds(tree: SceneTree, time: float) -> void:
 		await tree.physics_frame
 
 
-static func frames(tree: SceneTree, count: int) -> void:
-	for i in count:
-		await tree.physics_frame
-
-
 ## EventLog entries of `kind` about `object` (data "object").
 static func logged(kind: StringName, object: String = "") -> Array[EventLogEntry]:
 	return EventLog.find(kind).filter(

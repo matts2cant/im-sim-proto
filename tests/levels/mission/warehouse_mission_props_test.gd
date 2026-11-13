@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## its population and the Mission (fixture `warehouse_player.tscn`); props are found by their tags
 ## and components.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const WarehouseHelpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const PEOPLE := "Population/People"
@@ -40,7 +41,7 @@ func test_picking_up_the_prototype_completes_optional_a() -> void:
 	await _driver.place(Vector3(18.0, 4.5, 3.5), -PI / 2.0)
 
 	assert_bool(_driver.player.inventory.pick_up(pickup)).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(_mission.tracker.is_done(&"prototype")).is_true()
 	assert_int(_completed(&"prototype")).is_equal(1)
@@ -54,7 +55,7 @@ func test_blowing_up_the_fuel_drum_sabotages_the_shipment() -> void:
 	assert_bool(_mission.tracker.is_done(&"shipment")).is_false()
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 100.0, drum))
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 
 	assert_array(EventLog.find(&"object.exploded")).is_not_empty()
 	assert_bool(_mission.tracker.is_done(&"shipment")).is_true()
@@ -73,8 +74,8 @@ func test_a_burning_shipment_crate_also_sabotages_it() -> void:
 	# A fire reaching the crate (a burning neighbour, a thrown bottle of fuel...): it ignites.
 	for i in 3:
 		StimulusSystem.emit(Stimulus.make_contact(&"fire", 20.0, crate))
-		await _frames(2)
-	await _frames(3)
+		await Wait.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(ActorState.has(crate, Flammable.BURNING_TAG)).is_true()
 	assert_bool(_mission.tracker.is_done(&"shipment")).is_true()
@@ -93,7 +94,7 @@ func test_the_gas_cylinders_breach_the_weak_wall_loudly() -> void:
 
 	# One shot at one cylinder: the rest chain and the panel breaks.
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 100.0, cylinders[0]))
-	await _frames(10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_int(EventLog.find(&"object.exploded").size()).is_equal(cylinders.size())
 	assert_bool(is_instance_valid(panel)).is_false()
@@ -118,7 +119,7 @@ func test_the_catwalk_rifle_guard_drops_its_assault_rifle() -> void:
 	)
 
 	(guard.get_node("BodyParts") as BodyParts).take_damage(&"damage.stun", 200.0)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	var dropped: Array[Node3D] = []
 	for node in _level.find_children("*", "RigidBody3D", true, false):
@@ -134,20 +135,15 @@ func _setup() -> void:
 	_driver.player.reload_on_reset = false
 	_level = _driver.runner.scene()
 	_mission = _level.get_node("Mission") as Mission
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	if _mission.briefing.is_open():
 		_mission.briefing.close()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 
 func _people() -> Node:
 	return _level.get_node(PEOPLE)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 func _tagged(tag: StringName) -> Array[Node3D]:

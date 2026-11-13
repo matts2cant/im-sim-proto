@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## settings' doorway, and it opens by the settings' travel (a roller door rises, a gate slides past
 ## its posts on one side of the fence). Doors with different settings never share their shapes.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const DOOR: PackedScene = preload("res://objects/door/door.tscn")
 const ROLLER: DoorSettings = preload("res://objects/door/roller_door_settings.tres")
 const GATE: DoorSettings = preload("res://objects/door/vehicle_gate_settings.tres")
@@ -49,7 +50,7 @@ func test_a_roller_door_fills_4_by_4_m_and_rises_into_the_wall_above() -> void:
 	assert_bool(PhysicsLayers.segment_clear(space, from, to)).is_false()
 	assert_bool(door.open()).is_true()
 	# 2.5 s to open: 150 physics frames, and margin.
-	await _frames(165)
+	await Wait.frames(get_tree(), 165)
 	assert_float(door.openness).is_equal(1.0)
 	assert_float(panel.position.y - closed.y).is_equal_approx(4.1, 0.001)
 	assert_float(panel.position.x).is_equal_approx(0.0, 0.001)
@@ -66,7 +67,7 @@ func test_a_gate_slides_along_one_side_of_its_fence() -> void:
 	assert_float(panel.position.z).is_equal_approx(-0.3, 0.001)
 
 	door.open()
-	await _frames(195)
+	await Wait.frames(get_tree(), 195)
 
 	assert_float(panel.position.x).is_equal_approx(6.2, 0.001)
 	assert_float(panel.position.z).is_equal_approx(-0.3, 0.001)
@@ -78,7 +79,7 @@ func test_a_barred_gate_stops_bodies_but_not_sight_or_noise() -> void:
 	# The vehicle gate is a grille (bars 0.22 m apart, 0.05 m wide, like the palisade fence).
 	assert_float(GATE.bar_spacing).is_greater(0.0)
 	var entity := _door(GATE, Vector3.ZERO)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var space := entity.get_world_3d().direct_space_state
 	var bar := GATE.bar_width
 	var count := floori((6.1 - bar) / GATE.bar_spacing) + 1
@@ -155,8 +156,3 @@ func _door(settings: DoorSettings, at: Vector3) -> StaticBody3D:
 # A wall box's transform in its door's frame (the boxes hang under the door's controller).
 static func _in_door(door: Door, box: Node3D) -> Transform3D:
 	return door.entity.global_transform.affine_inverse() * box.global_transform
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

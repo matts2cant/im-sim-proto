@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ##   through the body-discovery rules unchanged: lit by the beam it is found, in the dark it is not
 ##   (6 m: past the 2 m close override).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const CHARACTERS := preload("res://tests/actors/common/character_fixtures.gd")
 const GUARD: PackedScene = preload("res://actors/guard/guard.tscn")
 const ORIGIN := Vector3(-300, 0, -300)
@@ -46,7 +47,7 @@ func test_a_walking_target_in_the_beam_at_8m_alerts_in_2_to_3s() -> void:
 	target.add_child(exposure)
 	ActorState.set_tag(target, &"actor.player", true)
 	ActorState.set_tag(target, ActorState.CLOAKED, true)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	ActorState.set_tag(target, ActorState.CLOAKED, false)
 
 	var walker: Variant = target
@@ -77,10 +78,10 @@ func test_a_walking_target_in_the_beam_at_8m_alerts_in_2_to_3s() -> void:
 func test_a_body_lit_by_the_beam_is_found() -> void:
 	Flashlight.of(_guard).on_while_patrolling = true
 	var body := _downed("Downed")
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	# Lit by the beam before it is found (the guard then runs over and stands beside it).
 	assert_float(LightExposure.of(body).level).is_greater(0.2)
-	await _frames(130)
+	await Wait.frames(get_tree(), 130)
 	assert_bool(Flashlight.of(_guard).lit).is_true()
 	assert_bool(Flashlight.of(body).lit).is_false()
 	var found := EventLog.find(&"actor.body_found")
@@ -90,7 +91,7 @@ func test_a_body_lit_by_the_beam_is_found() -> void:
 
 func test_a_body_in_the_dark_is_not_found() -> void:
 	var body := _downed("Downed")
-	await _frames(150)
+	await Wait.frames(get_tree(), 150)
 	assert_bool(Flashlight.of(_guard).lit).is_false()
 	assert_array(EventLog.find(&"actor.body_found")).is_empty()
 	assert_float(LightExposure.of(body).level).is_less(0.1)
@@ -105,8 +106,3 @@ func _downed(body_name: String) -> NavWalker:
 	body.rotation.y = PI * 0.5
 	_root.add_child(body)
 	return body
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

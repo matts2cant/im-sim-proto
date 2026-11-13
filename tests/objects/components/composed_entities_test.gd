@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## ship with them. Each entity here is built in code from components and tuning made in the test
 ## (StimulusFixtures + ObjectTestHelpers builders): no crate, barrel or bottle scene.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
@@ -18,7 +19,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_floor = auto_free(load(FLOOR).instantiate())
 	add_child(_floor)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_minimal_flammable_ignites_pulses_and_burns_out() -> void:
@@ -27,7 +28,7 @@ func test_minimal_flammable_ignites_pulses_and_burns_out() -> void:
 	var spark := Stimulus.make_contact(&"fire", 5.0, torch)
 
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(flammable.is_burning()).is_true()
 	assert_bool(Fixtures.tags_of(torch).has(&"state.burning")).is_true()
@@ -38,7 +39,7 @@ func test_minimal_flammable_ignites_pulses_and_burns_out() -> void:
 	assert_int(pulses[0].data["cause_id"]).is_equal(spark.id)
 
 	# 1 s of fuel.
-	await Objects.frames(get_tree(), 70)
+	await Wait.frames(get_tree(), 70)
 	assert_bool(flammable.is_burning()).is_false()
 	assert_bool(Fixtures.tags_of(torch).has(&"state.charred")).is_true()
 	assert_array(Objects.logged(&"object.burnt_out", "object", "Torch")).has_size(1)
@@ -54,7 +55,7 @@ func test_minimal_fire_spreads_to_a_minimal_neighbour() -> void:
 	var straw_fire := Objects.add_flammable(straw, Objects.fire_config(3.0, 5.0))
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 5.0, torch))
-	await Objects.frames(get_tree(), 100)
+	await Wait.frames(get_tree(), 100)
 
 	assert_bool(straw_fire.is_burning()).is_true()
 
@@ -65,7 +66,7 @@ func test_explosive_without_breakable_goes_off_from_heat() -> void:
 	var spark := Stimulus.make_contact(&"fire", 5.0, canister)
 
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_array(Objects.logged(&"object.exploded", "object", "Canister")).has_size(1)
 	var types := (
@@ -84,11 +85,11 @@ func test_breakable_explosive_crate_blows_up_and_pushes_a_minimal_body() -> void
 	Objects.add_breakable(crate, 20.0, false)
 	Objects.add_explosive(crate, Objects.explosive_config(50.0, 30.0))
 	var probe := Fixtures.rigid_entity(_floor, "Probe", Vector3(1.5, 1.2, 0), [PUSHED], [], 0.4, 2.0, 0.0)
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	var hit := Stimulus.make_contact(&"damage.blunt", 25.0, crate)
 
 	StimulusSystem.emit(hit)
-	await Objects.frames(get_tree(), 4)
+	await Wait.frames(get_tree(), 4)
 
 	var exploded := Objects.logged(&"object.exploded", "object", "Bomb")
 	assert_array(exploded).has_size(1)
@@ -107,7 +108,7 @@ func test_impact_noise_on_a_body_that_is_not_a_crate() -> void:
 	noise.settings = load("res://objects/components/impact_settings.tres") as ImpactSettings
 	block.add_child(noise)
 
-	await Objects.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	var impacts := Objects.logged(&"object.impact", "object", "Block")
 	assert_array(impacts).is_not_empty()
@@ -130,7 +131,7 @@ func test_burning_carried_object_burns_a_carrier_that_is_not_the_player() -> voi
 	carryable.set_carrier(carrier)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 5.0, torch))
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 	var burns := EventLog.find(&"stimulus.received").filter(
 		func(entry: EventLogEntry) -> bool: return entry.target == "Porter" and entry.data["type"] == &"damage.fire"

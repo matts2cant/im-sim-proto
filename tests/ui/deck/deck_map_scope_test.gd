@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## button shows an empty Map with one line (DeckScreen.UNPLUGGED_NOTE). Every box shows the icon
 ## of its kind (DeviceKinds, ADR 0121), in the kind's colour with its strip (ADR 0130).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ORIGIN := Vector3(540, 0, -300)
@@ -38,7 +39,7 @@ func before_test() -> void:
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
 	_stack = Net.deck_stack()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 
 func after_test() -> void:
@@ -50,17 +51,12 @@ func after_test() -> void:
 	StimulusSystem.clear()
 
 
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
-
-
 # Moves the user to `eye`, plugs into `entity` and raises the screen, then waits out the scan.
 func _plug(entity: Node3D, eye: Vector3) -> void:
 	_user.global_position = ORIGIN + eye
 	assert_bool(_session.plug(Device.of(entity), _stack)).is_true()
 	_screen.open_for(_session)
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	_screen.refresh()
 
 
@@ -102,7 +98,7 @@ func test_every_box_shows_the_icon_of_its_kind() -> void:
 	await _plug(_a["Jack"], AT_A)
 	DeviceAccounts.of(_a["Rtr01"]).grant(_user, "admin")
 	_session.refresh()
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	_screen.refresh()
 	var kinds := DeviceKinds.shipped()
 	var with_icon: Array[String] = []

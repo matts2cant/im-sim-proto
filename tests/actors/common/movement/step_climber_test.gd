@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## Obstacle faces at z = -2; walkers start with a 0.3 m gap (surface to surface) to the face, i.e.
 ## feet at z = -2 + 0.35 + 0.3 = -1.35, and walk toward -Z. Lanes are 3 m apart in X.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Course := preload("res://tests/actors/common/step_course.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -40,14 +41,14 @@ func test_walks_up_low_steps_at_any_speed_within_half_a_second() -> void:
 			Course.block(_root, top, FACE_Z, 3.0, x)
 			walkers.append(_walker("Walker%d" % lane, Vector3(x, 0, START_Z), CLIMBER_ONLY))
 			lane += 1
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	lane = 0
 	for top in LOW_STEPS:
 		for speed in SPEEDS:
 			walkers[lane].set(&"drive", Vector3(0, 0, -speed))
 			lane += 1
 
-	await Fixtures.frames(get_tree(), HALF_SECOND)
+	await Wait.frames(get_tree(), HALF_SECOND)
 
 	lane = 0
 	for top in LOW_STEPS:
@@ -63,10 +64,10 @@ func test_walks_up_low_steps_at_any_speed_within_half_a_second() -> void:
 func test_keeps_its_speed_over_a_step() -> void:
 	Course.block(_root, 0.3, FACE_Z, 6.0)
 	var walker := _walker("Walker", Vector3(0, 0, START_Z), CLIMBER_ONLY)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	walker.set(&"drive", Vector3(0, 0, -4.0))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND)
+	await Wait.frames(get_tree(), HALF_SECOND)
 
 	# 0.5 s at 4 m/s is 2 m on a flat floor; the step may cost a tick or two, not more.
 	assert_float(START_Z - walker.global_position.z).is_greater(1.85)
@@ -79,11 +80,11 @@ func test_higher_block_stops_the_walker_on_the_floor() -> void:
 		var x := (i - 1) * LANE
 		Course.block(_root, 0.45, FACE_Z, 3.0, x)
 		walkers.append(_walker("Walker%d" % i, Vector3(x, 0, START_Z), CLIMBER_ONLY))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	for i in SPEEDS.size():
 		walkers[i].set(&"drive", Vector3(0, 0, -SPEEDS[i]))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND * 2)
+	await Wait.frames(get_tree(), HALF_SECOND * 2)
 
 	for walker in walkers:
 		assert_float(walker.global_position.y).is_less(0.02)
@@ -98,7 +99,7 @@ func test_walks_up_and_down_stairs_without_leaving_the_floor() -> void:
 		var x := (i - 1) * LANE
 		top = Course.stair(_root, FACE_Z, x)
 		walkers.append(_walker("Walker%d" % i, Vector3(x, 0, START_Z), WITH_NOISE))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 	# Up the 1.5 m of stair onto the landing (its face at z = -3.5, 3 m deep): stop 0.5 m onto it.
@@ -132,7 +133,7 @@ func test_still_falls_off_ledges_above_the_step_height() -> void:
 		# The walker stands 0.65 m (centre to face) back on the ledge and walks off its face toward +Z.
 		Course.block(_root, heights[i], FACE_Z, 3.0, x)
 		walkers.append(_walker("Walker%d" % i, Vector3(x, heights[i], FACE_Z - 1.0), WITH_NOISE))
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	EventLog.clear()
 
 	var airborne := await _walk_until(
@@ -156,7 +157,7 @@ func test_steps_down_a_low_ledge_and_reports_both_steps() -> void:
 	var climber := StepClimber.of(walker)
 	var rises: Array[float] = []
 	climber.stepped.connect(func(rise: float) -> void: rises.append(rise))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 	var walkers: Array[CharacterBody3D] = [walker]
@@ -182,11 +183,11 @@ func test_needs_headroom_for_its_current_shape() -> void:
 	var standing := _walker("Standing", Vector3(-LANE, 0, START_Z), CLIMBER_ONLY)
 	var crouched := _walker("Crouched", Vector3(LANE, 0, START_Z), CLIMBER_ONLY)
 	_set_height(crouched, 0.95)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	standing.set(&"drive", Vector3(0, 0, -2.0))
 	crouched.set(&"drive", Vector3(0, 0, -2.0))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND * 2)
+	await Wait.frames(get_tree(), HALF_SECOND * 2)
 
 	assert_float(standing.global_position.y).is_less(0.02)
 	assert_float(standing.global_position.z).is_greater(FACE_Z + 0.2)
@@ -199,10 +200,10 @@ func test_steps_onto_a_physics_prop_that_passes_through_it() -> void:
 	# stand on them. A 0.2 m slab of debris.
 	var prop := _prop(Vector3(0, 0.1, FACE_Z - 0.6))
 	var walker := Characters.character(_root, "Walker", Vector3(0, 0, START_Z), CLIMBER_ONLY, PhysicsLayers.PLAYER)
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	walker.set(&"drive", Vector3(0, 0, -2.0))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND)
+	await Wait.frames(get_tree(), HALF_SECOND)
 
 	assert_float(walker.global_position.y).is_equal_approx(0.2, 0.03)
 	assert_bool(walker.is_on_floor()).is_true()
@@ -214,10 +215,10 @@ func test_does_not_step_onto_a_prop_the_solver_pushes_it_against() -> void:
 	# it would fling it. (Shipped props never scan the character layers, ADR 0054.)
 	var prop := _prop(Vector3(0, 0.1, FACE_Z - 0.6), PhysicsLayers.OBJECT_MASK | PhysicsLayers.ACTORS)
 	var walker := _walker("Walker", Vector3(0, 0, START_Z), CLIMBER_ONLY)
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	walker.set(&"drive", Vector3(0, 0, -2.0))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND)
+	await Wait.frames(get_tree(), HALF_SECOND)
 
 	assert_float(walker.global_position.y).is_less(0.02)
 	assert_float(prop.global_position.y).is_equal_approx(0.1, 0.02)
@@ -227,17 +228,17 @@ func test_mantling_tag_turns_it_off() -> void:
 	Course.block(_root, 0.2, FACE_Z)
 	var walker := _walker("Walker", Vector3(0, 0, START_Z), CLIMBER_ONLY)
 	ActorState.set_tag(walker, ActorState.MANTLING, true)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	walker.set(&"drive", Vector3(0, 0, -4.0))
 
-	await Fixtures.frames(get_tree(), HALF_SECOND)
+	await Wait.frames(get_tree(), HALF_SECOND)
 
 	assert_float(walker.global_position.y).is_less(0.02)
 
 
 func test_puts_itself_first_among_the_components() -> void:
 	var walker := _walker("Walker", Vector3.ZERO, WITH_NOISE)
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	assert_int(StepClimber.of(walker).get_index()).is_equal(0)
 

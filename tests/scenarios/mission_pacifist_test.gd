@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## Fixture-local: player at (0, 0, 10) facing -Z, barrel centre (0, 0.45, 3) (7 m ahead), the guard
 ## 1 m beside it (gap ~0.4 m surface to surface, inside the 4 m blast).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Missions := preload("res://tests/levels/mission/mission_kit/mission_helpers.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const BARREL := preload("res://objects/explosive_barrel/explosive_barrel.tscn")
@@ -41,7 +42,7 @@ func _setup() -> Node3D:
 	level.add_child(guard)
 	guard.global_position = Missions.at(GUARD_AT)
 	(guard.get_node("BodyParts") as BodyParts).take_damage(&"damage.ballistic", 70.0, BodyDamageModel.TORSO)
-	await Missions.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	return level
 
 
@@ -56,11 +57,11 @@ func test_a_barrel_the_player_shot_kills_a_guard_and_breaks_pacifist() -> void:
 	)
 	player.inventory.hold(player.inventory.inventory.stacks_of(&"pistol")[0])
 	player.weapons.seed_rng(7)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	player.weapons.settle()
 
 	assert_int(player.weapons.trigger()).is_equal(WeaponState.Result.FIRED)
-	await Missions.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_int(EventLog.find(&"object.exploded").size()).is_equal(1)
 	assert_bool(ActorState.is_dead(level.get_node("Guard"))).is_true()
@@ -75,7 +76,7 @@ func test_a_blast_the_player_did_not_start_keeps_pacifist() -> void:
 	var barrel := level.get_node("Barrel")
 
 	(barrel.get_node("Explosive") as Explosive).explode(null)
-	await Missions.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_bool(ActorState.is_dead(level.get_node("Guard"))).is_true()
 	assert_int(mission.tally.kills).is_equal(0)

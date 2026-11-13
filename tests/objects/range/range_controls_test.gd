@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## puts back the pickups under its scope (made again, moved back, refilled), whatever they hold.
 ## Minimal users and bodies built in code.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const DUMMY: PackedScene = preload("res://actors/dummy/training_dummy.tscn")
 const SKILL_TABLE: SkillTable = preload("res://actors/common/abilities/skill_table.tres")
@@ -33,7 +34,7 @@ func test_reset_button_stands_dead_and_knocked_out_dummies_up() -> void:
 	var standing := _dummy("Standing", 4.0)
 	var other := Characters.character(_root, "Other", ORIGIN + Vector3(6, 0, 0))
 	var button := _reset_button()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	dead.body.take_damage(&"damage.ballistic", 500.0, &"head")
 	out.body.take_damage(&"damage.stun", 500.0)
 	var other_body := other.get_node("BodyParts") as BodyParts
@@ -42,7 +43,7 @@ func test_reset_button_stands_dead_and_knocked_out_dummies_up() -> void:
 	assert_bool(out.body.is_unconscious()).is_true()
 
 	button.use(null)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	for dummy: TrainingDummy in [dead, out, standing]:
 		assert_bool(dummy.body.is_dead() or dummy.body.is_unconscious()).override_failure_message(dummy.name).is_false()
@@ -126,12 +127,12 @@ func test_restock_puts_taken_moved_and_emptied_pickups_back() -> void:
 	var restock := PickupRestock.new()
 	restock.scope_path = NodePath("../Shelf")
 	_root.add_child(restock)
-	await _frames(1)
+	await Wait.frames(get_tree(), 1)
 	assert_int(restock.recorded()).is_equal(3)
 	ItemPickup.of(taken).consume()
 	moved.position = Vector3(3, 0.2, 2)
 	ItemPickup.of(emptied).count = 1
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_object(shelf.get_node_or_null("Taken")).is_null()
 
 	restock.use(null)
@@ -194,8 +195,3 @@ func _user(weapon: WeaponData = PISTOL) -> Node3D:
 	_root.add_child(user)
 	holder.equip(0)
 	return user
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

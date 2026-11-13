@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: SupportWake wakes the sleeping bodies touching a body, and the ones touching those,
 ## but nothing out of reach (ADR 0055). Small crates are 0.6 m cubes on a flat floor at y = 0.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const CrateWatch := preload("res://tests/objects/crate_watch.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
@@ -14,7 +15,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_floor = auto_free(load(FLOOR).instantiate())
 	add_child(_floor)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_wakes_the_whole_column_above_but_not_a_crate_out_of_reach() -> void:

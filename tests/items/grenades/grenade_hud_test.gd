@@ -28,20 +28,20 @@ func after_test() -> void:
 func test_hud_counts_grenades_and_each_throw_takes_one() -> void:
 	await _load(PI * 0.5)
 	_player.inventory.give(FRAG, 3)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	_hud.refresh_weapon()
 	assert_str(_hud.weapon_label.text).is_equal("Frag grenade")
 	assert_str(_hud.ammo_label.text).is_equal("x3")
 
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	_hud.refresh_weapon()
 
 	assert_str(_hud.ammo_label.text).is_equal("x2")
 	assert_str(_player.weapons.weapon().id).is_equal("frag_grenade")
 	await _driver.frames(50)
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	await _driver.frames(50)
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	# The last one thrown: empty hands, none left.
 	assert_bool(_player.weapons.is_armed()).is_false()
 	assert_int(EventLog.find(&"thrower.thrown").size()).is_equal(3)
@@ -52,7 +52,7 @@ func test_hud_counts_grenades_and_each_throw_takes_one() -> void:
 func test_ghost_shows_near_a_wall_and_not_three_metres_away() -> void:
 	await _load(0.0)
 	_player.inventory.give(FRAG, 1)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	var thrower := Thrower.of(_player)
 
 	assert_bool(thrower.ghost_visible()).is_true()
@@ -66,8 +66,8 @@ func test_ghost_shows_near_a_wall_and_not_three_metres_away() -> void:
 func test_fuse_readout_shows_at_master_only() -> void:
 	await _load(PI * 0.5)
 	_player.inventory.give(FRAG, 2)
-	await _press(&"belt_1")
-	await _press(&"fire")
+	await _driver.press(&"belt_1")
+	await _driver.press(&"fire")
 	_hud.refresh_fuse()
 	assert_bool(_hud.fuse_label.visible).is_false()
 
@@ -83,8 +83,8 @@ func test_fuse_readout_shows_at_master_only() -> void:
 func test_advanced_highlights_an_armed_mine_and_the_frame_says_armed() -> void:
 	await _load(0.0)
 	_player.inventory.give(FRAG, 1)
-	await _press(&"belt_1")
-	await _press(&"fire")
+	await _driver.press(&"belt_1")
+	await _driver.press(&"fire")
 	var mine := _mine()
 	assert_bool(Sticky.of(mine).is_stuck).is_true()
 	# Crouch and back off to 1.6 m (centre to wall face) before it arms, looking at it.
@@ -115,11 +115,6 @@ func _mine() -> RigidBody3D:
 		if child is RigidBody3D and Sticky.of(child) != null:
 			return child as RigidBody3D
 	return null
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load(yaw: float) -> void:

@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## and loading the room keeps a thrown grenade's fuse, a stuck one's arming and pose, and the grenades
 ## left in the inventory.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const ROOM := "res://tests/items/grenades/fixtures/grenade_room.tscn"
 const FRAG: ItemData = preload("res://items/grenades/frag/frag_grenade_item.tres")
 const FRAG_SCENE := "res://items/grenades/frag/frag_grenade.tscn"
@@ -39,12 +40,12 @@ func test_trained_crouched_player_disarms_a_mine_into_the_inventory() -> void:
 	var feet := Vector3(0, 0, 6.0)
 	var to := mine.global_position - (feet + Vector3.UP * _player.config.crouched_eye_height)
 	_place(feet, 0.0, atan2(to.y, Vector2(to.x, to.z).length()), true)
-	await Grenades.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	_player.interactor.refresh()
 	assert_str(_player.interactor.target_name).is_equal("Frag grenade")
 
 	assert_bool(_player.interactor.perform()).is_true()
-	await Grenades.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(is_instance_valid(mine)).is_false()
 	assert_array(EventLog.find(&"mine.disarmed")).has_size(1)
@@ -57,13 +58,13 @@ func test_save_and_load_keep_fuses_mines_and_the_inventory() -> void:
 	_place(Vector3.ZERO, 0.0, 0.0, false)
 	_player.inventory.give(FRAG, 3)
 	_player.inventory.select_slot(0)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	# Stick one on the wall 1.0 m ahead, then turn to the open floor (-X) and throw one.
 	_player.weapons.trigger()
 	_place(Vector3.ZERO, PI * 0.5, 0.0, false)
-	await Grenades.frames(get_tree(), 50)
+	await Wait.frames(get_tree(), 50)
 	_player.weapons.trigger()
-	await Grenades.frames(get_tree(), 12)
+	await Wait.frames(get_tree(), 12)
 	var saved := _grenades(room)
 	assert_int(saved.size()).is_equal(2)
 	var thrown_left := Fuse.of(saved["thrown"]).left
@@ -114,5 +115,5 @@ func _room() -> Node3D:
 	_player.input_enabled = false
 	add_child(room)
 	auto_free(room)
-	await Grenades.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	return room

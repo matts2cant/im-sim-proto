@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## (HealEffect -> BodyParts.heal(); ADR 0057), here the training dummy, not the player; and the dry
 ## run (StimulusSystem.would_affect) says no when there is nothing to heal.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const DUMMY := "res://actors/dummy/training_dummy.tscn"
 
@@ -14,7 +15,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_dummy = auto_free(load(DUMMY).instantiate()) as TrainingDummy
 	add_child(_dummy)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 
 func test_heal_stimulus_heals_a_hurt_dummy() -> void:
@@ -23,7 +24,7 @@ func test_heal_stimulus_heals_a_hurt_dummy() -> void:
 	assert_bool(StimulusSystem.would_affect(heal)).is_true()
 
 	StimulusSystem.emit(heal)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(_dummy.body.health(&"torso")).is_equal_approx(70.0, 0.001)
 	var healed := EventLog.find(&"actor.healed")
@@ -49,7 +50,7 @@ func test_heal_on_a_part_hitbox_heals_that_part_only() -> void:
 	assert_bool(StimulusSystem.would_affect(heal)).is_true()
 
 	StimulusSystem.emit(heal)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(_dummy.body.health(&"arm_l")).is_equal_approx(40.0, 0.001)
 	assert_float(_dummy.body.health(&"torso")).is_equal_approx(50.0, 0.001)

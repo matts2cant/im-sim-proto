@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## was before ADR 0105; MAX_OFFSET). Off, the flashlight hangs at the belt and the left arm is free;
 ## a guard downed with it lit keeps it in the hand, switched off.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const GUARD: PackedScene = preload("res://actors/guard/guard_pistol.tscn")
 const CHARACTERS := preload("res://tests/actors/common/character_fixtures.gd")
 const ORIGIN := Vector3(360, 0, 360)
@@ -49,7 +50,7 @@ func before_test() -> void:
 	_light = Flashlight.of(_guard)
 	_animator = _guard.get_node("Animator") as CharacterAnimator
 	_aim = _guard.get_node("Aim") as Node3D
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 
 func after_test() -> void:
@@ -58,7 +59,7 @@ func after_test() -> void:
 
 func test_the_beam_leaves_the_hand_along_the_eye_in_every_state() -> void:
 	_light.on_while_patrolling = true
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_bool(_light.lit).is_true()
 	assert_bool(_light.in_hand).is_true()
 	assert_float(_animator.weight_of(_animator.config.hold_off_hand_clip)).is_equal(1.0)
@@ -69,7 +70,7 @@ func test_the_beam_leaves_the_hand_along_the_eye_in_every_state() -> void:
 	_light.on_while_patrolling = false
 	(_guard.get_node("Awareness") as GradedAwareness).search_at(_guard.global_position + Vector3(0, 0, -5), "test")
 	_guard.move_to(_guard.global_position + Vector3(0, 0, -30), 2.5)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(_light.lit).is_true()
 	report.append(await _sample("search walk", 60))
 	ActorState.set_tag(_guard, ActorState.SPRINTING, true)
@@ -97,7 +98,7 @@ func test_the_beam_leaves_the_hand_along_the_eye_in_every_state() -> void:
 
 
 func test_off_it_hangs_at_the_belt_and_the_arm_is_free() -> void:
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_bool(_light.lit).is_false()
 	assert_bool(_light.in_hand).is_false()
 	assert_float(_animator.weight_of(_animator.config.hold_off_hand_clip)).is_equal(0.0)
@@ -108,16 +109,16 @@ func test_off_it_hangs_at_the_belt_and_the_arm_is_free() -> void:
 	assert_float(at.x).is_less(0.0)
 	assert_float((-_light.held.global_basis.z).dot(Vector3.DOWN)).is_greater(0.9)
 	_light.on_while_patrolling = true
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_bool(_light.in_hand).is_true()
 	assert_float(_light.held.global_position.distance_to(_animator.off_hand_mount.global_position)).is_less(0.01)
 
 
 func test_a_guard_downed_with_it_lit_keeps_it_in_hand_switched_off() -> void:
 	_light.on_while_patrolling = true
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	BodyParts.of(_guard).take_damage(&"damage.stun", 500.0, &"head")
-	await _frames(60)
+	await Wait.frames(get_tree(), 60)
 	assert_bool(_light.lit).is_false()
 	assert_bool(_light.beam.is_visible_in_tree()).is_false()
 	assert_bool(_light.in_hand).is_true()
@@ -141,8 +142,3 @@ func _sample(label: String, frames: int) -> String:
 	_angle = maxf(_angle, angle)
 	_offset = maxf(_offset, offset)
 	return "%s %.1f deg %.2f m" % [label, angle, offset]
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

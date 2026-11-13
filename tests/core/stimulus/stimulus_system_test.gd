@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: the real StimulusSystem autoload: tick queueing, FIFO order, chain depth cap and
 ## RADIUS delivery. Only physics frames drive it.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _world: Node3D
@@ -24,7 +25,7 @@ func test_emit_is_delivered_on_the_next_physics_tick() -> void:
 	assert_array(EventLog.find(&"stimulus.received")).is_empty()
 	# Awaiting a physics frame resumes before that frame's processing: the second await
 	# observes the first tick's delivery.
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var emitted := Fixtures.entries(&"stimulus.emitted", fire.id)
 	var received := Fixtures.entries(&"stimulus.received", fire.id)
 	assert_int(received.size()).is_equal(1)
@@ -40,7 +41,7 @@ func test_emitted_entry_has_the_documented_fields() -> void:
 	var source: Node3D = auto_free(Node3D.new())
 	source.name = "Barrel"
 	StimulusSystem.emit(Stimulus.make_radius(&"fire", 2.0, Vector3(1, 2, 3), 4.0, source))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var entry := EventLog.find(&"stimulus.emitted")[0]
 	assert_str(entry.source).is_equal("Barrel")
@@ -59,7 +60,7 @@ func test_ids_are_unique_and_queue_is_fifo() -> void:
 
 	StimulusSystem.emit(first)
 	StimulusSystem.emit(second)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(second.id).is_greater(first.id)
 	var received := EventLog.find(&"stimulus.received")
@@ -75,11 +76,11 @@ func test_stimuli_emitted_by_effects_wait_for_the_next_tick() -> void:
 	Fixtures.entity(_world, "Listener", Vector3(1, 0, 0), [Fixtures.receptron(&"pong")])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"ping", 1.0, Vector3.ZERO, 2.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	# Frame 1 delivered the ping and queued the pong; it is still pending at the start of frame 2.
 	assert_array(EventLog.find(&"receptron.fired")).has_size(1)
 	assert_int(StimulusSystem.pending_count()).is_equal(1)
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	var emitted := EventLog.find(&"stimulus.emitted")
 	assert_array(emitted).has_size(2)
@@ -98,7 +99,7 @@ func test_chain_deeper_than_cap_is_dropped_and_logged() -> void:
 	Fixtures.entity(_world, "Echo", Vector3.ZERO, [echo])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"echo", 2.0, Vector3.ZERO, 2.0))
-	await Fixtures.frames(get_tree(), StimulusSystem.MAX_DEPTH + 4)
+	await Wait.frames(get_tree(), StimulusSystem.MAX_DEPTH + 4)
 
 	var emitted := EventLog.find(&"stimulus.emitted")
 	assert_array(emitted).has_size(StimulusSystem.MAX_DEPTH + 1)
@@ -126,7 +127,7 @@ func test_radius_ignores_receivers_out_of_range_or_type() -> void:
 	Fixtures.entity(_world, "Near", Vector3(0, 0, 3), [Fixtures.receptron(&"fire")])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"fire", 1.0, Vector3.ZERO, 4.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := EventLog.find(&"stimulus.received")
 	assert_array(received).has_size(1)
@@ -137,7 +138,7 @@ func test_hierarchical_receptron_receives_subtypes() -> void:
 	Fixtures.entity(_world, "Target", Vector3(1, 0, 0), [Fixtures.receptron(&"damage", [], "any_damage")])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"damage.explosive", 50.0, Vector3.ZERO, 5.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var fired := EventLog.find(&"receptron.fired")
 	assert_array(fired).has_size(1)
@@ -149,6 +150,6 @@ func test_clear_drops_pending_stimuli() -> void:
 	StimulusSystem.emit(Stimulus.make_noise(5.0, Vector3.ZERO))
 
 	StimulusSystem.clear()
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(EventLog.find(&"stimulus.emitted")).is_empty()

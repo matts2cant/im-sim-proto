@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## 3 m high) over z -6..6, or with a doorway at z 3..5; a 2.5 x 2.5 m block 1.6 m high west of it
 ## (x -2.85..-0.35, z -2.25..0.25: an island on its top). The source stands on the block.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const ORIGIN := Vector3(300, 0, -300)
@@ -46,7 +47,7 @@ func test_noise_on_an_island_is_not_heard_through_a_wall() -> void:
 	var listener := _listener(BEHIND_WALL)
 
 	StimulusSystem.emit(Stimulus.make_noise(LOUDNESS, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	# Before ADR 0094 it was heard 3.7 m away, straight through the wall.
 	assert_array(_received_by(listener)).is_empty()
@@ -59,7 +60,7 @@ func test_noise_on_an_island_is_heard_by_the_doorway_route() -> void:
 	var listener := _listener(BEHIND_WALL)
 
 	StimulusSystem.emit(Stimulus.make_noise(LOUDNESS, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := _received_by(listener)
 	assert_int(received.size()).is_equal(1)
@@ -76,7 +77,7 @@ func test_noise_on_an_island_is_heard_across_open_air() -> void:
 	var listener := _listener(SAME_ROOM)
 
 	StimulusSystem.emit(Stimulus.make_noise(LOUDNESS, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := _received_by(listener)
 	assert_int(received.size()).is_equal(1)
@@ -94,7 +95,7 @@ func test_noise_on_a_wall_face_is_heard_in_the_room() -> void:
 	var impact := ORIGIN + Vector3(-0.2, 1.5, -4)
 
 	StimulusSystem.emit(Stimulus.make_noise(LOUDNESS, impact))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := _received_by(listener)
 	assert_int(received.size()).is_equal(1)
@@ -137,7 +138,7 @@ func _bake() -> void:
 	await GuardHelpers.use_sync_iterations(_map(), _region)
 	GuardHelpers.isolate_region(_map(), _region)
 	_region.bake_navigation_mesh(false)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var on_top := NavigationServer3D.map_get_closest_point(_map(), SOURCE)
 	assert_float(on_top.y).override_failure_message("no island on the block: %s" % on_top).is_greater(1.4)
 

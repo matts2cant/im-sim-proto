@@ -10,6 +10,7 @@ extends GdUnitTestSuite
 ##   plan (x east, z south): a grenade at (0, -7) with player bodies at x = 2, 4.5, 7 on z = -7;
 ##   another at (0, 7) with guard bodies on z = 7 (14 m apart: neither reaches the other row).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/objects/explosives/explosive_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -49,14 +50,14 @@ func test_kills_within_3_m_hurts_badly_to_6_m_and_spares_7_m() -> void:
 			var body := Characters.character(_root, key, Vector3(d, 0, z), [], PhysicsLayers.ACTORS, [], rows[row])
 			bodies[key] = Characters.body_parts(body)
 		z += 14.0
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var grenade := Grenades.grenade(_root, "Frag", GRENADE_AT + Vector3(0, 0, -7), Grenades.FRAG)
 	# One grenade per row, 14 m apart: neither reaches the other row or grenade.
 	var second := Grenades.grenade(_root, "Frag2", GRENADE_AT + Vector3(0, 0, 7), Grenades.FRAG)
 	Grenades.explosive_of(grenade).explode()
-	await _frames(1)
+	await Wait.frames(get_tree(), 1)
 	Grenades.explosive_of(second).explode()
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 
 	for row: String in rows:
 		var torso := rows[row].torso_health
@@ -74,13 +75,13 @@ func test_kills_within_3_m_hurts_badly_to_6_m_and_spares_7_m() -> void:
 func test_kills_the_shipped_guard_at_2_m_and_hurts_it_at_4_5_m() -> void:
 	var near := _guard("GuardNear", Vector3(2, 0, -7))
 	var mid := _guard("GuardMid", Vector3(4.5, 0, 7))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var first := Grenades.grenade(_root, "Frag", GRENADE_AT + Vector3(0, 0, -7), Grenades.FRAG)
 	var second := Grenades.grenade(_root, "Frag2", GRENADE_AT + Vector3(0, 0, 7), Grenades.FRAG)
 	Grenades.explosive_of(first).explode()
-	await _frames(1)
+	await Wait.frames(get_tree(), 1)
 	Grenades.explosive_of(second).explode()
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 
 	assert_bool(BodyParts.of(near).is_dead()).is_true()
 	var body := BodyParts.of(mid)
@@ -96,10 +97,10 @@ func test_pushes_props_chains_to_barrels_and_grenades_without_fire_and_loud() ->
 	barrel.position = Vector3(-4, 0.45, 0)
 	_root.add_child(barrel)
 	var gas := Grenades.grenade(_root, "GasGrenade", Vector3(0, 0.1, 3.5), Grenades.GAS)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var frag := Grenades.grenade(_root, "Frag", GRENADE_AT, Grenades.FRAG)
 	Grenades.explosive_of(frag).explode()
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 
 	assert_float(prop.linear_velocity.length()).is_greater(1.0)
 	# The walker 5 m north was pushed further north.
@@ -125,7 +126,3 @@ func _guard(guard_name: String, feet: Vector3) -> Node3D:
 	guard.position = feet
 	_root.add_child(guard)
 	return guard
-
-
-func _frames(count: int) -> void:
-	await Fixtures.frames(get_tree(), count)

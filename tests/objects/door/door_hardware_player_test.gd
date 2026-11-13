@@ -58,22 +58,22 @@ func test_each_box_and_the_leaf_do_their_own_thing() -> void:
 	await _aim(FEET_FRONT, Helpers.ORIGIN + LEAF)
 	assert_object(_player.interactor.target).is_same(_entity)
 	assert_str(_player.interactor.prompt).is_equal("Locked: keypad or keycard or lockpick")
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_screen.is_open()).is_false()
 	assert_bool(_door.is_open()).is_false()
 
 	# The keypad box: the keypad screen.
 	await _aim(FEET_FRONT, Helpers.box_point(_door, true, 0))
 	assert_str(_player.interactor.prompt).is_equal("E: enter code")
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_screen.is_open()).is_true()
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 	assert_bool(_screen.is_open()).is_false()
 
 	# The card reader box: the card opens it, and it stays locked.
 	await _aim(FEET_FRONT, Helpers.box_point(_door, true, 1))
 	assert_str(_player.interactor.prompt).is_equal("E: open (keycard)")
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.frames(SLIDE_FRAMES)
 	assert_bool(_door.is_open()).is_true()
 	assert_bool(_door.is_locked()).is_true()
@@ -82,7 +82,7 @@ func test_each_box_and_the_leaf_do_their_own_thing() -> void:
 	# The handle stands out of the jamb: E there closes it, and it is locked again.
 	await _aim(FEET_FRONT, _door.hardware.handle_point(true))
 	assert_str(_player.interactor.prompt).is_equal("E: close")
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.frames(SLIDE_FRAMES)
 	assert_bool(_door.is_open()).is_false()
 	assert_bool(_door.is_locked()).is_true()
@@ -126,7 +126,7 @@ func test_a_keypad_stays_unlocked_once_its_code_is_in() -> void:
 	Helpers.lock(_entity)
 	await _driver.frames(2)
 	await _aim(FEET_FRONT, Helpers.box_point(_door))
-	await _press(&"use")
+	await _driver.press(&"use")
 	for key: String in ["2", "8", "1", "7", "OK"]:
 		(_screen.grid.get_node("Key%s" % key) as Button).pressed.emit()
 	await _driver.frames(SLIDE_FRAMES)
@@ -134,7 +134,7 @@ func test_a_keypad_stays_unlocked_once_its_code_is_in() -> void:
 
 	# Closed from its keypad box: it stays unlocked, the leaf opens it.
 	assert_str(_player.interactor.prompt).is_equal("E: close")
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.frames(SLIDE_FRAMES)
 	assert_bool(_door.is_open()).is_false()
 	assert_bool(_door.is_locked()).is_false()
@@ -145,8 +145,3 @@ func test_a_keypad_stays_unlocked_once_its_code_is_in() -> void:
 func _aim(feet: Vector3, target: Vector3) -> void:
 	_player.load_state(Objects.aiming_state(_player, Helpers.ORIGIN + feet, target))
 	await _driver.frames(3)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)

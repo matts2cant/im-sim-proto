@@ -2,6 +2,8 @@ extends GdUnitTestSuite
 ## Integration: the Overlays tab's Stimuli checkbox and the StimulusOverlay it drives, fed by the
 ## real StimulusSystem.
 
+const Wait := preload("res://tests/helpers/wait.gd")
+
 var _overlay: StimulusOverlay
 
 
@@ -32,7 +34,7 @@ func test_draws_processed_stimuli_while_enabled() -> void:
 	_set_checkbox(true)
 
 	StimulusSystem.emit(Stimulus.make_noise(6.0, Vector3(1, 0, 1)))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(_overlay.active_count()).is_equal(1)
 	var mesh := _overlay.mesh as ImmediateMesh
@@ -44,7 +46,7 @@ func test_draws_processed_stimuli_while_enabled() -> void:
 func test_drawings_expire_after_lifetime() -> void:
 	_set_checkbox(true)
 	StimulusSystem.emit(Stimulus.make_noise(6.0, Vector3.ZERO))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	_overlay.advance(_overlay.lifetime)
 
@@ -54,7 +56,7 @@ func test_drawings_expire_after_lifetime() -> void:
 
 func test_nothing_is_drawn_while_disabled() -> void:
 	StimulusSystem.emit(Stimulus.make_noise(6.0, Vector3.ZERO))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(_overlay.active_count()).is_equal(0)
 
@@ -91,8 +93,3 @@ func _overlays_tab() -> OverlaysTab:
 func _set_checkbox(pressed: bool) -> void:
 	var checkbox: CheckBox = _overlays_tab().get_node("Stimuli")
 	checkbox.button_pressed = pressed
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

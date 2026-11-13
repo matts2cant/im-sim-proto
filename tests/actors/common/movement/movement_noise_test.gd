@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: MovementNoise on a minimal CharacterBody3D (tests/actors/common/fixtures/walker.gd)
 ## that knows nothing about noise: footsteps per stance tag and surface, landings.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const NOISE: MovementNoiseConfig = preload("res://actors/player/player_movement_noise.tres")
@@ -65,7 +66,7 @@ func test_footstep_is_a_noise_stimulus_from_the_feet() -> void:
 	var listener := Fixtures.entity(_root, "Listener", Vector3(-5, 1.6, 0), [Fixtures.receptron(&"noise")])
 
 	await _walk(walker, 40)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var step := EventLog.find(&"actor.footstep")[0]
 	var noise := EventLog.find(&"stimulus.emitted")[0]
@@ -82,7 +83,7 @@ func test_landing_noise_scales_with_the_impact() -> void:
 	# 3 m at 1 g lands at about 7.7 m/s.
 	var walker := Characters.character(_root, "Walker", Vector3(0, 3, 0), [Characters.MOVEMENT_NOISE])
 
-	await Fixtures.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	var landings := EventLog.find(&"actor.landed")
 	assert_array(landings).has_size(1)
@@ -96,12 +97,12 @@ func test_landing_noise_scales_with_the_impact() -> void:
 
 func _standing_walker() -> CharacterBody3D:
 	var walker := Characters.character(_root, "Walker", Vector3(-8, 0.05, 0), [Characters.MOVEMENT_NOISE])
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	EventLog.clear()
 	return walker
 
 
 func _walk(walker: CharacterBody3D, ticks: int) -> void:
 	walker.set(&"drive", Vector3(SPEED, 0, 0))
-	await Fixtures.frames(get_tree(), ticks)
+	await Wait.frames(get_tree(), ticks)
 	walker.set(&"drive", Vector3.ZERO)

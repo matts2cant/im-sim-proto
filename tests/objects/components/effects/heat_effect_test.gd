@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: HeatEffect heats every heat-reactive component of the entity (group
 ## HeatEffect.GROUP), including one it has never heard of (defined here).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const HEAT_FROM_FIRE: Receptron = preload("res://objects/components/receptrons/heat_from_fire.tres")
@@ -38,7 +39,7 @@ func test_new_heat_reactive_component_gets_the_heat() -> void:
 	var spark := Stimulus.make_contact(&"fire", 5.0, entity)
 
 	StimulusSystem.emit(spark)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(probe.total).is_equal(5.0)
 	assert_array(probe.causes).contains_exactly([spark.id])
@@ -56,7 +57,7 @@ func test_every_heat_reactive_component_is_heated_and_others_are_not() -> void:
 	outsider.remove_from_group(HeatEffect.GROUP)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 3.0, entity))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(first.total).is_equal(3.0)
 	assert_float(second.total).is_equal(3.0)
@@ -69,7 +70,7 @@ func test_shipping_components_are_heat_reactive() -> void:
 	var explosive := Objects.add_explosive(entity, Objects.explosive_config(50.0))
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 4.0, entity))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(flammable.is_in_group(HeatEffect.GROUP)).is_true()
 	assert_bool(explosive.is_in_group(HeatEffect.GROUP)).is_true()

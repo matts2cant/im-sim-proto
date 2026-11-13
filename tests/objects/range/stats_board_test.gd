@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## it, far misses and other stimuli do not count, one line with several damage rays is one shot,
 ## and reset() clears the board.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const BOARD: PackedScene = preload("res://objects/range/stats_board.tscn")
 ## The target's feet; its box is 0.6 x 1.8 x 0.3 m, standing on them.
 const TARGET := Vector3(-320, 0, 300)
@@ -36,13 +37,13 @@ func before_test() -> void:
 
 
 func test_hits_and_near_misses_give_share_and_group() -> void:
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	# Four hits on the front face, 0.2 m apart sideways and up: group 0.28 m.
 	for offset: Vector2 in [Vector2(-0.1, 1.1), Vector2(0.1, 1.1), Vector2(-0.1, 1.3), Vector2(0.1, 1.3)]:
 		_shoot_at(Vector3(offset.x, offset.y, 0))
 	# A miss 0.8 m to the side of the box's centre line (0.5 m clear of its edge).
 	_shoot_at(Vector3(0.8, 1.2, 0))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	var stats := _board.stats
 	assert_int(stats.shots(&"Target")).is_equal(5)
@@ -54,29 +55,29 @@ func test_hits_and_near_misses_give_share_and_group() -> void:
 
 
 func test_far_misses_and_other_stimuli_do_not_count() -> void:
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_shoot_at(Vector3(4.0, 1.2, 0))
 	StimulusSystem.emit(Stimulus.make_ray(&"force.impact", 3.0, _from(Vector3(0, 1.2, 0)), Vector3.FORWARD, 30.0))
 	StimulusSystem.emit(Stimulus.make_radius(&"damage.fire", 5.0, TARGET + Vector3.UP, 2.0))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(_board.stats.shots(&"Target")).is_equal(0)
 
 
 func test_one_line_with_two_damage_rays_is_one_shot() -> void:
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var origin := _from(Vector3(0, 1.2, 0))
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 10.0, origin, Vector3.FORWARD, 30.0))
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.blunt", 5.0, origin, Vector3.FORWARD, 30.0))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(_board.stats.shots(&"Target")).is_equal(1)
 
 
 func test_reset_clears_the_board() -> void:
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_shoot_at(Vector3(0, 1.2, 0))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	_board.reset()
 
@@ -92,8 +93,3 @@ func _shoot_at(local: Vector3) -> void:
 # frame).
 func _from(local: Vector3) -> Vector3:
 	return Vector3(TARGET.x + local.x, TARGET.y + local.y, SHOOTER.z)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

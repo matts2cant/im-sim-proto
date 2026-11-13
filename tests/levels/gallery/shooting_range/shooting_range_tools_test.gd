@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## second rack; in the tree a bullet ray at the spray wall leaves a mark the board counts, and the
 ## reset button stands downed dummies up. Room-local coordinates.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/shooting_range/shooting_range_room.tscn")
 const MARKED: Receptron = preload("res://objects/components/receptrons/marked_by_bullets.tres")
 const ORIGIN := Vector3(-380, 0, 300)
@@ -123,7 +124,7 @@ func test_a_bullet_at_the_spray_wall_leaves_a_mark_the_board_counts() -> void:
 	var from := _room.to_global(Vector3(12.5, 1.4, -7.6))
 
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 25.0, from, _room.global_basis * Vector3.FORWARD, 60.0))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(marks.count()).is_equal(1)
 	assert_vector(_room.to_local(marks.points()[0])).is_equal_approx(Vector3(12.5, 1.4, -18), Vector3.ONE * 0.001)
@@ -135,16 +136,11 @@ func test_reset_button_stands_downed_dummies_up() -> void:
 	var out := _room.get_node("Lanes/DummyWalking") as TrainingDummy
 	dead.body.take_damage(&"damage.ballistic", 500.0, &"head")
 	out.body.take_damage(&"damage.stun", 500.0)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(dead.is_down and out.is_down).is_true()
 
 	Usable.of(_room.get_node("FiringLine/ResetDummies")).use(null)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(dead.is_down or out.is_down).is_false()
 	assert_bool(dead.body.is_dead() or out.body.is_unconscious()).is_false()
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

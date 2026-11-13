@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## ImpactNoise, Fuse (2.5 s), Sticky, ProximityTrigger (2 s, 2.5 m, 1 m crouched), MineDisarm giving
 ## the item back and the `Payload` slot; a bounce makes impact noise; a blast chains to a grenade.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const CATALOG: ItemCatalog = preload("res://items/item_catalog.tres")
 const ITEMS: Array[String] = [
@@ -72,10 +73,10 @@ func test_a_blast_sets_off_a_grenade_nearby() -> void:
 	var second := _frag(ORIGIN + Vector3(1.5, 5, 20))
 	first.freeze = true
 	second.freeze = true
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	Explosive.of(first).explode()
-	await Grenades.frames(get_tree(), 4)
+	await Wait.frames(get_tree(), 4)
 
 	assert_bool(is_instance_valid(second)).is_false()
 	assert_array(EventLog.find(&"object.exploded")).has_size(2)

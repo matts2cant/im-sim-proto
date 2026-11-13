@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## tag. Walls (world) and props (objects) block the sight rays; light comes from the target's
 ## LightExposure, frozen at a set level here (the light model itself: guard_light_test.gd).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const CONFIG: PerceptionConfig = preload("res://actors/guard/guard_perception.tres")
 
@@ -30,7 +31,7 @@ func before_test() -> void:
 
 func test_sees_a_lit_tagged_entity_in_focus() -> void:
 	var target := _target(Vector3(0, 0, -4), [&"actor.player"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	var seen := _sensor.look()
 
@@ -43,21 +44,21 @@ func test_sees_a_lit_tagged_entity_in_focus() -> void:
 func test_ignores_entities_without_a_hostile_tag() -> void:
 	_target(Vector3(0, 0, -4), [&"actor.dummy"])
 	_target(Vector3(1, 0, -4), [&"actor.guard"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look()).is_null()
 
 
 func test_cloaked_entity_is_not_seen() -> void:
 	_target(Vector3(0, 0, -4), [&"actor.player", &"state.cloaked"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look()).is_null()
 
 
 func test_behind_is_not_seen() -> void:
 	_target(Vector3(1.5, 0, 2.6), [&"actor.player"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look()).is_null()
 
@@ -65,7 +66,7 @@ func test_behind_is_not_seen() -> void:
 func test_a_wall_blocks_the_view() -> void:
 	_target(Vector3(0, 0, -6), [&"actor.player"])
 	_box(Vector3(0, 1.5, -3), Vector3(4, 3, 0.2), PhysicsLayers.WORLD)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_object(_sensor.look()).is_null()
 
@@ -75,13 +76,13 @@ func test_a_prop_hides_what_is_behind_it_up_to_its_top() -> void:
 	# a 0.95 m (crouched) one does not.
 	var target := _target(Vector3(0, 0, -6), [&"actor.player"])
 	_box(Vector3(0, 0.6, -5), Vector3(1.2, 1.2, 1.2), PhysicsLayers.OBJECTS)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_object(_sensor.look()).is_not_null()
 
 	var collision := target.get_node("Collision") as CollisionShape3D
 	(collision.shape as CapsuleShape3D).height = 0.95
 	collision.position.y = 0.475
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look()).is_null()
 
@@ -89,7 +90,7 @@ func test_a_prop_hides_what_is_behind_it_up_to_its_top() -> void:
 func test_light_level_scales_the_gain() -> void:
 	var target := _target(Vector3(0, 0, -4), [&"actor.player"])
 	var light := _light(target, 0.25)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_float(_sensor.look().gain).is_equal_approx(0.46875, 0.0001)
 
 	light.level = 0.05
@@ -106,7 +107,7 @@ func test_light_level_of_reads_the_light_exposure() -> void:
 func test_crouch_tag_and_wariness_change_the_gain() -> void:
 	var target := _target(Vector3(0, 0, -8), [&"actor.player"])
 	_light(target, 0.25)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var plain := _sensor.look().gain
 	(target.get_node("Tags") as Tags).add(&"stance.crouch")
 	assert_float(_sensor.look().gain).is_equal_approx(plain * 0.7, 0.0001)
@@ -116,7 +117,7 @@ func test_crouch_tag_and_wariness_change_the_gain() -> void:
 func test_picks_the_target_seen_best() -> void:
 	_target(Vector3(0, 0, -15), [&"actor.player"])
 	var near := _target(Vector3(1, 0, -4), [&"actor.player"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look().target).is_same(near)
 
@@ -124,7 +125,7 @@ func test_picks_the_target_seen_best() -> void:
 func test_a_watcher_that_cannot_act_sees_nothing() -> void:
 	_target(Vector3(0, 0, -4), [&"actor.player"])
 	(_watcher.get_node("Tags") as Tags).add(ActorState.UNCONSCIOUS)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_object(_sensor.look()).is_null()
 
@@ -133,7 +134,7 @@ func test_a_downed_hostile_is_not_seen_and_does_not_hide_one_behind() -> void:
 	# The downed one is nearer (higher gain): it would win if it counted.
 	var downed := _target(Vector3(0, 0, -4), [&"actor.player", ActorState.DEAD])
 	var standing := _target(Vector3(1, 0, -12), [&"actor.player"])
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_object(_sensor.look().target).is_same(standing)
 	(standing.get_node("Tags") as Tags).add(ActorState.UNCONSCIOUS)
 	assert_object(_sensor.look()).is_null()
@@ -148,10 +149,6 @@ func test_hostile_and_ally_follow_the_tags() -> void:
 	assert_bool(_sensor.is_ally(player)).is_false()
 	assert_bool(_sensor.is_ally(guard)).is_true()
 	assert_bool(_sensor.is_hostile(guard)).is_false()
-
-
-func _frames(count: int) -> void:
-	await Fixtures.frames(get_tree(), count)
 
 
 # A static 1.8 m capsule (feet at `feet`, actors layer) with Tags.

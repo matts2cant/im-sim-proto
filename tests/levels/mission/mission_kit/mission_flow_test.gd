@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## zone after it: the summary (paused, Esc does nothing) shows the tallies and both badges. Restart
 ## reloads the mission; Return to hub loads the hub with its own player and nothing carried over.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Missions := preload("res://tests/levels/mission/mission_kit/mission_helpers.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const KIT := {"baton": 1, "pistol": 1, "pistol_ammo": 10, "medkit": 1}
@@ -68,7 +69,7 @@ func test_start_gives_the_kit_and_opens_the_briefing() -> void:
 	assert_bool(get_tree().paused).is_false()
 	assert_float(paused_time).is_equal(0.0)
 	assert_int(EventLog.find(&"mission.briefing_closed").size()).is_equal(1)
-	await Missions.frames(get_tree(), 30)
+	await Wait.frames(get_tree(), 30)
 	assert_float(mission.time).is_between(0.4, 0.6)
 
 
@@ -79,29 +80,29 @@ func test_objectives_extraction_and_summary() -> void:
 	await Missions.close_briefing(level)
 	# Extraction before the main objective: refused, with its hint.
 	Missions.place(level, Vector3(0, 0, -12))
-	await Missions.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	assert_bool(mission.finished).is_false()
 	assert_str(mission.toast.text()).is_equal("Read the test manifest first")
 	assert_int(EventLog.find(&"mission.extraction_refused").size()).is_equal(1)
 	Missions.place(level, Vector3(0, 0, 4))
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	Missions.read_manifest(level)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(mission.tracker.is_done(&"manifest")).is_true()
 	assert_str(mission.toast.text()).is_equal("Objective complete: Read the test manifest")
 	player.inventory.pick_up(ItemPickup.of(level.get_node("Keycard")))
-	await Missions.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(mission.tracker.is_done(&"keycard")).is_true()
 	assert_str(mission.toast.text()).is_equal("Optional complete: Take the keycard")
 	(level.get_node("Shipment/Flammable") as Flammable).ignite(null)
-	await Missions.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(mission.tracker.is_done(&"shipment")).is_true()
 	assert_int(EventLog.find(&"mission.objective_completed").size()).is_equal(3)
-	await Missions.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	Missions.place(level, Vector3(0, 0, -12))
-	await Missions.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 	assert_bool(mission.finished).is_true()
 	assert_bool(mission.summary.is_open()).is_true()
@@ -131,7 +132,7 @@ func test_restart_reloads_the_mission() -> void:
 
 	mission.summary.restart_button.pressed.emit()
 	var restarted := await Missions.wait_for_scene_change(get_tree(), level)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_object(restarted).is_not_null()
 	assert_str(restarted.scene_file_path).is_equal(Missions.FIXTURE)
@@ -149,7 +150,7 @@ func test_return_to_hub_loads_the_hub_at_its_spawn() -> void:
 
 	mission.summary.hub_button.pressed.emit()
 	var hub := await Missions.wait_for_scene_change(get_tree(), level)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_object(hub).is_not_null()
 	assert_str(hub.scene_file_path).is_equal(Missions.HUB)

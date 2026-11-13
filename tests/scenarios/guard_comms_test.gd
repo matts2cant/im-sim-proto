@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## Radio: 30 m straight, through walls, radios only. Sirens and the alarm devices (ADR 0077):
 ## tests/scenarios/alarm_devices_test.gd.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Guards := preload("res://tests/actors/guard/guard_helpers.gd")
 const YARD := "res://tests/scenarios/fixtures/comms_yard.tscn"
 const TIME_FACTOR := 9.0
@@ -29,7 +30,7 @@ func before_test() -> void:
 	await Guards.use_sync_iterations(map, region)
 	Guards.isolate_region(map, region)
 	region.bake()
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 	EventLog.clear()
 
 
@@ -49,7 +50,7 @@ func test_a_shout_reaches_an_ally_within_path_range_and_not_one_around_the_wall(
 	assert_float(behind_path).is_greater(20.0)
 
 	_awareness("Caller").alert_at(Vector3(0, 0, 5))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	var shouts := _entries(&"actor.shout", "Caller")
 	assert_array(shouts).has_size(1)
@@ -65,7 +66,7 @@ func test_a_shout_reaches_an_ally_within_path_range_and_not_one_around_the_wall(
 
 func test_radio_reaches_a_radio_25_m_away_through_walls_and_not_35_m() -> void:
 	_awareness("Caller").alert_at(Vector3(0, 0, 5))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	assert_array(_entries(&"actor.radio", "Caller")).has_size(1)
 	assert_str(_awareness("RadioNear").state_name()).is_equal("searching")
@@ -79,7 +80,7 @@ func test_radio_reaches_a_radio_25_m_away_through_walls_and_not_35_m() -> void:
 func test_without_a_radio_tag_no_call_goes_out_and_none_is_heard() -> void:
 	ActorState.set_tag(_guard("Caller"), &"equipment.radio", false)
 	_awareness("Caller").alert_at(Vector3(0, 0, 5))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_array(EventLog.find(&"actor.radio")).is_empty()
 	assert_str(_awareness("RadioNear").state_name()).is_equal("unaware")
 
@@ -92,7 +93,7 @@ func test_a_shout_from_a_non_ally_is_not_heeded() -> void:
 	StimulusSystem.emit(
 		Stimulus.make_radius(&"alert.shout", 18.0, stranger.global_position, 18.0, stranger, Stimulus.Propagation.PATH)
 	)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_str(_awareness("Near").state_name()).is_equal("unaware")
 
 
@@ -111,8 +112,3 @@ func _entries(kind: StringName, actor: String) -> Array[EventLogEntry]:
 func _path_length(map: RID, from: Node3D, to: Node3D) -> float:
 	var path := NavigationServer3D.map_get_path(map, from.global_position, to.global_position, true)
 	return StimulusPropagation.polyline_length(path)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

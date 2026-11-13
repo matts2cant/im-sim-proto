@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## emit) and ChangeAttributeEffect (a biocell's `energy`), on minimal entities built in code
 ## (ADR 0061).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _world: Node3D
@@ -54,7 +55,7 @@ func test_emit_stimulus_effect_scales_by_the_reacting_entity() -> void:
 	_attributes(emitter).add_modifier(Modifier.create(&"noise_mult", Modifier.Op.MULTIPLY, 2.5))
 
 	StimulusSystem.emit_now(Stimulus.make_contact(&"poke", 1.0, emitter))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var noise := EventLog.find(&"stimulus.emitted").filter(
 		func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"noise"

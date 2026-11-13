@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## refused, and a refusal beeps and sets the mine off 0.5 s later (not at 0.3 s, gone at 0.7 s). The
 ## successful pick-up (into a PlayerInventory) is in grenade_disarm_player_test.gd.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const ORIGIN := Vector3(880, 0, 0)
@@ -28,7 +29,7 @@ func test_untrained_crouched_user_sets_it_off_half_a_second_later() -> void:
 	var mine := await _armed_mine(Vector3(-10, 0, 0))
 	var user := _user("Untrained", Vector3(-10, 0, 1.5), true, 0)
 	var disarm := Usable.of(mine) as MineDisarm
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	assert_str(disarm.refusal_reason(user)).is_equal("untrained")
 	assert_bool(disarm.use(user)).is_true()
@@ -46,7 +47,7 @@ func test_standing_or_too_far_is_refused_even_when_trained() -> void:
 	var disarm := Usable.of(mine) as MineDisarm
 	var far := _user("Far", Vector3(12, 0, 3.0), true, 1)
 	var trained := _user("Trained", Vector3(8.5, 0, 0), true, 1)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	assert_str(disarm.refusal_reason(far)).is_equal("too_far")
 	assert_str(disarm.refusal_reason(trained)).is_equal("")
 	# Standing within its reach would set it off on its next look: asked at once.
@@ -62,7 +63,7 @@ func test_standing_or_too_far_is_refused_even_when_trained() -> void:
 
 func test_only_an_armed_mine_offers_disarming() -> void:
 	var grenade := Grenades.grenade(_root, ORIGIN + Vector3(0, 2, 10))
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	var disarm := Usable.of(grenade) as MineDisarm
 	assert_bool(disarm.available(null)).is_false()
 	Sticky.of(grenade).stick(_floor.get_node("Shape") as Node3D, _pose(Vector3(0, 0, 10)))
@@ -75,7 +76,7 @@ func test_only_an_armed_mine_offers_disarming() -> void:
 
 func _armed_mine(at: Vector3) -> RigidBody3D:
 	var grenade := Grenades.grenade(_root, ORIGIN + at + Vector3(0, 2, 0))
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	Sticky.of(grenade).stick(_floor.get_node("Shape") as Node3D, _pose(at))
 	await Grenades.seconds(get_tree(), 2.1)
 	return grenade

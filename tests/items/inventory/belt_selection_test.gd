@@ -75,7 +75,7 @@ func test_h_holsters_the_drawn_pistol_and_clears_the_highlight() -> void:
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
 	assert_bool(_player.weapons.is_armed()).is_true()
 
-	await _press(&"holster")
+	await _driver.press(&"holster")
 
 	assert_bool(_player.weapons.is_armed()).is_false()
 	assert_object(_player.inventory.in_hand()).is_null()
@@ -91,10 +91,10 @@ func test_h_holsters_the_drawn_pistol_and_clears_the_highlight() -> void:
 func test_h_puts_a_held_item_away() -> void:
 	await _load()
 	_player.inventory.give(Items.LOCKPICK, 1)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
-	await _press(&"holster")
+	await _driver.press(&"holster")
 
 	assert_object(_player.inventory.held).is_null()
 	assert_int(_player.inventory.belt.selected).is_equal(-1)
@@ -117,11 +117,11 @@ func test_wheel_is_ignored_while_the_tab_interface_is_open() -> void:
 	await _load()
 	_loadout_with_gap()
 	var screen := TabInterface.of(_player)
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_bool(screen.is_open()).is_true()
 
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_bool(screen.is_open()).is_false()
 	await _driver.frames(2)
 
@@ -138,7 +138,7 @@ func test_wheel_and_h_are_ignored_when_dead() -> void:
 	assert_bool(_player.is_dead()).is_true()
 
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN)
-	await _press(&"holster")
+	await _driver.press(&"holster")
 
 	assert_int(_player.inventory.belt.selected).is_equal(-1)
 	assert_bool(_player.weapons.is_armed()).is_false()
@@ -158,11 +158,6 @@ func _loadout_with_gap() -> void:
 func _wheel(button: MouseButton) -> void:
 	_driver.runner.simulate_mouse_button_pressed(button)
 	await _driver.frames(2)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

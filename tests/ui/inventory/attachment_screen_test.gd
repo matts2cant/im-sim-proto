@@ -69,8 +69,8 @@ func test_dropping_it_on_the_pistol_fits_it_and_quiets_the_shots() -> void:
 	assert_array(EventLog.find(&"item.attached")).has_size(1)
 	assert_float(_player.inventory.weapon_state(_pistol).stat(&"fire_noise")).is_equal_approx(6.25, 0.0001)
 
-	await _press(&"inventory")
-	await _press(&"belt_1")
+	await _driver.press(&"inventory")
+	await _driver.press(&"belt_1")
 	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, WALL_POINT))
 	await _driver.frames(5)
 	EventLog.clear()
@@ -181,13 +181,8 @@ static func _motion(at: Vector2) -> InputEventMouseMotion:
 
 
 func _open() -> void:
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_bool(_screen.is_open()).is_true()
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 # Pistol (0, 0), shotgun (2, 0), sniper rifle (0, 1), silencer (5, 0); the weapons on belt 1-3.

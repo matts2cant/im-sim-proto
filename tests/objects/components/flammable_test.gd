@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: Flammable ignition, fire pulses (fresh chains carrying cause_id), burn-out, saving.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
 
@@ -12,16 +13,16 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_floor = auto_free(load(FLOOR).instantiate())
 	add_child(_floor)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_ignites_at_threshold_and_pulses_every_half_second() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var spark := Stimulus.make_contact(&"fire", 100.0, crate)
 
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 40)
+	await Wait.frames(get_tree(), 40)
 
 	var flammable := Flammable.of(crate)
 	assert_bool(flammable.is_burning()).is_true()
@@ -43,21 +44,21 @@ func test_ignites_at_threshold_and_pulses_every_half_second() -> void:
 
 func test_heat_below_threshold_cools_away() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 3.0, crate))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var flammable := Flammable.of(crate)
 	assert_float(flammable.heat()).is_between(2.95, 3.0)
 
-	await Objects.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 	assert_float(flammable.heat()).is_between(2.45, 2.5)
 	assert_bool(flammable.is_burning()).is_false()
 
 
 func test_burns_out_charred_then_breaks() -> void:
 	var box := Objects.spawn(_floor, Objects.CARDBOARD_BOX, Vector3(0, 0.25, 0))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var flammable := Flammable.of(box)
 	var tags_at_burn_out: Array[StringName] = []
 	flammable.burnt_out.connect(
@@ -66,7 +67,7 @@ func test_burns_out_charred_then_breaks() -> void:
 
 	flammable.ignite(null)
 	flammable.fuel_left = 0.2
-	await Objects.frames(get_tree(), 20)
+	await Wait.frames(get_tree(), 20)
 
 	assert_array(tags_at_burn_out).contains([&"state.charred"]).not_contains([&"state.burning"])
 	var kinds := EventLog.entries().map(func(entry: EventLogEntry) -> StringName: return entry.kind)
@@ -77,7 +78,7 @@ func test_burns_out_charred_then_breaks() -> void:
 
 func test_save_and_load_restore_fire_state() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var flammable := Flammable.of(crate)
 	flammable.ignite(null)
 	flammable.fuel_left = 12.5
@@ -85,7 +86,7 @@ func test_save_and_load_restore_fire_state() -> void:
 	var body_saved := (crate as PhysicsObject).save_state()
 
 	var fresh := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(3, 0.3, 0), "Fresh")
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var restored := Flammable.of(fresh)
 	restored.load_state(saved)
 
@@ -99,7 +100,7 @@ func test_save_and_load_restore_fire_state() -> void:
 
 func test_brazier_burns_forever() -> void:
 	var brazier := Objects.spawn(_floor, Objects.BRAZIER, Vector3(0, 0, 0))
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 	var flammable := Flammable.of(brazier)
 	assert_bool(flammable.is_burning()).is_true()

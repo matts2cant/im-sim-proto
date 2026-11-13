@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## +X at z 0, at 0.4 m or 1.3 m; a box stand-in steps into the beam. A listener 4 m east of the wall
 ## in the same room hears the beep; one 2 m west of the wall, behind it, does not.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const LASER: PackedScene = preload("res://objects/laser/laser_array.tscn")
@@ -55,10 +56,10 @@ func _trip_at(height: float) -> void:
 	_root.add_child(laser)
 	var near := Fixtures.entity(_root, "Near", ORIGIN + SAME_ROOM, [Fixtures.receptron(&"noise")])
 	var behind := Fixtures.entity(_root, "Behind", ORIGIN + BEHIND_WALL, [Fixtures.receptron(&"noise")])
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 	_intruder(ORIGIN + Vector3(1.5, 0, 0))
-	await Fixtures.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 	var heard := _received_by(near)
@@ -113,7 +114,7 @@ func _bake() -> void:
 	await GuardHelpers.use_sync_iterations(_map(), _region)
 	GuardHelpers.isolate_region(_map(), _region)
 	_region.bake_navigation_mesh(false)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 
 func _map() -> RID:

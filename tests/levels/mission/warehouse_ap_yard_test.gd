@@ -11,6 +11,7 @@ extends GdUnitTestSuite
 ## passing RTR-01 (the office stays hidden); the Sentry tracer on RTR-01 still watches the subnet.
 ## The level is loaded once (design/tech/testing.md "Writing fast tests").
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
@@ -60,11 +61,6 @@ func _device(path: String) -> Device:
 
 func _tracer() -> Tracer:
 	return _entity("Network/OfficeBay/Rtr01").get_node("Tracer") as Tracer
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 func test_ap_yard_links_the_yard_camera_and_roof_lasers_by_radio() -> void:
@@ -144,19 +140,19 @@ func test_breaking_or_unpowering_ap_yard_cuts_only_its_radio_devices() -> void:
 	_assert_reached(console, RADIO + CABLED, true)
 	var ap := _device(AP)
 	ap.load_state({"broken": true})
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, RADIO, false)
 	_assert_reached(console, CABLED, true)
 	ap.load_state({"broken": false})
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, RADIO, true)
 	var powered := Powered.of(_entity(AP))
 	powered.on = false
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, RADIO, false)
 	_assert_reached(console, CABLED, true)
 	powered.on = true
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_assert_reached(console, RADIO + CABLED, true)
 
 
@@ -170,7 +166,7 @@ func test_a_deck_joined_over_ap_yard_reaches_security_without_passing_rtr01() ->
 	assert_bool(session.plug(ap, Net.deck_stack())).is_true()
 	assert_bool(session.is_wireless()).is_true()
 	assert_str(session.source.address).is_equal("10.0.20.90")
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	var seen := _map(session)
 	for path: String in [
 		"Devices/AlarmController",

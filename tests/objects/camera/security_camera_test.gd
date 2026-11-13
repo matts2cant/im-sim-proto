@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## 6 m in front and reports to a minimal "controller" device cabled to it (it accepts
 ## `device.incident`). Built 500 m south of the origin, away from other suites' leftovers.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const PERCEPTION: PerceptionConfig = preload("res://objects/camera/security_camera_perception.tres")
@@ -53,42 +54,37 @@ func after_test() -> void:
 
 func test_any_entity_with_the_components_detects_and_reports() -> void:
 	var decoy := Fixtures.entity(_root, "Decoy", Vector3(0, 0, -6), [], [&"actor.player"])
-	await _frames(70)
+	await Wait.frames(get_tree(), 70)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
 	# 0.8 x 0.95 per second: about 1.3 s.
-	await _frames(30)
+	await Wait.frames(get_tree(), 30)
 	var detected := EventLog.find(&"camera.detected")
 	assert_array(detected).has_size(1)
 	assert_str(String(detected[0].data["target"])).is_equal("Decoy")
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(_incidents.size()).is_equal(1)
 	assert_float(_incidents[0].distance_to(decoy.global_position)).is_less(0.01)
 
 
 func test_an_entity_without_a_hostile_tag_is_ignored() -> void:
 	Fixtures.entity(_root, "Bystander", Vector3(0, 0, -6), [], [&"actor.guard"])
-	await _frames(150)
+	await Wait.frames(get_tree(), 150)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
 
 
 func test_its_own_commands_turn_and_blind_it() -> void:
 	StimulusSystem.emit(Device.command_stimulus(Device.PAN_LEFT, _watcher))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_float(_camera.yaw()).is_equal(15.0)
 	assert_float(rad_to_deg((_watcher.get_node("Pivot") as Node3D).rotation.y)).is_equal_approx(15.0, 0.01)
 	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _watcher))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_camera.is_watching()).is_false()
 	Fixtures.entity(_root, "Decoy", Vector3(0, 0, -6), [], [&"actor.player"])
-	await _frames(150)
+	await Wait.frames(get_tree(), 150)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
 
 
 func _on_incident(action: StringName, stimulus: Stimulus) -> void:
 	if action == Device.INCIDENT:
 		_incidents.append(stimulus.origin)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

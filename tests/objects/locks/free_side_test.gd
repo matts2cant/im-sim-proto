@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## on that side may pass (Lockable.grants_passage). From the other side the lock works as before.
 ## Door fixture: tests/objects/fixtures/door_wall.tscn (wall along z = 0, door at x = 0).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 ## Users 1.5 m either side of the doorway (centre to centre), relative to the fixture.
@@ -22,7 +23,7 @@ func before_test() -> void:
 	_scene = auto_free(load(Helpers.WALL).instantiate())
 	_scene.position = Helpers.ORIGIN
 	add_child(_scene)
-	await Helpers.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	_entity = Helpers.door_entity(_scene)
 	_door = Door.of(_entity)
 	EventLog.clear()
@@ -48,9 +49,9 @@ func test_a_mechanical_lock_opens_freely_from_its_free_side_only() -> void:
 	assert_bool(_door.is_open()).is_true()
 	assert_bool(_door.is_locked()).is_true()
 	assert_array(EventLog.find(&"door.opened_freely")).has_size(1)
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	assert_bool(_door.close(outside)).is_true()
-	await Helpers.frames(get_tree(), 45)
+	await Wait.frames(get_tree(), 45)
 	assert_str(_door.prompt(outside)).is_equal("Locked: lockpick")
 
 

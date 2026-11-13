@@ -121,17 +121,18 @@ fi
 [ "$jobs" -lt 1 ] && jobs=1
 [ "$jobs" -gt ${#suites[@]} ] && jobs=${#suites[@]}
 
-# Split the suites (in canonical, sorted order) into `jobs` contiguous slices of about equal wall
-# time, using each suite's share of a shard's wall time in earlier runs (reports/suite_times.tsv,
-# updated after every run by tools/test_timing.awk: GdUnit's suite time plus the measured per-suite
-# overhead). A suite with no recorded time counts as the median recorded time of the suites of its
-# kind (scene runner or not) under its own folder, else under the nearest ancestor folder that has
-# one, else of its kind in this run, else 3 s / 0.5 s; and no shard takes more than its share
-# (ceil(unmeasured / jobs)) of unmeasured suites, so new suites added side by side (a milestone's
-# suites in one folder) never land in one shard on a guess. Contiguous slices keep every
-# shard's suite order a run of the serial order, so a suite only ever follows the suites it follows
-# in a serial run: state a suite leaks into the next one (late-freed nodes, viewport-parented
-# effects) cannot reach suites it never met before.
+# Split the suites into `jobs` shards of about equal wall time, using each suite's share of a shard's
+# wall time in earlier runs (reports/suite_times.tsv, updated after every run by
+# tools/test_timing.awk: GdUnit's suite time plus the measured per-suite overhead): longest first,
+# each suite to the least loaded shard (LPT), so the slowest shard ends close to the others. A suite
+# with no recorded time counts as the median recorded time of the suites of its kind (scene runner or
+# not) under its own folder, else under the nearest ancestor folder that has one, else of its kind in
+# this run, else 3 s / 0.5 s; unmeasured suites are dealt out first, one per shard in turn, so new
+# suites added side by side (a milestone's suites in one folder) never share a shard on a guess.
+# Each shard runs its suites in serial (sorted) order, so a shard replays exactly from its
+# suites.txt; a suite can follow other suites than in a serial run, so a suite that leaks state
+# (late-freed nodes, viewport-parented effects, engine settings) must be fixed at the source
+# (design/tech/testing.md "Writing fast tests").
 times_file=reports/suite_times.tsv
 [ -f "$times_file" ] || : > "$times_file"
 scene_suites="$(printf '%s\n' "${suites[@]}" | sed 's|^res://||' | grep '\.gd$' | xargs grep -l 'scene_runner(' 2>/dev/null | sed 's|^|res://|' || true)"
@@ -168,40 +169,46 @@ done < <(
 			}
 			return fallback[kind[k]]
 		}
-		# A new shard starts before suite k when it would push the load over the cap, or when it is
-		# unmeasured and the shard already holds its share of unmeasured suites (spreads the guesses).
-		function starts_shard(k, load, unk, cap) {
-			return load > 0 && (load + w[k] > cap || (!(name[k] in t) && unk >= max_unk))
+		# Sorts the suite indices sel[1..cnt] by weight, heaviest first (ties: serial order).
+		function by_weight(sel, cnt,   i, j, tmp) {
+			for (i = 2; i <= cnt; i++)
+				for (j = i; j > 1 && (w[sel[j - 1]] < w[sel[j]] || (w[sel[j - 1]] == w[sel[j]] && sel[j - 1] > sel[j])); j--) {
+					tmp = sel[j]; sel[j] = sel[j - 1]; sel[j - 1] = tmp
+				}
 		}
-		function shards_for(cap,   k, load, unk, used) {
-			used = 1; load = 0; unk = 0
-			for (k = 1; k <= n; k++) {
-				if (starts_shard(k, load, unk, cap)) { used++; load = 0; unk = 0 }
-				load += w[k]; if (!(name[k] in t)) unk++
+		# The least loaded shard (ties: the lowest index); with `spread`, the one holding the fewest
+		# unmeasured suites first.
+		function lightest(spread,   s, best) {
+			best = 0
+			for (s = 1; s < jobs; s++) {
+				if (spread && unk[s] != unk[best]) { if (unk[s] < unk[best]) best = s; continue }
+				if (load[s] < load[best]) best = s
 			}
-			return used
+			return best
 		}
 		END {
 			for (kd = 0; kd <= 1; kd++) {
 				fallback[kd] = kd ? 3 : 0.5
 				if (cnt[kd] > 0) { for (i = 1; i <= cnt[kd]; i++) vals[i] = known[kd, i]; fallback[kd] = median(vals, cnt[kd]) }
 			}
+			n_unk = 0; n_known = 0
 			for (k = 1; k <= n; k++) {
-				if (!(name[k] in t)) { w[k] = estimate(k); n_unk++ }
-				total += w[k]; if (w[k] > big) big = w[k]
+				if (!(name[k] in t)) { w[k] = estimate(k); unk_sel[++n_unk] = k } else known_sel[++n_known] = k
 			}
-			max_unk = n_unk ? int((n_unk + jobs - 1) / jobs) : 1
-			lo = big; hi = total
-			for (it = 0; it < 60; it++) { mid = (lo + hi) / 2; if (shards_for(mid) <= jobs) hi = mid; else lo = mid }
-			shard = 0; load = 0; unk = 0
-			for (k = 1; k <= n; k++) {
-				if (starts_shard(k, load, unk, hi) && shard < jobs - 1) { shard++; load = 0; unk = 0 }
-				load += w[k]; if (!(name[k] in t)) unk++
-				print shard, name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
-			}
+			for (s = 0; s < jobs; s++) { load[s] = 0; unk[s] = 0 }
+			# Unmeasured suites first, heaviest guess first, each to the shard holding the fewest of them
+			# (new suites of one milestone never share a shard on a guess); then the measured ones, longest
+			# first, each to the least loaded shard (LPT: no shard ends far after the others).
+			by_weight(unk_sel, n_unk)
+			for (i = 1; i <= n_unk; i++) { k = unk_sel[i]; s = lightest(1); shard_of[k] = s; load[s] += w[k]; unk[s]++ }
+			by_weight(known_sel, n_known)
+			for (i = 1; i <= n_known; i++) { k = known_sel[i]; s = lightest(0); shard_of[k] = s; load[s] += w[k] }
+			# Printed in serial order, so each shard runs its suites in serial order.
+			for (k = 1; k <= n; k++) print shard_of[k], name[k], sprintf("%.1f", w[k]), ((name[k] in t) ? "" : "*")
 		}'
 )
-# Slices are contiguous, so any unused shards are the last ones.
+# Every shard gets a suite while there are at least as many suites as shards (jobs is capped above);
+# drop empty trailing shards anyway.
 while [ "$jobs" -gt 1 ] && [ -z "${shard_suites[jobs - 1]}" ]; do jobs=$((jobs - 1)); done
 if [ "$dry_run" = "1" ]; then
 	# One block per shard: its total weight, then each suite's weight in seconds (* = estimated).
