@@ -28,6 +28,12 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"office_cutaway": {"cam": true, "eye": Vector3(4, 14, -14), "look": Vector3(14, 2, 6), "hide": ["Hall/Shell/Hall"]},
 	"basement_cutaway":
 	{"cam": true, "eye": Vector3(4, 10, -20), "look": Vector3(16, -4, 0), "hide": ["Hall", "Exterior/Ground"]},
+	# M14c grenade loot (ADR 0131).
+	"grenade_security": {"feet": Vector3(18.0, 0.02, 4.0), "look": Vector3(19.5, 0.95, 3.95)},
+	"grenade_dock": {"feet": Vector3(7.0, 0, -6.4), "look": Vector3(7.0, 0.85, -8.0)},
+	"grenade_locker": {"feet": Vector3(18.2, 0.02, 11.4), "look": Vector3(19.3, 1.05, 11.4)},
+	"grenade_store": {"feet": Vector3(9.5, -4, 2.6), "look": Vector3(8.4, -3.05, 2.6)},
+	"grenade_manager": {"feet": Vector3(9.25, 4.5, 1.9), "look": Vector3(9.25, 5.35, 0.5)},
 	# Start and the approach.
 	"start": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(-4, 1.5, -16)},
 	"start_east": {"feet": Vector3(-19, 0, -31.2), "look": Vector3(40, 8, -20)},

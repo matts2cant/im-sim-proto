@@ -763,3 +763,17 @@ Give yourself grenades from the debug panel (Give item: frag, gas, EMP, jamming 
 - [ ] Demolition Master: after a throw, "Fuse 2.1 s" counts down under the crosshair until it goes off.
 - [ ] Shoot a stuck or thrown grenade: it goes off; a blast sets off grenades and mines nearby (chains).
 - [ ] Quicksave with a grenade in flight and a mine arming; quickload: the grenade carries on and goes off on time, the mine arms on time.
+
+## M14 explosives walk-through (M14c: the range and the warehouse; [ADR 0131](../decisions/0131-grenades-mines-and-effects.md), [explosives.md](../game/explosives.md))
+
+Shooting range (hub doorway 4), then the warehouse. No debug panel needed.
+
+- [ ] Find the grenade lane from the counter gap: past the blast lane, behind the spray wall. The table's sign is readable from its front and does not hide the lane. E on each pickup takes 5 (frag, gas, EMP, jamming); "Restock grenades" puts back everything taken or knocked off the table.
+- [ ] Stand on the throwing line, look level at the target square and throw a frag (Untrained): it lands on the square and rolls on about 3-4 m before it goes off. Is the roll too long for a 12 m lane? The 2 m and 4 m dummies drop or nearly; the 6 m one shrugs it off (a light wound): does the frag feel weak at 4.5-6 m?
+- [ ] Exact distances: stick a frag on the target, walk back to the line, shoot it: the dummies take what the sign promises. "Reset dummies" on the table stands them up.
+- [ ] "Skill tier" with a grenade in hand switches Demolition (Trained: 14 m throws land past the target; Advanced: mines glow; Master: the fuse readout).
+- [ ] Gas on the target knocks out the 2 m dummy only (2.5 m cloud); an EMP or a jammer on the target does nothing visible (no electronics within 15 m).
+- [ ] Walk from the grenade lane to the east wall (lane 6, by the counter): "Mine corridor · EMP and jamming room" over the opening. In the corridor, stick a frag on the wall, the floor and the door; walk back in: it goes off about 2.5 m away; crouch-walk: about 1 m. Opening the door with a mine on it carries the mine into the wall.
+- [ ] Disarm a corridor mine Untrained (it beeps and goes off), then Trained (switch the tier at the grenade table first): crouched 1 to 2 m away, E takes it back.
+- [ ] EMP and jamming room: the turret does not shoot you (guards only), the camera watches the door. An EMP thrown under the camera stops the camera alone ("No power" on its frame); one mid-room puts the lamp out and stops the turret and the access point (the camera stands right at its 6 m edge). A jammer anywhere in the room: the camera blinks amber, "Jammed". Everything comes back after 20 s.
+- [ ] Warehouse: a frag on the security room's gun table by the shotgun shells, a frag on the dock's metal crate by roller door 2, gas in the locker room's north open locker, EMP on the basement store shelf by the lockpicks, the jammer on the manager's desk between the datapads. Each is easy to see and to pick up. Does each spot suggest a use nearby (the jammer for AP-YARD's cameras, the EMP for the vault turret, the gas for the break room)?

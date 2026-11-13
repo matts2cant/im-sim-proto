@@ -233,7 +233,7 @@ Physics props to stack and throw, cover crates and the shipment are wave 2's (on
 
 ### Equipment to find
 
-Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-population.md)); `warehouse_people_test.gd` checks each is there and within pick-up reach of a spot the player walks to from the start.
+Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-population.md)); `warehouse_people_test.gd` checks each is there and within pick-up reach of a spot the player walks to from the start, and (M14c) that the five grenades have their types, rest on a surface and overlap nothing. No guard carries a grenade.
 
 | Item (count) | Where (resting position) | Opens |
 |---|---|---|
@@ -251,6 +251,11 @@ Placed by `Population/People` (wave 2, [ADR 0091](../decisions/0091-warehouse-po
 | Prototype | Vault, on a 0.8 m pedestal (19, 5.3, 3.5) | Optional objective A |
 | Deck (M12a) | Second office, desk 2 beside office PC 2 (17.45, 5.27, 14.1) | The office wall jack, a maintenance port, plugging into a computer: the network ([Network](#network-m12a)) |
 | Office bay key (M13c) | Security room desk (19.3, 0.81, 2.85), beside the vault keycard | BAY-OFFICE's glass door, the network gear ([Office bay](#office-bay-m13c)); lockpicks open it too |
+| Frag grenade (M14c) | Security room gun table (19.5, 0.92, 3.95), by the shotgun shells (`FragSecurity`) | A loud answer, a mine ([explosives](../game/explosives.md)) |
+| Frag grenade (M14c) | On the dock's metal supply crate by roller door 2 (7.0, 0.805, -8.0) (`FragDock`); in the hall camera's view | |
+| Gas grenade (M14c) | Locker room, the north open locker, in front of the rifle rounds (19.27, 0.97, 11.4) (`GasLocker`) | Knocks out whoever is in the cloud (5 m, 12 s): a non-lethal way past a post |
+| EMP grenade (M14c) | Basement store shelf by the lockpicks (8.4, -3.1, 2.6) (`EmpStore`) | Cameras, the turret, lights and door controllers off for 20 s within 6 m |
+| Jamming grenade (M14c) | The manager's desk, between the two datapads (9.25, 5.3, 0.5) (`JammerManager`): the manager keeps one for his calls | Wireless links within 10 m drop for 20 s: AP-YARD's devices, guards' radios |
 
 Every main route works without any of them; each find opens an option.
 

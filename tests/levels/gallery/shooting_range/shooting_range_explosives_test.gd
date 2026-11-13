@@ -5,14 +5,16 @@ extends GdUnitTestSuite
 ## resting on the top, restocked by its button), the mine corridor (wide enough, its openings lined
 ## up with the hall and the EMP room, a plain unlocked door), the EMP and jamming room (a wireless
 ## camera on its access point, a turret aimed at guards only, a powered lamp, their distances, no
-## other electronics in the range), wall devices clear of doors and signs, no coplanar meshes.
+## other electronics in the range), wall devices clear of doors and signs, no coplanar meshes; in the
+## tree, a jamming field by the camera jams it and an EMP under it switches it off alone.
 ## Room-local coordinates.
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/shooting_range/shooting_range_room.tscn")
 const FRAG: ExplosiveConfig = preload("res://objects/explosives/payloads/frag_explosive.tres")
-const EMP: Resource = preload("res://objects/explosives/emp/emp.tres")
+const EMP: EmpConfig = preload("res://objects/explosives/emp/emp.tres")
+const JAMMING_FIELD: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
 const JAMMING: Resource = preload("res://objects/explosives/jamming_field/jamming_field.tres")
 const ORIGIN := Vector3(-480, 0, 300)
 const GRENADES: Array[String] = ["frag_grenade", "gas_grenade", "emp_grenade", "jamming_grenade"]
@@ -226,6 +228,26 @@ func test_no_coplanar_meshes_in_the_new_parts() -> void:
 				continue
 			var overlaps := KitGeometry.coplanar_mesh_overlaps(part)
 			assert_array(Array(overlaps)).override_failure_message("\n".join(overlaps)).is_empty()
+
+
+# Last in the suite: the EMP's outage lasts 20 s.
+func test_a_jammer_jams_the_camera_and_an_emp_at_its_foot_catches_it_alone() -> void:
+	var camera := Device.of(_room.get_node("EmpCorner/Camera"))
+	var field := ExplosivePayload.spawn_in_level(JAMMING_FIELD, _room, _room.to_global(Vector3(36.5, 0.1, -10)))
+	await _frames(2)
+	assert_int(NetworkState.state_of(camera, NetworkState.links_of(camera))).is_equal(StatusLight.State.JAMMED)
+	field.free()
+	await _frames(2)
+	assert_int(NetworkState.state_of(camera, NetworkState.links_of(camera))).is_equal(StatusLight.State.UP)
+
+	# On the floor under the camera: the turret, the lamp and the access point are beyond 6 m.
+	StimulusSystem.emit(EmpPulse.make(EMP, _room.to_global(Vector3(37.0, 0.1, -10))))
+	await _frames(3)
+
+	assert_bool(Powered.of(camera.entity).is_on()).is_false()
+	for entity_name: String in ["Lamp", "Turret", "Ap"]:
+		var powered := Powered.of(_room.get_node("EmpCorner/" + entity_name))
+		assert_bool(powered.is_on()).override_failure_message(entity_name).is_true()
 
 
 func _pos(path: String) -> Vector3:

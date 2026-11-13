@@ -735,8 +735,8 @@ light_energy = 1.5
 omni_range = 8.0
 
 [node name="GrenadeTable" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 1.9, -26.38)
-pixel_size = 0.003
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 2.4, -26.45)
+pixel_size = 0.0025
 text = "Grenades · E takes 5 · Restock puts them back
 LMB: throw (12 m Untrained), or stick within 1.2 m
 Thrown, a grenade rolls on: for exact distances
@@ -786,7 +786,7 @@ LMB within 1.2 m of a wall, the floor or the door sticks a grenade
 Armed after 2 s: it goes off when anyone in its line of sight
 comes within 2.5 m walking, 1 m crouched"
 size = 0
-pixel_size = 0.0025
+pixel_size = 0.0018
 
 [node name="MineDisarm" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 24.3, 2.1, -11.71)
@@ -795,12 +795,13 @@ Needs Demolition Trained or better
 (skill tier switch at the grenade table, grenade in hand)
 Untrained, it beeps and goes off"
 size = 0
-pixel_size = 0.0025
+pixel_size = 0.0018
 
 [node name="EmpRoom" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 32.5, 2.7, -7.52)
 text = "EMP and jamming room
-EMP: electronics within 6 m off for 20 s (camera, turret, lamp)
+EMP: electronics within 6 m off for 20 s (camera, turret, lamp, access point)
+thrown under the camera, it takes the camera alone
 Jamming: wireless links within 10 m drop for 20 s (the camera)"
 size = 0
 pixel_size = 0.0035
