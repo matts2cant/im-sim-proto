@@ -796,9 +796,18 @@ Shooting range (hub doorway 4), then the warehouse. No debug panel needed.
 
 ## M14d loot screen ([ADR 0142](../decisions/0142-looting-and-the-keychain.md), [looting.md](../game/looting.md#as-built-m14d-screen))
 
-- [ ] Knock a guard out and press E on him: the loot screen opens, the world freezes (a patrolling guard stops mid-step), the HUD hides and the mouse is free. "Guard · unconscious" under "Search". Esc closes it; open it again and close it with E: you can walk and look at once, and E does not reopen it by itself.
+- [ ] Knock a guard out and tap E on him: the loot screen opens, the world freezes (a patrolling guard stops mid-step), the HUD hides and the mouse is free. "Guard · unconscious" under "Search". Esc closes it; open it again and close it with E: you can walk and look at once, and E does not reopen it by itself.
 - [ ] Drag his pistol onto your grid: the outline is green over a free spot and red over an item or the edge; dropping on red changes nothing. Drag a medkit back onto his grid (planting). Does the grab point (the cell you grabbed lands under the mouse) feel right?
 - [ ] Drag his ammo anywhere on your grid, then onto your own ammo stack: it merges into your stack both times. Double-click an item, or click it and press Enter: it jumps to the first free spot on the other side.
 - [ ] Fill your grid, then Take all: what fits comes over, keys and cards move to your keychain, and the footer says "No room for: ..." naming what stayed.
 - [ ] Click his keycard: "Keycard added to the keychain: ..." in the footer; it shows with the blue card icon on your side and in the Inventory tab's keychain (keys keep the brass key icon).
 - [ ] Is the footer notice easy enough to notice? Is the game freezing while looting right in a fight (it is a real pause, unlike the Tab interface)?
+
+## M14d looting systems ([ADR 0142](../decisions/0142-looting-and-the-keychain.md#as-built-m14d-systems), [looting.md](../game/looting.md#as-built-m14d-systems))
+
+- [ ] Knock a pistol guard out: no pistol lands on the floor; tap E on him and his pistol (with the rounds it had loaded) and 10 rounds are in his grid.
+- [ ] Hold E on a downed guard: after half a second you pick the body up and the loot screen does not open. Is 0.5 s right, or does the tap feel slow to register (the screen opens on release)? With no ring on the HUD, is it clear that holding does something different?
+- [ ] Start holding E on a body and look away before half a second: nothing happens. Hold E on a crate, a door or an item: it acts at once as before.
+- [ ] Pick up a keycard (the warehouse security room, the security wing booth): "Keycard added to the keychain: Security keycard", it shows on the keychain with the card icon and not in the grid; its reader still opens the door. A key does not open a reader and a keycard does not open a keyhole.
+- [ ] Place a locker (`objects/containers/locker.tscn`): the frame reads "Locker" / "Locked · lockpick"; E says "Locked: needs a lockpick"; pick it, then E opens the loot screen. With a key id set and the key on your keychain, E unlocks it and opens the screen at once. The supply crate and the desk drawers open on E.
+- [ ] Do the containers read at a glance in a level (size, colour against the graybox walls)? Is the locker's keyhole visible enough to suggest a lock?
