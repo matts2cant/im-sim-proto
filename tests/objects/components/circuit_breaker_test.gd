@@ -13,8 +13,15 @@ var _root: Node3D
 
 func before_test() -> void:
 	EventLog.clear()
+	StimulusSystem.clear()
 	_root = auto_free(Node3D.new())
+	# Far from the origin: its lamps must not light other suites' fixtures while freed late.
+	_root.position = ORIGIN
 	add_child(_root)
+
+
+func after_test() -> void:
+	StimulusSystem.clear()
 
 
 # A Node3D entity with a Powered on `circuit` and an OmniLight3D it switches.
@@ -29,11 +36,10 @@ func _lamp(entity_name: String, circuit: StringName) -> Powered:
 	return powered
 
 
-# A Node3D entity at ORIGIN with a CircuitBreaker on CIRCUIT and a lever.
+# A Node3D entity at the root (ORIGIN) with a CircuitBreaker on CIRCUIT and a lever.
 func _breaker(closed: bool = true) -> CircuitBreaker:
 	var entity := Node3D.new()
 	entity.name = "Panel"
-	entity.position = ORIGIN
 	var lever := Node3D.new()
 	lever.name = "Lever"
 	entity.add_child(lever)
@@ -86,7 +92,8 @@ func test_a_throw_is_heard_and_logged() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	var noises := EventLog.find(StimulusSystem.EMITTED_KIND).filter(
-		func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"noise"
+		func(entry: EventLogEntry) -> bool:
+			return entry.data["type"] == &"noise" and entry.source_entity() == breaker.entity
 	)
 	assert_int(noises.size()).is_equal(1)
 	assert_vector(noises[0].data["origin"]).is_equal(ORIGIN)
@@ -111,4 +118,7 @@ func test_load_state_restores_the_circuit_without_noise() -> void:
 	assert_int(EventLog.find(EventKinds.POWER_SWITCHED).size()).is_equal(0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	assert_int(EventLog.find(StimulusSystem.EMITTED_KIND).size()).is_equal(0)
+	var from_breaker := EventLog.find(StimulusSystem.EMITTED_KIND).filter(
+		func(entry: EventLogEntry) -> bool: return entry.source_entity() == breaker.entity
+	)
+	assert_array(from_breaker).is_empty()

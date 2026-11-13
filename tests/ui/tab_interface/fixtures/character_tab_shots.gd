@@ -57,7 +57,7 @@ func _prepare(player: Player) -> void:
 	player.body.take_damage(&"damage.blunt", 36.0, &"torso")
 	player.body.take_damage(&"damage.blunt", 38.0, &"arm_l")
 	player.body.take_damage(&"damage.blunt", 70.0, &"leg_l")
-	player.inventory.give(MEDKIT, 2)
+	player.inventory.add(MEDKIT, 2)
 	player.augmentations.set_installed(&"run_silent", false)
 	player.augmentations.set_installed(&"regeneration", false)
 	player.energy.set_current(41.0)

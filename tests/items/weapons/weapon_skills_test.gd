@@ -159,10 +159,10 @@ func test_medicine_master_medkit_heals_90() -> void:
 	_player.skills.set_tier(&"medicine", 3)
 	_player.body.take_damage(&"damage.ballistic", 50.0, &"leg_l")
 	_player.body.take_damage(&"damage.ballistic", 50.0, &"leg_r")
-	_player.inventory.give(Items.MEDKIT, 1)
+	_player.inventory.add(Items.MEDKIT, 1)
 	EventLog.clear()
 
-	assert_bool(_player.inventory.use_stack(_player.inventory.inventory.stacks_of(&"medkit")[0])).is_true()
+	assert_bool(_player.inventory.use_stack(_player.inventory.grid.stacks_of(&"medkit")[0])).is_true()
 
 	var healed := EventLog.find(&"actor.healed")
 	assert_array(healed).has_size(1)

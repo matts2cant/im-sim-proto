@@ -392,7 +392,7 @@ static func exploit_item(kind: StringName) -> ItemData:
 ## `exploits` (kind -> count) exploit items. Returns the deck's stack (plug it: a deck missing from
 ## the user's inventory unplugs).
 static func carry(user: Node, exploits: Dictionary[StringName, int] = {}) -> ItemStack:
-	var hands := PlayerInventory.of(user)
+	var hands := Inventory.of(user) as PlayerInventory
 	if hands == null:
 		hands = PlayerInventory.new()
 		hands.name = "PlayerInventory"
@@ -400,10 +400,10 @@ static func carry(user: Node, exploits: Dictionary[StringName, int] = {}) -> Ite
 		hands.catalog = ItemCatalog.default()
 		user.add_child(hands)
 	var deck := DECK
-	hands.give(deck, 1)
+	hands.add(deck, 1)
 	for kind: StringName in exploits:
-		hands.give(exploit_item(kind), exploits[kind])
-	for stack in hands.inventory.stacks:
+		hands.add(exploit_item(kind), exploits[kind])
+	for stack in hands.grid.stacks:
 		if stack.item == deck:
 			return stack
 	return null

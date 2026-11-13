@@ -91,13 +91,13 @@ func test_rifle_burst_stops_at_an_empty_magazine_without_clicking() -> void:
 
 func test_each_weapon_reloads_from_its_own_ammo() -> void:
 	await _load(SHOTGUN)
-	_player.inventory.give(_catalog().find(&"pistol_ammo"), 50)
+	_player.inventory.add(_catalog().find(&"pistol_ammo"), 50)
 	_player.weapons.state().magazine = 0
 	await _driver.hold(&"reload", 2)
 	await _driver.frames(ceili(SHOTGUN.weapon.reload_time * 60.0) + 4)
 	assert_int(_player.weapons.state().magazine).is_equal(6)
-	assert_int(_player.inventory.inventory.count_of(&"shotgun_shells")).is_equal(30 - 6)
-	assert_int(_player.inventory.inventory.count_of(&"pistol_ammo")).is_equal(50)
+	assert_int(_player.inventory.grid.count_of(&"shotgun_shells")).is_equal(30 - 6)
+	assert_int(_player.inventory.grid.count_of(&"pistol_ammo")).is_equal(50)
 
 
 func _shoot_once() -> void:
@@ -128,8 +128,8 @@ func _load(item: ItemData) -> void:
 	_player = _driver.player
 	_player.weapons.seed_rng(4242)
 	await _driver.settle()
-	_player.inventory.give(item, 1)
-	_player.inventory.give(_catalog().find(item.weapon.ammo_item), 30)
+	_player.inventory.add(item, 1)
+	_player.inventory.add(_catalog().find(item.weapon.ammo_item), 30)
 	await _driver.hold(&"belt_1", 2)
 	await _driver.frames(1)
 	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, WALL_POINT))

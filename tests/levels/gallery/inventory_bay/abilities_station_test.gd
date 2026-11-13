@@ -56,7 +56,7 @@ func test_dais_biocells_are_ten_in_one_pickup() -> void:
 
 	await _driver.press(&"use")
 
-	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(10)
+	assert_int(_player.inventory.grid.count_of(&"biocell")).is_equal(10)
 
 
 func test_heavy_crate_needs_combat_strength() -> void:
@@ -66,7 +66,7 @@ func test_heavy_crate_needs_combat_strength() -> void:
 
 	await _driver.press(&"use")
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
+	assert_array(EventLog.find(&"carry.pickup_refused")).has_size(1)
 
 	await _driver.press(&"aug_5")
 	await _driver.press(&"use")

@@ -40,7 +40,7 @@ func test_start_gives_the_kit_and_opens_the_briefing() -> void:
 	)
 	assert_float(player.rotation.y).is_equal_approx(0.0, 0.001)
 	assert_dict(Missions.inventory_counts(level)).is_equal(KIT)
-	var pistol := player.inventory.inventory.stacks_of(&"pistol")[0]
+	var pistol := player.inventory.grid.stacks_of(&"pistol")[0]
 	assert_int(int(pistol.state["magazine"])).is_equal(10)
 	assert_float(player.energy.current()).is_equal_approx(50.0, 0.01)
 	for id: StringName in [&"cloak", &"speed_enhancement", &"combat_strength"]:
@@ -157,5 +157,5 @@ func test_return_to_hub_loads_the_hub_at_its_spawn() -> void:
 	assert_bool(get_tree().paused).is_false()
 	var player := hub.get_node("Player") as Player
 	assert_float(player.global_position.distance_to(Vector3(0, 0, 10))).is_less(0.1)
-	assert_array(player.inventory.inventory.stacks).is_empty()
+	assert_array(player.inventory.grid.stacks).is_empty()
 	assert_int(EventLog.find(&"mission.left").size()).is_equal(1)

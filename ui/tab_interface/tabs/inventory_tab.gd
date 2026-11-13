@@ -74,8 +74,8 @@ func on_shown() -> void:
 	status_label.clear_text()
 	if inventory != null and selected_stack() == null:
 		var stack := inventory.in_hand()
-		if stack == null and not inventory.inventory.stacks.is_empty():
-			stack = inventory.inventory.stacks[0]
+		if stack == null and not inventory.grid.stacks.is_empty():
+			stack = inventory.grid.stacks[0]
 		view.select(stack)
 	refresh()
 
@@ -84,7 +84,7 @@ func on_shown() -> void:
 func selected_stack() -> ItemStack:
 	if view == null or inventory == null or view.selected == null:
 		return null
-	return view.selected if inventory.inventory.stacks.has(view.selected) else null
+	return view.selected if inventory.grid.stacks.has(view.selected) else null
 
 
 func select(stack: ItemStack) -> void:
@@ -167,7 +167,7 @@ func show_menu(stack: ItemStack, at: Vector2) -> void:
 func choose(id: int) -> void:
 	menu.hide()
 	var stack := _menu_stack
-	if stack == null or not inventory.inventory.stacks.has(stack):
+	if stack == null or not inventory.grid.stacks.has(stack):
 		return
 	if id >= MENU_BELT:
 		inventory.belt.assign(id - MENU_BELT, stack)
@@ -179,7 +179,7 @@ func choose(id: int) -> void:
 		MENU_DROP:
 			drop(stack)
 		MENU_SPLIT:
-			if inventory.inventory.split(stack, floori(stack.count / 2.0)) == null:
+			if inventory.grid.split(stack, floori(stack.count / 2.0)) == null:
 				_on_message("No room to split")
 	refresh()
 

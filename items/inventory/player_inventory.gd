@@ -18,18 +18,8 @@ var belt: Belt
 var held: ItemStack = null
 ## Draws and holsters the weapon stacks put in hand (setup()); null: weapons are never drawn.
 var weapons: WeaponHolder
-## The grid (the name from before the Inventory component, ADR 0139; new code uses `grid` or the
-## Inventory queries).
-var inventory: InventoryGrid:
-	get:
-		return grid
 
 var _weapon_stack: ItemStack = null
-
-
-## The PlayerInventory of `node`, or null.
-static func of(node: Node) -> PlayerInventory:
-	return Inventory.of(node) as PlayerInventory
 
 
 ## Called by the holder once its WeaponHolder is wired.

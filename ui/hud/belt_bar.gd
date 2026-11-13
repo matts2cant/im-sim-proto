@@ -16,7 +16,7 @@ var player_inventory: PlayerInventory
 func bind(p_inventory: PlayerInventory) -> void:
 	player_inventory = p_inventory
 	player_inventory.belt.changed.connect(queue_redraw)
-	player_inventory.inventory.changed.connect(queue_redraw)
+	player_inventory.grid.changed.connect(queue_redraw)
 	var count := player_inventory.belt.size()
 	custom_minimum_size = Vector2(count * SLOT + (count - 1) * GAP, SLOT)
 	queue_redraw()

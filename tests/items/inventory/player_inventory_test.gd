@@ -48,10 +48,10 @@ func test_pistol_pickup_auto_belts_and_key_1_equips_it() -> void:
 
 func test_reload_consumes_ammo_stacks_and_hud_shows_the_total() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1, {"magazine": 2})
-	_player.inventory.give(Items.AMMO, 5)
-	_player.inventory.give(Items.MEDKIT, 1)
-	_player.inventory.give(Items.AMMO, 98)
+	_player.inventory.add(Items.PISTOL, 1, {"magazine": 2})
+	_player.inventory.add(Items.AMMO, 5)
+	_player.inventory.add(Items.MEDKIT, 1)
+	_player.inventory.add(Items.AMMO, 98)
 	# Ammo stacks: 100 and 3.
 	await _driver.press(&"belt_1")
 	await _driver.frames(1)
@@ -60,11 +60,11 @@ func test_reload_consumes_ammo_stacks_and_hud_shows_the_total() -> void:
 	await _driver.press(&"reload")
 	await _driver.frames(100)
 
-	var pistol := _player.inventory.inventory.stacks_of(&"pistol")[0]
+	var pistol := _player.inventory.grid.stacks_of(&"pistol")[0]
 	assert_int(_player.weapons.state().magazine).is_equal(10)
 	assert_int(pistol.state["magazine"]).is_equal(10)
-	assert_int(_player.inventory.inventory.count_of(&"pistol_ammo")).is_equal(95)
-	assert_array(_player.inventory.inventory.stacks_of(&"pistol_ammo")).has_size(1)
+	assert_int(_player.inventory.grid.count_of(&"pistol_ammo")).is_equal(95)
+	assert_array(_player.inventory.grid.stacks_of(&"pistol_ammo")).has_size(1)
 	assert_str(_hud.ammo_label.text).is_equal("10 / 95")
 
 
@@ -78,19 +78,19 @@ func test_shots_are_kept_on_the_stack_magazine() -> void:
 	await _driver.press(&"fire")
 	await _driver.frames(3)
 
-	assert_int(_player.inventory.inventory.stacks_of(&"pistol")[0].state["magazine"]).is_equal(9)
+	assert_int(_player.inventory.grid.stacks_of(&"pistol")[0].state["magazine"]).is_equal(9)
 	assert_str(_hud.ammo_label.text).is_equal("9 / 30")
 
 
 func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 2)
+	_player.inventory.add(Items.MEDKIT, 2)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 	_player.body.take_damage(&"damage.blunt", 4.0, &"head")
 	await _driver.press(&"belt_1")
 	# Selecting only puts it in hand (ADR 0059).
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(2)
 	EventLog.clear()
 
 	await _driver.press(&"fire")
@@ -99,7 +99,7 @@ func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 	assert_array(healed).has_size(1)
 	assert_float(healed[0].data["amount"]).is_equal_approx(30.0, 0.001)
 	assert_float(_player.body.health(&"torso")).is_equal_approx(86.0, 0.001)
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(1)
 	var used := EventLog.find(&"item.used")
 	assert_array(used).has_size(1)
 	# The medkit is a consumable: its `heal` 30 stimulus goes to the player (ADR 0057).
@@ -117,12 +117,12 @@ func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 
 func test_medkit_is_refused_when_unhurt() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 1)
+	_player.inventory.add(Items.MEDKIT, 1)
 	await _driver.press(&"belt_1")
 
 	await _driver.press(&"fire")
 
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(1)
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
 	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
 	assert_str(_hud.message_label.text).is_equal("You are not hurt")
@@ -138,12 +138,12 @@ func test_any_consumable_sends_its_stimuli_to_the_player() -> void:
 	tonic.use_action = ItemData.UseAction.CONSUME
 	tonic.use_stimuli = {&"test.tonic": 1.0}
 	tonic.refused_message = "Tastes of nothing"
-	_player.inventory.give(tonic, 2)
-	var stack: ItemStack = _player.inventory.inventory.stacks_of(&"tonic")[0]
+	_player.inventory.add(tonic, 2)
+	var stack: ItemStack = _player.inventory.grid.stacks_of(&"tonic")[0]
 
 	assert_bool(_player.inventory.use_stack(stack)).is_false()
 	assert_str(_hud.message_label.text).is_equal("Tastes of nothing")
-	assert_int(_player.inventory.inventory.count_of(&"tonic")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"tonic")).is_equal(2)
 
 	var receiver := _player.get_node("StimulusReceiver") as StimulusReceiver
 	var glow := Receptron.new()
@@ -157,7 +157,7 @@ func test_any_consumable_sends_its_stimuli_to_the_player() -> void:
 	receiver.receptrons = receptrons
 	assert_bool(_player.inventory.use_stack(stack)).is_true()
 
-	assert_int(_player.inventory.inventory.count_of(&"tonic")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"tonic")).is_equal(1)
 	assert_bool((_player.get_node("Tags") as Tags).has(&"state.glowing")).is_true()
 
 
@@ -171,14 +171,14 @@ func test_e_picks_a_medkit_up_instead_of_using_it() -> void:
 
 	await _driver.press(&"use")
 
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(1)
 	assert_array(EventLog.find(&"actor.healed")).is_empty()
 
 
 func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 	await _load()
-	_player.inventory.give(Items.LOCKPICK, 2)
-	_player.inventory.give(Items.PISTOL, 1)
+	_player.inventory.add(Items.LOCKPICK, 2)
+	_player.inventory.add(Items.PISTOL, 1)
 
 	await _driver.press(&"belt_1")
 	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
@@ -195,17 +195,17 @@ func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 
 func test_biocell_is_refused_at_full_energy_restores_25_and_empty_slots_do_nothing() -> void:
 	await _load()
-	_player.inventory.give(Items.BIOCELL, 3)
+	_player.inventory.add(Items.BIOCELL, 3)
 
 	await _driver.press(&"belt_1")
 	assert_str(_hud.message_label.text).is_equal("")
 	await _driver.press(&"fire")
 	assert_str(_hud.message_label.text).is_equal("Energy full")
-	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(3)
+	assert_int(_player.inventory.grid.count_of(&"biocell")).is_equal(3)
 	_player.energy.set_current(40.0)
 	await _driver.press(&"fire")
 	assert_float(_player.energy.current()).is_equal_approx(65.0, 0.001)
-	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(2)
+	assert_int(_player.inventory.grid.count_of(&"biocell")).is_equal(2)
 	await _driver.press(&"belt_5")
 	# Put in hand ("equip"), then used once ("consume"); the refusal and the empty slot are not uses.
 	assert_array(EventLog.find(&"item.used")).has_size(2)
@@ -229,18 +229,18 @@ func test_death_puts_the_weapon_away() -> void:
 func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	await _load()
 	Items.arm(_player)
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
-	_player.inventory.belt.assign(7, _player.inventory.inventory.stacks_of(&"keycard")[0])
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "vault"})
+	_player.inventory.belt.assign(7, _player.inventory.grid.stacks_of(&"keycard")[0])
 	await _driver.press(&"belt_1")
 	_player.weapons.state().magazine = 6
 	var saved := _player.save_state()
 
 	_player.load_state({"inventory": {}})
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	assert_bool(_player.weapons.is_armed()).is_false()
 	_player.load_state(saved)
 
-	var inventory := _player.inventory.inventory
+	var inventory := _player.inventory.grid
 	assert_int(inventory.stacks.size()).is_equal(4)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(30)
 	assert_str(_player.inventory.belt.stack_in(7).state["key_id"]).is_equal("vault")

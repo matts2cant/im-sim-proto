@@ -89,11 +89,11 @@ func _act() -> void:
 	var spec: Array = SHOTS[shot]
 	tabs.open(int(spec[0]))
 	if shot == "inventory_medkit":
-		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"medkit")[0])
+		(tabs.page(0) as InventoryTab).select(_player.inventory.grid.stacks_of(&"medkit")[0])
 	elif shot == "inventory_exploits":
-		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"camera_exploit")[0])
+		(tabs.page(0) as InventoryTab).select(_player.inventory.grid.stacks_of(&"camera_exploit")[0])
 	elif shot.begins_with("inventory") or shot == "hit":
-		(tabs.page(0) as InventoryTab).select(_player.inventory.inventory.stacks_of(&"pistol")[0])
+		(tabs.page(0) as InventoryTab).select(_player.inventory.grid.stacks_of(&"pistol")[0])
 	if int(spec[1]) >= 0:
 		var journal := tabs.page(4) as JournalTab
 		journal.show_section(JournalTab.Section.values()[int(spec[1])])
@@ -112,20 +112,20 @@ func _save() -> void:
 
 func _give() -> void:
 	var inventory := _player.inventory
-	inventory.give(Items.PISTOL, 1, {"magazine": 8})
-	inventory.give(load(RIFLE) as ItemData, 1, {"magazine": 21})
-	inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
-	inventory.give(Items.BATON, 1)
-	inventory.give(Items.AMMO, 10)
-	inventory.give(Items.MEDKIT, 2)
-	inventory.give(load(RIFLE_ROUNDS) as ItemData, 24)
-	inventory.give(Items.LOCKPICK, 2)
-	inventory.give(Items.BIOCELL, 1)
-	inventory.give(load(PROTOTYPE) as ItemData, 1)
-	inventory.give(load(SILENCER) as ItemData, 1)
+	inventory.add(Items.PISTOL, 1, {"magazine": 8})
+	inventory.add(load(RIFLE) as ItemData, 1, {"magazine": 21})
+	inventory.add(Items.KEYCARD, 1, {"key_id": "vault"})
+	inventory.add(Items.BATON, 1)
+	inventory.add(Items.AMMO, 10)
+	inventory.add(Items.MEDKIT, 2)
+	inventory.add(load(RIFLE_ROUNDS) as ItemData, 24)
+	inventory.add(Items.LOCKPICK, 2)
+	inventory.add(Items.BIOCELL, 1)
+	inventory.add(load(PROTOTYPE) as ItemData, 1)
+	inventory.add(load(SILENCER) as ItemData, 1)
 	if shot == "inventory_exploits":
-		inventory.give(load("res://items/exploit/camera_exploit.tres") as ItemData, 2)
-		inventory.give(load("res://items/exploit/router_exploit.tres") as ItemData, 1)
+		inventory.add(load("res://items/exploit/camera_exploit.tres") as ItemData, 2)
+		inventory.add(load("res://items/exploit/router_exploit.tres") as ItemData, 1)
 	_player.body.take_damage(&"damage.blunt", 30.0, &"arm_l")
 
 

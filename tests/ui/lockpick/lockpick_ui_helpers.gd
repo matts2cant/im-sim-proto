@@ -45,8 +45,8 @@ func teardown() -> void:
 
 ## `count` lockpicks given and one in hand.
 func hold_picks(count: int) -> void:
-	player.inventory.give(Items.LOCKPICK, count)
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"lockpick")[0])
+	player.inventory.add(Items.LOCKPICK, count)
+	player.inventory.hold(player.inventory.grid.stacks_of(&"lockpick")[0])
 	await driver.frames(2)
 
 

@@ -45,8 +45,8 @@ func before_test() -> void:
 	_ice = IcebreakerTool.of(_player)
 	_screen = DeckScreen.of(_player)
 	await _driver.settle()
-	_player.inventory.give(DECK, 1)
-	var stack := _player.inventory.inventory.stacks_of(&"deck")[0]
+	_player.inventory.add(DECK, 1)
+	var stack := _player.inventory.grid.stacks_of(&"deck")[0]
 	_player.inventory.hold(stack)
 	_player.load_state(PlayerDriver.state(Lab.ORIGIN + Lab.AT_JACK, 0.0))
 	await _driver.frames(2)

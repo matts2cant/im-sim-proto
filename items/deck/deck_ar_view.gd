@@ -179,11 +179,12 @@ func links_in_view() -> Array[Dictionary]:
 	return found
 
 
-## The devices `deck_stack` has seen (its SEEN paths still in the level), in the order seen.
+## The devices `deck_stack` has seen (its SEEN keys still in the level), in the order seen.
 func seen_devices(deck_stack: ItemStack) -> Array[Device]:
 	var found: Array[Device] = []
-	for path: Variant in deck_stack.state.get(DeckSession.SEEN, []) as Array:
-		var device := Device.of(get_node_or_null(NodePath(str(path))))
+	var by_key := DeckDiscovery.devices_by_key(get_tree())
+	for saved: Variant in deck_stack.state.get(DeckSession.SEEN, []) as Array:
+		var device: Device = by_key.get(DeckDiscovery.migrated_key(self, str(saved)), null)
 		if device != null and is_instance_valid(device.entity) and not found.has(device):
 			found.append(device)
 	return found

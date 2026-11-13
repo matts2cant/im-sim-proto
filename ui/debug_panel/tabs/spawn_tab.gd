@@ -98,7 +98,7 @@ func give(item: ItemData, count: int) -> int:
 	if player == null:
 		_report("No player")
 		return -1
-	var left := player.inventory.give(item, count)
+	var left := player.inventory.add(item, count)
 	var data := {"item": String(item.id), "count": count - left}
 	EventLog.record(EventKinds.DEBUG_GAVE_ITEM, "DebugPanel", String(player.name), data)
 	if left >= count:

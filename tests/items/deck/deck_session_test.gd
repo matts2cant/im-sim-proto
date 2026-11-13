@@ -144,7 +144,8 @@ func test_a_crack_gives_the_account_and_is_learned_into_the_journal() -> void:
 	assert_float(_tracer().trace_of(_user)).is_equal_approx(trace_before + 40.0, 0.5)
 	var codes := JournalRules.codes(PersonalLog.of(_user).book)
 	assert_int(codes.size()).is_equal(1)
-	assert_str(String(codes[0]["code_id"])).is_equal("office_pc")
+	# Filed under the PC's stable key (no credentials id here; ADR 0141), shown by its label.
+	assert_str(String(codes[0]["code_id"])).is_equal(_dev("OfficePc").device_id)
 	assert_str(str(codes[0]["value"])).is_equal("kbrandt / ferry19")
 	assert_str(str(codes[0]["label"])).is_equal("OFFICE-PC (kbrandt)")
 	assert_bool(DeviceAccounts.of(_n["OfficePc"]).knows_login(_user, "kbrandt")).is_true()

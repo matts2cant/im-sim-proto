@@ -90,11 +90,6 @@ func add(item: ItemData, amount: int = 1, state: Dictionary = {}) -> int:
 	return grid.add(item, amount, state)
 
 
-## Same as add() (debug Give item, mission starting kits, tests).
-func give(item: ItemData, amount: int, state: Dictionary = {}) -> int:
-	return add(item, amount, state)
-
-
 ## Takes up to `amount` of `item`, emptying the smallest stacks first. Returns how many were taken.
 func take(item: ItemData, amount: int) -> int:
 	return grid.take(item.id, amount) if item != null else 0

@@ -91,6 +91,10 @@ const DECK_NODE: int = -1
 @export var wireless: NodePath = ^""
 ## Shows its state on a StatusLight (its model's light, or its lamp while on a network).
 @export var status_light: bool = true
+## The device's stable key (ADR 0141): what a deck remembers it by (seen, cracks, Wi-Fi keys) and
+## what the Journal files its logins under when it names no credentials id. Set in a level for a
+## fixed one; empty: a random one is made when it enters the tree, and saved.
+@export var device_id: String = ""
 
 var entity: Node3D
 var powered: Powered
@@ -108,6 +112,11 @@ func _init() -> void:
 	add_to_group(ToolUse.GROUP)
 	add_to_group(DeviceNetwork.ADDRESS_GROUP)
 	add_to_group(EmpEffect.GROUP)
+
+
+func _enter_tree() -> void:
+	if device_id.is_empty():
+		device_id = Device.generate_id()
 
 
 func _ready() -> void:
@@ -154,6 +163,11 @@ static func of(node: Node) -> Device:
 
 
 ## Every device in `tree`.
+## A new random device key (16 hex digits; not affected by the global random seed).
+static func generate_id() -> String:
+	return "d" + Crypto.new().generate_random_bytes(8).hex_encode()
+
+
 static func all(tree: SceneTree) -> Array[Device]:
 	var found: Array[Device] = []
 	if tree == null:
@@ -397,11 +411,15 @@ func save_state() -> Dictionary:
 	var data := intrusion.to_dict()
 	data["broken"] = broken
 	data["outage"] = outage
+	data["id"] = device_id
 	return data
 
 
 func load_state(data: Dictionary) -> void:
 	broken = bool(data.get("broken", broken))
+	var saved_id := str(data.get("id", ""))
+	if not saved_id.is_empty():
+		device_id = saved_id
 	outage = maxf(float(data.get("outage", 0.0)), 0.0)
 	set_physics_process(outage > 0.0)
 	intrusion.from_dict(data)

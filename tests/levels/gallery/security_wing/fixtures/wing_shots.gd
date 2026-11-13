@@ -251,7 +251,7 @@ func _plug_deck() -> void:
 	for router: String in _shot.get("hack", []):
 		var accounts := DeviceAccounts.of(_wing.get_node(router))
 		accounts.grant(_player, accounts.accounts[0].user)
-	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
-		_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	if _player.inventory.grid.stacks_of(&"deck").is_empty():
+		_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	session.plug_and_raise(Device.of(_wing.get_node(String(_shot["deck"]))))

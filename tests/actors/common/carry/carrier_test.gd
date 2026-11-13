@@ -64,7 +64,7 @@ func test_a_minimal_character_picks_up_carries_and_puts_down_a_prop() -> void:
 	assert_bool(interactor.perform()).is_true()
 	assert_bool(carrier.is_carrying()).is_false()
 	assert_int(crate.collision_layer).is_equal(PhysicsLayers.OBJECTS)
-	assert_array(EventLog.find(&"player.dropped")).has_size(1)
+	assert_array(EventLog.find(&"carry.dropped")).has_size(1)
 	await Wait.frames(get_tree(), 90)
 	assert_float(crate.global_position.y).is_equal_approx(0.3, 0.05)
 

@@ -101,7 +101,7 @@ func test_the_player_keeps_its_inventory_weapons_when_knocked_out() -> void:
 	var runner := scene_runner(Combat.YARD_WITH_PLAYER)
 	runner.set_time_factor(Combat.TIME_FACTOR)
 	var player := runner.find_child("Player") as Player
-	player.inventory.give(load("res://items/weapons/pistol/pistol_item.tres") as ItemData, 1)
+	player.inventory.add(load("res://items/weapons/pistol/pistol_item.tres") as ItemData, 1)
 	player.inventory.select_slot(0)
 	await get_tree().physics_frame
 	assert_object(player.weapons.weapon()).is_not_null()
@@ -111,7 +111,7 @@ func test_the_player_keeps_its_inventory_weapons_when_knocked_out() -> void:
 		await get_tree().physics_frame
 
 	assert_bool(ActorState.can_act(player)).is_false()
-	assert_int(player.inventory.inventory.count_of(&"pistol")).is_equal(1)
+	assert_int(player.inventory.grid.count_of(&"pistol")).is_equal(1)
 	var spawned := runner.scene().get_children().filter(func(node: Node) -> bool: return ItemPickup.of(node) != null)
 	assert_array(spawned).is_empty()
 	assert_object(WeaponDrop.of(player)).is_not_null()

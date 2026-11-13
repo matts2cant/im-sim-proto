@@ -295,9 +295,9 @@ func _plug_deck() -> void:
 	for router: String in _shot.get("hack", []):
 		var accounts := DeviceAccounts.of(_lab.get_node("Devices/" + router))
 		accounts.grant(_player, accounts.accounts[0].user)
-	if _player.inventory.inventory.stacks_of(&"deck").is_empty():
-		_player.inventory.give(DECK, 1)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"deck")[0])
+	if _player.inventory.grid.stacks_of(&"deck").is_empty():
+		_player.inventory.add(DECK, 1)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"deck")[0])
 	var device := Device.of(_lab.get_node("Devices/" + String(_shot["deck"])))
 	if _shot.get("aim", false):
 		var wireless := WirelessTool.of(_player)

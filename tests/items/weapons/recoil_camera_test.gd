@@ -109,8 +109,8 @@ func _load() -> void:
 	(_driver.runner.find_child("Wall") as Node3D).position = Vector3(0, EYE, -15)
 	await _driver.settle()
 	var inventory := _player.inventory
-	inventory.give(RIFLE, 1)
-	inventory.give(inventory.catalog.find(RIFLE.weapon.ammo_item), 60)
+	inventory.add(RIFLE, 1)
+	inventory.add(inventory.catalog.find(RIFLE.weapon.ammo_item), 60)
 	inventory.select_slot(0)
 	await _driver.frames(2)
 	EventLog.entry_added.connect(_on_entry)

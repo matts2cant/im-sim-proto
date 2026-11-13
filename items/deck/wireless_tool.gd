@@ -154,7 +154,7 @@ func start() -> bool:
 	if is_running():
 		return true
 	var host := EntityNames.device_name(target)
-	job = Icebreaker.make(DeckSession.path_of(target), "Wi-Fi key", host, radio.key, radio.key_strength, 0.0)
+	job = Icebreaker.make(DeckSession.key_of(target), "Wi-Fi key", host, radio.key, radio.key_strength, 0.0)
 	job.base_time = session.config.base_time(radio.key_strength)
 	var saved := _saved().get(job.key, {}) as Dictionary
 	var resumed := not saved.is_empty() and int(saved.get("hash", 0)) == Icebreaker.password_hash(radio.key)
@@ -182,7 +182,7 @@ func saved_progress(access_point: Device) -> float:
 	var deck := stack if stack != null else session.held_deck()
 	if radio == null or deck == null:
 		return 0.0
-	var saved := _cracks_of(deck).get(DeckSession.path_of(access_point), {}) as Dictionary
+	var saved := _cracks_of(deck, entity).get(DeckSession.key_of(access_point), {}) as Dictionary
 	if saved.is_empty() or int(saved.get("hash", 0)) != Icebreaker.password_hash(radio.key):
 		return 0.0
 	return float(saved.get("progress", 0.0))
@@ -290,15 +290,19 @@ func _has_deck() -> bool:
 
 
 func _saved() -> Dictionary:
-	return _cracks_of(stack)
+	return _cracks_of(stack, entity)
 
 
-static func _cracks_of(deck: ItemStack) -> Dictionary:
+# The Wi-Fi cracks kept on `deck` (keyed by device key; pre-ADR 0141 node paths resolved in
+# `context`'s tree).
+static func _cracks_of(deck: ItemStack, context: Node) -> Dictionary:
 	if deck == null:
 		return {}
 	if not deck.state.has(WIFI) or not deck.state[WIFI] is Dictionary:
 		deck.state[WIFI] = {}
-	return deck.state[WIFI] as Dictionary
+	var cracks := deck.state[WIFI] as Dictionary
+	DeckDiscovery.migrate_keys(cracks, context)
+	return cracks
 
 
 # The traffic a crack of `access_point` counts as (tracers block the address the deck would get).

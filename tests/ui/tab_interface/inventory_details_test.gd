@@ -27,9 +27,9 @@ func after_test() -> void:
 
 func test_weapon_rows_come_from_the_weapon_data_and_the_player() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1, {"magazine": 8})
-	_player.inventory.give(Items.AMMO, 30)
-	var pistol := _player.inventory.inventory.stacks[0]
+	_player.inventory.add(Items.PISTOL, 1, {"magazine": 8})
+	_player.inventory.add(Items.AMMO, 30)
+	var pistol := _player.inventory.grid.stacks[0]
 	var data := Items.PISTOL.weapon
 
 	var rows := ItemDetails.rows(pistol, _player)
@@ -43,9 +43,9 @@ func test_weapon_rows_come_from_the_weapon_data_and_the_player() -> void:
 
 	# The skill's damage multiplier and a fitted silencer change the rows.
 	_player.skills.set_tier(&"pistols", 2)
-	_player.inventory.give(SILENCER, 1)
-	assert_bool(_player.inventory.attach(_player.inventory.inventory.stacks[-1], pistol)).is_true()
-	_player.inventory.inventory.take(&"pistol_ammo", 10)
+	_player.inventory.add(SILENCER, 1)
+	assert_bool(_player.inventory.attach(_player.inventory.grid.stacks[-1], pistol)).is_true()
+	_player.inventory.grid.take(&"pistol_ammo", 10)
 	rows = ItemDetails.rows(pistol, _player)
 	var mult := Attributes.read(_player, &"pistol_damage_mult", 1.0)
 	assert_float(mult).is_greater(1.0)
@@ -61,9 +61,9 @@ func test_weapon_rows_come_from_the_weapon_data_and_the_player() -> void:
 
 func test_melee_weapon_has_no_magazine_rows() -> void:
 	await _load()
-	_player.inventory.give(Items.BATON, 1)
+	_player.inventory.add(Items.BATON, 1)
 
-	var rows := ItemDetails.rows(_player.inventory.inventory.stacks[0], _player)
+	var rows := ItemDetails.rows(_player.inventory.grid.stacks[0], _player)
 
 	assert_str(ItemDetails.value_of(rows, "Damage")).is_equal("20 stun + 5 blunt")
 	assert_str(ItemDetails.value_of(rows, "Magazine")).is_empty()
@@ -73,8 +73,8 @@ func test_melee_weapon_has_no_magazine_rows() -> void:
 
 func test_consumable_rows_scale_with_the_use_attribute() -> void:
 	await _load()
-	_player.inventory.give(Items.MEDKIT, 2)
-	var medkit := _player.inventory.inventory.stacks[0]
+	_player.inventory.add(Items.MEDKIT, 2)
+	var medkit := _player.inventory.grid.stacks[0]
 	var base := Items.MEDKIT.use_stimuli[&"heal"]
 
 	var rows := ItemDetails.rows(medkit, _player)
@@ -92,11 +92,11 @@ func test_consumable_rows_scale_with_the_use_attribute() -> void:
 
 func test_tool_rows_and_the_panel_shows_them() -> void:
 	await _load()
-	_player.inventory.give(Items.LOCKPICK, 3)
+	_player.inventory.add(Items.LOCKPICK, 3)
 	var tabs := TabInterface.of(_player)
 	tabs.open(0)
 	var tab := tabs.current_page() as InventoryTab
-	tab.select(_player.inventory.inventory.stacks[0])
+	tab.select(_player.inventory.grid.stacks[0])
 
 	var rows := ItemDetails.rows(tab.selected_stack(), _player)
 	assert_str(ItemDetails.value_of(rows, "Skill")).is_equal("Lockpicking (Untrained)")

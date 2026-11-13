@@ -27,7 +27,7 @@ func after_test() -> void:
 
 func test_hud_counts_grenades_and_each_throw_takes_one() -> void:
 	await _load(PI * 0.5)
-	_player.inventory.give(FRAG, 3)
+	_player.inventory.add(FRAG, 3)
 	await _driver.press(&"belt_1")
 	_hud.refresh_weapon()
 	assert_str(_hud.weapon_label.text).is_equal("Frag grenade")
@@ -45,13 +45,13 @@ func test_hud_counts_grenades_and_each_throw_takes_one() -> void:
 	# The last one thrown: empty hands, none left.
 	assert_bool(_player.weapons.is_armed()).is_false()
 	assert_int(EventLog.find(&"thrower.thrown").size()).is_equal(3)
-	for stack in _player.inventory.inventory.stacks:
+	for stack in _player.inventory.grid.stacks:
 		assert_object(stack.item).is_not_same(FRAG)
 
 
 func test_ghost_shows_near_a_wall_and_not_three_metres_away() -> void:
 	await _load(0.0)
-	_player.inventory.give(FRAG, 1)
+	_player.inventory.add(FRAG, 1)
 	await _driver.press(&"belt_1")
 	var thrower := Thrower.of(_player)
 
@@ -66,7 +66,7 @@ func test_ghost_shows_near_a_wall_and_not_three_metres_away() -> void:
 
 func test_fuse_readout_shows_at_master_only() -> void:
 	await _load(PI * 0.5)
-	_player.inventory.give(FRAG, 2)
+	_player.inventory.add(FRAG, 2)
 	await _driver.press(&"belt_1")
 	await _driver.press(&"fire")
 	_hud.refresh_fuse()
@@ -83,7 +83,7 @@ func test_fuse_readout_shows_at_master_only() -> void:
 
 func test_advanced_highlights_an_armed_mine_and_the_frame_says_armed() -> void:
 	await _load(0.0)
-	_player.inventory.give(FRAG, 1)
+	_player.inventory.add(FRAG, 1)
 	await _driver.press(&"belt_1")
 	await _driver.press(&"fire")
 	var mine := _mine()

@@ -114,7 +114,7 @@ func test_give_item_adds_one_or_a_full_stack() -> void:
 	await _load()
 	var tab := _tab("Spawn") as SpawnTab
 	var items := tab.get_node("Items")
-	var inventory := _driver.player.inventory.inventory
+	var inventory := _driver.player.inventory.grid
 	assert_int(items.get_child_count()).is_equal(ItemCatalog.default().items.size() * 3)
 
 	(items.get_node("GiveLockpick") as Button).pressed.emit()

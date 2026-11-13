@@ -35,7 +35,7 @@ func test_e_picks_up_a_stack_and_belts_it() -> void:
 	await _driver.frames(1)
 
 	assert_bool(is_instance_valid(body)).is_false()
-	assert_int(_player.inventory.inventory.count_of(&"lockpick")).is_equal(3)
+	assert_int(_player.inventory.grid.count_of(&"lockpick")).is_equal(3)
 	assert_object(_player.inventory.belt.stack_in(0).item).is_same(Items.LOCKPICK)
 	var picked := EventLog.find(&"item.picked_up")
 	assert_array(picked).has_size(1)
@@ -46,17 +46,17 @@ func test_e_picks_up_a_stack_and_belts_it() -> void:
 
 func test_ammo_and_keycards_are_not_belted() -> void:
 	await _load()
-	_player.inventory.give(Items.AMMO, 20)
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "office"})
-	_player.inventory.give(Items.MEDKIT, 1)
+	_player.inventory.add(Items.AMMO, 20)
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "office"})
+	_player.inventory.add(Items.MEDKIT, 1)
 
-	assert_int(_player.inventory.belt.slot_of(_player.inventory.inventory.stacks[2])).is_equal(0)
+	assert_int(_player.inventory.belt.slot_of(_player.inventory.grid.stacks[2])).is_equal(0)
 	assert_int(_player.inventory.belt.first_free()).is_equal(1)
 
 
 func test_full_inventory_refuses_and_the_item_stays() -> void:
 	await _load()
-	_player.inventory.give(Items.KEYCARD, 30)
+	_player.inventory.add(Items.KEYCARD, 30)
 	var body := Items.spawn_pickup(_driver.runner.scene(), Items.MEDKIT, FLOOR_SPOT)
 	await _driver.frames(20)
 	await _look_at(body.global_position)
@@ -66,7 +66,7 @@ func test_full_inventory_refuses_and_the_item_stays() -> void:
 	await _driver.frames(1)
 
 	assert_bool(is_instance_valid(body)).is_true()
-	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(0)
+	assert_int(_player.inventory.grid.count_of(&"medkit")).is_equal(0)
 	assert_array(EventLog.find(&"item.pickup_refused")).has_size(1)
 	assert_array(EventLog.find(&"item.picked_up")).is_empty()
 	assert_str(hud.message_label.text).is_equal("No room in inventory")
@@ -74,8 +74,8 @@ func test_full_inventory_refuses_and_the_item_stays() -> void:
 
 func test_partial_pickup_leaves_the_rest_on_the_floor() -> void:
 	await _load()
-	_player.inventory.give(Items.KEYCARD, 29)
-	_player.inventory.give(Items.AMMO, 80)
+	_player.inventory.add(Items.KEYCARD, 29)
+	_player.inventory.add(Items.AMMO, 80)
 	var body := Items.spawn_pickup(_driver.runner.scene(), Items.AMMO, FLOOR_SPOT, 50)
 	await _driver.frames(20)
 	await _look_at(body.global_position)
@@ -83,7 +83,7 @@ func test_partial_pickup_leaves_the_rest_on_the_floor() -> void:
 	await _driver.hold(&"use", 2)
 	await _driver.frames(1)
 
-	assert_int(_player.inventory.inventory.count_of(&"pistol_ammo")).is_equal(100)
+	assert_int(_player.inventory.grid.count_of(&"pistol_ammo")).is_equal(100)
 	assert_bool(is_instance_valid(body)).is_true()
 	assert_int(ItemPickup.of(body).count).is_equal(30)
 	assert_str(_player.interactor.prompt).is_equal("E: pick up Pistol ammo (30)")
@@ -91,15 +91,15 @@ func test_partial_pickup_leaves_the_rest_on_the_floor() -> void:
 
 func test_q_drops_the_weapon_in_hand_as_a_physics_pickup() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1)
+	_player.inventory.add(Items.PISTOL, 1)
 	await _driver.hold(&"belt_1", 2)
 	assert_bool(_player.weapons.is_armed()).is_true()
-	_player.inventory.weapon_state(_player.inventory.inventory.stacks[0]).magazine = 4
+	_player.inventory.weapon_state(_player.inventory.grid.stacks[0]).magazine = 4
 
 	await _driver.hold(&"drop_throw", 2)
 
 	assert_bool(_player.weapons.is_armed()).is_false()
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	assert_object(_player.inventory.belt.stack_in(0)).is_null()
 	var dropped := EventLog.find(&"item.dropped")
 	assert_array(dropped).has_size(1)
@@ -115,10 +115,10 @@ func test_q_drops_the_weapon_in_hand_as_a_physics_pickup() -> void:
 
 func test_drop_round_trip_keeps_instance_state() -> void:
 	await _load()
-	_player.inventory.give(Items.PISTOL, 1, {"magazine": 3})
-	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "office"})
-	_player.inventory.give(Items.AMMO, 25)
-	var stacks := _player.inventory.inventory.stacks.duplicate()
+	_player.inventory.add(Items.PISTOL, 1, {"magazine": 3})
+	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "office"})
+	_player.inventory.add(Items.AMMO, 25)
+	var stacks := _player.inventory.grid.stacks.duplicate()
 
 	for stack: ItemStack in stacks:
 		var body := _player.inventory.drop_stack(stack)
@@ -127,7 +127,7 @@ func test_drop_round_trip_keeps_instance_state() -> void:
 		await _pick_up(body)
 		assert_bool(is_instance_valid(body)).is_false()
 
-	var inventory := _player.inventory.inventory
+	var inventory := _player.inventory.grid
 	assert_int(inventory.stacks_of(&"pistol")[0].state["magazine"]).is_equal(3)
 	assert_str(inventory.stacks_of(&"keycard")[0].state["key_id"]).is_equal("office")
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(25)
@@ -139,9 +139,9 @@ func test_drop_against_a_wall_stays_on_this_side() -> void:
 	await _load()
 	# The wall's face is at z = -5.8; stand 0.5 m from it.
 	await _driver.place(Vector3(0, 0, -5.3))
-	_player.inventory.give(Items.MEDKIT, 1)
+	_player.inventory.add(Items.MEDKIT, 1)
 
-	var body := _player.inventory.drop_stack(_player.inventory.inventory.stacks[0])
+	var body := _player.inventory.drop_stack(_player.inventory.grid.stacks[0])
 	await _driver.frames(40)
 
 	assert_float(body.global_position.z).is_greater(-5.8)

@@ -104,7 +104,7 @@ func test_the_exploit_chips_open_a_cctv_camera_and_rtr03_without_trace() -> void
 		assert_bool(_lab.player.inventory.pick_up(ItemPickup.of(_lab.node(path)))).is_true()
 	assert_int(ExploitItems.count(_lab.player, &"camera")).is_equal(1)
 	assert_int(ExploitItems.count(_lab.player, &"router")).is_equal(1)
-	_lab.player.inventory.hold(_lab.player.inventory.inventory.stacks_of(&"deck")[0])
+	_lab.player.inventory.hold(_lab.player.inventory.grid.stacks_of(&"deck")[0])
 	await _lab.click(AT_CCTV_JACK, "Devices/CctvJack")
 	assert_object(session.port).is_same(_lab.device("Devices/CctvJack"))
 	# The CCTV subnet shows at once: no scan of the entry point's subnet.

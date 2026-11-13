@@ -192,7 +192,7 @@ func unplug(reason: StringName = &"unplugged") -> void:
 ## The deck stack in the user's hand, or null. A hand is the player's inventory layer
 ## (PlayerInventory); another character plugs a deck it carries by passing its stack to plug().
 func held_deck() -> ItemStack:
-	var hands := PlayerInventory.of(entity)
+	var hands := Inventory.of(entity) as PlayerInventory
 	if hands == null:
 		return null
 	var held := hands.in_hand()
@@ -348,9 +348,9 @@ static func access_notice(device: Device, text: String) -> String:
 	return text
 
 
-## Where the deck keeps state about `device` (DeckDiscovery.path_of()).
-static func path_of(device: Device) -> String:
-	return DeckDiscovery.path_of(device)
+## The key the deck keeps state about `device` under (DeckDiscovery.key_of()).
+static func key_of(device: Device) -> String:
+	return DeckDiscovery.key_of(device)
 
 
 func _remote_user(device: Device, accounts: DeviceAccounts) -> String:

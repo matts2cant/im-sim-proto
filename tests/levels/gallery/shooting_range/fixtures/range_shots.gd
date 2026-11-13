@@ -237,11 +237,11 @@ func _physics_process(delta: float) -> void:
 		_started = true
 		if _shot.get("pistol", false):
 			# M5: the player starts empty; the pistol goes to belt slot 1 (index 0).
-			_player.inventory.give(PISTOL, 1)
-			_player.inventory.give(AMMO, 30)
+			_player.inventory.add(PISTOL, 1)
+			_player.inventory.add(AMMO, 30)
 			_player.inventory.select_slot(0)
 		if _shot.get("baton", false):
-			_player.inventory.give(BATON, 1)
+			_player.inventory.add(BATON, 1)
 			_player.inventory.select_slot(0)
 		var tiers := _shot.get("tier", {}) as Dictionary
 		for skill: String in tiers:
@@ -288,13 +288,13 @@ func _process(_delta: float) -> void:
 func _arm(id: StringName) -> void:
 	var inventory := _player.inventory
 	var item := inventory.catalog.find(id)
-	inventory.give(item, 1)
+	inventory.add(item, 1)
 	if not item.weapon.ammo_item.is_empty():
-		inventory.give(inventory.catalog.find(item.weapon.ammo_item), 30)
-	var weapon := inventory.inventory.stacks[0]
+		inventory.add(inventory.catalog.find(item.weapon.ammo_item), 30)
+	var weapon := inventory.grid.stacks[0]
 	if _shot.get("silencer", false):
-		inventory.give(SILENCER, 1)
-		inventory.attach(inventory.inventory.stacks[-1], weapon)
+		inventory.add(SILENCER, 1)
+		inventory.attach(inventory.grid.stacks[-1], weapon)
 	inventory.hold(weapon)
 	if _shot.get("scope", false):
 		_player.weapons.toggle_scope()

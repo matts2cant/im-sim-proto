@@ -11,7 +11,11 @@ extends RefCounted
 ## links, up or down, whatever the routers' rules): another network the deck has seen stays
 ## remembered and shows again once the deck is plugged in there.
 ## Discovery lives in the deck's stack `state` (saved with the inventory, travelling with the item):
-## `seen` [device paths], `scanned` [subnets]. EventLog: `deck.scan {subnet}`.
+## `seen` [device keys: Device.device_id, ADR 0141], `scanned` [subnets]. EventLog:
+## `deck.scan {subnet}`.
+## Saves from before ADR 0141 kept entity node paths where the keys are: migrated_key() turns one
+## into its device's key once the path resolves (the deck's lists and crack tables do it as they
+## read them).
 
 const SEEN: String = "seen"
 const SCANNED: String = "scanned"
@@ -58,24 +62,25 @@ func refresh() -> void:
 		scanned.append(String(entry))
 		stack.state[SCANNED] = scanned
 	var seen := _list(SEEN)
-	var seen_changed := false
+	var seen_changed := _migrate(seen)
 	for device in _connected:
 		var subnet := DeviceNetwork.subnet_of(device)
 		var shown := scanned.has(String(subnet)) or Router.of(device.entity) != null
 		if not shown and not scans.has(subnet):
 			_start_scan(subnet)
 		if shown:
-			var path := DeckDiscovery.path_of(device)
-			if not seen.has(path):
-				seen.append(path)
+			var key := DeckDiscovery.key_of(device)
+			if not seen.has(key):
+				seen.append(key)
 				seen_changed = true
 	if seen_changed:
 		stack.state[SEEN] = seen
 	# Only the seen devices on the entry point's physical network: the deck remembers the others.
 	var network := DeviceNetwork.physical_network(source.device)
 	_map.clear()
-	for path: String in seen:
-		var device := Device.of(_session.get_node_or_null(NodePath(path)))
+	var by_key := DeckDiscovery.devices_by_key(tree)
+	for key: String in seen:
+		var device: Device = by_key.get(key, null)
 		if device != null and network.has(device) and not _map.has(device):
 			_map.append(device)
 	scanning.clear()
@@ -136,11 +141,48 @@ static func has_scanned(deck_stack: ItemStack, subnet: StringName) -> bool:
 	return (deck_stack.state.get(SCANNED, []) as Array).has(String(subnet))
 
 
-## Where the deck keeps state about `device` (its entity's node path; "" once out of the tree).
-static func path_of(device: Device) -> String:
-	if device == null or not is_instance_valid(device) or not device.is_inside_tree():
+## The key the deck keeps state about `device` under (Device.device_id; "" for none).
+static func key_of(device: Device) -> String:
+	if device == null or not is_instance_valid(device):
 		return ""
-	return String(device.entity.get_path()) if is_instance_valid(device.entity) else String(device.get_path())
+	return device.device_id
+
+
+## Every device in `tree` by its key.
+static func devices_by_key(tree: SceneTree) -> Dictionary[String, Device]:
+	var found: Dictionary[String, Device] = {}
+	for device in Device.all(tree):
+		if not device.device_id.is_empty() and not found.has(device.device_id):
+			found[device.device_id] = device
+	return found
+
+
+## The key a saved `key` stands for: itself, unless it is an entity node path from a save made
+## before ADR 0141 that resolves in `context`'s tree to a device (its key then). An unresolved
+## path stays as it is (it matches no device).
+static func migrated_key(context: Node, key: String) -> String:
+	if not key.begins_with("/") or context == null or not context.is_inside_tree():
+		return key
+	var device := Device.of(context.get_node_or_null(NodePath(key)))
+	return key_of(device) if device != null and not device.device_id.is_empty() else key
+
+
+## Renames the keys of `table` whose device part (before `separator`, or the whole key) is a
+## pre-ADR 0141 node path (migrated_key()); true when one changed.
+static func migrate_keys(table: Dictionary, context: Node, separator: String = "") -> bool:
+	var changed := false
+	for saved: Variant in table.keys():
+		var key := str(saved)
+		if not key.begins_with("/"):
+			continue
+		var cut := key.find(separator) if not separator.is_empty() else -1
+		var path := key.substr(0, cut) if cut >= 0 else key
+		var device_key := migrated_key(context, path)
+		if device_key != path:
+			table[device_key + (key.substr(cut) if cut >= 0 else "")] = table[saved]
+			table.erase(saved)
+			changed = true
+	return changed
 
 
 func _start_scan(subnet: StringName) -> void:
@@ -148,6 +190,17 @@ func _start_scan(subnet: StringName) -> void:
 	var who := EntityNames.log_name(_session.entity)
 	EventLog.record(EventKinds.DECK_SCAN, who, String(subnet), {"subnet": String(subnet)})
 	Tracer.report_subnet(_session.get_tree(), subnet, _session.entity, _session.source)
+
+
+# Turns the pre-ADR 0141 node paths of `keys` into device keys; true when one changed.
+func _migrate(keys: Array[String]) -> bool:
+	var changed := false
+	for i in keys.size():
+		var key := DeckDiscovery.migrated_key(_session, keys[i])
+		if key != keys[i]:
+			keys[i] = key
+			changed = true
+	return changed
 
 
 func _list(key: String) -> Array[String]:

@@ -33,8 +33,8 @@ func _door() -> HingedDoor:
 
 func test_a_lockpick_starts_the_minigame_on_the_glass_door_and_a_pick_opens_it() -> void:
 	var player := _lab.player
-	player.inventory.give(Items.LOCKPICK, 1)
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"lockpick")[0])
+	player.inventory.add(Items.LOCKPICK, 1)
+	player.inventory.hold(player.inventory.grid.stacks_of(&"lockpick")[0])
 	await _lab.stand(AT_BAY_B, BAY_B_GLASS)
 	var glass := _lab.node("Devices/BayB/GlassDoor")
 	assert_object(player.interactor.looked_at).is_same(glass)

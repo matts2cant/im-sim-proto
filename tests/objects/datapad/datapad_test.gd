@@ -57,7 +57,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 	assert_array(Objects.logged(&"log.entry_added", "entry_id", "test.storage")).has_size(1)
 	# Read in place: still in the world, nothing in the inventory.
 	assert_bool(is_instance_valid(pad) and pad.is_inside_tree()).is_true()
-	assert_array(_player.inventory.inventory.stacks).is_empty()
+	assert_array(_player.inventory.grid.stacks).is_empty()
 	assert_array(EventLog.find(&"item.picked_up")).is_empty()
 
 	await _driver.press(&"use")

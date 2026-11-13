@@ -72,8 +72,8 @@ func _ready() -> void:
 		)
 	)
 	_player.skills.set_tier(&"lockpicking", TIERS.get(_shot, 0))
-	_player.inventory.give(LOCKPICK, 2)
-	_player.inventory.hold(_player.inventory.inventory.stacks_of(&"lockpick")[0])
+	_player.inventory.add(LOCKPICK, 2)
+	_player.inventory.hold(_player.inventory.grid.stacks_of(&"lockpick")[0])
 	await get_tree().physics_frame
 	_screen = LockpickScreen.of(_player)
 	_screen.open_for(_lock, _player)

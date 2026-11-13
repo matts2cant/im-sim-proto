@@ -88,7 +88,7 @@ func test_injuries_are_worded_from_the_modifiers_the_body_applies() -> void:
 
 func test_a_tag_only_death_disables_treatment() -> void:
 	var player := await _player()
-	player.inventory.give(Items.MEDKIT, 2)
+	player.inventory.add(Items.MEDKIT, 2)
 	player.body.take_damage(&"damage.blunt", 20.0, &"leg_l")
 	_open(player)
 	_tab.select_part(&"leg_l")
@@ -104,7 +104,7 @@ func test_a_tag_only_death_disables_treatment() -> void:
 
 func test_a_medkit_on_one_part_heals_it_by_30_times_medicine() -> void:
 	var player := await _player()
-	player.inventory.give(Items.MEDKIT, 3)
+	player.inventory.add(Items.MEDKIT, 3)
 	player.body.take_damage(&"damage.blunt", 55.0, &"arm_l")
 	player.body.take_damage(&"damage.blunt", 80.0, &"torso")
 	_open(player)
@@ -132,7 +132,7 @@ func test_a_medkit_on_one_part_heals_it_by_30_times_medicine() -> void:
 
 func test_refused_on_an_unhurt_part_and_heal_all_spreads() -> void:
 	var player := await _player()
-	player.inventory.give(Items.MEDKIT, 2)
+	player.inventory.add(Items.MEDKIT, 2)
 	player.body.take_damage(&"damage.blunt", 20.0, &"leg_l")
 	_open(player)
 	_tab.select_part(&"head")

@@ -68,6 +68,13 @@ const AUGMENTATION_REFUSED: StringName = &"augmentation.refused"
 # camera
 const CAMERA_DETECTED: StringName = &"camera.detected"
 
+# carry (any character's Carrier)
+const CARRY_DROPPED: StringName = &"carry.dropped"
+const CARRY_PICKED_UP: StringName = &"carry.picked_up"
+const CARRY_PICKUP_REFUSED: StringName = &"carry.pickup_refused"
+const CARRY_RELEASE_REFUSED: StringName = &"carry.release_refused"
+const CARRY_THREW: StringName = &"carry.threw"
+
 # computer
 const COMPUTER_LOGIN: StringName = &"computer.login"
 const COMPUTER_LOGOUT: StringName = &"computer.logout"
@@ -205,12 +212,7 @@ const OBJECT_STUCK: StringName = &"object.stuck"
 const PAYLOAD_RELEASED: StringName = &"payload.released"
 
 # player
-const PLAYER_DROPPED: StringName = &"player.dropped"
 const PLAYER_MANTLED: StringName = &"player.mantled"
-const PLAYER_PICKED_UP: StringName = &"player.picked_up"
-const PLAYER_PICKUP_REFUSED: StringName = &"player.pickup_refused"
-const PLAYER_RELEASE_REFUSED: StringName = &"player.release_refused"
-const PLAYER_THREW: StringName = &"player.threw"
 
 # power
 ## Consumed (NetworkFeedback). Source entity: who switched the breaker. Data: `on` (bool).

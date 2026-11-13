@@ -49,14 +49,14 @@ func _ready() -> void:
 
 func bind(p_inventory: PlayerInventory) -> void:
 	player_inventory = p_inventory
-	player_inventory.inventory.changed.connect(queue_redraw)
+	player_inventory.grid.changed.connect(queue_redraw)
 	player_inventory.belt.changed.connect(queue_redraw)
 	custom_minimum_size = Vector2(_width(), belt_top() + belt_slot)
 	queue_redraw()
 
 
 func inventory() -> InventoryGrid:
-	return player_inventory.inventory
+	return player_inventory.grid
 
 
 func grid_origin() -> Vector2:

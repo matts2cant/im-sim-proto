@@ -96,8 +96,8 @@ func test_aiming_the_deck_at_an_access_point_cracks_its_key_and_joins_its_subnet
 	session.config.scan_time = 0.1
 	Net.add_wireless(lab.network, lab, Lab.ORIGIN)
 	await driver.settle()
-	player.inventory.give(DECK, 1)
-	player.inventory.hold(player.inventory.inventory.stacks_of(&"deck")[0])
+	player.inventory.add(DECK, 1)
+	player.inventory.hold(player.inventory.grid.stacks_of(&"deck")[0])
 	var ap := lab.node("ApYard").global_position
 	# Untrained (8 m): from 8.6 m, LMB only says it is out of range.
 	player.load_state(Objects.aiming_state(player, Lab.ORIGIN + FAR_FEET, ap))
