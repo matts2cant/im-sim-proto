@@ -40,7 +40,11 @@ func names() -> Array[String]:
 
 
 func refresh() -> void:
-	TabStyle.clear(self)
+	# Freed at once, not queued: a keychain loaded and freed in the same frame (the saveable contract
+	# test frees the player at once) would leave queued rows as orphans.
+	for child in get_children():
+		remove_child(child)
+		child.free()
 	var keys: Array[Dictionary] = keychain.keys() if keychain != null else ([] as Array[Dictionary])
 	var head := TabStyle.caption(caption_text(keys.size()))
 	add_child(head)
