@@ -1,48 +1,99 @@
 class_name HealthTabRules
 extends RefCounted
-## Pure helpers of the Health page (ADR 0111): what a disabled part does and the current effects,
-## worded from the body profile's numbers and the character's tags, and the treatment numbers from
-## the items' data (anything consumable whose use stimuli include `heal`).
+## Pure helpers of the Health page (ADR 0111): what a disabled part does, worded from the body
+## profile's numbers; the current effects, worded from the modifiers the body put on the attributes
+## and the character's state tags (nothing recomputed here: the page shows what is applied); and
+## the treatment numbers from the items' data (anything consumable whose use stimuli include `heal`).
+
+## Prefix of the injuries line of current_effects().
+const INJURIES := "Injuries: "
 
 
-## What happens when `part` reaches 0, from the profile's injury numbers: a leg slows, both crawl; an
-## arm adds spread and sway, both stop weapons; head or torso is death (BodyDamageModel.is_dead()).
+## What happens when `part` reaches 0, from the profile's injury numbers: a leg slows, both crawl
+## (the profile's crawl speed); an arm adds spread and sway, both stop weapons; a vital part is death
+## (BodyDamageModel.VITAL).
 static func disabled_text(part: StringName, profile: BodyProfile) -> String:
+	if BodyDamageModel.VITAL.has(part):
+		return "Death."
 	if BodyDamageModel.LEGS.has(part):
-		return "Move speed x%s. Both legs: you crawl." % CharacterTabStyle.number(profile.leg_speed_mult, 2)
+		return (
+			"Move speed x%s. Both legs: crawl at %s m/s."
+			% [CharacterTabStyle.number(profile.leg_speed_mult, 2), CharacterTabStyle.number(profile.crawl_speed)]
+		)
 	if BodyDamageModel.ARMS.has(part):
 		return (
 			"Aim spread +%s° and sway x%s. Both arms: weapons won't fire."
 			% [CharacterTabStyle.number(profile.arm_spread_add), CharacterTabStyle.number(profile.arm_sway_mult)]
 		)
-	return "Death."
+	return ""
 
 
-## The effects acting on the character now: injuries from the body (one disabled leg or arm) and
-## its state tags (both legs or arms disabled, whatever added the tag), then each tag of
-## `tag_texts` it has (burning, unconscious...).
+## The effects acting on the character now: one injuries line worded from the modifiers `source`
+## (BodyParts.MODIFIER_SOURCE) has on `attributes` ("Injuries: move speed x0.6, aim spread +3°",
+## each attribute through its `labels` template, "%s" standing for the change), then the text of
+## each state tag of `tag_texts` it has, whatever added it (a neutral name of the state: what it
+## does is up to the systems that read it).
 static func current_effects(
-	body: BodyParts, tags: Tags, tag_texts: Dictionary[StringName, String]
+	attributes: AttributeSet,
+	source: StringName,
+	labels: Dictionary[StringName, String],
+	tags: Tags,
+	tag_texts: Dictionary[StringName, String],
 ) -> PackedStringArray:
 	var effects: PackedStringArray = []
-	var has := func(tag: StringName) -> bool: return tags != null and tags.has(tag)
-	var legs := body.model.disabled_legs() if body != null else 0
-	var arms := body.model.disabled_arms() if body != null else 0
-	var profile := body.profile if body != null else null
-	if has.call(ActorState.LEGS_DISABLED):
-		effects.append("Both legs disabled: you crawl")
-	elif legs > 0 and profile != null:
-		effects.append("A leg is disabled: move speed x%s" % CharacterTabStyle.number(profile.leg_speed_mult, 2))
-	if has.call(ActorState.ARMS_DISABLED):
-		effects.append("Both arms disabled: weapons won't fire")
-	elif arms > 0 and profile != null:
-		var spread := CharacterTabStyle.number(profile.arm_spread_add * arms)
-		var sway := CharacterTabStyle.number(pow(profile.arm_sway_mult, arms))
-		effects.append("An arm is disabled: aim spread +%s°, sway x%s" % [spread, sway])
+	var changes := modifier_texts(attributes, source, labels)
+	if not changes.is_empty():
+		effects.append(INJURIES + ", ".join(changes))
 	for tag: StringName in tag_texts:
-		if has.call(tag):
+		if tags != null and tags.has(tag):
 			effects.append(tag_texts[tag])
 	return effects
+
+
+## One text per attribute that `source`'s modifiers change, in the order they were added: its
+## `labels` template (else "<attribute> %s") with the combined change: "+3" (adds), "x2" (multiplies,
+## the product), "= 1" (an override).
+static func modifier_texts(
+	attributes: AttributeSet, source: StringName, labels: Dictionary[StringName, String]
+) -> PackedStringArray:
+	var texts: PackedStringArray = []
+	if attributes == null:
+		return texts
+	var order: Array[StringName] = []
+	for modifier in attributes.modifiers():
+		if modifier.source == source and not order.has(modifier.attribute):
+			order.append(modifier.attribute)
+	for attribute in order:
+		var change := change_text(
+			attributes.modifiers(attribute).filter(func(modifier: Modifier) -> bool: return modifier.source == source)
+		)
+		var template: String = labels.get(attribute, String(attribute) + " %s")
+		texts.append(template % change)
+	return texts
+
+
+## The combined change of `modifiers` (one attribute): "+3", "-1", "x0.6", "+3 x2", "= 1".
+static func change_text(modifiers: Array) -> String:
+	var added := 0.0
+	var factor := 1.0
+	var override: Modifier = null
+	for modifier: Modifier in modifiers:
+		match modifier.op:
+			Modifier.Op.ADD:
+				added += modifier.magnitude
+			Modifier.Op.MULTIPLY:
+				factor *= modifier.magnitude
+			Modifier.Op.OVERRIDE:
+				if override == null or modifier.priority >= override.priority:
+					override = modifier
+	if override != null:
+		return "= %s" % CharacterTabStyle.number(override.magnitude, 2)
+	var parts: PackedStringArray = []
+	if not is_zero_approx(added):
+		parts.append(("-" if added < 0.0 else "+") + CharacterTabStyle.number(absf(added), 2))
+	if not is_equal_approx(factor, 1.0):
+		parts.append("x" + CharacterTabStyle.number(factor, 2))
+	return " ".join(parts)
 
 
 ## The stacks that heal when used: consumables whose use stimuli include `stimulus`.

@@ -13,6 +13,8 @@ const LEG_R: StringName = &"leg_r"
 const PARTS: Array[StringName] = [HEAD, TORSO, ARM_L, ARM_R, LEG_L, LEG_R]
 const LEGS: Array[StringName] = [LEG_L, LEG_R]
 const ARMS: Array[StringName] = [ARM_L, ARM_R]
+## Either of these at 0 is death.
+const VITAL: Array[StringName] = [HEAD, TORSO]
 # Healing below this is treated as nothing left to give.
 const EPSILON: float = 0.0001
 
@@ -50,7 +52,7 @@ func is_disabled(part: StringName) -> bool:
 
 
 func is_dead() -> bool:
-	return is_disabled(HEAD) or is_disabled(TORSO)
+	return VITAL.any(is_disabled)
 
 
 func disabled_legs() -> int:

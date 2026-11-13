@@ -97,13 +97,13 @@ Per receiver the reception is logged, then its receptron firings, then the next 
 
 Object and player kinds (M3, [objects-and-fire.md](objects-and-fire.md)): `object.ignited {object, by, heat}`, `object.burnt_out`, `object.exploded {object, by}`, `object.damaged {object, type, amount, health}`, `object.broken {object, reason, by, debris, contents}`, `object.impact {object, other, speed, loudness}`, `player.picked_up`, `player.dropped {object, how}`, `player.threw {object, speed}`, `player.pickup_refused {object, mass, limit}`, `debug.spawned {object, scene}`.
 
-Damage and weapon kinds (M4, [damage.md](damage.md), [weapons-and-aiming.md](weapons-and-aiming.md)): `actor.damaged {actor, part, type, amount, health, by}`, `actor.stunned {actor, amount, stun, behind, aware, by}`, `actor.knocked_out {actor, stun, by}`, `actor.died {actor, by}`, `actor.healed {actor, amount, requested}`, `actor.reset`, `item.use_refused {object, reason}`, `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started`, `weapon.reloaded`, `weapon.refused {weapon, reason}`, `level.reset {scene}`. `by` is the id of the damaging stimulus. (`player.hurt` from M3 is gone: the `body_damage` receptron replaced it.)
+Damage and weapon kinds (M4, [damage.md](damage.md), [weapons-and-aiming.md](weapons-and-aiming.md)): `actor.damaged {actor, part, type, amount, health, by}`, `actor.stunned {actor, amount, stun, behind, aware, by}`, `actor.knocked_out {actor, stun, by}`, `actor.died {actor, by}`, `actor.healed {actor, amount, requested}`, `actor.reset {actor, by}` (RestoreEffect), `item.use_refused {object, reason}`, `weapon.equipped`, `weapon.holstered`, `weapon.fired {weapon, magazine, spread, hit}`, `weapon.swung {weapon, hit}`, `weapon.dry_fire`, `weapon.reload_started`, `weapon.reloaded`, `weapon.refused {weapon, reason}`, `level.reset {scene}`. `by` is the id of the damaging stimulus. (`player.hurt` from M3 is gone: the `body_damage` receptron replaced it.)
 
 Character component kinds ([ADR 0056](../decisions/0056-generic-character-components.md)): `actor.footstep {mode, surface, loudness}` and `actor.landed {impact_speed, surface, loudness}` (MovementNoise; were `player.footstep` / `player.landed`), `actor.struck {actor, object, speed, damage}` (ImpactSensor), `actor.knocked_back {actor, impulse, speed}` (Knockback). Awareness (M7, [ADR 0068](../decisions/0068-awareness-states-and-guard-behaviour.md)): `actor.awareness {actor, from, to, reason, meter, point}`, `actor.heard {actor, perceived, point}`, `actor.bark {actor, line, from, to}`.
 
 ### What characters receive ([ADR 0056](../decisions/0056-generic-character-components.md))
 
-Generic components and receptrons any character composes (the player has all of them; the static training dummy only `body_damage` and an inactive ImpactSensor):
+Generic components and receptrons any character composes (the player has all of them; the static training dummy `body_damage`, `heal`, `restore` and an inactive ImpactSensor):
 
 | Stimulus | From | Receptron / effect | Result |
 |---|---|---|---|
@@ -113,6 +113,7 @@ Generic components and receptrons any character composes (the player has all of 
 | `force.blast` RADIUS, intensity = impulse (N s) at the centre, linear falloff | explosions | `knockback` on `force` (`KnockbackEffect`) | shove away from the origin towards the receiver |
 | `force.impact` RAY, intensity = impulse (N s) | weapon hits | `knockback` | shove along the ray |
 | `heal` CONTACT on the user, x the user's `medical_heal_mult` | medkit use; Regeneration (2 every 0.5 s, unscaled, only while something is hurt) | `heal` (`HealEffect`) | split over the damaged parts |
+| `restore` CONTACT on the body (intensity unused) | a training dummy's `use` / `reset()`, the range's "Reset dummies" button (to bodies that cannot act) | `restore` (`include_self`; `RestoreEffect`) | `BodyParts.reset()`: full health, `state.dead` / `state.unconscious` removed (without BodyParts: the two tags removed); `actor.reset` |
 | `energy` CONTACT on the user, intensity = energy | biocell use (25) | `energy` (`actors/common/abilities/receptrons/energy.tres`, `ChangeAttributeEffect` on `energy`, max `energy_max`) | restores energy; refused when full ([abilities.md](abilities.md)) |
 
 Inventory kinds (M5, [inventory.md](inventory.md)): `item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}`, `item.use_refused {item, reason}` (was `{object, reason}` for the M4 world medkit), `debug.gave_item {item, count}`.

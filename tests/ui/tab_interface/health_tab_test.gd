@@ -55,16 +55,51 @@ func test_current_effects_follow_the_body_and_the_tags() -> void:
 	assert_array(Array(_tab.effect_texts())).is_empty()
 
 	body.take_damage(&"damage.blunt", 200.0, &"leg_l")
-	assert_array(Array(_tab.effect_texts())).contains_exactly(["A leg is disabled: move speed x0.6"])
+	assert_array(Array(_tab.effect_texts())).contains_exactly(["Injuries: move speed x0.6"])
 	body.take_damage(&"damage.blunt", 200.0, &"leg_r")
 	body.take_damage(&"damage.blunt", 200.0, &"arm_r")
 	Characters.tags_of(character).add(&"state.burning")
+	# Both legs: the body's crawl is a tag, not a speed modifier.
 	assert_array(Array(_tab.effect_texts())).contains_exactly(
-		["Both legs disabled: you crawl", "An arm is disabled: aim spread +3°, sway x2", "Burning"]
+		["Injuries: aim spread +3°, sway x2", "Legs disabled", "Burning"]
 	)
 	# Whatever adds the tag (handcuffs) shows the same effect.
 	Characters.tags_of(character).add(ActorState.ARMS_DISABLED)
-	assert_array(Array(_tab.effect_texts())).contains(["Both arms disabled: weapons won't fire"])
+	assert_array(Array(_tab.effect_texts())).contains(["Arms disabled"])
+
+
+func test_injuries_are_worded_from_the_modifiers_the_body_applies() -> void:
+	var character := _character()
+	var body := Characters.body_parts(character)
+	var values := (character.get_node("Attributes") as Attributes).attribute_set
+	_open(character)
+	# Another source's modifier (a skill) is not an injury.
+	values.add_modifier(Modifier.create(BodyParts.MOVE_SPEED, Modifier.Op.MULTIPLY, 0.5, &"skills"))
+	assert_array(Array(_tab.effect_texts())).is_empty()
+
+	body.take_damage(&"damage.blunt", 200.0, &"arm_l")
+	body.take_damage(&"damage.blunt", 200.0, &"arm_r")
+
+	# Two arms: the two modifiers combined (+3 +3, x2 x2), as the body applies them.
+	assert_array(Array(_tab.effect_texts())).contains_exactly(["Injuries: aim spread +6°, sway x4", "Arms disabled"])
+	var spread := Attributes.read(character, BodyParts.AIM_SPREAD_ADD, 0.0)
+	assert_float(spread).is_equal_approx(6.0, 0.0001)
+
+
+func test_a_tag_only_death_disables_treatment() -> void:
+	var player := await _player()
+	player.inventory.give(Items.MEDKIT, 2)
+	player.body.take_damage(&"damage.blunt", 20.0, &"leg_l")
+	_open(player)
+	_tab.select_part(&"leg_l")
+	assert_bool((_tab.find_child("HealAll", true, false) as Button).disabled).is_false()
+
+	# Dead by the tag alone (an Effect): the body is dead for the page too.
+	ActorState.set_tag(player, ActorState.DEAD, true)
+	_tab.refresh()
+
+	assert_bool((_tab.find_child("HealAll", true, false) as Button).disabled).is_true()
+	assert_bool((_tab.find_child("HealPart", true, false) as Button).disabled).is_true()
 
 
 func test_a_medkit_on_one_part_heals_it_by_30_times_medicine() -> void:
