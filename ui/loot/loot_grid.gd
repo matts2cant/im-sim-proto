@@ -15,7 +15,8 @@ signal drag_moved(at_global: Vector2)
 signal drag_released(at_global: Vector2)
 signal quick_move_requested(grid: LootGrid, stack: ItemStack)
 
-const CELL := 52.0
+## The mockup's 52 px cell on its 1280 px frame, at the base 1152 px width.
+const CELL := 48.0
 
 var inventory: Inventory
 ## The shared drag (set by the screen).

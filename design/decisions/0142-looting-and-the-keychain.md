@@ -29,3 +29,12 @@ The full specification is [looting.md](../game/looting.md):
 - New: the loot screen (a Screens id), container props, the keychain card icon, guard loadouts as data, carrying moved to hold E.
 - The weapon drop on downing changes; tests of drops follow.
 - The warehouse moves some keys and keycards onto guards.
+
+## As built (M14d screen)
+
+Details in [looting.md](../game/looting.md#as-built-m14d-screen).
+- **The screen** is `ui/loot/`: `LootScreen` (a `UserScreen` for id `"loot"`, registered in the player's `Screens` scenes), two `LootGrid`s sharing a `LootDrag`, and `LootRules` for every move (drop with the footprint check, merging stackable items into the other side's stacks first, quick move, Take all, keys). The subject is any entity with an `Inventory`; its line comes from `EntityNames` and the interaction frame's state word.
+- **It pauses for real** (user-approved in the design review): it is a `PauseScreens` screen, like the game menu, and also holds the user's `OverlayFocus` so the HUD hides; the Tab interface, which the spec compared it to, keeps the world running (ADR 0110). Notices show in the screen's footer while it is open.
+- **Moving a stack keeps its state**: `Inventory.state_of(stack)` (new) gives a copy with the weapon's loaded rounds synced.
+- **Keychain kinds**: `KeyIcon` (`ui/inventory/`) draws a brass key or a blue card by the entry's `kind`, in the loot screen and the Inventory tab's `KeychainList`; `LootRules.KEY` / `CARD` name the kinds, and an entry without one is a key. Moving a key goes through `LootRules.move_key()`, the one caller of the systems side's contract (`Keychain.remove(key_id) -> Dictionary`, `Keychain.add(key_id, key_name, found, kind)`), through `call()` until that lands; tests use a stand-in keychain (`tests/ui/loot/fixtures/keychain_stand_in.gd`).
+- **Look**: the Tab interface's theme with one new variation (`TabKeyButton`, a clickable keychain row); grid cells up to 48 px at 1152 wide.

@@ -36,9 +36,9 @@ const HINT := (
 	+ " · the game is paused"
 )
 const NOTICE_TIME: float = 2.5
-const KEYS_WIDTH: float = 132.0
-## The largest grid on either side (6 x 7 cells of 52 px); bigger grids get smaller cells.
-const GRID_AREA := Vector2(312, 364)
+const KEYS_WIDTH: float = 150.0
+## The largest grid on either side (6 x 7 cells of LootGrid.CELL); bigger grids get smaller cells.
+const GRID_AREA := Vector2(6, 7) * LootGrid.CELL
 
 ## The node looting, and the entity looted.
 var user: Node = null
@@ -383,6 +383,7 @@ func _build_side(cols: HBoxContainer, side_name: String, theirs: bool) -> LootGr
 	left.add_child(grid)
 	var right := VBoxContainer.new()
 	right.custom_minimum_size = Vector2(KEYS_WIDTH, 0)
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.add_theme_constant_override(&"separation", 8)
 	row.add_child(right)
 	right.add_child(TabStyle.caption(KEYCHAIN))
