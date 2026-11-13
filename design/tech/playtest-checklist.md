@@ -679,19 +679,17 @@ Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `i
 - [ ] The brackets read on bright (a lit wall) and dark (an unlit corner) backgrounds; at 1080 p the lines are one pixel thin, at 4K still crisp. Too subtle or too strong? Is the tag's size right?
 - [ ] Scoped (sniper RMB): no frame; knocked out or dead: no frame.
 
-## M13c showroom: device models ([ADR 0130](../decisions/0130-device-overhaul.md) step 0)
+## M13c gear in the network lab and the security wing ([ADR 0130](../decisions/0130-device-overhaul.md) step 3)
 
-Walk to the hub's east wall between the two east doorways (the `DeviceShowroom`, [hub-and-gallery.md](../levels/hub-and-gallery.md#hub)). The models are look only: nothing reacts yet.
+The hub showroom is gone; the gear now stands in rooms 5 and 8 ([hub-and-gallery.md](../levels/hub-and-gallery.md#8-network-lab)).
 
-- [ ] From 4 m: can you tell the kinds apart by their colour strip alone (switch blue, router orange, access point cyan, wall jack slate, computers green, alarm system red, door controllers violet, security yellow)? Do rack and desk versions of a switch or router read as the same family?
-- [ ] Each model's icon on its front matches the deck Map's icon for its kind; the rack server shows the computer icon (the desktop, laptop, camera, turret and laser units have no icon). Are the icons big enough to read from 1.5 m?
-- [ ] One status light per model (green; the door controllers' lock light red, the camera's lamp under its head, the access point's ring round its centre disc, the turret's on its base); none on the wall jack, panic button and laser emitter and receiver.
-- [ ] The access point reads as a round ceiling unit (white dome, glowing ring, thin cyan band on the rim); the camera and turret look like the in-game ones with a yellow band; the siren's beacon reads as a rotating warning light.
-- [ ] Lean in to BAY-A's rack switch: at which distance can you read the vertical port labels (the screenshots found about 0.3 m at 648 p, 0.5 m at 1080 p)? Is that acceptable, or do the labels need another form (numbers with a legend, labels on the far end only)?
-- [ ] The router's uplink socket (the last one) is ringed in orange; empty sockets have a dark light, cabled ones green.
-- [ ] Bays: the U steps of the units and the blank panels, the name plate on top, the cables rising to the ceiling, the glass door of BAY-B (the lights show through, the keyhole lock on its right edge). Walk round them: does the depth look right (0.6 m)?
-- [ ] The desk gear (desktop with monitor, laptop marked "later", desk switch, wedge-shaped desk router) sits on the desk without floating or sinking; wall models sit flat on the wall, with no gap and no flicker at the joins.
-- [ ] The LEDs, port lights and ARMED displays glow; name plates, port labels and icons do not (they are printed, lit by the room). Are the showroom's two lamps enough to judge the colours?
+- [ ] Network lab, bay A (west wall, open): RTR-01, SW-SECURITY and SW-CLOSET in their slots, blank panels below; up close (0.5 m) the blanks show dark seams and no bright lines; the cables rise from the bay's top to the ceiling. Can you read the switches' vertical port labels, and from how far (the shots found about 0.3 m at 648 p)?
+- [ ] Bay B (east wall, locked): the glass door shows the lights; the frame reads "Locked · key or lockpick". Pick it with a lockpick (LMB), close it (E); it stays unlocked. In a fresh run, get the key from the closet shelf (open the closet from the console first): "Key added to the keychain", the Inventory's keychain lists "Bay B key", E opens the door. The file server inside opens its desktop with E like a desktop.
+- [ ] Desk gear: the office switch on PC 2's desk, the edge router on the mail PC's desk; the four desktops (PC 1, PC 2, console, mail PC) stand on their desks, no shelf, nothing floating or sinking. Are the desk boxes noticeable enough, or too small to find?
+- [ ] Annex, bay C (far wall, beside the exploit table): RTR-03, SW-CCTV, SW-WIFI, RTR-04, SW-ALARM, SW-SIRENS. The firewall station's devices (jack, alarm controller, panic button, sirens) stay on the west wall; does the station still read well with its router in the bay across the room?
+- [ ] Security wing: one open bay on the hall's north wall (SW-OPS, RTR-05, SW-SECURITY, the four area switches, the rack alarm controller with its ARMED display); its sign to the right; shoot SW-SECURITY in the bay (one round) or cut breaker B: the security devices drop off as before. The booth computer stands on a desk; the booth's east wall keeps only the radio base station.
+- [ ] Deck in hand, RMB (AR cables): runs from the bays' units rise to the ceiling above the bay (not from the bay's top) and across; runs from desk gear rise from the desk. Do the many runs from one bay read, or is it a tangle?
+- [ ] Walk round each bay: 1 m free in front, the locked bay's door swings out without hitting anything; you can reach every unit with the crosshair (the frame names it).
 
 ## M13c the deck's Map nodes ([ADR 0130](../decisions/0130-device-overhaul.md))
 
