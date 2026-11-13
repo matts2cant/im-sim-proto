@@ -684,8 +684,9 @@ Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `i
 Walk to the hub's east wall between the two east doorways (the `DeviceShowroom`, [hub-and-gallery.md](../levels/hub-and-gallery.md#hub)). The models are look only: nothing reacts yet.
 
 - [ ] From 4 m: can you tell the kinds apart by their colour strip alone (switch blue, router orange, access point cyan, wall jack slate, computers green, alarm system red, door controllers violet, security yellow)? Do rack and desk versions of a switch or router read as the same family?
-- [ ] Each model's icon on its front matches the deck Map's icon for its kind; the rack server, desktop and laptop show the computer icon. Are the icons big enough to read from 1.5 m?
-- [ ] One status light per model (green; the door controllers' lock light red, the camera's lamp on its body); none on the wall jack, panic button and laser post.
+- [ ] Each model's icon on its front matches the deck Map's icon for its kind; the rack server shows the computer icon (the desktop, laptop, camera, turret and laser units have no icon). Are the icons big enough to read from 1.5 m?
+- [ ] One status light per model (green; the door controllers' lock light red, the camera's lamp under its head, the access point's ring round its centre disc, the turret's on its base); none on the wall jack, panic button and laser emitter and receiver.
+- [ ] The access point reads as a round ceiling unit (white dome, glowing ring, thin cyan band on the rim); the camera and turret look like the in-game ones with a yellow band; the siren's beacon reads as a rotating warning light.
 - [ ] Lean in to BAY-A's rack switch: at which distance can you read the vertical port labels (the screenshots found about 0.3 m at 648 p, 0.5 m at 1080 p)? Is that acceptable, or do the labels need another form (numbers with a legend, labels on the far end only)?
 - [ ] The router's uplink socket (the last one) is ringed in orange; empty sockets have a dark light, cabled ones green.
 - [ ] Bays: the U steps of the units and the blank panels, the name plate on top, the cables rising to the ceiling, the glass door of BAY-B (the lights show through, the keyhole lock on its right edge). Walk round them: does the depth look right (0.6 m)?

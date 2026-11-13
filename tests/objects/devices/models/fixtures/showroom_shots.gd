@@ -1,6 +1,6 @@
 extends Node
 ## Screenshot helper (not a test, ADR 0130 step 0): loads the hub and photographs the device
-## showroom from fixed spots (overview from 4 m at eye height, each group from 1.5 m, close-ups,
+## showroom from fixed spots (overview from 4.4 m at eye height, each group from 1.5 m, close-ups,
 ## the bays from the side, the lamps off) with the player's field of view, into SHOT_DIR (default
 ## reports/screenshots/m13c_showroom/). SHOTS (comma-separated names) limits the set; SHOT_SIZE
 ## (WxH) sets the window. Quits itself when done, with a real-time watchdog. Run:
@@ -11,11 +11,11 @@ const FOV := 80.0
 const WATCHDOG_MS := 100000
 ## name: [eye position, look-at point, lamps: "on" | "showroom_off" | "all_off"].
 const SHOTS: Dictionary[String, Array] = {
-	"overview_4m": [Vector3(11.0, EYE, -0.6), Vector3(15.0, 1.25, -0.6), "on"],
+	"overview_4m": [Vector3(10.6, EYE, -0.2), Vector3(15.0, 1.25, -0.2), "on"],
 	"bays_1m5": [Vector3(13.0, EYE, -4.6), Vector3(14.6, 1.15, -4.6), "on"],
 	"desk_1m5": [Vector3(13.3, EYE, -2.4), Vector3(14.7, 0.95, -2.4), "on"],
 	"wall_left_1m5": [Vector3(13.5, EYE, 0.7), Vector3(15.0, 1.75, 0.7), "on"],
-	"wall_right_1m5": [Vector3(13.5, EYE, 3.3), Vector3(15.0, 1.35, 3.3), "on"],
+	"wall_right_1m5": [Vector3(13.4, EYE, 3.6), Vector3(15.0, 1.1, 3.9), "on"],
 	"switch_labels_0m3": [Vector3(14.15, 1.53, -4.93), Vector3(14.45, 1.51, -4.93), "on"],
 	"switch_labels_0m5": [Vector3(13.95, 1.55, -4.93), Vector3(14.45, 1.51, -4.93), "on"],
 	"switch_labels_0m75": [Vector3(13.7, 1.58, -4.93), Vector3(14.45, 1.51, -4.93), "on"],
@@ -24,10 +24,18 @@ const SHOTS: Dictionary[String, Array] = {
 	"door_keypad_0m5": [Vector3(14.5, 1.32, 0.15), Vector3(15.0, 1.3, 0.15), "on"],
 	"door_control_0m5": [Vector3(14.5, 1.32, 1.8), Vector3(15.0, 1.3, 1.8), "on"],
 	"wall_jack_0m5": [Vector3(14.5, 0.4, 3.8), Vector3(15.0, 0.3, 3.8), "on"],
-	"turret_1m5": [Vector3(13.5, 2.0, 3.0), Vector3(14.8, 2.55, 3.6), "on"],
+	"turret_1m5": [Vector3(13.2, EYE, 4.4), Vector3(14.6, 0.8, 4.9), "on"],
+	"turret_0m5": [Vector3(13.95, 1.2, 4.7), Vector3(14.45, 1.0, 4.95), "on"],
+	"access_point_0m5": [Vector3(14.52, 2.25, -0.3), Vector3(15.0, 2.4, -0.3), "on"],
+	"access_point_0m5_dark": [Vector3(14.52, 2.25, -0.3), Vector3(15.0, 2.4, -0.3), "showroom_off"],
+	"camera_0m5": [Vector3(14.3, 2.15, 1.3), Vector3(14.78, 2.36, 1.0), "on"],
+	"siren_0m5": [Vector3(14.55, 2.28, 2.35), Vector3(14.95, 2.42, 2.2), "on"],
+	"laser_0m5": [Vector3(14.4, 0.75, 4.2), Vector3(14.92, 0.55, 4.2), "on"],
+	"laptop_0m5": [Vector3(14.05, 1.05, -2.39), Vector3(14.58, 0.82, -2.39), "on"],
+	"desktop_0m5": [Vector3(14.05, 1.15, -2.95), Vector3(14.6, 0.95, -2.95), "on"],
 	"desk_gear_0m6": [Vector3(13.9, 1.1, -1.8), Vector3(14.55, 0.78, -1.8), "on"],
 	"bays_side": [Vector3(13.9, EYE, -6.3), Vector3(14.7, 1.0, -4.6), "on"],
-	"overview_lamps_off": [Vector3(11.0, EYE, -0.6), Vector3(15.0, 1.25, -0.6), "showroom_off"],
+	"overview_lamps_off": [Vector3(10.6, EYE, -0.2), Vector3(15.0, 1.25, -0.2), "showroom_off"],
 	"bays_dark": [Vector3(13.0, EYE, -4.6), Vector3(14.6, 1.15, -4.6), "all_off"],
 }
 
