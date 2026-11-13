@@ -2,16 +2,13 @@
 class_name KitPart
 extends CSGCombiner3D
 ## Base of the graybox kit parts (ADR 0042). The part itself is the CSG root: it has collision
-## and carries the `surface` metadata the player's footsteps read (ADR 0033).
+## and carries the `surface` metadata (Surface.META) footsteps and bullet impacts read (ADR 0033), and
+## a Room's `wall_surface` (Surface.WALL_META) for its walls (ADR 0126).
 ## Geometry is generated as internal CSG children (not saved, not duplicated, hidden in the
 ## editor tree) and rebuilt whenever an exported property changes. Out-of-range values are
 ## clamped for the geometry and reported by `_get_configuration_warnings()`; the stored value is
 ## kept so the warning stays visible until it is fixed.
 
-const SURFACE_META: StringName = &"surface"
-## The material of the part's walls when it differs from its floor's (a Room; bullet impacts read
-## it on wall faces, ShotFxConfig, ADR 0126).
-const WALL_SURFACE_META: StringName = &"wall_surface"
 ## Extra length on subtracted shapes so cuts never leave coplanar slivers.
 const CUT_MARGIN := 0.05
 
@@ -34,12 +31,12 @@ func rebuild() -> void:
 			node.free()
 	_generated.clear()
 	_warnings = PackedStringArray()
-	set_meta(SURFACE_META, StringName(_surface_name()))
+	set_meta(Surface.META, StringName(_surface_name()))
 	var wall := _wall_surface_name()
 	if wall.is_empty():
-		remove_meta(WALL_SURFACE_META)
+		remove_meta(Surface.WALL_META)
 	else:
-		set_meta(WALL_SURFACE_META, StringName(wall))
+		set_meta(Surface.WALL_META, StringName(wall))
 	_build()
 	update_configuration_warnings()
 
