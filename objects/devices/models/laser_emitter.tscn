@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/devices/models/parts/device_model.gd" id="1_device_model"]
+[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="2_metal_surface"]
+[ext_resource type="Material" path="res://objects/devices/models/parts/materials/laser_glass.tres" id="3_laser_glass"]
+[ext_resource type="Script" path="res://objects/devices/models/parts/kind_strip.gd" id="4_kind_strip"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = ExtResource("2_metal_surface")
+size = Vector3(0.12, 0.12, 0.08)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_2"]
+material = ExtResource("3_laser_glass")
+top_radius = 0.022
+bottom_radius = 0.022
+height = 0.012
+radial_segments = 12
+rings = 1
+
+[node name="LaserEmitter" type="Node3D"]
+script = ExtResource("1_device_model")
+kind_tag = &"object.laser"
+
+[node name="Head" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.04)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Lens" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.084)
+mesh = SubResource("CylinderMesh_2")
+
+[node name="KindStrip" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.051, 0.081)
+script = ExtResource("4_kind_strip")
+size = Vector3(0.12, 0.006, 0.002)

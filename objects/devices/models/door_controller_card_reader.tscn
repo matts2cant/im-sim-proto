@@ -5,7 +5,6 @@
 [ext_resource type="Script" path="res://objects/devices/models/parts/kind_strip.gd" id="3_kind_strip"]
 [ext_resource type="Script" path="res://objects/devices/models/parts/kind_icon.gd" id="4_kind_icon"]
 [ext_resource type="Script" path="res://objects/devices/models/parts/status_led.gd" id="5_status_led"]
-[ext_resource type="Script" path="res://objects/devices/models/parts/name_plate.gd" id="6_name_plate"]
 [ext_resource type="Material" path="res://objects/devices/models/parts/materials/socket.tres" id="7_socket"]
 [ext_resource type="Material" path="res://objects/devices/models/parts/materials/rail.tres" id="8_rail"]
 [ext_resource type="Material" path="res://objects/devices/models/parts/materials/face.tres" id="9_face"]
@@ -40,21 +39,15 @@ script = ExtResource("3_kind_strip")
 size = Vector3(0.1, 0.006, 0.002)
 
 [node name="KindIcon" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.034, 0.078, 0.035)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.078, 0.035)
 script = ExtResource("4_kind_icon")
 side = 0.02
 
 [node name="StatusLed" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0.079, 0.035)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0.078, 0.035)
 script = ExtResource("5_status_led")
 size = 0.012
 color = Color(1, 0.12, 0.08, 1)
-
-[node name="NamePlate" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0.079, 0.035)
-script = ExtResource("6_name_plate")
-text = "D4-CTRL"
-size = Vector2(0.046, 0.012)
 
 [node name="CardSlot" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.026, 0.03575)
