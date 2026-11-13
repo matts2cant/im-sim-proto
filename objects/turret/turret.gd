@@ -12,9 +12,9 @@ extends Node
 ##   TurretModel winds up (`windup_time`: a warning beep, noise `warning_loudness`, and the red
 ##   laser), then fires bursts through WeaponHolder.trigger(), the same weapon path as guards and the
 ##   player, with a cone of TurretModel.spread_deg(). Out of sight for `lose_time`, it stops.
-## - Line of fire like the guards' (CombatBehaviour.line_of_fire_clear): it aims at the first of the
-##   target's hitboxes (torso, head, limbs) whose first hit on the weapon line is the target, and never
-##   fires while none is (a wall, a prop or anyone else in the way).
+## - Line of fire like the guards' (AimSolver): it aims at the first of the target's hitboxes (torso,
+##   head, limbs) whose first hit on the weapon line is the target, and never fires while none is (a
+##   wall, a prop or anyone else in the way).
 ## - Remote commands: `command.disable` / `command.enable`, and one command per target preset
 ##   (`command.target_intruders`, `command.target_guards`, ...) that sets its hostile tags. The last
 ##   preset or enable command it obeyed becomes the cause of its shots (WeaponHolder.cause_id), so a
@@ -214,12 +214,14 @@ func _turn(delta: float, sighting: PerceptionSensor.Sighting) -> void:
 	_pivot.rotation.y = rotate_toward(_pivot.rotation.y, wanted, deg_to_rad(config.turn_speed) * delta)
 
 
-# Points the aim node (and the laser) at the best aim point on the target.
+# Points the aim node (and the laser) at the aim point on the target with a clear line of fire
+# (AimSolver, the guards' rule).
 func _aim_at_target() -> void:
-	_choose_aim_point()
-	var to_point := aim_point - _aim.global_position
-	if to_point.length() > 0.01 and to_point.normalized().cross(Vector3.UP).length() > 0.01:
-		_aim.look_at(aim_point, Vector3.UP)
+	var space := entity.get_world_3d().direct_space_state
+	var choice := AimSolver.choose(space, _aim.global_position, target, OwnBody.rids(entity))
+	aim_point = choice.point
+	line_clear = choice.clear
+	AimSolver.look_at(_aim, aim_point)
 
 
 # Pulls the trigger when the line of fire is clear and the head faces the target.
@@ -229,21 +231,6 @@ func _fire() -> void:
 	var angle := VisionRules.angle_off(sensor.facing(), sensor.eye_position(), target.global_position)
 	if angle <= config.fire_max_angle:
 		holder.trigger()
-
-
-# The first of the target's aim points (hitboxes: torso, head, limbs) with a clear line of fire.
-func _choose_aim_point() -> void:
-	var points := CombatBehaviour.aim_points(target)
-	var from := _aim.global_position
-	var exclude: Array[RID] = [(entity as CollisionObject3D).get_rid()]
-	var space := entity.get_world_3d().direct_space_state
-	for point in points:
-		if CombatBehaviour.line_of_fire_clear(space, from, point, target, exclude):
-			aim_point = point
-			line_clear = true
-			return
-	aim_point = points[0] if not points.is_empty() else target.global_position
-	line_clear = false
 
 
 # The laser shows while it winds up or fires, from the aim node to the first thing on its line.
@@ -257,9 +244,9 @@ func _update_laser() -> void:
 	var from := _aim.global_position
 	var forward := -_aim.global_basis.z.normalized()
 	var length := config.laser_range
-	var exclude: Array[RID] = [(entity as CollisionObject3D).get_rid()]
+	# The beam stops on characters' bodies as well as on what weapons hit (S21).
 	var query := PhysicsRayQueryParameters3D.create(
-		from, from + forward * length, PhysicsLayers.WEAPON_MASK | PhysicsLayers.PLAYER, exclude
+		from, from + forward * length, PhysicsLayers.WEAPON_MASK | PhysicsLayers.CHARACTER_LAYERS, OwnBody.rids(entity)
 	)
 	var hit := entity.get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():

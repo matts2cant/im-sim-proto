@@ -153,7 +153,35 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	{"feet": Vector3(34.5, 0, -10.5), "look": Vector3(37.49, 2.4, -10), "jam": Vector3(36.5, 0.1, -10), "wait": 1.6},
 	"camera_close": {"feet": Vector3(36.4, 0, -10.6), "look": Vector3(37.4, 2.55, -10)},
 	"jammed_close":
+	# Audit S4: the dummies standing, then hit (`hits`: [node path, damage type, amount, part], dealt
 	{"feet": Vector3(36.4, 0, -10.6), "look": Vector3(37.4, 2.55, -10), "jam": Vector3(36.5, 0.1, -12), "wait": 1.35},
+	# through BodyParts when the shot starts): floating numbers, one knocked out and one dead lying down.
+	"lane_dummies": {"feet": Vector3(3.0, 0, -8.5), "look": Vector3(3.6, 0.8, -16)},
+	"lane_dummies_hit":
+	{
+		"feet": Vector3(3.0, 0, -8.5),
+		"look": Vector3(3.6, 0.8, -16),
+		"hits":
+		[
+			["Lanes/Dummy5m", &"damage.ballistic", 25.0, &"torso"],
+			["Lanes/Dummy5m", &"damage.stun", 20.0, &"head"],
+			["Lanes/Dummy10m", &"damage.stun", 500.0, &"head"],
+			["Lanes/Dummy20m", &"damage.ballistic", 500.0, &"head"],
+		],
+		"wait": 0.8
+	},
+	"grenade_dummies_hit":
+	{
+		"feet": Vector3(13, 0, -31.5),
+		"look": Vector3(14.5, 1.2, -40),
+		"hits":
+		[
+			["GrenadeLane/Dummy2m", &"damage.explosive", 500.0, &""],
+			["GrenadeLane/Dummy4m", &"damage.stun", 500.0, &"head"],
+			["GrenadeLane/Dummy6m", &"damage.ballistic", 30.0, &"torso"],
+		],
+		"wait": 0.8
+	},
 }
 const FRAG_SCENE: PackedScene = preload("res://items/grenades/frag/frag_grenade.tscn")
 const JAMMING_FIELD: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
@@ -291,6 +319,9 @@ func _effects() -> void:
 		StimulusSystem.emit(EmpPulse.make(EMP, _room.to_global(_shot["emp"] as Vector3)))
 	if _shot.has("jam"):
 		ExplosivePayload.spawn_in_level(JAMMING_FIELD, _room, _room.to_global(_shot["jam"] as Vector3))
+	for hit: Array in _shot.get("hits", []):
+		var body := BodyParts.of(_room.get_node(String(hit[0])))
+		body.take_damage(hit[1] as StringName, float(hit[2]), hit[3] as StringName)
 
 
 # A scripted 30-round spray from the firing line in lane 5 at the spray wall's aim mark (a climbing,

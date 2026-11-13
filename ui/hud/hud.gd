@@ -249,18 +249,9 @@ func refresh_reticle() -> void:
 
 
 ## What the held ranged weapon's aim (the eye turned by the aim offset) is on within its range, when
-## a weapon can damage it (Reticle.is_target()); null otherwise.
+## a weapon can damage it (Reticle.is_target()); null otherwise (WeaponHolder.aimed_hit).
 func aimed_target() -> Node:
-	var data := player.weapons.weapon()
-	if data == null or not data.is_ranged():
-		return null
-	var from := player.weapons.aim_transform()
-	var exclude: Array[RID] = [player.get_rid()]
-	exclude.append_array(Hitboxes.rids_of(player))
-	var query := PhysicsRayQueryParameters3D.create(
-		from.origin, from.origin - from.basis.z * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
-	)
-	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
+	var hit := player.weapons.aimed_hit
 	var collider := hit.get("collider") as Node if not hit.is_empty() else null
 	return collider if Reticle.is_target(collider) else null
 

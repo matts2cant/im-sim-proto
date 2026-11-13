@@ -32,15 +32,6 @@ extends Node
 ## sight with a fresh reaction); the holder saves the loadout's ammo.
 
 const STILL_SPEED: float = 0.5
-## Aim at the target's hitboxes in this order (the torso first).
-const AIM_PARTS: Array[StringName] = [
-	BodyDamageModel.TORSO,
-	BodyDamageModel.HEAD,
-	BodyDamageModel.ARM_L,
-	BodyDamageModel.ARM_R,
-	BodyDamageModel.LEG_L,
-	BodyDamageModel.LEG_R,
-]
 
 @export var config: CombatConfig
 @export var holder_path: NodePath = ^"../Aim/WeaponHolder"
@@ -198,11 +189,7 @@ func _can_fight() -> bool:
 func _fight(delta: float) -> void:
 	body.hold_facing(target.global_position)
 	_choose_aim_point()
-	var eye := holder.eye
-	# look_at() fails on a point straight above or below the eye.
-	var to_point := aim_point - eye.global_position
-	if to_point.length() > 0.01 and to_point.normalized().cross(Vector3.UP).length() > 0.01:
-		eye.look_at(aim_point, Vector3.UP)
+	AimSolver.look_at(holder.eye, aim_point)
 	var data := holder.weapon()
 	if data == null:
 		return
@@ -311,50 +298,12 @@ func _may_attack() -> bool:
 	return angle <= config.fire_max_angle
 
 
-# The first aim point (target's hitboxes: torso, head, limbs; else head/chest/feet of its shape)
-# with a clear line of fire from the eye; the torso (unclear) when none is.
+# The aim point on the target with a clear line of fire from the eye (AimSolver).
 func _choose_aim_point() -> void:
-	var points := aim_points(target)
-	var from := holder.eye.global_position
-	var exclude := _own_rids()
 	var space := body.get_world_3d().direct_space_state
-	for point in points:
-		if line_of_fire_clear(space, from, point, target, exclude):
-			aim_point = point
-			line_clear = true
-			return
-	aim_point = points[0] if not points.is_empty() else target.global_position
-	line_clear = false
-
-
-## Points to aim at on `entity`: its hitboxes (torso, head, arms, legs), or chest, head and feet of
-## its collision shape (PerceptionSensor.target_points) without hitboxes.
-static func aim_points(entity: Node3D) -> PackedVector3Array:
-	var points := PackedVector3Array()
-	var boxes := Hitboxes.of(entity)
-	if boxes != null:
-		for part in AIM_PARTS:
-			var box := boxes.box(part)
-			if box != null:
-				points.append(box.global_position)
-	if points.is_empty():
-		var shape_points := PerceptionSensor.target_points(entity)
-		points = PackedVector3Array([shape_points[1], shape_points[0], shape_points[2]])
-	return points
-
-
-## True when the first thing a weapon ray (PhysicsLayers.WEAPON_MASK) meets from `from` to `point`
-## belongs to `entity` (one of its hitboxes): not an ally, a wall or a prop in between.
-static func line_of_fire_clear(
-	space: PhysicsDirectSpaceState3D, from: Vector3, point: Vector3, entity: Node, exclude: Array[RID]
-) -> bool:
-	var beyond := from + (point - from) * 1.05
-	var query := PhysicsRayQueryParameters3D.create(from, beyond, PhysicsLayers.WEAPON_MASK, exclude)
-	var hit := space.intersect_ray(query)
-	if hit.is_empty():
-		return false
-	var collider := hit["collider"] as Node
-	return collider == entity or entity.is_ancestor_of(collider)
+	var choice := AimSolver.choose(space, holder.eye.global_position, target, OwnBody.rids(body))
+	aim_point = choice.point
+	line_clear = choice.clear
 
 
 func _start_sidestep() -> void:
@@ -369,12 +318,6 @@ func _target_distance() -> float:
 	if target == null or not is_instance_valid(target):
 		return 0.0
 	return VisionRules.flat_distance(body.global_position, target.global_position)
-
-
-func _own_rids() -> Array[RID]:
-	var rids: Array[RID] = [body.get_rid()]
-	rids.append_array(Hitboxes.rids_of(body))
-	return rids
 
 
 func _on_navmesh(point: Vector3) -> Vector3:

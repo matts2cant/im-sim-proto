@@ -4,7 +4,8 @@ extends Effect
 ## (BodyParts.heal()). A medkit's `heal` CONTACT on its user reaches it through the `heal` receptron
 ## (ADR 0057). A `heal` that touches one of the entity's hitboxes (the CONTACT's target, delivered as
 ## `collider`, like a hit) heals that body part only (a medkit used on a part, ADR 0111).
-## can_apply(): only when there is a living, hurt body (or hurt part) to heal.
+## can_apply(): only when there is a living (no `state.dead`, whatever added it), hurt body (or hurt
+## part) to heal.
 
 
 func apply(ctx: EffectContext) -> void:

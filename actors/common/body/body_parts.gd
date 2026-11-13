@@ -8,7 +8,9 @@ extends Node
 ## `fall_damage` receptron (FallImpact, ADR 0056).
 ## Injuries are Modifiers on the entity's Attributes (`move_speed_mult`, `aim_spread_add`,
 ## `aim_sway_mult`) and tags (`state.*`, ActorState), so skills and augmentations stack with them
-## and other systems check the tags, not this component. Saveable.
+## and other systems check the tags, not this component. Dead and unconscious are the entity's
+## `state.dead` / `state.unconscious` tags, whatever added them (is_dead(), is_unconscious() read
+## them; an entity without Tags keeps them in a container of its own). Saveable.
 
 signal damaged(part: StringName, type: StringName, amount: float)
 signal stunned(amount: float, total: float)
@@ -17,6 +19,8 @@ signal died
 signal knocked_out
 ## Any change of health, stun or state (HUD refresh).
 signal changed
+## reset() restored the body (full health, conscious, alive).
+signal restored
 
 const DEAD_TAG: StringName = ActorState.DEAD
 const UNCONSCIOUS_TAG: StringName = ActorState.UNCONSCIOUS
@@ -36,18 +40,19 @@ const STUN_TYPE: StringName = &"damage.stun"
 
 var model: BodyDamageModel
 var stun: float = 0.0
-var dead: bool = false
-var unconscious: bool = false
 var entity: Node3D
 
-var _tags: Tags
 var _attributes: Attributes
+# The state tags: the entity's Tags container, or one of its own when the entity has no Tags.
+var _state := TagContainer.new()
 
 
 func _ready() -> void:
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
-	_tags = entity.get_node_or_null(^"Tags") as Tags
+	var tags := ActorState.tags_of(entity)
+	if tags != null:
+		_state = tags.container
 	_attributes = entity.get_node_or_null(^"Attributes") as Attributes
 	model = BodyDamageModel.new(profile)
 	if _attributes != null:
@@ -73,12 +78,14 @@ func health(part: StringName) -> float:
 	return model.health(part)
 
 
+## `state.dead`, whatever added it.
 func is_dead() -> bool:
-	return dead
+	return _state.has(DEAD_TAG)
 
 
+## `state.unconscious`, whatever added it (a knockout, sleep gas, an Effect).
 func is_unconscious() -> bool:
-	return unconscious
+	return _state.has(UNCONSCIOUS_TAG)
 
 
 ## Applies `amount` of `type`. `part` is the hitbox hit ("" = none: shared out by the profile).
@@ -127,15 +134,15 @@ func heal(amount: float, source_name: String = "", part: StringName = &"") -> fl
 	return restored
 
 
-## Full health, no stun, alive and conscious (training dummy reset, debug).
+## Full health, no stun, alive and conscious: `state.dead` and `state.unconscious` removed, whatever
+## added them (the `restore` receptron's RestoreEffect: training dummies, debug).
 func reset() -> void:
 	model.reset()
 	stun = 0.0
-	dead = false
-	unconscious = false
 	_set_tag(DEAD_TAG, false)
 	_set_tag(UNCONSCIOUS_TAG, false)
 	_apply_injuries()
+	restored.emit()
 	changed.emit()
 
 
@@ -143,11 +150,10 @@ func reset() -> void:
 ## `state.unconscious` removed (whatever added it); health and injuries stay. Dead: nothing.
 ## Logged `actor.revived {actor, by}`. Returns true when it woke.
 func revive(by_name: String = "") -> bool:
-	if dead or (_tags != null and _tags.has(DEAD_TAG)):
+	if is_dead():
 		return false
-	var was_down := unconscious or (_tags != null and _tags.has(UNCONSCIOUS_TAG))
+	var was_down := is_unconscious()
 	stun = 0.0
-	unconscious = false
 	_set_tag(UNCONSCIOUS_TAG, false)
 	if was_down:
 		EventLog.record(&"actor.revived", by_name, String(entity.name), {"actor": String(entity.name), "by": by_name})
@@ -162,16 +168,18 @@ func debug_text() -> String:
 	return "%s  stun %.0f" % [" ".join(parts), stun]
 
 
+## `dead` and `unconscious` are saved for an entity without Tags (and for reading a save).
 func save_state() -> Dictionary:
-	return {"parts": model.to_dict(), "stun": stun, "dead": dead, "unconscious": unconscious}
+	return {"parts": model.to_dict(), "stun": stun, "dead": is_dead(), "unconscious": is_unconscious()}
 
 
-## The tags (dead, unconscious) are restored by the Tags component itself.
+## With Tags, the state tags (dead, unconscious) are restored by the Tags component itself.
 func load_state(data: Dictionary) -> void:
 	model.from_dict(data.get("parts", {}))
 	stun = float(data.get("stun", stun))
-	dead = bool(data.get("dead", dead))
-	unconscious = bool(data.get("unconscious", unconscious))
+	if ActorState.tags_of(entity) == null:
+		_set_tag(DEAD_TAG, bool(data.get("dead", is_dead())))
+		_set_tag(UNCONSCIOUS_TAG, bool(data.get("unconscious", is_unconscious())))
 	_apply_injuries()
 	changed.emit()
 
@@ -199,8 +207,7 @@ func _take_stun(type: StringName, amount: float, cause: Stimulus, attacker: Node
 	}
 	EventLog.record(&"actor.stunned", _source_name(cause), String(entity.name), data)
 	stunned.emit(points, stun)
-	if not unconscious and StunRules.knocks_out(stun, profile.knockout_threshold):
-		unconscious = true
+	if not is_unconscious() and StunRules.knocks_out(stun, profile.knockout_threshold):
 		_set_tag(UNCONSCIOUS_TAG, true)
 		var knocked := {"actor": String(entity.name), "stun": stun, "by": data["by"]}
 		EventLog.record(&"actor.knocked_out", _source_name(cause), String(entity.name), knocked)
@@ -211,8 +218,7 @@ func _take_stun(type: StringName, amount: float, cause: Stimulus, attacker: Node
 
 func _after_change(cause: Stimulus) -> void:
 	_apply_injuries()
-	if model.is_dead() and not dead:
-		dead = true
+	if model.is_dead() and not is_dead():
 		_set_tag(DEAD_TAG, true)
 		var data := {"actor": String(entity.name), "by": cause.id if cause != null else 0}
 		EventLog.record(&"actor.died", _source_name(cause), String(entity.name), data)
@@ -241,12 +247,10 @@ func _apply_injuries() -> void:
 
 
 func _set_tag(tag: StringName, on: bool) -> void:
-	if _tags == null:
-		return
 	if on:
-		_tags.add(tag)
+		_state.add(tag)
 	else:
-		_tags.remove(tag)
+		_state.remove(tag)
 
 
 func _source_name(cause: Stimulus) -> String:
