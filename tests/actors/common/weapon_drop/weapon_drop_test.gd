@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
-## Integration (ADR 0087): WeaponDrop on any character with a WeaponHolder. Knocked out or killed
-## (its tags, from any source), the weapons of its fixed loadout become pickups of their items beside
-## the body, with the magazine they had; the holder no longer has them, so a woken guard stays
-## unarmed and does not fight. Saved: a loaded guard stays unarmed. Weapons the holder does not own
-## (the player's, from its inventory) stay in the inventory. Guards in the combat yard
+## Integration (ADR 0087, ADR 0142): WeaponDrop on any character with a WeaponHolder. Knocked out
+## or killed (its tags, from any source), the weapons of its fixed loadout go into its own Inventory
+## as their items with the magazine they had (a guard has one: looted for them), else become pickups
+## beside the body (a character without an Inventory); the holder no longer has them, so a woken
+## guard stays unarmed and does not fight. Saved: a loaded guard stays unarmed. Weapons the holder
+## does not own (the player's, from its inventory) stay in the inventory. Guards in the combat yard
 ## (tests/actors/guard/combat_helpers.gd), a hostile stand-in 8 m in front.
 
 const Combat := preload("res://tests/actors/guard/combat_helpers.gd")
@@ -36,7 +37,7 @@ func _body() -> BodyParts:
 	return _c.guard.get_node("BodyParts") as BodyParts
 
 
-func test_a_knocked_out_guard_drops_its_pistol_with_its_magazine_and_wakes_unarmed() -> void:
+func test_a_knocked_out_guard_keeps_its_pistol_in_its_inventory_and_wakes_unarmed() -> void:
 	await _c.setup(scene_runner(Combat.YARD), Combat.PISTOL_GUARD)
 	_c.holder.equip(0)
 	_c.holder.state().magazine = 7
@@ -44,17 +45,17 @@ func test_a_knocked_out_guard_drops_its_pistol_with_its_magazine_and_wakes_unarm
 	_body().take_damage(&"damage.stun", 200.0)
 	await _c.frames(3)
 
-	var pickups := _pickups()
-	assert_int(pickups.size()).is_equal(1)
-	assert_str(String(pickups[0].item.id)).is_equal("pistol")
-	assert_int(int(pickups[0].stack_state()["magazine"])).is_equal(7)
-	var beside := pickups[0].entity().global_position.distance_to(_c.guard.global_position + Vector3.UP * 0.4)
-	assert_float(beside).is_between(0.3, 1.0)
+	assert_array(_pickups()).is_empty()
+	var inventory := Inventory.of(_c.guard)
+	var pistols := inventory.grid.stacks_of(&"pistol")
+	assert_int(pistols.size()).is_equal(1)
+	assert_int(int(pistols[0].state["magazine"])).is_equal(7)
 	assert_array(_c.holder.states).is_empty()
 	assert_object(_c.holder.weapon()).is_null()
-	var dropped := EventLog.find(&"weapon.dropped")
-	assert_int(dropped.size()).is_equal(1)
-	assert_int(int(dropped[0].data["magazine"])).is_equal(7)
+	var stowed := EventLog.find(&"weapon.stowed")
+	assert_int(stowed.size()).is_equal(1)
+	assert_int(int(stowed[0].data["magazine"])).is_equal(7)
+	assert_array(EventLog.find(&"weapon.dropped")).is_empty()
 
 	# Woken with an intruder in sight: alerted, but it has nothing to fight with.
 	_body().revive("test")
@@ -63,11 +64,25 @@ func test_a_knocked_out_guard_drops_its_pistol_with_its_magazine_and_wakes_unarm
 	assert_str(_c.awareness.state_name()).is_equal("alerted")
 	assert_array(Combat.guard_entries(&"actor.engaged")).is_empty()
 	assert_array(Combat.guard_entries(&"weapon.fired")).is_empty()
-	assert_int(_pickups().size()).is_equal(1)
+	assert_array(_pickups()).is_empty()
 
 
-func test_a_killed_guard_drops_its_baton() -> void:
+func test_a_killed_guard_keeps_its_baton_in_its_inventory() -> void:
 	await _c.setup(scene_runner(Combat.YARD), Combat.BATON_GUARD)
+
+	_body().take_damage(&"damage.ballistic", 200.0, BodyDamageModel.HEAD)
+	await _c.frames(3)
+
+	assert_array(_pickups()).is_empty()
+	assert_int(Inventory.of(_c.guard).grid.count_of(&"baton")).is_equal(1)
+	assert_array(_c.holder.states).is_empty()
+
+
+func test_a_character_without_an_inventory_drops_its_weapon_beside_it() -> void:
+	await _c.setup(scene_runner(Combat.YARD), Combat.BATON_GUARD)
+	var inventory := Inventory.of(_c.guard)
+	_c.guard.remove_child(inventory)
+	inventory.free()
 
 	_body().take_damage(&"damage.ballistic", 200.0, BodyDamageModel.HEAD)
 	await _c.frames(3)
@@ -76,7 +91,10 @@ func test_a_killed_guard_drops_its_baton() -> void:
 	assert_int(pickups.size()).is_equal(1)
 	assert_str(String(pickups[0].item.id)).is_equal("baton")
 	assert_bool(pickups[0].state.has("magazine")).is_false()
+	var beside := pickups[0].entity().global_position.distance_to(_c.guard.global_position + Vector3.UP * 0.4)
+	assert_float(beside).is_between(0.3, 1.0)
 	assert_array(_c.holder.states).is_empty()
+	assert_array(EventLog.find(&"weapon.dropped")).has_size(1)
 
 
 func test_a_loaded_guard_stays_unarmed() -> void:

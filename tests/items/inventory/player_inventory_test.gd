@@ -229,8 +229,9 @@ func test_death_puts_the_weapon_away() -> void:
 func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	await _load()
 	Items.arm(_player)
-	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "vault"})
-	_player.inventory.belt.assign(7, _player.inventory.grid.stacks_of(&"keycard")[0])
+	# An item that is not belted by itself, with instance state (keycards are on the keychain).
+	_player.inventory.add(Items.SILENCER, 1, {"serial": "vault"})
+	_player.inventory.belt.assign(7, _player.inventory.grid.stacks_of(&"silencer")[0])
 	await _driver.press(&"belt_1")
 	_player.weapons.state().magazine = 6
 	var saved := _player.save_state()
@@ -243,7 +244,7 @@ func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	var inventory := _player.inventory.grid
 	assert_int(inventory.stacks.size()).is_equal(4)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(30)
-	assert_str(_player.inventory.belt.stack_in(7).state["key_id"]).is_equal("vault")
+	assert_str(_player.inventory.belt.stack_in(7).state["serial"]).is_equal("vault")
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.weapons.state().magazine).is_equal(6)
 	assert_int(_player.inventory.belt.selected).is_equal(0)

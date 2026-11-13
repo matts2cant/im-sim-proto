@@ -9,6 +9,8 @@ const MEDKIT: ItemData = preload("res://items/medkit/medkit.tres")
 const LOCKPICK: ItemData = preload("res://items/lockpick/lockpick.tres")
 const BIOCELL: ItemData = preload("res://items/biocell/biocell.tres")
 const KEYCARD: ItemData = preload("res://items/keycard/keycard.tres")
+## A 1 x 1 item that never stacks (fills grid cells one by one).
+const SILENCER: ItemData = preload("res://items/attachments/silencer/silencer.tres")
 
 
 ## Pistol (belt 1), baton (belt 2) and 30 pistol rounds: the M4 loadout the weapon tests expect.

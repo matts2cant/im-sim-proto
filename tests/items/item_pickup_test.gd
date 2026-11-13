@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Integration: picking items up with E (prompt, stacking, auto-belt, no room, partial pickup) and
 ## dropping them back into the world as physics pickups (Q with the item in hand, drop_stack()),
-## including the round trip of instance state (magazine, key_id).
+## including the round trip of instance state (magazine). Keycards go on the keychain
+## (ADR 0142).
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -44,19 +45,21 @@ func test_e_picks_up_a_stack_and_belts_it() -> void:
 	assert_object(picked[0].source_entity()).is_same(_player)
 
 
-func test_ammo_and_keycards_are_not_belted() -> void:
+func test_ammo_is_not_belted_and_keycards_go_on_the_keychain() -> void:
 	await _load()
 	_player.inventory.add(Items.AMMO, 20)
 	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "office"})
 	_player.inventory.add(Items.MEDKIT, 1)
 
-	assert_int(_player.inventory.belt.slot_of(_player.inventory.grid.stacks[2])).is_equal(0)
+	assert_int(_player.inventory.grid.stacks.size()).is_equal(2)
+	assert_int(_player.inventory.belt.slot_of(_player.inventory.grid.stacks[1])).is_equal(0)
 	assert_int(_player.inventory.belt.first_free()).is_equal(1)
+	assert_bool(Keychain.of(_player).has_key(&"office", Keychain.CARD)).is_true()
 
 
 func test_full_inventory_refuses_and_the_item_stays() -> void:
 	await _load()
-	_player.inventory.add(Items.KEYCARD, 30)
+	_player.inventory.add(Items.SILENCER, 30)
 	var body := Items.spawn_pickup(_driver.runner.scene(), Items.MEDKIT, FLOOR_SPOT)
 	await _driver.frames(20)
 	await _look_at(body.global_position)
@@ -74,7 +77,7 @@ func test_full_inventory_refuses_and_the_item_stays() -> void:
 
 func test_partial_pickup_leaves_the_rest_on_the_floor() -> void:
 	await _load()
-	_player.inventory.add(Items.KEYCARD, 29)
+	_player.inventory.add(Items.SILENCER, 29)
 	_player.inventory.add(Items.AMMO, 80)
 	var body := Items.spawn_pickup(_driver.runner.scene(), Items.AMMO, FLOOR_SPOT, 50)
 	await _driver.frames(20)
@@ -116,7 +119,7 @@ func test_q_drops_the_weapon_in_hand_as_a_physics_pickup() -> void:
 func test_drop_round_trip_keeps_instance_state() -> void:
 	await _load()
 	_player.inventory.add(Items.PISTOL, 1, {"magazine": 3})
-	_player.inventory.add(Items.KEYCARD, 1, {"key_id": "office"})
+	_player.inventory.add(Items.MEDKIT, 1)
 	_player.inventory.add(Items.AMMO, 25)
 	var stacks := _player.inventory.grid.stacks.duplicate()
 
@@ -129,7 +132,7 @@ func test_drop_round_trip_keeps_instance_state() -> void:
 
 	var inventory := _player.inventory.grid
 	assert_int(inventory.stacks_of(&"pistol")[0].state["magazine"]).is_equal(3)
-	assert_str(inventory.stacks_of(&"keycard")[0].state["key_id"]).is_equal("office")
+	assert_int(inventory.count_of(&"medkit")).is_equal(1)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(25)
 	assert_array(EventLog.find(&"item.dropped")).has_size(3)
 	assert_array(EventLog.find(&"item.picked_up")).has_size(3)

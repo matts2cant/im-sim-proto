@@ -1,18 +1,23 @@
 extends GdUnitTestSuite
 ## Integration: the player carries downed characters (ADR 0071) in the carry room
 ## (tests/objects/fixtures/carry_room.tscn). A guard lies across the view (along +X), 1 m ahead
-## of the player's feet, its torso straight ahead (within the 2 m reach of the eyes): E on its
-## torso picks it up (a 15 kg carry mass within the unaugmented 20 kg); it is a ghost while held
-## (body and hitboxes off every layer, its controller paused); Q drops it on the floor, still
-## downed; it is saved held or dropped.
+## of the player's feet, its torso straight ahead (within the 2 m reach of the eyes). The guard is
+## lootable (ADR 0142) and the player has a loot screen (a stand-in): tapping E (0.2 s) opens it on
+## the guard, holding E (0.8 s; the hold time is 0.5 s) picks the body up (a 15 kg carry mass within
+## the unaugmented 20 kg); it is a ghost while held (body and hitboxes off every layer, its
+## controller paused); Q drops it on the floor, still downed; it is saved held or dropped.
 
 const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
+const LootScreen := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const CARRY: CarryConfig = preload("res://actors/common/carry/carry.tres")
 const GUARD_SCENE: PackedScene = preload("res://actors/guard/guard.tscn")
 const BODY_FEET := Vector3(-1.2, 0, -1.0)
+## Physics frames of a tap (0.2 s) and of a hold (0.8 s) of E at 60 ticks per second.
+const TAP_FRAMES := 12
+const HOLD_FRAMES := 48
 
 var _driver: PlayerDriver
 var _player: Player
@@ -39,15 +44,26 @@ func test_a_conscious_guard_is_not_offered() -> void:
 	assert_float(Carryable.mass_of(guard)).is_less(_player.carry.mass_limit())
 
 
-func test_pick_up_carry_and_drop_a_downed_guard() -> void:
+func test_tapping_e_loots_a_downed_guard_and_holding_e_carries_it() -> void:
 	await _load()
+	var screen := LootScreen.add_to(_player) as LootScreen
 	var guard := _guard([&"actor.guard", &"state.unconscious"])
 	# DownedPose tips the figure and hitboxes over 0.5 s (a tween): aim once it lies still.
 	await _driver.frames(60)
 	await _aim_at_torso(guard)
-	assert_int(_player.interactor.kind).is_equal(Interactor.Kind.CARRY)
+	assert_int(_player.interactor.kind).is_equal(Interactor.Kind.USE)
+	assert_int(_player.interactor.hold_kind).is_equal(Interactor.Kind.CARRY)
 
-	await _driver.hold(&"use", 2)
+	await _driver.hold(&"use", TAP_FRAMES)
+	await _driver.frames(2)
+	assert_int(screen.opened).is_equal(1)
+	assert_object(screen.subject).is_same(guard)
+	assert_bool(_player.carry.is_carrying()).is_false()
+	screen.close_screen()
+
+	await _driver.hold(&"use", HOLD_FRAMES)
+	await _driver.frames(2)
+	assert_int(screen.opened).is_equal(1)
 	assert_object(_player.carry.held).is_same(guard)
 	assert_int(guard.collision_layer).is_equal(0)
 	assert_int(guard.collision_mask).is_equal(0)
