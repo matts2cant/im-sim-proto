@@ -79,7 +79,7 @@ func build(row: NetworkRow, column: VBoxContainer) -> void:
 
 
 func _add_commands(column: VBoxContainer, row: NetworkRow) -> void:
-	var commands := DeviceStatus.applicable(session.commands_for(row.device), row.status, row.disabled)
+	var commands := DeviceStatus.applicable(session.commands_for(row.device), row.device.entity)
 	if commands.is_empty():
 		return
 	var flow := HFlowContainer.new()

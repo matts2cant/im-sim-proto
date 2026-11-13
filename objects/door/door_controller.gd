@@ -74,8 +74,8 @@ func is_up() -> bool:
 
 
 ## Status words for security screens (DeviceStatus): the door's lock, then the door.
-func device_status() -> PackedStringArray:
-	var words := PackedStringArray()
+func device_status() -> Array[StatusWord]:
+	var words: Array[StatusWord] = []
 	if door == null or not is_instance_valid(door):
 		return words
 	if door.lockable != null:
@@ -84,17 +84,28 @@ func device_status() -> PackedStringArray:
 	return words
 
 
+## The commands that change something now (DeviceStatus): the door's lock's, then the door's.
+func device_commands() -> Array[StringName]:
+	var commands: Array[StringName] = []
+	if door == null or not is_instance_valid(door):
+		return commands
+	if door.lockable != null:
+		commands.append_array(door.lockable.device_commands())
+	commands.append_array(door.device_commands())
+	return commands
+
+
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	if door == null or not is_instance_valid(door):
 		return
 	var by: Node = stimulus.source if is_instance_valid(stimulus.source) else null
 	match action:
-		Device.OPEN, Device.CLOSE:
+		Door.OPEN, Door.CLOSE:
 			door.command(action, by)
-		Device.LOCK:
+		Lockable.LOCK:
 			if door.lockable != null:
 				door.lockable.lock(by, &"command")
-		Device.UNLOCK:
+		Lockable.UNLOCK:
 			if door.lockable != null:
 				door.lockable.unlock(by, &"command")
 

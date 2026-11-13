@@ -86,15 +86,15 @@ func test_a_jammed_wireless_device_reads_jammed_everywhere_and_cables_keep_worki
 	assert_int(light.state).is_equal(StatusLight.State.JAMMED)
 	assert_bool(DeviceLamp.of(_n["CamYard"]).blinking()).is_true()
 	var word := _word("CamYard")
-	assert_str(TargetStatus.text(word)).is_equal("Jammed")
-	assert_bool(TargetStatus.blinks(word)).is_true()
-	assert_bool(TargetStatus.color(word) == StatusLight.COLORS[StatusLight.State.CUT_OFF]).is_true()
+	assert_str(word.text).is_equal("Jammed")
+	assert_bool(word.blink).is_true()
+	assert_bool(word.color == StatusLight.COLORS[StatusLight.State.CUT_OFF]).is_true()
 	# Its incidents reach no one; the deck no longer reaches it.
 	assert_int(_dev("CamYard").report_incident(_n["CamYard"].global_position)).is_equal(0)
 	assert_bool(session.is_online(_dev("CamYard"))).is_false()
 	# Cables inside a field: the cabled camera and the deck on the jack keep working.
 	assert_int(_state("CamCable")).is_equal(StatusLight.State.UP)
-	assert_str(TargetStatus.text(_word("CamCable"))).is_equal("Online")
+	assert_str(_word("CamCable").text).is_equal("Online")
 	assert_bool(session.is_plugged()).is_true()
 	assert_bool(session.is_online(_dev("CamCable"))).is_true()
 	# The annex, outside both fields: untouched.
@@ -114,7 +114,7 @@ func test_a_jammed_wireless_device_reads_jammed_everywhere_and_cables_keep_worki
 	assert_array(get_tree().get_nodes_in_group(JammingField.GROUP)).is_empty()
 	assert_int(_state("CamYard")).is_equal(StatusLight.State.UP)
 	assert_int(light.state).is_equal(StatusLight.State.UP)
-	assert_str(TargetStatus.text(_word("CamYard"))).is_equal("Online")
+	assert_str(_word("CamYard").text).is_equal("Online")
 	assert_int(_dev("CamYard").report_incident(_n["CamYard"].global_position)).is_equal(1)
 
 
@@ -199,7 +199,7 @@ func _state(entity_name: String) -> StatusLight.State:
 	return NetworkState.state_of(_dev(entity_name), NetworkState.links_of(_dev(entity_name)))
 
 
-func _word(entity_name: String) -> TargetStatus.Word:
+func _word(entity_name: String) -> StatusWord:
 	return TargetStatus.word_of(_n[entity_name], NetworkState.links_of(_dev(entity_name)))
 
 

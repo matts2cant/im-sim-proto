@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="StatusWord" format=3]
+
+[ext_resource type="Script" path="res://objects/devices/status_word.gd" id="1_word"]
+
+[resource]
+script = ExtResource("1_word")
+text = "Cut off"
+color = Color(1, 0.62, 0.05, 1)
+blink = true

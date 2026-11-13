@@ -76,11 +76,11 @@ func test_spread_grows_beyond_4_m() -> void:
 
 
 func test_presets_map_commands_to_hostile_tags() -> void:
-	assert_array(CONFIG.preset_tags(Device.TARGET_INTRUDERS)).contains_exactly([&"actor.player"])
-	assert_array(CONFIG.preset_tags(Device.TARGET_GUARDS)).contains_exactly([&"actor.guard"])
-	assert_array(CONFIG.preset_tags(Device.TARGET_EVERYONE)).contains_exactly_in_any_order(
+	assert_array(CONFIG.preset_tags(Turret.TARGET_INTRUDERS)).contains_exactly([&"actor.player"])
+	assert_array(CONFIG.preset_tags(Turret.TARGET_GUARDS)).contains_exactly([&"actor.guard"])
+	assert_array(CONFIG.preset_tags(Turret.TARGET_EVERYONE)).contains_exactly_in_any_order(
 		[&"actor.player", &"actor.guard"]
 	)
-	assert_bool(CONFIG.has_preset(Device.DISABLE)).is_false()
-	assert_array(CONFIG.preset_tags(Device.DISABLE)).is_empty()
-	assert_str(String(CONFIG.default_preset)).is_equal(String(Device.TARGET_INTRUDERS))
+	assert_bool(CONFIG.has_preset(DeviceSwitch.DISABLE)).is_false()
+	assert_array(CONFIG.preset_tags(DeviceSwitch.DISABLE)).is_empty()
+	assert_str(String(CONFIG.default_preset)).is_equal(String(Turret.TARGET_INTRUDERS))

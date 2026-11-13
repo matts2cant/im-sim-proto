@@ -103,7 +103,7 @@ func test_two_subnets_with_addresses_and_names_joined_by_rtr01() -> void:
 	assert_str(NetworkSource.display_name(Device.of(_router()))).is_equal("RTR-01")
 	# The office jack is a real wall jack: the deck plugs in there.
 	var jack := _device("Network/OfficeWallJack")
-	assert_int(DeviceNetwork.port_kind(jack)).is_equal(Device.DeckPort.JACK)
+	assert_int(DeviceNetwork.port_kind(jack)).is_equal(NetworkSource.Kind.JACK)
 	assert_bool(jack.accepts_tool(Device.DECK_TOOL)).is_true()
 
 
@@ -144,13 +144,13 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 		# M12b: RTR-01's rules keep the office off the Security subnet (but for the console), and the
 		# door obeys the console only anyway.
 		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor/Hardware/Controller"))).is_false()
-		assert_bool(pc.send(Device.OPEN, _device("Doors/VaultDoor/Hardware/Controller"))).is_false()
+		assert_bool(pc.send(Door.OPEN, _device("Doors/VaultDoor/Hardware/Controller"))).is_false()
 	# The console's known login (the audit note) works bare-handed; it opens the vault door remotely.
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
-	assert_bool(console.send(Device.UNLOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
+	assert_bool(console.send(Lockable.UNLOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
 	await Wait.frames(get_tree(), 3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_false()
-	assert_bool(console.send(Device.LOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
+	assert_bool(console.send(Lockable.LOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
 	await Wait.frames(get_tree(), 3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_true()
 	console.log_out()

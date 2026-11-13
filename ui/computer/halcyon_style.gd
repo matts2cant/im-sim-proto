@@ -3,9 +3,9 @@ extends RefCounted
 ## Look of the Halcyon OS overlay (ADR 0114, design/prototypes/hacking_screens.html): the teal
 ## screen palette and small builders for its labels, buttons and fields. Boxes, buttons and fields
 ## are type variations of ui/window/window_theme.tres (HalcyonButton, HalcyonListEntry, HalcyonField,
-## HalcyonCard, ...): the overlay's WindowFrame carries that theme. Status colours depend on what a
-## device reports (DeviceStatus words and its disabled flag), never on what it is: offline grey,
-## disabled red, alert words amber, else green.
+## HalcyonCard, ...): the overlay's WindowFrame carries that theme. Status colours are this palette's
+## colours for the tones of the screens' one colour rule (DeviceStatus.tone(): offline grey, disabled
+## red, alert amber, else green), never what the device is.
 
 const LINE := Color(77.0 / 255.0, 191.0 / 255.0, 168.0 / 255.0, 0.45)
 const TEAL := Color("8cf2d9")
@@ -17,37 +17,20 @@ const ALERT := Color("ffb840")
 const BAD := Color("e5534b")
 const AMBER := Color("ffd14d")
 const SELF := Color("73d9ff")
-## Status words that mean something is happening right now: shown in the alert colour.
-const ALERT_WORDS: Array[String] = ["alert", "suspicious", "tracking", "firing", "ringing", "broadcasting"]
+## The colour of each tone of DeviceStatus.tone() (the Security app has no access tone: green).
+const TONES: Dictionary[DeviceStatus.Tone, Color] = {
+	DeviceStatus.Tone.ONLINE: ONLINE,
+	DeviceStatus.Tone.OFFLINE: OFFLINE,
+	DeviceStatus.Tone.DISABLED: BAD,
+	DeviceStatus.Tone.ACCESS: ONLINE,
+	DeviceStatus.Tone.ALERT: ALERT,
+}
 
 
-## The colour of a device with status `words` (DeviceStatus) that is `disabled` or not: offline grey
-## (an unreachable device's state is unknown), disabled red, alert words amber, else green.
-static func status_color(words: PackedStringArray, disabled: bool = false) -> Color:
-	if words.has(DeviceStatus.OFFLINE):
-		return OFFLINE
-	if disabled:
-		return BAD
-	for word in words:
-		if ALERT_WORDS.has(word):
-			return ALERT
-	return ONLINE
-
-
-## The words joined for display ("online · enabled · sweeping").
-static func status_text(words: PackedStringArray) -> String:
-	return " · ".join(words)
-
-
-## A list row's short status: "offline", else the words after "online" ("online" when none).
-static func short_status(words: PackedStringArray) -> String:
-	if words.has(DeviceStatus.OFFLINE):
-		return DeviceStatus.OFFLINE
-	var rest := PackedStringArray()
-	for word in words:
-		if word != DeviceStatus.ONLINE:
-			rest.append(word)
-	return status_text(rest) if not rest.is_empty() else DeviceStatus.ONLINE
+## The colour of a device with status `words` (DeviceStatus) that is `disabled` or not and says an
+## `alert` word or not: TONES of DeviceStatus.tone().
+static func status_color(words: PackedStringArray, disabled: bool = false, alert: bool = false) -> Color:
+	return TONES[DeviceStatus.tone(words, disabled, false, alert)]
 
 
 static func label(text: String, size: int = 14, colour: Color = TEXT, mono: bool = false) -> Label:

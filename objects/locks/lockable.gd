@@ -18,6 +18,12 @@ signal unlocked_by_user(user: Node)
 ## A lock let a user open it while it stays locked (a keycard swipe: a Door opens on it).
 signal access_granted(user: Node)
 
+## Remote commands (on a network device, or its door's controller: DoorController).
+const LOCK: StringName = &"command.lock"
+const UNLOCK: StringName = &"command.unlock"
+const LOCKED: StatusWord = preload("res://objects/devices/status_words/locked.tres")
+const UNLOCKED: StatusWord = preload("res://objects/devices/status_words/unlocked.tres")
+
 @export var locked: bool = false
 @export var entity_path: NodePath = ^".."
 
@@ -42,8 +48,13 @@ static func of(node: Node) -> Lockable:
 
 
 ## Status words for security screens (DeviceStatus): locked / unlocked.
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["locked" if locked else "unlocked"])
+func device_status() -> Array[StatusWord]:
+	return [LOCKED if locked else UNLOCKED] as Array[StatusWord]
+
+
+## The command that changes something now (DeviceStatus): Unlock while locked, else Lock.
+func device_commands() -> Array[StringName]:
+	return [UNLOCK if locked else LOCK] as Array[StringName]
 
 
 ## Unlocks; `how` is logged (`keypad`, `keycard`, `pick`, `power`, `command`). `user_wants_open`: the
@@ -127,9 +138,9 @@ func load_state(data: Dictionary) -> void:
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	var by: Node = stimulus.source if is_instance_valid(stimulus.source) else null
-	if action == Device.LOCK:
+	if action == Lockable.LOCK:
 		lock(by, &"command")
-	elif action == Device.UNLOCK:
+	elif action == Lockable.UNLOCK:
 		unlock(by, &"command")
 
 

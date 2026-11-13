@@ -25,8 +25,8 @@ const OUTLINE_COLOR := Color(0, 0, 0, 0.5)
 var frame_rect: Rect2 = Rect2()
 ## The entity framed now, or null.
 var target: Node3D = null
-## The status word shown now (TargetStatus.Word.NONE: no status line).
-var word: TargetStatus.Word = TargetStatus.Word.NONE
+## The status word shown now (null: no status line).
+var word: StatusWord = null
 
 var _parts: Array[GeometryInstance3D] = []
 var _links: Array[Device] = []
@@ -163,7 +163,7 @@ func _project(camera: Camera3D) -> Rect2:
 func _hide() -> void:
 	frame_rect = Rect2()
 	visible = false
-	word = TargetStatus.Word.NONE
+	word = null
 	if name_label != null:
 		name_label.text = ""
 		status_label.text = ""
@@ -181,18 +181,17 @@ func _gather(entity: Node3D) -> void:
 		_links = NetworkState.links_of(device)
 
 
-func _show_status(p_word: TargetStatus.Word) -> void:
+func _show_status(p_word: StatusWord) -> void:
 	word = p_word
-	status_row.visible = p_word != TargetStatus.Word.NONE
+	status_row.visible = p_word != null
 	if not status_row.visible:
 		status_label.text = ""
 		return
-	var colour := TargetStatus.color(p_word)
-	status_label.text = TargetStatus.text(p_word)
-	status_label.add_theme_color_override(&"font_color", colour)
-	status_square.color = colour
+	status_label.text = p_word.text
+	status_label.add_theme_color_override(&"font_color", p_word.color)
+	status_square.color = p_word.color
 	var seconds := Time.get_ticks_msec() / 1000.0
-	status_square.modulate.a = TargetStatus.blink_alpha(seconds) if TargetStatus.blinks(p_word) else 1.0
+	status_square.modulate.a = TargetStatus.blink_alpha(seconds) if p_word.blink else 1.0
 
 
 func _show_lock(line: String) -> void:

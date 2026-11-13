@@ -79,7 +79,7 @@ func test_deck_commands_and_remote_desktops_are_logged_on_the_device() -> void:
 	_session.close_remote()
 	var camera := _dev("Camera")
 	camera.intrusion.grant_exploit(NetworkSource.user_key(_user))
-	assert_bool(_session.send(Device.DISABLE, camera)).is_true()
+	assert_bool(_session.send(DeviceSwitch.DISABLE, camera)).is_true()
 	assert_array(_lines(console)).is_equal(["login 10.0.10.40 dmarsh remote desktop"])
 	assert_array(_lines(camera)).is_equal(["remote 10.0.10.40 Hacker command.disable"])
 

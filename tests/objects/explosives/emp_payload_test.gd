@@ -58,7 +58,7 @@ func test_electronics_are_off_for_20_s_then_back_and_others_untouched() -> void:
 	# The frame says "No power" (it reads the device's power).
 	for entity: Node in [lamp, bare]:
 		var word := TargetStatus.word_of(entity, NetworkState.links_of(Device.of(entity)))
-		assert_str(TargetStatus.text(word)).override_failure_message(entity.name).is_equal("No power")
+		assert_object(word).override_failure_message(entity.name).is_same(TargetStatus.NO_POWER)
 	assert_array(_fired_on("Crate")).is_empty()
 	assert_array(_fired_on("Far")).is_empty()
 	assert_bool(is_instance_valid(crate)).is_true()

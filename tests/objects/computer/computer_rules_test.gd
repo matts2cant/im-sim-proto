@@ -110,22 +110,24 @@ func test_user_names_ignore_case_and_spaces_passwords_do_not() -> void:
 
 
 func test_labels_come_from_the_table_with_a_readable_fallback() -> void:
-	assert_str(CONFIG.label_for(Device.OPEN)).is_equal("Open")
-	assert_str(CONFIG.label_for(Device.PAN_LEFT)).is_equal("Pan left")
-	assert_str(CONFIG.label_for(Device.TARGET_GUARDS)).is_equal("Target guards")
+	assert_str(CONFIG.label_for(Door.OPEN)).is_equal("Open")
+	assert_str(CONFIG.label_for(SecurityCamera.PAN_LEFT)).is_equal("Pan left")
+	assert_str(CONFIG.label_for(Turret.TARGET_GUARDS)).is_equal("Target guards")
 	assert_str(CONFIG.label_for(&"command.self_destruct")).is_equal("Self Destruct")
 
 
 func test_offered_commands_follow_the_table_order_and_skip_device_traffic() -> void:
-	var accepted: Array[StringName] = [Device.PAN_RIGHT, Device.INCIDENT, Device.DISABLE, Device.BROADCAST]
-	assert_array(CONFIG.offered(accepted)).contains_exactly([Device.DISABLE, Device.PAN_RIGHT])
+	var accepted: Array[StringName] = [
+		SecurityCamera.PAN_RIGHT, Device.INCIDENT, DeviceSwitch.DISABLE, RadioBaseStation.BROADCAST
+	]
+	assert_array(CONFIG.offered(accepted)).contains_exactly([DeviceSwitch.DISABLE, SecurityCamera.PAN_RIGHT])
 	assert_bool(CONFIG.commands().has(Device.INCIDENT)).is_false()
-	assert_bool(CONFIG.commands().has(Device.BROADCAST)).is_false()
+	assert_bool(CONFIG.commands().has(RadioBaseStation.BROADCAST)).is_false()
 
 
 func test_every_command_type_on_device_has_a_label_except_device_traffic() -> void:
 	# A new command constant needs a label (or a deliberate omission here).
-	var omitted: Array[StringName] = [Device.INCIDENT, Device.BROADCAST]
+	var omitted: Array[StringName] = [Device.INCIDENT, RadioBaseStation.BROADCAST]
 	var constants := (load("res://objects/devices/device.gd") as GDScript).get_script_constant_map()
 	for constant: String in constants:
 		var value: Variant = constants[constant]

@@ -25,6 +25,9 @@ extends Node
 ## EventLog: `laser.tripped {laser, beam, by, point, controllers}`, `laser.toggled {laser, enabled}`.
 ## Saveable.
 
+const TRIPPED: StatusWord = preload("res://objects/devices/status_words/tripped.tres")
+const CLEAR: StatusWord = preload("res://objects/devices/status_words/clear.tres")
+
 @export var config: LaserArrayConfig
 ## Starts disabled (a `command.enable` turns it on).
 @export var start_disabled: bool = false
@@ -137,10 +140,15 @@ func device_disabled() -> bool:
 
 
 ## Status words for security screens (DeviceStatus).
-func device_status() -> PackedStringArray:
+func device_status() -> Array[StatusWord]:
 	if disabled:
-		return PackedStringArray(["disabled"])
-	return PackedStringArray(["enabled", "tripped" if model.tripped else "clear"])
+		return [DeviceStatus.DISABLED] as Array[StatusWord]
+	return [DeviceStatus.ENABLED, TRIPPED if model.tripped else CLEAR] as Array[StatusWord]
+
+
+## Switched off, only Enable; else Disable (DeviceStatus).
+func device_commands() -> Array[StringName]:
+	return [DeviceSwitch.ENABLE if disabled else DeviceSwitch.DISABLE] as Array[StringName]
 
 
 func _physics_process(delta: float) -> void:
@@ -221,9 +229,9 @@ func _trip(blocker: Node3D, beam: LaserBeam) -> void:
 
 func _on_action(action: StringName, _stimulus: Stimulus) -> void:
 	match action:
-		Device.DISABLE:
+		DeviceSwitch.DISABLE:
 			_set_disabled(true)
-		Device.ENABLE:
+		DeviceSwitch.ENABLE:
 			_set_disabled(false)
 
 

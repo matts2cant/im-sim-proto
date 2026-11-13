@@ -1,12 +1,14 @@
 extends GdUnitTestSuite
-## Unit (ADR 0083): DeviceStatus collects what a security screen shows from any entity's components
-## (stand-ins here, not shipped devices): offline hides everything, online lists each component's
-## words in tree order without duplicates, a view comes from whichever component offers one, a device
-## is disabled when one of its components says so (ADR 0099 amendment).
+## Unit (ADR 0083, ADR 0137): DeviceStatus collects what a security screen shows from any entity's
+## components (stand-ins here, not shipped devices): offline hides everything, online lists each
+## component's words in tree order without duplicates, a view comes from whichever component offers
+## one, a device is disabled when one of its components says so (ADR 0099 amendment), the commands
+## offered are those its components declare now, and one colour rule (tone()) colours every screen.
 
 const StatusStandIn := preload("res://tests/objects/devices/fixtures/status_stand_in.gd")
 const ViewStandIn := preload("res://tests/objects/devices/fixtures/view_stand_in.gd")
 const DisableStandIn := preload("res://tests/objects/devices/fixtures/disable_stand_in.gd")
+const CommandStandIn := preload("res://tests/objects/devices/fixtures/command_stand_in.gd")
 
 
 func _entity(words_per_component: Array[PackedStringArray]) -> Node3D:
@@ -18,16 +20,21 @@ func _entity(words_per_component: Array[PackedStringArray]) -> Node3D:
 	return entity
 
 
+func _words(texts: Array[String]) -> Array[StatusWord]:
+	var found: Array[StatusWord] = []
+	for text in texts:
+		found.append(StatusWord.make(text))
+	return found
+
+
 func test_offline_is_only_offline() -> void:
-	var words := DeviceStatus.summarize(false, PackedStringArray(["enabled", "ringing"]))
-	assert_array(Array(words)).contains_exactly(["offline"])
+	var words := DeviceStatus.summarize(false, _words(["enabled", "ringing"]))
+	assert_array(Array(StatusWord.texts(words))).contains_exactly(["offline"])
 
 
 func test_online_comes_first_then_the_words_without_duplicates() -> void:
-	var words := DeviceStatus.summarize(
-		true, PackedStringArray(["enabled", "", "online", "enabled", "offline", "alert"])
-	)
-	assert_array(Array(words)).contains_exactly(["online", "enabled", "alert"])
+	var words := DeviceStatus.summarize(true, _words(["enabled", "", "online", "enabled", "offline", "alert"]))
+	assert_array(Array(StatusWord.texts(words))).contains_exactly(["online", "enabled", "alert"])
 
 
 func test_words_come_from_every_component_in_tree_order() -> void:
@@ -38,6 +45,35 @@ func test_words_come_from_every_component_in_tree_order() -> void:
 	assert_array(Array(DeviceStatus.of(entity, false))).contains_exactly(["offline"])
 	# A device with no status component is just online.
 	assert_array(Array(DeviceStatus.of(_entity([]), true))).contains_exactly(["online"])
+
+
+func test_alert_is_a_flag_of_the_word_never_its_text() -> void:
+	var entity := _entity([PackedStringArray(["ringing"])])
+	assert_bool(StatusWord.any_alert(DeviceStatus.words_of(entity, true))).is_false()
+	(entity.get_child(0) as Node).set("alert_words", PackedStringArray(["ringing"]))
+	assert_bool(StatusWord.any_alert(DeviceStatus.words_of(entity, true))).is_true()
+	# Offline: nothing is known, nothing alerts.
+	assert_bool(StatusWord.any_alert(DeviceStatus.words_of(entity, false))).is_false()
+	# The shipped words carry the flag.
+	assert_bool(DeviceStatus.RINGING.alert).is_true()
+	assert_bool(DeviceStatus.SILENT.alert).is_false()
+
+
+func test_one_colour_rule_for_every_screen() -> void:
+	var online := PackedStringArray(["online", "enabled"])
+	var offline := PackedStringArray(["offline"])
+	assert_int(DeviceStatus.tone(online)).is_equal(DeviceStatus.Tone.ONLINE)
+	assert_int(DeviceStatus.tone(online, false, false, true)).is_equal(DeviceStatus.Tone.ALERT)
+	assert_int(DeviceStatus.tone(online, false, true, true)).is_equal(DeviceStatus.Tone.ACCESS)
+	assert_int(DeviceStatus.tone(online, true, true, true)).is_equal(DeviceStatus.Tone.DISABLED)
+	assert_int(DeviceStatus.tone(offline, true, true, true)).is_equal(DeviceStatus.Tone.OFFLINE)
+	# The deck and the Security app paint the same tones (each in its palette).
+	assert_object(DeckStyle.status_color(online, false, false, true)).is_equal(DeckStyle.ALERT_COLOR)
+	assert_object(HalcyonStyle.status_color(online, false, true)).is_equal(HalcyonStyle.ALERT)
+	assert_object(HalcyonStyle.status_color(offline, true, true)).is_equal(HalcyonStyle.OFFLINE)
+	assert_str(DeviceStatus.short_text(PackedStringArray(["online"]))).is_equal("online")
+	assert_str(DeviceStatus.short_text(PackedStringArray(["online", "enabled", "clear"]))).is_equal("enabled · clear")
+	assert_str(DeviceStatus.short_text(offline)).is_equal("offline")
 
 
 func test_a_view_comes_from_the_component_that_offers_one() -> void:
@@ -68,31 +104,48 @@ func test_disabled_when_a_component_says_so() -> void:
 	assert_bool(DeviceStatus.is_disabled(null)).is_false()
 
 
-func test_only_the_commands_that_apply_are_offered() -> void:
-	# ADR 0113: by the device's words and disabled flag, never by what it is.
-	var all: Array[StringName] = [
-		Device.OPEN,
-		Device.CLOSE,
-		Device.LOCK,
-		Device.UNLOCK,
-		Device.ENABLE,
-		Device.DISABLE,
-		Device.STOP_SWEEP,
-		Device.RESUME_SWEEP,
-		Device.PAN_LEFT
+func test_a_new_toggle_command_needs_only_its_component() -> void:
+	# The table (a screen's commands the device accepts, in order) holds a command pair no shipped
+	# code knows: the component alone says which applies now.
+	var table: Array[StringName] = [CommandStandIn.ON, CommandStandIn.OFF, Siren.TEST]
+	var entity: Node3D = auto_free(Node3D.new())
+	var component: Node = CommandStandIn.new()
+	entity.add_child(component)
+	assert_array(DeviceStatus.applicable(table, entity)).is_equal([CommandStandIn.ON])
+	component.set("on", true)
+	assert_array(DeviceStatus.applicable(table, entity)).is_equal([CommandStandIn.OFF])
+	# Its status word sits next to it.
+	assert_array(Array(DeviceStatus.of(entity, true))).contains_exactly(["online", "on"])
+
+
+func test_only_the_commands_that_apply_are_offered_in_table_order() -> void:
+	# By what the components declare now, never by what the device is (ADR 0113, ADR 0137).
+	var table: Array[StringName] = [
+		Lockable.LOCK, Lockable.UNLOCK, DeviceSwitch.ENABLE, DeviceSwitch.DISABLE, CommandStandIn.ON
 	]
-	var sweeping := DeviceStatus.applicable(all, PackedStringArray(["online", "enabled", "sweeping"]), false)
-	assert_array(sweeping).is_equal(
-		[Device.OPEN, Device.CLOSE, Device.LOCK, Device.UNLOCK, Device.DISABLE, Device.STOP_SWEEP, Device.PAN_LEFT]
+	var entity: Node3D = auto_free(Node3D.new())
+	var lockable := Lockable.new()
+	lockable.locked = true
+	entity.add_child(lockable)
+	var switch: Node = DisableStandIn.new()
+	entity.add_child(switch)
+	entity.add_child(CommandStandIn.new())
+	assert_array(DeviceStatus.applicable(table, entity)).is_equal(
+		[Lockable.UNLOCK, DeviceSwitch.DISABLE, CommandStandIn.ON]
 	)
-	var holding := DeviceStatus.applicable(all, PackedStringArray(["online", "holding", "closed", "locked"]), false)
-	assert_array(holding).is_equal([Device.OPEN, Device.UNLOCK, Device.DISABLE, Device.RESUME_SWEEP, Device.PAN_LEFT])
-	var open := DeviceStatus.applicable(all, PackedStringArray(["online", "open", "unlocked"]), false)
-	assert_bool(open.has(Device.OPEN) or open.has(Device.UNLOCK)).is_false()
-	assert_bool(open.has(Device.CLOSE) and open.has(Device.LOCK)).is_true()
-	# Switched off: only Enable (none when it takes no Enable).
-	assert_array(DeviceStatus.applicable(all, PackedStringArray(["online", "disabled"]), true)).is_equal(
-		[Device.ENABLE]
+	lockable.locked = false
+	assert_array(DeviceStatus.applicable(table, entity)).is_equal(
+		[Lockable.LOCK, DeviceSwitch.DISABLE, CommandStandIn.ON]
 	)
-	var no_enable: Array[StringName] = [Device.DISARM, Device.RESET]
-	assert_array(DeviceStatus.applicable(no_enable, PackedStringArray(["online", "disarmed"]), true)).is_empty()
+	# Switched off: only what the switched-off component offers (Enable), nothing else works.
+	switch.set("disabled", true)
+	assert_array(DeviceStatus.applicable(table, entity)).is_equal([DeviceSwitch.ENABLE])
+	# Its table without Enable: nothing.
+	var no_enable: Array[StringName] = [Lockable.LOCK, Lockable.UNLOCK]
+	assert_array(DeviceStatus.applicable(no_enable, entity)).is_empty()
+
+
+func test_a_device_whose_components_declare_nothing_offers_every_command() -> void:
+	var table: Array[StringName] = [Siren.RING, Siren.SILENCE]
+	assert_array(DeviceStatus.applicable(table, _entity([PackedStringArray(["silent"])]))).is_equal(table)
+	assert_array(DeviceStatus.applicable(table, null)).is_empty()

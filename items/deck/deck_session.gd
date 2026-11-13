@@ -4,8 +4,9 @@ extends Node
 ## and its access, independent of the screen (its user's deck screen shows it, through Screens:
 ## SCREEN; tools keep running while it is lowered). Notices go to the user's Notices. The
 ## Icebreaker is its sibling IcebreakerTool.
-## - Plugging: holding LMB with the deck in hand on a device with a deck port (Device.tool_hold())
-##   plugs the held deck in there and raises the screen. The port decides the address
+## - Plugging: holding LMB with the deck in hand on a device with a deck port (its user's ToolUse
+##   works the device, Device.accepts_tool(), and says so: `worked`) plugs the held deck in there and
+##   raises the screen. The port decides the address
 ##   (NetworkSource): a wall jack joins its subnet, a maintenance port links to its device only, a
 ##   computer lends its address. Tethered: the deck unplugs when its user walks further than
 ##   `config.tether_distance` from the plugged entity (horizontal), can no longer act, or the deck
@@ -94,6 +95,9 @@ func _ready() -> void:
 		config = DEFAULT_CONFIG
 	entity = get_node_or_null(entity_path) as Node3D
 	EmpEffect.listen(entity)
+	var tool_use := ToolUse.of(entity)
+	if tool_use != null:
+		tool_use.worked.connect(_on_tool_worked)
 
 
 ## An EMP reaching its user (EmpEffect): the deck is unplugged (`emp`).
@@ -178,15 +182,15 @@ func plug(device: Device, deck_stack: ItemStack = null) -> bool:
 	if AccessPoint.of(device) != null:
 		return _join_wireless(device, deck_stack)
 	var kind := DeviceNetwork.port_kind(device)
-	if kind == Device.DeckPort.NONE or kind == Device.DeckPort.AUTO:
+	if kind == NetworkSource.Kind.NONE or kind == NetworkSource.Kind.AUTO:
 		return false
 	if is_plugged():
 		unplug(&"replugged")
 	port = device
 	stack = deck_stack
 	unplug_reason = &""
-	source = NetworkSource.for_user(entity, device, _source_kind(kind))
-	var data := {"device": _name_of(device), "port": Device.DeckPort.keys()[kind], "address": source.address}
+	source = NetworkSource.for_user(entity, device, kind)
+	var data := {"device": _name_of(device), "port": NetworkSource.kind_name(kind), "address": source.address}
 	EventLog.record(EventKinds.DECK_PLUGGED, _who(), _name_of(device), data)
 	plugged_changed.emit(true)
 	refresh()
@@ -521,13 +525,14 @@ func _inventory() -> PlayerInventory:
 	return PlayerInventory.of(entity)
 
 
-static func _source_kind(kind: Device.DeckPort) -> NetworkSource.Kind:
-	match kind:
-		Device.DeckPort.JACK:
-			return NetworkSource.Kind.JACK
-		Device.DeckPort.MAINTENANCE:
-			return NetworkSource.Kind.PORT
-	return NetworkSource.Kind.HOST
+# Its user works a tool target (ToolUse): the deck on a device (or a panel of one) plugs in there
+# and raises the screen.
+func _on_tool_worked(target: Node, tool: StringName) -> void:
+	if tool != Device.DECK_TOOL:
+		return
+	var device := Device.of(target)
+	if device != null:
+		plug_and_raise(device)
 
 
 func _name_of(device: Device) -> String:

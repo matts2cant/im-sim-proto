@@ -5,9 +5,10 @@ extends RefCounted
 ## Boxes, buttons and fields are type variations of ui/window/window_theme.tres (DeckButton,
 ## DeckCard, DeckTrack, ...): the deck's WindowFrame carries that theme, so widgets built here get
 ## their look once they are inside it.
-## Status colours depend on what a device reports (DeviceStatus words, its disabled flag) and on the
-## viewer's access, never on what the device is: offline grey, disabled red, access amber, alert
-## words orange, else green (relative luminance about 0.1, 0.3, 0.6, 0.5 and 0.7).
+## Status colours are this palette's colours for the tones of the screens' one colour rule
+## (DeviceStatus.tone(): what a device reports and the viewer's access, never what the device is):
+## offline grey, disabled red, access amber, alert orange, else green (relative luminance about 0.1,
+## 0.3, 0.6, 0.5 and 0.7).
 
 const TITLE_COLOR: Color = Color(0.55, 0.95, 0.85)
 const TEXT_COLOR: Color = Color(0.82, 0.95, 0.9)
@@ -31,36 +32,29 @@ const PANEL_COLOR: Color = Color(0.043, 0.102, 0.098, 1.0)
 const WORLD_DIM: Color = Color(4.0 / 255.0, 6.0 / 255.0, 8.0 / 255.0, 0.55)
 ## What a Computer skill assist line starts with.
 const ASSIST_PREFIX: String = "Computer skill · "
-## Status words that mean something is happening right now (shown orange: red means disabled).
-const ALERT_WORDS: Array[String] = ["alert", "suspicious", "tracking", "firing", "ringing", "broadcasting"]
+## The colour of each tone of DeviceStatus.tone().
+const TONES: Dictionary[DeviceStatus.Tone, Color] = {
+	DeviceStatus.Tone.ONLINE: ONLINE_COLOR,
+	DeviceStatus.Tone.OFFLINE: OFFLINE_COLOR,
+	DeviceStatus.Tone.DISABLED: DISABLED_COLOR,
+	DeviceStatus.Tone.ACCESS: ACCESS_COLOR,
+	DeviceStatus.Tone.ALERT: ALERT_COLOR,
+}
 
 static var _mono: SystemFont = null
 
 
 ## The colour of a device with status `words` (DeviceStatus) that is `disabled` or not, `access`
-## or not: offline grey (beats the rest: an unreachable device's state is unknown), disabled red,
-## access amber, alert words orange, else green.
-static func status_color(words: PackedStringArray, disabled: bool = false, access: bool = false) -> Color:
-	if words.has(DeviceStatus.OFFLINE):
-		return OFFLINE_COLOR
-	if disabled:
-		return DISABLED_COLOR
-	if access:
-		return ACCESS_COLOR
-	for word in words:
-		if ALERT_WORDS.has(word):
-			return ALERT_COLOR
-	return ONLINE_COLOR
+## or not and says an `alert` word or not: TONES of DeviceStatus.tone().
+static func status_color(
+	words: PackedStringArray, disabled: bool = false, access: bool = false, alert: bool = false
+) -> Color:
+	return TONES[DeviceStatus.tone(words, disabled, access, alert)]
 
 
-## The colour of a map row: status_color() of its words, flag and access.
+## The colour of a map row: status_color() of its words and flags.
 static func row_color(row: NetworkRow) -> Color:
-	return status_color(row.status, row.disabled, row.access)
-
-
-## The words joined for display ("online · enabled · sweeping").
-static func status_text(words: PackedStringArray) -> String:
-	return " · ".join(words)
+	return status_color(row.status, row.disabled, row.access, row.alert)
 
 
 ## Drops `node` from a rebuilt list: hidden at once and freed at the end of the frame, but left in

@@ -35,6 +35,11 @@ extends Usable
 signal state_changed(open: bool)
 
 const GROUP: StringName = &"doors"
+## Its controller's remote commands (DoorController): open / close.
+const OPEN: StringName = &"command.open"
+const CLOSE: StringName = &"command.close"
+const OPEN_WORD: StatusWord = preload("res://objects/devices/status_words/open.tres")
+const CLOSED_WORD: StatusWord = preload("res://objects/devices/status_words/closed.tres")
 const LOCKED_COLOUR := Color(0.9, 0.15, 0.1)
 const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
@@ -118,8 +123,14 @@ static func of(node: Node) -> Door:
 
 
 ## Status words for its controller's security screens (DeviceStatus, ADR 0083): open / closed.
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["open" if is_open() else "closed"])
+func device_status() -> Array[StatusWord]:
+	return [OPEN_WORD if is_open() else CLOSED_WORD] as Array[StatusWord]
+
+
+## The command that changes something now, for its controller's screens (DeviceStatus): Close
+## while open, else Open.
+func device_commands() -> Array[StringName]:
+	return [CLOSE if is_open() else OPEN] as Array[StringName]
 
 
 ## True when it is open or opening (broken counts as open).
@@ -177,15 +188,15 @@ func opens_freely_for(user: Node) -> bool:
 	return false
 
 
-## Runs remote command `action` (Device.OPEN or Device.CLOSE) sent by `by` (its controller's
+## Runs remote command `action` (Door.OPEN or Door.CLOSE) sent by `by` (its controller's
 ## commands, DoorController). True when it changed something. Logged `door.command {door, command,
 ## done}`.
 func command(action: StringName, by: Node = null) -> bool:
 	var done := false
 	match action:
-		Device.OPEN:
+		Door.OPEN:
 			done = open(by)
-		Device.CLOSE:
+		Door.CLOSE:
 			done = close(by)
 		_:
 			return false

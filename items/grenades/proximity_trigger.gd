@@ -11,7 +11,7 @@ extends Node3D
 ## shape's centre that nothing on `sight_mask` blocks) sets off the entity's Explosive
 ## (`Explosive.explode()`). Cheap: one sphere query (a second, smaller one only when a crouched
 ## character is near), then one ray per candidate.
-## The interaction frame shows "Armed" (frame_word(), TargetStatus.STATUS_GROUP). A highlight seen
+## The interaction frame shows "Armed" (frame_word(), StatusWord.FRAME_GROUP). A highlight seen
 ## through darkness and smoke, not walls (set_highlighted(): MineSense, the Demolition skill) marks it.
 ## EventLog `mine.armed`, `mine.triggered {object, by}`. Saveable (arming, time left, armed).
 
@@ -19,6 +19,8 @@ signal armed
 
 const GROUP: StringName = &"proximity_trigger"
 const ARMED_BEEP_HZ: float = 2400.0
+## Its word on the interaction frame while armed (blinking red).
+const ARMED_WORD: StatusWord = preload("res://objects/devices/status_words/frame/armed.tres")
 const DEFAULT_CONFIG: ProximityTriggerConfig = preload("res://items/grenades/proximity_trigger.tres")
 
 @export var config: ProximityTriggerConfig = DEFAULT_CONFIG
@@ -41,7 +43,7 @@ var _audio: AudioStreamPlayer3D
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(TargetStatus.STATUS_GROUP)
+	add_to_group(StatusWord.FRAME_GROUP)
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
 	if config == null:
@@ -89,8 +91,8 @@ func _physics_process(delta: float) -> void:
 
 
 ## The frame's status word: "Armed" while armed.
-func frame_word() -> TargetStatus.Word:
-	return TargetStatus.Word.ARMED if is_armed else TargetStatus.Word.NONE
+func frame_word() -> StatusWord:
+	return ARMED_WORD if is_armed else null
 
 
 ## Characters (bodies on `character_mask`) whose collision shapes come within `reach` m of its centre.

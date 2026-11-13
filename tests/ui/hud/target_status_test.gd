@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Unit + small integration (ADR 0130): the interaction frame's status rules. Which things the frame
-## shows beyond what E acts on, the word and colour per state, the blink, and the readers on minimal
+## shows beyond what E acts on, the word (a StatusWord, ADR 0137) and colour per state, the blink,
+## and the readers on minimal
 ## entities built from components (network_fixtures.body_device, a bare Powered prop, a bare
 ## BodyParts character), never shipped scenes.
 ##   Switch (gear, powered) ── Panel (powered, breakable, DeviceSwitch)
@@ -9,7 +10,6 @@ extends GdUnitTestSuite
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const ORIGIN := Vector3(560, 0, -560)
-const W := TargetStatus.Word
 
 var _root: Node3D
 
@@ -34,38 +34,42 @@ func test_qualifies_by_components() -> void:
 
 
 func test_network_words_in_priority_order() -> void:
-	assert_int(TargetStatus.network_word(true, false, false, true)).is_equal(W.ONLINE)
-	assert_int(TargetStatus.network_word(true, false, false, false)).is_equal(W.CUT_OFF)
-	assert_int(TargetStatus.network_word(true, false, true, true)).is_equal(W.DISABLED)
-	assert_int(TargetStatus.network_word(true, true, true, true)).is_equal(W.BROKEN)
+	assert_object(TargetStatus.network_word(true, false, false, true)).is_same(TargetStatus.ONLINE)
+	assert_object(TargetStatus.network_word(true, false, false, false)).is_same(TargetStatus.CUT_OFF)
+	assert_object(TargetStatus.network_word(true, false, true, true)).is_same(TargetStatus.DISABLED)
+	assert_object(TargetStatus.network_word(true, true, true, true)).is_same(TargetStatus.BROKEN)
 	# No power wins over everything (the light is dark).
-	assert_int(TargetStatus.network_word(false, true, true, false)).is_equal(W.NO_POWER)
+	assert_object(TargetStatus.network_word(false, true, true, false)).is_same(TargetStatus.NO_POWER)
 
 
 func test_powered_and_character_words() -> void:
-	assert_int(TargetStatus.powered_word(true, false)).is_equal(W.POWERED)
-	assert_int(TargetStatus.powered_word(false, false)).is_equal(W.NO_POWER)
-	assert_int(TargetStatus.powered_word(false, true)).is_equal(W.BROKEN)
-	assert_int(TargetStatus.character_word(false, false)).is_equal(W.NONE)
-	assert_int(TargetStatus.character_word(false, true)).is_equal(W.UNCONSCIOUS)
-	assert_int(TargetStatus.character_word(true, true)).is_equal(W.DEAD)
+	assert_object(TargetStatus.powered_word(true, false)).is_same(TargetStatus.POWERED)
+	assert_object(TargetStatus.powered_word(false, false)).is_same(TargetStatus.NO_POWER)
+	assert_object(TargetStatus.powered_word(false, true)).is_same(TargetStatus.BROKEN)
+	assert_object(TargetStatus.character_word(false, false)).is_null()
+	assert_object(TargetStatus.character_word(false, true)).is_same(TargetStatus.UNCONSCIOUS)
+	assert_object(TargetStatus.character_word(true, true)).is_same(TargetStatus.DEAD)
 
 
 func test_texts_colours_and_blink() -> void:
-	assert_str(TargetStatus.text(W.ONLINE)).is_equal("Online")
-	assert_str(TargetStatus.text(W.CUT_OFF)).is_equal("Cut off")
-	assert_str(TargetStatus.text(W.NO_POWER)).is_equal("No power")
-	assert_str(TargetStatus.text(W.NONE)).is_equal("")
+	assert_str(TargetStatus.ONLINE.text).is_equal("Online")
+	assert_str(TargetStatus.CUT_OFF.text).is_equal("Cut off")
+	assert_str(TargetStatus.NO_POWER.text).is_equal("No power")
 	# The network states use the status light's colours.
-	assert_that(TargetStatus.color(W.ONLINE)).is_equal(StatusLight.COLORS[StatusLight.State.UP])
-	assert_that(TargetStatus.color(W.CUT_OFF)).is_equal(StatusLight.COLORS[StatusLight.State.CUT_OFF])
-	assert_that(TargetStatus.color(W.DISABLED)).is_equal(StatusLight.COLORS[StatusLight.State.DISABLED])
-	assert_that(TargetStatus.color(W.BROKEN)).is_equal(StatusLight.COLORS[StatusLight.State.DISABLED])
-	assert_that(TargetStatus.color(W.NO_POWER)).is_equal(TargetStatus.NO_POWER_COLOR)
-	assert_that(TargetStatus.color(W.UNCONSCIOUS)).is_equal(TargetStatus.UNCONSCIOUS_COLOR)
-	assert_that(TargetStatus.color(W.DEAD)).is_equal(TargetStatus.DEAD_COLOR)
-	assert_bool(TargetStatus.blinks(W.CUT_OFF)).is_true()
-	assert_bool(TargetStatus.blinks(W.ONLINE)).is_false()
+	assert_that(TargetStatus.ONLINE.color).is_equal(StatusLight.COLORS[StatusLight.State.UP])
+	assert_that(TargetStatus.POWERED.color).is_equal(StatusLight.COLORS[StatusLight.State.UP])
+	assert_that(TargetStatus.CUT_OFF.color).is_equal(StatusLight.COLORS[StatusLight.State.CUT_OFF])
+	assert_that(TargetStatus.JAMMED.color).is_equal(StatusLight.COLORS[StatusLight.State.JAMMED])
+	assert_that(TargetStatus.DISABLED.color).is_equal(StatusLight.COLORS[StatusLight.State.DISABLED])
+	assert_that(TargetStatus.BROKEN.color).is_equal(StatusLight.COLORS[StatusLight.State.DISABLED])
+	# The approved mockup's colours: grey, blue-white, dim red.
+	assert_that(TargetStatus.NO_POWER.color).is_equal(Color("8a9296"))
+	assert_that(TargetStatus.UNCONSCIOUS.color).is_equal(Color("9fd8ff"))
+	assert_that(TargetStatus.DEAD.color).is_equal(Color("b0423b"))
+	# They blink where the light blinks.
+	assert_bool(TargetStatus.CUT_OFF.blink).is_equal(StatusLight.blinks(StatusLight.State.CUT_OFF))
+	assert_bool(TargetStatus.JAMMED.blink).is_equal(StatusLight.blinks(StatusLight.State.JAMMED))
+	assert_bool(TargetStatus.ONLINE.blink).is_false()
 	# 0.8 s period like the LED: dim in the first half, lit in the second.
 	assert_float(TargetStatus.blink_alpha(0.1)).is_equal(TargetStatus.BLINK_DIM)
 	assert_float(TargetStatus.blink_alpha(0.6)).is_equal(1.0)
@@ -84,17 +88,17 @@ func test_network_device_words_from_its_components() -> void:
 	var links := NetworkState.links_of(Device.of(panel))
 	assert_array(links).contains_exactly([Device.of(switch)])
 
-	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.ONLINE)
+	assert_object(TargetStatus.word_of(panel, links)).is_same(TargetStatus.ONLINE)
 	(switch.get_node("Powered") as Powered).on = false
-	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.CUT_OFF)
+	assert_object(TargetStatus.word_of(panel, links)).is_same(TargetStatus.CUT_OFF)
 	(switch.get_node("Powered") as Powered).on = true
 	toggle.set_disabled(true)
-	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.DISABLED)
+	assert_object(TargetStatus.word_of(panel, links)).is_same(TargetStatus.DISABLED)
 	(panel.get_node("Powered") as Powered).on = false
-	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.NO_POWER)
+	assert_object(TargetStatus.word_of(panel, links)).is_same(TargetStatus.NO_POWER)
 	(panel.get_node("Powered") as Powered).on = true
 	Breakable.of(panel).take_damage(&"ballistic", 100.0)
-	assert_int(TargetStatus.word_of(panel, links)).is_equal(W.BROKEN)
+	assert_object(TargetStatus.word_of(panel, links)).is_same(TargetStatus.BROKEN)
 
 
 func test_things_off_any_network_and_characters() -> void:
@@ -115,16 +119,16 @@ func test_things_off_any_network_and_characters() -> void:
 	assert_bool(TargetStatus.shows(guard)).is_true()
 	assert_bool(TargetStatus.shows(crate)).is_false()
 	assert_array(NetworkState.links_of(Device.of(lone))).is_empty()
-	assert_int(TargetStatus.word_of(lone, none)).is_equal(W.POWERED)
-	assert_int(TargetStatus.word_of(lamp, none)).is_equal(W.POWERED)
+	assert_object(TargetStatus.word_of(lone, none)).is_same(TargetStatus.POWERED)
+	assert_object(TargetStatus.word_of(lamp, none)).is_same(TargetStatus.POWERED)
 	power.on = false
-	assert_int(TargetStatus.word_of(lamp, none)).is_equal(W.NO_POWER)
-	assert_int(TargetStatus.word_of(crate, none)).is_equal(W.NONE)
-	assert_int(TargetStatus.word_of(guard, none)).is_equal(W.NONE)
+	assert_object(TargetStatus.word_of(lamp, none)).is_same(TargetStatus.NO_POWER)
+	assert_object(TargetStatus.word_of(crate, none)).is_null()
+	assert_object(TargetStatus.word_of(guard, none)).is_null()
 	ActorState.set_tag(guard, ActorState.UNCONSCIOUS, true)
-	assert_int(TargetStatus.word_of(guard, none)).is_equal(W.UNCONSCIOUS)
+	assert_object(TargetStatus.word_of(guard, none)).is_same(TargetStatus.UNCONSCIOUS)
 	ActorState.set_tag(guard, ActorState.DEAD, true)
-	assert_int(TargetStatus.word_of(guard, none)).is_equal(W.DEAD)
+	assert_object(TargetStatus.word_of(guard, none)).is_same(TargetStatus.DEAD)
 
 
 func test_lock_line_reads_the_locks_on_the_entity() -> void:

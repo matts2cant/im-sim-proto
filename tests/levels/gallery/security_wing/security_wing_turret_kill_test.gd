@@ -47,9 +47,9 @@ func test_the_turret_beep_stops_after_it_kills_the_post_guard() -> void:
 	var computer := Computer.of(_node("Devices/BoothComputer"))
 	assert_bool(computer.log_in("rvoss", "kestrel4", _player)).is_true()
 	var turret := Turret.of(_node("Devices/Turret"))
-	assert_bool(computer.send(Device.TARGET_GUARDS, Device.of(_node("Devices/Turret")))).is_true()
+	assert_bool(computer.send(Turret.TARGET_GUARDS, Device.of(_node("Devices/Turret")))).is_true()
 	await _driver.frames(3)
-	assert_bool(computer.send(Device.OPEN, Device.of(_node("Doors/VaultDoor/Hardware/Controller")))).is_true()
+	assert_bool(computer.send(Door.OPEN, Device.of(_node("Doors/VaultDoor/Hardware/Controller")))).is_true()
 
 	# The turret sees the post guard through the open vault and kills him (about 5 s).
 	var guard := _node("Guards/GuardBatonVault")

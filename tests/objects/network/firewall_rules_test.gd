@@ -96,11 +96,11 @@ func test_a_deny_rule_stops_a_consoles_command_and_an_allow_reopens_it() -> void
 	var console := _dev("Console")
 	var siren := _dev("Siren")
 	_router.add_rule(RouterRule.make(DEVICE, "10.0.20.5", ANY, "", false))
-	assert_bool(console.send_command(Device.TEST, siren)).is_false()
+	assert_bool(console.send_command(Siren.TEST, siren)).is_false()
 	await _ticks(3)
 	assert_bool(ActorState.has(_n["Siren"], Net.TESTED)).is_false()
 	_router.toggle_rule(0)
-	assert_bool(console.send_command(Device.TEST, siren)).is_true()
+	assert_bool(console.send_command(Siren.TEST, siren)).is_true()
 	await _ticks(3)
 	assert_bool(ActorState.has(_n["Siren"], Net.TESTED)).is_true()
 	# The siren logged the command with the console's address.

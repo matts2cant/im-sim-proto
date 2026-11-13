@@ -19,7 +19,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_show = Showcase.new()
 	await _show.setup(scene_runner(Showcase.SHOWCASE))
-	await _show.command(Device.DISABLE, "Camera")
+	await _show.command(DeviceSwitch.DISABLE, "Camera")
 	_show.turret().holder.seed_rng(7)
 	# The player out of the turret's way, beside the console.
 	await _show.place_player(Vector3(12, 0, 1), PI / 2.0)
@@ -53,7 +53,7 @@ func _wait_for_death(body: BodyParts, limit: float) -> void:
 
 func test_a_guard_killed_by_a_turret_the_player_retargeted_is_the_players_kill() -> void:
 	var computer := _show.computer()
-	assert_bool(computer.send(Device.TARGET_GUARDS, _show.turret().device, _show.player)).is_true()
+	assert_bool(computer.send(Turret.TARGET_GUARDS, _show.turret().device, _show.player)).is_true()
 	await _show.frames(2)
 	var body := _guard()
 
@@ -68,7 +68,7 @@ func test_a_guard_killed_by_a_turret_the_player_retargeted_is_the_players_kill()
 
 
 func test_a_turret_nobody_retargeted_kills_nobody_of_the_players() -> void:
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	var body := _guard()
 
 	await _wait_for_death(body, 15.0)

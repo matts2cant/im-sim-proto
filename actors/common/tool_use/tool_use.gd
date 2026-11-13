@@ -6,7 +6,9 @@ extends Node
 ## first component that takes the tool (the tool interface: `accepts_tool(tool)`,
 ## `tool_hold(user, delta) -> bool` (true: finished), `tool_release(user)`; a Lock, a Device for the
 ## deck, ADR 0113) and calls its tool_hold(); letting go, switching target or tool calls
-## tool_release() (a lock loses the progress). Knows nothing about specific locks or tools.
+## tool_release() (a lock loses the progress). Knows nothing about specific locks or tools: each
+## tick it worked a target it says so (`worked`), so the tool's own component reacts without the
+## target knowing it (the deck plugs into a Device it works: DeckSession).
 ## Ranged (M12b, ADR 0117): when nothing within reach takes the tool, the entity aimed at further
 ## away (`aimed`, up to `aim_reach`: the deck aimed at an access point) is worked by its first
 ## component with `accepts_ranged_tool(tool, user) -> bool` true, through the same tool_hold() and
@@ -14,6 +16,8 @@ extends Node
 
 ## The user finished working `lock` (it unlocked); null for a tool target that is not a Lock.
 signal finished(lock: Lock)
+## A tick of work on `target` (the component that took the tool) with `tool`.
+signal worked(target: Node, tool: StringName)
 
 const ACCEPTS_METHOD: StringName = &"accepts_tool"
 const ACCEPTS_RANGED_METHOD: StringName = &"accepts_ranged_tool"
@@ -51,10 +55,13 @@ func step(target: Node, tool: StringName, holding: bool, delta: float, aimed: No
 		_target = found
 	if _target == null:
 		return
-	if bool(_target.call(&"tool_hold", entity, delta)):
-		var done := _target
+	var worked_on := _target
+	var done := bool(_target.call(&"tool_hold", entity, delta))
+	if done:
 		_target = null
-		finished.emit(done as Lock)
+	worked.emit(worked_on, tool)
+	if done:
+		finished.emit(worked_on as Lock)
 
 
 ## Stops working the current target, if any.

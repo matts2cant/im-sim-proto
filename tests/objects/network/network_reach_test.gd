@@ -113,10 +113,10 @@ func test_rules_come_first_and_the_first_match_wins() -> void:
 
 
 func test_a_maintenance_port_reaches_its_device_only() -> void:
-	assert_int(DeviceNetwork.port_kind(_dev("Kiosk"))).is_equal(Device.DeckPort.MAINTENANCE)
-	assert_int(DeviceNetwork.port_kind(_dev("OfficePc"))).is_equal(Device.DeckPort.HOST)
-	assert_int(DeviceNetwork.port_kind(_dev("Jack"))).is_equal(Device.DeckPort.JACK)
-	assert_int(DeviceNetwork.port_kind(_dev("Camera"))).is_equal(Device.DeckPort.NONE)
+	assert_int(DeviceNetwork.port_kind(_dev("Kiosk"))).is_equal(NetworkSource.Kind.PORT)
+	assert_int(DeviceNetwork.port_kind(_dev("OfficePc"))).is_equal(NetworkSource.Kind.HOST)
+	assert_int(DeviceNetwork.port_kind(_dev("Jack"))).is_equal(NetworkSource.Kind.JACK)
+	assert_int(DeviceNetwork.port_kind(_dev("Camera"))).is_equal(NetworkSource.Kind.NONE)
 	var port := NetworkSource.for_user(_user, _dev("Kiosk"), NetworkSource.Kind.PORT)
 	assert_array(_names(port.reached(get_tree()))).is_equal(["Kiosk"])
 	assert_str(port.address).is_equal("port:10.0.40.9")
@@ -151,8 +151,8 @@ func test_a_trust_list_limits_who_commands_a_device() -> void:
 	assert_bool(DeviceNetwork.trusts(_dev("Camera"), _dev("OfficePc"))).is_false()
 	# No list: anyone that reaches it (M8's behaviour).
 	assert_bool(DeviceNetwork.trusts(_dev("Alarm"), _dev("OfficePc"))).is_true()
-	assert_bool(_dev("OfficePc").send_command(Device.DISABLE, _n["Camera"])).is_false()
-	assert_bool(_dev("Console").send_command(Device.DISABLE, _n["Camera"])).is_true()
+	assert_bool(_dev("OfficePc").send_command(DeviceSwitch.DISABLE, _n["Camera"])).is_false()
+	assert_bool(_dev("Console").send_command(DeviceSwitch.DISABLE, _n["Camera"])).is_true()
 	await Wait.frames(get_tree(), 3)
 	assert_bool(DeviceSwitch.of(_n["Camera"]).disabled).is_true()
 	assert_str(" ".join(DeviceStatus.of(_n["Camera"], true))).is_equal("online disabled")
@@ -166,12 +166,12 @@ func test_a_level_without_network_data_keeps_one_open_network() -> void:
 	add_child(plain)
 	var a := Devices.device(plain, "A", Vector3(300, 0, -320))
 	var hub := Devices.device(plain, "Hub", Vector3(302, 0, -320))
-	var b := Devices.device(plain, "B", Vector3(304, 0, -320), [Devices.action_receptron(Device.RING)])
+	var b := Devices.device(plain, "B", Vector3(304, 0, -320), [Devices.action_receptron(Siren.RING)])
 	Devices.link(a, hub)
 	Devices.link(hub, b)
 	assert_str(String(DeviceNetwork.subnet_of(Device.of(b)))).is_empty()
 	assert_bool(Device.of(a).reaches(b)).is_true()
-	assert_bool(Device.of(a).send_command(Device.RING, b)).is_true()
+	assert_bool(Device.of(a).send_command(Siren.RING, b)).is_true()
 	# A deck on such a network's cabled device: no port (only jacks, computers and autonomous
 	# devices take one).
-	assert_int(DeviceNetwork.port_kind(Device.of(hub))).is_equal(Device.DeckPort.NONE)
+	assert_int(DeviceNetwork.port_kind(Device.of(hub))).is_equal(NetworkSource.Kind.NONE)

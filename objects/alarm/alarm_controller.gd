@@ -33,6 +33,12 @@ const GROUP: StringName = &"alarm_controller"
 const FAULT: StringName = &"alarm.network_fault"
 ## The `by` of a network fault's alarm.raised.
 const FAULT_BY := "network fault"
+## Its commands (besides DeviceSwitch.DISABLE / ENABLE, which disarm and re-arm it).
+const TRIGGER: StringName = &"command.trigger"
+const RESET: StringName = &"command.reset"
+const DISARM: StringName = &"command.disarm"
+const ARMED: StatusWord = preload("res://objects/devices/status_words/armed.tres")
+const DISARMED: StatusWord = preload("res://objects/devices/status_words/disarmed.tres")
 
 @export var config: AlarmControllerConfig
 @export var entity_path: NodePath = ^".."
@@ -107,8 +113,16 @@ func device_disabled() -> bool:
 
 
 ## Status words for security screens (DeviceStatus, ADR 0083): armed / disarmed, ringing / silent.
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["armed" if armed else "disarmed", "ringing" if is_ringing() else "silent"])
+func device_status() -> Array[StatusWord]:
+	var ringing: StatusWord = DeviceStatus.RINGING if is_ringing() else DeviceStatus.SILENT
+	return [ARMED if armed else DISARMED, ringing] as Array[StatusWord]
+
+
+## Its commands for security screens (DeviceStatus): disarmed, only Enable; armed, the rest.
+func device_commands() -> Array[StringName]:
+	if not armed:
+		return [DeviceSwitch.ENABLE] as Array[StringName]
+	return [TRIGGER, RESET, DISARM, DeviceSwitch.DISABLE] as Array[StringName]
 
 
 ## Starts (or restarts) ringing at `at`; `by` is logged. `incident`: also broadcast the location.
@@ -128,7 +142,7 @@ func raise(at: Vector3, by: String = "", incident: bool = false, fault: bool = f
 	EventLog.record(EventKinds.ALARM_RAISED, by, _name(), data)
 	_ring_sirens()
 	if incident:
-		device.send_to_all(Device.BROADCAST, at)
+		device.send_to_all(RadioBaseStation.BROADCAST, at)
 	if not again:
 		changed.emit(true)
 
@@ -177,7 +191,7 @@ func _physics_process(delta: float) -> void:
 func _ended(reason: String) -> void:
 	ActorState.set_tag(entity, FAULT, false)
 	if device != null:
-		device.send_to_all(Device.SILENCE)
+		device.send_to_all(Siren.SILENCE)
 	EventLog.record(EventKinds.ALARM_ENDED, "", _name(), {"reason": reason})
 	changed.emit(false)
 
@@ -191,7 +205,7 @@ func _supervise(delta: float) -> void:
 	if config.fault_drops <= 0 or not device.is_up() or not is_inside_tree():
 		supervision.reset()
 		return
-	var graph := Device.graph(get_tree())
+	var graph := DeviceGraphBuilder.build(get_tree())
 	var own := device.get_instance_id()
 	var present: Dictionary[int, String] = {}
 	for id in graph.component(own):
@@ -225,20 +239,20 @@ func _raise_fault(graph: DeviceGraph, own: int, burst: PackedInt64Array) -> void
 
 func _ring_sirens() -> void:
 	_refresh_left = config.ring_refresh
-	device.send_to_all(Device.RING)
+	device.send_to_all(Siren.RING)
 
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	match action:
 		Device.INCIDENT:
 			raise(stimulus.origin, stimulus.source_name(), true)
-		Device.TRIGGER:
+		AlarmController.TRIGGER:
 			raise(entity.global_position, stimulus.source_name())
-		Device.RESET:
+		AlarmController.RESET:
 			stop("reset")
-		Device.DISARM, Device.DISABLE:
+		AlarmController.DISARM, DeviceSwitch.DISABLE:
 			set_armed(false)
-		Device.ENABLE:
+		DeviceSwitch.ENABLE:
 			set_armed(true)
 
 

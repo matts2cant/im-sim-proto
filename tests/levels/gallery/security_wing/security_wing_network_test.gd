@@ -123,7 +123,7 @@ func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> voi
 	assert_str(info[OPS].title()).is_equal("OPERATIONS  10.0.15.0/24")
 	assert_str(info[SECURITY].title()).is_equal("SECURITY  10.0.25.0/24")
 	assert_float(absf(info[OPS].map_color.h - info[SECURITY].map_color.h)).is_greater(0.2)
-	assert_int(DeviceNetwork.port_kind(_device("Devices/Jack"))).is_equal(Device.DeckPort.JACK)
+	assert_int(DeviceNetwork.port_kind(_device("Devices/Jack"))).is_equal(NetworkSource.Kind.JACK)
 	# The security devices trust the booth computer; sirens and the radio also the controller.
 	var booth := _device("Devices/BoothComputer")
 	var controller := _device("Devices/Bay/Controller")

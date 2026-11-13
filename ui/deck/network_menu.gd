@@ -46,7 +46,7 @@ func show_row(row: NetworkRow, width: float, builder: Callable, command_label: C
 	title.text = row.name
 	var words := PackedStringArray([row.address]) if not row.address.is_empty() else PackedStringArray()
 	words.append_array(row.status)
-	status.text = DeckStyle.status_text(words)
+	status.text = DeviceStatus.text(words)
 	status.add_theme_color_override(&"font_color", DeckStyle.row_color(row))
 	# Filled aside, then reconciled: a button that looks the same keeps its node (a click held on it
 	# survives the owner's refreshes).

@@ -127,8 +127,8 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switches()
 	# The controller rings both sirens and dispatches through the base station; the camera and the
 	# panic button report to it.
 	var controller := _device("Devices/Bay/Controller")
-	assert_array(controller.reached(Device.RING)).has_size(2)
-	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
+	assert_array(controller.reached(Siren.RING)).has_size(2)
+	assert_array(controller.reached(RadioBaseStation.BROADCAST)).has_size(1)
 	assert_array(_device("Devices/Camera").reached(Device.INCIDENT)).contains_exactly([controller])
 	assert_array(_device("Devices/PanicButton").reached(Device.INCIDENT)).contains_exactly([controller])
 	for laser in LASERS:
@@ -136,9 +136,9 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switches()
 	# Every row offers its commands: the turret Disable and its presets, the vault door Open.
 	for row in _computer().devices():
 		if _name_of(row.device) == "Turret":
-			assert_array(row.commands).contains([Device.DISABLE, Device.TARGET_GUARDS])
+			assert_array(row.commands).contains([DeviceSwitch.DISABLE, Turret.TARGET_GUARDS])
 		if _name_of(row.device) == "VaultDoor":
-			assert_array(row.commands).contains([Device.OPEN])
+			assert_array(row.commands).contains([Door.OPEN])
 
 
 func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:

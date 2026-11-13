@@ -39,12 +39,12 @@ static func state_text_for(controllers: Array[AlarmController]) -> String:
 
 ## Sends `command.trigger` to every alarm controller; returns how many.
 func raise_level_alarm() -> int:
-	return _command_all(Device.TRIGGER)
+	return _command_all(AlarmController.TRIGGER)
 
 
 ## Sends `command.reset` to every alarm controller; returns how many.
 func clear_level_alarm() -> int:
-	return _command_all(Device.RESET)
+	return _command_all(AlarmController.RESET)
 
 
 func _command_all(command: StringName) -> int:

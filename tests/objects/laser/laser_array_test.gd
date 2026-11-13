@@ -32,7 +32,7 @@ func before_test() -> void:
 	add_child(_root)
 	Characters.floor_box(_root)
 	var receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(DeviceSwitch.ENABLE)
 	]
 	_laser_entity = Devices.device(_root, "Tripwire", Vector3(0, BEAM_HEIGHT, 0), receptrons, true)
 	var beam := LaserBeam.new()
@@ -141,14 +141,14 @@ func test_a_carried_ghost_body_trips_it() -> void:
 
 
 func test_disabled_it_neither_checks_nor_reports_until_enabled() -> void:
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _laser_entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _laser_entity))
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_laser.is_watching()).is_false()
 	assert_array(EventLog.find(&"laser.toggled")).has_size(1)
 	_box("Intruder", ON_BEAM, PhysicsLayers.PLAYER, [&"actor.player"])
 	await Wait.frames(get_tree(), 30)
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
-	StimulusSystem.emit(Device.command_stimulus(Device.ENABLE, _laser_entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.ENABLE, _laser_entity))
 	await Wait.frames(get_tree(), 5)
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 
@@ -180,8 +180,8 @@ func test_status_words() -> void:
 	assert_array(Array(DeviceStatus.of(_laser_entity, true))).contains_exactly(["online", "enabled", "tripped"])
 	body.position = OFF_BEAM
 	await Wait.frames(get_tree(), 90)
-	assert_array(Array(_laser.device_status())).contains_exactly(["enabled", "clear"])
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _laser_entity))
+	assert_array(Array(StatusWord.texts(_laser.device_status()))).contains_exactly(["enabled", "clear"])
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _laser_entity))
 	await Wait.frames(get_tree(), 3)
 	assert_array(Array(DeviceStatus.of(_laser_entity, true))).contains_exactly(["online", "disabled"])
 	assert_bool(DeviceStatus.is_disabled(_laser_entity)).is_true()
@@ -191,10 +191,10 @@ func test_status_words() -> void:
 func test_save_and_load() -> void:
 	_box("Intruder", ON_BEAM, PhysicsLayers.PLAYER, [&"actor.player"])
 	await Wait.frames(get_tree(), 3)
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _laser_entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _laser_entity))
 	await Wait.frames(get_tree(), 3)
 	var saved := _laser.save_state()
-	StimulusSystem.emit(Device.command_stimulus(Device.ENABLE, _laser_entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.ENABLE, _laser_entity))
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_laser.disabled).is_false()
 	_laser.load_state(saved)

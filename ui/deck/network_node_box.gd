@@ -101,12 +101,8 @@ static func short_status(row: NetworkRow) -> String:
 	var words := PackedStringArray()
 	if not row.address.is_empty():
 		words.append(row.address)
-	var states := PackedStringArray()
-	for word in row.status:
-		if word != DeviceStatus.ONLINE:
-			states.append(word)
-	words.append(DeckStyle.status_text(states) if not states.is_empty() else DeviceStatus.ONLINE)
-	return DeckStyle.status_text(words)
+	words.append(DeviceStatus.short_text(row.status))
+	return DeviceStatus.text(words)
 
 
 ## The node box holding `node_button` (NetworkGraph.node_button()), or null.

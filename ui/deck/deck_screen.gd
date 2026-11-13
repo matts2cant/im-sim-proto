@@ -240,14 +240,7 @@ func entry_label() -> String:
 	if session == null or not session.is_plugged():
 		return ""
 	var name := NetworkSource.display_name(session.port)
-	match session.source.kind:
-		NetworkSource.Kind.JACK:
-			return "%s (wall jack)" % name
-		NetworkSource.Kind.PORT:
-			return "%s (maintenance port)" % name
-		NetworkSource.Kind.WIRELESS:
-			return "%s (Wi-Fi)" % name
-	return "%s (computer)" % name
+	return "%s (%s)" % [name, NetworkSource.kind_label(session.source.kind)]
 
 
 ## What a trace bar calls `tracer`: its label once its host is on the map, else "unknown tracer".

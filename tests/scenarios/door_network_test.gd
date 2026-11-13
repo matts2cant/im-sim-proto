@@ -39,10 +39,10 @@ func test_reached_door_unlocks_and_opens_on_command() -> void:
 	# The door itself is not on the network: only its controller is.
 	assert_bool(Device.of(_console).reaches(door)).is_false()
 
-	assert_bool(Device.of(_console).send_command(Device.UNLOCK, controller)).is_true()
+	assert_bool(Device.of(_console).send_command(Lockable.UNLOCK, controller)).is_true()
 	await Wait.frames(get_tree(), 2)
 	assert_bool(Door.of(door).is_locked()).is_false()
-	assert_bool(Device.of(_console).send_command(Device.OPEN, controller)).is_true()
+	assert_bool(Device.of(_console).send_command(Door.OPEN, controller)).is_true()
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_open()).is_true()
@@ -52,7 +52,7 @@ func test_reached_door_unlocks_and_opens_on_command() -> void:
 func test_remote_open_opens_a_locked_door_and_keeps_it_locked() -> void:
 	var door := _door(DOOR)
 
-	Device.of(_console).send_command(Device.OPEN, _controller(door))
+	Device.of(_console).send_command(Door.OPEN, _controller(door))
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_open()).is_true()
@@ -63,8 +63,8 @@ func test_unpowered_switch_cuts_the_door_off() -> void:
 	var door := _door(DOOR)
 	Powered.of(_switch).on = false
 
-	assert_bool(Device.of(_console).send_command(Device.UNLOCK, _controller(door))).is_false()
-	assert_bool(Device.of(_console).send_command(Device.OPEN, _controller(door))).is_false()
+	assert_bool(Device.of(_console).send_command(Lockable.UNLOCK, _controller(door))).is_false()
+	assert_bool(Device.of(_console).send_command(Door.OPEN, _controller(door))).is_false()
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_locked()).is_true()
@@ -81,9 +81,9 @@ func test_unpowered_controller_ignores_commands() -> void:
 	# The door's lock has no power either (its power rule: no fail-safe tag, it stays locked).
 	assert_bool(ActorState.has(door, Device.UNPOWERED)).is_true()
 
-	assert_bool(Device.of(_console).send_command(Device.UNLOCK, controller)).is_false()
+	assert_bool(Device.of(_console).send_command(Lockable.UNLOCK, controller)).is_false()
 	# Even a command that reaches its entity directly is blocked by its receptrons.
-	StimulusSystem.emit(Device.command_stimulus(Device.OPEN, controller, _console))
+	StimulusSystem.emit(Device.command_stimulus(Door.OPEN, controller, _console))
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_locked()).is_true()
@@ -96,7 +96,7 @@ func test_a_broken_door_stays_open_whatever_its_controller_is_told() -> void:
 	await Wait.frames(get_tree(), 2)
 	assert_bool(ActorState.has(door, Device.BROKEN)).is_true()
 
-	assert_bool(Device.of(_console).send_command(Device.CLOSE, _controller(door))).is_true()
+	assert_bool(Device.of(_console).send_command(Door.CLOSE, _controller(door))).is_true()
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_open()).is_true()
@@ -106,7 +106,7 @@ func test_a_broken_door_stays_open_whatever_its_controller_is_told() -> void:
 func test_uncabled_door_is_not_reached() -> void:
 	var door := _door(DOOR, false, false)
 
-	assert_bool(Device.of(_console).send_command(Device.UNLOCK, _controller(door))).is_false()
+	assert_bool(Device.of(_console).send_command(Lockable.UNLOCK, _controller(door))).is_false()
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Door.of(door).is_locked()).is_true()

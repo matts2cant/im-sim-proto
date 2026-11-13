@@ -103,7 +103,7 @@ func test_the_panic_button_rings_the_siren_through_the_switch_and_dispatches_the
 
 
 func test_the_controller_keeps_the_siren_ringing_then_stops_and_silences_it() -> void:
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await _seconds(2.5)
 	assert_bool(_horn().is_sounding()).is_true()
 	# One pulse a second from the first ring: at 0, 1 and 2 s.
@@ -120,7 +120,7 @@ func test_cutting_the_switch_stops_the_ring_reaching_the_siren() -> void:
 	_behaviour().config.duration = 20.0
 	var switch_power := Powered.of(_switch)
 	switch_power.on = false
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await _seconds(1.0)
 	assert_bool(_behaviour().is_ringing()).is_true()
 	assert_bool(_horn().is_sounding()).is_false()
@@ -140,17 +140,17 @@ func test_cutting_the_switch_stops_the_ring_reaching_the_siren() -> void:
 
 
 func test_reset_disarm_and_enable() -> void:
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 3)
-	_command(Device.RESET, _controller)
+	_command(AlarmController.RESET, _controller)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("reset")
 
-	_command(Device.DISARM, _controller)
+	_command(AlarmController.DISARM, _controller)
 	await Wait.frames(get_tree(), 2)
 	Usable.of(_button).use(null)
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 4)
 	assert_bool(_behaviour().armed).is_false()
 	# Disarmed shows as disabled on security screens (ADR 0099 amendment).
@@ -159,27 +159,27 @@ func test_reset_disarm_and_enable() -> void:
 	assert_array(EventLog.find(&"alarm.ignored")).has_size(2)
 	assert_array(EventLog.find(&"radio.dispatch")).is_empty()
 
-	_command(Device.ENABLE, _controller)
+	_command(DeviceSwitch.ENABLE, _controller)
 	await Wait.frames(get_tree(), 2)
 	assert_bool(DeviceStatus.is_disabled(_controller)).is_false()
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_true()
 
 
 func test_losing_power_or_breaking_stops_the_controller() -> void:
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 3)
 	Powered.of(_controller).on = false
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("unpowered")
 	# Unpowered, it ignores commands (its receptrons block on `state.unpowered`).
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 
 	Powered.of(_controller).on = true
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_true()
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 100.0, _controller))
@@ -190,34 +190,34 @@ func test_losing_power_or_breaking_stops_the_controller() -> void:
 
 
 func test_siren_test_silence_and_power() -> void:
-	_command(Device.TEST, _siren)
+	_command(Siren.TEST, _siren)
 	await _seconds(2.0)
 	assert_bool(_horn().is_sounding()).is_true()
 	await _seconds(1.5)
 	assert_bool(_horn().is_sounding()).is_false()
 
-	_command(Device.TEST, _siren)
+	_command(Siren.TEST, _siren)
 	await Wait.frames(get_tree(), 3)
-	_command(Device.SILENCE, _siren)
+	_command(Siren.SILENCE, _siren)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_horn().is_sounding()).is_false()
 
-	_command(Device.TEST, _siren)
+	_command(Siren.TEST, _siren)
 	await Wait.frames(get_tree(), 3)
 	Powered.of(_siren).on = false
 	assert_bool(_horn().is_sounding()).is_false()
 	var pulses := _pulses()
-	_command(Device.TEST, _siren)
+	_command(Siren.TEST, _siren)
 	await _seconds(1.5)
 	assert_int(_pulses()).is_equal(pulses)
 
 
 func test_controller_and_siren_survive_save_and_load() -> void:
-	_command(Device.TRIGGER, _controller)
+	_command(AlarmController.TRIGGER, _controller)
 	await _seconds(1.0)
 	var saved := _behaviour().save_state()
 	var horn_saved := _horn().save_state()
-	_command(Device.RESET, _controller)
+	_command(AlarmController.RESET, _controller)
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 

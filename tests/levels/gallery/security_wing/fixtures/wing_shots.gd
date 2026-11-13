@@ -183,7 +183,7 @@ func _process(delta: float) -> void:
 		for door_name: String in _shot.get("open", []):
 			Door.of(_wing.get_node("Doors/" + door_name)).open()
 		for device_name: String in _shot.get("disable", []):
-			StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _wing.get_node("Devices/" + device_name)))
+			StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _wing.get_node("Devices/" + device_name)))
 		for device_name: String in _shot.get("break", []):
 			Device.of(_wing.get_node("Devices/" + device_name)).load_state({"broken": true})
 		DebugPanel.network_overlay.enabled = bool(_shot.get("network", false))
@@ -200,7 +200,7 @@ func _process(delta: float) -> void:
 		deck_screen.graph.fit_view()
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
-		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Bay/Controller")))
+		StimulusSystem.emit(Device.command_stimulus(AlarmController.TRIGGER, _wing.get_node("Devices/Bay/Controller")))
 	if _time < float(_shot.get("wait", 2.0)):
 		return
 	var image := get_viewport().get_texture().get_image()

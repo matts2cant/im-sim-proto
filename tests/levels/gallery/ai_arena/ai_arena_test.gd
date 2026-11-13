@@ -217,14 +217,14 @@ func test_alarm_devices_are_cabled_through_the_switch() -> void:
 			. override_failure_message(siren_name)
 			. is_true()
 		)
-	assert_array(controller.reached(Device.RING)).has_size(2)
-	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
+	assert_array(controller.reached(Siren.RING)).has_size(2)
+	assert_array(controller.reached(RadioBaseStation.BROADCAST)).has_size(1)
 	assert_array(Device.of(_room.get_node("Alarm/PanicButton")).reached(Device.INCIDENT)).contains_exactly([controller])
 	# The switch carries the sirens: down, they are cut off; the panic button and base station are
 	# cabled straight to the controller.
 	Powered.of(switch_entity).on = false
-	assert_array(controller.reached(Device.RING)).is_empty()
-	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
+	assert_array(controller.reached(Siren.RING)).is_empty()
+	assert_array(controller.reached(RadioBaseStation.BROADCAST)).has_size(1)
 	assert_str(String(Powered.of(switch_entity).circuit)).is_equal("ai_arena_network")
 
 

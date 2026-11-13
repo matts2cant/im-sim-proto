@@ -12,6 +12,10 @@ extends Node
 ## `command.enable`.
 ## EventLog: `radio.dispatch {station, point, range}`.
 
+## Alarm controller -> radio base station: broadcast the incident at the stimulus origin.
+const BROADCAST: StringName = &"command.broadcast"
+const BROADCASTING: StatusWord = preload("res://objects/devices/status_words/broadcasting.tres")
+
 @export var config: RadioBaseStationConfig
 @export var entity_path: NodePath = ^".."
 
@@ -32,10 +36,17 @@ func _ready() -> void:
 
 
 ## Status words for security screens (DeviceStatus): broadcasting / idle.
-func device_status() -> PackedStringArray:
+func device_status() -> Array[StatusWord]:
 	if not DeviceSwitch.is_enabled(entity):
-		return PackedStringArray()
-	return PackedStringArray(["broadcasting" if broadcast_left > 0.0 else "idle"])
+		return [] as Array[StatusWord]
+	return [BROADCASTING if broadcast_left > 0.0 else DeviceStatus.IDLE] as Array[StatusWord]
+
+
+## Its command (device-to-device traffic: screens' tables leave it out), while switched on.
+func device_commands() -> Array[StringName]:
+	if not DeviceSwitch.is_enabled(entity):
+		return [] as Array[StringName]
+	return [BROADCAST] as Array[StringName]
 
 
 func _physics_process(delta: float) -> void:
@@ -56,5 +67,5 @@ func dispatch(at: Vector3) -> void:
 
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
-	if action == Device.BROADCAST and DeviceSwitch.is_enabled(entity):
+	if action == RadioBaseStation.BROADCAST and DeviceSwitch.is_enabled(entity):
 		dispatch(stimulus.origin)

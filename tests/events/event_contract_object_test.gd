@@ -103,14 +103,14 @@ func test_ignited_and_exploded_name_the_object_and_the_stimulus() -> void:
 
 
 func test_device_command_names_its_operator_and_stimulus() -> void:
-	var receptrons: Array[Receptron] = [Devices.action_receptron(Device.DISABLE)]
+	var receptrons: Array[Receptron] = [Devices.action_receptron(DeviceSwitch.DISABLE)]
 	var sender := Devices.device(_root, "Sender", ORIGIN + Vector3(0, 0, 4))
 	var target := Devices.device(_root, "Target", ORIGIN + Vector3(2, 0, 4), receptrons)
 	Devices.link(sender, target)
 	var operator := Fixtures.entity(_root, "Operator", ORIGIN + Vector3(0, 0, 5), [])
 	await Wait.frames(get_tree(), 1)
 
-	var sent := Device.of(sender).send_command(Device.DISABLE, target, Device.NO_POINT, operator)
+	var sent := Device.of(sender).send_command(DeviceSwitch.DISABLE, target, Device.NO_POINT, operator)
 
 	assert_bool(sent).is_true()
 	var command := _last(EventKinds.DEVICE_COMMAND)

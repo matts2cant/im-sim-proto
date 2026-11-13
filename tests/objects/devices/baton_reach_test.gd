@@ -96,18 +96,18 @@ func test_switch_broken_by_the_baton_takes_its_network_offline() -> void:
 	DeviceFixtures.link(switch, camera)
 	await _driver.frames(2)
 	var computer := Computer.of(computer_entity)
-	assert_array(_status(computer, switch)).contains([DeviceStatus.ONLINE])
-	assert_array(_status(computer, camera)).contains([DeviceStatus.ONLINE])
+	assert_array(_status(computer, switch)).contains([DeviceStatus.ONLINE.text])
+	assert_array(_status(computer, camera)).contains([DeviceStatus.ONLINE.text])
 
 	var feet := Vector3(0, 0, WALL_Z + 1.0)
 	for swing in 2:
 		assert_str(await _swing_at(switch, feet)).is_equal(String(switch.name))
 
 	assert_bool(Device.of(switch).broken).is_true()
-	assert_array(_status(computer, switch)).contains_exactly([DeviceStatus.OFFLINE])
-	assert_array(_status(computer, camera)).contains_exactly([DeviceStatus.OFFLINE])
+	assert_array(_status(computer, switch)).contains_exactly([DeviceStatus.OFFLINE.text])
+	assert_array(_status(computer, camera)).contains_exactly([DeviceStatus.OFFLINE.text])
 	# The Security app lists the camera offline too.
-	assert_array(Array(computer.devices()[0].status)).contains_exactly([DeviceStatus.OFFLINE])
+	assert_array(Array(computer.devices()[0].status)).contains_exactly([DeviceStatus.OFFLINE.text])
 
 
 func test_baton_on_a_door_keypad_box_leaves_the_door_locked() -> void:

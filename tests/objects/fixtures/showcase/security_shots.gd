@@ -37,37 +37,37 @@ func _pose() -> void:
 	match _shot:
 		"wall":
 			_place(Vector3(-1, 0, -1.5), 0.15, 8.0)
-			_command(Device.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Turret")
 			_capture_at = 1.0
 		"camera":
-			_command(Device.DISABLE, "Turret")
-			_command(Device.STOP_SWEEP, "Camera")
+			_command(DeviceSwitch.DISABLE, "Turret")
+			_command(SecurityCamera.STOP_SWEEP, "Camera")
 			_place(Vector3(4.3, 0, -6.0), 0.0, 24.0, 0.149)
 			_capture_at = 3.0
 		"camera_mount":
-			_command(Device.DISABLE, "Turret")
-			_command(Device.DISABLE, "Camera")
+			_command(DeviceSwitch.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Camera")
 			_place(Vector3(4.9, 0, -6.6), 0.0, 30.0, 0.571)
 			_capture_at = 1.0
 		"turret":
-			_command(Device.DISABLE, "Camera")
+			_command(DeviceSwitch.DISABLE, "Camera")
 			_place(Vector3(13.0, 0, -1.6), 0.0, -5.0, 1.297)
 			_capture_at = 1.4
 		"turret_base":
-			_command(Device.DISABLE, "Camera")
-			_command(Device.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Camera")
+			_command(DeviceSwitch.DISABLE, "Turret")
 			_place(Vector3(9.6, 0, -4.4), 0.0, -30.0, 2.29)
 			_capture_at = 1.0
 		"door":
-			_command(Device.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Turret")
 			_place(Vector3(-9.9, 0, -0.8), 0.0, 0.0, 0.26)
 			_capture_at = 1.0
 		"console":
-			_command(Device.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Turret")
 			_place(Vector3(-5.6, 0, -6.9), 0.0, -10.0, 0.349)
 			_capture_at = 1.0
 		"console_login", "console_camera", "console_mail", "console_files", "console_cut", "console_remote":
-			_command(Device.DISABLE, "Turret")
+			_command(DeviceSwitch.DISABLE, "Turret")
 			_place(Vector3(-6, 0, -7), 0.0, -8.0)
 			_capture_at = 1.2
 			await get_tree().create_timer(0.3).timeout

@@ -21,7 +21,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_show = Showcase.new()
 	await _show.setup(scene_runner(Showcase.SHOWCASE))
-	await _show.command(Device.DISABLE, "Camera")
+	await _show.command(DeviceSwitch.DISABLE, "Camera")
 	_show.turret().holder.seed_rng(7)
 	EventLog.clear()
 
@@ -67,7 +67,7 @@ func test_it_stops_a_second_after_losing_sight() -> void:
 
 func test_retargeted_at_guards_it_shoots_a_guard_and_ignores_the_player() -> void:
 	await _show.place_player(Vector3(12, 0, 1), FACING_TURRET)
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	assert_array(_show.turret().hostile_tags()).contains_exactly([&"actor.guard"])
 	var guard := _guard(Showcase.TURRET_SPOT)
 	var guard_body := BodyParts.of(guard)
@@ -80,23 +80,23 @@ func test_retargeted_at_guards_it_shoots_a_guard_and_ignores_the_player() -> voi
 
 
 func test_the_player_is_not_a_target_once_retargeted_and_is_again_after() -> void:
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	await _show.place_player(Showcase.TURRET_SPOT, FACING_TURRET)
 	await _show.seconds(2.0)
 	assert_array(EventLog.find(&"turret.engaged")).is_empty()
-	await _show.command(Device.TARGET_INTRUDERS, "Turret")
+	await _show.command(Turret.TARGET_INTRUDERS, "Turret")
 	assert_float(await _show.wait_for(&"turret.engaged", 2.0)).is_greater_equal(0.0)
 
 
 func test_a_downed_guard_or_player_is_not_a_target_for_any_preset() -> void:
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	var guard := _guard(Showcase.TURRET_SPOT)
 	Characters.tags_of(guard).add(ActorState.DEAD)
 	await _show.seconds(2.0)
 	assert_array(EventLog.find(&"turret.engaged")).is_empty()
 	assert_float(_show.turret().meter.meter).is_equal(0.0)
 	guard.queue_free()
-	await _show.command(Device.TARGET_INTRUDERS, "Turret")
+	await _show.command(Turret.TARGET_INTRUDERS, "Turret")
 	ActorState.set_tag(_show.player, ActorState.UNCONSCIOUS, true)
 	await _show.place_player(Showcase.TURRET_SPOT, FACING_TURRET)
 	await _show.seconds(2.0)
@@ -105,7 +105,7 @@ func test_a_downed_guard_or_player_is_not_a_target_for_any_preset() -> void:
 
 
 func test_a_target_going_down_ends_the_engagement_for_good() -> void:
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	var guard := _guard(Showcase.TURRET_SPOT)
 	assert_float(await _show.wait_for(&"turret.engaged", 3.0)).is_greater_equal(0.0)
 	Characters.tags_of(guard).add(ActorState.UNCONSCIOUS)
@@ -124,7 +124,7 @@ func test_the_laser_stops_on_a_character_s_body() -> void:
 	# Audit S21: the beam's visual ray meets character bodies (PhysicsLayers.CHARACTER_LAYERS), not
 	# only the hitboxes inside them: on a guard it ends at the capsule (radius 0.35 m), short of the
 	# torso hitbox's front (0.13 m from the axis).
-	await _show.command(Device.TARGET_GUARDS, "Turret")
+	await _show.command(Turret.TARGET_GUARDS, "Turret")
 	var guard := _guard(Showcase.TURRET_SPOT)
 	assert_float(await _show.wait_for(&"turret.engaged", 3.0)).is_greater_equal(0.0)
 	await _show.seconds(0.3)
@@ -147,11 +147,11 @@ func test_never_fires_when_someone_else_is_in_the_line() -> void:
 
 
 func test_disabled_unpowered_or_broken_turrets_stay_idle() -> void:
-	await _show.command(Device.DISABLE, "Turret")
+	await _show.command(DeviceSwitch.DISABLE, "Turret")
 	await _show.place_player(Showcase.TURRET_SPOT, FACING_TURRET)
 	await _show.seconds(3.0)
 	assert_array(EventLog.find(&"turret.detected")).is_empty()
-	await _show.command(Device.ENABLE, "Turret")
+	await _show.command(DeviceSwitch.ENABLE, "Turret")
 	Powered.of(_show.node("Turret")).on = false
 	await _show.seconds(3.0)
 	assert_array(EventLog.find(&"turret.detected")).is_empty()
@@ -175,8 +175,8 @@ func test_time_to_kill_a_standing_player_at_6_m() -> void:
 	for run in 5:
 		body.reset()
 		await _show.place_player(HIDDEN_SPOT)
-		await _show.command(Device.DISABLE, "Turret")
-		await _show.command(Device.ENABLE, "Turret")
+		await _show.command(DeviceSwitch.DISABLE, "Turret")
+		await _show.command(DeviceSwitch.ENABLE, "Turret")
 		_show.turret().holder.seed_rng(101 + run * 17)
 		await _show.place_player(Showcase.TURRET_SPOT, FACING_TURRET)
 		var ticks := 0

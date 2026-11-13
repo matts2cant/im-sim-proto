@@ -34,11 +34,11 @@ func test_arms_two_seconds_after_sticking_and_blinks() -> void:
 	await Grenades.seconds(get_tree(), 1.5)
 	assert_bool(trigger.is_armed).is_false()
 	assert_bool(trigger.is_light_on()).is_false()
-	assert_int(TargetStatus.word_of(mine, [])).is_equal(TargetStatus.Word.NONE)
+	assert_object(TargetStatus.word_of(mine, [])).is_null()
 	await Grenades.seconds(get_tree(), 1.0)
 
 	assert_bool(trigger.is_armed).is_true()
-	assert_int(TargetStatus.word_of(mine, [])).is_equal(TargetStatus.Word.ARMED)
+	assert_object(TargetStatus.word_of(mine, [])).is_same(ProximityTrigger.ARMED_WORD)
 	assert_array(Grenades.logged(&"mine.armed")).has_size(1)
 	# It blinks: lit and dark within one period.
 	var lit := 0

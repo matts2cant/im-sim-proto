@@ -12,6 +12,8 @@ var name: String
 var online: bool = false
 ## DeviceStatus words: "offline", or "online" then its components' words.
 var status: PackedStringArray
+## One of its words is an alert word (StatusWord.alert): drawn in the alert colour.
+var alert: bool = false
 ## Online and switched off by a command (DeviceStatus.is_disabled()); never while offline.
 var disabled: bool = false
 ## The commands its menu offers; empty while offline.
@@ -40,6 +42,12 @@ var light: int = NO_LIGHT
 ## Its subnet is being scanned (ADR 0121): laid out where it will appear but not drawn; the Map
 ## shows the scan there instead.
 var scanning: bool = false
+
+
+## Fills `status` and `alert` from `words` (DeviceStatus.words_of()).
+func show_words(words: Array[StatusWord]) -> void:
+	status = StatusWord.texts(words)
+	alert = StatusWord.any_alert(words)
 
 
 ## True when it stands between subnets on the Map (a router).

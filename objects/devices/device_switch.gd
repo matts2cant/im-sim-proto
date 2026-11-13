@@ -7,6 +7,11 @@ extends Node
 ## `action_received`; the entity's other components ask is_enabled(entity) before acting.
 ## Security screens (DeviceStatus): "enabled" / "disabled", device_disabled().
 ## EventLog: `device.toggled {device, enabled}`. Saveable (`disabled`).
+## DISABLE / ENABLE are the switch-off commands of every device that can be switched off (cameras,
+## laser arrays, turrets and alarm controllers handle them in their own components).
+
+const DISABLE: StringName = &"command.disable"
+const ENABLE: StringName = &"command.enable"
 
 ## Starts switched off (a `command.enable` turns it on).
 @export var start_disabled: bool = false
@@ -55,15 +60,20 @@ func device_disabled() -> bool:
 	return disabled
 
 
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["disabled" if disabled else "enabled"])
+func device_status() -> Array[StatusWord]:
+	return [DeviceStatus.DISABLED if disabled else DeviceStatus.ENABLED] as Array[StatusWord]
+
+
+## Switched off, only Enable; else Disable (DeviceStatus).
+func device_commands() -> Array[StringName]:
+	return [ENABLE if disabled else DISABLE] as Array[StringName]
 
 
 func _on_action(action: StringName, _stimulus: Stimulus) -> void:
 	match action:
-		Device.DISABLE:
+		DeviceSwitch.DISABLE:
 			set_disabled(true)
-		Device.ENABLE:
+		DeviceSwitch.ENABLE:
 			set_disabled(false)
 
 

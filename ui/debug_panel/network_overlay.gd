@@ -98,7 +98,7 @@ func refresh() -> void:
 ## The status line of `device`: DeviceStatus words, with the reason when it is down.
 static func status_text(device: Device) -> String:
 	var up := device.is_up()
-	var text := HalcyonStyle.status_text(DeviceStatus.of(device.entity, up))
+	var text := DeviceStatus.text(DeviceStatus.of(device.entity, up))
 	if up:
 		return text
 	var reasons := PackedStringArray()
