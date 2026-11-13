@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 ## Warehouse M12c consequences (design/levels/mission-warehouse.md "Consequences (M12c)", ADR
-## 0115): MAIL-01, the in-house mail server in the basement network closet on SW-SECURITY, is the
-## mail server of both office PCs (through RTR-01: a rule lets the office reach it) and the console;
+## 0115; the mail routes went with ADR 0130):
 ## both alarm controllers supervise the devices that report to them (a whole area switch dropping is
 ## a network fault there, one switch with one device is trouble notes only); the vault door stays
 ## locked on power loss (fail-secure, with its plate) while the bridge door unlocks (fail-safe). The
@@ -42,10 +41,6 @@ func _entity(path: String) -> Node3D:
 	return _level.get_node(SECURITY + path) as Node3D
 
 
-func _computer(path: String) -> Computer:
-	return Computer.of(_entity(path))
-
-
 # Waits for `count` supervision checks of the shipped controllers (and two frames).
 func _checks(count: int) -> void:
 	var interval := AlarmController.of(_entity(CONTROLLERS[0])).config.supervision_interval
@@ -55,28 +50,6 @@ func _checks(count: int) -> void:
 
 func _faults() -> Array[EventLogEntry]:
 	return EventLog.find(&"alarm.network_fault")
-
-
-func test_mail_01_serves_the_office_pcs_and_the_console() -> void:
-	var server := _entity("Network/MailServer")
-	assert_str(MailServer.find(get_tree(), "MAIL-01").host_name()).is_equal("MAIL-01")
-	assert_str(Device.of(server).address).is_equal("10.0.20.8")
-	assert_str(String(DeviceNetwork.subnet_of(Device.of(server)))).is_equal("security")
-	assert_bool(Device.of(_entity("Devices/SecuritySwitch")).linked().has(Device.of(server))).is_true()
-	for path: String in ["Network/OfficePc1", "Network/OfficePc2", "Devices/SecurityConsole"]:
-		var computer := _computer(path)
-		assert_str(computer.mail_server).override_failure_message(path).is_equal("MAIL-01")
-		assert_bool(computer.mail_route().reached).override_failure_message(path).is_true()
-
-
-func test_cutting_rtr01_cuts_office_mail_but_not_the_consoles() -> void:
-	Powered.of(_entity("Network/Rtr01")).on = false
-	var reason := _computer("Network/OfficePc1").mail_route().reason()
-	assert_str(reason).is_equal("Can't reach MAIL-01: no route (RTR-01 is down)")
-	assert_bool(_computer("Network/OfficePc2").mail_route().reached).is_false()
-	assert_bool(_computer("Devices/SecurityConsole").mail_route().reached).is_true()
-	Powered.of(_entity("Network/Rtr01")).on = true
-	assert_bool(_computer("Network/OfficePc1").mail_route().reached).is_true()
 
 
 func test_the_vault_switch_dropping_is_a_network_fault_at_the_switch() -> void:

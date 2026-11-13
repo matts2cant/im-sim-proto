@@ -4,8 +4,8 @@ extends HBoxContainer
 ## reader (title, sender, text, what reading it taught). Selecting an item reads it: it joins the
 ## viewer's PersonalLog like a datapad (Computer.read(), source "Mail" or "Files"), without the
 ## reading overlay. An implicit clue is kept as a note: nothing is learned. The first item is
-## selected (read) when the app shows. A status line above the list says what is wrong (M12c: Mail
-## with its server out of reach, MailRoute.reason()); hidden while empty.
+## selected (read) when the app shows. A status line above the list says what is wrong when a caller
+## gives one (show_documents()); hidden while empty.
 
 const LIST_WIDTH: float = 300.0
 const NOTE_ONLY := "Added to the Journal (Notes)."
@@ -21,7 +21,7 @@ var documents: Array[ComputerDocument] = []
 var selected: int = -1
 
 var list_caption: Label
-## The status line above the list ("Can't reach MAIL-01: no route (RTR-01 is down)").
+## The status line above the list (hidden while empty).
 var status_label: Label
 var title_label: Label
 var from_label: Label

@@ -12,7 +12,6 @@
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
 [ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
 [ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
-[ext_resource type="Script" path="res://objects/network/mail_server.gd" id="13_mail_server"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
 size = Vector3(0.5, 0.6, 0.3)
@@ -72,6 +71,3 @@ script = ExtResource("9_powered")
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-
-[node name="MailServerBehaviour" type="Node" parent="."]
-script = ExtResource("13_mail_server")

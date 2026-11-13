@@ -36,10 +36,10 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"closet_inside": {"feet": Vector3(6.4, 0, -20.2), "look": Vector3(5.6, 1.5, -17.5), "open": ["ClosetDoor"]},
 	"server_corner": {"feet": Vector3(9.8, 0, -14.0), "look": Vector3(12, 1.5, -14.5)},
 	"far_wall": {"feet": Vector3(5, 0, -10), "look": Vector3(5, 2.3, -18)},
-	# M12c: the mail route station (east wall), its PC's Mail with the edge router's breaker off.
-	"mail_route": {"feet": Vector3(9.2, 0, -8.0), "look": Vector3(12, 1.6, -8.0)},
-	"mail_route_close": {"feet": Vector3(10.4, 0, -9.5), "look": Vector3(12, 1.3, -9.5)},
-	"mail_route_cut":
+	# The mail PC (east wall; its mail is on the PC, ADR 0130), and its Mail with the edge router off.
+	"mail_pc": {"feet": Vector3(9.2, 0, -8.0), "look": Vector3(12, 1.6, -8.0)},
+	"mail_pc_close": {"feet": Vector3(10.4, 0, -9.5), "look": Vector3(12, 1.3, -9.5)},
+	"mail_pc_offline":
 	{
 		"feet": Vector3(10.4, 0, -9.5),
 		"look": Vector3(12, 1.45, -9.5),
