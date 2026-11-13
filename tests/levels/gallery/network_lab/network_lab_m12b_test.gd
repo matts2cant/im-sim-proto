@@ -111,15 +111,15 @@ func test_the_exploit_chips_open_a_cctv_camera_and_rtr03_without_trace() -> void
 	var screen := DeckScreen.of(_lab.player)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains(["CAM-EX1", "CAM-EX2", "CAM-EX3", "RTR-03"])
-	var watchdog := _lab.node("Devices/Rtr03").get_node("Tracer") as Tracer
+	var watchdog := _lab.node("Devices/BayC/Rtr03").get_node("Tracer") as Tracer
 	assert_float(watchdog.trace_of(_lab.player)).is_equal(0.0)
 	var camera := _lab.device("Devices/CamEx1")
 	assert_bool(ExploitItems.use_from_deck(session, camera)).is_true()
 	assert_bool(camera.is_admin(_lab.player)).is_true()
 	assert_int(ExploitItems.count(_lab.player, &"camera")).is_equal(0)
 	assert_bool(ExploitItems.use_from_deck(session, _lab.device("Devices/CamEx2"))).is_false()
-	assert_bool(ExploitItems.use_from_deck(session, _lab.device("Devices/Rtr03"))).is_true()
-	assert_bool(_lab.device("Devices/Rtr03").is_admin(_lab.player)).is_true()
+	assert_bool(ExploitItems.use_from_deck(session, _lab.device("Devices/BayC/Rtr03"))).is_true()
+	assert_bool(_lab.device("Devices/BayC/Rtr03").is_admin(_lab.player)).is_true()
 	assert_float(watchdog.trace_of(_lab.player)).is_equal(0.0)
 	# Behind RTR-03 the Wi-Fi subnet is scanned (0.1 s here), then on the map.
 	assert_bool(session.scans.has(&"lab_wifi")).is_true()
@@ -150,8 +150,8 @@ func test_the_note_logs_in_on_rtr04_and_a_deny_rule_keeps_the_sirens_silent() ->
 	await _lab.seconds(0.3)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains(["SW-SIRENS", "SIREN-A", "SIREN-B"])
-	var router := Router.of(_lab.node("Devices/Rtr04"))
-	assert_bool(_lab.device("Devices/Rtr04").is_admin(_lab.player)).is_true()
+	var router := Router.of(_lab.node("Devices/BayC/Rtr04"))
+	assert_bool(_lab.device("Devices/BayC/Rtr04").is_admin(_lab.player)).is_true()
 	# ALARM-LAB -> SIRENS: DENY, added as the Firewall tool does (from the deck).
 	router.add_rule(
 		RouterRule.make(RouterRule.Match.DEVICE, "AlarmController", RouterRule.Match.SUBNET, "lab_sirens", false),

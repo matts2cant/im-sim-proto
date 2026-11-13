@@ -10,11 +10,18 @@
 [ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="7_electronic"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="8_powered"]
 [ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="9_breaker"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="10_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_rack.tscn" id="10_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_desk.tscn" id="10_switch_desk"]
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="11_jack"]
-[ext_resource type="PackedScene" path="res://objects/network/router.tscn" id="12_router"]
+[ext_resource type="PackedScene" path="res://objects/network/router_rack.tscn" id="12_router"]
+[ext_resource type="PackedScene" path="res://objects/network/router_desk.tscn" id="12_router_desk"]
 [ext_resource type="Script" path="res://objects/network/tracer.gd" id="13_tracer"]
-[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="14_computer"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer_desk.tscn" id="14_computer"]
+[ext_resource type="PackedScene" path="res://objects/computer/server_rack.tscn" id="14_server"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/linking_bay.tscn" id="15_bay"]
+[ext_resource type="PackedScene" path="res://objects/devices/linking_bay_locked.tscn" id="15_bay_locked"]
+[ext_resource type="Script" path="res://objects/locks/mechanical_lock_data.gd" id="15_lock_data"]
+[ext_resource type="PackedScene" path="res://items/key/key.tscn" id="19_key"]
 [ext_resource type="Script" path="res://objects/network/device_account.gd" id="15_account"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="16_camera"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="17_datapad"]
@@ -141,6 +148,12 @@ script = ExtResource("15_account")
 user = "guest"
 password = "guest"
 
+[sub_resource type="Resource" id="Data_bay_b_lock"]
+script = ExtResource("15_lock_data")
+pins = Array[StringName]([&"standard", &"standard", &"spool", &"standard"])
+pin_seed = 131
+key_id = &"network_lab_bay_b"
+
 [node name="NetworkLab" type="Node3D"]
 
 [node name="Shell" type="Node3D" parent="."]
@@ -186,9 +199,9 @@ depth = 0.7
 surface = "wood"
 
 [node name="Desk2" parent="Furniture" instance=ExtResource("4_ledge")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.3, 0, -12)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.3, 0, -12.15)
 height = 0.75
-width = 1.4
+width = 1.7
 depth = 0.7
 surface = "wood"
 
@@ -199,17 +212,10 @@ width = 1.4
 depth = 0.7
 surface = "wood"
 
-[node name="ServerDesk" parent="Furniture" instance=ExtResource("4_ledge")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -12.5)
-height = 0.75
-width = 1.4
-depth = 0.7
-surface = "wood"
-
 [node name="MailPcDesk" parent="Furniture" instance=ExtResource("4_ledge")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -9.5)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.3, 0, -9.3)
 height = 0.75
-width = 1.4
+width = 1.8
 depth = 0.7
 surface = "wood"
 
@@ -278,17 +284,8 @@ metadata/display_name = "OFFICE-JACK"
 address = "10.0.10.40"
 subnet = &"office"
 
-[node name="OfficeSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -14.6)
-metadata/display_name = "SW-OFFICE"
-
-[node name="Device" parent="Devices/OfficeSwitch"]
-links = Array[NodePath]([NodePath("../../Jack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
-address = "10.0.10.2"
-subnet = &"office"
-
 [node name="OfficePc1" parent="Devices" instance=ExtResource("14_computer")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.45, -8.5)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.76, 0.75, -8.5)
 metadata/display_name = "OFFICE-PC1"
 
 [node name="Accounts" parent="Devices/OfficePc1"]
@@ -304,7 +301,7 @@ label = "office PC 1"
 address = "10.0.10.11"
 
 [node name="OfficePc2" parent="Devices" instance=ExtResource("14_computer")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.45, -12)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.76, 0.75, -12)
 metadata/display_name = "OFFICE-PC2"
 
 [node name="Accounts" parent="Devices/OfficePc2"]
@@ -319,46 +316,60 @@ label = "office PC 2"
 [node name="Device" parent="Devices/OfficePc2"]
 address = "10.0.10.12"
 
-[node name="Rtr01" parent="Devices" instance=ExtResource("12_router")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -15.7)
+[node name="OfficeSwitch" parent="Devices" instance=ExtResource("10_switch_desk")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.75, 0.75, -12.7)
+metadata/display_name = "SW-OFFICE"
+
+[node name="Device" parent="Devices/OfficeSwitch"]
+links = Array[NodePath]([NodePath("../../Jack"), NodePath("../../OfficePc1"), NodePath("../../OfficePc2")])
+address = "10.0.10.2"
+subnet = &"office"
+
+[node name="BayA" parent="Devices" instance=ExtResource("15_bay")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.695, 0, -15.7)
+bay_name = "BAY-A · CORE"
+cable_height = 2.1
+
+[node name="Rtr01" parent="Devices/BayA" instance=ExtResource("12_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5285, 0.24)
 metadata/display_name = "RTR-01"
 
-[node name="Device" parent="Devices/Rtr01"]
-links = Array[NodePath]([NodePath("../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
+[node name="Device" parent="Devices/BayA/Rtr01"]
+links = Array[NodePath]([NodePath("../../../OfficeSwitch"), NodePath("../../SecuritySwitch")])
 address = "10.0.10.1"
 subnet = &"office"
 
-[node name="DeviceAccounts" parent="Devices/Rtr01"]
+[node name="DeviceAccounts" parent="Devices/BayA/Rtr01"]
 accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr01")])
 credentials_id = &"network_lab_rtr01"
 
-[node name="Router" parent="Devices/Rtr01"]
+[node name="Router" parent="Devices/BayA/Rtr01"]
 subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_office"), ExtResource("24_security")])
 side_addresses = Dictionary[StringName, String]({&"security": "10.0.20.254"})
 
-[node name="Tracer" type="Node" parent="Devices/Rtr01"]
+[node name="Tracer" type="Node" parent="Devices/BayA/Rtr01"]
 script = ExtResource("13_tracer")
 label = "Sentry tracer"
 watched = Array[StringName]([&"office", &"security"])
 
-[node name="SecuritySwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.99, 1.6, -16.8)
+[node name="SecuritySwitch" parent="Devices/BayA" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
 metadata/display_name = "SW-SECURITY"
 
-[node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Rtr02"), NodePath("../../ClosetSwitch")])
+[node name="Device" parent="Devices/BayA/SecuritySwitch"]
+links = Array[NodePath]([NodePath("../../../Console"), NodePath("../../../BayB/Rtr02"), NodePath("../../ClosetSwitch")])
 address = "10.0.20.2"
 subnet = &"security"
 
-[node name="ClosetSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.6, -17.99)
+[node name="ClosetSwitch" parent="Devices/BayA" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3505, 0.24)
 metadata/display_name = "SW-CLOSET"
 
-[node name="Powered" parent="Devices/ClosetSwitch"]
+[node name="Powered" parent="Devices/BayA/ClosetSwitch"]
 circuit = &"network_lab_closet"
 
-[node name="Device" parent="Devices/ClosetSwitch"]
-links = Array[NodePath]([NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor/Hardware/Controller")])
+[node name="Device" parent="Devices/BayA/ClosetSwitch"]
+links = Array[NodePath]([NodePath("../../../ClosetCamera"), NodePath("../../../../Doors/ClosetDoor/Hardware/Controller")])
 address = "10.0.20.3"
 subnet = &"security"
 
@@ -370,7 +381,7 @@ circuit = &"network_lab_closet"
 label = "closet switch"
 
 [node name="Console" parent="Devices" instance=ExtResource("14_computer")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.45, -17.99)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.75, -17.76)
 metadata/display_name = "SEC-CONSOLE"
 
 [node name="Accounts" parent="Devices/Console"]
@@ -393,46 +404,57 @@ metadata/display_name = "CAM-CLOSET"
 address = "10.0.20.21"
 trusted = Array[NodePath]([NodePath("../../Console")])
 
-[node name="Rtr02" parent="Devices" instance=ExtResource("12_router")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -16.2)
+[node name="BayB" parent="Devices" instance=ExtResource("15_bay_locked")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.695, 0, -15.7)
+bay_name = "BAY-B · SERVERS"
+cable_height = 2.1
+
+[node name="MechanicalLock" parent="Devices/BayB/GlassDoor"]
+data = SubResource("Data_bay_b_lock")
+
+[node name="Rtr02" parent="Devices/BayB" instance=ExtResource("12_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5285, 0.24)
 metadata/display_name = "RTR-02"
 
-[node name="Device" parent="Devices/Rtr02"]
+[node name="Device" parent="Devices/BayB/Rtr02"]
 address = "10.0.20.1"
 subnet = &"security"
 
-[node name="DeviceAccounts" parent="Devices/Rtr02"]
+[node name="DeviceAccounts" parent="Devices/BayB/Rtr02"]
 accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr02")])
 credentials_id = &"network_lab_rtr02"
 
-[node name="Router" parent="Devices/Rtr02"]
+[node name="Router" parent="Devices/BayB/Rtr02"]
 subnet_data = Array[ExtResource("24_subnet")]([ExtResource("24_security"), ExtResource("24_servers")])
 side_addresses = Dictionary[StringName, String]({&"servers": "10.0.30.1"})
 
-[node name="ServerSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -15.1)
+[node name="ServerSwitch" parent="Devices/BayB" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
 metadata/display_name = "SW-SERVERS"
 
-[node name="Device" parent="Devices/ServerSwitch"]
+[node name="Device" parent="Devices/BayB/ServerSwitch"]
 links = Array[NodePath]([NodePath("../../Rtr02"), NodePath("../../FileServer")])
 address = "10.0.30.2"
 subnet = &"servers"
 
-[node name="FileServer" parent="Devices" instance=ExtResource("14_computer")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.45, -12.5)
+[node name="FileServer" parent="Devices/BayB" instance=ExtResource("14_server")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.306, 0.24)
 metadata/display_name = "FILE-SERVER"
 
-[node name="Accounts" parent="Devices/FileServer"]
+[node name="Accounts" parent="Devices/BayB/FileServer"]
 accounts = Array[ExtResource("15_account")]([SubResource("Account_archive")])
 
-[node name="Computer" parent="Devices/FileServer"]
+[node name="Computer" parent="Devices/BayB/FileServer"]
 data = ExtResource("23_server_data")
 credentials_id = &"network_lab_file_server"
 host_name = "FILE-SERVER"
 label = "file server"
 
+[node name="Device" parent="Devices/BayB/FileServer"]
+address = "10.0.30.8"
+
 [node name="MailPc" parent="Devices" instance=ExtResource("14_computer")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.45, -9.5)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.76, 0.75, -9.5)
 metadata/display_name = "MAIL-PC"
 
 [node name="Accounts" parent="Devices/MailPc"]
@@ -449,8 +471,8 @@ links = Array[NodePath]([NodePath("../../EdgeRouter")])
 address = "10.0.80.10"
 subnet = &"lab_mail"
 
-[node name="EdgeRouter" parent="Devices" instance=ExtResource("12_router")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.6, -7.6)
+[node name="EdgeRouter" parent="Devices" instance=ExtResource("12_router_desk")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.8, 0.75, -8.72)
 metadata/display_name = "EDGE-RTR"
 
 [node name="Powered" parent="Devices/EdgeRouter"]
@@ -466,18 +488,6 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.3, -6.5)
 [node name="CircuitBreaker" parent="Devices/EdgeBreaker"]
 circuit = &"network_lab_edge"
 label = "edge router"
-
-[node name="Device" parent="Devices/FileServer"]
-address = "10.0.30.8"
-
-[node name="WifiSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.74, 1.6, -21.3)
-metadata/display_name = "SW-WIFI"
-
-[node name="Device" parent="Devices/WifiSwitch"]
-links = Array[NodePath]([NodePath("../../ApLab")])
-address = "10.0.40.2"
-subnet = &"lab_wifi"
 
 [node name="ApLab" parent="Devices" instance=ExtResource("25_ap")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.74, 2.6, -25.5)
@@ -527,36 +537,85 @@ metadata/display_name = "CCTV-JACK"
 address = "10.0.50.40"
 subnet = &"lab_cctv"
 
-[node name="CctvSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 1.6, -32.49)
-metadata/display_name = "SW-CCTV"
+[node name="BayC" parent="Devices" instance=ExtResource("15_bay")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0, -32.195)
+bay_name = "BAY-C · ANNEX"
+cable_height = 1.6
 
-[node name="Device" parent="Devices/CctvSwitch"]
-links = Array[NodePath]([NodePath("../../CctvJack"), NodePath("../../CamEx1"), NodePath("../../CamEx2"), NodePath("../../CamEx3")])
-address = "10.0.50.2"
-subnet = &"lab_cctv"
-
-[node name="Rtr03" parent="Devices" instance=ExtResource("12_router")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.6, 1.6, -32.49)
+[node name="Rtr03" parent="Devices/BayC" instance=ExtResource("12_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5285, 0.24)
 metadata/display_name = "RTR-03"
 
-[node name="Device" parent="Devices/Rtr03"]
+[node name="Device" parent="Devices/BayC/Rtr03"]
 links = Array[NodePath]([NodePath("../../CctvSwitch"), NodePath("../../WifiSwitch")])
 address = "10.0.50.1"
 subnet = &"lab_cctv"
 
-[node name="DeviceAccounts" parent="Devices/Rtr03"]
+[node name="DeviceAccounts" parent="Devices/BayC/Rtr03"]
 accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr03")])
 credentials_id = &"network_lab_rtr03"
 
-[node name="Router" parent="Devices/Rtr03"]
+[node name="Router" parent="Devices/BayC/Rtr03"]
 subnet_data = Array[ExtResource("24_subnet")]([ExtResource("31_cctv"), ExtResource("30_wifi")])
 side_addresses = Dictionary[StringName, String]({&"lab_wifi": "10.0.40.1"})
 
-[node name="Tracer" type="Node" parent="Devices/Rtr03"]
+[node name="Tracer" type="Node" parent="Devices/BayC/Rtr03"]
 script = ExtResource("13_tracer")
 label = "Watchdog tracer"
 watched = Array[StringName]([&"lab_cctv"])
+
+[node name="CctvSwitch" parent="Devices/BayC" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
+metadata/display_name = "SW-CCTV"
+
+[node name="Device" parent="Devices/BayC/CctvSwitch"]
+links = Array[NodePath]([NodePath("../../../CctvJack"), NodePath("../../../CamEx1"), NodePath("../../../CamEx2"), NodePath("../../../CamEx3")])
+address = "10.0.50.2"
+subnet = &"lab_cctv"
+
+[node name="WifiSwitch" parent="Devices/BayC" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.395, 0.24)
+metadata/display_name = "SW-WIFI"
+
+[node name="Device" parent="Devices/BayC/WifiSwitch"]
+links = Array[NodePath]([NodePath("../../../ApLab")])
+address = "10.0.40.2"
+subnet = &"lab_wifi"
+
+[node name="Rtr04" parent="Devices/BayC" instance=ExtResource("12_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.217, 0.24)
+metadata/display_name = "RTR-04"
+
+[node name="Device" parent="Devices/BayC/Rtr04"]
+links = Array[NodePath]([NodePath("../../AlarmSwitch"), NodePath("../../SirenSwitch")])
+address = "10.0.60.1"
+subnet = &"lab_alarm"
+
+[node name="DeviceAccounts" parent="Devices/BayC/Rtr04"]
+accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr04")])
+credentials_id = &"network_lab_rtr04"
+
+[node name="Router" parent="Devices/BayC/Rtr04"]
+subnet_data = Array[ExtResource("24_subnet")]([ExtResource("32_alarm"), ExtResource("33_sirens")])
+side_addresses = Dictionary[StringName, String]({&"lab_sirens": "10.0.70.1"})
+
+[node name="AlarmSwitch" parent="Devices/BayC" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.128, 0.24)
+metadata/display_name = "SW-ALARM"
+
+[node name="Device" parent="Devices/BayC/AlarmSwitch"]
+links = Array[NodePath]([NodePath("../../../AlarmJack"), NodePath("../../../AlarmController"), NodePath("../../../PanicButton")])
+address = "10.0.60.2"
+subnet = &"lab_alarm"
+
+[node name="SirenSwitch" parent="Devices/BayC" instance=ExtResource("10_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0835, 0.24)
+metadata/display_name = "SW-SIRENS"
+
+[node name="Device" parent="Devices/BayC/SirenSwitch"]
+links = Array[NodePath]([NodePath("../../../SirenA"), NodePath("../../../SirenB")])
+address = "10.0.70.2"
+subnet = &"lab_sirens"
 
 [node name="CamEx1" parent="Devices" instance=ExtResource("16_camera")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.4, -32.49)
@@ -587,15 +646,6 @@ metadata/display_name = "ALARM-JACK"
 address = "10.0.60.40"
 subnet = &"lab_alarm"
 
-[node name="AlarmSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -23)
-metadata/display_name = "SW-ALARM"
-
-[node name="Device" parent="Devices/AlarmSwitch"]
-links = Array[NodePath]([NodePath("../../AlarmJack"), NodePath("../../AlarmController"), NodePath("../../PanicButton")])
-address = "10.0.60.2"
-subnet = &"lab_alarm"
-
 [node name="AlarmController" parent="Devices" instance=ExtResource("26_controller")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.75, 1.5, -24.2)
 metadata/display_name = "ALARM-LAB"
@@ -609,32 +659,6 @@ metadata/display_name = "PANIC-LAB"
 
 [node name="Device" parent="Devices/PanicButton"]
 address = "10.0.60.12"
-
-[node name="Rtr04" parent="Devices" instance=ExtResource("12_router")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -27)
-metadata/display_name = "RTR-04"
-
-[node name="Device" parent="Devices/Rtr04"]
-links = Array[NodePath]([NodePath("../../AlarmSwitch"), NodePath("../../SirenSwitch")])
-address = "10.0.60.1"
-subnet = &"lab_alarm"
-
-[node name="DeviceAccounts" parent="Devices/Rtr04"]
-accounts = Array[ExtResource("15_account")]([SubResource("Account_rtr04")])
-credentials_id = &"network_lab_rtr04"
-
-[node name="Router" parent="Devices/Rtr04"]
-subnet_data = Array[ExtResource("24_subnet")]([ExtResource("32_alarm"), ExtResource("33_sirens")])
-side_addresses = Dictionary[StringName, String]({&"lab_sirens": "10.0.70.1"})
-
-[node name="SirenSwitch" parent="Devices" instance=ExtResource("10_switch")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 1.6, -28.2)
-metadata/display_name = "SW-SIRENS"
-
-[node name="Device" parent="Devices/SirenSwitch"]
-links = Array[NodePath]([NodePath("../../SirenA"), NodePath("../../SirenB")])
-address = "10.0.70.2"
-subnet = &"lab_sirens"
 
 [node name="SirenA" parent="Devices" instance=ExtResource("27_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 7.76, 3, -29.6)
@@ -678,6 +702,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.75, 0.86, -20.75)
 
 [node name="Biocell2" parent="Items" instance=ExtResource("19_biocell")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.25, 0.86, -20.75)
+
+[node name="BayKey" parent="Items" instance=ExtResource("19_key")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.807, -20.7)
+
+[node name="ItemPickup" parent="Items/BayKey"]
+state = {
+"key_id": "network_lab_bay_b",
+"key_name": "Bay B key"
+}
+found_text = "Found on the network lab's closet shelf"
 
 [node name="CameraExploit" parent="Items" instance=ExtResource("60_exploit_chip")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.7, 1.007, -32.0)
@@ -772,17 +806,17 @@ PC 1's mail and the photo"
 size = 0
 
 [node name="Rtr01" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 2.3, -15.7)
-pixel_size = 0.003
-text = "RTR-01 · router, Sentry tracer
-between the office and security
-switches: hack it from the deck"
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.95, 1.6, -14.2)
+pixel_size = 0.0025
+text = "Bay A · an open rack
+RTR-01: router, Sentry tracer
+hack it from the deck"
 size = 0
 
 [node name="ClosetSwitch" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 2.3, -17.95)
-pixel_size = 0.003
-text = "Closet switch · breaker cuts it
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 2.15, -17.95)
+pixel_size = 0.0025
+text = "Breaker · cuts SW-CLOSET in bay A:
 camera and door go offline,
 the rest of Security stays up"
 size = 0
@@ -802,16 +836,17 @@ open it from the console"
 size = 0
 
 [node name="Rtr02" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.3, -16.2)
-pixel_size = 0.003
-text = "RTR-02 · router inside Security
-login: the console's files"
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 1.6, -14.15)
+pixel_size = 0.0025
+text = "Bay B · locked: its key is in
+the closet, or pick the lock
+RTR-02 · login: the console's files"
 size = 0
 
 [node name="FileServer" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.15, -12.5)
-pixel_size = 0.003
-text = "File server · behind RTR-02
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.2, -14.15)
+pixel_size = 0.0025
+text = "File server · rack, behind RTR-02
 crack it, open its desktop"
 size = 0
 
@@ -879,10 +914,11 @@ Helix 2.4: too new"
 size = 0
 
 [node name="Rtr03" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 2.1, -32.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.15, 1.3, -32.45)
 pixel_size = 0.0025
-text = "RTR-03 · router
-CCTV to Wi-Fi"
+text = "Bay C · open rack
+RTR-03: CCTV to Wi-Fi
+RTR-04: alarm to sirens"
 size = 0
 
 [node name="Firewall" parent="Labels" instance=ExtResource("3_sign")]

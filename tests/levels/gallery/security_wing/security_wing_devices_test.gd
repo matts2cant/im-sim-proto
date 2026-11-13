@@ -16,7 +16,7 @@ const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/secu
 const NETWORK: Array[String] = [
 	"Devices/Camera",
 	"Devices/Turret",
-	"Devices/Controller",
+	"Devices/Bay/Controller",
 	"Devices/SirenHall",
 	"Devices/SirenCorridor",
 	"Devices/PanicButton",
@@ -126,7 +126,7 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switches()
 	assert_array(_network()).contains_exactly_in_any_order(network)
 	# The controller rings both sirens and dispatches through the base station; the camera and the
 	# panic button report to it.
-	var controller := _device("Devices/Controller")
+	var controller := _device("Devices/Bay/Controller")
 	assert_array(controller.reached(Device.RING)).has_size(2)
 	assert_array(controller.reached(Device.BROADCAST)).has_size(1)
 	assert_array(_device("Devices/Camera").reached(Device.INCIDENT)).contains_exactly([controller])
@@ -142,7 +142,7 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switches()
 
 
 func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
-	var switch_power := Powered.of(_room.get_node("Devices/SecuritySwitch"))
+	var switch_power := Powered.of(_room.get_node("Devices/Bay/SecuritySwitch"))
 	assert_str(String(switch_power.circuit)).is_equal(String(_breaker("BreakerB").circuit))
 
 	_breaker("BreakerB").set_closed(false)
@@ -171,7 +171,7 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 
 
 func test_shooting_the_switch_cuts_the_chain_too() -> void:
-	var switch_entity := _room.get_node("Devices/SecuritySwitch")
+	var switch_entity := _room.get_node("Devices/Bay/SecuritySwitch")
 	# Shot: ballistic damage at the switch (a pistol round is 25), as the weapon path delivers it.
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 200.0, switch_entity, _room))
 	await KitGeometry.settle(get_tree(), 3)

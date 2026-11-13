@@ -105,7 +105,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	{
 		"feet": Vector3(-0.25, 0, 8.1),
 		"look": Vector3(-0.25, 1.45, 9),
-		"computer": "Devices/Controller",
+		"computer": "Devices/Bay/Controller",
 		"disable": ["Turret", "LaserHigh"],
 		"break": ["SirenCorridor"],
 		"wait": 2.5,
@@ -124,7 +124,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(-2.3, 0, 1.0),
 		"look": Vector3(-2.3, 0.5, 0),
 		"deck": "Devices/Jack",
-		"hack": ["Devices/Rtr05"],
+		"hack": ["Devices/Bay/Rtr05"],
 		"wait": 3.0,
 	},
 }
@@ -198,7 +198,7 @@ func _process(delta: float) -> void:
 		deck_screen.graph.fit_view()
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
-		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Controller")))
+		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Bay/Controller")))
 	if _time < float(_shot.get("wait", 2.0)):
 		return
 	var image := get_viewport().get_texture().get_image()
