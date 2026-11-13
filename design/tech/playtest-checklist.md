@@ -672,7 +672,7 @@ Tuning: `ui/hud/hit_marker.tres` (marker times, colours, sizes, tick sounds), `i
 
 ## M13 Interaction frame ([ADR 0129](../decisions/0129-interaction-frame.md))
 
-- [ ] Look at a pickup on a table within reach (inventory bay): four thin white corner brackets hug it and a small boxed name ("Lockpick (3)", the prompt's name with the count) sits just above the small frame; the "E: pick up ..." line under the crosshair is unchanged. Step back out of reach or look away: the frame goes at once.
+- [ ] Look at a pickup on a table within reach (inventory bay): four thin white corner brackets hug it and a small boxed name ("Lockpick (3)", the prompt's name with the count) sits just above the small frame (the "E: pick up ..." line under the crosshair is gone since M13c). Step back out of reach or look away: the frame goes at once.
 - [ ] Walk and turn while looking at a crate: the frame follows it smoothly with no lag or jitter. Carry it: no frame while it is held; put it down: the frame returns.
 - [ ] A door up close: the brackets sit near the screen corners around what you see of the door, the "Door" tag inside the top-left corner, never cut off at the screen edge. A computer, a switch, a datapad and a training dummy are framed with their prompt names.
 - [ ] Knock out a guard and look at the body: the frame fits the lying figure (not the standing height) with "Guard"; the "?" icon over a guard never stretches a frame.
@@ -700,3 +700,14 @@ Plug the deck into the network lab's jack and hack RTR-01.
 - [ ] Each box has its kind's colour strip on its left edge and its icon in the same colour; at the fitted zoom, can you tell switches, routers, cameras and alarm gear apart by the strip alone?
 - [ ] The status square at each box's right matches the device's light in the room: green up, amber blinking when its switch is down, red when disabled or broken, dark when unpowered. Cut a switch's power: do the squares behind it blink, and is the blink calm enough not to distract on a big map?
 - [ ] A selected, disabled (red tint) or out-of-reach (grey) box keeps its strip and icon colours; is the grey "offline" box with an amber square clear enough as "cut off from you"?
+
+## M13c frame status and keys ([ADR 0130](../decisions/0130-device-overhaul.md) step 1b, [ADR 0129](../decisions/0129-interaction-frame.md) amendment)
+
+- [ ] No "E: ..." line under the crosshair anywhere (pickups, doors, crates, computers). Can you still tell what E will do from the frame and its name alone?
+- [ ] Network lab: within 2 m of a switch, a camera or a computer the frame shows with a green "Online" square and word under the name; break or unpower the switch it hangs on: the devices behind it read "Cut off" with a blinking amber square (in step with their LEDs); switch one off from the deck: red "Disabled"; shoot one: red "Broken"; cut the power: grey "No power". Each changes while you look, without looking away.
+- [ ] A lamp within reach (a wall lamp, the perception lab): green "Powered"; trip its breaker: grey "No power". Beyond 2 m nothing is framed (walk back from a switch: the frame goes at 2 m).
+- [ ] A guard within 2 m: awake, the name only; knocked out, a blue-white "Unconscious"; killed, a dim red "Dead". The dead-body frame still fits the lying figure.
+- [ ] Locked doors: the leaf's frame reads "Locked · keycard", "Locked · code", "Locked · lockpick" or "Locked · key or lockpick" (amber). E on it without what opens it shows a short message above the belt ("Locked: needs a keycard" ...); the keypad box still opens its screen with E.
+- [ ] E on a crate too heavy to lift: "Too heavy"; E while carrying with no room to put down: "No room to put down"; E on a dead computer: "No power" or "Broken". Are the messages noticed, and do they stay long enough?
+- [ ] Are the tag's status words readable on bright walls and in dark corners (the "No power" grey and the "Dead" red especially)? Too much text on a crowded screen?
+- [ ] Keys: no level places a key yet (step 3). Debug: give the player a key (`Keychain.add()` from a script, or a key pickup `items/key/key.tscn` with `key_id` / `key_name` state and a `found_text`) and pick it up: "Key added to the keychain: <name>", nothing in the grid or belt, Q drops nothing. The Inventory tab (Tab) lists it at the far right under "KEYCHAIN · 1 KEY" with where it was found, dim. A mechanical lock whose data names that key opens with E; without the key E says "Locked: needs a key or a lockpick" and LMB with a lockpick still picks it.

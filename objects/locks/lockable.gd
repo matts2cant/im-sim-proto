@@ -95,6 +95,17 @@ func grants_passage(actor: Node) -> bool:
 	return false
 
 
+## What opens it for `user`: each lock's locked_reason() in lock order ("keycard", "key or
+## lockpick"), empty ones skipped (LockRules turns them into the frame's line and E's message).
+func reasons(user: Node = null) -> Array[String]:
+	var found: Array[String] = []
+	for each in locks():
+		var reason := each.locked_reason(user)
+		if not reason.is_empty():
+			found.append(reason)
+	return found
+
+
 ## Navigation layers that may plan through it while locked (access ids its locks let through).
 func passage_layers() -> int:
 	var layers := 0

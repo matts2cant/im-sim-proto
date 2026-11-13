@@ -9,6 +9,8 @@ extends Lock
 ## complete_pick() (unlocks it for the user, who wants it open). Success consumes nothing.
 ## A practice lock (`data.practice`) re-locks `practice_relock_delay` s after it opened, with a new
 ## random layout of its tier's pins (PracticeRelock); its layout counter and seed are saved.
+## Keys (ADR 0130): a lock whose `data.key_id` names a key opens with E when that key is on the
+## user's Keychain (use_locked()); its reason is then "key or lockpick", else "lockpick".
 ## EventLog `lock.pick_started {entity}`, `lock.pick_cancelled {entity, reason}`, `lock.picked`,
 ## `lock.pick_broke`, `lock.relocked {entity, layout}`.
 
@@ -93,8 +95,16 @@ func relayout(model: PinTumbler) -> void:
 	model.relock(types(), _seed(), _tolerance(), _practice_tier() != null)
 
 
+## E with its key on the user's keychain unlocks it (EventLog `lock.unlocked`, how `key`) and the
+## user wants it open; without it, it is picked (LMB with a lockpick).
+func use_locked(user: Node) -> bool:
+	if not _has_key(user):
+		return false
+	return unlock_for(user, &"key")
+
+
 func locked_reason(_user: Node) -> String:
-	return "lockpick"
+	return "lockpick" if String(_key_id()).is_empty() else "key or lockpick"
 
 
 func accepts_tool(tool: StringName) -> bool:
@@ -155,6 +165,17 @@ func _practice_tier() -> LockpickTier:
 	if not is_practice():
 		return null
 	return (tuning if tuning != null else DEFAULT_TUNING).tier(data.practice_tier)
+
+
+# The id of the key that opens it (`data.key_id`), &"" when no key exists.
+func _key_id() -> StringName:
+	return data.key_id if data != null else &""
+
+
+# True when `user` carries its key (on a Keychain: ADR 0130). A lock without a key id has none.
+func _has_key(user: Node) -> bool:
+	var keychain := Keychain.of(user)
+	return keychain != null and keychain.has_key(_key_id())
 
 
 func _seed() -> int:

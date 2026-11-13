@@ -5,7 +5,7 @@ content_margin_left = 5.0
 content_margin_top = 1.0
 content_margin_right = 5.0
 content_margin_bottom = 2.0
-bg_color = Color(0, 0, 0, 0.55)
+bg_color = Color(0.03, 0.04, 0.05, 0.72)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -13,7 +13,14 @@ border_width_bottom = 1
 border_color = Color(1, 1, 1, 0.7)
 
 [resource]
-HudTargetTag/base_type = &"Label"
-HudTargetTag/colors/font_color = Color(1, 1, 1, 0.95)
-HudTargetTag/font_sizes/font_size = 13
-HudTargetTag/styles/normal = SubResource("StyleBoxFlat_target_tag")
+HudTargetLines/base_type = &"VBoxContainer"
+HudTargetLines/constants/separation = 0
+HudTargetName/base_type = &"Label"
+HudTargetName/colors/font_color = Color(1, 1, 1, 0.95)
+HudTargetName/font_sizes/font_size = 13
+HudTargetStatus/base_type = &"Label"
+HudTargetStatus/font_sizes/font_size = 11
+HudTargetStatusRow/base_type = &"HBoxContainer"
+HudTargetStatusRow/constants/separation = 5
+HudTargetTag/base_type = &"PanelContainer"
+HudTargetTag/styles/panel = SubResource("StyleBoxFlat_target_tag")

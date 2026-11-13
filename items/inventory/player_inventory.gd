@@ -56,14 +56,25 @@ func setup(p_player: Player) -> void:
 	player.weapons.changed.connect(_sync_magazines)
 
 
-## Adds items (debug Give item, pickups). Returns how many did not fit.
+## Adds items (debug Give item, pickups). Returns how many did not fit. A keychain item (a key)
+## goes onto the holder's Keychain instead (0: taken; `count` when there is no keychain).
 func give(item: ItemData, count: int, state: Dictionary = {}) -> int:
+	if item.keychain:
+		var keychain := Keychain.of(get_parent())
+		if keychain == null:
+			return count
+		var full := item.make_state(state)
+		keychain.add(StringName(str(full.get("key_id", ""))), Keychain.key_name_of(item, full))
+		return 0
 	return inventory.add(item, count, state)
 
 
 ## Puts what fits of `pickup` into the inventory; the rest stays in the world. False (and a
-## "No room in inventory" message) when nothing fits.
+## "No room in inventory" message) when nothing fits. A key goes onto the holder's Keychain
+## ("Key added to the keychain: <name>"), never into the grid.
 func pick_up(pickup: ItemPickup) -> bool:
+	if pickup.item.keychain:
+		return _take_key(pickup)
 	var offered := pickup.count
 	var left := give(pickup.item, offered, pickup.state)
 	var item_name := String(pickup.item.id)
@@ -353,6 +364,18 @@ func _on_stack_removed(stack: ItemStack) -> void:
 	if in_hand() == stack:
 		put_away()
 	_weapon_states.erase(stack)
+
+
+# A key pickup onto the holder's Keychain (EventLog `item.picked_up` like any pickup).
+func _take_key(pickup: ItemPickup) -> bool:
+	var keychain := Keychain.of(get_parent())
+	var key_name := Keychain.key_name_of(pickup.item, pickup.stack_state())
+	var entity_name := String(pickup.entity().name)
+	if keychain == null or not keychain.take(pickup):
+		return false
+	EventLog.record(&"item.picked_up", _who(), entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0})
+	message.emit(Keychain.ADDED % key_name)
+	return true
 
 
 func _tool_stacks(kind: StringName) -> Array[ItemStack]:
