@@ -1,6 +1,6 @@
 class_name CarryRules
 extends RefCounted
-## Pure carry/throw rules for the player (tuning in PlayerConfig "Carry", ADR 0053).
+## Pure carry/throw rules of a Carrier (tuning in CarryConfig, ADR 0053, ADR 0139).
 
 
 ## Objects up to the carry limit (the `carry_mass_limit` attribute) can be picked up.
@@ -9,14 +9,14 @@ static func can_carry(mass: float, limit: float) -> bool:
 
 
 ## Throw speed in m/s: the throw impulse over the mass, capped.
-static func throw_speed(mass: float, config: PlayerConfig) -> float:
+static func throw_speed(mass: float, config: CarryConfig) -> float:
 	if mass <= 0.0:
 		return config.throw_max_speed
 	return minf(config.throw_max_speed, config.throw_impulse / mass)
 
 
 ## Move speed multiplier while carrying `mass` kg (0 = carrying nothing).
-static func speed_factor(mass: float, config: PlayerConfig) -> float:
+static func speed_factor(mass: float, config: CarryConfig) -> float:
 	return config.heavy_carry_speed_factor if mass >= config.heavy_carry_mass else 1.0
 
 
@@ -27,33 +27,34 @@ static func half_extent(aabb: AABB) -> float:
 
 ## Distance from the eye to the held object's centre along the view: the base plus the object's
 ## largest half-extent (small crate 0.6 m -> 0.75 m, cardboard 0.5 m -> 0.7 m).
-static func hold_distance(p_half_extent: float, config: PlayerConfig) -> float:
+static func hold_distance(p_half_extent: float, config: CarryConfig) -> float:
 	return config.hold_base_distance + p_half_extent
 
 
 ## How far below the view line (camera down) the centre sits: `hold_drop` plus the half-extent,
 ## so the object's top edge stays the same angle below the crosshair whatever its size.
-static func hold_drop(p_half_extent: float, config: PlayerConfig) -> float:
+static func hold_drop(p_half_extent: float, config: CarryConfig) -> float:
 	return config.hold_drop + p_half_extent
 
 
 ## Where the held object's centre is shown: along the view from the eyes, then lower on the screen
 ## (camera down, so it stays in the same part of the view at any pitch).
-static func hold_point(eye: Transform3D, p_half_extent: float, config: PlayerConfig) -> Vector3:
+static func hold_point(eye: Transform3D, p_half_extent: float, config: CarryConfig) -> Vector3:
 	return (
 		eye.origin - eye.basis.z * hold_distance(p_half_extent, config) - eye.basis.y * hold_drop(p_half_extent, config)
 	)
 
 
 ## Where a release aims: the hold point, pushed forward (horizontally, along the view) until it is
-## at least capsule radius + half-extent + `hold_clearance` from the eye (the player's axis), so the
-## released object never starts inside the player when looking down. Looking level: the hold point.
-static func release_target(eye: Transform3D, p_half_extent: float, config: PlayerConfig) -> Vector3:
+## at least `body_radius` (the carrier's) + half-extent + `hold_clearance` from the eye (the
+## carrier's axis), so the released object never starts inside the carrier when looking down.
+## Looking level: the hold point.
+static func release_target(eye: Transform3D, p_half_extent: float, body_radius: float, config: CarryConfig) -> Vector3:
 	var point := hold_point(eye, p_half_extent, config)
 	var forward := view_forward(eye.basis)
 	var offset := point - eye.origin
 	var along := offset.dot(forward)
-	var min_along := config.capsule_radius + p_half_extent + config.hold_clearance
+	var min_along := body_radius + p_half_extent + config.hold_clearance
 	return point + forward * maxf(min_along - along, 0.0)
 
 

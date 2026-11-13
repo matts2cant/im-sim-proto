@@ -26,8 +26,6 @@ extends RefCounted
 ## Saved with the mission (to_dict); attributed stimulus ids stay valid across a load because the
 ## quicksave reserves them (StimulusSystem.reserve_ids, QuickSave.STIMULUS_IDS).
 
-## The player character's tag (MissionData.player_tag sets it for a mission).
-const PLAYER_TAG: StringName = &"actor.player"
 const BURNT_OUT: String = "burnt_out"
 const ALERTED: String = "alerted"
 const UNTRACKED_TYPES: Array[String] = ["noise"]
@@ -35,7 +33,8 @@ const UNTRACKED_TYPES: Array[String] = ["noise"]
 const BY: StringName = &"by"
 
 ## Entities with this tag are the player.
-var player_tag: StringName = PLAYER_TAG
+## The player character's tag (MissionData.player_tag sets it for a mission).
+var player_tag: StringName = ActorState.PLAYER
 var kills: int = 0
 var knockouts: int = 0
 var alarms: int = 0
@@ -50,7 +49,7 @@ var _attributed: Dictionary[int, bool] = {}
 var _lit: Dictionary[String, bool] = {}
 
 
-func _init(p_player_tag: StringName = PLAYER_TAG) -> void:
+func _init(p_player_tag: StringName = ActorState.PLAYER) -> void:
 	player_tag = p_player_tag
 
 

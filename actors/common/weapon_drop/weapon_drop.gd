@@ -84,7 +84,7 @@ func _drop(weapon_state: WeaponState, index: int) -> RigidBody3D:
 	pickup.item = item
 	pickup.count = 1
 	if weapon_state.data.uses_ammo():
-		pickup.state = {"magazine": weapon_state.magazine}
+		pickup.state = {ItemStack.MAGAZINE: weapon_state.magazine}
 	var side := _side()
 	entity.get_parent().add_child(body, true)
 	body.global_transform = Transform3D(entity.global_basis, _drop_point(side, index))

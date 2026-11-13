@@ -2,7 +2,9 @@ extends GdUnitTestSuite
 ## Unit: carry eligibility, throw speed, carry speed factor, hold distance and point, release target,
 ## upright yaw snapping, pick-up blend and release fraction (ADR 0053).
 
-const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
+const CONFIG: CarryConfig = preload("res://actors/common/carry/carry.tres")
+## The player's capsule radius (a release clears the carrier's body).
+const RADIUS := 0.35
 const EPS := Vector3.ONE * 0.0001
 
 
@@ -53,12 +55,12 @@ func test_hold_point_is_ahead_along_the_view_and_lower_on_the_screen() -> void:
 func test_release_target_is_clear_of_the_capsule_when_looking_down() -> void:
 	# Level: the hold point (0.75 m ahead >= 0.35 + 0.3 + 0.1).
 	var eye := Transform3D(Basis.IDENTITY, Vector3(0, 1.65, 0))
-	assert_vector(CarryRules.release_target(eye, 0.3, CONFIG)).is_equal_approx(Vector3(0, 1.25, -0.75), EPS)
+	assert_vector(CarryRules.release_target(eye, 0.3, RADIUS, CONFIG)).is_equal_approx(Vector3(0, 1.25, -0.75), EPS)
 
 	# 60 degrees down, facing +X: pushed out to 0.75 m from the axis along the view, height kept.
 	var down := Transform3D(Basis(Vector3.UP, -PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(-60.0)), eye.origin)
 	var hold := CarryRules.hold_point(down, 0.3, CONFIG)
-	var target := CarryRules.release_target(down, 0.3, CONFIG)
+	var target := CarryRules.release_target(down, 0.3, RADIUS, CONFIG)
 	assert_float(hold.x).is_less(0.5)
 	assert_float(target.x).is_equal_approx(0.75, 0.0001)
 	assert_float(target.z).is_equal_approx(0.0, 0.0001)

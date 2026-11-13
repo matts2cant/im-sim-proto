@@ -6,7 +6,7 @@ extends Resource
 
 @export_group("Allegiance")
 ## Entities with any of these tags are watched for and alert on sight; damage from them alerts.
-@export var hostile_tags: Array[StringName] = [&"actor.player"]
+@export var hostile_tags: Array[StringName] = [ActorState.PLAYER]
 ## Entities with any of these tags are ignored: their noise is not investigated.
 @export var ally_tags: Array[StringName] = [&"actor.guard"]
 ## Entities with any of these tags are never seen (Cloak).

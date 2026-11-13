@@ -31,7 +31,7 @@ static func rows(stack: ItemStack, holder: Node) -> Array[PackedStringArray]:
 		_add_skill(result, holder, String(item.tool_kind) + "_", true)
 	if item.stackable():
 		result.append(PackedStringArray(["Count", "%d / %d" % [stack.count, item.max_stack]]))
-	var key := str(stack.state.get("key_id", ""))
+	var key := str(stack.state.get(ItemStack.KEY_ID, ""))
 	if not key.is_empty():
 		result.append(PackedStringArray(["Key", key.capitalize()]))
 	if item.attachment != null:
@@ -116,16 +116,16 @@ static func _weapon_rows(stack: ItemStack, holder: Node, result: Array[PackedStr
 		mult = Attributes.read(holder, StringName(weapon_class + "_damage_mult"), 1.0)
 	if not data.damage.is_empty():
 		result.append(PackedStringArray(["Damage", damage_text(data.damage, mult)]))
-	var inventory := _inventory(holder)
+	var inventory := Inventory.of(holder)
 	var state: WeaponState = inventory.weapon_state(stack) if inventory != null else null
 	if data.uses_ammo():
-		var loaded := state.magazine if state != null else int(stack.state.get("magazine", data.magazine_size))
+		var loaded := state.magazine if state != null else int(stack.state.get(ItemStack.MAGAZINE, data.magazine_size))
 		var size := roundi(state.stat(&"magazine_size")) if state != null else data.magazine_size
 		result.append(PackedStringArray(["Magazine", "%d / %d" % [loaded, size]]))
 		var catalog := _catalog(holder)
 		var ammo_item := catalog.find(data.ammo_item) if catalog != null else null
 		var ammo_name := ammo_item.display_name if ammo_item != null else String(data.ammo_item).capitalize()
-		var carried := inventory.inventory.count_of(data.ammo_item) if inventory != null else 0
+		var carried := inventory.grid.count_of(data.ammo_item) if inventory != null else 0
 		result.append(PackedStringArray(["Ammo", "%s, %d carried" % [ammo_name, carried]]))
 	var noise := state.stat(&"fire_noise") if state != null else data.fire_noise
 	if noise > 0.0:
@@ -161,17 +161,8 @@ static func _add_skill(result: Array[PackedStringArray], holder: Node, attribute
 		result.append(PackedStringArray(["Skill", text]))
 
 
-static func _inventory(holder: Node) -> PlayerInventory:
-	if not is_instance_valid(holder):
-		return null
-	for child in holder.get_children():
-		if child is PlayerInventory:
-			return child as PlayerInventory
-	return null
-
-
 static func _catalog(holder: Node) -> ItemCatalog:
-	var inventory := _inventory(holder)
+	var inventory := Inventory.of(holder)
 	if inventory != null and inventory.catalog != null:
 		return inventory.catalog
 	return ItemCatalog.default()

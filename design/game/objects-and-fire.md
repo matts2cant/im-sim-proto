@@ -105,7 +105,9 @@ flowchart LR
 - From 2.5 m/s, at most every 0.15 s, never while carried: loudness = clamp(speed x sqrt(mass) x 0.8, 2, 30) x material multiplier; `noise` (PATH) of that loudness from the body; the material's impact sound (light < 8 <= medium < 16 <= heavy, volume 10 dB per decade around 10 m); `damage.blunt` CONTACT = 0.5 m v^2 / 40 to the body itself (source: what it hit) and to what it hit. Log `object.impact {object, other, speed, loudness}`.
 - Examples: a small crate dropped 2 m (6.2 m/s) -> 15.8 m and 4.8 damage; a metal crate at the same speed -> 34.7 m; a thrown bottle (12 m/s) breaks on the first wall.
 
-### Carry and throw (player, `actors/player/player_carry.gd`, `carry_rules.gd`)
+### Carry and throw (`Carrier`, `actors/common/carry/carrier.gd`, `carry_rules.gd`)
+
+The `Carrier` is a component any character with `Eyes` can have ([ADR 0139](../decisions/0139-generic-inventory-and-interaction.md)); its tuning is a `CarryConfig` (`actors/common/carry/carry.tres`, the player's) and its controller calls `physics_step()` every tick. The numbers below are the player's; a release clears the carrier's own capsule radius. The EventLog kinds keep their `player.` names whoever carries.
 
 - Look at an object within 2.0 m and press **E** (`use`): picked up if its mass <= the player's `carry_mass_limit` attribute (base 20 kg; Combat Strength adds +50 while on (F5), so the metal and large crates are carried with it). Too heavy: `player.pickup_refused {object, mass, limit}`. If the limit falls below the held mass while carrying (Combat Strength off or out of energy), the object is dropped at a free spot (else at the chest) with the HUD message "Too heavy" (`player.dropped` how `too_heavy`).
 - Held close and low ([ADR 0053](../decisions/0053-ghosted-upright-carry-safe-release.md)): the centre sits 0.45 m + the object's largest half-extent (from its collision shapes) along the view from the eyes and 0.1 m + half-extent lower on the screen (camera down). Small crate: 0.75 m ahead, 0.4 m down; cardboard box 0.7 m, 0.35 m. Its top edge stays about 12 degrees below the crosshair.

@@ -55,7 +55,7 @@ func take(pickup: ItemPickup) -> bool:
 	if pickup == null or pickup.item == null or not pickup.item.keychain or pickup.count <= 0:
 		return false
 	var state := pickup.stack_state()
-	if not add(StringName(str(state.get("key_id", ""))), key_name_of(pickup.item, state), pickup.found_text):
+	if not add(StringName(str(state.get(ItemStack.KEY_ID, ""))), key_name_of(pickup.item, state), pickup.found_text):
 		return false
 	pickup.consume()
 	return true
@@ -63,7 +63,7 @@ func take(pickup: ItemPickup) -> bool:
 
 ## The name of a key with stack `state`: its `key_name`, else the item's name.
 static func key_name_of(item: ItemData, state: Dictionary) -> String:
-	var shown := str(state.get("key_name", ""))
+	var shown := str(state.get(ItemStack.KEY_NAME, ""))
 	return shown if not shown.is_empty() else item.display_name
 
 

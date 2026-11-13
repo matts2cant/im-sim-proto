@@ -1,7 +1,10 @@
-class_name PlayerCarry
+class_name Carrier
 extends Node
-## Component of the Player: picks up, carries, puts down, drops and throws physics bodies that have
-## an offered Carryable (ADR 0053): props, and downed characters (ADR 0071). The held body is a
+## Component of any character (ADR 0139; the player's is `Carry`): picks up, carries, puts down,
+## drops and throws physics bodies that have an offered Carryable (ADR 0053): props, and downed
+## characters (ADR 0071). It needs the carrier's Eyes (the view it holds things in front of) and its
+## `carry_mass_limit` attribute; the carrier's controller calls physics_step() every physics tick
+## (the player after its actions) and decides when to pick up or let go. The held body is a
 ## ghost: collision layer and mask 0 (nothing hits it, it hits nothing; its hitboxes too), held
 ## still (a RigidBody3D frozen kinematic; any other body, e.g. a character, has its physics
 ## processing paused and its velocity zeroed, so its controller neither moves nor drops it) and
@@ -9,14 +12,14 @@ extends Node
 ## (CarryRules.hold_point), upright and turned to the nearest 90 degrees of the view; its meshes are
 ## see-through. It still burns, hurts its carrier when burning and receives stimuli (they reach
 ## receivers by distance, not by collision). Every release looks for a free spot first: the shape is
-## cast from the chest towards the hold point (pushed clear of the capsule) and placed short of the
-## first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No room")
-## when that spot overlaps anything.
-## The mass limit is the player's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on);
+## cast from the chest towards the hold point (pushed clear of the carrier's body) and placed short
+## of the first contact; put down, drop and throw are refused (`player.release_refused`, HUD "No
+## room") when that spot overlaps anything (the EventLog kinds keep their `player.` names).
+## The mass limit is the carrier's `carry_mass_limit` attribute (Combat Strength adds 50 kg while on);
 ## the mass is Carryable.mass_of() (a character's `carry_mass`). A Carryable's carry_speed_factor
-## slows the player on top of the heavy-load factor.
+## slows the carrier on top of the heavy-load factor (speed_factor(), read by its controller).
 ## When the limit falls below the held mass (Combat Strength switched off or out of energy), the
-## object is dropped at once (`player.dropped` how `too_heavy`) with the HUD message "Too heavy".
+## object is dropped at once (`player.dropped` how `too_heavy`) with the notice "Too heavy".
 ## Not saved: loading a save drops what is held where it is (a carried character is saved where it
 ## is held and falls to the floor on load).
 
@@ -27,11 +30,17 @@ signal release_refused(body: PhysicsBody3D, how: StringName)
 
 const LIMIT_ATTRIBUTE: StringName = &"carry_mass_limit"
 const TOO_HEAVY := "Too heavy"
-## What a released object must be clear of besides the player (world, objects, actors).
+## What a released object must be clear of besides the carrier (world, objects, actors).
 const RELEASE_MASK: int = PhysicsLayers.WORLD | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS | PhysicsLayers.DOWNED
+const DEFAULT_CONFIG: CarryConfig = preload("res://actors/common/carry/carry.tres")
+## Body radius assumed for a carrier without a capsule or cylinder collision shape (m).
+const DEFAULT_BODY_RADIUS: float = 0.35
 
-var player: Player
-var config: PlayerConfig
+@export var config: CarryConfig = DEFAULT_CONFIG
+@export var entity_path: NodePath = ^".."
+
+## The carrier (`entity_path`).
+var entity: Node3D
 ## The body being carried, or null.
 var held: PhysicsBody3D = null
 
@@ -52,6 +61,22 @@ var _velocity: Vector3 = Vector3.ZERO
 var _room: bool = true
 
 
+func _ready() -> void:
+	entity = get_node_or_null(entity_path) as Node3D
+	if config == null:
+		config = DEFAULT_CONFIG
+
+
+## The Carrier component of `node`, or null.
+static func of(node: Node) -> Carrier:
+	if node == null or not is_instance_valid(node):
+		return null
+	for child in node.get_children():
+		if child is Carrier:
+			return child as Carrier
+	return null
+
+
 func is_carrying() -> bool:
 	return is_instance_valid(held)
 
@@ -61,7 +86,7 @@ func held_mass() -> float:
 
 
 func mass_limit() -> float:
-	var attributes := player.get_node_or_null(^"Attributes") as Attributes
+	var attributes := Attributes.of(entity)
 	return attributes.value(LIMIT_ATTRIBUTE) if attributes != null else 0.0
 
 
@@ -87,7 +112,7 @@ func use() -> void:
 ## Picks up the Carryable body under the crosshair within reach; false when there is none or it is
 ## too heavy (logged as `player.pickup_refused`).
 func try_pick_up() -> bool:
-	var hit := player.look_hit(config.carry_reach)
+	var hit := _look_hit(config.carry_reach)
 	if hit.is_empty():
 		return false
 	var body := Interactor.entity_of(hit["collider"] as Node) as PhysicsBody3D
@@ -108,7 +133,7 @@ func try_pick_up_body(body: PhysicsBody3D) -> bool:
 	var mass := Carryable.mass_of(body)
 	if not CarryRules.can_carry(mass, limit):
 		var data := {"object": String(body.name), "mass": mass, "limit": limit}
-		EventLog.record(EventKinds.PLAYER_PICKUP_REFUSED, String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_PICKUP_REFUSED, String(entity.name), String(body.name), data)
 		return false
 	pick_up(body)
 	return true
@@ -121,7 +146,7 @@ func pick_up(body: PhysicsBody3D) -> void:
 	var bounds := shapes_aabb(body)
 	_half_extent = CarryRules.half_extent(bounds)
 	_center = bounds.get_center()
-	var view_yaw := CarryRules.view_yaw(player.eye_transform().basis)
+	var view_yaw := CarryRules.view_yaw(_eye().basis)
 	_yaw_offset = CarryRules.snapped_yaw_offset(CarryRules.upright_yaw(body.global_basis), view_yaw)
 	_start = body.global_transform.orthonormalized()
 	_elapsed = 0.0
@@ -132,8 +157,8 @@ func pick_up(body: PhysicsBody3D) -> void:
 	_fade(body)
 	var carryable := Carryable.of(body)
 	if carryable != null:
-		carryable.set_carrier(player)
-	EventLog.record(EventKinds.PLAYER_PICKED_UP, String(player.name), String(body.name), {"object": String(body.name)})
+		carryable.set_carrier(entity)
+	EventLog.record(EventKinds.PLAYER_PICKED_UP, String(entity.name), String(body.name), {"object": String(body.name)})
 	picked_up.emit(body)
 
 
@@ -160,11 +185,11 @@ func throw() -> bool:
 		return false
 	var body := held
 	var speed := CarryRules.throw_speed(Carryable.mass_of(body), config)
-	var direction := -player.eye_transform().basis.z
+	var direction := -_eye().basis.z
 	if not _try_release(&"throw", direction * speed):
 		return false
 	var data := {"object": String(body.name), "speed": speed}
-	EventLog.record(EventKinds.PLAYER_THREW, String(player.name), String(body.name), data)
+	EventLog.record(EventKinds.PLAYER_THREW, String(entity.name), String(body.name), data)
 	return true
 
 
@@ -179,7 +204,7 @@ func physics_step() -> void:
 		return
 	if not CarryRules.can_carry(held_mass(), mass_limit()):
 		drop(&"too_heavy")
-		Notices.send(player, TOO_HEAVY)
+		Notices.send(entity, TOO_HEAVY)
 		return
 	var delta := get_physics_process_delta_time()
 	var before := held.global_position
@@ -193,17 +218,19 @@ func physics_step() -> void:
 ## no free spot. The shape travels from the chest to the release target in two legs (out then
 ## down, or up then out: CarryRules.release_corner), each cast against world, objects and actors
 ## and stopped `release_margin` short of the first contact; the result must overlap nothing, the
-## player included.
+## carrier included.
 func release_spot() -> Dictionary:
 	var shapes := _shapes(held)
 	var basis := _target_transform().basis
 	# Origins of the body that put the middle of its shapes on the chest and on the target.
 	var offset := basis * _center
 	var start := _chest() - offset
-	var target := CarryRules.release_target(player.eye_transform(), _half_extent, config) - offset
+	var target := CarryRules.release_target(_eye(), _half_extent, body_radius(), config) - offset
 	var corner := CarryRules.release_corner(start, target)
-	var space := player.get_world_3d().direct_space_state
-	var ignore: Array[RID] = [held.get_rid(), player.get_rid()]
+	var space := entity.get_world_3d().direct_space_state
+	var ignore: Array[RID] = [held.get_rid()]
+	if entity is CollisionObject3D:
+		ignore.append((entity as CollisionObject3D).get_rid())
 	for shape in shapes:
 		# A cast that starts inside something ignores it (Jolt): check the start first.
 		if not space.intersect_shape(_query(shape, Transform3D(basis, start), RELEASE_MASK, ignore), 1).is_empty():
@@ -220,6 +247,16 @@ func release_spot() -> Dictionary:
 
 
 ## Local-space AABB of a body's collision shapes (a 0.5 m cube when it has none).
+## The carrier's body radius: its first capsule or cylinder collision shape's (a release clears it).
+func body_radius() -> float:
+	for shape in _shapes(entity as CollisionObject3D):
+		if shape.shape is CapsuleShape3D:
+			return (shape.shape as CapsuleShape3D).radius
+		if shape.shape is CylinderShape3D:
+			return (shape.shape as CylinderShape3D).radius
+	return DEFAULT_BODY_RADIUS
+
+
 static func shapes_aabb(body: CollisionObject3D) -> AABB:
 	var shapes := _shapes(body)
 	if shapes.is_empty():
@@ -239,7 +276,7 @@ func _try_release(how: StringName, velocity: Vector3) -> bool:
 		_room = false
 		var body := held
 		var data := {"object": String(body.name), "how": how, "reason": &"no_room"}
-		EventLog.record(EventKinds.PLAYER_RELEASE_REFUSED, String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_RELEASE_REFUSED, String(entity.name), String(body.name), data)
 		release_refused.emit(body, how)
 		return false
 	_let_go(how, spot["transform"], velocity)
@@ -269,13 +306,13 @@ func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
 		carryable.set_carrier(null)
 	if how != &"throw":
 		var data := {"object": String(body.name), "how": how}
-		EventLog.record(EventKinds.PLAYER_DROPPED, String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_DROPPED, String(entity.name), String(body.name), data)
 	released.emit(body, how)
 
 
 # Hold point (the middle of the shapes there), upright at the view's yaw plus the snapped offset.
 func _target_transform() -> Transform3D:
-	var eye := player.eye_transform()
+	var eye := _eye()
 	var basis := CarryRules.held_basis(CarryRules.view_yaw(eye.basis), _yaw_offset)
 	return Transform3D(basis, CarryRules.hold_point(eye, _half_extent, config) - basis * _center)
 
@@ -345,10 +382,10 @@ func _hold_transform() -> Transform3D:
 	return Transform3D(Basis(rotation), _start.origin.lerp(target.origin, weight))
 
 
-# Release cast start: on the player's axis, `release_start_drop` below the eyes.
+# Release cast start: on the carrier's axis, `release_start_drop` below the eyes.
 func _chest() -> Vector3:
-	var feet := player.global_position
-	return Vector3(feet.x, player.eye_transform().origin.y - config.release_start_drop, feet.z)
+	var feet := entity.global_position
+	return Vector3(feet.x, _eye().origin.y - config.release_start_drop, feet.z)
 
 
 func _fade(body: PhysicsBody3D) -> void:
@@ -382,7 +419,7 @@ static func _in_fire_fx(node: Node, body: Node) -> bool:
 func _travel(shapes: Array[CollisionShape3D], from: Transform3D, motion: Vector3, ignore: Array[RID]) -> float:
 	if motion.length() < 0.0001:
 		return 0.0
-	var space := player.get_world_3d().direct_space_state
+	var space := entity.get_world_3d().direct_space_state
 	var safe := 1.0
 	for shape in shapes:
 		var query := _query(shape, from, RELEASE_MASK, ignore)
@@ -393,6 +430,8 @@ func _travel(shapes: Array[CollisionShape3D], from: Transform3D, motion: Vector3
 
 static func _shapes(body: CollisionObject3D) -> Array[CollisionShape3D]:
 	var shapes: Array[CollisionShape3D] = []
+	if body == null:
+		return shapes
 	for child in body.get_children():
 		var shape := child as CollisionShape3D
 		if shape != null and shape.shape != null and not shape.disabled:
@@ -409,3 +448,23 @@ static func _query(
 	query.collision_mask = mask
 	query.exclude = ignore
 	return query
+
+
+# The view (Eyes) the held object is placed in front of.
+func _eye() -> Transform3D:
+	return Eyes.view_of(entity)
+
+
+# First thing the view ray hits within `length` m (world, actors, objects), ignoring the carrier and
+# what it holds; empty when nothing. Same keys as intersect_ray().
+func _look_hit(length: float) -> Dictionary:
+	var eye := _eye()
+	var exclude: Array[RID] = []
+	if entity is CollisionObject3D:
+		exclude.append((entity as CollisionObject3D).get_rid())
+	if is_carrying():
+		exclude.append(held.get_rid())
+	var query := PhysicsRayQueryParameters3D.create(
+		eye.origin, eye.origin - eye.basis.z * length, PhysicsLayers.LOOK_MASK, exclude
+	)
+	return entity.get_world_3d().direct_space_state.intersect_ray(query)

@@ -1,99 +1,42 @@
 class_name PlayerInventory
-extends Node
-## Component of the Player: the grid Inventory, the Belt over it and the item in hand (a weapon
-## drawn through the WeaponHolder, or any other item: tool, medkit, keycard...). Selecting a belt
-## slot (number key, mouse wheel) only puts its item in hand; LMB uses it (ADR 0059). Picks up
-## ItemPickups, uses items (equip, message, or consume: the item's `use_stimuli` sent to the
-## player as CONTACT stimuli, ADR 0057), drops
-## stacks back into the world as physics pickups. Each weapon stack gets its own WeaponState whose
-## magazine is mirrored into the stack's `magazine` state and whose spare rounds
-## are the inventory's ammo stacks (InventoryAmmo). Attachment items are fitted to compatible weapon
-## stacks (attach(): the attachment is used up, the weapon's state records it, its WeaponState applies
-## it; ADR 0085). A thrown weapon (grenade) is one item of its stack: each throw takes one (ADR 0131).
-## Saved through the Player (ADR 0050).
-## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`,
-## `item.attached`.
+extends Inventory
+## The player's layer over its Inventory (ADR 0139): the Belt over the grid and the item in hand (a
+## weapon drawn through the WeaponHolder, or any other item: tool, medkit, keycard...). Selecting a
+## belt slot (number key, mouse wheel) only puts its item in hand; LMB uses it (ADR 0059). Uses items
+## (equip, message, or consume: the item's `use_stimuli` sent to the holder as CONTACT stimuli, ADR
+## 0057) and drops stacks back into the world as physics pickups in front of the holder's Eyes. A
+## thrown weapon (grenade) is one item of its stack: each throw takes one (ADR 0131). Everything
+## about carrying items (stacks, pickups, weapon states, attachments) is the Inventory's; this layer
+## needs only the holder's WeaponHolder (setup()) and Eyes. Saved through the Player (ADR 0050).
+## EventLog (besides Inventory's): `item.dropped`, `item.used`, `item.use_refused`.
 
-## Short feedback for its own pages ("No room in inventory", "Nothing happens"); the same text
-## goes to the holder's Notices (the HUD).
-signal message(text: String)
 ## The hand changed (an item put in hand, swapped or put away).
 signal hand_changed
 
-const NO_ROOM := "No room in inventory"
-
-@export var config: InventoryConfig
-@export var catalog: ItemCatalog
-
-var inventory: Inventory
 var belt: Belt
-var player: Player
 ## The non-weapon stack in hand (tool, consumable, keycard...), or null.
 var held: ItemStack = null
+## Draws and holsters the weapon stacks put in hand (setup()); null: weapons are never drawn.
+var weapons: WeaponHolder
+## The grid (the name from before the Inventory component, ADR 0139; new code uses `grid` or the
+## Inventory queries).
+var inventory: InventoryGrid:
+	get:
+		return grid
 
-var _weapon_states: Dictionary[ItemStack, WeaponState] = {}
 var _weapon_stack: ItemStack = null
 
 
-func _ready() -> void:
-	inventory = Inventory.new(config.grid_size)
-	belt = Belt.new(inventory, config.belt_slots)
-	inventory.stack_added.connect(_on_stack_added)
-	inventory.stack_removed.connect(_on_stack_removed)
-
-
-## The PlayerInventory child of `node`, or null.
+## The PlayerInventory of `node`, or null.
 static func of(node: Node) -> PlayerInventory:
-	if node == null or not is_instance_valid(node):
-		return null
-	for child in node.get_children():
-		if child is PlayerInventory:
-			return child as PlayerInventory
-	return null
+	return Inventory.of(node) as PlayerInventory
 
 
-## Called by the Player once its WeaponHolder is wired.
-func setup(p_player: Player) -> void:
-	player = p_player
-	player.weapons.changed.connect(_sync_magazines)
-	player.weapons.fired.connect(_on_weapon_fired)
-
-
-## Adds items (debug Give item, pickups). Returns how many did not fit. A keychain item (a key)
-## goes onto the holder's Keychain instead (0: taken; `count` when there is no keychain).
-func give(item: ItemData, count: int, state: Dictionary = {}) -> int:
-	if item.keychain:
-		var keychain := Keychain.of(get_parent())
-		if keychain == null:
-			return count
-		var full := item.make_state(state)
-		keychain.add(StringName(str(full.get("key_id", ""))), Keychain.key_name_of(item, full))
-		return 0
-	return inventory.add(item, count, state)
-
-
-## Puts what fits of `pickup` into the inventory; the rest stays in the world. False (and a
-## "No room in inventory" message) when nothing fits. A key goes onto the holder's Keychain
-## ("Key added to the keychain: <name>"), never into the grid.
-func pick_up(pickup: ItemPickup) -> bool:
-	if pickup.item.keychain:
-		return _take_key(pickup)
-	var offered := pickup.count
-	var left := give(pickup.item, offered, pickup.state)
-	var item_name := String(pickup.item.id)
-	if left >= offered:
-		var refused := {"item": item_name, "count": offered, "reason": "no_room"}
-		EventLog.record(EventKinds.ITEM_PICKUP_REFUSED, _who(), String(pickup.entity().name), refused)
-		_say(NO_ROOM)
-		return false
-	var data := {"item": item_name, "count": offered - left, "left": left}
-	EventLog.record(EventKinds.ITEM_PICKED_UP, player, String(pickup.entity().name), data)
-	if left > 0:
-		pickup.count = left
-		_say("%s (%d left behind)" % [NO_ROOM, left])
-	else:
-		pickup.consume()
-	return true
+## Called by the holder once its WeaponHolder is wired.
+func setup(holder: WeaponHolder) -> void:
+	weapons = holder
+	weapons.changed.connect(_sync_magazines)
+	weapons.fired.connect(_on_weapon_fired)
 
 
 ## Belt key `index` (0 = key 1): puts the slot's item in hand, or puts it away when it already
@@ -120,16 +63,17 @@ func cycle(step: int) -> void:
 
 ## Puts `stack` in hand (a weapon is drawn, anything else is held), putting away what was there.
 func hold(stack: ItemStack) -> void:
-	if stack == null or not inventory.stacks.has(stack) or in_hand() == stack:
+	if stack == null or not has(stack) or in_hand() == stack:
 		return
 	if stack.item.is_weapon():
 		held = null
 		_weapon_stack = stack
-		player.weapons.equip_state(weapon_state(stack))
+		if weapons != null:
+			weapons.equip_state(weapon_state(stack))
 	else:
 		if _weapon_stack != null:
 			_weapon_stack = null
-			player.weapons.holster()
+			_holster()
 		held = stack
 	belt.select(belt.slot_of(stack))
 	_log_used(stack, "equip")
@@ -148,16 +92,16 @@ func use_held() -> bool:
 
 
 ## Uses `stack` (the Inventory tab's Use, LMB on a held item): weapon / tool toggles in hand, a
-## consumable (medkit) sends its stimuli to the player, others show their message. Returns true when
+## consumable (medkit) sends its stimuli to the holder, others show their message. Returns true when
 ## something happened. With `part`, a consumable is used on that body part (the Health tab's "Use a
-## medkit on the <part>"): its stimuli touch the part's hitbox instead of the whole player, so a
+## medkit on the <part>"): its stimuli touch the part's hitbox instead of the whole holder, so a
 ## `heal` heals that part only (HealEffect, ADR 0111); refused the same way (kept,
 ## `refused_message`) when it would do nothing there; false for other items or without that hitbox.
 func use_stack(stack: ItemStack, part: StringName = &"") -> bool:
-	if stack == null or not inventory.stacks.has(stack):
+	if not has(stack):
 		return false
 	if not part.is_empty():
-		var hitboxes := Hitboxes.of(player)
+		var hitboxes := Hitboxes.of(entity)
 		var box := hitboxes.box(part) if hitboxes != null else null
 		if box == null or not stack.item.is_consumable():
 			return false
@@ -182,12 +126,12 @@ func held_tool() -> StringName:
 ## One tool of kind `kind` is used up (a lockpick broke, ADR 0107): taken from the stack in hand
 ## first; while any is left one stays in hand. Returns how many are left.
 func use_up_tool(kind: StringName) -> int:
-	var stacks := _tool_stacks(kind)
-	if stacks.is_empty():
+	var tools := _tool_stacks(kind)
+	if tools.is_empty():
 		return 0
-	var stack: ItemStack = held if stacks.has(held) else stacks[0]
+	var stack: ItemStack = held if tools.has(held) else tools[0]
 	var was_held := stack == held
-	inventory.remove(stack, 1)
+	grid.remove(stack, 1)
 	_log_used(stack, "used_up")
 	var left := 0
 	for each in _tool_stacks(kind):
@@ -207,7 +151,7 @@ func put_away() -> void:
 	var had := in_hand() != null
 	if _weapon_stack != null:
 		_weapon_stack = null
-		player.weapons.holster()
+		_holster()
 	held = null
 	belt.select(-1)
 	if had:
@@ -224,97 +168,65 @@ func drop_in_hand() -> bool:
 
 ## Drops `count` of `stack` (all of it when < 0) as its world pickup, 0.8 m ahead at chest height
 ## with a small forward toss (pulled back if a wall is closer). Returns the pickup's body.
-func drop_stack(stack: ItemStack, count: int = -1) -> RigidBody3D:
-	if not inventory.stacks.has(stack) or stack.item.world_scene.is_empty():
+func drop_stack(stack: ItemStack, amount: int = -1) -> RigidBody3D:
+	var holder := entity as Node3D
+	if not has(stack) or stack.item.world_scene.is_empty() or holder == null:
 		return null
 	_sync_magazines()
-	var amount := stack.count if count < 0 else clampi(count, 1, stack.count)
+	var dropped := stack.count if amount < 0 else clampi(amount, 1, stack.count)
 	var body := (load(stack.item.world_scene) as PackedScene).instantiate() as RigidBody3D
 	var pickup := ItemPickup.of(body)
 	pickup.item = stack.item
-	pickup.count = amount
+	pickup.count = dropped
 	pickup.state = stack.state.duplicate(true)
 	var forward := _flat_forward()
 	var spawn := _drop_point(forward)
-	player.get_parent().add_child(body, true)
-	body.global_transform = Transform3D(player.global_basis, spawn)
+	holder.get_parent().add_child(body, true)
+	body.global_transform = Transform3D(holder.global_basis, spawn)
 	body.linear_velocity = forward * config.drop_speed
 	# Dropping the whole stack in hand puts it away (_on_stack_removed).
-	inventory.remove(stack, amount)
-	var data := {"item": String(stack.item.id), "count": amount}
+	grid.remove(stack, dropped)
+	var data := {"item": String(stack.item.id), "count": dropped}
 	EventLog.record(EventKinds.ITEM_DROPPED, _who(), String(body.name), data)
 	return body
 
 
-## The WeaponState of a weapon stack (made on first use from its `magazine` state, with the
-## attachments its state records fitted).
-func weapon_state(stack: ItemStack) -> WeaponState:
-	if not _weapon_states.has(stack):
-		var data := stack.item.weapon
-		var ammo: AmmoPool = InventoryAmmo.new(inventory, data.ammo_item) if data.uses_ammo() else AmmoPool.new()
-		var weapon_state := WeaponState.new(data, ammo)
-		weapon_state.magazine = int(stack.state.get("magazine", data.magazine_size))
-		for attachment in Attachments.fitted(stack.state, catalog):
-			weapon_state.attach(attachment)
-		_weapon_states[stack] = weapon_state
-	return _weapon_states[stack]
-
-
-## True when the attachment item of `attachment` can be fitted to the weapon stack `weapon_stack`
-## (its slot accepted and free; ADR 0085).
-func can_attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
-	if attachment == null or weapon_stack == null or attachment == weapon_stack:
-		return false
-	if not inventory.stacks.has(attachment) or not inventory.stacks.has(weapon_stack):
-		return false
-	return Attachments.can_attach(weapon_stack.item, weapon_stack.state, attachment.item)
-
-
-## The weapon stacks `attachment` can be fitted to (the Inventory tab highlights them).
-func attach_targets(attachment: ItemStack) -> Array[ItemStack]:
-	var result: Array[ItemStack] = []
-	for stack in inventory.stacks:
-		if can_attach(attachment, stack):
-			result.append(stack)
-	return result
-
-
-## Fits one of `attachment` to `weapon_stack` for good: the weapon's state records it (kept when
-## dropped, saved), its WeaponState applies its modifiers and one attachment is used up. False (and
-## nothing changes) when it does not fit.
-func attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
-	if not can_attach(attachment, weapon_stack):
-		return false
-	var item := attachment.item
-	Attachments.attach(weapon_stack.state, item)
-	if _weapon_states.has(weapon_stack):
-		_weapon_states[weapon_stack].attach(item.attachment)
-	inventory.remove(attachment, 1)
-	inventory.changed.emit()
-	var data := {"item": String(item.id), "weapon": String(weapon_stack.item.id)}
-	EventLog.record(EventKinds.ITEM_ATTACHED, _who(), "", data)
-	_say("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
-	return true
-
-
 func save_state() -> Dictionary:
-	_sync_magazines()
-	return {
-		"inventory": inventory.to_dict(),
-		"belt": belt.to_dict(),
-		"in_hand": inventory.index_of(in_hand()),
-	}
+	var data := super()
+	data["belt"] = belt.to_dict()
+	data["in_hand"] = grid.index_of(in_hand())
+	return data
 
 
 func load_state(data: Dictionary) -> void:
 	put_away()
-	_weapon_states.clear()
-	inventory.from_dict(data.get("inventory", {}), catalog)
+	super(data)
 	belt.from_dict(data.get("belt", {}))
 	var index := int(data.get("in_hand", -1))
 	belt.select(-1)
-	if index >= 0 and index < inventory.stacks.size():
-		hold(inventory.stacks[index])
+	if index >= 0 and index < grid.stacks.size():
+		hold(grid.stacks[index])
+
+
+func _grid_made() -> void:
+	belt = Belt.new(grid, config.belt_slots if config != null else 10)
+
+
+func _on_stack_added(stack: ItemStack) -> void:
+	if stack.item.auto_belt:
+		belt.auto_assign(stack)
+	super(stack)
+
+
+func _on_stack_removed(stack: ItemStack) -> void:
+	if in_hand() == stack:
+		put_away()
+	super(stack)
+
+
+func _holster() -> void:
+	if weapons != null:
+		weapons.holster()
 
 
 # Inventory screen Equip / Put away of a weapon or tool.
@@ -325,15 +237,15 @@ func _toggle(stack: ItemStack) -> void:
 		hold(stack)
 
 
-# Consumable: its stimuli go to the player (CONTACT, delivered at once, also while the Tab interface
+# Consumable: its stimuli go to the holder (CONTACT, delivered at once, also while the Tab interface
 # is open over the running world), or to `target` inside it (a body part's hitbox), and one is used
 # up. Refused (kept) when none of them would do anything (a medkit when unhurt).
 func _consume(stack: ItemStack, target: Node = null) -> bool:
-	var touched: Node = target if target != null else player
+	var touched: Node = target if target != null else entity
 	var stimuli: Array[Stimulus] = []
 	var affects := false
 	for type: StringName in stack.item.use_stimuli:
-		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], touched, player)
+		var stimulus := Stimulus.make_contact(type, stack.item.use_stimuli[type], touched, entity)
 		stimulus.scale_attribute = stack.item.use_scale_attribute
 		stimuli.append(stimulus)
 		affects = affects or StimulusSystem.would_affect(stimulus)
@@ -344,17 +256,12 @@ func _consume(stack: ItemStack, target: Node = null) -> bool:
 		return false
 	for stimulus in stimuli:
 		StimulusSystem.emit_now(stimulus)
-	inventory.remove(stack, 1)
+	grid.remove(stack, 1)
 	var extra := {"stimuli": stack.item.use_stimuli.keys()}
 	if target != null:
 		extra["part"] = String(Hitboxes.part_of(target))
 	_log_used(stack, "consume", extra)
 	return true
-
-
-func _sync_magazines() -> void:
-	for stack: ItemStack in _weapon_states:
-		stack.state["magazine"] = _weapon_states[stack].magazine
 
 
 # A thrown weapon (a grenade, ADR 0131) left the hand: one is taken from the stack drawn; while any
@@ -364,65 +271,43 @@ func _on_weapon_fired(weapon: WeaponData) -> void:
 		return
 	var stack := _weapon_stack
 	var item := stack.item
-	inventory.remove(stack, 1)
+	grid.remove(stack, 1)
 	_log_used(stack, "thrown")
 	if in_hand() != null:
 		return
-	for other in inventory.stacks:
+	for other in grid.stacks:
 		if other.item == item:
 			hold(other)
 			return
 
 
-func _on_stack_added(stack: ItemStack) -> void:
-	if stack.item.auto_belt:
-		belt.auto_assign(stack)
-
-
-func _on_stack_removed(stack: ItemStack) -> void:
-	if in_hand() == stack:
-		put_away()
-	_weapon_states.erase(stack)
-
-
-# A key pickup onto the holder's Keychain (EventLog `item.picked_up` like any pickup).
-func _take_key(pickup: ItemPickup) -> bool:
-	var keychain := Keychain.of(get_parent())
-	var key_name := Keychain.key_name_of(pickup.item, pickup.stack_state())
-	var entity_name := String(pickup.entity().name)
-	if keychain == null or not keychain.take(pickup):
-		return false
-	EventLog.record(
-		EventKinds.ITEM_PICKED_UP, player, entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0}
-	)
-	_say(Keychain.ADDED % key_name)
-	return true
-
-
 func _tool_stacks(kind: StringName) -> Array[ItemStack]:
 	var out: Array[ItemStack] = []
-	for stack in inventory.stacks:
+	for stack in grid.stacks:
 		if stack.item.is_tool_of(kind):
 			out.append(stack)
 	return out
 
 
 func _flat_forward() -> Vector3:
-	var forward := -player.eye_transform().basis.z
+	var forward := -Eyes.view_of(entity).basis.z
 	forward.y = 0.0
 	if forward.length_squared() < 0.0001:
-		forward = -player.global_basis.z
+		forward = -(entity as Node3D).global_basis.z
 	return forward.normalized()
 
 
 # 0.8 m ahead at chest height, unless a wall or object is closer along the way from the eyes.
 func _drop_point(forward: Vector3) -> Vector3:
-	var target := player.global_position + Vector3.UP * config.drop_height + forward * config.drop_distance
-	var eye := player.eye_transform().origin
-	var exclude: Array[RID] = [player.get_rid()]
+	var holder := entity as Node3D
+	var target := holder.global_position + Vector3.UP * config.drop_height + forward * config.drop_distance
+	var eye := Eyes.view_of(entity).origin
+	var exclude: Array[RID] = []
+	if holder is CollisionObject3D:
+		exclude.append((holder as CollisionObject3D).get_rid())
 	var mask := PhysicsLayers.WORLD | PhysicsLayers.OBJECTS
 	var query := PhysicsRayQueryParameters3D.create(eye, target, mask, exclude)
-	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
+	var hit := holder.get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return target
 	var point: Vector3 = hit["position"]
@@ -433,13 +318,3 @@ func _log_used(stack: ItemStack, action: String, extra: Dictionary = {}) -> void
 	var data := {"item": String(stack.item.id), "action": action}
 	data.merge(extra)
 	EventLog.record(EventKinds.ITEM_USED, _who(), "", data)
-
-
-func _who() -> String:
-	return String(player.name) if is_instance_valid(player) else ""
-
-
-# Feedback: its pages' `message` and the holder's Notices (the HUD).
-func _say(text: String) -> void:
-	message.emit(text)
-	Notices.send(player, text)

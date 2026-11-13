@@ -82,6 +82,13 @@ The deck's screen is a host (`deck_screen.gd`: raise/lower, input, a registry of
 - What a collider is made of is `Surface.of(collider, normal)` (`objects/materials/surface.gd`): static geometry's `wall_surface` / `surface` metadata, else the entity's `material.*` tag. Footsteps (`SurfaceTable`) and bullet impacts (`ShotFxConfig`) read it; nothing else reads the metadata or the material tags for a surface (ADR 0138).
 - Gameplay tuning shared by every instance of a component sits in a `*Config` `.tres` the scenes reference (`config`), with the component's `DEFAULT_CONFIG` as the fallback for instances built in code; a level that needs another value gives that instance its own config (the warehouse's AP-YARD). Per-instance placement and identity (a light offset, a breaker's circuit, a Wi-Fi key) stay node exports (ADR 0138).
 
+## Characters: items, carrying, interaction ([ADR 0139](../decisions/0139-generic-inventory-and-interaction.md))
+
+- **Any character**, not the Player class: `Inventory` (`items/inventory/inventory.gd`, the items it carries over an `InventoryGrid`; `Inventory.of(entity)`), `Carrier` (`actors/common/carry/`, picks up and holds physics props and bodies), `Interactor` (`actors/common/interaction/`, what "use" does on what the character looks at) and `Eyes` (`actors/common/eyes/`, where it looks from: a view node, or a height above its feet). Tuning: `CarryConfig`, `InteractorConfig`.
+- **World systems ask the user's components**: a keycard reader reads `Inventory.of(user).key_ids()`, a mine being disarmed `add()`s its item, the mission's starting kit and the Inventory tab's details read the Inventory; nothing finds a `PlayerInventory` or casts to `Player` for items.
+- **The controller drives them**: the Player calls `interactor.refresh()` and `carry.physics_step()` each tick and maps E, Q, LMB and the belt keys to them; an AI controller would do the same. The Player's `PlayerInventory` extends the Inventory with the belt and the hand (only the player has those) and needs a WeaponHolder and Eyes.
+- **Who the player is**: the tag `ActorState.PLAYER` (`actor.player`) for game systems; the `player` group (`DebugPanel.PLAYER_GROUP`, `DebugPanel.player()`) only indexes it for the debug tools.
+
 ## Determinism and tick model
 
 Stimulus processing runs in `_physics_process` on a fixed tick. Stimuli emitted during processing are queued for the next tick: no recursion, chain depth is tracked. This makes integration and scenario tests deterministic (fixed number of frames).

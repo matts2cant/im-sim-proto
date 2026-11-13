@@ -55,7 +55,7 @@ func bind(p_inventory: PlayerInventory) -> void:
 	queue_redraw()
 
 
-func inventory() -> Inventory:
+func inventory() -> InventoryGrid:
 	return player_inventory.inventory
 
 
@@ -315,10 +315,10 @@ static func tooltip_text(stack: ItemStack) -> String:
 	var lines: Array[String] = [stack.item.description]
 	if stack.item.stackable():
 		lines.append("Count: %d / %d" % [stack.count, stack.item.max_stack])
-	if stack.state.has("magazine"):
-		lines.append("Magazine: %d" % int(stack.state["magazine"]))
-	if not str(stack.state.get("key_id", "")).is_empty():
-		lines.append("Key: %s" % stack.state["key_id"])
+	if stack.state.has(ItemStack.MAGAZINE):
+		lines.append("Magazine: %d" % int(stack.state[ItemStack.MAGAZINE]))
+	if not str(stack.state.get(ItemStack.KEY_ID, "")).is_empty():
+		lines.append("Key: %s" % stack.state[ItemStack.KEY_ID])
 	if not str(stack.state.get("title", "")).is_empty():
 		lines.append('"%s"' % stack.state["title"])
 	for attachment in Attachments.fitted(stack.state):
