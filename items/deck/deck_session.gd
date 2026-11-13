@@ -1,26 +1,21 @@
 class_name DeckSession
 extends Node
 ## Component of an actor that carries a deck (the Player; ADR 0113): the deck plugged in, its Map
-## and its access, independent of the screen (its user's deck screen shows it, through Screens:
-## SCREEN; tools keep running while it is lowered). Notices go to the user's Notices. The
-## Icebreaker is its sibling IcebreakerTool.
-## It coordinates two parts (Q17, ADR 0140) and keeps the public API callers and tests use:
+## and its access, independent of the screen (its user's deck screen shows it through Screens:
+## SCREEN; tools keep running while it is lowered). Notices go to the user's Notices; the Icebreaker
+## is its sibling IcebreakerTool. It coordinates two parts (ADR 0140) behind one public API:
 ## - DeckLink (`link`): the connection. Holding LMB with the deck in hand on a device with a deck
-##   port (its user's ToolUse works the device, Device.accepts_tool(), and says so: `worked`) plugs
-##   the held deck in there and raises the screen; plug() on an access point joins its Wi-Fi (M12b,
-##   ADR 0117). It stays plugged while DeckLink.check() allows (tether, Wi-Fi range, jamming, the
-##   deck carried, the user able to act); unplugging stops its tools. An EMP reaching its user
-##   unplugs the deck (`emp`), cable or Wi-Fi (take_emp(), M14b).
-## - DeckDiscovery (`discovery`): the Map (devices reached and seen, subnet scans, kept on the
-##   deck's stack). Refreshed every `config.refresh_interval` s and after every change. Unplugged:
-##   nothing.
-## - Accounts (here): log_in() with a login the user's Journal knows (no trace when right; a wrong
-##   known password is a failed login). With access to a device (an account, or an exploit item's
-##   admin grant: ExploitItems.use_from_deck(), Device.has_access()): its commands (send()), and on
-##   a computer its desktop, remotely (open_remote(): Computer.open_desktop(user, account, true);
-##   `remote` until `desktop_closed`). As admin of a router: its firewall rules (the deck's Firewall
-##   tool). Commands and remote desktops are written to the device's log with the deck's address
-##   (Device.intrusion).
+##   port (ToolUse's `worked`) plugs the held deck in there and raises the screen; plug() on an
+##   access point joins its Wi-Fi (ADR 0117). It stays plugged while DeckLink.check() allows (tether,
+##   Wi-Fi range, jamming, the deck carried, the user able to act). An EMP reaching its user unplugs
+##   it (`emp`, take_emp(): EMP-reactive).
+## - DeckDiscovery (`discovery`): the Map (devices reached and seen, subnet scans), kept on the
+##   deck's stack under device keys (Device.device_id, ADR 0141); refreshed every
+##   `config.refresh_interval` s and after every change.
+## - Accounts: log_in() with a login the user's Journal knows; with access to a device (an account or
+##   an exploit grant), its commands (send()), a computer's desktop remotely (open_remote(),
+##   `remote` until `desktop_closed`) and a router's firewall rules. Commands and remote desktops
+##   are written to the device's log with the deck's address (Device.intrusion).
 ## EventLog: `deck.plugged {device, port, address}`, `deck.unplugged {device, reason}`,
 ## `deck.scan {subnet}`, `deck.remote {device, user}`; commands log as `device.command`, logins as
 ## `network.login`.

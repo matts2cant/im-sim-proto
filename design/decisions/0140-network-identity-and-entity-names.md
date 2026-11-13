@@ -29,4 +29,4 @@ The audit of 2026-11-13 found network identity held by node names (S2): firewall
 
 - A new store of per-user network state keys by `NetworkIdentity.key_of()` on reads and `ensure()` on writes, writes `FORMAT_KEY`, and migrates with `loaded_key()`.
 - Tests that need a key call `NetworkIdentity.ensure(user)` (or `key_of()` after a grant); device-log lines name users by `EntityNames.log_name()`.
-- The deck's discovery still remembers devices by node path (`seen`, Icebreaker progress keys) and a device's Journal code id falls back to its node name when it has no `credentials_id`: both are level identities (ADR 0136), out of this change.
+- The deck's discovery still remembers devices by node path (`seen`, Icebreaker progress keys) and a device's Journal code id falls back to its node name when it has no `credentials_id`: both are level identities (ADR 0136), out of this change. (Amended by [ADR 0141](0141-lookup-conventions-interfaces-device-keys.md): both use `Device.device_id` now.)
