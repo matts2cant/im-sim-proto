@@ -37,7 +37,7 @@ var _result := PhysicsTestMotionResult3D.new()
 
 
 func _ready() -> void:
-	body = get_parent() as CharacterBody3D
+	body = Entities.of_component(self) as CharacterBody3D
 	if body == null:
 		push_warning("StepClimber %s: the parent is not a CharacterBody3D" % get_path())
 		set_physics_process(false)

@@ -68,9 +68,13 @@ var _laser: Node3D
 var _rest_yaw: float = 0.0
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	_pivot = get_node_or_null(pivot_path) as Node3D
 	sensor = get_node_or_null(sensor_path) as PerceptionSensor

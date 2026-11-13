@@ -51,7 +51,7 @@ var _watched: Array[Device] = []
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	_session = DeckSession.of(entity)
 	if _session != null:
 		_session.changed.connect(_on_map_changed)

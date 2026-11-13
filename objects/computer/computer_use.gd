@@ -11,7 +11,7 @@ func _init() -> void:
 
 
 func computer() -> Computer:
-	return Computer.of(get_node_or_null(entity_path))
+	return Computer.of(Entities.of_component(self, entity_path))
 
 
 func target_name() -> String:

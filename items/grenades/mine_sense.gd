@@ -16,7 +16,7 @@ var _tick: int = 0
 
 
 func _ready() -> void:
-	entity = get_node(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 
 
 func _physics_process(_delta: float) -> void:

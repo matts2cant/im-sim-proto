@@ -38,32 +38,13 @@ const STATS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/stats_tab.tscn
 const BELT_ACTIONS: Array[StringName] = [
 	&"belt_1", &"belt_2", &"belt_3", &"belt_4", &"belt_5", &"belt_6", &"belt_7", &"belt_8", &"belt_9", &"belt_0"
 ]
-## Actions handled on their press edge in _physics_process (interact, carry, weapons, belt).
-const PRESS_ACTIONS: Array[StringName] = [
-	&"use",
-	&"drop_throw",
-	&"fire",
-	&"alt_fire",
-	&"reload",
-	&"holster",
-	&"belt_1",
-	&"belt_2",
-	&"belt_3",
-	&"belt_4",
-	&"belt_5",
-	&"belt_6",
-	&"belt_7",
-	&"belt_8",
-	&"belt_9",
-	&"belt_0",
-	&"aug_1",
-	&"aug_2",
-	&"aug_3",
-	&"aug_4",
-	&"aug_5",
-]
 ## Augmentation toggle keys (F1-F5), slot 1 first.
 const AUG_ACTIONS: Array[StringName] = [&"aug_1", &"aug_2", &"aug_3", &"aug_4", &"aug_5"]
+## Actions handled on their press edge in _physics_process (interact, carry, weapons, belt,
+## augmentations).
+const PRESS_ACTIONS: Array[StringName] = (
+	[&"use", &"drop_throw", &"fire", &"alt_fire", &"reload", &"holster"] + BELT_ACTIONS + AUG_ACTIONS
+)
 const MOVE_SPEED: StringName = &"move_speed_mult"
 const JUMP_APEX: StringName = &"jump_apex_height"
 const MANTLE_MAX: StringName = &"mantle_max_height"
@@ -129,7 +110,7 @@ var _tool_latched: bool = false
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	add_to_group(DebugPanel.PLAYER_GROUP)
 	weapons.setup(self, _camera)
 	weapons.fired.connect(_on_weapon_fired)
@@ -484,8 +465,9 @@ func _register_debug_tab() -> void:
 
 # use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
-# medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys: the belt slot
-# (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
+# medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys:
+# the belt slot (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F5:
+# augmentation toggles.
 # Dead or knocked out: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
 	var can_press := accepts_input()

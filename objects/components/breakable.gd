@@ -31,11 +31,13 @@ var is_broken: bool = false
 
 
 func _ready() -> void:
-	entity = get_node(entity_path) as Node3D
-	attributes = entity.get_node_or_null(^"Attributes") as Attributes
+	entity = Entities.of_component(self, entity_path) as Node3D
+	attributes = Attributes.of(entity)
 
 
 static func of(node: Node) -> Breakable:
+	if node == null or not is_instance_valid(node):
+		return null
 	for child in node.get_children():
 		if child is Breakable:
 			return child as Breakable

@@ -7,6 +7,10 @@ var words: PackedStringArray = []
 var alert_words: PackedStringArray = []
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func device_status() -> Array[StatusWord]:
 	var found: Array[StatusWord] = []
 	for text in words:

@@ -32,8 +32,12 @@ const BACK := 2
 var entity: Node
 
 
+func _init() -> void:
+	add_to_group(ToolUse.GROUP)
+
+
 func _ready() -> void:
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 
 
 ## The Lock components of `node`, in child order.

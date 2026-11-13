@@ -100,7 +100,7 @@ func _device(
 # Shows the network seen from `entry` on the graph.
 func _show(entry: String) -> void:
 	var rows := MapChecks.rows_from(_n[entry])
-	_graph.show_network(rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG)
+	_graph.show_network(rows, MapChecks.cables(rows), MapChecks.DECK_CONFIG.label_for)
 
 
 func _box(device_name: String) -> NetworkNodeBox:

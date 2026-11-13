@@ -62,7 +62,7 @@ var _room: bool = true
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if config == null:
 		config = DEFAULT_CONFIG
 
@@ -86,8 +86,7 @@ func held_mass() -> float:
 
 
 func mass_limit() -> float:
-	var attributes := Attributes.of(entity)
-	return attributes.value(LIMIT_ATTRIBUTE) if attributes != null else 0.0
+	return Attributes.value_of(entity, LIMIT_ATTRIBUTE)
 
 
 func speed_factor() -> float:
@@ -115,7 +114,7 @@ func try_pick_up() -> bool:
 	var hit := _look_hit(config.carry_reach)
 	if hit.is_empty():
 		return false
-	var body := Interactor.entity_of(hit["collider"] as Node) as PhysicsBody3D
+	var body := Entities.of_collider(hit["collider"] as Node) as PhysicsBody3D
 	if body == null or not can_offer(body):
 		return false
 	return try_pick_up_body(body)

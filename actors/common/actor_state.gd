@@ -1,6 +1,6 @@
 class_name ActorState
 extends RefCounted
-## A character's state read from its tags (the entity's `Tags` child), so whatever adds a tag has
+## A character's state read from its tags (Tags.of(entity)), so whatever adds a tag has
 ## the same effect: BodyParts writes `state.dead`, `state.unconscious`, `state.arms_disabled` and
 ## `state.legs_disabled` from its injuries, and an Effect can add the same tags (sleep gas
 ## `state.unconscious`, handcuffs `state.arms_disabled`). Movement controllers write the stance tags
@@ -30,20 +30,14 @@ const CLOAKED: StringName = &"state.cloaked"
 const JAMMED: StringName = &"state.jammed"
 
 
-static func tags_of(entity: Node) -> Tags:
-	if entity == null:
-		return null
-	return entity.get_node_or_null(^"Tags") as Tags
-
-
 static func has(entity: Node, tag: StringName) -> bool:
-	var tags := tags_of(entity)
+	var tags := Tags.of(entity)
 	return tags != null and tags.has(tag)
 
 
 ## Adds or removes `tag` (no-op without Tags).
 static func set_tag(entity: Node, tag: StringName, on: bool) -> void:
-	var tags := tags_of(entity)
+	var tags := Tags.of(entity)
 	if tags == null:
 		return
 	if on:

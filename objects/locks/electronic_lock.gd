@@ -18,7 +18,7 @@ var _powered: Powered
 
 func _ready() -> void:
 	super._ready()
-	_tags = ActorState.tags_of(entity)
+	_tags = Tags.of(entity)
 	if _tags != null:
 		_tags.container.changed.connect(_on_tag_changed)
 	_powered = Powered.of(entity)

@@ -62,7 +62,7 @@ static func counted_name(item_name: String, count: int) -> String:
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if config == null:
 		config = DEFAULT_CONFIG
 
@@ -81,13 +81,6 @@ static func display_name_of(node: Node) -> String:
 	return EntityNames.display_name(node)
 
 
-## The entity a collider stands for: a hitbox's character, otherwise the collider itself.
-static func entity_of(collider: Node) -> Node:
-	if collider != null and Hitboxes.part_of(collider) != &"" and collider.get_parent() is Hitboxes:
-		return collider.get_parent().get_parent()
-	return collider
-
-
 ## Re-resolves the target under the crosshair (called by the character's controller every physics
 ## tick).
 func refresh() -> void:
@@ -104,7 +97,7 @@ func refresh() -> void:
 		var held_name := display_name_of(carrier.held)
 		_resolve(carry_kind, carrier.held, prompt_for(carry_kind, held_name), held_name)
 		return
-	var seen := entity_of(_look_collider())
+	var seen := Entities.of_collider(_look_collider())
 	looked_at = seen
 	if seen == null:
 		prompt = ""
@@ -180,7 +173,7 @@ func aimed_at(reach: float) -> Node:
 	var carrier := Carrier.of(entity)
 	if not ActorState.can_act(entity) or (carrier != null and carrier.is_carrying()):
 		return null
-	return entity_of(_look_collider(reach))
+	return Entities.of_collider(_look_collider(reach))
 
 
 func _look_collider(reach: float = -1.0) -> Node:

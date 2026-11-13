@@ -60,7 +60,7 @@ var _burst_start_magazine: int = 0
 
 
 func _ready() -> void:
-	body = get_parent() as NavWalker
+	body = Entities.of_component(self) as NavWalker
 	holder = get_node_or_null(holder_path) as WeaponHolder
 	if body == null or holder == null or config == null:
 		push_warning("CombatBehaviour %s: needs a NavWalker parent, a WeaponHolder and a config" % get_path())

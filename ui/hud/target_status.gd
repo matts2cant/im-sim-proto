@@ -117,11 +117,10 @@ static func word_of(entity: Node, links: Array[Device]) -> StatusWord:
 
 ## The first word one of `entity`'s components in StatusWord.FRAME_GROUP says (frame_word()), or null.
 static func component_word(entity: Node) -> StatusWord:
-	for child in entity.get_children():
-		if child.is_in_group(StatusWord.FRAME_GROUP) and child.has_method(&"frame_word"):
-			var word := child.call(&"frame_word") as StatusWord
-			if word != null:
-				return word
+	for child in Entities.members(entity, StatusWord.FRAME_GROUP, StatusWord.FRAME_METHOD):
+		var word := child.call(StatusWord.FRAME_METHOD) as StatusWord
+		if word != null:
+			return word
 	return null
 
 

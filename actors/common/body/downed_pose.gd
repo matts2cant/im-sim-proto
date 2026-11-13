@@ -39,7 +39,7 @@ var _body: CollisionObject3D
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	_body = entity as CollisionObject3D
 	if _body != null:
 		standing_layer = _body.collision_layer

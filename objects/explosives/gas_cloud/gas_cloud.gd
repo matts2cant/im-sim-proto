@@ -45,7 +45,7 @@ var _puffs: Node3D
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	_pulse_left = config.pulse_interval
 	_build_look()
 	EventLog.record(EventKinds.GAS_RELEASED, String(name), "", {"cloud": String(name)})

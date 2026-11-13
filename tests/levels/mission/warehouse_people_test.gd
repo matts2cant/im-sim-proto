@@ -111,7 +111,7 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		var spec: Array = GUARDS[guard_name]
 		var guard := guards.get_node(guard_name) as NavWalker
 		assert_object(guard).override_failure_message(guard_name).is_not_null()
-		var layers := AccessLayers.agent_layers(ActorState.tags_of(guard).container)
+		var layers := AccessLayers.agent_layers(Tags.of(guard).container)
 		(
 			assert_bool(_reaches(start, guard.global_position, layers))
 			. override_failure_message("%s off the navmesh" % guard_name)
@@ -120,7 +120,7 @@ func test_guards_stand_on_the_navmesh_with_their_loadouts_and_access() -> void:
 		var holder := guard.get_node("Aim/WeaponHolder") as WeaponHolder
 		assert_int(holder.weapons.size()).is_equal(1)
 		assert_str(String(holder.weapons[0].item_id)).override_failure_message(guard_name).is_equal(spec[0])
-		var tags := ActorState.tags_of(guard)
+		var tags := Tags.of(guard)
 		assert_bool(tags.has(&"actor.guard")).is_true()
 		for access: StringName in spec[1]:
 			assert_bool(tags.has(access)).override_failure_message("%s lacks %s" % [guard_name, access]).is_true()

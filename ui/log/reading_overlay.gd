@@ -13,7 +13,7 @@ var player: Player
 
 func _ready() -> void:
 	visible = false
-	player = get_parent() as Player
+	player = Entities.of_component(self) as Player
 	if player == null:
 		return
 	if not player.is_node_ready():

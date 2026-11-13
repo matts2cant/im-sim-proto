@@ -104,17 +104,22 @@ var outage: float = 0.0
 var _was_up: bool = true
 
 
+func _init() -> void:
+	add_to_group(ToolUse.GROUP)
+	add_to_group(DeviceNetwork.ADDRESS_GROUP)
+	add_to_group(EmpEffect.GROUP)
+
+
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
-	add_to_group(EmpEffect.GROUP)
+	add_to_group(LevelSnapshot.GROUP)
 	set_physics_process(false)
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if entity == null:
 		push_warning("Device %s: entity_path %s is not a Node3D" % [get_path(), entity_path])
 		return
 	EmpEffect.listen(entity)
-	if ActorState.tags_of(entity) == null:
+	if Tags.of(entity) == null:
 		push_warning("Device %s: the entity has no Tags; receptrons cannot block on its state" % get_path())
 	powered = Powered.of(entity)
 	if powered != null:

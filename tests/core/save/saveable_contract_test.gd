@@ -35,7 +35,7 @@ func _instance(path: String) -> Node:
 
 func _saveables(root: Node) -> Array[Node]:
 	return root.find_children("*", "", true, false).filter(
-		func(node: Node) -> bool: return node.is_in_group(&"saveable")
+		func(node: Node) -> bool: return node.is_in_group(LevelSnapshot.GROUP)
 	)
 
 
@@ -47,7 +47,7 @@ func _check(path: String) -> Array[String]:
 		await get_tree().physics_frame
 	var saved := {}
 	var nodes: Array[Node] = _saveables(first)
-	if first.is_in_group(&"saveable"):
+	if first.is_in_group(LevelSnapshot.GROUP):
 		nodes.push_front(first)
 	for node in nodes:
 		var node_path := String(first.get_path_to(node))

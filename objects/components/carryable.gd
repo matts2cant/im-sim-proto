@@ -58,7 +58,7 @@ func is_offered() -> bool:
 		return false
 	if enabled_tags.is_empty():
 		return true
-	var tags := ActorState.tags_of(get_parent())
+	var tags := Tags.of(get_parent())
 	return tags != null and tags.container.has_any(enabled_tags)
 
 

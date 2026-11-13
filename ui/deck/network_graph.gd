@@ -149,17 +149,15 @@ func _ready() -> void:
 
 
 ## Shows `p_rows` (NetworkRow, typed or not: the deck's rows) and their
-## `p_cables` (index pairs into them); `p_labels`: the default menu's command labels (a Callable, or
-## an object with `label_for(command)` such as a DeckConfig; null: keep). An open menu stays open
+## `p_cables` (index pairs into them); `p_labels`: the default menu's command labels (command ->
+## label, such as a DeckConfig's `label_for`; an empty Callable keeps them). An open menu stays open
 ## on the same device and shows its new status. The view stays where it is (see request_fit()).
-func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Variant = null) -> void:
+func show_network(p_rows: Array, p_cables: Array[Vector2i], p_labels: Callable = Callable()) -> void:
 	rows = NetworkRow.list(p_rows)
 	cables = p_cables
 	wireless = NetworkRow.wireless_cables(rows, cables)
-	if p_labels is Callable:
-		command_label = p_labels as Callable
-	elif p_labels is Object and (p_labels as Object).has_method(&"label_for"):
-		command_label = Callable(p_labels as Object, &"label_for")
+	if p_labels.is_valid():
+		command_label = p_labels
 	# Nothing drawn changed (an owner's periodic refresh): the nodes stay, so a click held on one
 	# survives it.
 	var key := NetworkMapInputs.drawn_key(rows, cables, wireless, subnets, _panel_size())
@@ -290,11 +288,6 @@ func node_status_color(device_name: String) -> Color:
 ## The open menu's command button `label`, or null.
 func menu_button(label: String) -> Button:
 	return menu.button(label)
-
-
-## The open menu's command button labels.
-func menu_labels() -> Array[String]:
-	return menu.labels()
 
 
 ## Each node's box (name and status line) in content coordinates (zoom 1), in row order (tests).

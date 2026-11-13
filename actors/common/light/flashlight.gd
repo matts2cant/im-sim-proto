@@ -50,7 +50,7 @@ var _stowed: Node3D
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
 	carrier = _find_carrier()
@@ -93,7 +93,7 @@ static func of(node: Node) -> Flashlight:
 func should_be_lit() -> bool:
 	if carrier == null or not is_inside_tree():
 		return false
-	var tags := ActorState.tags_of(carrier)
+	var tags := Tags.of(carrier)
 	if tags != null and tags.container.has_any(config.off_tags):
 		return false
 	if on_while_patrolling:
@@ -137,7 +137,7 @@ func _place() -> void:
 
 
 func _carrier_down() -> bool:
-	var tags := ActorState.tags_of(carrier) if carrier != null else null
+	var tags := Tags.of(carrier) if carrier != null else null
 	return tags != null and tags.container.has_any(config.off_tags)
 
 
@@ -153,7 +153,7 @@ func _find_carrier() -> Node3D:
 		return get_node_or_null(carrier_path) as Node3D
 	var node := get_parent()
 	while node != null:
-		if ActorState.tags_of(node) != null:
+		if Tags.of(node) != null:
 			return node as Node3D
 		node = node.get_parent()
 	return null

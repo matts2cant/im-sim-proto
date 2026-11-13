@@ -95,7 +95,7 @@ func test_save_and_load_restore_fire_state() -> void:
 	assert_array(fresh.find_children("FireFx", "", true, false)).has_size(1)
 	assert_str(body_saved["scene_file_path"]).is_equal(Objects.SMALL_CRATE)
 	assert_bool(body_saved.has("transform") and body_saved.has("linear_velocity")).is_true()
-	assert_bool(fresh.is_in_group(&"saveable") and restored.is_in_group(&"saveable")).is_true()
+	assert_bool(fresh.is_in_group(LevelSnapshot.GROUP) and restored.is_in_group(LevelSnapshot.GROUP)).is_true()
 
 
 func test_brazier_burns_forever() -> void:

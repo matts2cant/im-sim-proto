@@ -23,7 +23,7 @@ var awareness: GradedAwareness
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	awareness = GradedAwareness.of_node(entity)
 	if awareness == null or config == null:
 		push_warning("AlertComms %s: needs a GradedAwareness sibling and a config" % get_path())

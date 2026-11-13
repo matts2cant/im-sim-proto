@@ -21,10 +21,14 @@ var entity: Node
 var disabled: bool = false
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	disabled = start_disabled
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 	var device := Device.of(entity)
 	if device == null:
 		push_warning("DeviceSwitch %s: needs a Device on its entity" % get_path())

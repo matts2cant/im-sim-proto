@@ -25,8 +25,8 @@ var _centre: Vector3
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if entity == null:
 		set_physics_process(false)
 		return

@@ -35,9 +35,13 @@ var device: Device
 var _known: PackedStringArray = PackedStringArray()
 
 
+func _init() -> void:
+	add_to_group(ToolUse.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null:
 		push_warning("AccessPoint %s: needs a Device on its entity" % get_path())

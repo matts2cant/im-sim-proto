@@ -30,14 +30,17 @@ var _energy: Energy
 
 
 static func of(entity: Node) -> Augmentations:
-	if not is_instance_valid(entity):
+	if entity == null or not is_instance_valid(entity):
 		return null
-	return entity.get_node_or_null(^"Augmentations") as Augmentations
+	for child in entity.get_children():
+		if child is Augmentations:
+			return child as Augmentations
+	return null
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	_energy = Energy.of(get_parent())
+	add_to_group(LevelSnapshot.GROUP)
+	_energy = Energy.of(Entities.of_component(self))
 	for id in installed_at_start:
 		if find(id) != null:
 			_installed[id] = true
@@ -45,13 +48,13 @@ func _ready() -> void:
 
 
 func entity() -> Node:
-	return get_parent()
+	return Entities.of_component(self)
 
 
 # Feedback: its page's `message` and the entity's Notices.
 func _say(text: String) -> void:
 	message.emit(text)
-	Notices.send(get_parent(), text)
+	Notices.send(Entities.of_component(self), text)
 
 
 func find(id: StringName) -> AugmentationData:

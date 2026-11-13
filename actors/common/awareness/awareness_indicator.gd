@@ -38,7 +38,7 @@ var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	awareness = GradedAwareness.of_node(entity)
 	_rng.seed = hash(String(entity.name)) if entity != null else 0
 	icon = _label("Icon", 96, Vector3.ZERO)

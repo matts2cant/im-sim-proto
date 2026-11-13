@@ -66,11 +66,6 @@ func arm_length() -> float:
 	return ARM_LENGTH_1080 * scale_for(size.y)
 
 
-## Thickness of an arm in pixels at the current height.
-func arm_width() -> float:
-	return arm_width_for(size.y)
-
-
 ## The aim point: the centre moved by the offset, on a pixel centre (crisp 1 px arms).
 func aim_point() -> Vector2:
 	return snap(size * 0.5 + offset)

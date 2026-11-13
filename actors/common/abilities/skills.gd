@@ -16,14 +16,17 @@ var _attributes: Attributes
 
 
 static func of(entity: Node) -> Skills:
-	if not is_instance_valid(entity):
+	if entity == null or not is_instance_valid(entity):
 		return null
-	return entity.get_node_or_null(^"Skills") as Skills
+	for child in entity.get_children():
+		if child is Skills:
+			return child as Skills
+	return null
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	_attributes = Attributes.of(get_parent())
+	add_to_group(LevelSnapshot.GROUP)
+	_attributes = Attributes.of(Entities.of_component(self))
 	if _attributes == null:
 		push_warning("Skills %s: no sibling Attributes" % get_path())
 	for skill: StringName in initial_tiers:
@@ -57,7 +60,7 @@ func set_tier(skill: StringName, p_tier: int) -> void:
 	_tiers[skill] = clamped
 	_apply(skill)
 	var data := {"skill": String(skill), "tier": clamped, "name": table.tier_name(clamped)}
-	EventLog.record(EventKinds.SKILL_TIER_CHANGED, String(get_parent().name), "", data)
+	EventLog.record(EventKinds.SKILL_TIER_CHANGED, String(Entities.of_component(self).name), "", data)
 	changed.emit(skill, clamped)
 
 

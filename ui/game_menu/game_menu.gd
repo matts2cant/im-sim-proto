@@ -47,7 +47,7 @@ func _ready() -> void:
 	visible = false
 	add_to_group(PauseScreens.GROUP)
 	add_to_group(QuickSave.LOADED_GROUP)
-	player = get_parent() as Player
+	player = Entities.of_component(self) as Player
 	resume_button.pressed.connect(close)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)

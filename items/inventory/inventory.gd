@@ -49,7 +49,7 @@ static func of(node: Node) -> Inventory:
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 	if catalog == null:
 		catalog = ItemCatalog.default()
 	grid = InventoryGrid.new(config.grid_size if config != null else Vector2i(6, 5))
@@ -58,7 +58,7 @@ func _ready() -> void:
 	grid.stack_added.connect(_on_stack_added)
 	grid.stack_removed.connect(_on_stack_removed)
 	if not saved_by_entity:
-		add_to_group(&"saveable")
+		add_to_group(LevelSnapshot.GROUP)
 
 
 ## The stacks carried, in placement order (the grid's own array: do not change it).

@@ -36,7 +36,7 @@ func _ready() -> void:
 	if tuning == null:
 		tuning = DEFAULT_TUNING
 	if is_practice():
-		add_to_group(&"saveable")
+		add_to_group(LevelSnapshot.GROUP)
 		_rng.randomize()
 		_relock = PracticeRelock.new(tuning.practice_relock_delay, _rng.randi_range(1, 99999))
 

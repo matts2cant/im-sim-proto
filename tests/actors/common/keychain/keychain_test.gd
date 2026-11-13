@@ -38,7 +38,7 @@ func test_holds_keys_by_id_once_and_saves() -> void:
 	assert_bool(keychain.has_key(&"bay_a")).is_true()
 	assert_bool(keychain.has_key(&"office")).is_false()
 	assert_bool(keychain.has_key(&"")).is_false()
-	assert_bool(keychain.is_in_group(&"saveable")).is_true()
+	assert_bool(keychain.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_array(EventLog.find(&"keychain.key_added")).has_size(1)
 
 	var other := Keychain.new()

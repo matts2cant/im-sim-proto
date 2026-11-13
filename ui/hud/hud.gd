@@ -75,7 +75,7 @@ static func of(entity: Node) -> Hud:
 
 
 func _ready() -> void:
-	player = get_parent() as Player
+	player = Entities.of_component(self) as Player
 	death_overlay.visible = false
 	damage_flash.color.a = 0.0
 	message_label.text = ""

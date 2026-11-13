@@ -38,7 +38,7 @@ static func of(node: Node) -> WeaponDrop:
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	holder = get_node_or_null(holder_path) as WeaponHolder
 	if catalog == null:
 		catalog = ItemCatalog.default()

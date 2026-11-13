@@ -9,8 +9,5 @@ const METHOD: StringName = &"add_heat"
 
 
 func apply(ctx: EffectContext) -> void:
-	if not is_instance_valid(ctx.entity):
-		return
-	for child in ctx.entity.get_children():
-		if child.is_in_group(GROUP) and child.has_method(METHOD):
-			child.call(METHOD, ctx.perceived, ctx.stimulus)
+	for child in Entities.members(ctx.entity, GROUP, METHOD):
+		child.call(METHOD, ctx.perceived, ctx.stimulus)

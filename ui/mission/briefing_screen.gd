@@ -53,10 +53,6 @@ func title_text() -> String:
 	return _title.text
 
 
-func body_text() -> String:
-	return _text.text
-
-
 func objectives_text() -> String:
 	return _objectives.text
 

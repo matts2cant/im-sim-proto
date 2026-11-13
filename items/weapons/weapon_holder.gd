@@ -145,7 +145,7 @@ var _has_user_position: bool = false
 
 func _ready() -> void:
 	if not weapons.is_empty():
-		add_to_group(&"saveable")
+		add_to_group(LevelSnapshot.GROUP)
 	# Its own copy: instances of one scene may share the exported array, and a drop removes from it.
 	weapons = weapons.duplicate()
 	aim = AimModel.new(aim_config, rng_seed)

@@ -1,7 +1,8 @@
 class_name DeviceStatus
 extends RefCounted
 ## What a device shows on a security screen (ADR 0083, ADR 0137), collected without knowing what the
-## device is. Each behaviour component on a device's entity may offer:
+## device is. A component interface (conventions.md): each behaviour component on a device's entity
+## that joins GROUP (in its _ready) may offer:
 ## - `device_status() -> Array[StatusWord]`: its state in words, in order (ENABLED, a camera's
 ##   "sweeping", RINGING, a door's "open", a lock's "locked", ...; StatusWord constants, an alert word
 ##   flagged `alert`). Never "broken" or "offline": a screen shows a device it cannot reach as offline
@@ -17,12 +18,14 @@ extends RefCounted
 ##   `command.disarm`: a blind camera, a dark laser array, a turret or an alarm controller off).
 ##   Only components that can be switched off offer it: a device without one is never disabled.
 ##   Screens colour a disabled device apart (ADR 0099 amendment); it is still online.
-## Entities' direct children are asked, in tree order.
+## Entities' direct children in GROUP are asked, in tree order.
 ## The colour rule of the screens is tone() (each screen has its palette for the tones).
 
 ## A device's colour class on a security screen (tone()).
 enum Tone { ONLINE, OFFLINE, DISABLED, ACCESS, ALERT }
 
+## The group of the components that report to security screens (the methods below).
+const GROUP: StringName = &"device_reporter"
 const STATUS_METHOD: StringName = &"device_status"
 const COMMANDS_METHOD: StringName = &"device_commands"
 const VIEW_METHOD: StringName = &"device_view"
@@ -57,13 +60,10 @@ static func summarize(online: bool, parts: Array[StatusWord]) -> Array[StatusWor
 ## Every component's status words for `entity`, in tree order.
 static func parts_of(entity: Node) -> Array[StatusWord]:
 	var parts: Array[StatusWord] = []
-	if entity == null or not is_instance_valid(entity):
-		return parts
-	for child in entity.get_children():
-		if child.has_method(STATUS_METHOD):
-			for word: Variant in child.call(STATUS_METHOD) as Array:
-				if word is StatusWord:
-					parts.append(word as StatusWord)
+	for child in Entities.members(entity, GROUP, STATUS_METHOD):
+		for word: Variant in child.call(STATUS_METHOD) as Array:
+			if word is StatusWord:
+				parts.append(word as StatusWord)
 	return parts
 
 
@@ -112,10 +112,8 @@ static func tone(texts: PackedStringArray, disabled: bool = false, access: bool 
 
 ## True when a component of `entity` says it is switched off (`device_disabled()`).
 static func is_disabled(entity: Node) -> bool:
-	if entity == null or not is_instance_valid(entity):
-		return false
-	for child in entity.get_children():
-		if child.has_method(DISABLED_METHOD) and bool(child.call(DISABLED_METHOD)):
+	for child in Entities.members(entity, GROUP, DISABLED_METHOD):
+		if bool(child.call(DISABLED_METHOD)):
 			return true
 	return false
 
@@ -132,7 +130,7 @@ static func applicable(commands: Array[StringName], entity: Node) -> Array[Strin
 	var disabled := false
 	var on: Array[StringName] = []
 	var off: Array[StringName] = []
-	for child in entity.get_children():
+	for child in Entities.members(entity, GROUP):
 		var switched_off := child.has_method(DISABLED_METHOD) and bool(child.call(DISABLED_METHOD))
 		disabled = disabled or switched_off
 		if not child.has_method(COMMANDS_METHOD):
@@ -162,9 +160,5 @@ static func view_of(entity: Node) -> Node3D:
 
 
 static func _view_component(entity: Node) -> Node:
-	if entity == null or not is_instance_valid(entity):
-		return null
-	for child in entity.get_children():
-		if child.has_method(VIEW_METHOD):
-			return child
-	return null
+	var found := Entities.members(entity, GROUP, VIEW_METHOD)
+	return found[0] if not found.is_empty() else null

@@ -41,11 +41,14 @@ var _highlight: MeshInstance3D
 var _audio: AudioStreamPlayer3D
 
 
+func _init() -> void:
+	add_to_group(StatusWord.FRAME_GROUP)
+
+
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(StatusWord.FRAME_GROUP)
-	add_to_group(&"saveable")
-	entity = get_node(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if config == null:
 		config = DEFAULT_CONFIG
 	arming_left = config.arm_time
@@ -151,7 +154,7 @@ func _intruder() -> Node:
 		var collider := hit["collider"] as CollisionObject3D
 		if collider == null:
 			continue
-		var tags := ActorState.tags_of(collider)
+		var tags := Tags.of(collider)
 		if not config.accepts(tags.container if tags != null else null):
 			continue
 		if ActorState.has(collider, ActorState.CROUCHING):

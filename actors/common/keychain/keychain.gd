@@ -28,7 +28,7 @@ static func of(node: Node) -> Keychain:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 
 
 ## True when it holds the key `key_id` (an empty id is no key).

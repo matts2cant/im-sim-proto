@@ -35,7 +35,7 @@ func _ready() -> void:
 	_graph.size = GRAPH_SIZE
 	layer.add_child(_graph)
 	_graph.request_fit()
-	_graph.show_network(_network.rows, _network.cables, null)
+	_graph.show_network(_network.rows, _network.cables)
 
 
 func _process(delta: float) -> void:

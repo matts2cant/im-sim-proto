@@ -31,8 +31,8 @@ var entity: Node
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path)
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path)
 	# Its own list: the Firewall tool edits it (rules themselves are replaced, never changed).
 	rules = rules.duplicate()
 

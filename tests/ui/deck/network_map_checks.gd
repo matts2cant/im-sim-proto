@@ -171,5 +171,5 @@ static func _graph(
 	graph.size = DECK_MAP_SIZE
 	graph.subnets = Router.subnet_info(suite.get_tree())
 	graph.request_fit()
-	graph.show_network(rows, cables, config)
+	graph.show_network(rows, cables, config.label_for if config != null else Callable())
 	return graph

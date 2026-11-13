@@ -113,11 +113,6 @@ func select(stack: ItemStack) -> void:
 	queue_redraw()
 
 
-## The stack under the mouse.
-func hovered_stack() -> ItemStack:
-	return stack_at_point(_hover) if _drag == null else null
-
-
 func dragging() -> ItemStack:
 	return _drag
 

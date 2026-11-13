@@ -6,8 +6,9 @@ extends RefCounted
 ## 1. static geometry: the collider's `wall_surface` metadata on a face that is not a floor (a kit
 ##    Room's walls and ceiling over its floor), else its `surface` metadata (kit parts, ADR 0033;
 ##    for CSG the root with use_collision);
-## 2. entities: the `material.*` tag of the collider's nearest ancestor (or itself) with Tags
-##    (`material.metal` -> `metal`; a metal crate, a wooden door);
+## 2. entities: the `material.*` tag of the collider's entity (Entities.of_collider()) or of its
+##    nearest ancestor with Tags (Tags.above(): `material.metal` -> `metal`; a metal crate, a wooden
+##    door);
 ## 3. else &"" (each reader falls back to its default).
 ## Surface names are plain words (`concrete`, `metal`, `wood`, `carpet`, `grass`, `glass`,
 ## `cardboard`, `electronics`); each reader maps them to its own data (footstep sounds, impact looks).
@@ -32,7 +33,7 @@ static func of(collider: Object, normal: Vector3 = Vector3.UP) -> StringName:
 	if collider.has_meta(META):
 		return StringName(str(collider.get_meta(META)))
 	if collider is Node:
-		var tags := tags_above(collider as Node)
+		var tags := Tags.above(Entities.of_collider(collider as Node))
 		if tags != null:
 			return of_tags(tags.container)
 	return &""
@@ -47,14 +48,3 @@ static func of_tags(tags: TagContainer) -> StringName:
 		if text.begins_with(prefix):
 			return StringName(text.substr(prefix.length()).get_slice(".", 0))
 	return &""
-
-
-## The Tags of `node` or of its nearest ancestor that has them (a prop's collider may be a child of
-## the entity), or null.
-static func tags_above(node: Node) -> Tags:
-	while node != null:
-		var found := node.get_node_or_null(^"Tags") as Tags
-		if found != null:
-			return found
-		node = node.get_parent()
-	return null

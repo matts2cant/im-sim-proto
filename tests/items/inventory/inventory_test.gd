@@ -98,14 +98,14 @@ func test_saves_its_stacks_unless_the_entity_saves_it() -> void:
 
 	copy.load_state(saved)
 
-	assert_bool(inventory.is_in_group(&"saveable")).is_true()
+	assert_bool(inventory.is_in_group(LevelSnapshot.GROUP)).is_true()
 	assert_int(copy.count(Items.AMMO)).is_equal(7)
 	assert_int(copy.weapon_state(copy.stacks()[0]).magazine).is_equal(3)
 	var owned := Inventory.new()
 	owned.config = CONFIG
 	owned.saved_by_entity = true
 	Fixtures.entity(_root, "Owner", ORIGIN, []).add_child(owned)
-	assert_bool(owned.is_in_group(&"saveable")).is_false()
+	assert_bool(owned.is_in_group(LevelSnapshot.GROUP)).is_false()
 
 
 # A minimal entity (Tags, Attributes, StimulusReceiver) with an Inventory and optionally a Keychain.

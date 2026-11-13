@@ -32,8 +32,8 @@ var _access: Dictionary[String, PackedStringArray] = {}
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path)
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path)
 	# Own copies: a password change must not reach other devices sharing the resources.
 	var own: Array[DeviceAccount] = []
 	for each in accounts:

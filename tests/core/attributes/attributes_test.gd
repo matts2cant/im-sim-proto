@@ -10,7 +10,7 @@ func test_base_values_are_set_on_ready() -> void:
 
 	assert_float(attributes.value(&"health")).is_equal(100.0)
 	assert_float(attributes.value(&"speed")).is_equal(4.0)
-	assert_bool(attributes.is_in_group(&"saveable")).is_true()
+	assert_bool(attributes.is_in_group(LevelSnapshot.GROUP)).is_true()
 
 
 func test_save_and_load_state() -> void:

@@ -52,7 +52,7 @@ class Sighting:
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	if entity == null:
 		push_warning("PerceptionSensor %s: the parent is not a Node3D" % get_path())
 
@@ -258,5 +258,5 @@ static func _vertical_extent(shape: Shape3D, basis: Basis) -> float:
 
 
 static func _has_any(node: Node, queries: Array[StringName]) -> bool:
-	var tags := ActorState.tags_of(node)
+	var tags := Tags.of(node)
 	return tags != null and tags.container.has_any(queries)

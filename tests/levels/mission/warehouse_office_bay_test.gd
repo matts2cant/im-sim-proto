@@ -60,7 +60,7 @@ func test_every_device_fits_its_model_and_no_wall_gear_remains() -> void:
 		var entity := device.entity as Node3D
 		if LinkingBay.rack_units_of(entity) > 0 and MountChecks.bay_of(entity) == null:
 			problems.append("%s: a rack unit outside a bay" % _path(entity))
-		var tags := ActorState.tags_of(entity)
+		var tags := Tags.of(entity)
 		var gear := tags.has(&"object.router") or tags.has(&"object.network_switch")
 		var computer := Computer.of(entity) != null and EntityNames.device_name(device) != CONSOLE
 		if (gear or computer) and MountChecks.mount(entity) == MountChecks.Mount.WALL:

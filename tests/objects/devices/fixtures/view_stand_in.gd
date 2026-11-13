@@ -6,5 +6,9 @@ var view: Node3D
 var seeing: bool = true
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func device_view() -> Node3D:
 	return view if seeing else null

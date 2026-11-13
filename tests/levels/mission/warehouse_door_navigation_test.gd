@@ -61,7 +61,7 @@ func test_every_placed_guard_reaches_its_post_and_route_with_its_own_keys() -> v
 	var people := _helpers.level.get_node(Helpers.PEOPLE)
 	var missing: PackedStringArray = []
 	for guard: Node in people.get_node("Guards").get_children():
-		var layers := AccessLayers.agent_layers(ActorState.tags_of(guard).container)
+		var layers := AccessLayers.agent_layers(Tags.of(guard).container)
 		var post: Vector3 = _helpers.guard_spots[String(guard.name)]
 		if not _reaches(start, post, layers):
 			missing.append("%s: post" % guard.name)

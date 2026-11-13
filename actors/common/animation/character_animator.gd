@@ -75,7 +75,7 @@ var _still: bool = false
 
 
 func _ready() -> void:
-	entity = get_parent() as Node3D
+	entity = Entities.of_component(self) as Node3D
 	model = get_node_or_null(model_path) as Node3D
 	if config == null or entity == null or model == null:
 		push_warning("CharacterAnimator %s: needs a config, a Node3D parent and a model" % get_path())
@@ -148,21 +148,12 @@ func part(part_name: StringName) -> Node3D:
 	return _parts.get(part_name, null)
 
 
-func has_clip(clip: StringName) -> bool:
-	return _animations.has(clip)
-
-
 ## How much of `clip` shows now in the layer that plays it (0..1), for tests and the debug panel.
 func weight_of(clip: StringName) -> float:
 	var weight := 0.0
 	for layer in _layers():
 		weight = maxf(weight, layer.weight_of(clip))
 	return weight
-
-
-## Metres the model is raised at the end of the down clip (its lying figure rests on the floor).
-func lying_lift(clip: StringName) -> float:
-	return _lift.get(clip, 0.0)
 
 
 func _layers() -> Array[CharacterAnimLayer]:

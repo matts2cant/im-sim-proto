@@ -82,12 +82,13 @@ var _free_link: NavigationLink3D
 
 func _init() -> void:
 	verb = "open"
+	add_to_group(DeviceStatus.GROUP)
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
-	entity = get_node(entity_path) as StaticBody3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as StaticBody3D
 	_panel = entity.get_node(^"Panel") as CollisionShape3D
 	_panel_mesh = entity.get_node(^"PanelMesh") as Node3D
 	_attenuator = entity.get_node_or_null(^"SoundAttenuator") as SoundAttenuator
@@ -99,7 +100,7 @@ func _ready() -> void:
 		lockable.lock_changed.connect(_on_lock_changed)
 		lockable.unlocked_by_user.connect(_on_unlocked_by_user)
 		lockable.access_granted.connect(_on_unlocked_by_user)
-	var tags := ActorState.tags_of(entity)
+	var tags := Tags.of(entity)
 	if tags != null:
 		tags.container.changed.connect(_on_tag_changed)
 	var breakable := Breakable.of(entity)

@@ -17,7 +17,7 @@ var carried: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
-	body = get_parent() as CharacterBody3D
+	body = Entities.of_component(self) as CharacterBody3D
 	if body == null:
 		push_warning("Knockback %s: the parent is not a CharacterBody3D" % get_path())
 		set_physics_process(false)

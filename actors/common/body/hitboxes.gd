@@ -3,12 +3,17 @@ extends Node3D
 ## Six body-part hitboxes of a humanoid (origin at the feet, facing -Z), one AnimatableBody3D each on
 ## collision layer 5 (hitboxes) with no mask, tagged with metadata `body_part` (ADR 0047). Weapon
 ## rays and melee sweeps hit these instead of the character's body; StimulusSystem delivers to the
-## entity's receivers with the hitbox as `collider`, and BodyParts reads the part from it.
+## entity's receivers with the hitbox as `collider`, and BodyParts reads the part from it. In group
+## Entities.PARTS_GROUP: a hitbox stands for the character (Entities.of_collider()).
 
 const META: StringName = &"body_part"
 
 # Standing local heights of each hitbox, to squash them when crouching.
 var _base_heights: Dictionary[Node3D, float] = {}
+
+
+func _init() -> void:
+	add_to_group(Entities.PARTS_GROUP)
 
 
 func _ready() -> void:

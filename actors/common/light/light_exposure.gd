@@ -36,7 +36,7 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	if entity == null:
 		push_warning("LightExposure %s: entity_path %s is not a Node3D" % [get_path(), entity_path])
 	level = config.ambient

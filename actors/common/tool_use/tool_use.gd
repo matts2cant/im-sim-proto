@@ -3,24 +3,25 @@ extends Node
 ## Component of any character (ADR 0078): works a held tool on a target while the user keeps at it
 ## (the player: holding LMB with a lockpick or the deck, on what it looks at). Each tick step() gets
 ## the target, the kind of tool in hand and whether the user is holding on; it finds the target's
-## first component that takes the tool (the tool interface: `accepts_tool(tool)`,
-## `tool_hold(user, delta) -> bool` (true: finished), `tool_release(user)`; a Lock, a Device for the
-## deck, ADR 0113) and calls its tool_hold(); letting go, switching target or tool calls
-## tool_release() (a lock loses the progress). Knows nothing about specific locks or tools: each
-## tick it worked a target it says so (`worked`), so the tool's own component reacts without the
-## target knowing it (the deck plugs into a Device it works: DeckSession).
-## Ranged (M12b, ADR 0117): when nothing within reach takes the tool, the entity aimed at further
-## away (`aimed`, up to `aim_reach`: the deck aimed at an access point) is worked by its first
-## component with `accepts_ranged_tool(tool, user) -> bool` true, through the same tool_hold() and
-## tool_release().
+## first component that takes the tool and calls its tool_hold(); letting go, switching target or
+## tool calls tool_release() (a lock loses the progress). Knows nothing about specific locks or
+## tools: each tick it worked a target it says so (`worked`), so the tool's own component reacts
+## without the target knowing it (the deck plugs into a Device it works: DeckSession).
+## The tool interface (a component interface, conventions.md): a direct child of the entity in group
+## GROUP with `accepts_tool(tool) -> bool`, `tool_hold(user, delta) -> bool` (true: finished) and
+## `tool_release(user)` (a Lock, a Device for the deck, ADR 0113). Ranged (ADR 0117): when nothing
+## within reach takes the tool, the entity aimed at further away (`aimed`, up to `aim_reach`: the
+## deck aimed at an access point) is worked by its first member with
+## `accepts_ranged_tool(tool, user) -> bool` true, through the same tool_hold() and tool_release().
 
-## The user finished working `lock` (it unlocked); null for a tool target that is not a Lock.
-signal finished(lock: Lock)
 ## A tick of work on `target` (the component that took the tool) with `tool`.
 signal worked(target: Node, tool: StringName)
 
+const GROUP: StringName = &"tool_target"
 const ACCEPTS_METHOD: StringName = &"accepts_tool"
 const ACCEPTS_RANGED_METHOD: StringName = &"accepts_ranged_tool"
+const HOLD_METHOD: StringName = &"tool_hold"
+const RELEASE_METHOD: StringName = &"tool_release"
 
 @export var entity_path: NodePath = ^".."
 ## How far a ranged tool target may be aimed at (m, from the eye; its component decides the rest).
@@ -32,7 +33,7 @@ var _target: Node = null
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 
 
 static func of(node: Node) -> ToolUse:
@@ -56,42 +57,24 @@ func step(target: Node, tool: StringName, holding: bool, delta: float, aimed: No
 	if _target == null:
 		return
 	var worked_on := _target
-	var done := bool(_target.call(&"tool_hold", entity, delta))
-	if done:
+	if bool(_target.call(HOLD_METHOD, entity, delta)):
 		_target = null
 	worked.emit(worked_on, tool)
-	if done:
-		finished.emit(worked_on as Lock)
 
 
 ## Stops working the current target, if any.
 func release() -> void:
 	if _target != null and is_instance_valid(_target):
-		_target.call(&"tool_release", entity)
+		_target.call(RELEASE_METHOD, entity)
 	_target = null
-
-
-## The lock being worked now, or null.
-func active_lock() -> Lock:
-	return _target as Lock if is_instance_valid(_target) else null
-
-
-## The first Lock on `target` that accepts `tool` now, or null.
-static func find_lock(target: Node, tool: StringName) -> Lock:
-	if target == null or tool.is_empty():
-		return null
-	for lock in Lock.locks_of(target):
-		if lock.accepts_tool(tool):
-			return lock
-	return null
 
 
 ## The first component of `aimed` (in child order) that accepts `tool` from afar for `user`, or null.
 static func find_ranged_target(aimed: Node, tool: StringName, user: Node) -> Node:
 	if aimed == null or tool.is_empty():
 		return null
-	for child in aimed.get_children():
-		if child.has_method(ACCEPTS_RANGED_METHOD) and bool(child.call(ACCEPTS_RANGED_METHOD, tool, user)):
+	for child in Entities.members(aimed, GROUP, ACCEPTS_RANGED_METHOD):
+		if bool(child.call(ACCEPTS_RANGED_METHOD, tool, user)):
 			return child
 	return null
 
@@ -100,7 +83,7 @@ static func find_ranged_target(aimed: Node, tool: StringName, user: Node) -> Nod
 static func find_target(target: Node, tool: StringName) -> Node:
 	if target == null or tool.is_empty():
 		return null
-	for child in target.get_children():
-		if child.has_method(ACCEPTS_METHOD) and bool(child.call(ACCEPTS_METHOD, tool)):
+	for child in Entities.members(target, GROUP, ACCEPTS_METHOD):
+		if bool(child.call(ACCEPTS_METHOD, tool)):
 			return child
 	return null

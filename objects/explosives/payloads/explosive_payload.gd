@@ -30,7 +30,7 @@ var explosive: Explosive
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	explosive = Explosive.of(entity) if entity != null else null
 	if explosive == null:
 		push_warning("ExplosivePayload %s: its entity has no Explosive" % get_path())

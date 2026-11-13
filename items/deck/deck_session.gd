@@ -82,14 +82,14 @@ var _refresh_left: float = 0.0
 
 
 func _init() -> void:
+	add_to_group(EmpEffect.GROUP)
 	discovery = DeckDiscovery.new(self)
 
 
 func _ready() -> void:
-	add_to_group(EmpEffect.GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	EmpEffect.listen(entity)
 	var tool_use := ToolUse.of(entity)
 	if tool_use != null:

@@ -194,7 +194,7 @@ func test_lockable_saves_locked() -> void:
 	lockable.load_state(saved)
 
 	assert_bool(lockable.locked).is_true()
-	assert_bool(lockable.is_in_group(&"saveable")).is_true()
+	assert_bool(lockable.is_in_group(LevelSnapshot.GROUP)).is_true()
 
 
 # A locked minimal entity (Tags, Attributes, StimulusReceiver, Lockable; optionally Powered).

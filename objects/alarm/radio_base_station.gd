@@ -25,8 +25,12 @@ var device: Device
 var broadcast_left: float = 0.0
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null or config == null:
 		push_warning("RadioBaseStation %s: needs a Device sibling and a config" % get_path())

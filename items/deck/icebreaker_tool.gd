@@ -24,7 +24,7 @@ var device: Device
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	session = DeckSession.of(entity)
 	if session == null:
 		push_warning("IcebreakerTool %s: needs a DeckSession beside it" % get_path())

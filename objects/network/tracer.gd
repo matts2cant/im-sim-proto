@@ -46,11 +46,11 @@ var model: TraceModel
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
 	model = TraceModel.new(config)
-	entity = get_node_or_null(entity_path) as Node3D
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null:
 		push_warning("Tracer %s: needs a Device on its entity" % get_path())

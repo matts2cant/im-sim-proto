@@ -20,10 +20,10 @@ var _tags: Tags
 
 
 func _ready() -> void:
-	walker = get_node_or_null(entity_path) as NavWalker
+	walker = Entities.of_component(self, entity_path) as NavWalker
 	if config == null:
 		config = DEFAULT_CONFIG
-	_tags = ActorState.tags_of(walker)
+	_tags = Tags.of(walker)
 	if _tags != null:
 		_tags.container.changed.connect(_on_tag_changed)
 	update_layers.call_deferred()

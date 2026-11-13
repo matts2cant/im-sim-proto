@@ -38,7 +38,7 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 	var data := {"field": String(name), "radius": config.radius}
 	EventLog.record(EventKinds.JAMMING_STARTED, String(name), "", data)
 	_update_tags()

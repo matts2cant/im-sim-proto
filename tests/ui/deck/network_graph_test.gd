@@ -31,7 +31,7 @@ func before_test() -> void:
 	_graph.position = GRAPH_AT
 	_graph.size = MapChecks.GRAPH_SIZE
 	_graph.request_fit()
-	_graph.show_network(_network.rows, _network.cables, null)
+	_graph.show_network(_network.rows, _network.cables)
 
 
 func after_test() -> void:

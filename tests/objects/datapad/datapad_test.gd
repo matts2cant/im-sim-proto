@@ -117,7 +117,7 @@ func test_player_log_survives_save_and_load() -> void:
 	await _spawn_pad(&"test.storage", "Storage access", "Code 2817.", {&"storage_door": "2817"})
 	await _driver.press(&"use")
 	await _driver.press(&"ui_cancel")
-	assert_bool(_log.is_in_group(&"saveable")).is_true()
+	assert_bool(_log.is_in_group(LevelSnapshot.GROUP)).is_true()
 	var saved := _log.save_state()
 
 	_log.load_state({})

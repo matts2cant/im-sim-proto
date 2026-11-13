@@ -29,8 +29,8 @@ var _following: bool = false
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
-	body = get_node(entity_path) as RigidBody3D
+	add_to_group(LevelSnapshot.GROUP)
+	body = Entities.of_component(self, entity_path) as RigidBody3D
 
 
 static func of(node: Node) -> Sticky:

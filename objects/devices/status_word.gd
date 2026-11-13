@@ -15,6 +15,7 @@ extends Resource
 ## `frame_word() -> StatusWord` (null: nothing to say; a mine's ProximityTrigger says "Armed").
 
 const FRAME_GROUP: StringName = &"frame_status"
+const FRAME_METHOD: StringName = &"frame_word"
 
 @export var text: String = ""
 @export var color: Color = Color.WHITE

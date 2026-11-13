@@ -66,10 +66,6 @@ func set_sidebar_visible(shown: bool) -> void:
 	queue_redraw()
 
 
-func has_sidebar() -> bool:
-	return sidebar.visible
-
-
 ## Paints the header with colour `name` of the look ("header_color", "header_remote_color").
 func set_header_color(name: StringName) -> void:
 	_header_color = name
@@ -87,13 +83,6 @@ func sidebar_rect() -> Rect2:
 		return Rect2()
 	var top := float(metric(&"header_height"))
 	return Rect2(0.0, top, metric(&"sidebar_width"), size.y - top)
-
-
-## The body region (frame coordinates).
-func body_rect() -> Rect2:
-	var left := sidebar_rect().size.x
-	var top := float(metric(&"header_height"))
-	return Rect2(left, top, size.x - left, size.y - top)
 
 
 ## The frame's styleboxes: "body", "header", "sidebar" (filled, the frame's radius on their outer

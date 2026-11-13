@@ -24,7 +24,7 @@ static func of(node: Node) -> PersonalLog:
 
 
 func _ready() -> void:
-	add_to_group(&"saveable")
+	add_to_group(LevelSnapshot.GROUP)
 
 
 ## The owner read `entry` (from the entity named `from`). Returns true when it was new.

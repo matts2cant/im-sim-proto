@@ -53,9 +53,13 @@ var _queries: Array[PhysicsShapeQueryParameters3D] = []
 var _lenses_on: bool = true
 
 
+func _init() -> void:
+	add_to_group(DeviceStatus.GROUP)
+
+
 func _ready() -> void:
-	add_to_group(&"saveable")
-	entity = get_node_or_null(entity_path) as Node3D
+	add_to_group(LevelSnapshot.GROUP)
+	entity = Entities.of_component(self, entity_path) as Node3D
 	device = Device.of(entity)
 	if device == null or config == null:
 		push_warning("LaserArray %s: needs a Device sibling and a config" % get_path())
@@ -198,20 +202,17 @@ func _held_meets_beam(held: Node3D, from: Vector3, to: Vector3) -> bool:
 
 # Not ignored: no ignored tag, or a trip-anyway tag as well.
 func _trips(body: Node3D) -> bool:
-	var tags := ActorState.tags_of(_entity_of(body))
+	var tags := Tags.of(_entity_of(body))
 	if tags == null or not tags.container.has_any(config.ignored_tags):
 		return true
 	return tags.container.has_any(config.trip_anyway_tags)
 
 
-# The entity a collider belongs to: itself, or the nearest ancestor with Tags.
+# The entity a blocker belongs to: the one it stands for (Entities.of_collider()), or the nearest
+# ancestor of it with Tags.
 static func _entity_of(body: Node) -> Node:
-	var node := body
-	while node != null:
-		if ActorState.tags_of(node) != null:
-			return node
-		node = node.get_parent()
-	return body
+	var tags := Tags.above(Entities.of_collider(body))
+	return tags.get_parent() if tags != null else body
 
 
 func _trip(blocker: Node3D, beam: LaserBeam) -> void:

@@ -10,6 +10,10 @@ extends Node
 var device: Device
 
 
+func _init() -> void:
+	add_to_group(ToolUse.GROUP)
+
+
 ## The DevicePanel child of `node`, or null.
 static func of(node: Node) -> DevicePanel:
 	if node == null:

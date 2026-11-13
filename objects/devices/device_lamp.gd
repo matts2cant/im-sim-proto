@@ -36,7 +36,7 @@ var _meshes: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
-	entity = get_node_or_null(entity_path)
+	entity = Entities.of_component(self, entity_path)
 	if lamps.is_empty():
 		_paint()
 		return
