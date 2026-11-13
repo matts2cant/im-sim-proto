@@ -47,6 +47,7 @@
 [ext_resource type="PackedScene" path="res://objects/network/switch_desk.tscn" id="73_switch_desk"]
 [ext_resource type="PackedScene" path="res://objects/computer/server_rack.tscn" id="74_server_rack"]
 [ext_resource type="PackedScene" path="res://items/key/key.tscn" id="75_key"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer_desk.tscn" id="76_computer_desk"]
 
 [sub_resource type="Resource" id="Account_dmarsh"]
 script = ExtResource("40_account")
@@ -823,8 +824,8 @@ metadata/display_name = "OFFICE-JACK"
 address = "10.0.10.40"
 subnet = &"office"
 
-[node name="OfficePc1" parent="Network" instance=ExtResource("5_computer")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 5.701, 14.675)
+[node name="OfficePc1" parent="Network" instance=ExtResource("76_computer_desk")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 14.5, 5.25, 14.44)
 metadata/display_name = "OFFICE-PC1"
 
 [node name="Accounts" parent="Network/OfficePc1"]
@@ -838,17 +839,8 @@ label = "office PC 1"
 [node name="Device" parent="Network/OfficePc1"]
 address = "10.0.10.11"
 
-[node name="Shelf" parent="Network/OfficePc1"]
-visible = false
-
-[node name="BracketLeft" parent="Network/OfficePc1"]
-visible = false
-
-[node name="BracketRight" parent="Network/OfficePc1"]
-visible = false
-
-[node name="OfficePc2" parent="Network" instance=ExtResource("5_computer")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 5.701, 14.675)
+[node name="OfficePc2" parent="Network" instance=ExtResource("76_computer_desk")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 5.25, 14.44)
 metadata/display_name = "OFFICE-PC2"
 
 [node name="Accounts" parent="Network/OfficePc2"]
@@ -861,15 +853,6 @@ host_name = "OFFICE-PC2"
 label = "office PC 2"
 [node name="Device" parent="Network/OfficePc2"]
 address = "10.0.10.12"
-
-[node name="Shelf" parent="Network/OfficePc2"]
-visible = false
-
-[node name="BracketLeft" parent="Network/OfficePc2"]
-visible = false
-
-[node name="BracketRight" parent="Network/OfficePc2"]
-visible = false
 
 [node name="OfficeSwitch" parent="Network" instance=ExtResource("73_switch_desk")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18.5, 5.25, 14.5)
