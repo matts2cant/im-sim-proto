@@ -87,7 +87,7 @@ flowchart LR
 | M13a | Weapon feel loop ([ADR 0120](decisions/0120-weapon-feel.md)): accuracy blending skill and aim (closer to Counter-Strike with each tier), recoil patterns with the camera climbing, skill-scaled recoil, the submachine gun, the shooting range with live tuning sliders, a settings menu in the Esc menu | Shooting range |
 | M13b | Weapon feedback ([ADR 0120](decisions/0120-weapon-feel.md)): hit markers, impacts by material, tracers, aim punch and guard flinch, guards obeying recoil, weapon motion, per-weapon sounds | Shooting range |
 | M13c | Device overhaul ([ADR 0130](decisions/0130-device-overhaul.md)): one design language (kind colour strip, Map icon, one light, labelled ports, name plate), rack and desk versions of routers, switches, computers and alarm controllers, linking bays, door controllers as the network devices, keys and the keychain, the frame's status line and no E prompts; 3D models first, shown in a hub showroom | Hub showroom, network lab, security wing, warehouse |
-| M14 | Explosives: grenades, mines and other explosives on the existing explosion and damage systems, and a jamming grenade that drops wireless links ([ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11)) (to be designed) | to be designed |
+| M14 | Explosives ([ADR 0131](decisions/0131-grenades-mines-and-effects.md), [explosives.md](game/explosives.md)): frag, gas, EMP and jamming grenades, thrown or stuck as proximity mines (one LMB, a ghost within 1.2 m), chains through Explosive and Breakable, the "Jammed" network status, the Demolition skill; a grenade lane, a mine corridor and an EMP/jamming corner in the shooting range, grenades as warehouse loot | Shooting range, warehouse |
 | M15 | Factions: NPC groups that are allied, neutral or hostile to each other, a colour-coded crosshair, hostility in perception (to be designed) | to be designed |
 | M16 | AI overhaul: smarter combat (cover, flanking, grenades), then daily life (needs and schedules, Sims-like); starts by measuring the cost of many NPCs in a large space; guards logging in at devices, the security operator and the deck's Sniffer (moved from M12, [ADR 0112](decisions/0112-hacking-reconciled-with-the-built-game.md)) (to be designed) | AI arena |
 | M17 | Dialogue: branching conversations whose choices set story flags (to be designed) | to be designed |
@@ -133,6 +133,6 @@ Each milestone is one branch; manual checks are in [tech/playtest-checklist.md](
 
 ### Decisions and backlog
 
-- [decisions/README.md](decisions/README.md): ADR index (126 decisions, 0001–0130; 0062, 0081, 0118 and 0119 unused).
+- [decisions/README.md](decisions/README.md): ADR index (127 decisions, 0001–0131; 0062, 0081, 0118 and 0119 unused).
 - [backlog.md](backlog.md): parked items.
 - [retrospectives.md](retrospectives.md): what went wrong per milestone and the process changes made.
