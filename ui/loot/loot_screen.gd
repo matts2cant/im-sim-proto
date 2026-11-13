@@ -124,7 +124,7 @@ func close() -> void:
 		return
 	drag.clear()
 	visible = false
-	if _notices != null and _notices.posted.is_connected(show_notice):
+	if is_instance_valid(_notices) and _notices.posted.is_connected(show_notice):
 		_notices.posted.disconnect(show_notice)
 	_notices = null
 	their_grid.bind(null)

@@ -60,6 +60,19 @@ func test_opens_pauses_and_closes_on_esc_and_e() -> void:
 	assert_bool(_screen.open_screen(auto_free(Node3D.new()), _user, {})).is_false()
 
 
+func test_closes_when_the_subject_is_gone() -> void:
+	var subject := Helpers.holder(self, "Crate", Vector2i(4, 2), "Crate")
+	Helpers.inventory(subject).add(Items.MEDKIT, 1)
+	await _open(subject)
+
+	subject.free()
+	await get_tree().process_frame
+
+	assert_bool(_screen.is_open()).is_false()
+	assert_bool(get_tree().paused).is_false()
+	assert_int(OverlayFocus.count()).is_equal(0)
+
+
 func test_drag_both_ways_with_the_footprint_check() -> void:
 	var subject := Helpers.holder(self, "Locker", Vector2i(6, 5), "Locker")
 	Helpers.inventory(subject).add(Items.PISTOL, 1)

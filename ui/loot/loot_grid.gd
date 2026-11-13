@@ -36,7 +36,7 @@ func _ready() -> void:
 
 
 func bind(p_inventory: Inventory) -> void:
-	if inventory != null and inventory.changed.is_connected(queue_redraw):
+	if is_instance_valid(inventory) and inventory.changed.is_connected(queue_redraw):
 		inventory.changed.disconnect(queue_redraw)
 	inventory = p_inventory
 	selected = null
