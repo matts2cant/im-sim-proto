@@ -1,7 +1,8 @@
 class_name PauseScreens
 extends RefCounted
 ## Full-screen UI that pauses the game (ADR 0052): only the game menu (ADR 0064), the mission
-## briefing and the end-of-mission summary (ADR 0087). Every other screen (the Tab interface, the
+## briefing, the end-of-mission summary (ADR 0087) and the loot screen (ADR 0142, which also holds its
+## user's OverlayFocus to hide the HUD). Every other screen (the Tab interface, the
 ## keypad, the reading overlay, the computer screen, the lockpicking screen) keeps the world running and
 ## holds its user's OverlayFocus instead (ADR 0110, 0133).
 ## Each such CanvasLayer joins GROUP, runs with PROCESS_MODE_ALWAYS, has is_open(), and calls

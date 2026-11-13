@@ -793,3 +793,12 @@ Shooting range (hub doorway 4), then the warehouse. No debug panel needed.
 - [ ] Lockpick a door, open the debug panel (`) over it: the mouse is free; close the panel: the pick moves with the mouse again; leave with E: you can walk at once.
 - [ ] Notices still show above the belt: "No room in inventory", "Too heavy", "Energy depleted" (F-key with no energy), a deck notice after lowering the deck ("Wi-Fi crack stopped").
 - [ ] The shooting range tuning desk still opens its panel (E) and it closes when you walk away.
+
+## M14d loot screen ([ADR 0142](../decisions/0142-looting-and-the-keychain.md), [looting.md](../game/looting.md#as-built-m14d-screen))
+
+- [ ] Knock a guard out and press E on him: the loot screen opens, the world freezes (a patrolling guard stops mid-step), the HUD hides and the mouse is free. "Guard · unconscious" under "Search". Esc closes it; open it again and close it with E: you can walk and look at once, and E does not reopen it by itself.
+- [ ] Drag his pistol onto your grid: the outline is green over a free spot and red over an item or the edge; dropping on red changes nothing. Drag a medkit back onto his grid (planting). Does the grab point (the cell you grabbed lands under the mouse) feel right?
+- [ ] Drag his ammo anywhere on your grid, then onto your own ammo stack: it merges into your stack both times. Double-click an item, or click it and press Enter: it jumps to the first free spot on the other side.
+- [ ] Fill your grid, then Take all: what fits comes over, keys and cards move to your keychain, and the footer says "No room for: ..." naming what stayed.
+- [ ] Click his keycard: "Keycard added to the keychain: ..." in the footer; it shows with the blue card icon on your side and in the Inventory tab's keychain (keys keep the brass key icon).
+- [ ] Is the footer notice easy enough to notice? Is the game freezing while looting right in a fight (it is a real pause, unlike the Tab interface)?

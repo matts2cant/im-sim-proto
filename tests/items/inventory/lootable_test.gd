@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 ## prop scenes (crate, locker, desk drawers) composing Inventory, Keychain, ItemLoadout and Lootable.
 
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
-const LootScreen := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
+const LootStandIn := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
 const INVENTORY_CONFIG: InventoryConfig = preload("res://items/inventory/inventory_config.tres")
 const KEY: ItemData = preload("res://items/key/key.tres")
 const CRATE: PackedScene = preload("res://objects/containers/supply_crate.tscn")
@@ -49,7 +49,7 @@ func test_e_opens_the_loot_screen_on_the_entity_only_for_a_user_with_one() -> vo
 	assert_bool(lootable.available(looter)).is_false()
 	assert_bool(lootable.use(looter)).is_false()
 
-	var screen := LootScreen.add_to(looter) as LootScreen
+	var screen := LootStandIn.add_to(looter) as LootStandIn
 	assert_bool(lootable.available(looter)).is_true()
 	assert_bool(lootable.use(looter)).is_true()
 
@@ -64,7 +64,7 @@ func test_e_opens_the_loot_screen_on_the_entity_only_for_a_user_with_one() -> vo
 func test_a_locked_container_opens_only_with_its_key_on_the_keychain() -> void:
 	var locker := _container(LOCKER, "Locker", &"locker_a")
 	var looter := _looter("Looter")
-	var screen := LootScreen.add_to(looter) as LootScreen
+	var screen := LootStandIn.add_to(looter) as LootStandIn
 	var lootable := Lootable.of(locker)
 	assert_bool(Lockable.of(locker).locked).is_true()
 

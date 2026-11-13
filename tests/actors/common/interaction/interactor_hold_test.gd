@@ -10,7 +10,7 @@ extends GdUnitTestSuite
 const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
-const LootScreen := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
+const LootStandIn := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
 const INVENTORY_CONFIG: InventoryConfig = preload("res://items/inventory/inventory_config.tres")
 const ORIGIN := Vector3(-460, 0, -260)
 const EYE_HEIGHT := 1.6
@@ -35,7 +35,7 @@ func after_test() -> void:
 
 func test_a_tap_opens_the_loot_screen_and_a_hold_carries() -> void:
 	var walker := _walker("Porter")
-	var screen := LootScreen.add_to(walker) as LootScreen
+	var screen := LootStandIn.add_to(walker) as LootStandIn
 	var crate := await _lootable_crate()
 	var interactor := Interactor.of(walker)
 	var carrier := Carrier.of(walker)
@@ -83,7 +83,7 @@ func test_without_a_loot_screen_the_press_carries_at_once() -> void:
 
 func test_looking_away_cancels_the_hold() -> void:
 	var walker := _walker("Porter")
-	var screen := LootScreen.add_to(walker) as LootScreen
+	var screen := LootStandIn.add_to(walker) as LootStandIn
 	await _lootable_crate()
 	var interactor := Interactor.of(walker)
 	interactor.press()

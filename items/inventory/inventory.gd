@@ -101,6 +101,13 @@ func remove(stack: ItemStack, amount: int = -1) -> int:
 	return grid.remove(stack, amount)
 
 
+## A copy of `stack`'s state as it is now, its weapon's loaded rounds included (`magazine`): what a
+## copy of the stack in another inventory starts from (the loot screen moving it).
+func state_of(stack: ItemStack) -> Dictionary:
+	_sync_magazines()
+	return stack.state.duplicate(true)
+
+
 ## Puts what fits of `pickup` in; the rest stays in the world. False (and a "No room in inventory"
 ## message) when nothing fits. A key or keycard goes onto the holder's Keychain ("Key added to the
 ## keychain: <name>"), never into the grid.

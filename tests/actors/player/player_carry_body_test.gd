@@ -10,7 +10,7 @@ extends GdUnitTestSuite
 const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
-const LootScreen := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
+const LootStandIn := preload("res://tests/items/inventory/fixtures/loot_screen_stand_in.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const CARRY: CarryConfig = preload("res://actors/common/carry/carry.tres")
 const GUARD_SCENE: PackedScene = preload("res://actors/guard/guard.tscn")
@@ -46,7 +46,7 @@ func test_a_conscious_guard_is_not_offered() -> void:
 
 func test_tapping_e_loots_a_downed_guard_and_holding_e_carries_it() -> void:
 	await _load()
-	var screen := LootScreen.add_to(_player) as LootScreen
+	var screen := LootStandIn.add_to(_player) as LootStandIn
 	var guard := _guard([&"actor.guard", &"state.unconscious"])
 	# DownedPose tips the figure and hitboxes over 0.5 s (a tween): aim once it lies still.
 	await _driver.frames(60)

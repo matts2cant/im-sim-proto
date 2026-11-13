@@ -622,6 +622,38 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lkey0"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.05882353, 0.078431375, 0.09019608, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.54901963, 0.61960787, 0.65882355, 0.28)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lkey1"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.05882353, 0.078431375, 0.09019608, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.81960785, 0.3019608, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [resource]
 CharacterBar/base_type = &"ProgressBar"
 CharacterBar/styles/background = SubResource("StyleBoxFlat_4l8kl")
@@ -701,6 +733,11 @@ TabClose/styles/normal = SubResource("StyleBoxFlat_a3dgq")
 TabClose/styles/pressed = SubResource("StyleBoxFlat_61t2e")
 TabFuture/base_type = &"PanelContainer"
 TabFuture/styles/panel = SubResource("StyleBoxFlat_me3l1")
+TabKeyButton/base_type = &"Button"
+TabKeyButton/styles/disabled = SubResource("StyleBoxFlat_lkey0")
+TabKeyButton/styles/hover = SubResource("StyleBoxFlat_lkey1")
+TabKeyButton/styles/normal = SubResource("StyleBoxFlat_lkey0")
+TabKeyButton/styles/pressed = SubResource("StyleBoxFlat_lkey1")
 TabKeyCell/base_type = &"PanelContainer"
 TabKeyCell/styles/panel = SubResource("StyleBoxFlat_8f206")
 TabPanel/base_type = &"PanelContainer"
