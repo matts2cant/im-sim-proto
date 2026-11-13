@@ -31,6 +31,10 @@
 [ext_resource type="Resource" path="res://items/exploit/computer_exploit.tres" id="65_computer_exploit"]
 [ext_resource type="Resource" path="res://items/exploit/router_exploit.tres" id="66_router_exploit"]
 [ext_resource type="PackedScene" path="res://items/weapons/smg/smg_pickup.tscn" id="67_smg"]
+[ext_resource type="PackedScene" path="res://items/grenades/frag/frag_grenade_pickup.tscn" id="70_frag_grenade"]
+[ext_resource type="PackedScene" path="res://items/grenades/gas/gas_grenade_pickup.tscn" id="71_gas_grenade"]
+[ext_resource type="PackedScene" path="res://items/grenades/emp/emp_grenade_pickup.tscn" id="72_emp_grenade"]
+[ext_resource type="PackedScene" path="res://items/grenades/jamming/jamming_grenade_pickup.tscn" id="73_jamming_grenade"]
 
 [sub_resource type="Resource" id="Opening_corridor_south"]
 script = ExtResource("2_opening")
@@ -166,6 +170,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.007, -16.7)
 
 [node name="ItemPickup" parent="ItemTable/RouterExploit"]
 item = ExtResource("66_router_exploit")
+
+[node name="FragGrenade" parent="ItemTable" instance=ExtResource("70_frag_grenade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.37, 1.0525, -11.4)
+
+[node name="GasGrenade" parent="ItemTable" instance=ExtResource("71_gas_grenade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.37, 1.0525, -11.05)
+
+[node name="EmpGrenade" parent="ItemTable" instance=ExtResource("72_emp_grenade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.37, 1.0525, -10.7)
+
+[node name="JammingGrenade" parent="ItemTable" instance=ExtResource("73_jamming_grenade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.37, 1.0525, -10.35)
 
 [node name="Stacks" type="Node3D" parent="."]
 
@@ -526,6 +542,34 @@ text = "Router exploit
 1×1"
 size = 0
 pixel_size = 0.0025
+
+[node name="FragGrenade" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 2.08, -11.4)
+text = "Frag grenade
+1×1"
+size = 0
+pixel_size = 0.0018
+
+[node name="GasGrenade" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.86, -11.05)
+text = "Gas grenade
+1×1"
+size = 0
+pixel_size = 0.0018
+
+[node name="EmpGrenade" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 2.08, -10.7)
+text = "EMP grenade
+1×1"
+size = 0
+pixel_size = 0.0018
+
+[node name="JammingGrenade" parent="Labels/ItemTags" instance=ExtResource("3_sign")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5.98, 1.86, -10.35)
+text = "Jamming grenade
+1×1"
+size = 0
+pixel_size = 0.0018
 
 [node name="StackTags" type="Node3D" parent="Labels"]
 

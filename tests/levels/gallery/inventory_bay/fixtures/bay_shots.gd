@@ -24,6 +24,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"item_table_long": {"feet": Vector3(-3.2, 0, -4.6), "look": Vector3(-5.6, 1.1, -12)},
 	# M13a: the submachine gun beside the assault rifle.
 	"item_table_rifles": {"feet": Vector3(-4.4, 0, -12.2), "look": Vector3(-5.6, 1.2, -12.2)},
+	# M14a: the four grenades in front of the sniper rifle.
+	"item_table_grenades": {"feet": Vector3(-4.2, 0, -11.0), "look": Vector3(-5.6, 1.25, -11.0)},
 	"stacks": {"feet": Vector3(4.0, 0, -6.6), "look": Vector3(5.6, 1.1, -6.6)},
 	"fill_grid": {"feet": Vector3(3.4, 0, -12.0), "look": Vector3(5.5, 1.0, -12.0)},
 	"datapad": {"feet": Vector3(3.75, 0, -17.3), "look": Vector3(3.75, 1.12, -18.7)},
