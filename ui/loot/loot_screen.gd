@@ -1,8 +1,8 @@
 class_name LootScreen
 extends UserScreen
 ## The loot screen (ADR 0142, design/game/looting.md; approved mockup design/prototypes/looting.html),
-## a child of its user that answers to SCREEN: whatever asks for it (E on a downed character or an
-## unlocked container) calls Screens.open(user, SCREEN, entity). The subject is any entity with an
+## a child of its user that answers to Lootable.SCREEN: a Lootable (E on a downed character or an
+## unlocked container) calls Screens.open(user, Lootable.SCREEN, entity). The subject is any entity with an
 ## Inventory (a Keychain optional); the user needs an Inventory too. Nothing here knows what the
 ## subject is: its name and state come from EntityNames and the interaction frame's words.
 ## - Layout (the Tab interface's look, tab_theme.tres): a panel over the dimmed world; the header
@@ -22,8 +22,6 @@ extends UserScreen
 
 signal closed
 
-## Lootable.SCREEN (the M14d systems side) once it lands.
-const SCREEN: StringName = &"loot"
 const LAYER: int = 22
 const PANEL_MARGIN: float = 0.07
 const TITLE := "Search"
@@ -76,7 +74,7 @@ func _exit_tree() -> void:
 
 
 func screen_id() -> StringName:
-	return SCREEN
+	return Lootable.SCREEN
 
 
 ## `subject`: the entity looted (it has an Inventory). No options.

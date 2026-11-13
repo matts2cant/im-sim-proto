@@ -178,7 +178,7 @@ func _key_id() -> StringName:
 # True when `user` carries its key (on a Keychain: ADR 0130). A lock without a key id has none.
 func _has_key(user: Node) -> bool:
 	var keychain := Keychain.of(user)
-	return keychain != null and keychain.has_key(_key_id())
+	return keychain != null and keychain.has_key(_key_id(), Keychain.KEY)
 
 
 func _seed() -> int:

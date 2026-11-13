@@ -38,7 +38,7 @@ func test_opens_pauses_and_closes_on_esc_and_e() -> void:
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_str(_screen.who_label.text).is_equal("Guard · unconscious")
 	assert_str(_screen.their_caption.text).is_equal("GUARD")
-	assert_bool(Screens.is_open(_user, LootScreen.SCREEN, _subject)).is_true()
+	assert_bool(Screens.is_open(_user, Lootable.SCREEN, _subject)).is_true()
 
 	_screen._unhandled_input(Helpers.action(&"ui_cancel"))
 	assert_bool(_screen.is_open()).is_false()
@@ -149,7 +149,7 @@ func test_take_all_into_a_full_inventory_says_what_stayed() -> void:
 	Helpers.inventory(subject).add(Items.PISTOL, 1)
 	Helpers.inventory(subject).add(Items.BATON, 1)
 	Helpers.inventory(subject).add(Items.AMMO, 24)
-	Helpers.give_key(subject, "sec_card", "Security room", LootRules.CARD)
+	Helpers.give_key(subject, "sec_card", "Security room", Keychain.CARD)
 	await _open(subject, Vector2i(2, 2))
 	Helpers.inventory(_user).add(Items.MEDKIT, 1)
 	Helpers.inventory(_user).add(Items.AMMO, 6)
@@ -168,15 +168,15 @@ func test_take_all_into_a_full_inventory_says_what_stayed() -> void:
 
 func test_a_key_or_card_moves_with_a_click_and_its_icon() -> void:
 	var subject := Helpers.downed(self)
-	Helpers.give_key(subject, "sec_card", "Security room", LootRules.CARD)
-	Helpers.give_key(subject, "office_key", "Office bay", LootRules.KEY)
+	Helpers.give_key(subject, "sec_card", "Security room", Keychain.CARD)
+	Helpers.give_key(subject, "office_key", "Office bay", Keychain.KEY)
 	await _open(subject)
-	Helpers.give_key(_user, "warehouse", "Warehouse office", LootRules.KEY)
+	Helpers.give_key(_user, "warehouse", "Warehouse office", Keychain.KEY)
 	_screen.refresh()
 	var rows := _rows(_screen.their_keys)
 	(
 		assert_array(rows.map(func(row: LootKeyRow) -> StringName: return row.icon_node.kind))
-		. contains_exactly([LootRules.CARD, LootRules.KEY])
+		. contains_exactly([Keychain.CARD, Keychain.KEY])
 	)
 
 	rows[0].pressed.emit()
@@ -199,22 +199,22 @@ func test_a_key_or_card_moves_with_a_click_and_its_icon() -> void:
 func test_the_inventory_tab_keychain_shows_both_icons() -> void:
 	var holder := Helpers.holder(self, "Holder")
 	auto_free(holder)
-	Helpers.give_key(holder, "office_key", "Office bay", LootRules.KEY)
-	Helpers.give_key(holder, "sec_card", "Security room", LootRules.CARD)
+	Helpers.give_key(holder, "office_key", "Office bay", Keychain.KEY)
+	Helpers.give_key(holder, "sec_card", "Security room", Keychain.CARD)
 	var list: KeychainList = auto_free(KeychainList.new())
 	add_child(list)
 
 	list.bind(Helpers.keychain(holder))
 
-	assert_array(list.kinds()).contains_exactly([LootRules.KEY, LootRules.CARD])
+	assert_array(list.kinds()).contains_exactly([Keychain.KEY, Keychain.CARD])
 	assert_array(list.names()).contains_exactly(["Office bay", "Security room"])
 
 
 func test_the_players_screens_make_it() -> void:
 	var player: Node = auto_free(load(PLAYER).instantiate())
 	var screens := Screens.of(player)
-	assert_bool(Screens.has(player, LootScreen.SCREEN)).is_true()
-	assert_str(screens.scenes[LootScreen.SCREEN].resource_path).is_equal("res://ui/loot/loot_screen.tscn")
+	assert_bool(Screens.has(player, Lootable.SCREEN)).is_true()
+	assert_str(screens.scenes[Lootable.SCREEN].resource_path).is_equal("res://ui/loot/loot_screen.tscn")
 
 
 func _rows(box: VBoxContainer) -> Array[LootKeyRow]:

@@ -64,8 +64,8 @@ func _process(delta: float) -> void:
 
 
 func _act() -> void:
-	Screens.open(_player, LootScreen.SCREEN, _guard)
-	_screen = Screens.find(_player, LootScreen.SCREEN) as LootScreen
+	Screens.open(_player, Lootable.SCREEN, _guard)
+	_screen = Screens.find(_player, Lootable.SCREEN) as LootScreen
 	match shot:
 		"take_all":
 			_screen.take_all()
@@ -99,7 +99,7 @@ func _swap_keychain() -> void:
 	var old := Keychain.of(_player)
 	_player.remove_child(old)
 	old.free()
-	var keys := Helpers.KeychainStandIn.new()
+	var keys := Keychain.new()
 	keys.name = "Keychain"
 	_player.add_child(keys)
 	(TabInterface.of(_player).page(0) as InventoryTab).keychain_list.bind(keys)
@@ -111,12 +111,12 @@ func _give() -> void:
 	inventory.add(Items.AMMO, 12)
 	inventory.add(Items.LOCKPICK, 3)
 	inventory.add(Items.BIOCELL, 1)
-	Helpers.give_key(_player, "warehouse_office", "Warehouse office", LootRules.KEY)
+	Helpers.give_key(_player, "warehouse_office", "Warehouse office", Keychain.KEY)
 	_guard = Helpers.downed(get_parent())
 	var theirs := Helpers.inventory(_guard)
 	theirs.add(Items.PISTOL, 1, {"magazine": 6})
 	theirs.add(Items.AMMO, 24)
 	theirs.add(Items.MEDKIT, 1)
 	theirs.add(Items.BATON, 1)
-	Helpers.give_key(_guard, "security_room", "Security room", LootRules.CARD)
-	Helpers.give_key(_guard, "office_bay", "Office bay", LootRules.KEY)
+	Helpers.give_key(_guard, "security_room", "Security room", Keychain.CARD)
+	Helpers.give_key(_guard, "office_bay", "Office bay", Keychain.KEY)

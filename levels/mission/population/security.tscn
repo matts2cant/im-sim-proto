@@ -1093,13 +1093,13 @@ code_labels = Dictionary[StringName, String]({&"warehouse_office_pc1": "Office P
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.65, 0.53, 10.2)
 
 [node name="ItemPickup" parent="Items/KeycardSecurity"]
-state = {"key_id": "warehouse_security"}
+state = {"key_id": "warehouse_security", "key_name": "Security keycard"}
 
 [node name="KeycardVault" parent="Items" instance=ExtResource("13_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.35, 0.83, 2.4)
 
 [node name="ItemPickup" parent="Items/KeycardVault"]
-state = {"key_id": "warehouse_vault"}
+state = {"key_id": "warehouse_vault", "key_name": "Vault keycard"}
 
 [node name="TowerNotes" parent="Items" instance=ExtResource("12_datapad")]
 transform = Transform3D(0.866, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866, 43.5, 20.03, -12.6)

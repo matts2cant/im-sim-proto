@@ -1,12 +1,11 @@
 extends RefCounted
 ## Test helper (not a suite): loot screen fixtures built in code (ADR 0142). Holders are any node
-## with an Inventory, a keychain (the M14d contract's stand-in: kinds, remove()) and Notices; the
+## with an Inventory, a Keychain and Notices; the
 ## downed one is a minimal character (BodyParts, Tags) knocked out. The screen is instanced as the
 ## user's child, as the user's Screens would. Mouse events go straight to a LootGrid's _gui_input
 ## (headless GUI does not route pushed events); positions are local to the grid pressed, which keeps
 ## the mouse until the release, as in the engine.
 
-const KeychainStandIn := preload("res://tests/ui/loot/fixtures/keychain_stand_in.gd")
 const CharacterFixtures := preload("res://tests/actors/common/character_fixtures.gd")
 const SCREEN: PackedScene = preload("res://ui/loot/loot_screen.tscn")
 
@@ -40,7 +39,7 @@ static func equip(node: Node, grid: Vector2i) -> void:
 	config.grid_size = grid
 	inventory.config = config
 	node.add_child(inventory)
-	var keys := KeychainStandIn.new()
+	var keys := Keychain.new()
 	keys.name = "Keychain"
 	node.add_child(keys)
 	var notices := Notices.new()
@@ -56,9 +55,9 @@ static func keychain(node: Node) -> Keychain:
 	return Keychain.of(node)
 
 
-## Adds key `id` of `kind` to `node`'s keychain (the stand-in's add()).
+## Adds key `id` of `kind` to `node`'s keychain.
 static func give_key(node: Node, id: String, key_name: String, kind: StringName) -> void:
-	Keychain.of(node).call(&"add", StringName(id), key_name, "Found on the guard", kind)
+	Keychain.of(node).add(StringName(id), key_name, "Found on the guard", kind)
 
 
 ## The loot screen as `user`'s child.

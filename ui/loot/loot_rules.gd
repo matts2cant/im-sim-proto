@@ -12,11 +12,6 @@ extends RefCounted
 ## - move_key(): a key or card from one keychain to the other, keeping its kind.
 ## A moved stack keeps its state (a weapon's loaded rounds, fitted attachments: Inventory.state_of()).
 
-## Keychain entry kinds (the entry's "kind"; none: a key).
-const KEY: StringName = &"key"
-const CARD: StringName = &"card"
-const KEY_ADDED := "Key added to the keychain: %s"
-const CARD_ADDED := "Keycard added to the keychain: %s"
 const TOOK_ALL := "Took everything"
 const NO_ROOM_FOR := "No room for: %s"
 const NO_ROOM := "No room"
@@ -100,34 +95,32 @@ static func room_for(inventory: Inventory, item: ItemData) -> int:
 	return room
 
 
-## The kind of keychain `entry` (KEY when it has none).
+## The kind of keychain `entry` (Keychain.KEY when it has none).
 static func kind_of(entry: Dictionary) -> StringName:
 	var kind := StringName(str(entry.get("kind", "")))
-	return CARD if kind == CARD else KEY
+	return Keychain.CARD if kind == Keychain.CARD else Keychain.KEY
 
 
 ## The notice for `entry` reaching the player's keychain.
 static func key_notice(entry: Dictionary) -> String:
-	return (CARD_ADDED if kind_of(entry) == CARD else KEY_ADDED) % str(entry.get("name", ""))
+	return Keychain.added_message(kind_of(entry), str(entry.get("name", "")))
 
 
 ## The kind's word under a keychain row ("Keycard", "Key").
 static func kind_word(entry: Dictionary) -> String:
-	return "Keycard" if kind_of(entry) == CARD else "Key"
+	return "Keycard" if kind_of(entry) == Keychain.CARD else "Key"
 
 
 ## Moves key `key_id` from `from` to `to` with its name, where it was found and its kind. Returns the
-## entry moved ({}: none, or `to` already holds it).
-## The one place that uses the M14d keychain contract (Keychain.remove(key_id) -> Dictionary and
-## Keychain.add(key_id, key_name, found, kind)): called through call() until that lands.
+## entry moved ({}: none, or `to` already holds it): Keychain.remove() and Keychain.add().
 static func move_key(from: Keychain, to: Keychain, key_id: String) -> Dictionary:
 	if from == null or to == null or from == to or key_id.is_empty() or to.has_key(StringName(key_id)):
 		return {}
-	var entry: Dictionary = from.call(&"remove", StringName(key_id))
+	var entry := from.remove(StringName(key_id))
 	if entry.is_empty():
 		return {}
 	var id := StringName(str(entry.get("id", key_id)))
-	to.call(&"add", id, str(entry.get("name", "")), str(entry.get("found", "")), kind_of(entry))
+	to.add(id, str(entry.get("name", "")), str(entry.get("found", "")), kind_of(entry))
 	return entry
 
 

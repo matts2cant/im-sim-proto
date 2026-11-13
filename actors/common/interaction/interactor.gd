@@ -14,6 +14,11 @@ extends Node
 ## unavailable (`Usable.available()`: a broken door). `looked_at` is the entity under the crosshair
 ## within reach (ToolUse works a held tool on it, ADR 0078; the frame shows devices, powered things
 ## and characters there).
+## Hold (ADR 0142): a target that is used and could also be carried (a downed body with a Lootable:
+## E loots it) has a hold action, `hold_kind` (CARRY or TOO_HEAVY). Its controller then calls press()
+## on the key's press and step_hold() every tick: released before `config.hold_time` s it does the
+## tap (perform()), held that long it carries (perform_hold()); looking away cancels. A target without
+## a hold action acts on the press, as before.
 
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 
@@ -36,6 +41,13 @@ var prompt: String = ""
 var target_name: String = ""
 ## The entity under the crosshair within reach (a hitbox's character), or null; null while carrying.
 var looked_at: Node = null
+## What holding the use key does to `target` (CARRY, TOO_HEAVY), NONE when the press acts at once.
+var hold_kind: Kind = Kind.NONE
+
+## The target of the hold in progress (press() on a target with a hold action), or null.
+var _hold_target: Node = null
+## Seconds the key has been held on `_hold_target`; < 0 while no hold is in progress.
+var _held_for: float = -1.0
 
 
 ## HUD prompt for an interaction kind with the target's name and count.
@@ -85,6 +97,7 @@ static func display_name_of(node: Node) -> String:
 ## tick).
 func refresh() -> void:
 	kind = Kind.NONE
+	hold_kind = Kind.NONE
 	target = null
 	target_name = ""
 	looked_at = null
@@ -121,13 +134,65 @@ func refresh() -> void:
 		if text.is_empty():
 			text = prompt_for(Kind.USE, usable_name, 1, usable.verb)
 		_resolve(Kind.USE, seen, text, usable_name)
-	elif body != null and carrier != null and Carrier.can_offer(body):
-		var heavy := not CarryRules.can_carry(Carryable.mass_of(body), carrier.mass_limit())
-		var carry_kind := Kind.TOO_HEAVY if heavy else Kind.CARRY
+		hold_kind = _carry_kind(body, carrier)
+	elif _carry_kind(body, carrier) != Kind.NONE:
+		var carry_kind := _carry_kind(body, carrier)
 		var body_name := display_name_of(seen)
 		_resolve(carry_kind, seen, prompt_for(carry_kind, body_name), body_name)
 	else:
 		prompt = ""
+
+
+## The key went down (the controller's press edge): acts at once (perform()) unless the target has a
+## hold action, which starts a hold (step_hold() decides). True when something happened now.
+func press() -> bool:
+	refresh()
+	if hold_kind == Kind.NONE:
+		_held_for = -1.0
+		return perform()
+	_hold_target = target
+	_held_for = 0.0
+	return false
+
+
+## Called by the controller every physics tick after press(), `held`: the key is still down. Held
+## `config.hold_time` s on the same target: perform_hold(); released sooner: perform() (the tap);
+## the target changed (looked away, it got up): nothing.
+func step_hold(held: bool, delta: float) -> void:
+	if _held_for < 0.0:
+		return
+	if not is_instance_valid(_hold_target) or target != _hold_target:
+		_end_hold()
+		return
+	if held:
+		_held_for += delta
+		if _held_for >= config.hold_time:
+			_end_hold()
+			perform_hold()
+		return
+	_end_hold()
+	perform()
+
+
+## True while a press on a target with a hold action waits for its release or the hold time.
+func is_holding() -> bool:
+	return _held_for >= 0.0
+
+
+## 0..1 of the hold time held so far (0 when no hold is in progress).
+func hold_progress() -> float:
+	return clampf(_held_for / maxf(config.hold_time, 0.001), 0.0, 1.0) if is_holding() else 0.0
+
+
+## The hold action on the current target (carry it, or "Too heavy"). True when it happened.
+func perform_hold() -> bool:
+	refresh()
+	if hold_kind != Kind.CARRY and hold_kind != Kind.TOO_HEAVY:
+		return false
+	var done := Carrier.of(entity).try_pick_up_body(target as PhysicsBody3D)
+	if not done:
+		Notices.send(entity, TOO_HEAVY)
+	return done
 
 
 ## E: does what the prompt says. Returns true when something happened. When it did nothing, a
@@ -158,6 +223,19 @@ func perform() -> bool:
 	if not why.is_empty():
 		Notices.send(entity, why)
 	return done
+
+
+func _end_hold() -> void:
+	_held_for = -1.0
+	_hold_target = null
+
+
+# CARRY or TOO_HEAVY when `carrier` is offered `body`, else NONE.
+static func _carry_kind(body: PhysicsBody3D, carrier: Carrier) -> Kind:
+	if body == null or carrier == null or not Carrier.can_offer(body):
+		return Kind.NONE
+	var heavy := not CarryRules.can_carry(Carryable.mass_of(body), carrier.mass_limit())
+	return Kind.TOO_HEAVY if heavy else Kind.CARRY
 
 
 func _resolve(p_kind: Kind, p_target: Node, text: String, p_name: String) -> void:

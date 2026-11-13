@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Unit: pure lock logic (ADR 0078): code check, keycard match, power loss,
+## Unit: pure lock logic (ADR 0078): code check, power loss,
 ## keypad reminder, navigation access layers and the keypad's digit entry.
 
 
@@ -10,15 +10,6 @@ func test_code_matches_only_the_exact_code() -> void:
 	assert_bool(LockRules.code_matches("", "2817")).is_false()
 	# A lock without a code never opens by code.
 	assert_bool(LockRules.code_matches("", "")).is_false()
-
-
-func test_key_matches_the_access_id() -> void:
-	var keys: Array[String] = ["office", "vault"]
-	assert_bool(LockRules.key_matches(&"vault", keys)).is_true()
-	assert_bool(LockRules.key_matches(&"storage", keys)).is_false()
-	var empty_keys: Array[String] = [""]
-	# An empty access id opens to no key, not even an empty one.
-	assert_bool(LockRules.key_matches(&"", empty_keys)).is_false()
 
 
 func test_power_loss_unlocks_fail_safe_only() -> void:

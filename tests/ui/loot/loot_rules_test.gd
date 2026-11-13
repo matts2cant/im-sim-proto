@@ -95,8 +95,8 @@ func test_take_all_takes_what_fits_and_every_key() -> void:
 	theirs.add(Items.PISTOL, 1)
 	theirs.add(Items.MEDKIT, 2)
 	theirs.add(Items.BATON, 1)
-	Helpers.give_key(_them, "sec_card", "Security room", LootRules.CARD)
-	Helpers.give_key(_them, "office_key", "Office bay", LootRules.KEY)
+	Helpers.give_key(_them, "sec_card", "Security room", Keychain.CARD)
+	Helpers.give_key(_them, "office_key", "Office bay", Keychain.KEY)
 
 	var stayed := LootRules.take_all(theirs, mine, Helpers.keychain(_them), Helpers.keychain(tight))
 
@@ -111,9 +111,9 @@ func test_take_all_takes_what_fits_and_every_key() -> void:
 
 
 func test_a_key_moves_with_its_kind() -> void:
-	Helpers.give_key(_them, "sec_card", "Security room", LootRules.CARD)
-	Helpers.give_key(_you, "office_key", "Office bay", LootRules.KEY)
-	Helpers.give_key(_them, "office_key", "Office bay", LootRules.KEY)
+	Helpers.give_key(_them, "sec_card", "Security room", Keychain.CARD)
+	Helpers.give_key(_you, "office_key", "Office bay", Keychain.KEY)
+	Helpers.give_key(_them, "office_key", "Office bay", Keychain.KEY)
 
 	var entry := LootRules.move_key(Helpers.keychain(_them), Helpers.keychain(_you), "sec_card")
 

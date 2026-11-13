@@ -4,11 +4,11 @@ extends Control
 ## key (a ring and a blade with two teeth) for a key, a blue card (a rounded card with a stripe and a
 ## chip line) for a keycard. Drawn on a 24-unit square scaled to the control.
 
-## LootRules.KEY or LootRules.CARD (anything else: a key).
-var kind: StringName = LootRules.KEY
+## Keychain.KEY or Keychain.CARD (anything else: a key).
+var kind: StringName = Keychain.KEY
 
 
-func _init(p_kind: StringName = LootRules.KEY) -> void:
+func _init(p_kind: StringName = Keychain.KEY) -> void:
 	kind = p_kind
 	custom_minimum_size = Vector2(20, 20)
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -17,14 +17,14 @@ func _init(p_kind: StringName = LootRules.KEY) -> void:
 
 ## The colour it is drawn in.
 func colour() -> Color:
-	return TabStyle.CARD if kind == LootRules.CARD else TabStyle.AMBER
+	return TabStyle.CARD if kind == Keychain.CARD else TabStyle.AMBER
 
 
 func _draw() -> void:
 	var unit := minf(size.x, size.y) / 24.0
 	var width := maxf(1.5 * unit, 1.0)
 	var tint := colour()
-	if kind == LootRules.CARD:
+	if kind == Keychain.CARD:
 		_draw_card(unit, width, tint)
 		return
 	draw_arc(Vector2(7, 12) * unit, 4.0 * unit, 0.0, TAU, 20, tint, width, true)

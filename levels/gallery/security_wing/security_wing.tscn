@@ -770,7 +770,7 @@ count = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.26, 1.02, 7.75)
 
 [node name="ItemPickup" parent="Items/Keycard"]
-state = {"key_id": "security_booth"}
+state = {"key_id": "security_booth", "key_name": "Security booth keycard"}
 
 [node name="BoothLogin" parent="Items" instance=ExtResource("25_datapad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 1.03, 8.74)

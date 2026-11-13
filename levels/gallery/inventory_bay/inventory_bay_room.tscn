@@ -103,7 +103,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.06, -8.54)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.006, -9.1)
 
 [node name="ItemPickup" parent="ItemTable/Keycard"]
-state = {"key_id": "inventory_bay"}
+state = {"key_id": "inventory_bay", "key_name": "Inventory bay keycard"}
 
 [node name="Shotgun" parent="ItemTable" instance=ExtResource("20_shotgun")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.1075, -9.75)

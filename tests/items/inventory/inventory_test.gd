@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0139): the Inventory component on minimal non-player entities (stimulus fixtures
-## with an Inventory child): found with Inventory.of(), its queries (stacks, count, key ids), add /
-## take / remove, a key going onto the holder's Keychain, its own save (saveable unless the entity
-## saves it), and a keycard reader opening for a carried keycard. The player's layer over it (belt,
-## hand) is in player_inventory_test.gd.
+## with an Inventory child): found with Inventory.of(), its queries (stacks, count), add / take /
+## remove, keys and keycards going onto the holder's Keychain (ADR 0142), its own save (saveable
+## unless the entity saves it), and a keycard reader opening for a keycard on the keychain. The
+## player's layer over it (belt, hand) is in player_inventory_test.gd.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -56,17 +56,21 @@ func test_take_and_remove_change_the_count_and_report_what_moved() -> void:
 	assert_int(inventory.count(Items.MEDKIT)).is_equal(1)
 
 
-func test_keycards_give_their_key_ids_and_keys_go_on_the_keychain() -> void:
+func test_keys_and_keycards_go_on_the_keychain_with_their_kind() -> void:
 	var holder := _holder("Guard", true)
 	var inventory := Inventory.of(holder)
-	inventory.add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "vault"})
+	assert_int(inventory.add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "vault"})).is_equal(0)
 	inventory.add(Items.MEDKIT, 1)
 
 	assert_int(inventory.add(KEY, 1, {ItemStack.KEY_ID: "gate", ItemStack.KEY_NAME: "Gate padlock"})).is_equal(0)
 
-	assert_array(inventory.key_ids()).contains_exactly(["vault"])
-	assert_bool(Keychain.of(holder).has_key(&"gate")).is_true()
+	var keychain := Keychain.of(holder)
+	assert_bool(keychain.has_key(&"gate", Keychain.KEY)).is_true()
+	assert_bool(keychain.has_key(&"vault", Keychain.CARD)).is_true()
+	assert_bool(keychain.has_key(&"vault", Keychain.KEY)).is_false()
 	assert_int(inventory.count(KEY)).is_equal(0)
+	assert_int(inventory.count(Items.KEYCARD)).is_equal(0)
+	assert_int(inventory.stacks().size()).is_equal(1)
 	# Without a keychain a key does not fit anywhere.
 	var other := Inventory.of(_holder("Other"))
 	assert_int(other.add(KEY, 1, {ItemStack.KEY_ID: "gate"})).is_equal(1)
@@ -75,8 +79,8 @@ func test_keycards_give_their_key_ids_and_keys_go_on_the_keychain() -> void:
 func test_a_keycard_carried_by_a_minimal_character_opens_its_reader() -> void:
 	var box := _reader_box(&"vault")
 	var reader := box.get_node("Reader") as KeycardLock
-	var guard := _holder("Guard")
-	var stranger := _holder("Stranger")
+	var guard := _holder("Guard", true)
+	var stranger := _holder("Stranger", true)
 	Inventory.of(stranger).add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "office"})
 
 	assert_bool(reader.use_locked(guard)).is_false()

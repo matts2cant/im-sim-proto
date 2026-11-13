@@ -450,7 +450,8 @@ func _register_debug_tab() -> void:
 	DebugPanel.register_tab("Stats", _stats_tab as Control)
 
 
-# use: the Interactor (pick up, use, carry, put down); drop_throw: drop what is carried, else the
+# use: the Interactor (pick up, use, carry, put down; on a downed body a tap loots and a hold
+# carries: Interactor.press() / step_hold()); drop_throw: drop what is carried, else the
 # item in hand; fire: throw while carrying, else use the item in hand (fire the weapon, use a
 # medkit; a tool is worked while LMB is held: _step_tool); reload; holster: empty hands; belt keys:
 # the belt slot (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F5:
@@ -475,7 +476,7 @@ func _handle_actions() -> void:
 			continue
 		match action:
 			&"use":
-				interactor.perform()
+				interactor.press()
 			&"drop_throw":
 				if carry.is_carrying():
 					carry.drop()
@@ -499,6 +500,8 @@ func _handle_actions() -> void:
 				augmentations.toggle_slot(AUG_ACTIONS.find(action) + 1)
 			_:
 				inventory.select_slot(BELT_ACTIONS.find(action))
+	# A press on a target with a hold action: a tap does it on release, a hold carries (ADR 0142).
+	interactor.step_hold(_actions_held.get(&"use", false), get_physics_process_delta_time())
 
 
 # Holding LMB with a tool in hand works it on what the crosshair is on (ToolUse: a lockpick on a

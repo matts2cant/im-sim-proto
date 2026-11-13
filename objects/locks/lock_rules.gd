@@ -1,6 +1,6 @@
 class_name LockRules
 extends RefCounted
-## Pure lock logic (ADR 0078): code check, key match, power loss, keypad reminder, free side, and
+## Pure lock logic (ADR 0078): code check, power loss, keypad reminder, free side, and
 ## what opens a locked thing in words (ADR 0130: the frame's lock line, E's "Locked: needs ..." message).
 
 ## Lock.locked_reason() -> the word the frame shows ("keypad" -> "code"); others as they are.
@@ -17,11 +17,6 @@ const NEEDS: Dictionary[String, String] = {
 ## True when `entered` is the lock's `code` (a lock without a code never opens by code).
 static func code_matches(entered: String, code: String) -> bool:
 	return not code.is_empty() and entered == code
-
-
-## True when one of `key_ids` opens a lock with `access_id` (an empty access id opens to no key).
-static func key_matches(access_id: StringName, key_ids: Array[String]) -> bool:
-	return not String(access_id).is_empty() and key_ids.has(String(access_id))
 
 
 ## Whether a lock is still locked after losing power: a fail-safe lock unlocks, a fail-secure one

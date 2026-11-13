@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 ## ADR 0087). Picking up the prototype in the vault completes optional objective A; the shipment
 ## on the dock is sabotaged by blowing up its fuel drum or by setting one of its crates on fire
 ## (optional B); the gas cylinders outside the weak wall chain-explode and break the wall's panel
-## open (loudly); the catwalk rifle guard, knocked out, drops its assault rifle. The level runs with
+## open (loudly); the catwalk rifle guard, knocked out, keeps its assault rifle in its inventory. The level runs with
 ## its population and the Mission (fixture `warehouse_player.tscn`); props are found by their tags
 ## and components.
 
@@ -111,7 +111,7 @@ func test_the_gas_cylinders_breach_the_weak_wall_loudly() -> void:
 	assert_float(loudest).is_greater_equal(60.0)
 
 
-func test_the_catwalk_rifle_guard_drops_its_assault_rifle() -> void:
+func test_the_catwalk_rifle_guard_keeps_its_assault_rifle_for_looting() -> void:
 	await _setup()
 	var guard := _people().get_node("Guards/G4CatwalkRifle") as Node3D
 	assert_str(String((guard.get_node("Aim/WeaponHolder") as WeaponHolder).weapons[0].item_id)).is_equal(
@@ -121,13 +121,8 @@ func test_the_catwalk_rifle_guard_drops_its_assault_rifle() -> void:
 	(guard.get_node("BodyParts") as BodyParts).take_damage(&"damage.stun", 200.0)
 	await Wait.frames(get_tree(), 3)
 
-	var dropped: Array[Node3D] = []
-	for node in _level.find_children("*", "RigidBody3D", true, false):
-		var pickup := ItemPickup.of(node)
-		if pickup != null and pickup.item.id == &"assault_rifle":
-			dropped.append(node as Node3D)
-	assert_int(dropped.size()).is_equal(1)
-	assert_float(dropped[0].global_position.distance_to(guard.global_position)).is_less(1.5)
+	# Into its own inventory (ADR 0142), found by looting it.
+	assert_int(Inventory.of(guard).grid.count_of(&"assault_rifle")).is_equal(1)
 
 
 func _setup() -> void:
