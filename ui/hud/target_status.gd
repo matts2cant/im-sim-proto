@@ -9,7 +9,7 @@ extends RefCounted
 ##   DeviceStatus.is_disabled()) / Broken / No power in the status light's colours; a powered thing
 ##   off any network says Powered / No power / Broken; a character says nothing while awake,
 ##   Unconscious or Dead; anything else nothing (a Device off any network without power wiring says
-##   only Broken).
+##   only Broken, or No power while an EMP's outage lasts).
 ## The network rule is the one the status lights show, read from NetworkState (links_of(),
 ## is_networked(), on_network()) so the HUD does not depend on a light being attached; the colours
 ## are StatusLight.COLORS.
@@ -134,6 +134,9 @@ static func word_of(entity: Node, links: Array[Device]) -> Word:
 		return network_word(device.is_powered(), broken, disabled, has_network, DeviceNetwork.is_jammed(device))
 	if powered != null:
 		return powered_word(powered.is_on() and not ActorState.has(entity, Device.UNPOWERED), broken)
+	if device != null and not device.is_powered():
+		# No power wiring but knocked out (an EMP): no power while it lasts.
+		return powered_word(false, broken)
 	return Word.BROKEN if broken else Word.NONE
 
 
