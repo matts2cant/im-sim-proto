@@ -44,7 +44,7 @@ func test_closes_on_death_and_the_player_can_leave() -> void:
 	await _driver.frames(2)
 
 	assert_bool(_tabs.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 	assert_bool((_player.get_node("Hud") as CanvasLayer).visible).is_true()
 	# The losing screen's game menu (Load) opens on Esc.
 	await _driver.press(&"ui_cancel")
@@ -60,7 +60,7 @@ func test_closes_on_knockout() -> void:
 
 	assert_bool(ActorState.can_act(_player)).is_false()
 	assert_bool(_tabs.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 
 
 func test_not_over_the_reading_overlay() -> void:

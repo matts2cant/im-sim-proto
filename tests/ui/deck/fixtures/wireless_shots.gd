@@ -97,7 +97,7 @@ func _stage() -> void:
 			_wireless.job.progress = 0.98
 			await _seconds(0.5)
 			if _shot == "joined_map":
-				_screen.show_tool(DeckScreen.Tool.MAP)
+				_screen.show_tool(DeckScreen.MAP)
 				await _seconds(0.4)
 				_screen.refresh()
 				_screen.graph.fit_view()

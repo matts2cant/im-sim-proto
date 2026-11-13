@@ -13,8 +13,6 @@ var heat_overlay: HeatOverlay
 ## Device labels and cables (ADR 0083); also outside the tabs.
 var network_overlay: NetworkOverlay
 
-var _mouse_mode_before_open: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
-
 @onready var _tabs: TabContainer = $TabContainer
 
 
@@ -51,12 +49,13 @@ func is_open() -> bool:
 	return visible
 
 
+## Open, it holds every player's focus (OverlayFocus: their input off, the mouse free); closed, the
+## mouse goes back to its mode from before.
 func set_open(open: bool) -> void:
 	if open == visible:
 		return
-	if open:
-		_mouse_mode_before_open = Input.mouse_mode
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	else:
-		Input.mouse_mode = _mouse_mode_before_open
 	visible = open
+	if open:
+		OverlayFocus.acquire_all(self)
+	else:
+		OverlayFocus.release(self)

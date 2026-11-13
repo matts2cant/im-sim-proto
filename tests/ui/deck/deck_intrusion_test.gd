@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## A router the player is admin of offers "Firewall rules": the Firewall tool adds, edits, toggles,
 ## moves and deletes its rules, and a rule from "you" cuts the deck off a device behind it.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
@@ -50,10 +51,14 @@ func after_test() -> void:
 
 
 func _press(text: String) -> void:
-	var button := _screen.menu_button(text)
+	var button := DeckUi.menu_button(_screen, text)
 	if button == null:
-		button = _screen.find_button(text)
-	assert_object(button).override_failure_message("no button '%s' in %s" % [text, _screen.menu_texts()]).is_not_null()
+		button = DeckUi.find_button(_screen, text)
+	(
+		assert_object(button)
+		. override_failure_message("no button '%s' in %s" % [text, DeckUi.menu_texts(_screen)])
+		. is_not_null()
+	)
 	if button != null:
 		button.pressed.emit()
 
@@ -66,10 +71,10 @@ func test_a_router_exploit_from_the_menu_gives_admin_and_scans_behind_it() -> vo
 	var before := sentry.trace_of(_player)
 	# A wrong kind offers nothing: the office PC has no camera or router kind.
 	assert_bool(_screen.graph.select("OFFICE-PC")).is_true()
-	for text in _screen.menu_texts():
+	for text in DeckUi.menu_texts(_screen):
 		assert_bool(text.begins_with("Use ")).override_failure_message(text).is_false()
 	assert_bool(_screen.graph.select("RTR-01")).is_true()
-	assert_array(_screen.menu_texts()).contains(["Use router exploit (1 left)", IntrusionMenu.EXPLOIT_NOTE])
+	assert_array(DeckUi.menu_texts(_screen)).contains(["Use router exploit (1 left)", IntrusionMenu.EXPLOIT_NOTE])
 	_press("Use router exploit (1 left)")
 	var router := _lab.device("Rtr01")
 	assert_bool(router.is_admin(_player)).is_true()
@@ -93,10 +98,10 @@ func test_a_router_exploit_from_the_menu_gives_admin_and_scans_behind_it() -> vo
 	assert_array(NetworkGraph.scanning_subnets(_screen.graph)).is_empty()
 	# Used up: the router offers no exploit any more, the Firewall instead; the camera offers its own.
 	assert_bool(_screen.graph.select("RTR-01")).is_true()
-	assert_array(_screen.menu_texts()).contains(["Firewall rules", "access: admin (exploit)"])
-	assert_bool(_screen.menu_texts().has("Use router exploit (0 left)")).is_false()
+	assert_array(DeckUi.menu_texts(_screen)).contains(["Firewall rules", "access: admin (exploit)"])
+	assert_bool(DeckUi.menu_texts(_screen).has("Use router exploit (0 left)")).is_false()
 	assert_bool(_screen.graph.select("CAM-GATE")).is_true()
-	assert_array(_screen.menu_texts()).contains(["Use camera exploit (2 left)"])
+	assert_array(DeckUi.menu_texts(_screen)).contains(["Use camera exploit (2 left)"])
 
 
 func test_the_firewall_tool_edits_a_routers_rules() -> void:
@@ -106,7 +111,7 @@ func test_the_firewall_tool_edits_a_routers_rules() -> void:
 	_screen.refresh()
 	assert_bool(_screen.graph.select("RTR-01")).is_true()
 	_press("Firewall rules")
-	assert_int(_screen.tool).is_equal(DeckScreen.Tool.FIREWALL)
+	assert_str(String(_screen.tool)).is_equal(String(DeckScreen.FIREWALL))
 	var view := _screen.firewall_view
 	assert_array(view.texts()).contains(["Firewall · RTR-01", "Add a rule", "Move up", "Move down", "Delete"])
 	view.add_rule()

@@ -1,12 +1,13 @@
 class_name ComputerScreen
-extends CanvasLayer
+extends UserScreen
 ## The Halcyon OS overlay (ADR 0114; replaces the terminal screen of ADR 0080 / 0083), child of its
 ## user (the Player). Computer.use_by() (bare-handed) and Computer.open_desktop() (bare-handed or
-## remote) open it. Like the Tab interface (ADR 0110): an 85 % panel over the dimmed, still running
-## world (not a pause screen); while open the player's input is off, the mouse is free and the HUD
-## hidden; Esc or the ✕ leaves, every time (also while typing), and that Esc never also opens the
-## game menu; E never leaves. It closes when its user can no longer act (dead, knocked out) or the
-## computer goes dead; a bare-handed session also closes when its user walks or is pushed away.
+## remote) open it through the user's Screens (Computer.SCREEN). Like the Tab interface (ADR
+## 0110): an 85 % panel over the dimmed, still running world (not a pause screen); while open it
+## holds its user's OverlayFocus (input off, mouse free, HUD hidden); Esc or the ✕ leaves, every
+## time (also while typing), and that Esc never also opens the game menu; E never leaves. It
+## closes when its user can no longer act (dead, knocked out) or the computer goes dead; a
+## bare-handed session also closes when its user walks or is pushed away.
 ## The window is a WindowFrame (shared with the deck):
 ## - Header: "Halcyon OS", the host name and address (when the device has one), the account and
 ##   its access level once logged in, a slot for trace bars (trace_bars(), add_trace_bar(): the
@@ -15,7 +16,9 @@ extends CanvasLayer
 ##   PersonalLog knows for this computer with a "Fill in" button; Enter in either field logs in
 ##   (Computer.log_in() -> DeviceAccounts.try_login()).
 ## - Desktop: the dock in the frame's sidebar with the apps installed on the computer
-##   (Computer.apps(): Mail, Files, Security; DocumentApp, SecurityApp), the account, Log out.
+##   (Computer.apps(): Mail, Files, Security), the account, Log out. The apps are a registry of
+##   ComputerApp views keyed by app id (_build_apps(): DocumentApp, SecurityApp); the screen only
+##   calls their hooks.
 ## - Remote (from the deck): the same desktop inside the deck's body (`remote_area`, above the deck's
 ##   layer), "Remote desktop" in its header and "Back to the map", which closes it (so does Esc) and
 ##   emits the computer's `desktop_closed`. Walking away does not close it (the deck's tether does);
@@ -25,8 +28,6 @@ extends CanvasLayer
 signal opened(computer: Computer, remote: bool)
 signal closed(computer: Computer)
 
-enum App { MAIL, FILES, SECURITY }
-
 const LAYER: int = 24
 ## Above the deck's overlay.
 const REMOTE_LAYER: int = 26
@@ -35,8 +36,6 @@ const WRONG_LOGIN := "Wrong user or password."
 const NO_KNOWN := ComputerLogin.NO_KNOWN
 const HINT := "Esc: leave"
 const REMOTE_HINT := "Esc: back to the map"
-const APP_NAMES: Array[String] = ["Mail", "Files", "Security"]
-const APP_IDS: Array[StringName] = [Computer.MAIL, Computer.FILES, Computer.SECURITY]
 const DOCK_ICON: float = 28.0
 ## Anchors of the panel when remote (position: left, top; end: right, bottom), unless the deck sets
 ## its own: the deck's content area in the mockup (below its 45 px bar, right of its 150 px tools
@@ -46,11 +45,11 @@ const REMOTE_AREA := Rect2(0.1921875, 0.1375, 0.7328125, 0.7875)
 var computer: Computer
 ## The node using it (its parent).
 var user: Node
-var player: Player
 ## The account the desktop shows ("" while on the login).
 var account: String = ""
 var remote: bool = false
-var app: App = App.MAIL
+## The app shown (an id of Computer.apps()).
+var app: StringName = Computer.MAIL
 var remote_area: Rect2 = REMOTE_AREA
 
 ## The window (a WindowFrame).
@@ -70,7 +69,10 @@ var known_box: VBoxContainer
 ## The desktop's app window (the body while logged in).
 var desktop: Control
 var login_view: ComputerLogin
+## The dock's buttons, in app order (dock_button(): by id).
 var dock_buttons: Array[Button] = []
+## App id -> its view, in dock order (_app_ids).
+var apps: Dictionary[StringName, ComputerApp] = {}
 var who_label: Label
 var logout_button: Button
 var hint_label: Label
@@ -79,9 +81,7 @@ var files_app: DocumentApp
 var security_app: SecurityApp
 
 var _dim: ColorRect
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
-var _hud_before: bool = true
+var _app_ids: Array[StringName] = []
 var _refresh_left: float = 0.0
 
 
@@ -89,7 +89,6 @@ func _ready() -> void:
 	visible = false
 	layer = LAYER
 	user = get_parent()
-	player = user as Player
 	_build()
 
 
@@ -108,8 +107,26 @@ static func of(node: Node) -> ComputerScreen:
 	return null
 
 
-func is_open() -> bool:
+func screen_id() -> StringName:
+	return Computer.SCREEN
+
+
+## `subject`: the Computer; options Computer.ACCOUNT_OPTION (the account, "": the login) and
+## Computer.REMOTE_OPTION (inside the deck).
+func open_screen(subject: Object, _user: Node, options: Dictionary) -> bool:
+	var target := subject as Computer
+	if target == null:
+		return false
+	open(target, str(options.get(Computer.ACCOUNT_OPTION, "")), bool(options.get(Computer.REMOTE_OPTION, false)))
 	return visible
+
+
+func close_screen() -> void:
+	close()
+
+
+func shows(subject: Object) -> bool:
+	return visible and subject == computer
 
 
 func is_remote() -> bool:
@@ -152,15 +169,7 @@ func open(p_computer: Computer, p_user: String, p_remote: bool) -> void:
 	layer = REMOTE_LAYER if remote else LAYER
 	_dim.visible = not remote
 	_place_panel()
-	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	var hud := _hud()
-	if hud != null:
-		_hud_before = hud.visible
-		hud.visible = false
+	OverlayFocus.acquire(self, user, Input.MOUSE_MODE_VISIBLE, true)
 	login.clear()
 	_show_view()
 	opened.emit(computer, remote)
@@ -173,15 +182,8 @@ func close() -> void:
 	if focused != null and panel.is_ancestor_of(focused):
 		focused.release_focus()
 	visible = false
-	security_app.shown = false
-	security_app.update_feed()
-	var hud := _hud()
-	if hud != null:
-		hud.visible = _hud_before
-	if is_instance_valid(player):
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	_hide_apps()
+	OverlayFocus.release(self)
 	var was := computer
 	var was_remote := remote
 	computer = null
@@ -235,32 +237,24 @@ func log_out() -> void:
 	_show_view()
 
 
-## Shows `which` app on the desktop (an app not installed on the computer: its first app).
-func show_app(which: App) -> void:
+## Shows app `which` (an id of Computer.apps()) on the desktop (an app not installed on the
+## computer: its first app).
+func show_app(which: StringName) -> void:
 	var installed := computer.apps() if computer != null else Computer.DEFAULT_APPS
-	if not installed.has(APP_IDS[which]):
-		which = APP_IDS.find(installed[0]) as App if not installed.is_empty() else App.MAIL
+	if not installed.has(which) or not apps.has(which):
+		which = installed[0] if not installed.is_empty() and apps.has(installed[0]) else _app_ids[0]
 	app = which
-	for i in dock_buttons.size():
-		dock_buttons[i].set_pressed_no_signal(i == app)
-	mail_app.visible = app == App.MAIL
-	files_app.visible = app == App.FILES
-	security_app.visible = app == App.SECURITY
-	security_app.shown = app == App.SECURITY
-	match app:
-		App.MAIL:
-			show_mail()
-		App.FILES:
-			files_app.show_documents(computer, user, computer.documents(Computer.FILES, account), "Files")
-		App.SECURITY:
-			security_app.bind(computer, user)
+	for id in _app_ids:
+		dock_button(id).set_pressed_no_signal(id == app)
+		apps[id].set_shown(id == app)
+	apps[app].open_app(computer, user, account)
 	_refresh_left = computer.config.refresh_interval if computer != null else 0.0
-	security_app.update_feed()
 
 
-## Fills Mail: the account's inbox (the mail is on the computer, network or not).
-func show_mail() -> void:
-	mail_app.show_documents(computer, user, computer.documents(Computer.MAIL, account), "Mail")
+## The dock button of app `id`, or null.
+func dock_button(id: StringName) -> Button:
+	var index := _app_ids.find(id)
+	return dock_buttons[index] if index >= 0 else null
 
 
 ## True while the desktop (not the login) shows.
@@ -278,7 +272,8 @@ func _input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	if visible:
-		security_app.update_feed()
+		for id in _app_ids:
+			apps[id].process_app()
 
 
 func _physics_process(delta: float) -> void:
@@ -287,13 +282,13 @@ func _physics_process(delta: float) -> void:
 	if not _still_usable():
 		close()
 		return
-	if not desktop.visible or app != App.SECURITY:
+	if not desktop.visible:
 		return
 	_refresh_left -= delta
 	if _refresh_left > 0.0:
 		return
 	_refresh_left = computer.config.refresh_interval
-	security_app.refresh()
+	apps[app].refresh_app()
 
 
 func _still_usable() -> bool:
@@ -325,16 +320,15 @@ func _show_view() -> void:
 		who_label.text = "%s\n%s" % [account, computer.access_level(account)]
 		logout_button.visible = not remote
 		hint_label.text = REMOTE_HINT if remote else HINT
-		security_app.set_view_size(SecurityApp.FEED_SHOWN_COMPACT if remote else SecurityApp.FEED_SHOWN)
 		# The dock shows the apps installed on this computer only.
-		for i in dock_buttons.size():
-			dock_buttons[i].visible = computer.apps().has(APP_IDS[i])
-			var icon := dock_buttons[i].get_node(^"Row/Icon") as DeviceIcon
-			icon.strokes = computer.config.app_icons.get(APP_IDS[i], PackedStringArray())
+		for id in _app_ids:
+			apps[id].set_compact(remote)
+			dock_button(id).visible = computer.apps().has(id)
+			var icon := dock_button(id).get_node(^"Row/Icon") as DeviceIcon
+			icon.strokes = computer.config.app_icons.get(id, PackedStringArray())
 		show_app(app)
 		return
-	security_app.shown = false
-	security_app.update_feed()
+	_hide_apps()
 	login.show_for(computer, _known())
 
 
@@ -366,10 +360,6 @@ func _place_panel() -> void:
 	panel.offset_top = 0.0
 	panel.offset_right = 0.0
 	panel.offset_bottom = 0.0
-
-
-func _hud() -> CanvasLayer:
-	return player.get_node_or_null(^"Hud") as CanvasLayer if is_instance_valid(player) else null
 
 
 func _build() -> void:
@@ -415,12 +405,14 @@ func _build() -> void:
 
 
 func _build_desktop() -> void:
+	desktop = Control.new()
+	desktop.name = "Desktop"
+	desktop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	desktop.clip_contents = true
+	panel.body.add_child(desktop)
 	var dock := panel.sidebar_column
 	dock.name = "Dock"
-	for i in APP_NAMES.size():
-		var button := _dock_button(i)
-		dock_buttons.append(button)
-		dock.add_child(button)
+	_build_apps()
 	who_label = _dock_label("")
 	dock.add_child(who_label)
 	var grow := Control.new()
@@ -434,20 +426,6 @@ func _build_desktop() -> void:
 	hint_label.name = "Hint"
 	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	dock.add_child(hint_label)
-	desktop = Control.new()
-	desktop.name = "Desktop"
-	desktop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	desktop.clip_contents = true
-	panel.body.add_child(desktop)
-	mail_app = DocumentApp.new()
-	mail_app.name = "Mail"
-	files_app = DocumentApp.new()
-	files_app.name = "Files"
-	security_app = SecurityApp.new()
-	security_app.name = "Security"
-	for app_node: Control in [mail_app, files_app, security_app]:
-		app_node.set_anchors_preset(Control.PRESET_FULL_RECT)
-		desktop.add_child(app_node)
 
 
 # A dock line (the account, the hint), its text at the frame's inset like the apps' names.
@@ -460,11 +438,11 @@ func _dock_label(text: String) -> Label:
 	return label
 
 
-func _dock_button(index: int) -> Button:
+func _dock_button(id: StringName, title: String) -> Button:
 	var button := HalcyonStyle.list_entry()
-	button.name = APP_NAMES[index]
+	button.name = title
 	button.custom_minimum_size = Vector2(0, DOCK_ICON + 2 * WindowFrame.metric(&"space_s"))
-	button.pressed.connect(show_app.bind(index))
+	button.pressed.connect(show_app.bind(id))
 	var row := HBoxContainer.new()
 	row.name = "Row"
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -479,9 +457,37 @@ func _dock_button(index: int) -> Button:
 	icon.name = "Icon"
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(icon)
-	var caption := HalcyonStyle.label(APP_NAMES[index], 13, HalcyonStyle.TEXT)
+	var caption := HalcyonStyle.label(title, 13, HalcyonStyle.TEXT)
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	caption.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(caption)
 	return button
+
+
+# The registry of apps, in dock order: a new app is one more _add_app() line.
+func _build_apps() -> void:
+	mail_app = DocumentApp.make(Computer.MAIL, "Mail")
+	_add_app(Computer.MAIL, "Mail", mail_app)
+	files_app = DocumentApp.make(Computer.FILES, "Files")
+	_add_app(Computer.FILES, "Files", files_app)
+	security_app = SecurityApp.new()
+	security_app.name = "Security"
+	_add_app(Computer.SECURITY, "Security", security_app)
+
+
+# Adds app `view` with id `id` (Computer.apps()) and its dock button named `title`.
+func _add_app(id: StringName, title: String, view: ComputerApp) -> void:
+	view.set_anchors_preset(Control.PRESET_FULL_RECT)
+	desktop.add_child(view)
+	apps[id] = view
+	_app_ids.append(id)
+	var button := _dock_button(id, title)
+	dock_buttons.append(button)
+	panel.sidebar_column.add_child(button)
+
+
+# Every app off screen (the login shows, or the screen closed).
+func _hide_apps() -> void:
+	for id in _app_ids:
+		apps[id].set_shown(false)

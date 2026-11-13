@@ -1,12 +1,13 @@
 class_name KeypadScreen
-extends CanvasLayer
-## Keypad entry screen (child of the Player, ADR 0078): a KeypadLock opens it for its user (E on a
-## locked door with a keypad). The world keeps running (ADR 0110): while it is open its user's input
-## is off and the mouse is free, like a computer; it closes when the user can no longer act. Digits by the
-## number keys (keypad too) or by clicking the buttons; Backspace deletes, C clears, Enter / OK
-## submits; Esc always leaves, also halfway through typing. Shows the user's reminder when its
-## PersonalLog knows the code ("Note: 2817, from 'Storage access'"). The right code closes the screen
-## (the lock unlocks and the door opens); a wrong one says so, clears the entry and stays open.
+extends UserScreen
+## Keypad entry screen (child of the Player, ADR 0078): a KeypadLock opens it for its user through
+## the user's Screens (KeypadLock.SCREEN; E on a locked door with a keypad). The world keeps
+## running (ADR 0110): while it is open it holds its user's OverlayFocus (input off, mouse free),
+## like a computer; it closes when the user can no longer act. Digits by the number keys (keypad
+## too) or by clicking the buttons; Backspace deletes, C clears, Enter / OK submits; Esc always
+## leaves, also halfway through typing. Shows the user's reminder when its PersonalLog knows the
+## code ("Note: 2817, from 'Storage access'"). The right code closes the screen (the lock unlocks
+## and the door opens); a wrong one says so, clears the entry and stays open.
 
 signal closed
 
@@ -16,9 +17,6 @@ const KEYS: Array[String] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "
 var lock: KeypadLock = null
 var user: Node = null
 var entry := KeypadEntry.new()
-
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 
 @onready var reminder_label: Label = %Reminder
 @onready var display_label: Label = %Display
@@ -52,8 +50,25 @@ static func of(node: Node) -> KeypadScreen:
 	return null
 
 
-func is_open() -> bool:
-	return visible
+func screen_id() -> StringName:
+	return KeypadLock.SCREEN
+
+
+## `subject`: the KeypadLock typed into.
+func open_screen(subject: Object, p_user: Node, _options: Dictionary) -> bool:
+	var keypad := subject as KeypadLock
+	if keypad == null:
+		return false
+	open_for(keypad, p_user)
+	return true
+
+
+func close_screen() -> void:
+	close()
+
+
+func shows(subject: Object) -> bool:
+	return visible and subject == lock
 
 
 ## Opens for `p_lock`, typed by `p_user`.
@@ -68,12 +83,7 @@ func open_for(p_lock: KeypadLock, p_user: Node) -> void:
 	if visible:
 		return
 	visible = true
-	var player := user as Player
-	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	OverlayFocus.acquire(self, user)
 
 
 func close() -> void:
@@ -81,11 +91,7 @@ func close() -> void:
 		return
 	visible = false
 	lock = null
-	var player := user as Player if is_instance_valid(user) else null
-	if player != null:
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 	user = null
 	closed.emit()
 

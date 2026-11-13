@@ -33,7 +33,7 @@ var player: Player
 var inventory: PlayerInventory
 var view: InventoryView
 var menu: PopupMenu
-var status_label: Label
+var status_label: TimedLabel
 ## The right column's content (rebuilt when the selection or its details change).
 var detail_box: VBoxContainer
 var use_button: Button = null
@@ -45,7 +45,6 @@ var keychain_list: KeychainList
 var _menu_stack: ItemStack = null
 var _belt_menu: PopupMenu
 var _signature: String = ""
-var _status_left: float = 0.0
 
 
 func _ready() -> void:
@@ -72,9 +71,7 @@ func bind(p_player: Node) -> void:
 
 ## Opens with the item in hand selected (else the first stack) when nothing is.
 func on_shown() -> void:
-	status_label.text = ""
-	status_label.visible = false
-	_status_left = 0.0
+	status_label.clear_text()
 	if inventory != null and selected_stack() == null:
 		var stack := inventory.in_hand()
 		if stack == null and not inventory.inventory.stacks.is_empty():
@@ -146,12 +143,7 @@ func drop(stack: ItemStack) -> void:
 
 ## The Use button's text for `stack` ("" when the item has no use button).
 func use_label(stack: ItemStack) -> String:
-	match stack.item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
-			return "Put away" if inventory.in_hand() == stack else "Equip"
-		ItemData.UseAction.CONSUME:
-			return "Use"
-	return ""
+	return stack.item.use_label(inventory.in_hand() == stack)
 
 
 ## Opens the context menu for `stack` at screen position `at`.
@@ -192,22 +184,14 @@ func choose(id: int) -> void:
 	refresh()
 
 
-func _process(delta: float) -> void:
-	if not is_visible_in_tree():
-		return
-	refresh()
-	if _status_left > 0.0:
-		_status_left = maxf(_status_left - delta, 0.0)
-		if _status_left == 0.0:
-			status_label.text = ""
-			status_label.visible = false
+func _process(_delta: float) -> void:
+	if is_visible_in_tree():
+		refresh()
 
 
 func _on_message(text: String) -> void:
 	if is_visible_in_tree():
-		status_label.text = text
-		status_label.visible = true
-		_status_left = STATUS_TIME
+		status_label.show_text(text, STATUS_TIME)
 
 
 func _slot_text(slot: int, stack: ItemStack) -> String:
@@ -241,20 +225,7 @@ func _rebuild_details() -> void:
 	if stack == null:
 		detail_box.add_child(TabStyle.paragraph(NO_SELECTION))
 		return
-	var head := HBoxContainer.new()
-	head.name = "Head"
-	head.add_theme_constant_override(&"separation", 16)
-	detail_box.add_child(head)
-	var icon := DetailIcon.new()
-	icon.name = "Icon"
-	icon.stack = stack
-	head.add_child(icon)
-	var title := TabStyle.label(stack.display_name(), 18, TabStyle.FG)
-	title.name = "Title"
-	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	if stack.count > 1:
-		title.text += "  x%d" % stack.count
-	head.add_child(title)
+	_add_head(stack)
 	var description := TabStyle.paragraph(stack.item.description)
 	description.name = "Description"
 	detail_box.add_child(description)
@@ -273,6 +244,29 @@ func _rebuild_details() -> void:
 	if ItemDetails.uses_ammo(stack.item):
 		detail_box.add_child(TabStyle.caption("Ammo type"))
 		detail_box.add_child(TabStyle.future(AMMO_TYPES))
+	_add_actions(stack)
+
+
+# The selected stack's icon and name (with its count).
+func _add_head(stack: ItemStack) -> void:
+	var head := HBoxContainer.new()
+	head.name = "Head"
+	head.add_theme_constant_override(&"separation", 16)
+	detail_box.add_child(head)
+	var icon := DetailIcon.new()
+	icon.name = "Icon"
+	icon.stack = stack
+	head.add_child(icon)
+	var title := TabStyle.label(stack.display_name(), 18, TabStyle.FG)
+	title.name = "Title"
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if stack.count > 1:
+		title.text += "  x%d" % stack.count
+	head.add_child(title)
+
+
+# Use / Equip / Put away, Drop, the belt-slot picker and the menu hint.
+func _add_actions(stack: ItemStack) -> void:
 	detail_box.add_child(TabStyle.caption("Actions"))
 	var actions := HFlowContainer.new()
 	actions.name = "Actions"
@@ -300,16 +294,7 @@ func _make_belt_picker(stack: ItemStack) -> OptionButton:
 	var picker := OptionButton.new()
 	picker.name = "BeltSlot"
 	picker.focus_mode = Control.FOCUS_NONE
-	picker.add_theme_font_size_override(&"font_size", 13)
-	picker.add_theme_color_override(&"font_color", TabStyle.FG)
-	var style := TabStyle.box(TabStyle.PANEL_2, TabStyle.LINE_STRONG, 1, 4)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
-	picker.add_theme_stylebox_override(&"normal", style)
-	picker.add_theme_stylebox_override(&"hover", style)
-	picker.add_theme_stylebox_override(&"pressed", style)
+	TabStyle.themed(picker, &"TabPicker")
 	picker.add_item(NOT_ON_BELT)
 	for slot in inventory.belt.size():
 		picker.add_item(_slot_text(slot, stack))
@@ -324,21 +309,7 @@ func _build() -> void:
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override(&"separation", 0)
 	add_child(row)
-	var left := TabStyle.column(LEFT_WIDTH)
-	left.name = "Left"
-	row.add_child(left)
-	var left_box := TabStyle.column_box(left)
-	left_box.add_child(TabStyle.caption("Inventory"))
-	view = InventoryView.new()
-	view.name = "View"
-	view.belt_slot = 40.0
-	left_box.add_child(view)
-	left_box.add_child(TabStyle.caption("Credits"))
-	left_box.add_child(TabStyle.future(CREDITS))
-	status_label = TabStyle.label("", 13, TabStyle.AMBER)
-	status_label.name = "Status"
-	status_label.visible = false
-	left_box.add_child(status_label)
+	_build_left(row)
 	row.add_child(TabStyle.divider())
 	var right := TabStyle.column()
 	right.name = "Right"
@@ -352,6 +323,31 @@ func _build() -> void:
 	keychain_list = KeychainList.new()
 	keychain_list.name = "Keychain"
 	TabStyle.column_box(keys).add_child(keychain_list)
+	_build_menu()
+
+
+# The left column: the grid with the belt, Credits and the status line.
+func _build_left(row: HBoxContainer) -> void:
+	var left := TabStyle.column(LEFT_WIDTH)
+	left.name = "Left"
+	row.add_child(left)
+	var left_box := TabStyle.column_box(left)
+	left_box.add_child(TabStyle.caption("Inventory"))
+	view = InventoryView.new()
+	view.name = "View"
+	view.belt_slot = 40.0
+	left_box.add_child(view)
+	left_box.add_child(TabStyle.caption("Credits"))
+	left_box.add_child(TabStyle.future(CREDITS))
+	status_label = TimedLabel.new()
+	TabStyle.style_label(status_label, 13, TabStyle.AMBER)
+	status_label.name = "Status"
+	status_label.visible = false
+	left_box.add_child(status_label)
+
+
+# The right-click menu and its belt submenu.
+func _build_menu() -> void:
 	menu = PopupMenu.new()
 	menu.name = "Menu"
 	add_child(menu)

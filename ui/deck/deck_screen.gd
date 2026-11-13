@@ -1,16 +1,21 @@
 class_name DeckScreen
-extends CanvasLayer
+extends UserScreen
 ## The deck's screen (ADR 0112, 0113; the approved mockup design/prototypes/hacking_screens.html),
-## child of its user (the Player) beside its DeckSession. Like the Tab interface it is an 85 % panel
-## over the dimmed, running world: while it is open the player's input is off, the mouse is free and
-## the HUD hidden. Esc or the ✕ lowers it (never also opening the game menu); the deck stays plugged
-## in and its tools keep running (LMB on the port again raises it). It closes when the deck unplugs.
-## This host owns the window (a WindowFrame: header, tools sidebar, body) and switches the tools:
+## child of its user (the Player) beside its DeckSession; the session and the WirelessTool raise it
+## through the user's Screens (DeckSession.SCREEN, option DeckSession.TOOL_OPTION: the tool to show).
+## Like the Tab interface it is an 85 % panel over the dimmed, running world: while it is open it
+## holds its user's OverlayFocus (input off, mouse free, HUD hidden). Esc or the ✕ lowers it (never
+## also opening the game menu); the deck stays plugged in and its tools keep running (LMB on the port
+## again raises it). It closes when the deck unplugs.
+## This host owns the window (a WindowFrame: header, tools sidebar, body) and switches the tools, a
+## registry keyed by tool id (_build_tools(): view, sidebar button, refresh, whether it needs the deck
+## plugged in); a new tool is one more _add_tool() line:
 ## - Header: "Deck", the entry point and address, one trace bar per tracer watching the user
 ##   (DeckTraceBars; "unknown tracer" until its host is on the map), ✕.
 ## - Tools in the sidebar: Map (DeckMapView, its menus DeckDeviceMenu: exploit items are used
-##   there, ADR 0121), Icebreaker (DeckIceView), Firewall (FirewallView); Logs greyed (M16). Wi-Fi (WifiPanel, M12b,
-##   ADR 0117): open_wifi() raises it on the Wi-Fi key screen, plugged in or not.
+##   there, ADR 0121), Icebreaker (DeckIceView), Firewall (FirewallView); Logs greyed (M16). Wi-Fi
+##   (WifiPanel, M12b, ADR 0117): open_wifi() raises it on the Wi-Fi key screen, plugged in or not.
+## - Notices for the user (Notices) show in its toast (a TimedLabel) while it is raised.
 ## - Refreshes (every refresh interval, every session change) keep the buttons under the cursor: the
 ##   Map rebuilds its nodes only when they change, the menu and the Icebreaker are filled aside and
 ##   reconciled (DeckStyle.reconcile()), the trace bars update in place, so a still cursor keeps its
@@ -21,8 +26,24 @@ extends CanvasLayer
 ## - Trace bars in the computer overlay too (ADR 0114's slot): while the user's ComputerScreen is
 ##   open, one bar per tracer watching the user there (DeckTraceBars.computer_bars()).
 
-enum Tool { MAP, ICEBREAKER, WIFI, FIREWALL }
 
+## One tool of the deck: its view, its sidebar button (null: none), how it refreshes, whether it
+## needs the deck plugged in (its button greys out unplugged) and whether the deck stays raised on
+## it unplugged.
+class DeckTool:
+	extends RefCounted
+	var view: Control
+	var button: Button
+	var refresh: Callable
+	var needs_plug: bool = false
+	var stays_unplugged: bool = false
+
+
+## Tool ids (show_tool(), DeckSession.TOOL_OPTION).
+const MAP: StringName = &"map"
+const ICEBREAKER: StringName = &"icebreaker"
+const FIREWALL: StringName = &"firewall"
+const WIFI: StringName = WirelessTool.SCREEN_TOOL
 const PANEL_FRACTION: float = 0.85
 const TOAST_TIME: float = 2.5
 const TETHER_NOTE: String = "Walking away unplugs the deck and stops its tools."
@@ -34,8 +55,10 @@ var session: DeckSession
 ## The deck's Icebreaker (beside the session).
 var ice: IcebreakerTool
 var wireless: WirelessTool
-var player: Player
-var tool: Tool = Tool.MAP
+## Its user (its parent).
+var user: Node
+## The tool shown (a tool id).
+var tool: StringName = MAP
 
 var root: Control
 var frame: WindowFrame
@@ -57,26 +80,24 @@ var tether_label: Label
 var content_area: Control
 ## The user's computer overlay (trace bars, remote desktops), or null.
 var computer_screen: ComputerScreen
-var toast_label: Label
+var toast_label: TimedLabel
 
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
-var _hud_before: bool = true
+var _tools: Dictionary[StringName, DeckTool] = {}
 var _refresh_left: float = 0.0
-var _toast_left: float = 0.0
 var _computer_left: float = 0.0
 
 
 func _ready() -> void:
 	visible = false
 	layer = 22
-	player = get_parent() as Player
+	user = get_parent()
 	_build()
-	computer_screen = ComputerScreen.of(get_parent())
+	computer_screen = ComputerScreen.of(user)
 	if computer_screen != null:
 		computer_screen.opened.connect(_on_computer_opened)
-	if DeckSession.of(get_parent()) != null:  # Notices reach the HUD before a first raise.
-		DeckSession.of(get_parent()).notice.connect(show_notice)
+	var notices := Notices.of(user)
+	if notices != null:
+		notices.posted.connect(show_notice)
 
 
 func _exit_tree() -> void:
@@ -94,6 +115,29 @@ static func of(node: Node) -> DeckScreen:
 	return null
 
 
+func screen_id() -> StringName:
+	return DeckSession.SCREEN
+
+
+## `subject`: the DeckSession; option DeckSession.TOOL_OPTION: WIFI raises it on the Wi-Fi key
+## screen (open_wifi()), else on the Map (open_for()).
+func open_screen(subject: Object, _user: Node, options: Dictionary) -> bool:
+	var deck := subject as DeckSession
+	if options.get(DeckSession.TOOL_OPTION, MAP) == WIFI:
+		open_wifi(deck)
+	else:
+		open_for(deck)
+	return visible
+
+
+func close_screen() -> void:
+	close()
+
+
+func shows(subject: Object) -> bool:
+	return visible and subject == session
+
+
 ## The anchors (fractions of the viewport) of the deck's body: where a remote desktop shows.
 func content_anchors() -> Rect2:
 	var view := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2.ZERO
@@ -103,15 +147,11 @@ func content_anchors() -> Rect2:
 	return Rect2(rect.position / view, rect.size / view)
 
 
-func is_open() -> bool:
-	return visible
-
-
 ## Raises the deck plugged in through `p_session`.
 func open_for(p_session: DeckSession) -> void:
 	if visible or p_session == null or not p_session.is_plugged():
 		return
-	_raise(p_session, Tool.MAP)
+	_raise(p_session, MAP)
 
 
 ## Raises the deck on the Wi-Fi key screen of the access point `p_session`'s WirelessTool aims at
@@ -119,10 +159,10 @@ func open_for(p_session: DeckSession) -> void:
 func open_wifi(p_session: DeckSession) -> void:
 	if visible or p_session == null or WirelessTool.of(p_session.get_parent()) == null:
 		return
-	_raise(p_session, Tool.WIFI)
+	_raise(p_session, WIFI)
 
 
-func _raise(p_session: DeckSession, which: Tool) -> void:
+func _raise(p_session: DeckSession, which: StringName) -> void:
 	session = p_session
 	ice = IcebreakerTool.of(session.get_parent())
 	wireless = WirelessTool.of(session.get_parent())
@@ -132,24 +172,13 @@ func _raise(p_session: DeckSession, which: Tool) -> void:
 	if not session.changed.is_connected(_on_changed):
 		session.changed.connect(_on_changed)
 		session.remote_changed.connect(_on_remote_changed)
-	if not session.notice.is_connected(show_notice):
-		session.notice.connect(show_notice)
 	visible = true
-	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
-		var hud := player.get_node_or_null(^"Hud") as CanvasLayer
-		if hud != null:
-			_hud_before = hud.visible
-			hud.visible = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	_toast_left = 0.0
-	toast_label.visible = false
+	OverlayFocus.acquire(self, user, Input.MOUSE_MODE_VISIBLE, true)
+	toast_label.clear_text()
 	map_view.reset()
 	ice_view.invalidate()
-	if which == Tool.MAP and ice != null and ice.is_running():
-		which = Tool.ICEBREAKER
+	if which == MAP and ice != null and ice.is_running():
+		which = ICEBREAKER
 	show_tool(which)
 	_on_remote_changed(session.remote)
 	refresh()
@@ -161,29 +190,23 @@ func close() -> void:
 		return
 	visible = false
 	graph.close_menu()
-	if player != null and is_instance_valid(player):
-		player.input_enabled = _input_before
-		player.resync_actions()
-		var hud := player.get_node_or_null(^"Hud") as CanvasLayer
-		if hud != null:
-			hud.visible = _hud_before
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 
 
-## Shows the Map, the Icebreaker or the Firewall (on the router picked last,
-## else the first the user is admin of).
-func show_tool(which: Tool) -> void:
+## Shows tool `which` (a tool id): the Firewall on the router picked last, else the first the user
+## is admin of.
+func show_tool(which: StringName) -> void:
+	if not _tools.has(which):
+		return
 	tool = which
-	map_view.visible = tool == Tool.MAP
-	ice_view.visible = tool == Tool.ICEBREAKER
-	firewall_view.visible = tool == Tool.FIREWALL
-	wifi_view.visible = tool == Tool.WIFI
-	map_button.set_pressed_no_signal(tool == Tool.MAP)
-	ice_button.set_pressed_no_signal(tool == Tool.ICEBREAKER)
-	firewall_button.set_pressed_no_signal(tool == Tool.FIREWALL)
-	if tool != Tool.MAP:
+	for id: StringName in _tools:
+		var entry := _tools[id]
+		entry.view.visible = id == tool
+		if entry.button != null:
+			entry.button.set_pressed_no_signal(id == tool)
+	if tool != MAP:
 		graph.close_menu()
-	if tool == Tool.FIREWALL and firewall_view.router() == null:
+	if tool == FIREWALL and firewall_view.router() == null:
 		var fallback := firewall_view.default_router()
 		if fallback != null:
 			firewall_view.show_router(fallback)
@@ -193,29 +216,23 @@ func show_tool(which: Tool) -> void:
 
 ## Brings the header and the shown tool up to date (also every refresh interval).
 func refresh() -> void:
-	if session == null or (not session.is_plugged() and tool != Tool.WIFI and tool != Tool.MAP):
+	if session == null or (not session.is_plugged() and _tools[tool].needs_plug):
 		return
 	_refresh_left = session.config.refresh_interval
-	ice_button.disabled = not session.is_plugged()
-	firewall_button.disabled = not session.is_plugged()
+	for id: StringName in _tools:
+		var entry := _tools[id]
+		if entry.button != null and entry.needs_plug:
+			entry.button.disabled = not session.is_plugged()
 	tether_label.text = WIRELESS_NOTE if session.is_wireless() else TETHER_NOTE
-	if tool == Tool.WIFI:
+	if tool == WIFI:
 		title_meta.text = WifiPanel.title_text(wireless)
 	elif not session.is_plugged():
 		title_meta.text = "Not plugged in"
 	else:
 		var verb := "Joined" if session.is_wireless() else "Plugged into"
 		title_meta.text = "%s %s · %s" % [verb, entry_label(), _address_text()]
-	DeckTraceBars.show_bars(trace_box, DeckTraceBars.deck_bars(session, wireless, tool == Tool.WIFI, tracer_name))
-	match tool:
-		Tool.MAP:
-			map_view.refresh()
-		Tool.ICEBREAKER:
-			ice_view.refresh()
-		Tool.FIREWALL:
-			firewall_view.refresh()
-		Tool.WIFI:
-			wifi_view.show_for(wireless)
+	DeckTraceBars.show_bars(trace_box, DeckTraceBars.deck_bars(session, wireless, tool == WIFI, tracer_name))
+	_tools[tool].refresh.call()
 
 
 ## How the header names the entry point ("Office Jack (wall jack)").
@@ -240,55 +257,11 @@ func tracer_name(tracer: Tracer) -> String:
 	return DeckTraceBars.UNKNOWN
 
 
-## The rows the Map shows now.
-func map_rows() -> Array[NetworkRow]:
-	return map_view.map_rows()
-
-
-## Shows `text` in the deck's toast (open) or as a HUD message (lowered).
+## A notice for the user (Notices): shown in the deck's toast while it is raised (the HUD, hidden
+## behind the deck, gets it too).
 func show_notice(text: String) -> void:
 	if visible:
-		toast_label.text = text
-		toast_label.visible = true
-		_toast_left = TOAST_TIME
-	elif player != null:
-		var hud := player.get_node_or_null(^"Hud") as Hud
-		if hud != null:
-			hud.show_message(text)
-
-
-## The visible button labelled `text` anywhere on the screen (tests), or null.
-func find_button(text: String) -> Button:
-	return UiQuery.find_button(root, text)
-
-
-## The open device menu's button labelled `text` (tests), or null.
-func menu_button(text: String) -> Button:
-	return UiQuery.find_button(graph.menu, text) if graph.menu.visible else null
-
-
-## Every visible button label on the open menu (tests).
-func menu_texts() -> Array[String]:
-	return UiQuery.texts(graph.menu) if graph.menu.visible else [] as Array[String]
-
-
-## The text of the trace bars, one "<name> <n> %" per tracer (tests).
-func trace_texts() -> Array[String]:
-	var found: Array[String] = []
-	for bar in trace_box.get_children():
-		if bar.is_queued_for_deletion():
-			continue
-		var parts := PackedStringArray()
-		for child in bar.get_children():
-			if child is Label:
-				parts.append((child as Label).text)
-		found.append(" ".join(parts))
-	return found
-
-
-## The Icebreaker's visible text lines (tests).
-func ice_texts() -> Array[String]:
-	return UiQuery.texts(ice_view.column)
+		toast_label.show_text(text, TOAST_TIME)
 
 
 ## Fills the computer overlay's trace slot (DeckTraceBars.computer_bars()).
@@ -297,9 +270,7 @@ func refresh_computer_traces() -> void:
 	if computer_screen == null or not computer_screen.is_open() or computer_screen.computer == null:
 		return
 	# In place while the tracers stay the same: the overlay's bar (and its Back button) stay put.
-	DeckTraceBars.show_bars(
-		computer_screen.trace_bars(), DeckTraceBars.computer_bars(computer_screen, session, get_parent())
-	)
+	DeckTraceBars.show_bars(computer_screen.trace_bars(), DeckTraceBars.computer_bars(computer_screen, session, user))
 
 
 func _process(delta: float) -> void:
@@ -308,12 +279,9 @@ func _process(delta: float) -> void:
 		refresh_computer_traces()
 	if not visible:
 		return
-	if session == null or (not session.is_plugged() and tool != Tool.WIFI):
+	if session == null or (not session.is_plugged() and not _tools[tool].stays_unplugged):
 		close()
 		return
-	if _toast_left > 0.0:
-		_toast_left -= delta
-		toast_label.visible = _toast_left > 0.0
 	_refresh_left -= delta
 	if _refresh_left <= 0.0:
 		refresh()
@@ -333,7 +301,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.physical_keycode == KEY_F and tool == Tool.MAP:
+	if key != null and key.pressed and not key.echo and key.physical_keycode == KEY_F and tool == MAP:
 		graph.fit_view()
 		get_viewport().set_input_as_handled()
 
@@ -359,12 +327,12 @@ func _on_computer_opened(_computer: Computer, _remote: bool) -> void:
 
 
 func _on_crack_started() -> void:
-	show_tool(Tool.ICEBREAKER)
+	show_tool(ICEBREAKER)
 
 
 func _open_firewall(device: Device) -> void:
 	firewall_view.show_router(device)
-	show_tool(Tool.FIREWALL)
+	show_tool(FIREWALL)
 
 
 func _address_text() -> String:
@@ -399,34 +367,38 @@ func _build() -> void:
 	close_button.tooltip_text = "Close (Esc): tools keep running while you stay plugged in"
 	frame.close_requested.connect(close)
 	content_area = frame.body
+	_build_views()
 	_build_tools()
+	_build_toast()
+
+
+func _build_views() -> void:
 	map_view = DeckMapView.new()
 	graph = map_view.graph
 	unplugged_label = map_view.unplugged_label
 	map_view.menu.firewall_requested.connect(_open_firewall)
 	map_view.menu.crack_started.connect(_on_crack_started)
-	map_view.menu.notice.connect(show_notice)
 	map_view.menu.map_changed.connect(map_view.invalidate)
 	content_area.add_child(map_view)
 	ice_view = DeckIceView.new()
-	ice_view.map_requested.connect(show_tool.bind(Tool.MAP))
+	ice_view.map_requested.connect(show_tool.bind(MAP))
 	ice_view.refresh_requested.connect(refresh)
 	content_area.add_child(ice_view)
 	firewall_view = FirewallView.new()
 	firewall_view.visible = false
 	content_area.add_child(firewall_view)
 	wifi_view = WifiPanel.new()
-	wifi_view.map_requested.connect(show_tool.bind(Tool.MAP))
+	wifi_view.map_requested.connect(show_tool.bind(MAP))
 	content_area.add_child(wifi_view)
-	_build_toast()
 
 
+# The tool registry, in sidebar order: a new tool is one more _add_tool() line.
 func _build_tools() -> void:
-	var column := frame.sidebar_column
-	map_button = _tool_button("Map", Tool.MAP)
-	ice_button = _tool_button("Icebreaker", Tool.ICEBREAKER)
-	firewall_button = _tool_button("Firewall", Tool.FIREWALL)
-	var logs := _tool_button("Logs  (M16)", -1)
+	map_button = _add_tool(MAP, map_view, "Map", map_view.refresh).button
+	ice_button = _add_tool(ICEBREAKER, ice_view, "Icebreaker", ice_view.refresh, true).button
+	firewall_button = _add_tool(FIREWALL, firewall_view, "Firewall", firewall_view.refresh, true).button
+	_add_tool(WIFI, wifi_view, "", func() -> void: wifi_view.show_for(wireless)).stays_unplugged = true
+	var logs := _tool_button("Logs  (M16)")
 	logs.disabled = true
 	logs.tooltip_text = "Reading and erasing device logs comes later (M16)."
 	var text_width := float(WindowFrame.metric(&"sidebar_width") - 2 * WindowFrame.metric(&"inset"))
@@ -437,10 +409,26 @@ func _build_tools() -> void:
 	note.name = "Tether"
 	note.add_theme_constant_override(&"margin_left", WindowFrame.metric(&"space_s"))
 	note.add_child(tether_label)
-	column.add_child(note)
+	frame.sidebar_column.add_child(note)
 
 
-func _tool_button(text: String, which: int) -> Button:
+# Registers tool `id`: its `view`, a sidebar button named `title` ("": none), `refresh_tool` (called
+# on every refresh while it shows) and whether it `needs_plug`. Returns its entry.
+func _add_tool(
+	id: StringName, view: Control, title: String, refresh_tool: Callable, needs_plug: bool = false
+) -> DeckTool:
+	var entry := DeckTool.new()
+	entry.view = view
+	entry.refresh = refresh_tool
+	entry.needs_plug = needs_plug
+	if not title.is_empty():
+		entry.button = _tool_button(title)
+		entry.button.pressed.connect(show_tool.bind(id))
+	_tools[id] = entry
+	return entry
+
+
+func _tool_button(text: String) -> Button:
 	var button := Button.new()
 	button.name = text.get_slice(" ", 0)
 	button.text = text
@@ -448,15 +436,14 @@ func _tool_button(text: String, which: int) -> Button:
 	button.toggle_mode = true
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.theme_type_variation = &"DeckToolButton"
-	if which >= 0:
-		button.pressed.connect(show_tool.bind(which))
 	frame.sidebar_column.add_child(button)
 	return button
 
 
 func _build_toast() -> void:
-	toast_label = DeckStyle.mono("", DeckStyle.TEXT_COLOR, 13)
+	toast_label = TimedLabel.new()
 	toast_label.name = "Toast"
+	DeckStyle.style_mono(toast_label, DeckStyle.TEXT_COLOR, 13)
 	toast_label.visible = false
 	toast_label.theme_type_variation = &"DeckToast"
 	toast_label.anchor_left = 0.5

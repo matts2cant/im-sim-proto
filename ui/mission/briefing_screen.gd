@@ -9,7 +9,7 @@ signal closed
 const HINT := "E / Enter / Esc: start"
 
 ## Told to take the keys still held as already held when it closes (Player.resync_actions()).
-var player: Node
+var player: Player
 
 var _title: Label
 var _text: Label
@@ -75,8 +75,8 @@ func close() -> void:
 		return
 	visible = false
 	PauseScreens.update(get_tree())
-	if is_instance_valid(player) and player.has_method(&"resync_actions"):
-		player.call(&"resync_actions")
+	if is_instance_valid(player):
+		player.resync_actions()
 	closed.emit()
 
 

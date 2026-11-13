@@ -327,7 +327,7 @@ func _collect_targets(level: Node) -> void:
 func _open_briefing() -> void:
 	if briefing_done or finished or not started or QuickSave.is_loading():
 		return
-	briefing.player = player
+	briefing.player = player as Player
 	briefing.open(data.title, data.briefing, MissionRules.objective_lines(data.objectives))
 
 

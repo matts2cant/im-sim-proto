@@ -2,13 +2,10 @@ class_name ReadingOverlay
 extends CanvasLayer
 ## Reading panel (child of the Player): opens on the player's PersonalLog.entry_read (a datapad
 ## read in place, ADR 0060) with the entry's title and text; Esc or E closes it. The world keeps
-## running (ADR 0110): while it is open the player's input is off and the mouse is free, like the
-## computer screen; it closes when the player can no longer act (dead, knocked out).
+## running (ADR 0110): while it is open it holds the player's OverlayFocus (input off, mouse free),
+## like the computer screen; it closes when the player can no longer act (dead, knocked out).
 
 var player: Player
-
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 
 @onready var title_label: Label = %Title
 @onready var text_label: Label = %Text
@@ -45,21 +42,14 @@ func open(title: String, text: String) -> void:
 	if visible:
 		return
 	visible = true
-	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	OverlayFocus.acquire(self, player)
 
 
 func close() -> void:
 	if not visible:
 		return
 	visible = false
-	if is_instance_valid(player):
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 
 
 func _process(_delta: float) -> void:

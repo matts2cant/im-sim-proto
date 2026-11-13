@@ -2,7 +2,8 @@ class_name Computer
 extends Node
 ## Component (ADR 0114; replaces the security terminal of ADR 0080 and 0083): a computer running
 ## Halcyon OS, on a device entity beside its Device and its DeviceAccounts. Its desktop opens in the
-## user's ComputerScreen (an overlay: the world keeps running) with the apps installed on it (apps():
+## user's computer screen (Screens, SCREEN: an overlay, the world keeps running) with the apps
+## installed on it (apps():
 ## its data's list, else Mail and Files; the security consoles also have Security):
 ## - Mail and Files: `data` (ComputerData .tres). Reading one adds it to the reader's PersonalLog
 ##   like a datapad (read()): its codes and logins become known; an implicit clue is a note only.
@@ -30,6 +31,11 @@ signal desktop_closed
 signal session_changed(logged_in: bool)
 
 const GROUP: StringName = &"computer"
+## The screen id a computer asks its viewer's Screens for (the Halcyon OS overlay), and its options:
+## the account the desktop shows ("": the login) and whether it is remote (inside the deck).
+const SCREEN: StringName = &"computer"
+const ACCOUNT_OPTION: StringName = &"account"
+const REMOTE_OPTION: StringName = &"remote"
 const ADDRESS_METHOD: StringName = &"device_address"
 const MAIL: StringName = &"mail"
 const FILES: StringName = &"files"
@@ -136,31 +142,25 @@ func access_level(user: String) -> String:
 	return "admin" if entry != null and entry.admin else "user"
 
 
-## Bare-handed use (ComputerUse): opens `viewer`'s ComputerScreen on the login, or on the desktop
-## of the open session. False when the computer is down or `viewer` has no screen.
+## Bare-handed use (ComputerUse): opens `viewer`'s computer screen (Screens, SCREEN) on the login,
+## or on the desktop of the open session. False when the computer is down or `viewer` has no screen.
 func use_by(viewer: Node) -> bool:
-	if not is_up():
-		return false
-	var screen := ComputerScreen.of(viewer)
-	if screen == null:
+	if not is_up() or not Screens.has(viewer, SCREEN):
 		return false
 	_log_opened(viewer, false)
-	screen.open(self, session_user, false)
+	Screens.open(viewer, SCREEN, self, {ACCOUNT_OPTION: session_user, REMOTE_OPTION: false})
 	return true
 
 
 ## Opens this computer's desktop for `viewer` logged in as `user`; `remote` when used from a deck.
 func open_desktop(viewer: Node, user: String, remote: bool) -> void:
-	if not is_up():
-		return
-	var screen := ComputerScreen.of(viewer)
-	if screen == null:
+	if not is_up() or not Screens.has(viewer, SCREEN):
 		return
 	if not remote and not user.is_empty() and session_user != user:
 		session_user = user
 		session_changed.emit(true)
 	_log_opened(viewer, remote)
-	screen.open(self, user, remote)
+	Screens.open(viewer, SCREEN, self, {ACCOUNT_OPTION: user, REMOTE_OPTION: remote})
 
 
 ## Tries a bare-handed login (DeviceAccounts.try_login()); a wrong one beeps. `by` (the user) is

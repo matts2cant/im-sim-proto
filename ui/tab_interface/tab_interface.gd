@@ -2,10 +2,10 @@ class_name TabInterface
 extends CanvasLayer
 ## The Tab interface (ADR 0110), child of the Player like the HUD: a large panel (about 85 % of the
 ## screen) over the dimmed, still running world, with one tab per page. Not a pause screen: the
-## world keeps running while it is open; the player stands still with its input off and the mouse
-## free, and gets control back at once on close (mouse mode restored). Getting hit does not close
-## it: the screen edges flash red over the panel and the pages update live (each page refreshes
-## itself in its own `_process`).
+## world keeps running while it is open; it holds the player's OverlayFocus (the player stands
+## still with its input off, the mouse free, the HUD hidden) and gives it back at once on close.
+## Getting hit does not close it: the screen edges flash red over the panel and the pages update
+## live (each page refreshes itself in its own `_process`).
 ## - The pages are data: `pages` (TabPage scenes, in tab order). A later tab (the map) is one more
 ##   scene in that list; the host never names a page.
 ## - `tab_interface` (Tab) opens it on the last tab used; Tab again closes it. Each action in
@@ -13,9 +13,9 @@ extends CanvasLayer
 ##   closes it when that tab is already showing. Esc and the close button close it (that Esc does not
 ##   also open the game menu). While open the belt keys 1-5 select a tab, `tab_prev` / `tab_next`
 ##   (Q / E) step left / right.
-## - It opens only while the player can act and has its input (so never over a computer, lockpick,
-##   keypad or reading screens, which turn the input off), with no pause screen (game menu, briefing,
-##   summary) and no debug panel open; while it is open the player's input is off, so none of those
+## - It opens only while the player can act and accepts input (Player.accepts_input(): never over a
+##   computer, lockpick, keypad or reading screen, nor the debug panel, which hold its focus), with no
+##   pause screen (game menu, briefing, summary) open; while it is open the player's input is off, so none of those
 ##   open, and it swallows the debug panel key. It closes when the player dies or is knocked out.
 ## - The HUD is hidden while it is open.
 
@@ -44,9 +44,6 @@ var current: int = 0
 
 var _pages: Array[TabPage] = []
 var _tab_buttons: Array[Button] = []
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
-var _hud_before: bool = true
 var _flash: float = 0.0
 var _flash_material: ShaderMaterial
 var _content: Control
@@ -91,9 +88,8 @@ func is_open() -> bool:
 func can_open() -> bool:
 	return (
 		player != null
-		and player.input_enabled
+		and player.accepts_input()
 		and ActorState.can_act(player)
-		and not DebugPanel.is_open()
 		and not PauseScreens.any_open(get_tree())
 		and not _pages.is_empty()
 	)
@@ -103,15 +99,8 @@ func can_open() -> bool:
 func open(index: int = -1) -> void:
 	if visible or not can_open():
 		return
-	_input_before = player.input_enabled
-	player.input_enabled = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	var hud := _hud()
-	if hud != null:
-		_hud_before = hud.visible
-		hud.visible = false
 	visible = true
+	OverlayFocus.acquire(self, player, Input.MOUSE_MODE_VISIBLE, true)
 	show_tab(index if index >= 0 else current)
 
 
@@ -124,13 +113,7 @@ func close() -> void:
 	visible = false
 	_flash = 0.0
 	_apply_flash()
-	var hud := _hud()
-	if hud != null:
-		hud.visible = _hud_before
-	if is_instance_valid(player):
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 
 
 ## Shows tab `index` (wrapped into range) and remembers it as the last tab used.
@@ -257,10 +240,6 @@ func _apply_flash() -> void:
 		_flash_material.set_shader_parameter(&"strength", flash_strength())
 
 
-func _hud() -> CanvasLayer:
-	return player.get_node_or_null(^"Hud") as CanvasLayer if is_instance_valid(player) else null
-
-
 func _build() -> void:
 	var dim := ColorRect.new()
 	dim.name = "Dim"
@@ -274,8 +253,15 @@ func _build() -> void:
 	panel.anchor_top = margin
 	panel.anchor_right = 1.0 - margin
 	panel.anchor_bottom = 1.0 - margin
-	panel.add_theme_stylebox_override(&"panel", TabStyle.box(TabStyle.PANEL, TabStyle.LINE_STRONG, 1, 6))
+	TabStyle.themed(panel, &"TabPanel")
 	root.add_child(panel)
+	_build_pages(panel)
+	_build_flash()
+	show_tab(current)
+
+
+# The tab bar (one button per page, the close button), the rule under it and the pages.
+func _build_pages(panel: PanelContainer) -> void:
 	var box := VBoxContainer.new()
 	box.name = "Box"
 	box.add_theme_constant_override(&"separation", 0)
@@ -311,6 +297,10 @@ func _build() -> void:
 	_tab_bar.add_child(spacer)
 	_close_button = _make_close_button()
 	_tab_bar.add_child(_close_button)
+
+
+# The edge flash over everything (a hit while open).
+func _build_flash() -> void:
 	var flash := ColorRect.new()
 	flash.name = "Flash"
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -322,7 +312,6 @@ func _build() -> void:
 	flash.material = _flash_material
 	root.add_child(flash)
 	_apply_flash()
-	show_tab(current)
 
 
 func _add_tab_button(title: String, index: int) -> void:
@@ -332,6 +321,7 @@ func _add_tab_button(title: String, index: int) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(0, 44)
 	button.add_theme_font_size_override(&"font_size", 15)
+	button.theme = TabStyle.THEME
 	button.pressed.connect(show_tab.bind(index))
 	_tab_bar.add_child(button)
 	_tab_buttons.append(button)
@@ -341,20 +331,8 @@ func _add_tab_button(title: String, index: int) -> void:
 
 
 func _style_tab(index: int) -> void:
-	var button := _tab_buttons[index]
-	var on := index == current
-	var style := TabStyle.box(Color(TabStyle.AMBER, 0.08) if on else Color(0, 0, 0, 0), TabStyle.AMBER, 0, 0)
-	# The amber line under the current tab.
-	style.border_width_bottom = 2 if on else 0
-	style.content_margin_left = 20.0
-	style.content_margin_right = 20.0
-	var colour := TabStyle.FG if on else TabStyle.CAPTION
-	button.add_theme_color_override(&"font_color", colour)
-	button.add_theme_color_override(&"font_hover_color", TabStyle.FG)
-	button.add_theme_color_override(&"font_pressed_color", TabStyle.FG)
-	button.add_theme_color_override(&"font_hover_pressed_color", TabStyle.FG)
-	for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed"]:
-		button.add_theme_stylebox_override(state, style)
+	# The current tab: an amber line under it (TabTabOn).
+	_tab_buttons[index].theme_type_variation = &"TabTabOn" if index == current else &"TabTab"
 
 
 func _make_close_button() -> Button:
@@ -363,13 +341,7 @@ func _make_close_button() -> Button:
 	button.tooltip_text = "Close (Tab or Esc)"
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(46, 44)
-	var normal := TabStyle.box(Color(0, 0, 0, 0), TabStyle.LINE, 0, 0)
-	normal.border_width_left = 1
-	var hover := TabStyle.box(Color(TabStyle.BAD, 0.08), TabStyle.LINE, 0, 0)
-	hover.border_width_left = 1
-	button.add_theme_stylebox_override(&"normal", normal)
-	button.add_theme_stylebox_override(&"hover", hover)
-	button.add_theme_stylebox_override(&"pressed", hover)
+	TabStyle.themed(button, &"TabClose")
 	button.pressed.connect(close)
 	# Drawn as two strokes: the fallback font may not have the multiplication-x glyph.
 	button.draw.connect(_draw_close.bind(button))

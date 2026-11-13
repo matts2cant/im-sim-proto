@@ -14,7 +14,8 @@ extends Node
 ## EventLog: `item.picked_up`, `item.pickup_refused`, `item.dropped`, `item.used`, `item.use_refused`,
 ## `item.attached`.
 
-## Short feedback for the HUD ("No room in inventory", "Nothing happens").
+## Short feedback for its own pages ("No room in inventory", "Nothing happens"); the same text
+## goes to the holder's Notices (the HUD).
 signal message(text: String)
 ## The hand changed (an item put in hand, swapped or put away).
 signal hand_changed
@@ -83,13 +84,13 @@ func pick_up(pickup: ItemPickup) -> bool:
 	if left >= offered:
 		var refused := {"item": item_name, "count": offered, "reason": "no_room"}
 		EventLog.record(&"item.pickup_refused", _who(), String(pickup.entity().name), refused)
-		message.emit(NO_ROOM)
+		_say(NO_ROOM)
 		return false
 	var data := {"item": item_name, "count": offered - left, "left": left}
 	EventLog.record(&"item.picked_up", _who(), String(pickup.entity().name), data)
 	if left > 0:
 		pickup.count = left
-		message.emit("%s (%d left behind)" % [NO_ROOM, left])
+		_say("%s (%d left behind)" % [NO_ROOM, left])
 	else:
 		pickup.consume()
 	return true
@@ -121,7 +122,7 @@ func cycle(step: int) -> void:
 func hold(stack: ItemStack) -> void:
 	if stack == null or not inventory.stacks.has(stack) or in_hand() == stack:
 		return
-	if stack.item.use_action == ItemData.UseAction.EQUIP_WEAPON:
+	if stack.item.is_weapon():
 		held = null
 		_weapon_stack = stack
 		player.weapons.equip_state(weapon_state(stack))
@@ -141,7 +142,7 @@ func hold(stack: ItemStack) -> void:
 func use_held() -> bool:
 	if held == null:
 		return false
-	if held.item.use_action == ItemData.UseAction.EQUIP_TOOL:
+	if held.item.is_tool():
 		return false
 	return use_stack(held)
 
@@ -158,23 +159,22 @@ func use_stack(stack: ItemStack, part: StringName = &"") -> bool:
 	if not part.is_empty():
 		var hitboxes := Hitboxes.of(player)
 		var box := hitboxes.box(part) if hitboxes != null else null
-		if box == null or stack.item.use_action != ItemData.UseAction.CONSUME:
+		if box == null or not stack.item.is_consumable():
 			return false
 		return _consume(stack, box)
-	match stack.item.use_action:
-		ItemData.UseAction.EQUIP_WEAPON, ItemData.UseAction.EQUIP_TOOL:
-			_toggle(stack)
-		ItemData.UseAction.CONSUME:
-			return _consume(stack)
-		_:
-			_log_used(stack, "nothing")
-			message.emit(stack.item.use_message)
+	if stack.item.is_equipped():
+		_toggle(stack)
+	elif stack.item.is_consumable():
+		return _consume(stack)
+	else:
+		_log_used(stack, "nothing")
+		_say(stack.item.use_message)
 	return true
 
 
 ## The kind of tool in hand (ItemData.tool_kind of an EQUIP_TOOL item), or &"".
 func held_tool() -> StringName:
-	if held == null or held.item.use_action != ItemData.UseAction.EQUIP_TOOL:
+	if held == null or not held.item.is_tool():
 		return &""
 	return held.item.tool_kind
 
@@ -293,7 +293,7 @@ func attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
 	inventory.changed.emit()
 	var data := {"item": String(item.id), "weapon": String(weapon_stack.item.id)}
 	EventLog.record(&"item.attached", _who(), "", data)
-	message.emit("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
+	_say("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
 	return true
 
 
@@ -340,7 +340,7 @@ func _consume(stack: ItemStack, target: Node = null) -> bool:
 	if not affects:
 		var data := {"item": String(stack.item.id), "reason": "no_effect"}
 		EventLog.record(&"item.use_refused", _who(), "", data)
-		message.emit(stack.item.refused_message)
+		_say(stack.item.refused_message)
 		return false
 	for stimulus in stimuli:
 		StimulusSystem.emit_now(stimulus)
@@ -393,14 +393,14 @@ func _take_key(pickup: ItemPickup) -> bool:
 	if keychain == null or not keychain.take(pickup):
 		return false
 	EventLog.record(&"item.picked_up", _who(), entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0})
-	message.emit(Keychain.ADDED % key_name)
+	_say(Keychain.ADDED % key_name)
 	return true
 
 
 func _tool_stacks(kind: StringName) -> Array[ItemStack]:
 	var out: Array[ItemStack] = []
 	for stack in inventory.stacks:
-		if stack.item.use_action == ItemData.UseAction.EQUIP_TOOL and stack.item.tool_kind == kind:
+		if stack.item.is_tool_of(kind):
 			out.append(stack)
 	return out
 
@@ -435,3 +435,9 @@ func _log_used(stack: ItemStack, action: String, extra: Dictionary = {}) -> void
 
 func _who() -> String:
 	return String(player.name) if is_instance_valid(player) else ""
+
+
+# Feedback: its pages' `message` and the holder's Notices (the HUD).
+func _say(text: String) -> void:
+	message.emit(text)
+	Notices.send(player, text)

@@ -71,6 +71,41 @@ enum UseAction {
 ## device's menu on the deck's Map (ExploitItems).
 @export var exploit_kind: StringName = &""
 
+# The use action is read only here (ADR 0133): everything else asks these predicates.
+
+
+## Draws a weapon (`weapon`) when used.
+func is_weapon() -> bool:
+	return use_action == UseAction.EQUIP_WEAPON
+
+
+## A tool held in hand and worked with LMB (`tool_kind`).
+func is_tool() -> bool:
+	return use_action == UseAction.EQUIP_TOOL
+
+
+## Put in hand when used (a weapon or a tool); used again, put away.
+func is_equipped() -> bool:
+	return is_weapon() or is_tool()
+
+
+## Sends `use_stimuli` to its user and is used up.
+func is_consumable() -> bool:
+	return use_action == UseAction.CONSUME
+
+
+## A tool of kind `kind` (a lockpick, the deck).
+func is_tool_of(kind: StringName) -> bool:
+	return is_tool() and tool_kind == kind
+
+
+## The verb of its Use button: "Equip" or "Put away" (`in_hand`) for a weapon or tool, "Use" for a
+## consumable, "" when it has no use button.
+func use_label(in_hand: bool) -> String:
+	if is_equipped():
+		return "Put away" if in_hand else "Equip"
+	return "Use" if is_consumable() else ""
+
 
 ## Stacks with instance state never merge (each pistol keeps its own magazine).
 func stackable() -> bool:

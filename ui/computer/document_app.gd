@@ -1,5 +1,5 @@
 class_name DocumentApp
-extends HBoxContainer
+extends ComputerApp
 ## Halcyon OS's Mail and Files apps (ADR 0114): a list (subject and sender, or file name) and a
 ## reader (title, sender, text, what reading it taught). Selecting an item reads it: it joins the
 ## viewer's PersonalLog like a datapad (Computer.read(), source "Mail" or "Files"), without the
@@ -13,6 +13,8 @@ const CLUE := "A clue, not a login: nothing is learned. Added to the Journal (No
 const EMPTY_MAIL := "No mail."
 const EMPTY_FILES := "No files."
 
+## What it lists (Computer.documents(): Computer.MAIL or Computer.FILES).
+var folder: StringName = Computer.MAIL
 var computer: Computer
 var viewer: Node
 ## "Mail" or "Files": the PersonalLog source and the list's caption.
@@ -35,6 +37,19 @@ var _reader_box: PanelContainer
 
 func _ready() -> void:
 	_build()
+
+
+## A Mail or Files app listing `p_folder` under the name `p_source`.
+static func make(p_folder: StringName, p_source: String) -> DocumentApp:
+	var app := DocumentApp.new()
+	app.folder = p_folder
+	app.source = p_source
+	app.name = p_source
+	return app
+
+
+func open_app(p_computer: Computer, p_viewer: Node, account: String) -> void:
+	show_documents(p_computer, p_viewer, p_computer.documents(folder, account), source)
 
 
 ## Shows `p_documents` of `p_computer` for `p_viewer` and reads the first one; `status`: the line

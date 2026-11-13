@@ -68,6 +68,9 @@
 [ext_resource type="Script" path="res://items/grenades/thrower.gd" id="88_thrower"]
 [ext_resource type="Resource" path="res://items/grenades/throw_config.tres" id="89_throw_config"]
 [ext_resource type="Script" path="res://items/grenades/mine_sense.gd" id="90_mine_sense"]
+[ext_resource type="Script" path="res://actors/common/notices/notices.gd" id="91_notices"]
+[ext_resource type="Script" path="res://ui/window/screens.gd" id="92_screens"]
+[ext_resource type="PackedScene" path="res://ui/tuning_panel/tuning_panel.tscn" id="93_tuning_panel"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -142,6 +145,13 @@ catalog = ExtResource("21_catalog")
 
 [node name="Interactor" type="Node" parent="."]
 script = ExtResource("22_interactor")
+
+[node name="Notices" type="Node" parent="."]
+script = ExtResource("91_notices")
+
+[node name="Screens" type="Node" parent="."]
+script = ExtResource("92_screens")
+scenes = Dictionary[StringName, PackedScene]({&"tuning": ExtResource("93_tuning_panel")})
 
 [node name="Hud" parent="." instance=ExtResource("17_hud")]
 

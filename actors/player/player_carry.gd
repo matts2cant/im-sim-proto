@@ -24,8 +24,6 @@ signal picked_up(body: PhysicsBody3D)
 signal released(body: PhysicsBody3D, how: StringName)
 ## A put down / drop / throw found no free spot; the object stays held.
 signal release_refused(body: PhysicsBody3D, how: StringName)
-## Short feedback for the HUD ("Too heavy" when a held object outgrows the limit).
-signal message(text: String)
 
 const LIMIT_ATTRIBUTE: StringName = &"carry_mass_limit"
 const TOO_HEAVY := "Too heavy"
@@ -181,7 +179,7 @@ func physics_step() -> void:
 		return
 	if not CarryRules.can_carry(held_mass(), mass_limit()):
 		drop(&"too_heavy")
-		message.emit(TOO_HEAVY)
+		Notices.send(player, TOO_HEAVY)
 		return
 	var delta := get_physics_process_delta_time()
 	var before := held.global_position

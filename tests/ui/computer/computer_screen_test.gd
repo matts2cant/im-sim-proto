@@ -95,14 +95,14 @@ func test_mail_and_files_are_read_into_the_journal() -> void:
 	_computer.session_user = "jmercer"
 	_computer.use_by(_show.player)
 	var personal_log := PersonalLog.of(_show.player)
-	_screen.dock_buttons[ComputerScreen.App.MAIL].pressed.emit()
+	_screen.dock_button(Computer.MAIL).pressed.emit()
 	assert_array(_screen.mail_app.titles()).contains_exactly(["Night rounds"])
 	# The first mail is shown, so read: in the Journal like a datapad, no reading overlay.
 	assert_str(_screen.mail_app.from_label.text).is_equal("From J. Mercer")
 	assert_bool(personal_log.has(&"showcase.console.mail_rounds")).is_true()
 	assert_str(personal_log.entries()[0].source).is_equal("Mail")
 	assert_bool((_show.player.get_node("ReadingOverlay") as ReadingOverlay).visible).is_false()
-	_screen.dock_buttons[ComputerScreen.App.FILES].pressed.emit()
+	_screen.dock_button(Computer.FILES).pressed.emit()
 	assert_bool(_screen.files_app.is_visible_in_tree()).is_true()
 	assert_bool(_screen.mail_app.is_visible_in_tree()).is_false()
 	assert_array(_screen.files_app.titles()).contains_exactly(["notes.txt"])
@@ -116,7 +116,7 @@ func test_the_dock_shows_only_the_apps_installed() -> void:
 	_computer.session_user = "jmercer"
 	_computer.use_by(_show.player)
 	assert_array(_dock()).is_equal(["Mail", "Files", "Security"])
-	_screen.dock_buttons[ComputerScreen.App.SECURITY].pressed.emit()
+	_screen.dock_button(Computer.SECURITY).pressed.emit()
 	assert_bool(_screen.security_app.is_visible_in_tree()).is_true()
 	assert_array(_screen.security_app.device_names()).is_not_empty()
 	_screen.close()
@@ -128,8 +128,8 @@ func test_the_dock_shows_only_the_apps_installed() -> void:
 	for remote: bool in [false, true]:
 		_computer.open_desktop(_show.player, "jmercer", remote)
 		assert_array(_dock()).is_equal(["Mail", "Files"])
-		_screen.show_app(ComputerScreen.App.SECURITY)
-		assert_int(_screen.app).is_equal(ComputerScreen.App.MAIL)
+		_screen.show_app(Computer.SECURITY)
+		assert_str(String(_screen.app)).is_equal(String(Computer.MAIL))
 		assert_bool(_screen.security_app.is_visible_in_tree()).is_false()
 		_screen.close()
 
@@ -148,7 +148,7 @@ func test_the_world_keeps_running_and_esc_leaves_without_the_game_menu() -> void
 	_show.player.input_enabled = true
 	_computer.use_by(_show.player)
 	assert_bool(_show.scene.get_tree().paused).is_false()
-	assert_bool(_show.player.input_enabled).is_false()
+	assert_bool(_show.player.accepts_input()).is_false()
 	assert_bool((_show.player.get_node("Hud") as CanvasLayer).visible).is_false()
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	var ticks := Engine.get_physics_frames()
@@ -163,7 +163,7 @@ func test_the_world_keeps_running_and_esc_leaves_without_the_game_menu() -> void
 	await _show.frames(2)
 	assert_bool(_screen.is_open()).is_false()
 	assert_bool((_show.player.get_node("GameMenu") as GameMenu).is_open()).is_false()
-	assert_bool(_show.player.input_enabled).is_true()
+	assert_bool(_show.player.accepts_input()).is_true()
 	assert_bool((_show.player.get_node("Hud") as CanvasLayer).visible).is_true()
 	# The ✕ leaves too; the hint names only Esc.
 	_computer.use_by(_show.player)
@@ -187,7 +187,7 @@ func test_death_and_knockout_close_it_and_give_the_input_back() -> void:
 	await _show.frames(2)
 	assert_bool(ActorState.can_act(_show.player)).is_false()
 	assert_bool(_screen.is_open()).is_false()
-	assert_bool(_show.player.input_enabled).is_true()
+	assert_bool(_show.player.accepts_input()).is_true()
 
 
 func test_a_dead_computer_closes_its_screen() -> void:

@@ -68,7 +68,8 @@ const JUMP_APEX: StringName = &"jump_apex_height"
 const MANTLE_MAX: StringName = &"mantle_max_height"
 
 @export var config: PlayerConfig
-## When false the player ignores input (cutscenes, tests that drive it directly).
+## When false the player ignores input (cutscenes, tests that drive it directly). Screens do not
+## set it: they hold its OverlayFocus (accepts_input()).
 @export var input_enabled: bool = true
 ## When false, `use` while dead only emits `reset_requested` (tests) instead of reloading the level.
 @export var reload_on_reset: bool = true
@@ -149,7 +150,7 @@ func _ready() -> void:
 	_apply_crouched(false)
 	_head.position.y = PlayerMotion.eye_height(false, config)
 	_register_debug_tab()
-	if input_enabled and not DebugPanel.is_open():
+	if accepts_input():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -167,7 +168,7 @@ func _exit_tree() -> void:
 	if is_instance_valid(_stats_tab):
 		_stats_tab.queue_free()
 	_stats_tab = null
-	if input_enabled and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if accepts_input() and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -284,13 +285,13 @@ func speed_cap(p_mode: PlayerMotion.Mode) -> float:
 
 
 ## Jump apex (m): config.jump_apex_height through the `jump_apex_height` attribute.
-func jump_apex_height() -> float:
+func _jump_apex_height() -> float:
 	return Attributes.read(self, JUMP_APEX, config.jump_apex_height)
 
 
 ## Highest ledge top (m) above the last ground that can be mantled: config.mantle_max_height
 ## through the `mantle_max_height` attribute.
-func mantle_max_height() -> float:
+func _mantle_max_height() -> float:
 	return Attributes.read(self, MANTLE_MAX, config.mantle_max_height)
 
 
@@ -397,7 +398,7 @@ func _step_movement(delta: float, jump_held: bool) -> void:
 	velocity.z = horizontal.z
 	var gravity := get_gravity() * config.gravity_scale
 	if jumping:
-		velocity.y = PlayerMotion.jump_speed(jump_apex_height(), gravity.length())
+		velocity.y = PlayerMotion.jump_speed(_jump_apex_height(), gravity.length())
 	elif not grounded:
 		velocity += gravity * delta
 
@@ -424,7 +425,7 @@ func _update_crouch() -> void:
 		if not crouched:
 			_apply_crouched(true)
 		return
-	if not input_enabled:
+	if not input_enabled or OverlayFocus.is_held(self):
 		return
 	var wants_crouch := _input_allowed() and Input.is_action_pressed(&"crouch")
 	if wants_crouch and not crouched:
@@ -443,7 +444,7 @@ func _apply_crouched(value: bool) -> void:
 
 
 func _try_start_mantle() -> bool:
-	var max_height := mantle_max_height()
+	var max_height := _mantle_max_height()
 	var probe := _probe.find_ledge(global_position, -global_basis.z, _ground_y, max_height)
 	var plan := MantleRules.evaluate(probe, global_position, config, max_height)
 	if plan == null:
@@ -489,7 +490,7 @@ func _register_debug_tab() -> void:
 # (again: put away); wheel: the next / previous belt item (ADR 0059); F1-F4: augmentation toggles.
 # Dead or knocked out: only `use`, which asks for a level reset.
 func _handle_actions() -> void:
-	var can_press: bool = input_enabled and not DebugPanel.is_open()
+	var can_press := accepts_input()
 	var steps := _belt_steps
 	_belt_steps = 0
 	if can_press and ActorState.can_act(self):
@@ -540,12 +541,7 @@ func _step_tool(delta: float) -> void:
 	if _tool_latched and not Input.is_action_pressed(&"fire"):
 		_tool_latched = false
 	var holding: bool = (
-		input_enabled
-		and not _tool_latched
-		and not DebugPanel.is_open()
-		and ActorState.can_act(self)
-		and not carry.is_carrying()
-		and Input.is_action_pressed(&"fire")
+		not _tool_latched and _input_allowed() and not carry.is_carrying() and Input.is_action_pressed(&"fire")
 	)
 	var tool := inventory.held_tool()
 	# Ranged tool targets (the deck aimed at an access point): only looked for while working a tool
@@ -559,14 +555,7 @@ func _step_tool(delta: float) -> void:
 # LMB held with a weapon in hand (nothing carried, able to act): an automatic weapon keeps firing
 # (hold, not toggle; releasing stops it).
 func _trigger_held() -> bool:
-	return (
-		input_enabled
-		and not DebugPanel.is_open()
-		and ActorState.can_act(self)
-		and not carry.is_carrying()
-		and inventory.held == null
-		and Input.is_action_pressed(&"fire")
-	)
+	return _input_allowed() and not carry.is_carrying() and inventory.held == null and Input.is_action_pressed(&"fire")
 
 
 ## Losing overlay (dead or knocked out): reloads the level (or only signals, for tests).
@@ -649,5 +638,11 @@ func _move_input() -> Vector2:
 	return Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 
 
+## True while the player takes input: `input_enabled` and no screen holds its focus (OverlayFocus:
+## an overlay over it, the debug panel). Dead or knocked out still counts (`use` asks for a reset).
+func accepts_input() -> bool:
+	return input_enabled and not OverlayFocus.blocks_input(self)
+
+
 func _input_allowed() -> bool:
-	return input_enabled and not DebugPanel.is_open() and ActorState.can_act(self)
+	return accepts_input() and ActorState.can_act(self)

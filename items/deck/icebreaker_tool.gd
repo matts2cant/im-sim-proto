@@ -122,7 +122,7 @@ func _physics_process(delta: float) -> void:
 		var text := "Connection lost: the Icebreaker stopped"
 		if blocked:
 			text = "Blocked by a tracer: the Icebreaker stopped"
-		session.notice.emit(text)
+		Notices.send(entity, text)
 		session.changed.emit()
 		return
 	var found := accounts.account(job.user)
@@ -156,7 +156,7 @@ func _cracked(accounts: DeviceAccounts) -> void:
 	EventLog.record(
 		&"deck.cracked", NetworkSource.user_key(entity), device_name, {"device": device_name, "user": job.user}
 	)
-	session.notice.emit(DeckSession.access_notice(device, "Cracked %s: added to the Journal" % job.user))
+	Notices.send(entity, DeckSession.access_notice(device, "Cracked %s: added to the Journal" % job.user))
 	session.refresh()
 
 

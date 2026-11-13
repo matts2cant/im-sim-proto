@@ -64,6 +64,16 @@ var _item_name_left: float = 0.0
 @onready var fuse_label: Label = $Fuse
 
 
+## The Hud child of `entity`, or null.
+static func of(entity: Node) -> Hud:
+	if entity == null or not is_instance_valid(entity):
+		return null
+	for child in entity.get_children():
+		if child is Hud:
+			return child as Hud
+	return null
+
+
 func _ready() -> void:
 	player = get_parent() as Player
 	death_overlay.visible = false
@@ -85,9 +95,9 @@ func _ready() -> void:
 	player.body.changed.connect(_on_body_changed)
 	player.weapons.changed.connect(refresh_weapon)
 	belt_bar.bind(player.inventory)
-	player.inventory.message.connect(show_message)
-	player.carry.message.connect(show_message)
-	player.interactor.message.connect(show_message)
+	var notices := Notices.of(player)
+	if notices != null:
+		notices.posted.connect(show_message)
 	player.inventory.hand_changed.connect(_on_hand_changed)
 	var energy := Energy.of(player)
 	energy_bar.energy = energy
@@ -95,7 +105,6 @@ func _ready() -> void:
 	var augmentations := Augmentations.of(player)
 	if augmentations != null:
 		augmentations.changed.connect(refresh_augmentations)
-		augmentations.message.connect(show_message)
 	refresh_augmentations()
 	var reader_log := PersonalLog.of(player)
 	if reader_log != null:

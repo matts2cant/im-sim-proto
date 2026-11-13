@@ -273,8 +273,8 @@ func _open_computer() -> void:
 	computer.open_desktop(_player, DeviceAccounts.of(entity).accounts[0].user, false)
 	var screen := ComputerScreen.of(_player)
 	var app := String(_shot.get("app", "security"))
-	var apps := {"mail": ComputerScreen.App.MAIL, "files": ComputerScreen.App.FILES}
-	screen.show_app(apps.get(app, ComputerScreen.App.SECURITY))
+	var apps := {"mail": Computer.MAIL, "files": Computer.FILES}
+	screen.show_app(apps.get(app, Computer.SECURITY))
 	var select := String(_shot.get("select", ""))
 	if select.is_empty():
 		return

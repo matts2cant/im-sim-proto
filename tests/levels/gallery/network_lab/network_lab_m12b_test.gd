@@ -13,6 +13,7 @@ extends GdUnitTestSuite
 ##   panic button is pressed.
 ## Lab-local positions.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const Helpers := preload("res://tests/levels/gallery/network_lab/network_lab_helpers.gd")
 const SPOT_6 := Vector3(15.6, 0, -25.5)
 const SPOT_10 := Vector3(11.6, 0, -25.5)
@@ -142,11 +143,11 @@ func test_the_note_logs_in_on_rtr04_and_a_deny_rule_keeps_the_sirens_silent() ->
 	# The Map logs in with the note's login: the Sirens subnet appears and RTR-04 is ours.
 	assert_bool(screen.graph.select("RTR-04")).is_true()
 	var log_in := ""
-	for text in screen.menu_texts():
+	for text in DeckUi.menu_texts(screen):
 		if text.begins_with("Log in (from"):
 			log_in = text
 	assert_str(log_in).is_not_empty()
-	screen.menu_button(log_in).pressed.emit()
+	DeckUi.menu_button(screen, log_in).pressed.emit()
 	await _lab.seconds(0.3)
 	screen.refresh()
 	assert_array(screen.graph.node_names()).contains(["SW-SIRENS", "SIREN-A", "SIREN-B"])

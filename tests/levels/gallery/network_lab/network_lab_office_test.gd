@@ -58,7 +58,7 @@ func test_the_sticky_note_opens_pc1_and_its_mail_is_an_implicit_clue() -> void:
 	screen.fill_in(0)
 	screen.login_button.pressed.emit()
 	assert_bool(screen.desktop_shown()).is_true()
-	screen.dock_buttons[ComputerScreen.App.MAIL].pressed.emit()
+	screen.dock_button(Computer.MAIL).pressed.emit()
 	assert_str(screen.mail_app.titles()[0]).is_equal("Re: my password")
 	var personal_log := PersonalLog.of(_lab.player)
 	assert_bool(personal_log.has(&"gallery.network_lab.pc1_mail_password")).is_true()
@@ -87,7 +87,7 @@ func test_the_guess_from_the_mail_and_the_photo_opens_pc2_and_teaches_the_consol
 	assert_bool(screen.desktop_shown()).is_true()
 	assert_bool(pc2.is_logged_in()).is_true()
 	# Its mail (shown first, so read) teaches the console's login: Fill in offers it there.
-	screen.dock_buttons[ComputerScreen.App.MAIL].pressed.emit()
+	screen.dock_button(Computer.MAIL).pressed.emit()
 	var known := _lab.computer("Devices/Console").known_logins(_lab.player)
 	assert_int(known.size()).is_equal(1)
 	assert_str(known[0].user).is_equal("ops")

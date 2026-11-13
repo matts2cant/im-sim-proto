@@ -239,7 +239,7 @@ func _open_computer(device: String) -> void:
 		screen.fill_in(0)
 		return
 	computer.open_desktop(_player, "rvoss", false)
-	screen.show_app(ComputerScreen.App.SECURITY)
+	screen.show_app(Computer.SECURITY)
 	screen.security_app.select(Computer.display_name(Device.of(_wing.get_node(device))))
 
 

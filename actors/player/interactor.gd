@@ -12,9 +12,6 @@ extends Node
 ## within reach (ToolUse works a held tool on it, ADR 0078; the frame shows devices, powered things
 ## and characters there).
 
-## Why E did nothing (ADR 0130), for the HUD's short message.
-signal message(text: String)
-
 enum Kind { NONE, PICK_UP, USE, CARRY, TOO_HEAVY, PUT_DOWN, NO_ROOM }
 
 const TOO_HEAVY := "Too heavy"
@@ -154,7 +151,7 @@ func perform() -> bool:
 			if idle != null and not idle.available(player):
 				why = idle.unavailable_reason(player)
 	if not why.is_empty():
-		message.emit(why)
+		Notices.send(player, why)
 	return done
 
 

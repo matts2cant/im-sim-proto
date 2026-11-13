@@ -1,5 +1,5 @@
 class_name SecurityApp
-extends HBoxContainer
+extends ComputerApp
 ## Halcyon OS's Security app (ADR 0114; replaces the terminal's Camera tab of ADR 0083). Over
 ## Computer.devices() (only the devices the computer controls):
 ## - a list grouped by kind (ComputerConfig.groups, in order; each device's kind and icon come from
@@ -76,6 +76,32 @@ var _trouble: PackedStringArray = []
 
 func _ready() -> void:
 	_build()
+
+
+func open_app(p_computer: Computer, p_viewer: Node, _account: String) -> void:
+	bind(p_computer, p_viewer)
+
+
+## The live view renders only while shown.
+func set_shown(on: bool) -> void:
+	visible = on
+	shown = on
+	update_feed()
+
+
+func refresh_app() -> void:
+	refresh()
+
+
+func process_app() -> void:
+	update_feed()
+
+
+## The live view at FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop.
+func set_compact(compact: bool) -> void:
+	var feed_size := FEED_SHOWN_COMPACT if compact else FEED_SHOWN
+	feed_frame.custom_minimum_size = feed_size
+	feed_rect.custom_minimum_size = feed_size
 
 
 func bind(p_computer: Computer, p_viewer: Node) -> void:
@@ -193,12 +219,6 @@ func action_labels() -> Array[String]:
 ## The trouble lines shown, newest first (at the last refresh).
 func trouble_lines() -> PackedStringArray:
 	return _trouble
-
-
-## Shows the live view at `shown` size (FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop).
-func set_view_size(shown: Vector2) -> void:
-	feed_frame.custom_minimum_size = shown
-	feed_rect.custom_minimum_size = shown
 
 
 ## Sends `command` to `target` and says what happened.
@@ -390,6 +410,13 @@ static func _address_of(device: Device) -> String:
 
 func _build() -> void:
 	add_theme_constant_override(&"separation", 0)
+	_build_list()
+	_build_detail()
+	_build_none()
+
+
+# The device list column and the trouble notes under it.
+func _build_list() -> void:
 	_list_column = MarginContainer.new()
 	_list_column.name = "List"
 	_list_column.custom_minimum_size = Vector2(LIST_WIDTH, 0)
@@ -412,6 +439,10 @@ func _build() -> void:
 	trouble_box.add_theme_constant_override(&"separation", 2)
 	trouble_box.visible = false
 	list_box.add_child(trouble_box)
+
+
+# The selected device's detail column.
+func _build_detail() -> void:
 	_detail_column = MarginContainer.new()
 	_detail_column.name = "Detail"
 	_detail_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -441,6 +472,10 @@ func _build() -> void:
 	result_label = HalcyonStyle.label("", 13, HalcyonStyle.DIM, true)
 	detail.add_child(result_label)
 	detail.add_child(HalcyonStyle.paragraph(NOTE, 12, HalcyonStyle.DIM))
+
+
+# What shows when the computer controls no device.
+func _build_none() -> void:
 	none_box = VBoxContainer.new()
 	none_box.name = "None"
 	none_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL

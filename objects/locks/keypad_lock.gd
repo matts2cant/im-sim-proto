@@ -1,14 +1,16 @@
 class_name KeypadLock
 extends Lock
 ## Lock component: a keypad (ADR 0078), a box on the wall beside the frame (ADR 0098). E on the
-## keypad of the locked entity opens the user's KeypadScreen (a
-## user without one cannot type). The screen shows a reminder when the user's PersonalLog knows the
+## keypad of the locked entity opens the user's keypad screen (Screens, SCREEN; a user without one
+## cannot type). The screen shows a reminder when the user's PersonalLog knows the
 ## code (reminder()), and submits what was typed: the right code unlocks it for the user (who wants
 ## it open); a wrong one beeps (`noise` 4). Until M12 a keypad accepts only its code (ADR 0076).
 ## EventLog `lock.code_entered {entity, code_id, correct}`.
 
 signal code_entered(correct: bool)
 
+## The screen id the keypad asks its user's Screens for (the code entry screen).
+const SCREEN: StringName = &"keypad"
 const WRONG_TONE_HZ := 220.0
 const ACCEPT_TONE_HZ := 1320.0
 const HARDWARE: PackedScene = preload("res://objects/locks/hardware/keypad_box.tscn")
@@ -33,15 +35,11 @@ func max_digits() -> int:
 
 
 func use_prompt(user: Node) -> String:
-	return "E: enter code" if KeypadScreen.of(user) != null else ""
+	return "E: enter code" if Screens.has(user, SCREEN) else ""
 
 
 func use_locked(user: Node) -> bool:
-	var screen := KeypadScreen.of(user)
-	if screen == null:
-		return false
-	screen.open_for(self, user)
-	return true
+	return Screens.open(user, SCREEN, self)
 
 
 func locked_reason(_user: Node) -> String:

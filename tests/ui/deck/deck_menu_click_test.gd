@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## the Icebreaker and presses the remote desktop's Security actions while the trace rises; a still
 ## cursor keeps its hover across refreshes and trace updates; only the background drags the map.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
 const DECK: ItemData = preload("res://items/deck/deck.tres")
@@ -65,14 +66,14 @@ func after_test() -> void:
 
 func test_a_quick_still_click_on_the_icebreaker_button_starts_the_crack() -> void:
 	await _open_menu("OFFICE-PC")
-	await _still_click(_screen.menu_button("Icebreaker"), QUICK_CLICK)
+	await _still_click(DeckUi.menu_button(_screen, "Icebreaker"), QUICK_CLICK)
 	assert_bool(_ice.is_running()).is_true()
-	assert_int(_screen.tool).is_equal(DeckScreen.Tool.ICEBREAKER)
+	assert_str(String(_screen.tool)).is_equal(String(DeckScreen.ICEBREAKER))
 
 
 func test_a_still_click_held_across_refreshes_starts_the_crack() -> void:
 	await _open_menu("OFFICE-PC")
-	var refreshes := await _still_click(_screen.menu_button("Icebreaker"), HELD_CLICK)
+	var refreshes := await _still_click(DeckUi.menu_button(_screen, "Icebreaker"), HELD_CLICK)
 	assert_int(refreshes).is_greater_equal(2)
 	assert_bool(_ice.is_running()).is_true()
 
@@ -82,7 +83,7 @@ func test_a_still_click_on_log_in_logs_in() -> void:
 	DeviceAccounts.of(_lab.node("Rtr01")).credentials_id = &"rtr01"
 	PersonalLog.of(_player).add(note)
 	await _open_menu("RTR-01")
-	var refreshes := await _still_click(_screen.menu_button("Log in (from Router notes)"), HELD_CLICK)
+	var refreshes := await _still_click(DeckUi.menu_button(_screen, "Log in (from Router notes)"), HELD_CLICK)
 	assert_int(refreshes).is_greater_equal(2)
 	assert_bool(DeviceAccounts.of(_lab.node("Rtr01")).has_access(_player)).is_true()
 
@@ -91,7 +92,7 @@ func test_a_still_click_on_open_its_desktop_opens_it() -> void:
 	DeviceAccounts.of(_lab.node("OfficePc")).grant(_player, "kbrandt")
 	_session.refresh()
 	await _open_menu("OFFICE-PC")
-	await _still_click(_screen.menu_button("Open its desktop (remote)"), HELD_CLICK)
+	await _still_click(DeckUi.menu_button(_screen, "Open its desktop (remote)"), HELD_CLICK)
 	assert_object(_session.remote).is_same(Computer.of(_lab.node("OfficePc")))
 
 
@@ -99,18 +100,18 @@ func test_a_still_click_on_a_device_opens_its_menu() -> void:
 	var refreshes := await _still_click(_screen.graph.node_button("OFFICE-PC"), HELD_CLICK)
 	assert_int(refreshes).is_greater_equal(2)
 	assert_object(_screen.graph.selected).is_same(_lab.device("OfficePc"))
-	assert_array(_screen.menu_texts()).contains(["kbrandt", "Icebreaker"])
+	assert_array(DeckUi.menu_texts(_screen)).contains(["kbrandt", "Icebreaker"])
 
 
 func test_still_clicks_stop_and_resume_the_running_crack() -> void:
 	assert_bool(_ice.start(_lab.device("OfficePc"), "kbrandt")).is_true()
-	_screen.show_tool(DeckScreen.Tool.ICEBREAKER)
+	_screen.show_tool(DeckScreen.ICEBREAKER)
 	await _driver.frames(3)
 	# Running: its progress redraws the Icebreaker at every refresh while the cursor rests on Stop.
-	await _still_click(_screen.find_button("Stop (keeps progress)"), HELD_CLICK)
+	await _still_click(DeckUi.find_button(_screen, "Stop (keeps progress)"), HELD_CLICK)
 	assert_bool(_ice.is_running()).is_false()
 	await _driver.frames(3)
-	await _still_click(_screen.find_button("Resume"), HELD_CLICK)
+	await _still_click(DeckUi.find_button(_screen, "Resume"), HELD_CLICK)
 	assert_bool(_ice.is_running()).is_true()
 
 
@@ -122,7 +123,7 @@ func test_a_still_click_on_a_security_action_lands_while_the_trace_rises() -> vo
 	assert_bool(_ice.start(_lab.device("OfficePc"), "kbrandt")).is_true()
 	_session.open_remote(_lab.device("Console"))
 	var desktop := ComputerScreen.of(_player)
-	desktop.show_app(ComputerScreen.App.SECURITY)
+	desktop.show_app(Computer.SECURITY)
 	assert_bool(desktop.security_app.select("CAM-GATE")).is_true()
 	await _driver.frames(3)
 	var trace := _lab.tracer().trace_of(_player)
@@ -133,7 +134,7 @@ func test_a_still_click_on_a_security_action_lands_while_the_trace_rises() -> vo
 
 func test_a_still_cursor_keeps_its_hover_across_refreshes_and_trace_updates() -> void:
 	await _open_menu("OFFICE-PC")
-	await _assert_hover_stays(_screen.menu_button("Icebreaker"))
+	await _assert_hover_stays(DeckUi.menu_button(_screen, "Icebreaker"))
 	# The remote desktop's Back button beside its trace bar, while the Icebreaker raises the trace.
 	DeviceAccounts.of(_lab.node("OfficePc")).grant(_player, "kbrandt")
 	DeviceAccounts.of(_lab.node("Rtr01")).grant(_player, "admin")
@@ -175,7 +176,7 @@ func test_a_press_moved_on_a_device_or_a_menu_button_does_not_pan() -> void:
 	await _press_and_move(_screen.graph.node_button("OFFICE-PC"))
 	assert_vector(_screen.graph.view.offset).is_equal(before)
 	await _open_menu("OFFICE-PC")
-	await _press_and_move(_screen.menu_button("Icebreaker"))
+	await _press_and_move(DeckUi.menu_button(_screen, "Icebreaker"))
 	assert_vector(_screen.graph.view.offset).is_equal(before)
 
 

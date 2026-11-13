@@ -80,8 +80,7 @@ func is_in_settings() -> bool:
 func can_open() -> bool:
 	return (
 		player != null
-		and player.input_enabled
-		and not DebugPanel.is_open()
+		and player.accepts_input()
 		and not QuickSave.is_loading()
 		and not PauseScreens.any_open(get_tree())
 	)
@@ -186,9 +185,7 @@ func confirm_quit() -> void:
 
 ## QuickSave.LOADED_GROUP: the load this player came from has finished.
 func on_quickloaded() -> void:
-	var hud := player.get_node_or_null(^"Hud") as Hud if player != null else null
-	if hud != null:
-		hud.show_message(LOADED)
+	Notices.send(player, LOADED)
 
 
 func _show_settings(shown: bool) -> void:

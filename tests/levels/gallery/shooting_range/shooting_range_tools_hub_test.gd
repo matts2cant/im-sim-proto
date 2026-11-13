@@ -57,19 +57,19 @@ func test_walk_tune_and_shoot_the_spray_wall() -> void:
 	await _weapons.equip(1)
 	await _weapons.aim_at(_room.to_global(AT_TERMINAL), _room.to_global(TERMINAL_SCREEN))
 	await _driver.hold(&"use", 2)
-	var desk := _room.get_node("FiringLine/TuningTerminal/TuningDesk") as TuningDesk
-	assert_object(desk.panel).is_not_null()
-	assert_bool(desk.panel.is_open()).is_true()
-	assert_bool(_driver.player.input_enabled).is_false()
+	var panel := Screens.screen_of(_driver.player, TuningDesk.SCREEN) as TuningPanel
+	assert_object(panel).is_not_null()
+	assert_bool(panel.is_open()).is_true()
+	assert_bool(_driver.player.accepts_input()).is_false()
 	var pistol := _driver.player.weapons.weapon()
 	var expected := 0
 	for entry in TuningProperties.entries(pistol):
 		expected += TuningProperties.sliders(entry.resource).size()
-	assert_int(desk.panel.slider_keys().size()).is_equal(expected)
+	assert_int(panel.slider_keys().size()).is_equal(expected)
 	assert_int(expected).is_greater(0)
 	await _driver.hold(&"ui_cancel", 2)
-	assert_bool(desk.panel.is_open()).is_false()
-	assert_bool(_driver.player.input_enabled).is_true()
+	assert_bool(panel.is_open()).is_false()
+	assert_bool(_driver.player.accepts_input()).is_true()
 
 	# A shot at the spray wall's aim mark from the lane 5 line.
 	var marks := ImpactMarks.of(_room.get_node("SprayWall/Board"))

@@ -27,8 +27,8 @@ var _shown_tier: int = -1
 var _built: bool = false
 var _row_plain := CharacterTabStyle.row_style(false)
 var _row_selected := CharacterTabStyle.row_style(true)
-var _pip_on := CharacterTabStyle.box(CharacterTabStyle.AMBER, CharacterTabStyle.AMBER, 0)
-var _pip_off := CharacterTabStyle.box(CharacterTabStyle.WELL, CharacterTabStyle.LINE_STRONG, 0)
+var _pip_on := CharacterTabStyle.style(&"CharacterPipOn")
+var _pip_off := CharacterTabStyle.style(&"CharacterPipOff")
 var _cell_current := _cell_style(CharacterTabStyle.SELECTED_BG)
 var _cell_plain := _cell_style(CharacterTabStyle.CLEAR)
 
@@ -148,6 +148,13 @@ func _build() -> void:
 	columns.add_theme_constant_override(&"separation", 0)
 	add_child(columns)
 
+	_build_list(columns)
+	columns.add_child(CharacterTabStyle.separator())
+	_build_detail(columns)
+
+
+# The left column: the skill list and the XP placeholder.
+func _build_list(columns: HBoxContainer) -> void:
 	var left := CharacterTabStyle.column(columns, 340.0)
 	left.add_child(CharacterTabStyle.heading("Skills"))
 	var list := VBoxContainer.new()
@@ -160,7 +167,9 @@ func _build() -> void:
 	left.add_child(CharacterTabStyle.heading("Experience"))
 	left.add_child(CharacterTabStyle.placeholder("XP shows here and buys tiers in M18."))
 
-	columns.add_child(CharacterTabStyle.separator())
+
+# The right column: the selected skill, its testing tier buttons and its tier table.
+func _build_detail(columns: HBoxContainer) -> void:
 	var right := CharacterTabStyle.column(columns, 0.0, true)
 	_title = CharacterTabStyle.label("", 18)
 	right.add_child(_title)
@@ -170,12 +179,7 @@ func _build() -> void:
 	testing.add_theme_constant_override(&"separation", 8)
 	right.add_child(testing)
 	var tag := PanelContainer.new()
-	var tag_style := CharacterTabStyle.box(CharacterTabStyle.CLEAR, CharacterTabStyle.WARN, 3)
-	tag_style.content_margin_top = 1.0
-	tag_style.content_margin_bottom = 1.0
-	tag_style.content_margin_left = 5.0
-	tag_style.content_margin_right = 5.0
-	tag.add_theme_stylebox_override(&"panel", tag_style)
+	CharacterTabStyle.themed(tag, &"CharacterTag")
 	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	tag.add_child(CharacterTabStyle.label("TESTING", 10, CharacterTabStyle.WARN))
 	testing.add_child(tag)
