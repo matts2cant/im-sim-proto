@@ -21,10 +21,10 @@ icon = PackedStringArray("rect 5 9 10 7", "15,12 22,12", "8,16 6,21 16,21 14,16"
 color = Color(0.9098, 0.7725, 0.2784, 1)
 exploit = &"turret"
 
-[sub_resource type="Resource" id="Kind_door"]
+[sub_resource type="Resource" id="Kind_door_controller"]
 script = ExtResource("2_kind")
-tag = &"object.door"
-name = "Door"
+tag = &"object.door_controller"
+name = "Door controller"
 group = "Doors"
 icon = PackedStringArray("rect 6 3 12 18", "circle 15 12 1")
 color = Color(0.6275, 0.4863, 0.9412, 1)
@@ -114,4 +114,4 @@ color = Color(0.5608, 0.6392, 0.7020, 1)
 
 [resource]
 script = ExtResource("1_script")
-kinds = Array[ExtResource("2_kind")]([SubResource("Kind_camera"), SubResource("Kind_turret"), SubResource("Kind_door"), SubResource("Kind_alarm"), SubResource("Kind_siren"), SubResource("Kind_radio"), SubResource("Kind_panic"), SubResource("Kind_laser"), SubResource("Kind_computer"), SubResource("Kind_router"), SubResource("Kind_access_point"), SubResource("Kind_switch"), SubResource("Kind_wall_jack")])
+kinds = Array[ExtResource("2_kind")]([SubResource("Kind_camera"), SubResource("Kind_turret"), SubResource("Kind_door_controller"), SubResource("Kind_alarm"), SubResource("Kind_siren"), SubResource("Kind_radio"), SubResource("Kind_panic"), SubResource("Kind_laser"), SubResource("Kind_computer"), SubResource("Kind_router"), SubResource("Kind_access_point"), SubResource("Kind_switch"), SubResource("Kind_wall_jack")])

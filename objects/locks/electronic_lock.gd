@@ -1,12 +1,12 @@
 class_name ElectronicLock
 extends Lock
-## Lock component: an electronic lock, a network device (ADR 0078). Opened remotely (the entity's
-## `command.unlock` / `command.open` device actions; from M12 with network access) or by losing power
-## when the entity is tagged `door.fail_safe`; a `door.fail_secure` entity (or one with neither tag)
-## stays as it was. Power loss is the entity's Powered switching off, or the entity gaining
-## `state.unpowered` (its Device mirrors its Powered into that tag; anything else may set it too).
-## Hardware (ADR 0098): the lock light on the entity's wall boxes; a status box of its own when no
-## other lock puts a box on the wall.
+## Lock component: an electronic lock (ADR 0078). Opened remotely (`command.unlock` / `command.open`
+## through the door's controller, ADR 0130) or by losing power when the entity is tagged
+## `door.fail_safe`; a `door.fail_secure` entity (or one with neither tag) stays as it was. Power loss
+## is the entity's Powered switching off, or the entity gaining `state.unpowered` (a door's controller
+## sets it while the controller is unpowered or broken; anything else may set it too).
+## Hardware (ADR 0098): the lock light on the door controller's wall boxes; a status box of its own
+## when no other lock puts a box on the wall.
 
 const FAIL_SAFE: StringName = &"door.fail_safe"
 const FAIL_SECURE: StringName = &"door.fail_secure"

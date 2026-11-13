@@ -5,8 +5,8 @@ extends GdUnitTestSuite
 ## colour with the link. Minimal entities built from components (network_fixtures.body_device):
 ##   Switch (gear) ── Box (DeviceLamp + a lamp mesh, DeviceSwitch), Plain (no lamp)
 ##   Lone: a DeviceLamp, no cables (no StatusLight)
-## The shipped camera (its watch lamp) and a door with a keypad (its boxes' lock lights) use the same
-## component.
+## The shipped camera (its watch lamp) and a door with a keypad (its controller's boxes' lock lights,
+## ADR 0130) use the same component.
 
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
@@ -181,14 +181,16 @@ func test_a_camera_that_sees_the_player_is_red_until_cut_off() -> void:
 	_assert_shows(lamp, behaviour.config.detected_color, false, "linked again")
 
 
-func test_a_door_with_a_keypad_shows_its_lock_lights_and_no_leaf_led() -> void:
+func test_a_door_with_a_keypad_shows_its_lock_lights_and_no_extra_led() -> void:
 	var door := _door("KeypadDoor", Vector3(0, 0, 20), true)
 	var other := _door("BareDoor", Vector3(4, 0, 20), false)
 	await get_tree().process_frame
-	var lamp := DeviceLamp.of(door)
+	# The keypad's boxes are the door's controller (ADR 0130): its lamp is their lock lights.
+	var controller := Door.of(door).hardware.controller.entity
+	var lamp := DeviceLamp.of(controller)
 	# A keypad box on each face of the wall: two lock lights, one per side.
 	assert_int(lamp.meshes().size()).is_equal(2)
-	assert_object(StatusLight.of(door).led).is_null()
+	assert_object(StatusLight.of(controller).led).is_null()
 	DoorHelpers.lock(door)
 	_assert_shows(lamp, Door.LOCKED_COLOUR, false, "locked")
 	Lockable.of(door).unlock(null, &"test")
@@ -197,13 +199,13 @@ func test_a_door_with_a_keypad_shows_its_lock_lights_and_no_leaf_led() -> void:
 	_assert_shows(lamp, StatusLight.COLORS[StatusLight.State.CUT_OFF], true, "cut off")
 	_power("Switch", true)
 	_assert_shows(lamp, Door.UNLOCKED_COLOUR, false, "linked again")
-	# Without wall boxes: the LED on the leaf.
-	assert_bool(DeviceLamp.of(other).has_lamps()).is_false()
-	var led := StatusLight.of(other).led
-	assert_object(led).is_not_null()
-	assert_object(led.get_parent()).is_same(other.get_node("PanelMesh"))
+	# Without wall boxes: no controller, no device, no light at all.
+	assert_object(Door.of(other).hardware.controller).is_null()
+	assert_object(Device.of(other)).is_null()
+	assert_object(StatusLight.of(other)).is_null()
 
 
+# A door at `at`; with a keypad, its controller is cabled to the switch.
 func _door(door_name: String, at: Vector3, keypad: bool) -> Node3D:
 	var door := (load("res://objects/door/door.tscn") as PackedScene).instantiate() as Node3D
 	door.name = door_name
@@ -211,5 +213,6 @@ func _door(door_name: String, at: Vector3, keypad: bool) -> Node3D:
 	if keypad:
 		DoorHelpers.add_keypad(door, &"lamp_test", "1234")
 	_root.add_child(door)
-	Net.link(door, _n["Switch"])
+	if keypad:
+		Net.link(Door.of(door).hardware.controller.entity, _n["Switch"])
 	return door

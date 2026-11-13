@@ -3,7 +3,7 @@ extends RefCounted
 ## Pure helpers over a DeviceGraph (M12c, ADR 0115): which equipment cut a route. A route is the
 ## shortest path of cables (and holding radio links) between two nodes, whatever their state; the
 ## first down node on it is what a screen names ("RTR-01 is down") and where a network fault is
-## reported. Used by MailRoute (Mail's reason line) and AlarmController (loss of signal).
+## reported. Used by AlarmController (loss of signal).
 
 
 ## The first down node on the shortest cabled path from `from` to `to` (`from` excluded, `to`

@@ -21,11 +21,11 @@ const NETWORK: Array[String] = [
 	"Devices/SirenCorridor",
 	"Devices/PanicButton",
 	"Devices/BaseStation",
-	"Doors/VaultDoor",
+	"Doors/VaultDoor/Hardware/Controller",
 	"Devices/LaserLow",
 	"Devices/LaserHigh",
 	"Devices/LaserPair",
-	"Doors/D4Electronic",
+	"Doors/D4Electronic/Hardware/Controller",
 ]
 const LASERS: Array[String] = ["LaserLow", "LaserHigh", "LaserPair"]
 ## Corridor centre line (x 9), from the hall end to the guard post, and between the alcoves.
@@ -65,6 +65,12 @@ func _computer() -> Computer:
 	return Computer.of(_room.get_node("Devices/BoothComputer"))
 
 
+# A device's entity name; a door controller goes by its door's (ADR 0130).
+static func _name_of(device: Device) -> String:
+	var controller := DoorController.of(device.entity)
+	return String(controller.door.entity.name) if controller != null else String(device.entity.name)
+
+
 func _breaker(breaker_name: String) -> CircuitBreaker:
 	return _room.get_node("Devices/" + breaker_name + "/CircuitBreaker") as CircuitBreaker
 
@@ -74,7 +80,7 @@ func _listed() -> Array[String]:
 	var names: Array[String] = []
 	for row in _computer().devices():
 		if row.online and not row.commands.is_empty():
-			names.append(String(row.device.entity.name))
+			names.append(_name_of(row.device))
 	return names
 
 
@@ -82,7 +88,7 @@ func _listed() -> Array[String]:
 func _network() -> Array[String]:
 	var names: Array[String] = []
 	for row in _computer().devices():
-		names.append(String(row.device.entity.name))
+		names.append(_name_of(row.device))
 	return names
 
 
@@ -129,9 +135,9 @@ func test_the_booth_computer_reaches_the_security_devices_through_the_switches()
 		assert_array(_device("Devices/" + laser).reached(Device.INCIDENT)).contains_exactly([controller])
 	# Every row offers its commands: the turret Disable and its presets, the vault door Open.
 	for row in _computer().devices():
-		if row.device.entity.name == &"Turret":
+		if _name_of(row.device) == "Turret":
 			assert_array(row.commands).contains([Device.DISABLE, Device.TARGET_GUARDS])
-		if row.device.entity.name == &"VaultDoor":
+		if _name_of(row.device) == "VaultDoor":
 			assert_array(row.commands).contains([Device.OPEN])
 
 
@@ -155,7 +161,7 @@ func test_breaker_b_off_cuts_the_chain_and_keeps_the_vault_locked() -> void:
 	# Fail-secure: no power, still locked (and no remote command gets through).
 	var vault := Door.of(_room.get_node("Doors/VaultDoor"))
 	assert_bool(vault.is_locked()).is_true()
-	assert_bool(_device("Doors/VaultDoor").is_up()).is_false()
+	assert_bool(_device("Doors/VaultDoor/Hardware/Controller").is_up()).is_false()
 	# The fail-safe D4 is on the other breaker and stays locked.
 	assert_bool(Door.of(_room.get_node("Doors/D4Electronic")).is_locked()).is_true()
 

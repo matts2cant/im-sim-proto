@@ -1,6 +1,6 @@
 # 78. Doors, locks as components, and doors on the navmesh
 
-Status: Accepted, amended by [ADR 0110](0110-tab-interface.md) (the keypad screen no longer pauses: the player's input is off instead)
+Status: Accepted, amended by [ADR 0110](0110-tab-interface.md) (the keypad screen no longer pauses: the player's input is off instead); amended by [ADR 0130](0130-device-overhaul.md) (a door is not a network device: its door controller takes the remote commands and feeds its power)
 
 Date: 2026-11-08
 

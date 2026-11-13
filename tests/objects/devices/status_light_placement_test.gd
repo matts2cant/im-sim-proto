@@ -97,30 +97,9 @@ func test_every_device_scene_shows_one_light() -> void:
 			assert_bool(light.port_lights.is_empty() != gear).override_failure_message(label + " ports").is_true()
 		for glow in _small_glowing(entity):
 			assert_bool(allowed.has(glow)).override_failure_message("%s: %s glows" % [label, glow.name]).is_true()
-	# The camera's watch lamp is one of them (a door's lock lights need a lock: device_lamp_test).
+	# The camera's watch lamp is one of them (a door controller's lock lights need a door:
+	# device_lamp_test, door_controller_test).
 	assert_int(lamps).is_greater_equal(1)
-
-
-func test_a_door_light_rides_on_its_leaf() -> void:
-	var peer := Net.body_device(_root, "Peer", ORIGIN + Vector3(0, 1, -4))
-	var entity := (load("res://objects/door/door.tscn") as PackedScene).instantiate() as Node3D
-	entity.position = ORIGIN + Vector3(0, 0, 4)
-	_root.add_child(entity)
-	Net.link(entity, peer)
-	await get_tree().process_frame
-	var led := StatusLight.of(entity).led
-	var closed := led.global_position
-	var door := Door.of(entity)
-	# In the doorway's top-left corner while closed (the leaf's rim hides in the jamb).
-	var local := entity.to_local(closed)
-	var doorway := door.settings.doorway
-	assert_float(local.x).is_between(-doorway.x * 0.5, -doorway.x * 0.5 + 0.12)
-	assert_float(local.y).is_between(doorway.y - 0.12, doorway.y)
-	door.load_state({"open": true})
-	_assert_on_surface(entity, led, "open door LED")
-	assert_vector(led.global_position - closed).is_equal_approx(
-		entity.global_basis * door.settings.travel, Vector3.ONE * 0.001
-	)
 
 
 func test_a_minimal_device_gets_its_led_on_the_flat_plate_and_carries_it() -> void:
@@ -248,13 +227,17 @@ func _small_glowing(entity: Node3D) -> Array[MeshInstance3D]:
 	return found
 
 
-# The .tscn files under `dir` whose scene uses the Device component.
+# The .tscn files under `dir` whose scene uses the Device component and has a body of its own (a
+# door controller's body is the wall boxes its door builds: door_controller_test.gd).
 func _device_scenes(dir: String) -> Array[String]:
 	var found: Array[String] = []
 	for sub in DirAccess.get_directories_at(dir):
 		found.append_array(_device_scenes(dir.path_join(sub)))
 	for file in DirAccess.get_files_at(dir):
-		if file.ends_with(".tscn") and DEVICE_SCRIPT in FileAccess.get_file_as_string(dir.path_join(file)):
+		if not file.ends_with(".tscn"):
+			continue
+		var text := FileAccess.get_file_as_string(dir.path_join(file))
+		if DEVICE_SCRIPT in text and ("MeshInstance3D" in text or "instance=" in text):
 			found.append(dir.path_join(file))
 	return found
 

@@ -8,14 +8,14 @@ script = ExtResource("2_document")
 id = &"gallery.network_lab.mail_route"
 title = "Where your mail lives"
 sender = "Halcyon Mail"
-text = "This inbox is not on this PC: it lives on mail.halcyon.net, out on the internet, and the PC reaches it through EDGE-RTR, the edge router on the wall beside it. Cut the router's breaker and the PC loses its route: mail you have already read stays here, anything new is out of reach until the route comes back."
+text = "This inbox lives on this PC. EDGE-RTR, the edge router on the wall beside it, links the PC to the lab's network: cut the router's breaker and the PC drops off the network, but its mail stays here to read."
 
 [sub_resource type="Resource" id="Mail_unread"]
 script = ExtResource("2_document")
 id = &"gallery.network_lab.mail_route_second"
 title = "Second message"
 sender = "Lab tech"
-text = "If you can read this one, the route was up when you opened it. Flip the breaker, come back, and only what you read before is listed."
+text = "A second message: the inbox lists every mail the PC holds, network or not."
 
 [resource]
 script = ExtResource("1_data")

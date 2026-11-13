@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0078): the sliding door in its doorway (tests/objects/fixtures/door_wall.tscn).
 ## It opens and closes in 0.6 s, blocks sight and bodies while closed, adds 6 m to noise paths only
-## while closed, will not close on something in the doorway, follows remote commands unless it is
-## unpowered or broken, keeps open / locked across save and load, and puts its navigation link on
-## the layers its lock state allows.
+## while closed, will not close on something in the doorway, is no device itself (remote commands go
+## to its controller: door_controller_test.gd), keeps open / locked across save and load, and puts
+## its navigation link on the layers its lock state allows.
 
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -114,45 +114,13 @@ func test_does_not_close_on_a_body_in_the_doorway() -> void:
 	assert_array(EventLog.find(&"door.blocked")).has_size(1)
 
 
-func test_remote_commands_open_close_lock_unlock() -> void:
+func test_a_door_is_not_a_device_and_ignores_commands() -> void:
+	# A door without a controller (no wall box) is mechanical: no Device, commands reach nothing.
+	assert_object(Device.of(_entity)).is_null()
+	assert_object(_door.hardware.controller).is_null()
 	await _command(&"command.open")
-	assert_bool(_door.is_open()).is_true()
-	await Helpers.frames(get_tree(), 45)
-	await _command(&"command.close")
 	assert_bool(_door.is_open()).is_false()
-	await _command(&"command.lock")
-	assert_bool(_door.is_locked()).is_true()
-	await _command(&"command.unlock")
-	assert_bool(_door.is_locked()).is_false()
-	assert_array(EventLog.find(&"door.command")).has_size(2)
-	var hows := EventLog.find(&"lock.locked") + EventLog.find(&"lock.unlocked")
-	(
-		assert_array(hows.map(func(entry: EventLogEntry) -> String: return String(entry.data["how"])))
-		. is_equal(["command", "command"])
-	)
-
-
-func test_remote_open_opens_a_locked_door_without_unlocking_it() -> void:
-	Helpers.lock(_entity)
-
-	await _command(&"command.open")
-
-	assert_bool(_door.is_open()).is_true()
-	assert_bool(_door.is_locked()).is_true()
-
-
-func test_commands_are_blocked_while_unpowered_or_broken() -> void:
-	for tag: StringName in [&"state.unpowered", &"state.broken"]:
-		ActorState.set_tag(_entity, tag, true)
-		await _command(&"command.open")
-		await _command(&"command.lock")
-		assert_bool(_door.is_open()).is_false()
-		assert_bool(_door.is_locked()).is_false()
-		ActorState.set_tag(_entity, tag, false)
 	assert_array(EventLog.find(&"door.command")).is_empty()
-
-	await _command(&"command.open")
-	assert_bool(_door.is_open()).is_true()
 
 
 func test_fail_safe_electronic_lock_unlocks_the_door_on_power_loss() -> void:
@@ -179,8 +147,8 @@ func test_save_and_load_keep_open_and_locked() -> void:
 	var door_state := _door.save_state()
 	var lock_state := Lockable.of(_entity).save_state()
 
-	await _command(&"command.close")
-	await _command(&"command.unlock")
+	_door.close()
+	Lockable.of(_entity).unlock()
 	await Helpers.frames(get_tree(), 45)
 	assert_bool(_door.is_open()).is_false()
 	_door.load_state(door_state)

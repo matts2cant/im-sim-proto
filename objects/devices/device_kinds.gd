@@ -6,8 +6,8 @@ extends Resource
 ## group and the exploit item kind that opens it. A device's kind is the first kind whose tag its
 ## entity has (kind_for()); nothing in code names a kind. Read by the Security app (ComputerConfig,
 ## the kinds with a group), the deck's Map (every box's icon), exploit items (ExploitItems) and the
-## device models' parts (DeviceModel: strip and icon colour, icon strokes). The door controller
-## models use the door kind (violet) until step 1 of ADR 0130 moves doors to their controllers.
+## device models' parts (DeviceModel: strip and icon colour, icon strokes). Doors are not devices:
+## their controllers are (the Door controller kind, violet; ADR 0130).
 ## A tool script so the models' parts can read it in the editor.
 
 const PATH: String = "res://objects/devices/device_kinds.tres"

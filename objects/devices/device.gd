@@ -139,7 +139,8 @@ func _ready() -> void:
 		_attach_status_light.call_deferred()
 
 
-## The Device child of `node` (an entity), or `node` itself when it is a Device; null otherwise.
+## The Device child of `node` (an entity), or `node` itself when it is a Device; for a panel of a
+## device (a DevicePanel child: a door controller's wall box, ADR 0130), that device; null otherwise.
 static func of(node: Node) -> Device:
 	if node == null:
 		return null
@@ -148,7 +149,8 @@ static func of(node: Node) -> Device:
 	for child in node.get_children():
 		if child is Device:
 			return child as Device
-	return null
+	var panel := DevicePanel.of(node)
+	return panel.target() if panel != null else null
 
 
 ## Every device in `tree`.

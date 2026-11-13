@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/attributes/tags.gd" id="1_tags"]
+[ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="2_receiver"]
+[ext_resource type="Script" path="res://core/stimulus/receptron.gd" id="3_receptron"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_open.tres" id="4_open"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_close.tres" id="5_close"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_lock.tres" id="6_lock"]
+[ext_resource type="Resource" path="res://objects/devices/receptrons/command_unlock.tres" id="7_unlock"]
+[ext_resource type="Script" path="res://objects/devices/device.gd" id="8_device"]
+[ext_resource type="Script" path="res://objects/devices/device_lamp.gd" id="9_lamp"]
+[ext_resource type="Script" path="res://objects/door/door_controller.gd" id="10_controller"]
+
+[node name="Controller" type="Node3D"]
+
+[node name="Tags" type="Node" parent="."]
+script = ExtResource("1_tags")
+initial_tags = Array[StringName]([&"material.electronics", &"object.device", &"object.door_controller"])
+
+[node name="StimulusReceiver" type="Node3D" parent="."]
+script = ExtResource("2_receiver")
+receptrons = Array[ExtResource("3_receptron")]([ExtResource("4_open"), ExtResource("5_close"), ExtResource("6_lock"), ExtResource("7_unlock")])
+
+[node name="Device" type="Node" parent="."]
+script = ExtResource("8_device")
+
+[node name="DeviceLamp" type="Node" parent="."]
+script = ExtResource("9_lamp")
+
+[node name="DoorController" type="Node" parent="."]
+script = ExtResource("10_controller")

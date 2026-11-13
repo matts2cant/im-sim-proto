@@ -2,7 +2,8 @@ extends GdUnitTestSuite
 ## Unit (ADR 0080, ADR 0114): LoginCredentials (the "user:password" format readables carry,
 ## matching), ComputerConfig's command table (labels, which commands a device is offered, in table
 ## order) and kinds (by tag), and the Mail and Files data (ComputerDocument, ComputerData): what
-## reading one teaches, implicit clues teaching nothing, inboxes per account.
+## reading one teaches, implicit clues teaching nothing, inboxes per account, mail readable on a
+## computer with no network (ADR 0130).
 
 const CONFIG: ComputerConfig = preload("res://objects/computer/computer.tres")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -61,6 +62,28 @@ func test_an_inbox_holds_its_accounts_mail_and_the_shared_mail() -> void:
 	for item in data.mail_for(" KBrandt "):
 		ids.append(item.id)
 	assert_array(ids).contains_exactly([&"a", &"b"])
+
+
+func test_a_computers_mail_is_readable_with_no_network() -> void:
+	# ADR 0130: no mail servers or routes; the mail is on the computer itself.
+	var root := auto_free(Node3D.new()) as Node3D
+	add_child(root)
+	root.position = Vector3(0, -500, 20)
+	var entity := Fixtures.entity(root, "LonePc", Vector3.ZERO, [], [&"object.computer", &"object.device"])
+	var device := Device.new()
+	device.name = "Device"
+	entity.add_child(device)
+	var computer := Computer.new()
+	computer.name = "Computer"
+	computer.config = CONFIG
+	computer.data = ComputerData.new()
+	var item := ComputerDocument.new()
+	item.id = &"test.lone_mail"
+	item.title = "Hello"
+	computer.data.mail.append(item)
+	entity.add_child(computer)
+	assert_array(device.reached()).is_empty()
+	assert_array(computer.documents(Computer.MAIL, "anyone")).contains_exactly([item])
 
 
 func test_credentials_parse_at_the_first_colon() -> void:

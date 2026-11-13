@@ -46,10 +46,10 @@ const SECURITY_DEVICES: Array[String] = [
 	"Devices/SirenOfficeGround",
 	"Devices/SirenOfficeUpper",
 	"Devices/SirenBasement",
-	"Doors/FrontGate",
-	"Doors/SecurityDoor",
-	"Doors/BridgeDoor",
-	"Doors/VaultDoor",
+	"Doors/FrontGate/Hardware/Controller",
+	"Doors/SecurityDoor/Hardware/Controller",
+	"Doors/BridgeDoor/Hardware/Controller",
+	"Doors/VaultDoor/Hardware/Controller",
 ]
 ## In front of the office wall jack (second office, east wall x 19.75), on the upper floor.
 const AT_JACK := Vector3(18.9, 4.5, 10)
@@ -142,14 +142,14 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 		assert_array(pc.devices()).override_failure_message(path).is_empty()
 		# M12b: RTR-01's rules keep the office off the Security subnet (but for the console), and the
 		# door obeys the console only anyway.
-		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor"))).is_false()
-		assert_bool(pc.send(Device.OPEN, _device("Doors/VaultDoor"))).is_false()
+		assert_bool(pc.device.reaches(_entity("Doors/VaultDoor/Hardware/Controller"))).is_false()
+		assert_bool(pc.send(Device.OPEN, _device("Doors/VaultDoor/Hardware/Controller"))).is_false()
 	# The console's known login (the audit note) works bare-handed; it opens the vault door remotely.
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
-	assert_bool(console.send(Device.UNLOCK, _device("Doors/VaultDoor"))).is_true()
+	assert_bool(console.send(Device.UNLOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
 	await _frames(3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_false()
-	assert_bool(console.send(Device.LOCK, _device("Doors/VaultDoor"))).is_true()
+	assert_bool(console.send(Device.LOCK, _device("Doors/VaultDoor/Hardware/Controller"))).is_true()
 	await _frames(3)
 	assert_bool(Door.of(_entity("Doors/VaultDoor")).is_locked()).is_true()
 	console.log_out()
@@ -157,7 +157,12 @@ func test_security_devices_trust_the_console_and_the_office_pcs_control_nothing(
 
 func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() -> void:
 	var console := Computer.of(_entity("Devices/SecurityConsole"))
-	var vault: Array[String] = ["Devices/VaultTurret", "Doors/VaultDoor", "Doors/BridgeDoor", "Devices/CameraOffice"]
+	var vault: Array[String] = [
+		"Devices/VaultTurret",
+		"Doors/VaultDoor/Hardware/Controller",
+		"Doors/BridgeDoor/Hardware/Controller",
+		"Devices/CameraOffice"
+	]
 	# M12b: the roof lasers link by radio to AP-YARD (on the yard's switch): the roof's switch feeds
 	# only the roof camera.
 	var roof: Array[String] = ["Devices/CameraRoof"]
@@ -165,7 +170,7 @@ func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() ->
 		"Devices/AlarmController",
 		"Devices/CameraHall",
 		"Devices/CameraGate",
-		"Doors/FrontGate",
+		"Doors/FrontGate/Hardware/Controller",
 		"Devices/LaserRoofWest",
 		"Devices/LaserRoofEast",
 	]
@@ -216,6 +221,11 @@ func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_rtr01_reveals_
 	seen = _map(session)
 	for path: String in SECURITY_DEVICES:
 		assert_array(seen).override_failure_message(path + " not on the map").contains([path])
+	# Doors are on the Map through their controllers (kind Door controller), never themselves.
+	for each in session.map_devices():
+		assert_object(Door.of(each.entity)).override_failure_message(String(each.entity.name)).is_null()
+	var gate := _device("Doors/FrontGate/Hardware/Controller")
+	assert_str(DeviceKinds.shipped().kind_for(gate.entity).name).is_equal("Door controller")
 	# Only the scan behind the router added trace on the Sentry tracer (the office, the jack's own
 	# subnet, shows without a scan: ADR 0121).
 	var tracer := _router().get_node("Tracer") as Tracer

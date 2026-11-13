@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="1_computer"]
 [ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="2_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="3_controller"]
@@ -145,7 +146,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.6, -8)
 circuit = &"showcase_net"
 
 [node name="Device" parent="Switch"]
-links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../Siren"), NodePath("../../Door")])
+links = Array[NodePath]([NodePath("../../Console"), NodePath("../../Camera"), NodePath("../../Turret"), NodePath("../../Controller"), NodePath("../../Siren"), NodePath("../../Door/Hardware/Controller")])
 
 [node name="Controller" parent="." instance=ExtResource("3_controller")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, -8)
@@ -171,3 +172,5 @@ code_labels = Dictionary[StringName, String]({&"showcase_console": "Security con
 
 [node name="Player" parent="." instance=ExtResource("8_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6.2)
+
+[node name="Controller" parent="Door/Hardware" instance=ExtResource("m13c_door_controller")]

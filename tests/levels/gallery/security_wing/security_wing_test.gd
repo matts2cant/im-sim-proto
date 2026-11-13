@@ -178,10 +178,14 @@ func test_each_lock_row_door_has_its_lock() -> void:
 	# D4 is fail-safe on breaker A's circuit; the vault door fail-secure on breaker B's.
 	var d4 := _door("D4Electronic")
 	assert_bool((d4.get_node("Tags") as Tags).has(ElectronicLock.FAIL_SAFE)).is_true()
-	assert_str(String(Powered.of(d4).circuit)).is_equal(String(_breaker("BreakerA").circuit))
+	assert_str(String(Powered.of(d4.get_node("Hardware/Controller")).circuit)).is_equal(
+		String(_breaker("BreakerA").circuit)
+	)
 	var vault := _door("VaultDoor")
 	assert_bool((vault.get_node("Tags") as Tags).has(ElectronicLock.FAIL_SECURE)).is_true()
-	assert_str(String(Powered.of(vault).circuit)).is_equal(String(_breaker("BreakerB").circuit))
+	assert_str(String(Powered.of(vault.get_node("Hardware/Controller")).circuit)).is_equal(
+		String(_breaker("BreakerB").circuit)
+	)
 	assert_object(Breakable.of(_door("D5Breakable"))).is_not_null()
 
 

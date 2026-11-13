@@ -1,11 +1,13 @@
 extends RefCounted
 ## Test helper (not a suite): checks that what a level hangs on its walls keeps clear of its doors and
 ## signs. problems() lists every overlap, empty when none:
-## - devices: every entity with a Device that is not a door (sirens, cameras, laser arrays, alarm
-##   controllers, panic buttons, switches, terminals, turrets), boxed by its visible geometry;
+## - devices: every entity with a Device that is not a door controller (sirens, cameras, laser
+##   arrays, alarm controllers, panic buttons, switches, terminals, turrets), boxed by its visible
+##   geometry;
 ## - wall locks: every entity with a Lock that is not a door (the practice locks), boxed the same way;
-## - wall boxes: every door's keypads, card readers and control panels (DoorHardware), boxed by their
-##   collision shape (their own door is door_hardware_checks.gd's business);
+## - wall boxes: every door's keypads, card readers and control panels (DoorHardware: its door
+##   controller, ADR 0130), boxed by their collision shape (their own door is
+##   door_hardware_checks.gd's business);
 ## against
 ## - every doorway's opening, from the floor to the leaf's top and OPENING_DEPTH m out of both wall
 ##   faces (a siren hanging in front of a door leaf);
@@ -39,7 +41,9 @@ static func problems(root: Node) -> PackedStringArray:
 				entity = (node as Device).entity
 			else:
 				entity = (node as Lock).entity as Node3D
-			if entity != null and Door.of(entity) == null and not boxed.has(entity):
+			# A door controller's body is its door's wall boxes, checked below.
+			var skip := entity == null or Door.of(entity) != null or DoorController.of(entity) != null
+			if not skip and not boxed.has(entity):
 				boxed[entity] = true
 				items.append({"name": _label(root, entity), "box": visual_box(entity), "door": null})
 	for door in doors:

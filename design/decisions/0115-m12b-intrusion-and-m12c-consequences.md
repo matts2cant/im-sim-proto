@@ -1,6 +1,6 @@
 # 115. M12b intrusion (exploits, firewall rules, wireless) and M12c consequences (readability, tradeoffs)
 
-Status: Accepted (extends [ADR 0112](0112-hacking-reconciled-with-the-built-game.md))
+Status: Accepted (extends [ADR 0112](0112-hacking-reconciled-with-the-built-game.md)); superseded in part by [ADR 0130](0130-device-overhaul.md) (the mail servers and mail routes are removed)
 
 Date: 2026-11-11
 

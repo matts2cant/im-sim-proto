@@ -1,6 +1,6 @@
 # 122. Network readability: status lights, gear plates, the deck's AR cable view, the drop line
 
-Status: Accepted (builds the readability half of [ADR 0115](0115-m12b-intrusion-and-m12c-consequences.md)'s M12c)
+Status: Accepted (builds the readability half of [ADR 0115](0115-m12b-intrusion-and-m12c-consequences.md)'s M12c); amended by [ADR 0130](0130-device-overhaul.md) (a door's lock lights are its door controller's lamp; a door without wall boxes has no light)
 
 Date: 2026-11-12
 
