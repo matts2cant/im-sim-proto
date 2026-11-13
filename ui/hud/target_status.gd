@@ -173,9 +173,15 @@ static func word_of(entity: Node, links: Array[Device]) -> Word:
 
 
 ## The lock line for `entity` seen by `user` ("Locked · key or lockpick"), "" unless its Lockable
-## is locked.
+## (or the one its Usable works: a door controller's box shows its door's, Usable.lock_target()) is
+## locked.
 static func lock_line(entity: Node, user: Node) -> String:
+	if entity == null or not is_instance_valid(entity):
+		return ""
 	var lockable := Lockable.of(entity)
+	var usable := Usable.of(entity)
+	if lockable == null and usable != null:
+		lockable = usable.lock_target()
 	if lockable == null or not lockable.locked:
 		return ""
 	return LockRules.locked_line(lockable.reasons(user))

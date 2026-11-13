@@ -40,12 +40,19 @@ func unavailable_reason(_user: Node) -> String:
 
 
 ## Why E on it did nothing after use() returned false (ADR 0130), "" to say nothing. Default: what
-## opens it while its entity's Lockable is locked ("Locked: needs a keycard").
+## opens it while its lock_target() is locked ("Locked: needs a keycard").
 func refusal(user: Node) -> String:
-	var lockable := Lockable.of(get_parent())
-	if lockable == null or not lockable.locked:
+	var target := lock_target()
+	if target == null or not target.locked:
 		return ""
-	return LockRules.needs_message(lockable.reasons(user))
+	return LockRules.needs_message(target.reasons(user))
+
+
+## The Lockable E works on: its entity's, or null. A component working another entity's lock
+## overrides it (a door controller's wall box: its door's, ADR 0130); the frame's lock line and
+## refusal() read it.
+func lock_target() -> Lockable:
+	return Lockable.of(get_parent())
 
 
 ## "Broken" or "No power" from `entity`'s components and state tags, else "".

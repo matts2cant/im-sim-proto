@@ -18,7 +18,7 @@ size = Vector3(0.016, 0.016, 0.004)
 
 [node name="DoorKeypad" type="Node3D"]
 script = ExtResource("1_device_model")
-kind_tag = &"object.door"
+kind_tag = &"object.door_controller"
 
 [node name="Body" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0175)

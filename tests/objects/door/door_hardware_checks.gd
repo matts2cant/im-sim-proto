@@ -28,7 +28,9 @@ static func problems(door: Door) -> PackedStringArray:
 		found.append_array(_flush(door, box, size, where))
 		if _inside_wall(door, box, size) or _covered(door, box, size):
 			found.append("%s: inside a wall" % where)
-		var local := box.transform * AABB(Vector3(-size.x * 0.5, -size.y * 0.5, 0.0), size)
+		# The box in the door's frame (boxes hang under the door's controller, ADR 0130).
+		var in_door := door.entity.global_transform.affine_inverse() * box.global_transform
+		var local := in_door * AABB(Vector3(-size.x * 0.5, -size.y * 0.5, 0.0), size)
 		if local.intersects(sweep):
 			found.append("%s: in the leaf's sweep %s" % [where, sweep])
 	return found

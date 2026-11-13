@@ -38,8 +38,8 @@ const NETWORK: Dictionary[String, Array] = {
 	"Devices/LaserLow": [SECURITY, "10.0.25.41", "LASER-LOW"],
 	"Devices/LaserHigh": [SECURITY, "10.0.25.42", "LASER-HIGH"],
 	"Devices/LaserPair": [SECURITY, "10.0.25.43", "LASER-PAIR"],
-	"Doors/VaultDoor": [SECURITY, "10.0.25.51", "DOOR-VAULT"],
-	"Doors/D4Electronic": [SECURITY, "10.0.25.52", "DOOR-D4"],
+	"Doors/VaultDoor/Hardware/Controller": [SECURITY, "10.0.25.51", "DOOR-VAULT"],
+	"Doors/D4Electronic/Hardware/Controller": [SECURITY, "10.0.25.52", "DOOR-D4"],
 }
 ## Switch -> [the room it hangs in (Shell/...), the devices cabled to it].
 const SWITCHES: Dictionary[String, Array] = {
@@ -54,13 +54,13 @@ const SWITCHES: Dictionary[String, Array] = {
 			"Devices/VaultSwitch",
 			"Devices/PanicButton",
 			"Devices/SirenHall",
-			"Doors/D4Electronic",
+			"Doors/D4Electronic/Hardware/Controller",
 		]
 	],
 	"Devices/BoothSwitch": ["Booth", ["Devices/Controller", "Devices/BaseStation"]],
 	"Devices/LaserSwitch": ["LaserHall", ["Devices/LaserLow", "Devices/LaserHigh", "Devices/LaserPair"]],
 	"Devices/CorridorSwitch": ["Corridor", ["Devices/Camera", "Devices/SirenCorridor"]],
-	"Devices/VaultSwitch": ["Vault", ["Devices/Turret", "Doors/VaultDoor"]],
+	"Devices/VaultSwitch": ["Vault", ["Devices/Turret", "Doors/VaultDoor/Hardware/Controller"]],
 }
 
 var _room: Node3D

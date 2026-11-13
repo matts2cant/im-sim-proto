@@ -1,38 +1,15 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://objects/locks/hardware/hardware_body.tres" id="1_body"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/door_controller_status_box.tscn" id="1_model"]
 
 [sub_resource type="BoxShape3D" id="Shape_box"]
-size = Vector3(0.09, 0.11, 0.03)
-
-[sub_resource type="BoxMesh" id="Mesh_box"]
-material = ExtResource("1_body")
-size = Vector3(0.09, 0.11, 0.03)
-
-[sub_resource type="BoxMesh" id="Mesh_light"]
-size = Vector3(0.056, 0.024, 0.006)
+size = Vector3(0.1, 0.2, 0.035)
 
 [node name="StatusBox" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.015)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0175)
 shape = SubResource("Shape_box")
 
-[node name="Body" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.015)
-mesh = SubResource("Mesh_box")
-
-[node name="Light" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.022, 0.033)
-cast_shadow = 0
-mesh = SubResource("Mesh_light")
-
-[node name="Label" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.025, 0.0305)
-pixel_size = 0.0009
-modulate = Color(0.85, 0.86, 0.88, 1)
-outline_size = 0
-font_size = 20
-text = "SECURE"
-double_sided = false
+[node name="Model" parent="." instance=ExtResource("1_model")]

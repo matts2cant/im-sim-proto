@@ -1,18 +1,20 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0114): the Security app (SecurityApp) on a network built in code from the shipped
 ## device scenes, 400 m from the origin: a console computer and, on one switch, a camera, a turret, a
-## door, an alarm controller, two sirens, a radio base station, a panic button, a laser array and a
-## plain device with no kind; a camera cabled to nothing; an office PC on a switch of its own. The
-## app groups the console's devices by kind (icons per kind), lists only what the computer controls,
-## builds each device's actions from the commands it accepts (a camera disabled, a door locked and
-## unlocked, the alarm disarmed, a laser array disabled), shows the live view of a device that has
-## one, greys what goes offline, and says so when a computer controls nothing.
+## door's controller (ADR 0130, listed under the door's name), an alarm controller, two sirens, a
+## radio base station, a panic button, a laser array and a plain device with no kind; a camera
+## cabled to nothing; an office PC on a switch of its own. The app groups the console's devices by
+## kind (icons per kind), lists only what the computer controls, builds each device's actions from
+## the commands it accepts (a camera disabled, a door locked and unlocked, the alarm disarmed, a
+## laser array disabled), shows the live view of a device that has one, greys what goes offline, and
+## says so when a computer controls nothing.
 
 const COMPUTER: PackedScene = preload("res://objects/computer/computer.tscn")
 const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
 const CAMERA: PackedScene = preload("res://objects/camera/security_camera.tscn")
 const TURRET: PackedScene = preload("res://objects/turret/turret.tscn")
 const DOOR: PackedScene = preload("res://objects/door/door.tscn")
+const DOOR_CONTROLLER: PackedScene = preload("res://objects/door/door_controller.tscn")
 const CONTROLLER: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN: PackedScene = preload("res://objects/alarm/siren.tscn")
 const RADIO: PackedScene = preload("res://objects/alarm/radio_base_station.tscn")
@@ -193,13 +195,20 @@ func _press(label: String) -> void:
 	_app.refresh()
 
 
+# Places `scene`; returns the device to cable: a door's is its controller, put under its hardware
+# as a level does (ADR 0130: the door itself is no device).
 func _place(scene: PackedScene, node_name: String, at: Vector3) -> Node3D:
 	var node := scene.instantiate() as Node3D
 	node.name = node_name.replace(" ", "")
 	node.position = at
+	var hardware := DoorHardware.of(node)
+	var controller: Node3D = null
+	if hardware != null:
+		controller = DOOR_CONTROLLER.instantiate() as Node3D
+		hardware.add_child(controller)
 	_root.add_child(node)
 	_nodes[node_name] = node
-	return node
+	return controller if controller != null else node
 
 
 func _frames(count: int) -> void:

@@ -118,7 +118,7 @@ func test_the_console_reaches_both_parts_and_each_switch_cuts_only_its_own() -> 
 		assert_bool(rows[device_name]).override_failure_message("%s online: %s" % [device_name, not online]).is_equal(
 			online
 		)
-	assert_bool(console.device.reaches(_helpers.door_entity("VaultDoor"))).is_false()
+	assert_bool(console.device.reaches(_helpers.door_entity("VaultDoor").get_node("Hardware/Controller"))).is_false()
 	_assert_yard_works(true)
 	Breakable.of(_helpers.device_entity("YardSwitch")).take_damage(&"damage.ballistic", 100.0)
 	await _helpers.frames(2)
@@ -286,12 +286,18 @@ func test_save_and_load_keep_doors_and_devices() -> void:
 	var controller := fresh.device_entity("AlarmController").get_node("AlarmControllerBehaviour") as AlarmController
 	assert_bool(controller.armed).is_false()
 	assert_bool(fresh.device("SecuritySwitch").broken).is_true()
-	assert_bool(fresh.console().device.reaches(fresh.door_entity("VaultDoor"))).is_false()
+	(
+		assert_bool(fresh.console().device.reaches(fresh.door_entity("VaultDoor").get_node("Hardware/Controller")))
+		. is_false()
+	)
 
 
 # Device name -> online, from the console's Security app list.
+# The console's rows by entity name (a door controller by its door's, ADR 0130): online or not.
 func _rows(console: Computer) -> Dictionary:
 	var rows := {}
 	for row in console.devices():
-		rows[String(row.device.entity.name)] = row.online
+		var controller := DoorController.of(row.device.entity)
+		var entity: Node = controller.door.entity if controller != null else row.device.entity
+		rows[String(entity.name)] = row.online
 	return rows

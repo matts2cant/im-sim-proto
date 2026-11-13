@@ -20,7 +20,7 @@ const AP := "Devices/ApYard"
 const RADIO: Array[String] = ["Devices/CameraYard", "Devices/LaserRoofWest", "Devices/LaserRoofEast"]
 ## Cabled security devices in the same parts of the compound (the yard's and the roof's switches).
 const CABLED: Array[String] = [
-	"Devices/CameraGate", "Devices/CameraRoof", "Devices/AlarmControllerYard", "Doors/FrontGate"
+	"Devices/CameraGate", "Devices/CameraRoof", "Devices/AlarmControllerYard", "Doors/FrontGate/Hardware/Controller"
 ]
 ## The cracking spots (feet). Roof: 4.2 m south of the north parapet's inner face, west of the dock
 ## skylights. Gap: between the trailer's north end (z -12.5) and the hall wall (z -10.5).

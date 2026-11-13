@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
 [ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
 [ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
@@ -436,11 +437,13 @@ locked = true
 [node name="Door" parent="Doors/D4Electronic"]
 wall_thickness = 0.5
 
-[node name="Device" parent="Doors/D4Electronic"]
-address = "10.0.25.52"
-trusted = Array[NodePath]([NodePath("../../../Devices/BoothComputer")])
+[node name="Controller" parent="Doors/D4Electronic/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/D4Electronic"]
+[node name="Device" parent="Doors/D4Electronic/Hardware/Controller"]
+address = "10.0.25.52"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/BoothComputer")])
+
+[node name="Powered" type="Node" parent="Doors/D4Electronic/Hardware/Controller"]
 script = ExtResource("15_powered")
 circuit = &"security_wing_a"
 
@@ -469,11 +472,13 @@ locked = true
 [node name="Door" parent="Doors/VaultDoor"]
 wall_thickness = 0.5
 
-[node name="Device" parent="Doors/VaultDoor"]
-address = "10.0.25.51"
-trusted = Array[NodePath]([NodePath("../../../Devices/BoothComputer")])
+[node name="Controller" parent="Doors/VaultDoor/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/VaultDoor"]
+[node name="Device" parent="Doors/VaultDoor/Hardware/Controller"]
+address = "10.0.25.51"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/BoothComputer")])
+
+[node name="Powered" type="Node" parent="Doors/VaultDoor/Hardware/Controller"]
 script = ExtResource("15_powered")
 circuit = &"security_wing_b"
 
@@ -545,7 +550,7 @@ metadata/display_name = "SW-SECURITY"
 circuit = &"security_wing_b"
 
 [node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../BoothSwitch"), NodePath("../../LaserSwitch"), NodePath("../../CorridorSwitch"), NodePath("../../VaultSwitch"), NodePath("../../PanicButton"), NodePath("../../SirenHall"), NodePath("../../../Doors/D4Electronic")])
+links = Array[NodePath]([NodePath("../../BoothSwitch"), NodePath("../../LaserSwitch"), NodePath("../../CorridorSwitch"), NodePath("../../VaultSwitch"), NodePath("../../PanicButton"), NodePath("../../SirenHall"), NodePath("../../../Doors/D4Electronic/Hardware/Controller")])
 address = "10.0.25.2"
 subnet = &"wing_security"
 
@@ -581,7 +586,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.6, 18.51)
 metadata/display_name = "SW-VAULT"
 
 [node name="Device" parent="Devices/VaultSwitch"]
-links = Array[NodePath]([NodePath("../../Turret"), NodePath("../../../Doors/VaultDoor")])
+links = Array[NodePath]([NodePath("../../Turret"), NodePath("../../../Doors/VaultDoor/Hardware/Controller")])
 address = "10.0.25.6"
 subnet = &"wing_security"
 

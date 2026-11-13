@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://levels/kit/room.tscn" id="1_room"]
 [ext_resource type="Script" path="res://levels/kit/room_opening.gd" id="2_opening"]
 [ext_resource type="PackedScene" path="res://levels/kit/sign.tscn" id="3_sign"]
@@ -24,7 +25,6 @@
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/console.tres" id="22_console_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/file_server.tres" id="23_server_data"]
 [ext_resource type="Resource" path="res://levels/gallery/network_lab/mail_pc.tres" id="23_mail_pc_data"]
-[ext_resource type="Script" path="res://objects/network/internet_link.gd" id="23_internet_link"]
 [ext_resource type="Script" path="res://objects/network/subnet.gd" id="24_subnet"]
 [ext_resource type="Resource" path="res://objects/network/subnets/office.tres" id="24_office"]
 [ext_resource type="Resource" path="res://objects/network/subnets/security.tres" id="24_security"]
@@ -255,11 +255,13 @@ locked = true
 [node name="Door" parent="Doors/ClosetDoor"]
 wall_thickness = 0.5
 
-[node name="Device" parent="Doors/ClosetDoor"]
-address = "10.0.20.51"
-trusted = Array[NodePath]([NodePath("../../../Devices/Console")])
+[node name="Controller" parent="Doors/ClosetDoor/Hardware" instance=ExtResource("m13c_door_controller")]
 
-[node name="Powered" type="Node" parent="Doors/ClosetDoor"]
+[node name="Device" parent="Doors/ClosetDoor/Hardware/Controller"]
+address = "10.0.20.51"
+trusted = Array[NodePath]([NodePath("../../../../../Devices/Console")])
+
+[node name="Powered" type="Node" parent="Doors/ClosetDoor/Hardware/Controller"]
 script = ExtResource("8_powered")
 circuit = &"network_lab_closet"
 
@@ -356,7 +358,7 @@ metadata/display_name = "SW-CLOSET"
 circuit = &"network_lab_closet"
 
 [node name="Device" parent="Devices/ClosetSwitch"]
-links = Array[NodePath]([NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor")])
+links = Array[NodePath]([NodePath("../../ClosetCamera"), NodePath("../../../Doors/ClosetDoor/Hardware/Controller")])
 address = "10.0.20.3"
 subnet = &"security"
 
@@ -441,7 +443,6 @@ data = ExtResource("23_mail_pc_data")
 host_name = "MAIL-PC"
 label = "mail PC"
 session_user = "guest"
-mail_server = "mail.halcyon.net"
 
 [node name="Device" parent="Devices/MailPc"]
 links = Array[NodePath]([NodePath("../../EdgeRouter")])
@@ -458,10 +459,6 @@ circuit = &"network_lab_edge"
 [node name="Device" parent="Devices/EdgeRouter"]
 address = "10.0.80.1"
 subnet = &"lab_mail"
-
-[node name="InternetLink" type="Node" parent="Devices/EdgeRouter"]
-script = ExtResource("23_internet_link")
-hosts = PackedStringArray("mail.halcyon.net")
 
 [node name="EdgeBreaker" parent="Devices" instance=ExtResource("9_breaker")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.99, 1.3, -6.5)
@@ -821,9 +818,8 @@ size = 0
 [node name="MailRoute" parent="Labels" instance=ExtResource("3_sign")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.95, 2.3, -8.0)
 pixel_size = 0.003
-text = "Mail route · this PC's mail is on the internet
-through EDGE-RTR: cut the breaker and
-unread mail goes out of reach"
+text = "Mail PC · its mail is stored on the PC:
+readable with or without the network"
 size = 0
 
 [node name="Annex" parent="Labels" instance=ExtResource("3_sign")]

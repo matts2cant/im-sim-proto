@@ -9,23 +9,22 @@ extends Usable
 ## `attenuate_below` is open).
 ## Hardware (ADR 0098): its DoorHardware (the `Hardware` node) builds the leaf's handle, the leaf
 ## locks' keyholes and the wall boxes beside the frame (keypad, card reader, status, plain control)
-## from the settings, never per level. Every wall box carries the lock light: red while closed and
-## locked, green while unlocked or open, dark while broken or unpowered. The lock lights are the
-## door's lamp (DeviceLamp): on a network they also show its state (blinking amber when cut off) and
-## the leaf gets no status LED; a door without wall boxes shows its LED on the leaf. E on the leaf: open /
-## close, the leaf locks' offers ("Picking 40%"), else "Locked: <what opens it>"; E on a box
-## (DoorControl): open / close, its lock's offer ("E: enter code", "E: open (keycard)"), else the
-## same "Locked: ...".
+## from the settings, never per level. The wall boxes are its door controller (DoorController, ADR
+## 0130): every box carries the lock light, red while closed and locked, green while unlocked or open,
+## dark while broken or unpowered; the lights are the controller's lamp (DeviceLamp), so on a network
+## they also show the controller's state (blinking amber when cut off). E on the leaf: open / close,
+## the leaf locks' offers ("Picking 40%"), else "Locked: <what opens it>"; E on a box (DoorControl):
+## open / close, its lock's offer ("E: enter code", "E: open (keycard)"), else the same "Locked: ...".
 ## Locks: the entity's Lockable and Lock components (objects/locks/); a user who unlocks it through
 ## one opens it, a lock that grants an opening (Lockable.grant(): a keycard) opens it and leaves it
 ## locked, so it is locked again once closed. A lock with a free side (Lock.free_side, ADR 0090)
 ## lets a user on that side open the locked door without its key: an authorised open that leaves it
 ## locked once closed.
-## Remote commands: the door is a network device (its `Device`, ADR 0077): the shared receptrons
-## `objects/devices/receptrons/command_*.tres` (blocked by `state.unpowered` and `state.broken`) run
-## DeviceActionEffect, and the Device's `action_received` brings `command.open`
-## / `command.close` here (command()) and `command.lock` / `command.unlock` to the Lockable. A
-## remote open is an authorised open: it opens a locked door without unlocking it.
+## Remote commands: a door is not a network device; its controller is (ADR 0130). The controller's
+## `command.open` / `command.close` come here (command()) and its `command.lock` / `command.unlock`
+## go to the Lockable. A remote open is an authorised open: it opens a locked door without unlocking
+## it. Power: the controller puts `state.unpowered` on the door while it is down (unpowered or
+## broken); the door's ElectronicLock follows its power rule (fail-secure, fail-safe).
 ## Navigation: the doorway is carved out of the navmesh (`NavCarve`) and bridged by a
 ## NavigationLink3D on AccessLayers.WALK while passable (unlocked, open or broken), else on
 ## AccessLayers.LOCKED plus the access layers of its locks; characters with a DoorOpener open it
@@ -41,8 +40,6 @@ const UNLOCKED_COLOUR := Color(0.15, 0.85, 0.3)
 const DEAD_COLOUR := Color(0.12, 0.12, 0.12)
 ## Heights of a barred panel's rails, as fractions of its height (the fence's rails: 0.3 and 2.7 m).
 const BAR_RAILS: Array[float] = [0.1, 0.9]
-## The leaf's status LED: in from the doorway's top and left edges (m).
-const STATUS_INSET: float = 0.06
 
 @export var settings: DoorSettings
 ## Open when the level starts.
@@ -103,9 +100,6 @@ func _ready() -> void:
 	var breakable := Breakable.of(entity)
 	if breakable != null:
 		breakable.broken.connect(_on_broken)
-	var device := Device.of(entity)
-	if device != null:
-		device.action_received.connect(_on_action)
 	hardware = DoorHardware.of(entity)
 	if hardware != null:
 		hardware.build(self)
@@ -123,8 +117,7 @@ static func of(node: Node) -> Door:
 	return null
 
 
-## Status words for security screens (DeviceStatus, ADR 0083): open / closed (a broken door's
-## device is down: screens show it offline).
+## Status words for its controller's security screens (DeviceStatus, ADR 0083): open / closed.
 func device_status() -> PackedStringArray:
 	return PackedStringArray(["open" if is_open() else "closed"])
 
@@ -184,8 +177,9 @@ func opens_freely_for(user: Node) -> bool:
 	return false
 
 
-## Runs remote command `action` (Device.OPEN or Device.CLOSE) sent by `by`. True when it changed
-## something. Logged `door.command {door, command, done}`.
+## Runs remote command `action` (Device.OPEN or Device.CLOSE) sent by `by` (its controller's
+## commands, DoorController). True when it changed something. Logged `door.command {door, command,
+## done}`.
 func command(action: StringName, by: Node = null) -> bool:
 	var done := false
 	match action:
@@ -410,20 +404,6 @@ func _build_bars(mesh_instance: MeshInstance3D) -> void:
 		mesh_instance.mesh = mesh
 
 
-# The leaf's status LED marker (StatusLight, ADR 0122), a child of the panel mesh so the LED rides
-# with the leaf: the top-left of the front face's part that shows in the doorway (the leaf's rim
-# hides in the jamb and lintel), on the top rail of a barred leaf.
-func _fit_status_marker() -> void:
-	var marker := _panel_mesh.get_node_or_null(^"StatusLedMarker") as Node3D
-	if marker == null:
-		return
-	var half := panel_size * 0.5
-	var top := settings.doorway.y - _closed.y - STATUS_INSET
-	if settings.bar_spacing > 0.0:
-		top = -half.y + BAR_RAILS[BAR_RAILS.size() - 1] * panel_size.y
-	marker.position = Vector3(-settings.doorway.x * 0.5 + STATUS_INSET, top, half.z + StatusLight.FRONT_OFFSET)
-
-
 # Sizes the panel, the doorway's attenuator and navigation carve for the settings'
 # doorway (the scene's own shapes are shared: they are copied first).
 func _fit_doorway() -> void:
@@ -441,7 +421,6 @@ func _fit_doorway() -> void:
 			mesh.size = panel_size
 			mesh_instance.mesh = mesh
 	_closed = DoorLayout.closed_centre(settings)
-	_fit_status_marker()
 	if _attenuator != null:
 		var doorway := _attenuator.get_node_or_null(^"Doorway") as CollisionShape3D
 		if doorway != null and doorway.shape is BoxShape3D:
@@ -474,10 +453,6 @@ func _on_lock_changed(_locked: bool) -> void:
 
 func _on_unlocked_by_user(user: Node) -> void:
 	open(user)
-
-
-func _on_action(action: StringName, stimulus: Stimulus) -> void:
-	command(action, stimulus.source if is_instance_valid(stimulus.source) else null)
 
 
 func _on_tag_changed(_tag: StringName, _added: bool) -> void:

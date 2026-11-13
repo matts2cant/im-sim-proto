@@ -31,7 +31,7 @@ const NETWORK: Dictionary[String, Array] = {
 	"Devices/ClosetSwitch": [&"security", "10.0.20.3"],
 	"Devices/Console": [&"security", "10.0.20.5"],
 	"Devices/ClosetCamera": [&"security", "10.0.20.21"],
-	"Doors/ClosetDoor": [&"security", "10.0.20.51"],
+	"Doors/ClosetDoor/Hardware/Controller": [&"security", "10.0.20.51"],
 	"Devices/Rtr02": [&"security", "10.0.20.1"],
 	"Devices/ServerSwitch": [&"servers", "10.0.30.2"],
 	"Devices/FileServer": [&"servers", "10.0.30.8"],
@@ -197,7 +197,7 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	assert_object(tracer.config).is_same(Tracer.DEFAULT_CONFIG)
 	# The camera and the door trust the console only.
 	var console := Device.of(_node("Devices/Console"))
-	for path: String in ["Devices/ClosetCamera", "Doors/ClosetDoor"]:
+	for path: String in ["Devices/ClosetCamera", "Doors/ClosetDoor/Hardware/Controller"]:
 		assert_array(DeviceNetwork.trusted(Device.of(_node(path)))).contains_exactly([console])
 	for path: String in ACCOUNTS:
 		var accounts := DeviceAccounts.of(_node(path)).accounts
@@ -209,7 +209,7 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	# hangs on the main security switch (on no circuit); the breaker beside it cuts its circuit and
 	# the closet door is fail-secure on it.
 	assert_array(Device.of(_node("Devices/ClosetSwitch")).linked()).contains_exactly_in_any_order(
-		[Device.of(_node("Devices/ClosetCamera")), Device.of(_node("Doors/ClosetDoor"))]
+		[Device.of(_node("Devices/ClosetCamera")), Device.of(_node("Doors/ClosetDoor/Hardware/Controller"))]
 	)
 	assert_array(Device.of(_node("Devices/SecuritySwitch")).linked()).contains(
 		[Device.of(_node("Devices/ClosetSwitch"))]
@@ -217,7 +217,7 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	assert_str(String(Powered.of(_node("Devices/SecuritySwitch")).circuit)).is_empty()
 	var circuit := (_node("Devices/Breaker").get_node("CircuitBreaker") as CircuitBreaker).circuit
 	assert_str(String(Powered.of(_node("Devices/ClosetSwitch")).circuit)).is_equal(String(circuit))
-	assert_str(String(Powered.of(_node("Doors/ClosetDoor")).circuit)).is_equal(String(circuit))
+	assert_str(String(Powered.of(_node("Doors/ClosetDoor/Hardware/Controller")).circuit)).is_equal(String(circuit))
 	assert_bool(ActorState.has(_node("Doors/ClosetDoor"), ElectronicLock.FAIL_SECURE)).is_true()
 
 

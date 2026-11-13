@@ -39,7 +39,7 @@ func test_a_roller_door_fills_4_by_4_m_and_rises_into_the_wall_above() -> void:
 	for front: bool in [true, false]:
 		var boxes := door.hardware.controls(front)
 		assert_int(boxes.size()).is_equal(1)
-		assert_float(boxes[0].position.x).is_equal_approx(-2.0 - DoorLayout.BOX_COLUMN, 0.001)
+		assert_float(_in_door(door, boxes[0]).origin.x).is_equal_approx(-2.0 - DoorLayout.BOX_COLUMN, 0.001)
 		assert_object((Usable.of(boxes[0]) as DoorControl).lock).is_null()
 
 	# Closed, it blocks sight 3.5 m up (above any 1.2 x 2.2 m door); open, the doorway is clear.
@@ -132,15 +132,15 @@ func test_wall_boxes_in_a_narrow_corridor_hang_on_its_side_wall() -> void:
 	entity.add_child(keypad)
 	_root.add_child(entity)
 	var face := door.wall_thickness * 0.5
-	var front := door.hardware.controls(true)[0]
+	var front := _in_door(door, door.hardware.controls(true)[0])
 	# Its back face against the side wall, its face across the corridor (+X), in from the door's wall.
-	assert_float(front.position.x).is_equal_approx(-0.75, 0.001)
-	assert_float(front.position.z).is_equal_approx(face + DoorLayout.SIDE_DEPTH, 0.001)
+	assert_float(front.origin.x).is_equal_approx(-0.75, 0.001)
+	assert_float(front.origin.z).is_equal_approx(face + DoorLayout.SIDE_DEPTH, 0.001)
 	assert_bool(front.basis.z.is_equal_approx(Vector3.RIGHT)).is_true()
 	# The back face (no corridor) keeps its box beside the doorway, facing back.
-	var back := door.hardware.controls(false)[0]
-	assert_float(back.position.x).is_equal_approx(-0.6 - DoorLayout.BOX_COLUMN, 0.001)
-	assert_float(back.position.z).is_equal_approx(-face, 0.001)
+	var back := _in_door(door, door.hardware.controls(false)[0])
+	assert_float(back.origin.x).is_equal_approx(-0.6 - DoorLayout.BOX_COLUMN, 0.001)
+	assert_float(back.origin.z).is_equal_approx(-face, 0.001)
 	assert_bool(back.basis.z.is_equal_approx(Vector3.FORWARD)).is_true()
 
 
@@ -150,6 +150,11 @@ func _door(settings: DoorSettings, at: Vector3) -> StaticBody3D:
 	entity.position = at
 	_root.add_child(entity)
 	return entity
+
+
+# A wall box's transform in its door's frame (the boxes hang under the door's controller).
+static func _in_door(door: Door, box: Node3D) -> Transform3D:
+	return door.entity.global_transform.affine_inverse() * box.global_transform
 
 
 func _frames(count: int) -> void:
