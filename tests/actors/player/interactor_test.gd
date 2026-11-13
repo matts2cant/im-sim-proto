@@ -45,6 +45,25 @@ func test_display_names_come_from_metadata_or_the_node_name() -> void:
 	node.free()
 
 
+func test_a_device_goes_by_its_network_name() -> void:
+	var entity := auto_free(Node3D.new()) as Node3D
+	entity.name = "SwitchA"
+	var device := Device.new()
+	device.name = "Device"
+	entity.add_child(device)
+	add_child(entity)
+
+	# Without a display name: the Map's and the plate's ("Switch A"), not "Switch a".
+	assert_str(Interactor.display_name_of(entity)).is_equal(NetworkSource.display_name(device))
+	entity.set_meta(&"display_name", "SW-OFFICE")
+	assert_str(Interactor.display_name_of(entity)).is_equal("SW-OFFICE")
+	# A usable's own label gives way to the network name in the frame.
+	var use := PanicButton.new()
+	entity.add_child(use)
+	assert_str(use.target_name()).is_equal("panic button")
+	assert_str(TargetStatus.name_of(entity)).is_equal("SW-OFFICE")
+
+
 func test_resolves_pickup_carry_and_too_heavy() -> void:
 	await _load()
 	var scene := _driver.runner.scene()

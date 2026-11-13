@@ -52,14 +52,14 @@ func is_online() -> bool:
 
 
 ## The status square of `p_device` on a map that reaches it (`reached`) or not (ADR 0130): its
-## status light's state (StatusLight.state_of(): UP, CUT_OFF, DISABLED when broken or switched off,
+## status light's state (NetworkState.state_of(): UP, CUT_OFF, DISABLED when broken or switched off,
 ## DARK when unpowered or gone). A device the map no longer reaches but whose light is green shows
 ## CUT_OFF: the viewer is cut off from it, as its grey "offline" words say. The Map's "disabled" is
 ## the light's DISABLED.
 static func light_of(p_device: Device, reached: bool) -> StatusLight.State:
 	if p_device == null or not is_instance_valid(p_device) or not p_device.is_inside_tree():
 		return StatusLight.State.DARK
-	var state := StatusLight.state_of(p_device, StatusLight.links_of(p_device))
+	var state := NetworkState.state_of(p_device, NetworkState.links_of(p_device))
 	if not reached and state == StatusLight.State.UP:
 		return StatusLight.State.CUT_OFF
 	return state

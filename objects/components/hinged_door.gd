@@ -5,7 +5,8 @@ extends Usable
 ## origin is the hinge, so while closed its shapes block bodies, shots and the Interactor's ray, and
 ## open they swing aside with it. Nothing names what it closes.
 ## - E (use()): closes it while open, opens it while unlocked; locked, a lock may deal with it
-##   (Lock.use_locked()), else it refuses and the prompt says "Locked: <what opens it>".
+##   (Lock.use_locked(): a MechanicalLock opens for its key), else it refuses and the HUD says what
+##   opens it (Usable.refusal(): "Locked: needs a key or a lockpick").
 ## - Locks: the entity's Lockable and Lock components (a MechanicalLock: lockpick or key). A user who
 ##   unlocks it on purpose (a pick, a key) opens it (Lockable.unlocked_by_user); closing never locks
 ##   it again.
@@ -79,7 +80,7 @@ func prompt(user: Node) -> String:
 		var progress := each.tool_progress()
 		if progress >= 0.0:
 			return "Picking %d%%" % roundi(progress * 100.0)
-	var reasons := _reasons(user)
+	var reasons := Lockable.of(entity).reasons(user)
 	return "Locked" if reasons.is_empty() else "Locked: %s" % " or ".join(reasons)
 
 
@@ -126,15 +127,6 @@ func _apply() -> void:
 
 func _on_unlocked_by_user(user: Node) -> void:
 	set_open(true, user)
-
-
-func _reasons(user: Node) -> Array[String]:
-	var reasons: Array[String] = []
-	for each in Lock.locks_of(entity):
-		var reason := each.locked_reason(user)
-		if not reason.is_empty() and not reasons.has(reason):
-			reasons.append(reason)
-	return reasons
 
 
 func _name() -> String:

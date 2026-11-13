@@ -14,12 +14,13 @@ const MAX_SWINGS := 30
 const BATON_SLOT := 2
 
 ## name, scene, device origin (x is replaced), yaw, player feet z, fewest hits, most hits.
-## Heights: camera 2.6 m (security wing), siren origin 3.2 m (the hub's highest, bottom 3.0 m),
+## Heights: camera 2.6 m (security wing), siren origin 3.2 m (the hub's highest; ADR 0130 step 2: the
+## shallow siren box is reached from 0.9 m back, closer the 0.2 m sweep meets the wall first),
 ## panel devices at their wall heights, the turret on the floor facing away (+Z) from the player.
 const ROWS: Array = [
 	["camera", "res://objects/camera/security_camera.tscn", Vector3(0, 2.6, WALL_Z), 0.0, -1.3, 1, 3],
 	["laser_array", "res://objects/laser/laser_array.tscn", Vector3(0, 1.3, WALL_Z), 0.0, -1.0, 1, 3],
-	["siren", "res://objects/alarm/siren.tscn", Vector3(0, 3.2, WALL_Z), 0.0, -1.4, 1, 3],
+	["siren", "res://objects/alarm/siren.tscn", Vector3(0, 3.2, WALL_Z), 0.0, -1.1, 1, 3],
 	["alarm_controller", "res://objects/alarm/alarm_controller.tscn", Vector3(0, 1.5, WALL_Z), 0.0, -1.0, 1, 3],
 	["panic_button", "res://objects/alarm/panic_button.tscn", Vector3(0, 1.3, WALL_Z), 0.0, -1.0, 1, 3],
 	["radio_base_station", "res://objects/alarm/radio_base_station.tscn", Vector3(0, 1.2, WALL_Z), 0.0, -1.0, 1, 3],

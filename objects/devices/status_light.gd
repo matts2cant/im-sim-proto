@@ -15,7 +15,8 @@ extends Node3D
 ##   but cut off (none of the network gear it is linked to is up: its switch, router or access point;
 ##   a device linked to no gear: none of its links is up; an access point named but out of range);
 ##   red = broken but powered, or switched off by a command (DeviceStatus.is_disabled()); dark =
-##   unpowered (or gone with its entity).
+##   unpowered (or gone with its entity). The rule lives in NetworkState (the frame and the Map read it
+##   too).
 ## - One light per device (ADR 0122 amendment 2): an entity whose DeviceLamp has a lamp mesh (a
 ##   camera's watch lamp, a door's lock lights) gets no LED; the state goes to the lamp instead
 ##   (DeviceLamp.show_network(): dark, amber blinking when cut off, else the owner's colours). A lamp
@@ -93,7 +94,7 @@ static func attach(device: Device) -> StatusLight:
 	var existing := of(entity)
 	if existing != null:
 		return existing
-	var found := links_of(device)
+	var found := NetworkState.links_of(device)
 	var model := ModelFace.has_model(entity)
 	if found.is_empty() and device.wireless.is_empty() and not model:
 		return null
@@ -120,53 +121,6 @@ static func of(node: Node) -> StatusLight:
 	return holder.get_node_or_null(NodePath(String(NODE_NAME))) as StatusLight
 
 
-## The devices `device` is linked to: cables both ways, the access point it links to by radio, and
-## (an access point) the devices linked to it by radio.
-static func links_of(device: Device) -> Array[Device]:
-	var found := DeviceNetwork.cabled(device)
-	var radio := device.wireless_link()
-	if radio != null and not found.has(radio):
-		found.append(radio)
-	if AccessPoint.of(device) != null:
-		for other in DeviceNetwork.wireless_devices(device):
-			if not found.has(other):
-				found.append(other)
-	return found
-
-
-## The LED state of `device` linked to `p_links` (see the class description).
-static func state_of(p_device: Device, p_links: Array[Device]) -> State:
-	if p_device == null or not is_instance_valid(p_device) or not is_instance_valid(p_device.entity):
-		return State.DARK
-	if not p_device.is_powered():
-		return State.DARK
-	if p_device.broken or DeviceStatus.is_disabled(p_device.entity):
-		return State.DISABLED
-	return State.UP if on_network(p_device, p_links) else State.CUT_OFF
-
-
-## True when `p_device` still has its network: one of the gear it is linked to is up (linked to no
-## gear: one of its links is up). Linked to nothing: true, unless it names an access point.
-static func on_network(p_device: Device, p_links: Array[Device]) -> bool:
-	var live: Array[Device] = []
-	for other in p_links:
-		if is_instance_valid(other):
-			live.append(other)
-	if live.is_empty():
-		return p_device.wireless.is_empty()
-	var gear_linked := false
-	var any_up := false
-	for other in live:
-		var up := other.is_up()
-		if DeviceNetwork.is_network_gear(other):
-			if up:
-				return true
-			gear_linked = true
-		elif up:
-			any_up = true
-	return any_up and not gear_linked
-
-
 ## `entity`'s visible geometry (meshes, labels) boxed in its own frame; a 0.2 m cube without any.
 static func local_bounds(entity: Node3D) -> AABB:
 	var to_local := entity.global_transform.affine_inverse()
@@ -188,7 +142,7 @@ func _ready() -> void:
 	if device == null:
 		return
 	if links.is_empty():
-		links = links_of(device)
+		links = NetworkState.links_of(device)
 	if not model:
 		model = ModelFace.has_model(device.entity)
 	if model or DeviceNetwork.is_network_gear(device):
@@ -223,7 +177,7 @@ func _notification(what: int) -> void:
 
 ## Reads the state again and repaints the LED and the port lights.
 func refresh() -> void:
-	state = state_of(device, links)
+	state = NetworkState.state_of(device, links)
 	if is_instance_valid(led):
 		_paint(led, COLORS[state], state == State.CUT_OFF)
 	for mesh in model_leds:

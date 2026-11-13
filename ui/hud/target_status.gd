@@ -9,9 +9,9 @@ extends RefCounted
 ##   off any network says Powered / No power / Broken; a character says nothing while awake,
 ##   Unconscious or Dead; anything else nothing (a Device off any network without power wiring says
 ##   only Broken).
-## The network rule is the one StatusLight shows (state_of(), on_network(), links_of() in
-## objects/devices/status_light.gd), reproduced here (network_links(), on_network()) so the HUD does
-## not depend on a light being attached; the colours are StatusLight.COLORS.
+## The network rule is the one the status lights show, read from NetworkState (links_of(),
+## is_networked(), on_network()) so the HUD does not depend on a light being attached; the colours
+## are StatusLight.COLORS.
 ## The pure rules (qualifies, *_word, text, color, blink) take plain values; the readers take nodes.
 
 enum Word { NONE, ONLINE, CUT_OFF, DISABLED, BROKEN, NO_POWER, POWERED, UNCONSCIOUS, DEAD }
@@ -113,49 +113,7 @@ static func is_character(entity: Node) -> bool:
 	return BodyParts.of(entity) != null
 
 
-## The devices `device` is linked to: cables both ways, its access point, its wireless clients (as
-## StatusLight.links_of()).
-static func network_links(device: Device) -> Array[Device]:
-	var found := DeviceNetwork.cabled(device)
-	var radio := device.wireless_link()
-	if radio != null and not found.has(radio):
-		found.append(radio)
-	if AccessPoint.of(device.entity) != null:
-		for other in DeviceNetwork.wireless_devices(device):
-			if not found.has(other):
-				found.append(other)
-	return found
-
-
-## True when `device` is on a network: it has links, or names an access point (out of range: cut off).
-static func is_networked(device: Device, links: Array[Device]) -> bool:
-	return not links.is_empty() or not device.wireless.is_empty()
-
-
-## True when `device` still has its network (as StatusLight.on_network()): one of the gear it is
-## linked to is up; linked to no gear: one of its links is up; linked to nothing: true unless it
-## names an access point.
-static func on_network(device: Device, links: Array[Device]) -> bool:
-	var live: Array[Device] = []
-	for other in links:
-		if is_instance_valid(other):
-			live.append(other)
-	if live.is_empty():
-		return device.wireless.is_empty()
-	var gear_linked := false
-	var any_up := false
-	for other in live:
-		var up := other.is_up()
-		if DeviceNetwork.is_network_gear(other):
-			if up:
-				return true
-			gear_linked = true
-		elif up:
-			any_up = true
-	return any_up and not gear_linked
-
-
-## The word for `entity` now; `links`: its Device's network_links() (read once by the caller).
+## The word for `entity` now; `links`: its Device's NetworkState.links_of() (read once by the caller).
 static func word_of(entity: Node, links: Array[Device]) -> Word:
 	if entity == null or not is_instance_valid(entity):
 		return Word.NONE
@@ -164,9 +122,9 @@ static func word_of(entity: Node, links: Array[Device]) -> Word:
 	var device := Device.of(entity)
 	var powered := Powered.of(entity)
 	var broken := _is_broken(entity, device)
-	if device != null and is_networked(device, links):
+	if device != null and NetworkState.is_networked(device, links):
 		var disabled := DeviceStatus.is_disabled(entity)
-		return network_word(device.is_powered(), broken, disabled, on_network(device, links))
+		return network_word(device.is_powered(), broken, disabled, NetworkState.on_network(device, links))
 	if powered != null:
 		return powered_word(powered.on and not ActorState.has(entity, Device.UNPOWERED), broken)
 	return Word.BROKEN if broken else Word.NONE
@@ -181,10 +139,11 @@ static func lock_line(entity: Node, user: Node) -> String:
 	return LockRules.locked_line(lockable.reasons(user))
 
 
-## The name shown for a thing E does not act on: its usable's target name, else its display name.
+## The name shown for a thing E does not act on: a network device's network name, else its usable's
+## target name, else its display name (Interactor.display_name_of()).
 static func name_of(entity: Node) -> String:
 	var usable := Usable.of(entity)
-	if usable != null and not usable.target_name().is_empty():
+	if usable != null and Device.of(entity) == null and not usable.target_name().is_empty():
 		return usable.target_name()
 	return Interactor.display_name_of(entity)
 

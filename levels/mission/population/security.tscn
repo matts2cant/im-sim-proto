@@ -571,7 +571,7 @@ trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 6.5, -9.98)
 metadata/display_name = "CAM-HALL"
 
-[node name="Tilt" parent="Devices/CameraHall/Pivot"]
+[node name="Tilt" parent="Devices/CameraHall/Model/Pivot"]
 transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 0, 0)
 
 [node name="Device" parent="Devices/CameraHall"]
@@ -582,7 +582,7 @@ trusted = Array[NodePath]([NodePath("../../../Devices/SecurityConsole")])
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.9, 6.9, 5.27)
 metadata/display_name = "CAM-OFFICE"
 
-[node name="Pivot" parent="Devices/CameraOffice"]
+[node name="Pivot" parent="Devices/CameraOffice/Model"]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, -0.05, 0.24)
 
 [node name="Device" parent="Devices/CameraOffice"]
@@ -839,7 +839,7 @@ address = "10.0.20.7"
 subnet = &"security"
 
 [node name="ApYard" parent="Devices" instance=ExtResource("51_access_point")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 11.3, -10.62)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 11.3, -10.51)
 metadata/display_name = "AP-YARD"
 
 [node name="Bracket" type="MeshInstance3D" parent="Devices/ApYard"]

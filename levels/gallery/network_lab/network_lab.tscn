@@ -483,7 +483,7 @@ address = "10.0.40.2"
 subnet = &"lab_wifi"
 
 [node name="ApLab" parent="Devices" instance=ExtResource("25_ap")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.63, 2.6, -25.5)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 21.74, 2.6, -25.5)
 metadata/display_name = "AP-LAB"
 
 [node name="Powered" parent="Devices/ApLab"]

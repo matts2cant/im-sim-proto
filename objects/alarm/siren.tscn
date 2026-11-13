@@ -97,7 +97,7 @@ script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("30_command_ring"), ExtResource("31_command_silence"), ExtResource("32_command_test")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.08)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")

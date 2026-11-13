@@ -131,7 +131,7 @@ func test_pan_commands_turn_the_camera_away_from_the_player() -> void:
 	await _show.place_player(Showcase.CAMERA_SPOT, PI)
 	await _show.seconds(2.5)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
-	var pivot := _show.node("Camera").get_node("Pivot") as Node3D
+	var pivot := _show.node("Camera").get_node("Model/Pivot") as Node3D
 	assert_float(wrapf(rad_to_deg(pivot.rotation.y), -180.0, 180.0)).is_equal_approx(140.0, 0.5)
 	# Three steps back to its left (5 degrees off the axis): seen.
 	for i in 3:
