@@ -1,18 +1,20 @@
 extends GdUnitTestSuite
 ## Gallery room 5 (security wing) on its own: its network in the M12a/M12b format
-## (design/levels/hub-and-gallery.md "5 Security wing", "Network"). Two subnets joined by RTR-05 on
-## the hall's network wall: Operations (the booth computer and the hall's wall jack on SW-OPS) and
-## Security (every security device). Security spans an area switch per room with devices, each
-## cabled up to SW-SECURITY (the network wall, breaker B): SW-BOOTH, SW-LASERS, SW-CORRIDOR,
-## SW-VAULT. Every device has an address, a display name and a kind (Map icon); the security devices trust
-## the booth computer (sirens and the radio base station also the alarm controller). RTR-05's Weak
-## admin login is in the booth computer's mail; a deck on the jack reaches only Operations and the
-## router until it has an account there. The deck's Map of the whole network, from the jack and from
-## the booth computer, reads well: two subnet boxes, no crossing. Room-local coordinates. The room
-## is loaded once (its tests only query it).
+## (design/levels/hub-and-gallery.md "5 Security wing", "Network"). Two subnets joined by RTR-05 in
+## the hall's linking bay (ADR 0130 step 3, with every switch and the rack alarm controller):
+## Operations (the booth computer and the hall's wall jack on SW-OPS) and Security (every security
+## device). Security spans an area switch per room with devices, each cabled up to SW-SECURITY
+## (breaker B): SW-BOOTH, SW-LASERS, SW-CORRIDOR, SW-VAULT. Every device has an address, a display
+## name and a kind (Map icon); the security devices trust the booth computer (sirens and the radio
+## base station also the alarm controller). RTR-05's Weak admin login is in the booth computer's
+## mail; a deck on the jack reaches only Operations and the router until it has an account there.
+## The deck's Map of the whole network, from the jack and from the booth computer, reads well: two
+## subnet boxes, no crossing. Room-local coordinates. The room is loaded once (its tests only query
+## it).
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
+const MountChecks := preload("res://tests/levels/device_mount_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/security_wing/security_wing.tscn")
 const ORIGIN := Vector3(320, 0, 300)
 const OPS := &"wing_ops"
@@ -20,15 +22,15 @@ const SECURITY := &"wing_security"
 ## Entity path -> [subnet, address, display name].
 const NETWORK: Dictionary[String, Array] = {
 	"Devices/Jack": [OPS, "10.0.15.40", "WING-JACK"],
-	"Devices/OpsSwitch": [OPS, "10.0.15.2", "SW-OPS"],
+	"Devices/Bay/OpsSwitch": [OPS, "10.0.15.2", "SW-OPS"],
 	"Devices/BoothComputer": [OPS, "10.0.15.10", "BOOTH-PC"],
-	"Devices/Rtr05": [OPS, "10.0.15.1", "RTR-05"],
-	"Devices/SecuritySwitch": [SECURITY, "10.0.25.2", "SW-SECURITY"],
-	"Devices/BoothSwitch": [SECURITY, "10.0.25.3", "SW-BOOTH"],
-	"Devices/LaserSwitch": [SECURITY, "10.0.25.4", "SW-LASERS"],
-	"Devices/CorridorSwitch": [SECURITY, "10.0.25.5", "SW-CORRIDOR"],
-	"Devices/VaultSwitch": [SECURITY, "10.0.25.6", "SW-VAULT"],
-	"Devices/Controller": [SECURITY, "10.0.25.10", "ALARM-WING"],
+	"Devices/Bay/Rtr05": [OPS, "10.0.15.1", "RTR-05"],
+	"Devices/Bay/SecuritySwitch": [SECURITY, "10.0.25.2", "SW-SECURITY"],
+	"Devices/Bay/BoothSwitch": [SECURITY, "10.0.25.3", "SW-BOOTH"],
+	"Devices/Bay/LaserSwitch": [SECURITY, "10.0.25.4", "SW-LASERS"],
+	"Devices/Bay/CorridorSwitch": [SECURITY, "10.0.25.5", "SW-CORRIDOR"],
+	"Devices/Bay/VaultSwitch": [SECURITY, "10.0.25.6", "SW-VAULT"],
+	"Devices/Bay/Controller": [SECURITY, "10.0.25.10", "ALARM-WING"],
 	"Devices/BaseStation": [SECURITY, "10.0.25.11", "RADIO-WING"],
 	"Devices/PanicButton": [SECURITY, "10.0.25.12", "PANIC-HALL"],
 	"Devices/Camera": [SECURITY, "10.0.25.21", "CAM-CORRIDOR"],
@@ -41,26 +43,27 @@ const NETWORK: Dictionary[String, Array] = {
 	"Doors/VaultDoor/Hardware/Controller": [SECURITY, "10.0.25.51", "DOOR-VAULT"],
 	"Doors/D4Electronic/Hardware/Controller": [SECURITY, "10.0.25.52", "DOOR-D4"],
 }
-## Switch -> [the room it hangs in (Shell/...), the devices cabled to it].
+## Switch -> [the room it serves (Shell/...), the devices cabled to it]. Every switch stands in the
+## hall's bay (ADR 0130 step 3).
 const SWITCHES: Dictionary[String, Array] = {
-	"Devices/OpsSwitch": ["Hall", ["Devices/Jack", "Devices/BoothComputer"]],
-	"Devices/SecuritySwitch":
+	"Devices/Bay/OpsSwitch": ["Hall", ["Devices/Jack", "Devices/BoothComputer"]],
+	"Devices/Bay/SecuritySwitch":
 	[
 		"Hall",
 		[
-			"Devices/BoothSwitch",
-			"Devices/LaserSwitch",
-			"Devices/CorridorSwitch",
-			"Devices/VaultSwitch",
+			"Devices/Bay/BoothSwitch",
+			"Devices/Bay/LaserSwitch",
+			"Devices/Bay/CorridorSwitch",
+			"Devices/Bay/VaultSwitch",
 			"Devices/PanicButton",
 			"Devices/SirenHall",
 			"Doors/D4Electronic/Hardware/Controller",
 		]
 	],
-	"Devices/BoothSwitch": ["Booth", ["Devices/Controller", "Devices/BaseStation"]],
-	"Devices/LaserSwitch": ["LaserHall", ["Devices/LaserLow", "Devices/LaserHigh", "Devices/LaserPair"]],
-	"Devices/CorridorSwitch": ["Corridor", ["Devices/Camera", "Devices/SirenCorridor"]],
-	"Devices/VaultSwitch": ["Vault", ["Devices/Turret", "Doors/VaultDoor/Hardware/Controller"]],
+	"Devices/Bay/BoothSwitch": ["Booth", ["Devices/Bay/Controller", "Devices/BaseStation"]],
+	"Devices/Bay/LaserSwitch": ["LaserHall", ["Devices/LaserLow", "Devices/LaserHigh", "Devices/LaserPair"]],
+	"Devices/Bay/CorridorSwitch": ["Corridor", ["Devices/Camera", "Devices/SirenCorridor"]],
+	"Devices/Bay/VaultSwitch": ["Vault", ["Devices/Turret", "Doors/VaultDoor/Hardware/Controller"]],
 }
 
 var _room: Node3D
@@ -94,6 +97,13 @@ func _device(path: String) -> Device:
 	return Device.of(_node(path))
 
 
+# Whether the world point `point` lies over `room`'s interior (5 cm margin into its walls).
+func _inside(point: Vector3, room: Room) -> bool:
+	var local := room.to_local(point)
+	var half := room.size * 0.5
+	return absf(local.x) <= half.x + 0.05 and absf(local.z) <= half.z + 0.05
+
+
 func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> void:
 	for path: String in NETWORK:
 		var device := _device(path)
@@ -106,7 +116,7 @@ func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> voi
 		var kind := DeviceKinds.shipped().kind_for(device.entity)
 		assert_object(kind).override_failure_message(path).is_not_null()
 		assert_bool(kind.icon.is_empty()).override_failure_message(path).is_false()
-	var router := Router.of(_node("Devices/Rtr05"))
+	var router := Router.of(_node("Devices/Bay/Rtr05"))
 	assert_array(router.subnets()).contains_exactly_in_any_order([OPS, SECURITY])
 	assert_array(router.addresses()).is_equal(["10.0.15.1", "10.0.25.254"])
 	var info := Router.subnet_info(get_tree())
@@ -116,7 +126,7 @@ func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> voi
 	assert_int(DeviceNetwork.port_kind(_device("Devices/Jack"))).is_equal(Device.DeckPort.JACK)
 	# The security devices trust the booth computer; sirens and the radio also the controller.
 	var booth := _device("Devices/BoothComputer")
-	var controller := _device("Devices/Controller")
+	var controller := _device("Devices/Bay/Controller")
 	for path: String in NETWORK:
 		if NETWORK[path][0] != SECURITY or DeviceNetwork.is_network_gear(_device(path)):
 			continue
@@ -127,20 +137,27 @@ func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> voi
 			assert_array(trusted).override_failure_message(path).contains_exactly([booth])
 
 
-func test_area_switches_follow_the_rooms_and_hang_on_the_security_switch() -> void:
+func test_switches_stand_in_the_bay_and_area_switches_hang_on_the_security_switch() -> void:
+	# ADR 0130 step 3: every switch, the router and the alarm controller stand in the hall's bay; an
+	# area switch serves the devices of its room (those outside the bay stand in that room).
+	var bay := _node("Devices/Bay") as LinkingBay
+	assert_bool(_inside(bay.global_position, _room.get_node("Shell/Hall") as Room)).is_true()
+	for path: String in ["Devices/Bay/Rtr05", "Devices/Bay/Controller"]:
+		assert_object(MountChecks.bay_of(_node(path))).override_failure_message(path).is_same(bay)
 	var cabled_once: Dictionary[Device, int] = {}
 	for path: String in SWITCHES:
+		assert_object(MountChecks.bay_of(_node(path))).override_failure_message(path).is_same(bay)
 		var room := _room.get_node("Shell/" + String(SWITCHES[path][0])) as Room
-		var local := _node(path).position - room.position
-		var half := room.size * 0.5
-		(
-			assert_bool(absf(local.x) <= half.x + 0.05 and absf(local.z) <= half.z + 0.05)
-			. override_failure_message("%s outside %s" % [path, room.name])
-			. is_true()
-		)
 		var expected: Array[Device] = []
 		for child: String in SWITCHES[path][1]:
 			expected.append(_device(child))
+			# (The hall switches serve the whole wing; door controllers sit in the walls.)
+			if room.name != &"Hall" and MountChecks.bay_of(_node(child)) == null and not child.begins_with("Doors/"):
+				(
+					assert_bool(_inside(_node(child).global_position, room))
+					. override_failure_message("%s outside %s" % [child, room.name])
+					. is_true()
+				)
 		assert_array(_device(path).linked()).override_failure_message(path).contains_exactly_in_any_order(expected)
 		for device in expected:
 			cabled_once[device] = cabled_once.get(device, 0) + 1
@@ -148,25 +165,25 @@ func test_area_switches_follow_the_rooms_and_hang_on_the_security_switch() -> vo
 	# switches to SW-SECURITY only; the router joins SW-OPS and SW-SECURITY.
 	for path: String in NETWORK:
 		var device := _device(path)
-		if path == "Devices/Rtr05" or path in ["Devices/OpsSwitch", "Devices/SecuritySwitch"]:
+		if path == "Devices/Bay/Rtr05" or path in ["Devices/Bay/OpsSwitch", "Devices/Bay/SecuritySwitch"]:
 			continue
 		assert_int(cabled_once.get(device, 0)).override_failure_message(path).is_equal(1)
 		var cables := DeviceNetwork.cabled(device)
 		if not SWITCHES.has(path):
 			assert_int(cables.size()).override_failure_message(path).is_equal(1)
-	assert_array(_device("Devices/Rtr05").linked()).contains_exactly_in_any_order(
-		[_device("Devices/OpsSwitch"), _device("Devices/SecuritySwitch")]
+	assert_array(_device("Devices/Bay/Rtr05").linked()).contains_exactly_in_any_order(
+		[_device("Devices/Bay/OpsSwitch"), _device("Devices/Bay/SecuritySwitch")]
 	)
 	# Breaker B powers the security switch only.
 	var circuit := (_node("Devices/BreakerB").get_node("CircuitBreaker") as CircuitBreaker).circuit
-	assert_str(String(Powered.of(_node("Devices/SecuritySwitch")).circuit)).is_equal(String(circuit))
+	assert_str(String(Powered.of(_node("Devices/Bay/SecuritySwitch")).circuit)).is_equal(String(circuit))
 	for path: String in SWITCHES:
-		if path != "Devices/SecuritySwitch":
+		if path != "Devices/Bay/SecuritySwitch":
 			assert_str(String(Powered.of(_node(path)).circuit)).override_failure_message(path).is_empty()
 
 
 func test_the_router_gates_the_security_subnet_until_the_deck_has_an_account() -> void:
-	var accounts := DeviceAccounts.of(_node("Devices/Rtr05"))
+	var accounts := DeviceAccounts.of(_node("Devices/Bay/Rtr05"))
 	var source := NetworkSource.for_user(_user, _device("Devices/Jack"), NetworkSource.Kind.JACK)
 	var reached := source.reached(get_tree())
 	for path: String in NETWORK:

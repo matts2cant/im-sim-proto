@@ -46,7 +46,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"hw_vault_inside": {"feet": Vector3(8.6, 0, 19.8), "look": Vector3(8.23, 1.2, 18.5)},
 	"d1_open": {"feet": Vector3(-6.4, 0, 4.6), "look": Vector3(-6.25, 1.0, 8.7), "open": ["D1Keypad"]},
 	"closet_inside": {"feet": Vector3(-5.6, 0, 8.5), "look": Vector3(-6.5, 1.4, 6.25), "open": ["D1Keypad"]},
-	"booth": {"feet": Vector3(0.4, 0, 6.8), "look": Vector3(-0.6, 1.3, 9), "open": ["D3Keycard"]},
+	"booth": {"feet": Vector3(0.4, 0, 6.8), "look": Vector3(-0.6, 1.0, 9), "open": ["D3Keycard"]},
 	"network_overlay": {"feet": Vector3(-2, 0, 4.6), "look": Vector3(6, 1.2, 4), "network": true, "wait": 2.5},
 	"booth_devices": {"feet": Vector3(-0.4, 0, 6.25), "look": Vector3(1.0, 1.75, 7.85), "open": ["D3Keycard"]},
 	"hall_devices": {"feet": Vector3(4.6, 0, 3.4), "look": Vector3(5, 1.7, 0)},
@@ -105,18 +105,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	{
 		"feet": Vector3(-0.25, 0, 8.1),
 		"look": Vector3(-0.25, 1.45, 9),
-		"computer": "Devices/Controller",
+		"computer": "Devices/Bay/Controller",
 		"disable": ["Turret", "LaserHigh"],
 		"break": ["SirenCorridor"],
 		"wait": 2.5,
 	},
-	# M12b: the wing's network wall and the jack; the deck's Map from the jack before and after RTR-05.
-	"network_wall": {"feet": Vector3(4.4, 0, 2.2), "look": Vector3(4.4, 1.8, 0)},
+	# M12b: the wing's network gear (ADR 0130 step 3: one linking bay with every switch, RTR-05 and the
+	# rack alarm controller) and the jack; the deck's Map from the jack before and after RTR-05.
+	"network_wall": {"feet": Vector3(5.6, 0, 3.2), "look": Vector3(5.4, 1.6, 0)},
+	"bay": {"feet": Vector3(4.6, 0, 2.1), "look": Vector3(4.6, 1.15, 0.3)},
+	"bay_units": {"feet": Vector3(4.6, 0, 1.05), "look": Vector3(4.6, 1.4, 0.55)},
+	"bay_units_low": {"feet": Vector3(4.6, 0, 1.05), "look": Vector3(4.6, 1.1, 0.55)},
 	"jack": {"feet": Vector3(-2.15, 0, 1.8), "look": Vector3(-2.15, 0.8, 0)},
-	"booth_switch": {"feet": Vector3(0.3, 0, 8.0), "look": Vector3(-1.5, 1.6, 8.4), "open": ["D3Keycard"]},
-	"laser_switch": {"feet": Vector3(-5.6, 0, 15.6), "look": Vector3(-6.75, 1.5, 17.5)},
-	"corridor_switch": {"feet": Vector3(8.4, 0, 8.6), "look": Vector3(10.5, 1.6, 9)},
-	"vault_switch": {"feet": Vector3(6.0, 0, 20.4), "look": Vector3(5.5, 1.6, 18.5), "open": ["VaultDoor"]},
+	"booth_desk": {"feet": Vector3(-0.25, 0, 7.0), "look": Vector3(-0.25, 0.95, 8.8), "open": ["D3Keycard"]},
+	"booth_desk_close": {"feet": Vector3(-0.1, 0, 7.6), "look": Vector3(-0.25, 0.95, 8.8), "open": ["D3Keycard"]},
 	"deck_map_jack":
 	{"feet": Vector3(-2.3, 0, 1.0), "look": Vector3(-2.3, 0.5, 0), "deck": "Devices/Jack", "wait": 3.0},
 	"deck_map_jack_rtr05":
@@ -124,7 +126,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(-2.3, 0, 1.0),
 		"look": Vector3(-2.3, 0.5, 0),
 		"deck": "Devices/Jack",
-		"hack": ["Devices/Rtr05"],
+		"hack": ["Devices/Bay/Rtr05"],
 		"wait": 3.0,
 	},
 }
@@ -198,7 +200,7 @@ func _process(delta: float) -> void:
 		deck_screen.graph.fit_view()
 	if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 		_alarm_sent = true
-		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Controller")))
+		StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _wing.get_node("Devices/Bay/Controller")))
 	if _time < float(_shot.get("wait", 2.0)):
 		return
 	var image := get_viewport().get_texture().get_image()

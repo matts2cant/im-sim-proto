@@ -23,6 +23,7 @@ const SCENES: Dictionary[String, Array] = {
 	"res://objects/alarm/alarm_controller_rack.tscn": [1, 1],
 	"res://objects/laser/laser_array.tscn": [0, 1],
 	"res://objects/computer/computer.tscn": [1, 1],
+	"res://objects/computer/computer_desk.tscn": [1, 1],
 	"res://objects/computer/server_rack.tscn": [1, 1],
 }
 const COMPONENTS: Array[String] = ["Tags", "Attributes", "StimulusReceiver", "Breakable", "Device"]

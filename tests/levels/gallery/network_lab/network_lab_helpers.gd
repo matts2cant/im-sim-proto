@@ -47,7 +47,7 @@ func computer(path: String) -> Computer:
 
 ## The tracer on RTR-01.
 func tracer() -> Tracer:
-	return node("Devices/Rtr01").get_node("Tracer") as Tracer
+	return node("Devices/BayA/Rtr01").get_node("Tracer") as Tracer
 
 
 ## Puts the player at lab-local `feet` looking at lab-local `look`, at rest.

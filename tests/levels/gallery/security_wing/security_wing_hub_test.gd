@@ -25,6 +25,9 @@ const NAV_POINTS: Array[Vector3] = [
 	Vector3(6.4, 0, 14.9),
 	Vector3(8, 0, 20),
 	Vector3(-6, 0, 13),
+	# ADR 0130 step 3: in front of the hall's bay and of the booth computer's desk.
+	Vector3(4.6, 0, 1.5),
+	Vector3(-0.25, 0, 7.6),
 ]
 
 var _hub: Node3D

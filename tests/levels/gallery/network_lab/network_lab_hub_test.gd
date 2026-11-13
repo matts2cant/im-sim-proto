@@ -22,6 +22,12 @@ const NAV_POINTS: Array[Vector3] = [
 	Vector3(2.6, 0, -16.4),
 	Vector3(10.6, 0, -15.6),
 	Vector3(2.6, 0, -5.6),
+	# ADR 0130 step 3: in front of bay A, bay B (above: 10.6, -15.6) and the desks (PC 1, the office
+	# switch beside PC 2, the mail PC and its desk router).
+	Vector3(-0.5, 0, -15.7),
+	Vector3(-0.6, 0, -8.5),
+	Vector3(-0.6, 0, -12.7),
+	Vector3(10.6, 0, -9.2),
 	# The M12b annex: through its doorway, the Wi-Fi marks, behind the pillar, the exploit and
 	# firewall stations.
 	Vector3(10, 0, -19.5),
@@ -30,6 +36,8 @@ const NAV_POINTS: Array[Vector3] = [
 	Vector3(16.0, 0, -27.9),
 	Vector3(15, 0, -31.4),
 	Vector3(8.9, 0, -25.4),
+	# In front of bay C.
+	Vector3(13.3, 0, -30.9),
 ]
 
 
