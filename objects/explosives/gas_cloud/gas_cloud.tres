@@ -13,4 +13,4 @@ drift_speed = 0.1
 wall_margin = 1.0
 swell_time = 0.8
 fade_time = 2.0
-color = Color(0.62, 0.78, 0.36, 0.16)
+color = Color(0.62, 0.78, 0.36, 0.26)

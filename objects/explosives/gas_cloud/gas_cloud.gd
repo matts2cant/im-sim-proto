@@ -15,15 +15,19 @@ extends Node3D
 
 const GROUP: StringName = &"gas_cloud"
 const STUN_TYPE: StringName = &"damage.stun.gas"
+const SHADER: Shader = preload("res://objects/explosives/gas_cloud/gas_cloud.gdshader")
 ## Puff centres and sizes as fractions of the radius: [offset, radius].
 const PUFFS: Array[Vector4] = [
-	Vector4(0.0, 0.0, 0.0, 0.8),
-	Vector4(0.45, -0.1, 0.1, 0.55),
-	Vector4(-0.4, 0.05, 0.25, 0.55),
-	Vector4(0.1, 0.1, -0.45, 0.55),
-	Vector4(-0.15, -0.2, -0.3, 0.5),
-	Vector4(0.25, 0.25, 0.35, 0.45),
-	Vector4(-0.3, 0.3, -0.05, 0.45),
+	Vector4(0.0, 0.0, 0.0, 0.85),
+	Vector4(0.5, -0.15, 0.1, 0.55),
+	Vector4(-0.45, -0.1, 0.25, 0.55),
+	Vector4(0.1, -0.1, -0.5, 0.55),
+	Vector4(-0.2, -0.25, -0.35, 0.5),
+	Vector4(0.3, 0.2, 0.35, 0.45),
+	Vector4(-0.35, 0.25, -0.05, 0.45),
+	Vector4(0.05, 0.35, 0.05, 0.4),
+	Vector4(0.6, 0.05, -0.4, 0.35),
+	Vector4(-0.6, 0.0, -0.45, 0.35),
 ]
 
 @export var config: GasCloudConfig
@@ -35,7 +39,7 @@ var drift: Vector3 = Vector3.INF
 
 var _started: bool = false
 var _pulse_left: float = 0.0
-var _material: StandardMaterial3D
+var _material: ShaderMaterial
 var _puffs: Node3D
 
 
@@ -116,13 +120,9 @@ func _drift(delta: float) -> void:
 
 
 func _build_look() -> void:
-	_material = StandardMaterial3D.new()
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_material.proximity_fade_enabled = true
-	_material.proximity_fade_distance = 0.6
-	_material.albedo_color = config.color
+	_material = ShaderMaterial.new()
+	_material.shader = SHADER
+	_material.set_shader_parameter(&"color", config.color)
 	_puffs = Node3D.new()
 	_puffs.name = "Puffs"
 	add_child(_puffs)
@@ -150,7 +150,7 @@ func _update_look() -> void:
 	_puffs.rotation.y = age * 0.15
 	var color := config.color
 	color.a *= swell * fade
-	_material.albedo_color = color
+	_material.set_shader_parameter(&"color", color)
 
 
 func save_state() -> Dictionary:

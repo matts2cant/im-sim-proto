@@ -21,5 +21,5 @@ extends Resource
 ## Seconds it takes to swell to full size, and to fade out at the end.
 @export var swell_time: float = 0.8
 @export var fade_time: float = 2.0
-## The look: colour and opacity of each puff.
-@export var color: Color = Color(0.62, 0.78, 0.36, 0.16)
+## The look: colour and opacity of each puff where it faces the view (its edges fade).
+@export var color: Color = Color(0.62, 0.78, 0.36, 0.26)
