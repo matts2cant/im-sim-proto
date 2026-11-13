@@ -54,6 +54,7 @@ size = Vector2(0.078, 0.012)
 [node name="PortRow" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0945, 0.0371, 0.003)
 script = ExtResource("8_port_row")
+label_room = 0.025
 labels = PackedStringArray("RTR-02", "SRV-01", "SRV-02", "ALM-CTRL", "AP-YARD", "CAM-HALL", "CAM-GATE", "D4-CTRL", "D2-CTRL", "JACK-OFF", "PC-1", "PC-2", "", "", "SIREN-1", "", "", "", "", "", "", "", "", "")
 pitch = 0.0128
 socket_size = Vector2(0, 0.0075)

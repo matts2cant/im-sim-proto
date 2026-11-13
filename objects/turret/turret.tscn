@@ -10,13 +10,12 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/turret.tscn" id="11_model"]
 [ext_resource type="Script" path="res://actors/common/perception/perception_sensor.gd" id="12_sensor"]
 [ext_resource type="Resource" path="res://objects/turret/turret_perception.tres" id="13_perception"]
 [ext_resource type="Script" path="res://items/weapons/weapon_holder.gd" id="14_holder"]
 [ext_resource type="Resource" path="res://objects/turret/turret_gun.tres" id="15_gun"]
 [ext_resource type="Resource" path="res://objects/turret/turret_aim.tres" id="16_aim"]
-[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="17_lens"]
 [ext_resource type="Script" path="res://objects/turret/turret.gd" id="20_turret"]
 [ext_resource type="Resource" path="res://objects/turret/turret.tres" id="21_config"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="30_disable"]
@@ -33,30 +32,9 @@ radius = 0.25
 height = 0.3
 radius = 0.21
 
-[sub_resource type="StandardMaterial3D" id="Material_head"]
-albedo_color = Color(0.3, 0.32, 0.3, 1)
-metallic = 0.4
-roughness = 0.45
-
 [sub_resource type="StandardMaterial3D" id="Material_laser"]
 shading_mode = 0
 albedo_color = Color(1, 0.08, 0.05, 1)
-
-[sub_resource type="CylinderMesh" id="Mesh_base"]
-material = ExtResource("11_metal_surface")
-top_radius = 0.18
-bottom_radius = 0.27
-height = 0.95
-radial_segments = 16
-rings = 1
-
-[sub_resource type="BoxMesh" id="Mesh_head"]
-material = SubResource("Material_head")
-size = Vector3(0.36, 0.26, 0.4)
-
-[sub_resource type="BoxMesh" id="Mesh_sight"]
-material = ExtResource("17_lens")
-size = Vector3(0.05, 0.03, 0.02)
 
 [sub_resource type="BoxMesh" id="Mesh_laser"]
 material = SubResource("Material_laser")
@@ -73,43 +51,33 @@ shape = SubResource("Shape_base")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
 shape = SubResource("Shape_head")
 
-[node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, 0)
-mesh = SubResource("Mesh_base")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
-[node name="StatusLedMarker" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.99554, 0.09428, 0, -0.09428, 0.99554, 0, 0.8, 0.197)
-
-[node name="Pivot" type="Node3D" parent="."]
+[node name="Head" parent="Model"]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 1.15, 0)
 
-[node name="Head" type="MeshInstance3D" parent="Pivot"]
-mesh = SubResource("Mesh_head")
-
-[node name="Sight" type="MeshInstance3D" parent="Pivot"]
+[node name="Sight" parent="Model/Head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, -0.205)
-cast_shadow = 0
-mesh = SubResource("Mesh_sight")
 
-[node name="Eye" type="Node3D" parent="Pivot"]
+[node name="Eye" type="Node3D" parent="Model/Head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, -0.27)
 
-[node name="PerceptionSensor" type="Node" parent="Pivot/Eye"]
+[node name="PerceptionSensor" type="Node" parent="Model/Head/Eye"]
 script = ExtResource("12_sensor")
 config = ExtResource("13_perception")
 
-[node name="Aim" type="Node3D" parent="Pivot"]
+[node name="Aim" type="Node3D" parent="Model/Head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, -0.12)
 
-[node name="WeaponHolder" type="Node3D" parent="Pivot/Aim"]
+[node name="WeaponHolder" type="Node3D" parent="Model/Head/Aim"]
 script = ExtResource("14_holder")
 weapons = Array[ExtResource("15_gun")]([ExtResource("15_gun")])
 aim_config = ExtResource("16_aim")
 
-[node name="Laser" type="Node3D" parent="Pivot/Aim"]
+[node name="Laser" type="Node3D" parent="Model/Head/Aim"]
 visible = false
 
-[node name="Beam" type="MeshInstance3D" parent="Pivot/Aim/Laser"]
+[node name="Beam" type="MeshInstance3D" parent="Model/Head/Aim/Laser"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
 cast_shadow = 0
 mesh = SubResource("Mesh_laser")
@@ -145,8 +113,12 @@ script = ExtResource("9_powered")
 
 [node name="Device" type="Node" parent="."]
 script = ExtResource("10_device")
-broken_hide = Array[NodePath]([NodePath("../Pivot/Sight")])
+broken_hide = Array[NodePath]([NodePath("../Model/Head/Sight")])
 
 [node name="TurretBehaviour" type="Node" parent="."]
 script = ExtResource("20_turret")
 config = ExtResource("21_config")
+pivot_path = NodePath("../Model/Head")
+sensor_path = NodePath("../Model/Head/Eye/PerceptionSensor")
+holder_path = NodePath("../Model/Head/Aim/WeaponHolder")
+laser_path = NodePath("../Model/Head/Aim/Laser")

@@ -10,55 +10,23 @@
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="9_powered"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://objects/materials/metal_surface.tres" id="11_metal_surface"]
-[ext_resource type="Material" path="res://objects/devices/indicator_lens.tres" id="12_lens"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/panic_button.tscn" id="11_model"]
 [ext_resource type="Script" path="res://objects/alarm/panic_button.gd" id="20_button"]
-[ext_resource type="Material" path="res://objects/alarm/alarm_red.tres" id="22_red"]
-[ext_resource type="Material" path="res://assets/materials/graybox/interactive.tres" id="23_interactive"]
 [ext_resource type="Script" path="res://objects/devices/device_switch.gd" id="40_switch"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_disable.tres" id="41_disable"]
 [ext_resource type="Resource" path="res://objects/devices/receptrons/command_enable.tres" id="42_enable"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.22, 0.26, 0.1)
-
-[sub_resource type="BoxMesh" id="Mesh_led"]
-material = ExtResource("12_lens")
-size = Vector3(0.04, 0.04, 0.01)
-
-[sub_resource type="BoxMesh" id="Mesh_plate"]
-material = ExtResource("23_interactive")
-size = Vector3(0.2, 0.24, 0.04)
-
-[sub_resource type="CylinderMesh" id="Mesh_button"]
-material = ExtResource("22_red")
-top_radius = 0.05
-bottom_radius = 0.055
-height = 0.04
-radial_segments = 16
-rings = 1
+size = Vector3(0.12, 0.18, 0.06)
 
 [node name="PanicButton" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
 shape = SubResource("Shape_body")
 
-[node name="Plate" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
-cast_shadow = 0
-mesh = SubResource("Mesh_plate")
-
-[node name="Button" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, -0.01, 0.065)
-cast_shadow = 0
-mesh = SubResource("Mesh_button")
-
-[node name="Indicator" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.085, 0.05)
-cast_shadow = 0
-mesh = SubResource("Mesh_led")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
@@ -69,17 +37,17 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 10.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage"), ExtResource("41_disable"), ExtResource("42_enable")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")
 break_on_depleted = false
-size = 0.4
+size = 0.2
 
 [node name="Powered" type="Node" parent="."]
 script = ExtResource("9_powered")

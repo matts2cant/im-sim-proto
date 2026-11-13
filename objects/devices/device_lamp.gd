@@ -10,7 +10,8 @@ extends Node
 ##   2. blinking amber: cut off from its network (CUT_OFF; the only blinking state);
 ##   3. otherwise the owner's colour (dark while the owner says it is unlit).
 ## Without a StatusLight (a device on no network) it shows the owner's colour alone.
-## Lamp meshes come from `lamps` (paths) and set_meshes() (hardware built in code); each gets the
+## Lamp meshes come from `lamps` (paths to meshes, or to a device model's StatusLed: its LED, ADR 0130
+## step 2: the camera's lamp) and set_meshes() (hardware built in code); each gets the
 ## shared status light material (status_light.gdshader), so a lamp looks and blinks like the LED.
 ## Cheap: repainted only when a colour or state changes, never per frame.
 
@@ -42,7 +43,10 @@ func _ready() -> void:
 	# Keeps the meshes an owner registered before this node was ready.
 	var found := _meshes.duplicate()
 	for path in lamps:
-		var mesh := get_node_or_null(path) as MeshInstance3D
+		var node := get_node_or_null(path)
+		# A device model's StatusLed lends its built LED (it is ready first: the model comes before
+		# this node in the scene).
+		var mesh := (node as StatusLed).led if node is StatusLed else node as MeshInstance3D
 		if mesh != null and not found.has(mesh):
 			found.append(mesh)
 	set_meshes(found)

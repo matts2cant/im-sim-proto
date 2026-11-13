@@ -9,39 +9,22 @@
 [ext_resource type="Resource" path="res://objects/materials/electronics.tres" id="7_electronics"]
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="8_break_settings"]
 [ext_resource type="Script" path="res://objects/devices/device.gd" id="10_device"]
-[ext_resource type="Material" path="res://assets/materials/graybox/interactive.tres" id="11_interactive"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/wall_jack.tscn" id="11_model"]
 
 [sub_resource type="BoxShape3D" id="Shape_body"]
-size = Vector3(0.14, 0.14, 0.05)
-
-[sub_resource type="BoxMesh" id="Mesh_plate"]
-material = ExtResource("11_interactive")
-size = Vector3(0.12, 0.12, 0.02)
-
-[sub_resource type="StandardMaterial3D" id="Material_socket"]
-albedo_color = Color(0.05, 0.05, 0.06, 1)
-roughness = 0.8
-
-[sub_resource type="BoxMesh" id="Mesh_socket"]
-material = SubResource("Material_socket")
-size = Vector3(0.05, 0.04, 0.01)
+size = Vector3(0.1, 0.13, 0.02)
 
 [node name="WallJack" type="StaticBody3D"]
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
 shape = SubResource("Shape_body")
 
-[node name="Plate" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
-cast_shadow = 0
-mesh = SubResource("Mesh_plate")
+[node name="Model" parent="." instance=ExtResource("11_model")]
 
-[node name="Socket" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
-cast_shadow = 0
-mesh = SubResource("Mesh_socket")
+[node name="PortRow" parent="Model"]
+labels = PackedStringArray("")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("1_tags")
@@ -52,12 +35,12 @@ script = ExtResource("2_attributes")
 base_values = Dictionary[StringName, float]({&"health": 10.0})
 
 [node name="StimulusReceiver" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
 script = ExtResource("3_receiver")
 receptrons = Array[ExtResource("4_receptron")]([ExtResource("5_take_damage")])
 
 [node name="Breakable" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
 script = ExtResource("6_breakable")
 material = ExtResource("7_electronics")
 settings = ExtResource("8_break_settings")

@@ -59,6 +59,7 @@ size = Vector2(0.07, 0.011)
 [node name="PortRow" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.014, 0.12)
 script = ExtResource("7_port_row")
+label_room = 0.06
 labels = PackedStringArray("SW-DESK")
 pitch = 0.02
 socket_size = Vector2(0.014, 0.007)

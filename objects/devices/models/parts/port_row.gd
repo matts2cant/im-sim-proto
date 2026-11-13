@@ -13,6 +13,8 @@ const LIGHT_SIZE := Vector2(0.0022, 0.0015)
 ## The port light's centre above the sockets' top edge.
 const LIGHT_RISE: float = 0.0034
 const RING: float = 0.0012
+## The smallest a label shrinks to fit its room, as a share of `text_height`.
+const MIN_SHRINK: float = 0.7
 
 ## One socket per entry: the connected device's name, empty for a free socket.
 @export var labels: PackedStringArray = PackedStringArray(["", ""]):
@@ -52,6 +54,12 @@ const RING: float = 0.0012
 	set(value):
 		uplink = value
 		rebuild()
+## The room a label has (m: down the front for a vertical label, across for a flat one); 0: no limit.
+## A longer name shrinks to MIN_SHRINK of `text_height`, then loses its last characters.
+@export var label_room: float = 0.0:
+	set(value):
+		label_room = value
+		rebuild()
 
 var lights: Array[MeshInstance3D] = []
 var label_nodes: Array[ModelText] = []
@@ -68,6 +76,16 @@ func lit() -> Array[bool]:
 	for text in labels:
 		result.append(not text.strip_edges().is_empty())
 	return result
+
+
+## `text` fitted to `room` (m; 0: no limit) at `height`: [the text, its height]. It shrinks to
+## MIN_SHRINK of `height`, then loses its last characters.
+static func fit_label(text: String, height: float, room: float) -> Array:
+	if room <= 0.0 or ModelText.width_of(text, height) <= room:
+		return [text, height]
+	var smaller := maxf(height * MIN_SHRINK, room / ModelText.width_of(text, 1.0))
+	var chars := mini(text.length(), floori(room / ModelText.width_of("M", smaller) + 0.001))
+	return [text.left(maxi(chars, 1)), smaller]
 
 
 ## The socket's size after the default width.
@@ -103,7 +121,8 @@ func _label(i: int, centre: float, sock: Vector2) -> ModelText:
 	if not flat_labels:
 		# Turned clockwise (seen from the front): the text starts under the socket and reads down.
 		at.basis = Basis(Vector3.BACK, -PI * 0.5)
-	var label := _text("PortLabel%d" % i, labels[i].strip_edges(), text_height, label_color, at)
+	var fitted := fit_label(labels[i].strip_edges(), text_height, label_room)
+	var label := _text("PortLabel%d" % i, fitted[0] as String, fitted[1] as float, label_color, at)
 	if flat_labels:
 		label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	else:

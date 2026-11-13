@@ -96,6 +96,7 @@ mesh = SubResource("BoxMesh_4")
 [node name="PortRow" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1555, 0.0686, 0.003)
 script = ExtResource("10_port_row")
+label_room = 0.052
 labels = PackedStringArray("SW-CORE")
 pitch = 0.02
 socket_size = Vector2(0.014, 0.011)
