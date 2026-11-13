@@ -88,7 +88,9 @@ func test_the_decks_wifi_range_grows_with_the_computer_skill() -> void:
 	# Aiming from out of range only says so; from in range it is the target.
 	Net.set_tier(_user, 0)
 	var notices: Array[String] = []
-	_session.notice.connect(func(text: String) -> void: notices.append(text))
+	var told := Notices.new()
+	_user.add_child(told)
+	told.posted.connect(func(text: String) -> void: notices.append(text))
 	assert_bool(_wireless.aim(_ap(), _stack)).is_false()
 	assert_object(_wireless.target).is_null()
 	assert_str(notices[0]).contains("out of the deck's Wi-Fi range")

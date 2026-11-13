@@ -20,6 +20,8 @@ extends Node
 ## continue, lost), `deck.wifi_cracked {device}`.
 
 const WIFI: String = "wifi"
+## The deck screen's tool it raises the deck on (DeckSession.TOOL_OPTION): the Wi-Fi key screen.
+const SCREEN_TOOL: StringName = &"wifi"
 ## Why a running crack is paused (pause_reason(); &"" while it advances).
 const OUT_OF_RANGE: StringName = &"out_of_range"
 const NO_SIGHT: StringName = &"no_sight"
@@ -100,15 +102,14 @@ func aim(access_point: Device, deck_stack: ItemStack = null) -> bool:
 	var held := deck_stack if deck_stack != null else session.held_deck()
 	if radio == null or held == null:
 		return false
-	var screen := DeckScreen.of(entity)
-	if screen != null and screen.is_open():
+	if Screens.is_open(entity, DeckSession.SCREEN):
 		return false
 	if not in_range(access_point):
 		var text := (
 			"%s: out of the deck's Wi-Fi range (%d m; yours %d m)"
 			% [NetworkSource.display_name(access_point), roundi(distance_to(access_point)), roundi(wireless_range())]
 		)
-		session.notice.emit(text)
+		Notices.send(entity, text)
 		return false
 	if target != access_point:
 		if is_running():
@@ -119,11 +120,10 @@ func aim(access_point: Device, deck_stack: ItemStack = null) -> bool:
 		_log(&"aim")
 	if radio.knows_key(entity):
 		session.plug(access_point, held)
-		if screen != null and session.is_wireless():
-			screen.open_for(session)
+		if session.is_wireless():
+			Screens.open(entity, DeckSession.SCREEN, session)
 		return session.is_wireless()
-	if screen != null:
-		screen.open_wifi(session)
+	Screens.open(entity, DeckSession.SCREEN, session, {DeckSession.TOOL_OPTION: SCREEN_TOOL})
 	return true
 
 
@@ -214,7 +214,7 @@ func _physics_process(delta: float) -> void:
 	var radio := AccessPoint.of(target) if is_instance_valid(target) else null
 	if radio == null or not _has_deck() or not ActorState.can_act(entity):
 		_stop(&"lost")
-		session.notice.emit("Wi-Fi crack stopped")
+		Notices.send(entity, "Wi-Fi crack stopped")
 		session.changed.emit()
 		return
 	if Icebreaker.password_hash(radio.key) != Icebreaker.password_hash(job.password):
@@ -245,7 +245,7 @@ func _cracked(radio: AccessPoint) -> void:
 	var text := "Wi-Fi key cracked"
 	if joined:
 		text += ": joined the %s subnet over Wi-Fi" % subnet_name(target)
-	session.notice.emit(text)
+	Notices.send(entity, text)
 	session.changed.emit()
 
 

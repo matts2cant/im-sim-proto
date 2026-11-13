@@ -141,13 +141,13 @@ func _stage() -> void:
 			)
 			_screen.firewall_view.show_router(_lab.device("Rtr01"))
 			_screen.firewall_view.selected = 2
-			_screen.show_tool(DeckScreen.Tool.FIREWALL)
+			_screen.show_tool(DeckScreen.FIREWALL)
 		"remote":
 			DeviceAccounts.of(_lab.node("Console")).grant(_player, "dmarsh")
 			_session.refresh()
 			_session.open_remote(_lab.device("Console"))
 			var desktop := ComputerScreen.of(_player)
-			desktop.show_app(ComputerScreen.App.SECURITY)
+			desktop.show_app(Computer.SECURITY)
 			desktop.security_app.refresh(true)
 			desktop.security_app.select("CAM-GATE")
 		"login_trace":
@@ -170,7 +170,7 @@ func _stage() -> void:
 		"ice_trained", "ice_advanced", "ice_flash":
 			_ice.start(_lab.device("Console"), "dmarsh")
 			_ice.job.progress = 0.4
-			_screen.show_tool(DeckScreen.Tool.ICEBREAKER)
+			_screen.show_tool(DeckScreen.ICEBREAKER)
 			await _seconds(0.5)
 			if _shot == "ice_flash":
 				# The next letter locks 0.25 s into the closing 0.3 s wait: the shot catches its flash.

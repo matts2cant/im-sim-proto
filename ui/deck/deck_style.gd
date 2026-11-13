@@ -177,9 +177,17 @@ static func label(text: String, color: Color, font_size: int = 15) -> Label:
 
 ## A label in the monospace font (addresses, codes, numbers).
 static func mono(text: String, color: Color, font_size: int = 13) -> Label:
-	var result := label(text, color, font_size)
-	result.add_theme_font_override(&"font", mono_font())
+	var result := Label.new()
+	result.text = text
+	style_mono(result, color, font_size)
 	return result
+
+
+## Gives `target` (any Label: a TimedLabel toast) the look of mono().
+static func style_mono(target: Label, color: Color, font_size: int = 13) -> void:
+	target.add_theme_color_override(&"font_color", color)
+	target.add_theme_font_size_override(&"font_size", font_size)
+	target.add_theme_font_override(&"font", mono_font())
 
 
 ## A wrapping paragraph `width` px wide at least.

@@ -3,10 +3,11 @@ extends Lock
 ## Lock component: a pin-tumbler lock (ADR 0078), a keyhole on the door leaf's handle on both faces
 ## (ADR 0098: it is picked by looking at the leaf). Its pins are data (`MechanicalLockData`). The pick
 ## hook is the Lock tool interface: a user holding a tool of kind `data.tool` (a lockpick) works it
-## through ToolUse, which opens the user's LockpickScreen, the minigame (ADR 0107); a user without
-## one cannot pick. The minigame builds its PinTumbler model from this lock (new_model()), reports
-## its noises through pick_noise() (a `noise` from the lock, like any noise) and its success through
-## complete_pick() (unlocks it for the user, who wants it open). Success consumes nothing.
+## through ToolUse, which opens the user's lockpicking screen, the minigame (ADR 0107), through its
+## Screens (SCREEN); a user without one cannot pick. The minigame builds its PinTumbler model from
+## this lock (new_model()), reports its noises through pick_noise() (a `noise` from the lock, like
+## any noise) and its success through complete_pick() (unlocks it for the user, who wants it open).
+## Success consumes nothing.
 ## A practice lock (`data.practice`) re-locks `practice_relock_delay` s after it opened, with a new
 ## random layout of its tier's pins (PracticeRelock); its layout counter and seed are saved.
 ## Keys (ADR 0130): a lock whose `data.key_id` names a key opens with E when that key is on the
@@ -17,6 +18,8 @@ extends Lock
 ## A practice lock re-locked with layout number `layout`.
 signal relocked(layout: int)
 
+## The screen id the lock asks its picker's Screens for (the lockpicking minigame).
+const SCREEN: StringName = &"lockpick"
 const HARDWARE: PackedScene = preload("res://objects/locks/hardware/keyhole.tscn")
 const DEFAULT_TUNING: LockpickTuning = preload("res://objects/locks/lockpicking/lockpick_tuning.tres")
 
@@ -111,13 +114,13 @@ func accepts_tool(tool: StringName) -> bool:
 	return data != null and tool == data.tool and is_locked()
 
 
-## Working it with the tool opens the user's lockpicking minigame (the screen does the rest).
+## Working it with the tool opens the user's lockpicking minigame (Screens, SCREEN; the screen does
+## the rest).
 func tool_hold(user: Node, _delta: float) -> bool:
 	if not is_locked():
 		return false
-	var screen := LockpickScreen.of(user)
-	if screen != null and not screen.is_open():
-		screen.open_for(self, user)
+	if not Screens.is_open(user, SCREEN):
+		Screens.open(user, SCREEN, self)
 	return false
 
 

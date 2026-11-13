@@ -105,7 +105,8 @@ func set_active(on: bool) -> void:
 func can_show() -> bool:
 	if _session == null or not is_instance_valid(entity) or not ActorState.can_act(entity):
 		return false
-	if &"input_enabled" in entity and not bool(entity.get(&"input_enabled")):
+	var player := entity as Player
+	if OverlayFocus.is_held(entity) or (player != null and not player.input_enabled):
 		return false
 	return _session.held_deck() != null
 

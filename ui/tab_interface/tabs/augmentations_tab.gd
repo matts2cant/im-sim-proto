@@ -27,8 +27,7 @@ var _descriptions: Dictionary[int, Label] = {}
 var _switches: Dictionary[int, CheckButton] = {}
 var _side_labels: Dictionary[int, Label] = {}
 var _passive_list: VBoxContainer
-var _message: Label
-var _message_left: float = 0.0
+var _message: TimedLabel
 var _built: bool = false
 var _card_on := CharacterTabStyle.box(CharacterTabStyle.ENERGY_BG, CharacterTabStyle.ENERGY, 5)
 var _card_off := CharacterTabStyle.box(CharacterTabStyle.CLEAR, CharacterTabStyle.LINE, 5)
@@ -53,11 +52,7 @@ func on_shown() -> void:
 	refresh()
 
 
-func _process(delta: float) -> void:
-	if _message_left > 0.0:
-		_message_left -= delta
-		if _message_left <= 0.0 and _message != null:
-			_message.text = ""
+func _process(_delta: float) -> void:
 	if is_visible_in_tree():
 		refresh()
 
@@ -107,10 +102,8 @@ func slot_side_text(slot: int) -> String:
 
 
 func show_message(text: String) -> void:
-	if _message == null:
-		return
-	_message.text = text
-	_message_left = message_seconds
+	if _message != null:
+		_message.show_text(text, message_seconds)
 
 
 func refresh() -> void:
@@ -197,7 +190,9 @@ func _build() -> void:
 	column.add_child(_passive_list)
 	var note := "Click a switch or press its F key in play. At 0 energy every augmentation switches off."
 	column.add_child(CharacterTabStyle.paragraph(note + " A bioelectric cell restores energy.", 12))
-	_message = CharacterTabStyle.label("", 13, CharacterTabStyle.AMBER)
+	_message = TimedLabel.new()
+	_message.hide_when_empty = false
+	CharacterTabStyle.style_label(_message, 13, CharacterTabStyle.AMBER)
 	_message.name = "Message"
 	column.add_child(_message)
 

@@ -1,8 +1,9 @@
 class_name DeckSession
 extends Node
 ## Component of an actor that carries a deck (the Player; ADR 0113): the deck plugged in, its Map
-## and its access, independent of the screen (DeckScreen shows it; tools keep running while it is
-## lowered). The Icebreaker is its sibling IcebreakerTool.
+## and its access, independent of the screen (its user's deck screen shows it, through Screens:
+## SCREEN; tools keep running while it is lowered). Notices go to the user's Notices. The
+## Icebreaker is its sibling IcebreakerTool.
 ## - Plugging: holding LMB with the deck in hand on a device with a deck port (Device.tool_hold())
 ##   plugs the held deck in there and raises the screen. The port decides the address
 ##   (NetworkSource): a wall jack joins its subnet, a maintenance port links to its device only, a
@@ -46,11 +47,13 @@ extends Node
 signal plugged_changed(plugged: bool)
 ## Something the map shows changed (discovery, access, a crack): screens refresh.
 signal changed
-## A short message for the user ("Cracked kbrandt: added to the Journal").
-signal notice(text: String)
 ## A remote desktop opened (the Computer) or closed (null).
 signal remote_changed(computer: Computer)
 
+## The screen id the deck asks its user's Screens for (the deck's screen), and the option naming
+## the tool it is raised on (the screen's tool ids; default: its Map).
+const SCREEN: StringName = &"deck"
+const TOOL_OPTION: StringName = &"tool"
 const SEEN: String = "seen"
 ## The Computer skill's addition to the deck's Wi-Fi range (m).
 const WIRELESS_RANGE_ATTRIBUTE: StringName = &"deck_wireless_range"
@@ -157,9 +160,8 @@ static func in_range(user: Node, device: Device, p_config: DeckConfig) -> bool:
 func plug_and_raise(device: Device) -> void:
 	if port != device and not plug(device):
 		return
-	var screen := DeckScreen.of(entity)
-	if screen != null and not screen.is_open():
-		screen.open_for(self)
+	if not Screens.is_open(entity, SCREEN):
+		Screens.open(entity, SCREEN, self)
 
 
 ## Plugs `deck_stack` (default: the deck in the user's hand) into `device`. False without a deck or
@@ -207,9 +209,7 @@ func unplug(reason: StringName = &"unplugged") -> void:
 	_connected.clear()
 	_map.clear()
 	scanning.clear()
-	var screen := DeckScreen.of(entity)
-	if screen != null and screen.is_open():
-		screen.close()
+	Screens.close(entity, SCREEN)
 
 
 ## The deck stack in the user's hand, or null.
@@ -348,7 +348,7 @@ func log_in(device: Device, user: String) -> bool:
 		return false
 	var ok := accounts.login_from(user, accounts.known_password(entity, user), entity, source)
 	if ok:
-		notice.emit(DeckSession.access_notice(device, "Logged in as %s" % user))
+		Notices.send(entity, DeckSession.access_notice(device, "Logged in as %s" % user))
 	refresh()
 	return ok
 
@@ -398,7 +398,7 @@ func open_remote(device: Device) -> bool:
 
 
 ## Back to the map (the deck unplugged, or a caller ends it): closes the remote desktop if the
-## user's ComputerScreen still shows it.
+## user's computer screen still shows it.
 func close_remote() -> void:
 	if remote == null:
 		return
@@ -406,9 +406,7 @@ func close_remote() -> void:
 	if is_instance_valid(was) and was.desktop_closed.is_connected(_on_desktop_closed):
 		was.desktop_closed.disconnect(_on_desktop_closed)
 	remote = null
-	var screen := ComputerScreen.of(entity)
-	if screen != null and screen.is_remote() and screen.computer == was:
-		screen.close()
+	Screens.close(entity, Computer.SCREEN, was)
 	remote_changed.emit(null)
 
 

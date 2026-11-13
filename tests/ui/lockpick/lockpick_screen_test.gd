@@ -39,7 +39,7 @@ func test_lmb_with_a_lockpick_starts_the_minigame_facing_the_lock() -> void:
 	assert_bool(_ui.screen.is_open()).is_true()
 	assert_array(EventLog.find(&"lock.pick_started")).has_size(1)
 	assert_bool(get_tree().paused).is_false()
-	assert_bool(_ui.player.input_enabled).is_false()
+	assert_bool(_ui.player.accepts_input()).is_false()
 	# The view turns to the keyhole.
 	await _ui.seconds(0.4)
 	var eye := _ui.player.eye_transform()
@@ -102,7 +102,7 @@ func test_e_leaves_and_loses_the_progress() -> void:
 	await _ui.driver.frames(2)
 
 	assert_bool(_ui.screen.is_open()).is_false()
-	assert_bool(_ui.player.input_enabled).is_true()
+	assert_bool(_ui.player.accepts_input()).is_true()
 	assert_bool(_ui.door.is_open()).is_false()
 	assert_str(EventLog.find(&"lock.pick_cancelled")[0].data["reason"]).is_equal("left")
 	# E did not also open or use the door, and the still-held LMB does not start it again.
@@ -152,7 +152,7 @@ func test_a_picked_door_unlocks_and_opens_and_keeps_the_pick() -> void:
 	# The plug turns, then the screen closes and the door swings open.
 	await _ui.seconds(1.0)
 	assert_bool(_ui.screen.is_open()).is_false()
-	assert_bool(_ui.player.input_enabled).is_true()
+	assert_bool(_ui.player.accepts_input()).is_true()
 	assert_bool(_ui.door.is_open()).is_true()
 	assert_int(_ui.player.inventory.inventory.count_of(&"lockpick")).is_equal(1)
 

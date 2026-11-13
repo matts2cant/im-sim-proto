@@ -22,10 +22,15 @@ const CLEAR := Color(0, 0, 0, 0)
 static func label(text: String, size: int = 14, color: Color = FG) -> Label:
 	var result := Label.new()
 	result.text = text
-	result.add_theme_font_size_override(&"font_size", size)
-	result.add_theme_color_override(&"font_color", color)
-	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	style_label(result, size, color)
 	return result
+
+
+## Gives `target` (any Label: a TimedLabel feedback line) the look of label().
+static func style_label(target: Label, size: int = 14, color: Color = FG) -> void:
+	target.add_theme_font_size_override(&"font_size", size)
+	target.add_theme_color_override(&"font_color", color)
+	target.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 ## Wrapping body text (descriptions).

@@ -1,10 +1,11 @@
 class_name TuningPanel
-extends CanvasLayer
-## The shooting range's live tuning panel (ADR 0125), opened by a TuningDesk. A plain debug tool in
-## the shared window frame (WindowFrame, Halcyon look) on the right of the screen: the world keeps
-## running and stays visible (no pause, no dim); while open the user's input is off, the mouse is
-## free and the HUD hidden. Esc or the ✕ closes it, and so does the user walking or being pushed
-## away from the desk or no longer able to act.
+extends UserScreen
+## The shooting range's live tuning panel (ADR 0125), opened by a TuningDesk through its user's
+## Screens (TuningDesk.SCREEN; the Player's Screens instances tuning_panel.tscn on first use). A
+## plain debug tool in the shared window frame (WindowFrame, Halcyon look) on the right of the
+## screen: the world keeps running and stays visible (no pause, no dim); while open it holds the
+## user's OverlayFocus (input off, mouse free, HUD hidden). Esc or the ✕ closes it, and so does the
+## user walking or being pushed away from the desk or no longer able to act.
 ## Contents, for the weapon in the user's hand (WeaponSkill.weapon_of()): the Weapons skill tier
 ## buttons for the skill that trains it (Skills.set_tier()), then every `@export_range` float / int
 ## of the weapon's WeaponData and of each Resource it references (TuningProperties, by reflection:
@@ -25,7 +26,6 @@ const VALUE_WIDTH: float = 64.0
 
 ## The node using it.
 var user: Node
-var player: Player
 ## The weapon whose tuning is shown, or null.
 var weapon: WeaponData
 ## The node the user must stay near (the desk's entity), or null.
@@ -44,9 +44,6 @@ var status_label: Label
 # "<entry label>/<property>" -> slider, value label.
 var _sliders: Dictionary[String, HSlider] = {}
 var _values: Dictionary[String, Label] = {}
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
-var _hud_before: bool = true
 var _filling: bool = false
 
 
@@ -61,8 +58,19 @@ func _exit_tree() -> void:
 		close()
 
 
-func is_open() -> bool:
-	return visible
+func screen_id() -> StringName:
+	return TuningDesk.SCREEN
+
+
+## `subject`: the TuningDesk (its entity is the anchor, its `max_distance` the reach).
+func open_screen(subject: Object, p_user: Node, _options: Dictionary) -> bool:
+	var desk := subject as TuningDesk
+	open_for(p_user, desk.entity if desk != null else null, desk.max_distance if desk != null else 3.0)
+	return true
+
+
+func close_screen() -> void:
+	close()
 
 
 ## Opens the panel for `p_user` (the weapon in its hand), kept open while it stays within
@@ -71,19 +79,10 @@ func open_for(p_user: Node, p_anchor: Node3D = null, p_max_distance: float = 3.0
 	if visible:
 		close()
 	user = p_user
-	player = p_user as Player
 	anchor = p_anchor
 	max_distance = p_max_distance
 	visible = true
-	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
-		var hud := player.get_node_or_null(^"Hud") as CanvasLayer
-		if hud != null:
-			_hud_before = hud.visible
-			hud.visible = false
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	OverlayFocus.acquire(self, user, Input.MOUSE_MODE_VISIBLE, true)
 	rebuild()
 
 
@@ -91,15 +90,8 @@ func close() -> void:
 	if not visible:
 		return
 	visible = false
-	if is_instance_valid(player):
-		var hud := player.get_node_or_null(^"Hud") as CanvasLayer
-		if hud != null:
-			hud.visible = _hud_before
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 	user = null
-	player = null
 	closed.emit()
 
 

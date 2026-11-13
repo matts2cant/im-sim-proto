@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## the Map. A failed bare-handed login raises the tracer watching that computer, whose bar shows in
 ## the computer overlay. A device that trusts another computer is not listed.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
@@ -62,7 +63,7 @@ func _plug_with_access() -> void:
 func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back() -> void:
 	await _plug_with_access()
 	assert_bool(_deck.graph.select("SEC-CONSOLE")).is_true()
-	_deck.menu_button("Open its desktop (remote)").pressed.emit()
+	DeckUi.menu_button(_deck, "Open its desktop (remote)").pressed.emit()
 	assert_bool(_desktop.is_remote()).is_true()
 	assert_object(_desktop.computer).is_same(Computer.of(_lab.node("Console")))
 	assert_str(_desktop.account).is_equal("dmarsh")
@@ -84,7 +85,7 @@ func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back
 	# The address in its title bar comes from the network layer.
 	assert_str(Computer.of(_lab.node("Console")).address()).is_equal("10.0.20.5")
 	# Its Security app lists the camera (it trusts the console) with only the commands that apply.
-	_desktop.show_app(ComputerScreen.App.SECURITY)
+	_desktop.show_app(Computer.SECURITY)
 	_desktop.security_app.refresh(true)
 	assert_array(_desktop.security_app.device_names()).contains(["CAM-GATE"])
 	assert_bool(_desktop.security_app.select("CAM-GATE")).is_true()
@@ -100,10 +101,10 @@ func test_a_remote_desktop_from_the_map_commands_a_trusting_device_and_goes_back
 	assert_bool(_desktop.is_open()).is_false()
 	assert_object(_session.remote).is_null()
 	assert_bool(_deck.is_open()).is_true()
-	assert_bool(_player.input_enabled).is_false()
+	assert_bool(_player.accepts_input()).is_false()
 	# Esc in a remote desktop goes back to the Map too, never further (the deck stays up, no menu).
 	_deck.graph.select("SEC-CONSOLE")
-	_deck.menu_button("Open its desktop (remote)").pressed.emit()
+	DeckUi.menu_button(_deck, "Open its desktop (remote)").pressed.emit()
 	assert_bool(_desktop.is_remote()).is_true()
 	_runner.simulate_action_pressed(&"ui_cancel")
 	await _driver.frames(2)

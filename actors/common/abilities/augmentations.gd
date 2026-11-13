@@ -10,7 +10,8 @@ extends Node
 ## Energy can have them (ADR 0061). Saveable (installed and active ids).
 
 signal changed
-## Short feedback for the HUD ("Energy depleted").
+## Short feedback for its own page ("Energy depleted"); the same text goes to the entity's
+## Notices.
 signal message(text: String)
 
 const DEPLETED := "Energy depleted"
@@ -45,6 +46,12 @@ func _ready() -> void:
 
 func entity() -> Node:
 	return get_parent()
+
+
+# Feedback: its page's `message` and the entity's Notices.
+func _say(text: String) -> void:
+	message.emit(text)
+	Notices.send(get_parent(), text)
 
 
 func find(id: StringName) -> AugmentationData:
@@ -136,7 +143,7 @@ func activate(id: StringName) -> bool:
 	if not reason.is_empty():
 		EventLog.record(&"augmentation.refused", _who(), "", {"id": String(id), "reason": reason})
 		if reason == "no_energy":
-			message.emit(DEPLETED)
+			_say(DEPLETED)
 		return false
 	_active[id] = true
 	_pulse_left[id] = data.pulse_interval
@@ -168,7 +175,7 @@ func _physics_process(delta: float) -> void:
 		_energy.spend(drain_rate() * delta)
 	if _energy == null or _energy.is_empty():
 		deactivate_all(&"depleted")
-		message.emit(DEPLETED)
+		_say(DEPLETED)
 		return
 	for id: StringName in _active.keys():
 		_pulse(find(id), delta)

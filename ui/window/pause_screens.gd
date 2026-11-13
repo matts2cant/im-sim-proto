@@ -3,14 +3,14 @@ extends RefCounted
 ## Full-screen UI that pauses the game (ADR 0052): only the game menu (ADR 0064), the mission
 ## briefing and the end-of-mission summary (ADR 0087). Every other screen (the Tab interface, the
 ## keypad, the reading overlay, the computer screen, the lockpicking screen) keeps the world running and
-## turns its user's input off instead (ADR 0110).
+## holds its user's OverlayFocus instead (ADR 0110, 0133).
 ## Each such CanvasLayer joins GROUP, runs with PROCESS_MODE_ALWAYS, has is_open(), and calls
 ## update() after opening or closing. While any is open the SceneTree is paused and the mouse is
-## free; when the last one closes the pause ends and the previous mouse mode comes back.
+## free (an OverlayFocus hold of the tree, for no user); when the last one closes the pause ends and
+## the hold goes (the mouse back to its mode from before, or to the open overlay's).
 
 const GROUP: StringName = &"pause_screen"
 
-static var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 static var _pausing: bool = false
 
 
@@ -25,13 +25,12 @@ static func update(tree: SceneTree) -> void:
 	var open := any_open(tree)
 	if open and not _pausing:
 		_pausing = true
-		_mouse_before = Input.mouse_mode
 		tree.paused = true
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		OverlayFocus.acquire_all(tree)
 	elif not open and _pausing:
 		_pausing = false
 		tree.paused = false
-		Input.mouse_mode = _mouse_before
+		OverlayFocus.release(tree)
 
 
 ## Tests: forget a pause left by a freed screen.
@@ -39,3 +38,4 @@ static func reset(tree: SceneTree) -> void:
 	if _pausing:
 		tree.paused = false
 	_pausing = false
+	OverlayFocus.release(tree)

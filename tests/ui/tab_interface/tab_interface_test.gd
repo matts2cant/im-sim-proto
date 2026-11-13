@@ -109,7 +109,7 @@ func test_input_off_and_mouse_free_while_open_both_restored() -> void:
 	var hud := _player.get_node("Hud") as CanvasLayer
 
 	await _driver.press(&"tab_interface")
-	assert_bool(_player.input_enabled).is_false()
+	assert_bool(_player.accepts_input()).is_false()
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_bool(hud.visible).is_false()
 	var start := _player.global_position
@@ -117,7 +117,7 @@ func test_input_off_and_mouse_free_while_open_both_restored() -> void:
 	assert_float(_player.global_position.distance_to(start)).is_less(0.001)
 
 	await _driver.press(&"tab_interface")
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 	assert_int(Input.mouse_mode).is_equal(mouse_before)
 	assert_bool(hud.visible).is_true()
 	await _driver.hold(&"move_forward", 10)

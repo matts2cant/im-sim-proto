@@ -35,11 +35,16 @@ static func mono_font() -> Font:
 static func label(text: String, size: int = 14, colour: Color = FG) -> Label:
 	var node := Label.new()
 	node.text = text
+	style_label(node, size, colour)
+	return node
+
+
+## Gives `node` (any Label: a TimedLabel status line) the look of label().
+static func style_label(node: Label, size: int = 14, colour: Color = FG) -> void:
 	var settings := LabelSettings.new()
 	settings.font_size = size
 	settings.font_color = colour
 	node.label_settings = settings
-	return node
 
 
 ## A label in the monospace font (codes, numbers).

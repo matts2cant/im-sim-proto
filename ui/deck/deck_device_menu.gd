@@ -11,8 +11,6 @@ extends RefCounted
 signal firewall_requested(device: Device)
 ## An Icebreaker crack started from an account row.
 signal crack_started
-## A line for the deck's toast.
-signal notice(text: String)
 ## A command was sent: the map redraws.
 signal map_changed
 
@@ -141,7 +139,7 @@ func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccou
 
 func _on_use_exploit(device: Device) -> void:
 	if not ExploitItems.use_from_deck(session, device):
-		notice.emit("%s: no connection." % NetworkSource.display_name(device))
+		Notices.send(session.entity, "%s: no connection." % NetworkSource.display_name(device))
 	map_changed.emit()
 
 
@@ -153,5 +151,6 @@ func _on_crack(device: Device, user: String) -> void:
 func _on_command(command: StringName, device: Device) -> void:
 	var label := session.config.label_for(command)
 	var target := NetworkSource.display_name(device)
-	notice.emit("%s: %s sent." % [target, label] if session.send(command, device) else "%s: no connection." % target)
+	var sent := session.send(command, device)
+	Notices.send(session.entity, "%s: %s sent." % [target, label] if sent else "%s: no connection." % target)
 	map_changed.emit()

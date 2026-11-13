@@ -57,7 +57,7 @@ func use(user: Node) -> bool:
 	var inventory := PlayerInventory.of(user)
 	if inventory == null or inventory.give(item, 1) > 0:
 		if inventory != null:
-			inventory.message.emit(PlayerInventory.NO_ROOM)
+			Notices.send(user, PlayerInventory.NO_ROOM)
 		return false
 	var data := {"object": String(entity.name), "by": String(user.name), "item": String(item.id)}
 	EventLog.record(&"mine.disarmed", String(user.name), String(entity.name), data)

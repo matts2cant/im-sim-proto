@@ -1,5 +1,5 @@
 class_name SecurityApp
-extends HBoxContainer
+extends ComputerApp
 ## Halcyon OS's Security app (ADR 0114; replaces the terminal's Camera tab of ADR 0083). Over
 ## Computer.devices() (only the devices the computer controls):
 ## - a list grouped by kind (ComputerConfig.groups, in order; each device's kind and icon come from
@@ -76,6 +76,32 @@ var _trouble: PackedStringArray = []
 
 func _ready() -> void:
 	_build()
+
+
+func open_app(p_computer: Computer, p_viewer: Node, _account: String) -> void:
+	bind(p_computer, p_viewer)
+
+
+## The live view renders only while shown.
+func set_shown(on: bool) -> void:
+	visible = on
+	shown = on
+	update_feed()
+
+
+func refresh_app() -> void:
+	refresh()
+
+
+func process_app() -> void:
+	update_feed()
+
+
+## The live view at FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop.
+func set_compact(compact: bool) -> void:
+	var feed_size := FEED_SHOWN_COMPACT if compact else FEED_SHOWN
+	feed_frame.custom_minimum_size = feed_size
+	feed_rect.custom_minimum_size = feed_size
 
 
 func bind(p_computer: Computer, p_viewer: Node) -> void:
@@ -193,12 +219,6 @@ func action_labels() -> Array[String]:
 ## The trouble lines shown, newest first (at the last refresh).
 func trouble_lines() -> PackedStringArray:
 	return _trouble
-
-
-## Shows the live view at `shown` size (FEED_SHOWN, or FEED_SHOWN_COMPACT in a remote desktop).
-func set_view_size(shown: Vector2) -> void:
-	feed_frame.custom_minimum_size = shown
-	feed_rect.custom_minimum_size = shown
 
 
 ## Sends `command` to `target` and says what happened.

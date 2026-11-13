@@ -71,7 +71,7 @@ func test_keypad_opens_with_its_code_typed_on_the_screen() -> void:
 	assert_bool(_screen.is_open()).is_true()
 	# The world keeps running (ADR 0110): the player's input is off instead.
 	assert_bool(get_tree().paused).is_false()
-	assert_bool(_player.input_enabled).is_false()
+	assert_bool(_player.accepts_input()).is_false()
 	assert_bool(_screen.reminder_label.visible).is_false()
 	await _type([KEY_1, KEY_1, KEY_1, KEY_1, KEY_ENTER])
 	assert_bool(_screen.is_open()).is_true()
@@ -81,7 +81,7 @@ func test_keypad_opens_with_its_code_typed_on_the_screen() -> void:
 	await _type([KEY_2, KEY_8, KEY_KP_1, KEY_7, KEY_ENTER])
 
 	assert_bool(_screen.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 	assert_bool(_door.is_locked()).is_false()
 	await _driver.frames(45)
 	assert_bool(_door.is_open()).is_true()

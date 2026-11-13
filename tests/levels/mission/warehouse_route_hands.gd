@@ -353,7 +353,7 @@ func run_computer(path: String, commands: Array) -> bool:
 	if not ok:
 		route.notes.append("login refused at %s" % path)
 	else:
-		screen.show_app(ComputerScreen.App.SECURITY)
+		screen.show_app(Computer.SECURITY)
 	for entry: Array in commands:
 		var device := Device.of(route.level.get_node(String(entry[1])))
 		if ok and device != null:

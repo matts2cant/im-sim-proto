@@ -23,7 +23,7 @@ func test_the_deck_frame_keeps_its_corners_and_insets() -> void:
 	screen.set_process(false)
 	screen.set_physics_process(false)
 	screen.visible = true
-	screen.show_tool(DeckScreen.Tool.ICEBREAKER)
+	screen.show_tool(DeckScreen.ICEBREAKER)
 	screen.ice_view.visible = true
 	screen.ice_view.column.add_child(DeckStyle.label("Icebreaker", DeckStyle.TITLE_COLOR, 20))
 	for window in WINDOWS:

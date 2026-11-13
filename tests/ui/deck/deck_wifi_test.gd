@@ -8,6 +8,7 @@ extends GdUnitTestSuite
 ## crack pauses on the screen when a wall cuts the line of sight; cracked, the deck joins the
 ## security subnet and the Map shows it from there.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -112,7 +113,7 @@ func test_aiming_the_deck_at_an_access_point_cracks_its_key_and_joins_its_subnet
 	await driver.hold(&"fire", 2)
 	await driver.frames(1)
 	assert_bool(screen.is_open()).is_true()
-	assert_int(screen.tool).is_equal(DeckScreen.Tool.WIFI)
+	assert_str(String(screen.tool)).is_equal(String(DeckScreen.WIFI))
 	assert_object(wireless.target).is_same(lab.device("ApYard"))
 	assert_str(screen.title_meta.text).is_equal("Aimed at AP-YARD · access point · 6.1 m")
 	# The Map stays open to the user unplugged (it says to plug the deck in).
@@ -121,7 +122,7 @@ func test_aiming_the_deck_at_an_access_point_cracks_its_key_and_joins_its_subnet
 	var texts := screen.wifi_view.texts()
 	assert_array(texts).contains(["Wi-Fi key · AP-YARD", "Crack the key", "clear"])
 	assert_array(texts).contains(["key strength Weak · your range 8 m (Computer skill: Untrained)"])
-	screen.find_button("Crack the key").pressed.emit()
+	DeckUi.find_button(screen, "Crack the key").pressed.emit()
 	await driver.frames(60)
 	assert_bool(wireless.is_running()).is_true()
 	assert_float(wireless.job.progress).is_between(0.05, 0.15)
@@ -149,14 +150,14 @@ func test_aiming_the_deck_at_an_access_point_cracks_its_key_and_joins_its_subnet
 	assert_array(screen.wifi_view.texts()).contains(
 		["Key cracked: joined the SECURITY subnet over Wi-Fi (10.0.20.90) while in range", "Map"]
 	)
-	screen.find_button("Map").pressed.emit()
+	DeckUi.find_button(screen, "Map").pressed.emit()
 	await driver.frames(20)
 	screen.refresh()
-	assert_int(screen.tool).is_equal(DeckScreen.Tool.MAP)
+	assert_str(String(screen.tool)).is_equal(String(DeckScreen.MAP))
 	assert_str(screen.title_meta.text).is_equal("Joined AP-YARD (Wi-Fi) · 10.0.20.90")
 	assert_array(screen.graph.node_names()).contains(["AP-YARD", "CAM-YARD", "LASER-ROOF"])
 	assert_str(screen.graph.node_button("AP-YARD").text).is_equal("AP-YARD · access point")
 	assert_int(screen.graph.wireless.size()).is_equal(2)
 	screen.graph.select("CAM-YARD")
-	assert_array(screen.menu_texts()).contains(["wireless via AP-YARD"])
+	assert_array(DeckUi.menu_texts(screen)).contains(["wireless via AP-YARD"])
 	session.unplug()

@@ -77,7 +77,7 @@ func _pose() -> void:
 			if _shot == "console_remote":
 				_deck_stand_in()
 				computer.open_desktop(_player, "jmercer", true)
-				ComputerScreen.of(_player).show_app(ComputerScreen.App.SECURITY)
+				ComputerScreen.of(_player).show_app(Computer.SECURITY)
 				ComputerScreen.of(_player).security_app.select("Camera")
 				return
 			computer.use_by(_player)
@@ -92,16 +92,16 @@ func _console_session(screen: ComputerScreen) -> void:
 	screen.submit_login()
 	match _shot:
 		"console_camera":
-			screen.show_app(ComputerScreen.App.SECURITY)
+			screen.show_app(Computer.SECURITY)
 			screen.security_app.select("Camera")
 		"console_mail":
-			screen.show_app(ComputerScreen.App.MAIL)
+			screen.show_app(Computer.MAIL)
 		"console_files":
-			screen.show_app(ComputerScreen.App.FILES)
+			screen.show_app(Computer.FILES)
 		"console_cut":
 			(_show.get_node("Switch/Powered") as Powered).on = false
 			await get_tree().physics_frame
-			screen.show_app(ComputerScreen.App.SECURITY)
+			screen.show_app(Computer.SECURITY)
 			screen.security_app.select("Camera")
 
 

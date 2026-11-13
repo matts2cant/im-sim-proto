@@ -33,7 +33,7 @@ var player: Player
 var inventory: PlayerInventory
 var view: InventoryView
 var menu: PopupMenu
-var status_label: Label
+var status_label: TimedLabel
 ## The right column's content (rebuilt when the selection or its details change).
 var detail_box: VBoxContainer
 var use_button: Button = null
@@ -45,7 +45,6 @@ var keychain_list: KeychainList
 var _menu_stack: ItemStack = null
 var _belt_menu: PopupMenu
 var _signature: String = ""
-var _status_left: float = 0.0
 
 
 func _ready() -> void:
@@ -72,9 +71,7 @@ func bind(p_player: Node) -> void:
 
 ## Opens with the item in hand selected (else the first stack) when nothing is.
 func on_shown() -> void:
-	status_label.text = ""
-	status_label.visible = false
-	_status_left = 0.0
+	status_label.clear_text()
 	if inventory != null and selected_stack() == null:
 		var stack := inventory.in_hand()
 		if stack == null and not inventory.inventory.stacks.is_empty():
@@ -192,22 +189,14 @@ func choose(id: int) -> void:
 	refresh()
 
 
-func _process(delta: float) -> void:
-	if not is_visible_in_tree():
-		return
-	refresh()
-	if _status_left > 0.0:
-		_status_left = maxf(_status_left - delta, 0.0)
-		if _status_left == 0.0:
-			status_label.text = ""
-			status_label.visible = false
+func _process(_delta: float) -> void:
+	if is_visible_in_tree():
+		refresh()
 
 
 func _on_message(text: String) -> void:
 	if is_visible_in_tree():
-		status_label.text = text
-		status_label.visible = true
-		_status_left = STATUS_TIME
+		status_label.show_text(text, STATUS_TIME)
 
 
 func _slot_text(slot: int, stack: ItemStack) -> String:
@@ -335,7 +324,8 @@ func _build() -> void:
 	left_box.add_child(view)
 	left_box.add_child(TabStyle.caption("Credits"))
 	left_box.add_child(TabStyle.future(CREDITS))
-	status_label = TabStyle.label("", 13, TabStyle.AMBER)
+	status_label = TimedLabel.new()
+	TabStyle.style_label(status_label, 13, TabStyle.AMBER)
 	status_label.name = "Status"
 	status_label.visible = false
 	left_box.add_child(status_label)

@@ -1,9 +1,10 @@
 class_name LockpickScreen
-extends CanvasLayer
+extends UserScreen
 ## The lockpicking minigame (ADR 0073, 0107, 0109), child of its user (the Player). A MechanicalLock
-## opens it when the user works the lock with a lockpick (LMB with the pick selected). The game keeps
-## running (it is not a pause screen): while it is open the player's input is off (no walking, no
-## looking), the mouse stays captured and the camera turns to face the lock.
+## opens it through the user's Screens (MechanicalLock.SCREEN) when the user works the lock with a
+## lockpick (LMB with the pick selected). The game keeps
+## running (it is not a pause screen): while it is open it holds the user's OverlayFocus (input off:
+## no walking, no looking; the mouse captured) and the camera turns to face the lock.
 ## A thin adapter over PinTumbler (built by the lock with the picker's LockpickParams): the mouse
 ## wheel turns the wrench (`lockpick_tension_up` / `_down`, 3 % a notch, 1 % with `lockpick_fine`; it
 ## holds where left), relative mouse motion moves the pick's aim (Y: lift, X: along the keyway), A / D
@@ -58,8 +59,6 @@ var caption_label: Label
 var tag_label: Label
 var hint_label: Label
 
-var _input_before: bool = true
-var _mouse_before: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _close_left: float = -1.0
 var _body: BodyParts = null
 var _center: CenterContainer
@@ -93,8 +92,26 @@ static func of(node: Node) -> LockpickScreen:
 	return null
 
 
-func is_open() -> bool:
+func screen_id() -> StringName:
+	return MechanicalLock.SCREEN
+
+
+## `subject`: the MechanicalLock picked.
+func open_screen(subject: Object, p_user: Node, _options: Dictionary) -> bool:
+	var picked := subject as MechanicalLock
+	if picked == null or visible:
+		return false
+	open_for(picked, p_user)
 	return visible
+
+
+## Leaves (all progress lost), like E or Esc.
+func close_screen() -> void:
+	leave(&"left")
+
+
+func shows(subject: Object) -> bool:
+	return visible and subject == lock
 
 
 func shows_gauge() -> bool:
@@ -132,12 +149,9 @@ func open_for(p_lock: MechanicalLock, p_user: Node) -> void:
 	if _body != null:
 		_body.damaged.connect(_on_damaged)
 	visible = true
+	OverlayFocus.acquire(self, user, Input.MOUSE_MODE_CAPTURED)
 	if player != null:
-		_input_before = player.input_enabled
-		player.input_enabled = false
 		player.face_towards(lock.noise_origin(), tuning.face_time)
-	_mouse_before = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	lock.pick_started(user)
 	refresh()
 
@@ -165,10 +179,7 @@ func close(reason: StringName = &"left") -> void:
 	_body = null
 	lock = null
 	model = null
-	if player != null:
-		player.input_enabled = _input_before
-		player.resync_actions()
-	Input.mouse_mode = _mouse_before
+	OverlayFocus.release(self)
 	closed.emit(reason)
 
 
@@ -300,9 +311,7 @@ func _pick_broke() -> void:
 		return
 	if player.inventory.use_up_tool(lock.data.tool) > 0:
 		return
-	var hud := player.get_node_or_null(^"Hud") as Hud
-	if hud != null:
-		hud.show_message(OUT_OF_PICKS)
+	Notices.send(user, OUT_OF_PICKS)
 	leave(&"no_picks")
 
 

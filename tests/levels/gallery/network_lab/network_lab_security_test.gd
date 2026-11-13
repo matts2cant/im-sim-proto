@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## RTR-02's login, and the file server
 ## behind RTR-02 appears, is cracked and opens remotely on its one file.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const Helpers := preload("res://tests/levels/gallery/network_lab/network_lab_helpers.gd")
 
 var _lab: Helpers
@@ -46,7 +47,7 @@ func _console_desktop() -> ComputerScreen:
 	var screen := ComputerScreen.of(_lab.player)
 	screen.fill_in(0)
 	screen.login_button.pressed.emit()
-	screen.show_app(ComputerScreen.App.SECURITY)
+	screen.show_app(Computer.SECURITY)
 	return screen
 
 
@@ -152,15 +153,19 @@ func test_cracking_rtr01_then_logging_in_on_rtr02_reveals_the_file_server() -> v
 	_press(screen, "Open its desktop (remote)")
 	var desktop := ComputerScreen.of(_lab.player)
 	assert_bool(desktop.is_remote()).is_true()
-	desktop.dock_buttons[ComputerScreen.App.FILES].pressed.emit()
+	desktop.dock_button(Computer.FILES).pressed.emit()
 	assert_array(desktop.files_app.titles()).contains_exactly(["well_done.txt"])
 
 
 # Presses the deck screen's open menu button `text`, else any button `text` on it.
 func _press(screen: DeckScreen, text: String) -> void:
-	var button := screen.menu_button(text)
+	var button := DeckUi.menu_button(screen, text)
 	if button == null:
-		button = screen.find_button(text)
-	assert_object(button).override_failure_message("no button '%s' in %s" % [text, screen.menu_texts()]).is_not_null()
+		button = DeckUi.find_button(screen, text)
+	(
+		assert_object(button)
+		. override_failure_message("no button '%s' in %s" % [text, DeckUi.menu_texts(screen)])
+		. is_not_null()
+	)
 	if button != null:
 		button.pressed.emit()

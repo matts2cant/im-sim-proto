@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## button shows an empty Map with one line (DeckScreen.UNPLUGGED_NOTE). Every box shows the icon
 ## of its kind (DeviceKinds, ADR 0121), in the kind's colour with its strip (ADR 0130).
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
@@ -68,7 +69,7 @@ func test_plugged_into_the_second_network_the_map_draws_only_it() -> void:
 	assert_str(_screen.title_meta.text).is_equal("Plugged into ANNEX-JACK (wall jack) · 10.0.50.40")
 	assert_array(_screen.graph.node_names()).contains_exactly_in_any_order(ANNEX)
 	assert_bool(_screen.unplugged_label.visible).is_false()
-	var rows := _screen.map_rows()
+	var rows := DeckUi.map_rows(_screen)
 	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	assert_int(result["crossings"]).is_equal(0)
 
@@ -80,11 +81,11 @@ func test_unplugged_the_map_draws_nothing_and_says_so() -> void:
 	assert_bool(_screen.is_open()).is_false()
 	# Raised unplugged on the Wi-Fi key screen; its Map button opens the Map.
 	_screen.open_wifi(_session)
-	assert_int(_screen.tool).is_equal(DeckScreen.Tool.WIFI)
+	assert_str(String(_screen.tool)).is_equal(String(DeckScreen.WIFI))
 	assert_bool(_screen.map_button.disabled).is_false()
 	assert_bool(_screen.firewall_button.disabled).is_true()
 	_screen.map_button.pressed.emit()
-	assert_int(_screen.tool).is_equal(DeckScreen.Tool.MAP)
+	assert_str(String(_screen.tool)).is_equal(String(DeckScreen.MAP))
 	assert_array(_screen.graph.node_names()).is_empty()
 	assert_bool(_screen.unplugged_label.is_visible_in_tree()).is_true()
 	assert_str(_screen.unplugged_label.text).is_equal("Plug the deck into a device to see its network.")
@@ -102,7 +103,7 @@ func test_every_box_shows_the_icon_of_its_kind() -> void:
 	_screen.refresh()
 	var kinds := DeviceKinds.shipped()
 	var with_icon: Array[String] = []
-	for row in _screen.map_rows():
+	for row in DeckUi.map_rows(_screen):
 		var button := _screen.graph.node_button(row.name)
 		assert_object(button).override_failure_message(row.name).is_not_null()
 		var icon := button.get_node_or_null(^"Icon") as DeviceIcon

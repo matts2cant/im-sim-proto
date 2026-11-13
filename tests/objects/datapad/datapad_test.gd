@@ -46,7 +46,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 
 	assert_bool(_overlay.is_open()).is_true()
 	assert_bool(get_tree().paused).is_false()
-	assert_bool(_player.input_enabled).is_false()
+	assert_bool(_player.accepts_input()).is_false()
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_str(_overlay.title_label.text).is_equal("Storage access")
 	assert_str(_overlay.text_label.text).is_equal("Code 2817.")
@@ -62,7 +62,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 
 	await _driver.press(&"use")
 	assert_bool(_overlay.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 	# The HUD says it was added.
 	var hud := _player.get_node("Hud") as Hud
 	assert_str(hud.message_label.text).is_equal("Added to log: Storage access")
@@ -154,7 +154,7 @@ func test_the_overlay_closes_when_the_player_is_knocked_out() -> void:
 	await _driver.frames(2)
 
 	assert_bool(_overlay.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 
 
 func _load() -> void:

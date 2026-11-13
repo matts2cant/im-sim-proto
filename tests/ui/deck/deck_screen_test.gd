@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## it; LMB on an autonomous device plugs into its maintenance port. The Map's subnet boxes (ADR 0112
 ## amendment) appear with their subnets, router by router, titled and coloured from their data.
 
+const DeckUi := preload("res://tests/ui/deck/deck_ui.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Lab := preload("res://tests/ui/deck/fixtures/deck_lab.gd")
@@ -60,7 +61,7 @@ func test_lmb_on_a_jack_plugs_the_deck_in_and_esc_lowers_it() -> void:
 	assert_object(_session.port).is_same(_lab.device("Jack"))
 	assert_str(_session.source.address).is_equal("10.0.10.40")
 	assert_bool(_screen.is_open()).is_true()
-	assert_bool(_player.input_enabled).is_false()
+	assert_bool(_player.accepts_input()).is_false()
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_bool((_player.get_node("Hud") as CanvasLayer).visible).is_false()
 	assert_str(_screen.title_meta.text).is_equal("Plugged into OFFICE-JACK (wall jack) · 10.0.10.40")
@@ -69,7 +70,7 @@ func test_lmb_on_a_jack_plugs_the_deck_in_and_esc_lowers_it() -> void:
 	_screen.refresh()
 	assert_bool(get_tree().paused).is_false()
 	assert_array(_screen.graph.node_names()).contains(["OFFICE-JACK", "SW-OFFICE", "OFFICE-PC", "RTR-01"])
-	assert_array(_screen.trace_texts()).has_size(1)
+	assert_array(DeckUi.trace_texts(_screen)).has_size(1)
 	# The Map's panel in the game's 1152 x 648 window (the size the map readability checks fit in):
 	# headless runs use a taller window; the panel is the window's 85 % less a fixed frame.
 	var window := get_viewport().get_visible_rect().size
@@ -79,12 +80,12 @@ func test_lmb_on_a_jack_plugs_the_deck_in_and_esc_lowers_it() -> void:
 	assert_vector(shown).override_failure_message("map panel %s" % shown).is_equal_approx(
 		MapChecks.DECK_MAP_SIZE, Vector2(1, 1)
 	)
-	assert_str(_screen.trace_texts()[0]).starts_with("Sentry tracer")
+	assert_str(DeckUi.trace_texts(_screen)[0]).starts_with("Sentry tracer")
 	# Esc lowers it: input back, the game menu stays shut, the deck stays plugged in.
 	_runner.simulate_action_pressed(&"ui_cancel")
 	await _driver.frames(2)
 	assert_bool(_screen.is_open()).is_false()
-	assert_bool(_player.input_enabled).is_true()
+	assert_bool(_player.accepts_input()).is_true()
 	assert_bool((_player.get_node("GameMenu") as GameMenu).is_open()).is_false()
 	assert_bool(_session.is_plugged()).is_true()
 	# LMB on the jack again raises it.
