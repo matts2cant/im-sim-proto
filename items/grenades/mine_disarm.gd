@@ -60,7 +60,7 @@ func use(user: Node) -> bool:
 			Notices.send(user, PlayerInventory.NO_ROOM)
 		return false
 	var data := {"object": String(entity.name), "by": String(user.name), "item": String(item.id)}
-	EventLog.record(&"mine.disarmed", String(user.name), String(entity.name), data)
+	EventLog.record(EventKinds.MINE_DISARMED, String(user.name), String(entity.name), data)
 	used.emit(user)
 	entity.queue_free()
 	return true
@@ -82,7 +82,7 @@ func refusal_reason(user: Node) -> String:
 
 func _fail(entity: Node3D, user: Node, reason: String) -> void:
 	var data := {"object": String(entity.name), "by": String(user.name), "reason": reason}
-	EventLog.record(&"mine.disarm_failed", String(user.name), String(entity.name), data)
+	EventLog.record(EventKinds.MINE_DISARM_FAILED, String(user.name), String(entity.name), data)
 	if _audio.is_inside_tree():
 		_audio.play()
 	var fuse := Fuse.of(entity)

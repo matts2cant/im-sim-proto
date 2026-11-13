@@ -136,7 +136,7 @@ func _detected(sighting: PerceptionSensor.Sighting) -> void:
 	var camera_name := String(entity.name)
 	var target_name := String(sighting.target.name)
 	var data := {"camera": camera_name, "target": target_name, "point": point, "controllers": told}
-	EventLog.record(&"camera.detected", camera_name, target_name, data)
+	EventLog.record(EventKinds.CAMERA_DETECTED, camera_name, target_name, data)
 
 
 func _on_action(action: StringName, _stimulus: Stimulus) -> void:

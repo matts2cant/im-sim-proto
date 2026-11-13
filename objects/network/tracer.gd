@@ -179,7 +179,7 @@ func add(amount: float, by: Node, source: NetworkSource, event: StringName = &""
 	var filled := model.add(key, scaled, address)
 	if not event.is_empty():
 		var data := {"tracer": _name(), "by": key, "event": event, "amount": scaled, "trace": model.trace_of(key)}
-		EventLog.record(&"tracer.gain", _name(), key, data)
+		EventLog.record(EventKinds.TRACER_GAIN, _name(), key, data)
 	if filled:
 		_full(key, source)
 
@@ -199,7 +199,7 @@ func _full(key: String, source: NetworkSource) -> void:
 	var point := source.entry_point() if source != null else entity.global_position
 	var told := device.report_incident(point) if device != null else 0
 	var data := {"tracer": _name(), "by": key, "address": address, "point": point, "controllers": told}
-	EventLog.record(&"tracer.full", _name(), key, data)
+	EventLog.record(EventKinds.TRACER_FULL, _name(), key, data)
 	traced.emit(key, address)
 
 

@@ -108,7 +108,7 @@ func try_pick_up_body(body: PhysicsBody3D) -> bool:
 	var mass := Carryable.mass_of(body)
 	if not CarryRules.can_carry(mass, limit):
 		var data := {"object": String(body.name), "mass": mass, "limit": limit}
-		EventLog.record(&"player.pickup_refused", String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_PICKUP_REFUSED, String(player.name), String(body.name), data)
 		return false
 	pick_up(body)
 	return true
@@ -133,7 +133,7 @@ func pick_up(body: PhysicsBody3D) -> void:
 	var carryable := Carryable.of(body)
 	if carryable != null:
 		carryable.set_carrier(player)
-	EventLog.record(&"player.picked_up", String(player.name), String(body.name), {"object": String(body.name)})
+	EventLog.record(EventKinds.PLAYER_PICKED_UP, String(player.name), String(body.name), {"object": String(body.name)})
 	picked_up.emit(body)
 
 
@@ -164,7 +164,7 @@ func throw() -> bool:
 	if not _try_release(&"throw", direction * speed):
 		return false
 	var data := {"object": String(body.name), "speed": speed}
-	EventLog.record(&"player.threw", String(player.name), String(body.name), data)
+	EventLog.record(EventKinds.PLAYER_THREW, String(player.name), String(body.name), data)
 	return true
 
 
@@ -239,7 +239,7 @@ func _try_release(how: StringName, velocity: Vector3) -> bool:
 		_room = false
 		var body := held
 		var data := {"object": String(body.name), "how": how, "reason": &"no_room"}
-		EventLog.record(&"player.release_refused", String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_RELEASE_REFUSED, String(player.name), String(body.name), data)
 		release_refused.emit(body, how)
 		return false
 	_let_go(how, spot["transform"], velocity)
@@ -269,7 +269,7 @@ func _let_go(how: StringName, spot: Transform3D, velocity: Vector3) -> void:
 		carryable.set_carrier(null)
 	if how != &"throw":
 		var data := {"object": String(body.name), "how": how}
-		EventLog.record(&"player.dropped", String(player.name), String(body.name), data)
+		EventLog.record(EventKinds.PLAYER_DROPPED, String(player.name), String(body.name), data)
 	released.emit(body, how)
 
 

@@ -153,7 +153,7 @@ func close(by: Node = null) -> bool:
 	if broken or not _open:
 		return false
 	if _doorway_blocked():
-		_log(&"door.blocked", by)
+		_log(EventKinds.DOOR_BLOCKED, by)
 		return false
 	_set_open(false, by)
 	return true
@@ -191,7 +191,7 @@ func command(action: StringName, by: Node = null) -> bool:
 			return false
 	var who := String(by.name) if is_instance_valid(by) else ""
 	var data := {"door": String(entity.name), "command": action, "done": done}
-	EventLog.record(&"door.command", who, String(entity.name), data)
+	EventLog.record(EventKinds.DOOR_COMMAND, who, String(entity.name), data)
 	return done
 
 
@@ -248,14 +248,14 @@ func use_via(user: Node, locks: Array[Lock]) -> bool:
 	if opens_freely_for(user):
 		# The free side (an exit handle): an authorised open, it stays locked once closed.
 		open(user)
-		_log(&"door.opened_freely", user)
+		_log(EventKinds.DOOR_OPENED_FREELY, user)
 		used.emit(user)
 		return true
 	for each in locks:
 		if each.use_locked(user):
 			used.emit(user)
 			return true
-	_log(&"door.refused", user)
+	_log(EventKinds.DOOR_REFUSED, user)
 	return false
 
 
@@ -278,7 +278,7 @@ func _physics_process(delta: float) -> void:
 	if not _open and _doorway_blocked():
 		# Something walked into the closing door: it opens again.
 		_set_open(true, null)
-		_log(&"door.blocked", null)
+		_log(EventKinds.DOOR_BLOCKED, null)
 		target = 1.0
 	var step := delta / maxf(settings.open_time, 0.01)
 	openness = move_toward(openness, target, step)
@@ -287,7 +287,7 @@ func _physics_process(delta: float) -> void:
 
 func _set_open(value: bool, by: Node) -> void:
 	_open = value
-	_log(&"door.opened" if value else &"door.closed", by)
+	_log(EventKinds.DOOR_OPENED if value else EventKinds.DOOR_CLOSED, by)
 	if settings.slide_noise > 0.0 and is_inside_tree():
 		StimulusSystem.emit(Stimulus.make_noise(settings.slide_noise, entity.global_position + Vector3.UP, entity))
 	_update_link()

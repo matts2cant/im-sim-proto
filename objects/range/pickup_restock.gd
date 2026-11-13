@@ -30,7 +30,7 @@ func target_name() -> String:
 func use(user: Node) -> bool:
 	var count := restock()
 	var by := String(user.name) if user != null else ""
-	EventLog.record(&"range.restocked", by, "", {"by": by, "count": count})
+	EventLog.record(EventKinds.RANGE_RESTOCKED, by, "", {"by": by, "count": count})
 	used.emit(user)
 	return true
 

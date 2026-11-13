@@ -49,7 +49,9 @@ func dispatch(at: Vector3) -> void:
 	stimulus.about_point = at
 	broadcast_left = config.broadcast_shown
 	var station := String(entity.name)
-	EventLog.record(&"radio.dispatch", station, "", {"station": station, "point": at, "range": config.dispatch_range})
+	EventLog.record(
+		EventKinds.RADIO_DISPATCH, station, "", {"station": station, "point": at, "range": config.dispatch_range}
+	)
 	StimulusSystem.emit(stimulus)
 
 

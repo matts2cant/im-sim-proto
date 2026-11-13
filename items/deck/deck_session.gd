@@ -184,7 +184,7 @@ func plug(device: Device, deck_stack: ItemStack = null) -> bool:
 	unplug_reason = &""
 	source = NetworkSource.for_user(entity, device, _source_kind(kind))
 	var data := {"device": _name_of(device), "port": Device.DeckPort.keys()[kind], "address": source.address}
-	EventLog.record(&"deck.plugged", _who(), _name_of(device), data)
+	EventLog.record(EventKinds.DECK_PLUGGED, _who(), _name_of(device), data)
 	plugged_changed.emit(true)
 	refresh()
 	return true
@@ -198,7 +198,7 @@ func unplug(reason: StringName = &"unplugged") -> void:
 		return
 	var was := port
 	close_remote()
-	EventLog.record(&"deck.unplugged", _who(), _name_of(was), {"device": _name_of(was), "reason": reason})
+	EventLog.record(EventKinds.DECK_UNPLUGGED, _who(), _name_of(was), {"device": _name_of(was), "reason": reason})
 	unplug_reason = reason
 	plugged_changed.emit(false)
 	port = null
@@ -367,13 +367,13 @@ func commands_for(device: Device) -> Array[StringName]:
 func send(command: StringName, device: Device) -> bool:
 	var sent := device != null and is_online(device) and has_access(device) and device.accepts(command, entity)
 	var target := _name_of(device)
-	var data := {"command": command, "from": _name_of(port), "to": target, "sent": sent, "by": _who()}
+	var data := {"command": command, "from": _name_of(port), "to": target, "sent": sent, "by": entity}
 	if sent:
 		var stimulus := Device.command_stimulus(command, device, entity)
 		StimulusSystem.emit(stimulus)
 		data["stimulus"] = stimulus.id
 		device.intrusion.device_log.record(DeviceLog.REMOTE, source.address, _who(), String(command))
-	EventLog.record(&"device.command", _name_of(port), target, data)
+	EventLog.record(EventKinds.DEVICE_COMMAND, _name_of(port), target, data)
 	return sent
 
 
@@ -389,7 +389,7 @@ func open_remote(device: Device) -> bool:
 	device.intrusion.device_log.record(DeviceLog.LOGIN, source.address, user, "remote desktop")
 	remote = computer
 	computer.desktop_closed.connect(_on_desktop_closed, CONNECT_ONE_SHOT)
-	EventLog.record(&"deck.remote", _who(), _name_of(device), {"device": _name_of(device), "user": user})
+	EventLog.record(EventKinds.DECK_REMOTE, _who(), _name_of(device), {"device": _name_of(device), "user": user})
 	remote_changed.emit(remote)
 	computer.open_desktop(entity, user, true)
 	return true
@@ -456,7 +456,7 @@ func _join_wireless(access_point: Device, deck_stack: ItemStack) -> bool:
 	unplug_reason = &""
 	source = NetworkSource.wireless(entity, access_point)
 	var data := {"device": _name_of(access_point), "port": "WIRELESS", "address": source.address}
-	EventLog.record(&"deck.plugged", _who(), _name_of(access_point), data)
+	EventLog.record(EventKinds.DECK_PLUGGED, _who(), _name_of(access_point), data)
 	plugged_changed.emit(true)
 	refresh()
 	return true
@@ -480,7 +480,7 @@ func _step_scans(delta: float) -> bool:
 
 func _start_scan(subnet: StringName) -> void:
 	scans[subnet] = config.scan_time
-	EventLog.record(&"deck.scan", _who(), String(subnet), {"subnet": String(subnet)})
+	EventLog.record(EventKinds.DECK_SCAN, _who(), String(subnet), {"subnet": String(subnet)})
 	Tracer.report_subnet(get_tree(), subnet, entity, source)
 
 

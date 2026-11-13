@@ -43,7 +43,7 @@ func add(key_id: StringName, key_name: String, found: String = "") -> bool:
 	if id.is_empty() or _index_of(id) >= 0:
 		return false
 	_keys.append({"id": id, "name": key_name, "found": found})
-	EventLog.record(&"keychain.key_added", _who(), "", {"key": id, "name": key_name})
+	EventLog.record(EventKinds.KEYCHAIN_KEY_ADDED, _who(), "", {"key": id, "name": key_name})
 	key_added.emit(key_name)
 	changed.emit()
 	return true

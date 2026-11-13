@@ -92,7 +92,7 @@ func login_from(user: String, password: String, by: Node, source: NetworkSource)
 		"address": source.address if source != null else "",
 		"reason": reason
 	}
-	EventLog.record(&"network.login", NetworkSource.user_key(by), _name(), data)
+	EventLog.record(EventKinds.NETWORK_LOGIN, NetworkSource.user_key(by), _name(), data)
 	if own != null and (ok or reason == "wrong" or reason == "unknown"):
 		var kind := DeviceLog.LOGIN if ok else DeviceLog.FAILED_LOGIN
 		own.intrusion.device_log.record(kind, source.address if source != null else "", user)
@@ -153,7 +153,7 @@ func set_password(user: String, password: String) -> void:
 			names.remove_at(at)
 			_access[key] = names
 			access_changed.emit(key)
-	EventLog.record(&"network.password", "", _name(), {"device": _name(), "user": found.user})
+	EventLog.record(EventKinds.NETWORK_PASSWORD, "", _name(), {"device": _name(), "user": found.user})
 
 
 ## The Journal code id of this device's logins: `credentials_id`, else its Computer's, else the

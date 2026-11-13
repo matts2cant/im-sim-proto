@@ -118,14 +118,14 @@ func raise(at: Vector3, by: String = "", incident: bool = false, fault: bool = f
 	if device == null or not device.is_up():
 		return
 	if not armed:
-		EventLog.record(&"alarm.ignored", by, _name(), {"by": by, "point": at})
+		EventLog.record(EventKinds.ALARM_IGNORED, by, _name(), {"by": by, "point": at})
 		return
 	var again := timer.is_on()
 	timer.raise(config.duration)
 	point = at
 	ActorState.set_tag(entity, FAULT, fault)
 	var data := {"by": by, "point": at, "duration": config.duration, "again": again, "fault": fault}
-	EventLog.record(&"alarm.raised", by, _name(), data)
+	EventLog.record(EventKinds.ALARM_RAISED, by, _name(), data)
 	_ring_sirens()
 	if incident:
 		device.send_to_all(Device.BROADCAST, at)
@@ -146,7 +146,7 @@ func set_armed(value: bool) -> void:
 	if value == armed:
 		return
 	armed = value
-	EventLog.record(&"alarm.armed", "", _name(), {"armed": armed})
+	EventLog.record(EventKinds.ALARM_ARMED, "", _name(), {"armed": armed})
 	if not armed:
 		stop("disarmed")
 
@@ -178,7 +178,7 @@ func _ended(reason: String) -> void:
 	ActorState.set_tag(entity, FAULT, false)
 	if device != null:
 		device.send_to_all(Device.SILENCE)
-	EventLog.record(&"alarm.ended", "", _name(), {"reason": reason})
+	EventLog.record(EventKinds.ALARM_ENDED, "", _name(), {"reason": reason})
 	changed.emit(false)
 
 
@@ -203,7 +203,7 @@ func _supervise(delta: float) -> void:
 	for id in supervision.update(present, clock):
 		var dropped := instance_from_id(id) as Device
 		var shown := NetworkSource.display_name(dropped) if is_instance_valid(dropped) else ""
-		EventLog.record(&"alarm.trouble", shown, _name(), {"device": shown, "time": clock})
+		EventLog.record(EventKinds.ALARM_TROUBLE, shown, _name(), {"device": shown, "time": clock})
 	var burst := supervision.fault_due(clock)
 	if not burst.is_empty():
 		_raise_fault(graph, own, burst)
@@ -219,7 +219,7 @@ func _raise_fault(graph: DeviceGraph, own: int, burst: PackedInt64Array) -> void
 		at = cut_device.entity.global_position
 		where = NetworkSource.display_name(cut_device)
 	var data := {"at": where, "drops": burst.size(), "point": at}
-	EventLog.record(&"alarm.network_fault", FAULT_BY, _name(), data)
+	EventLog.record(EventKinds.ALARM_NETWORK_FAULT, FAULT_BY, _name(), data)
 	raise(at, FAULT_BY, true, true)
 
 

@@ -1,54 +1,60 @@
 class_name HitMarkerRules
 extends RefCounted
-## Pure (ADR 0126): which hit marker the crosshair shows for an EventLog entry, from the damage the
-## shooter's own stimuli did. A stimulus is the shooter's when its `stimulus.emitted` names a source
-## in `shooter_names` (the player's node name, like MissionTally's attribution); a character's
-## damage, stun, knockout or death caused (`by`) by one of them gives a marker, except on the
-## shooter itself. A guard's hit, a fire's pulse or a barrel's blast is not the shooter's.
+## Pure (ADR 0126, ADR 0136): which hit marker the crosshair shows for an EventLog entry, from the
+## damage the shooter's own stimuli did. The shooter is the character the HUD belongs to (watch()),
+## held as an entity reference, never by name. A stimulus is the shooter's when its
+## `stimulus.emitted` entry's source entity is the shooter; a character's damage, stun, knockout or
+## death caused (`by`) by one of them gives a marker, except on the shooter itself. A guard's hit, a
+## fire's pulse or a barrel's blast is not the shooter's.
 ## Kinds by priority: KILL > KNOCKOUT > HEAD > STUN > BODY (stronger() keeps the stronger one when
-## several land on one shot: shotgun pellets).
+## several land on one shot: shotgun pellets). Entries: EventKinds (the keys each one carries).
 
 enum Kind { NONE, BODY, STUN, HEAD, KNOCKOUT, KILL }
 
-const EMITTED: StringName = &"stimulus.emitted"
-const DAMAGED: StringName = &"actor.damaged"
-const STUNNED: StringName = &"actor.stunned"
-const KNOCKED_OUT: StringName = &"actor.knocked_out"
-const DIED: StringName = &"actor.died"
 const HEAD_PART: StringName = &"head"
 ## Only damage stimuli can hit (`damage.ballistic`, `damage.stun`, ...).
 const DAMAGE_PREFIX: String = "damage."
 ## Stimulus ids remembered (the latest); older ones are forgotten.
 const MEMORY: int = 64
 
-var shooter_names: Array[String] = []
-
+## Instance id of the watched shooter (0: none).
+var _shooter_id: int = 0
 var _ids: Array[int] = []
 
 
-func _init(p_shooter_names: Array[String] = []) -> void:
-	shooter_names = p_shooter_names
+func _init(shooter: Node = null) -> void:
+	watch(shooter)
+
+
+## Shows the hits of `shooter` from now on (null: nobody's).
+func watch(shooter: Node) -> void:
+	_shooter_id = shooter.get_instance_id() if is_instance_valid(shooter) else 0
+
+
+## True when `entity` is the watched shooter.
+func is_shooter(entity: Node) -> bool:
+	return _shooter_id != 0 and entity != null and entity.get_instance_id() == _shooter_id
 
 
 ## The marker `entry` asks for, NONE when it is not a hit by the shooter. Remembers the shooter's
 ## stimuli as they are emitted.
 func observe(entry: EventLogEntry) -> Kind:
 	var data := entry.data
-	if entry.kind == EMITTED:
+	if entry.kind == EventKinds.STIMULUS_EMITTED:
 		var damage := str(data.get("type", "")).begins_with(DAMAGE_PREFIX)
-		if damage and shooter_names.has(str(data.get("source", entry.source))):
+		if damage and is_shooter(entry.source_entity()):
 			_remember(int(data.get("id", 0)))
 		return Kind.NONE
 	var kind := Kind.NONE
 	match entry.kind:
-		DAMAGED:
+		EventKinds.ACTOR_DAMAGED:
 			if float(data.get("amount", 0.0)) > 0.0:
 				kind = Kind.HEAD if StringName(str(data.get("part", ""))) == HEAD_PART else Kind.BODY
-		STUNNED:
+		EventKinds.ACTOR_STUNNED:
 			kind = Kind.STUN
-		KNOCKED_OUT:
+		EventKinds.ACTOR_KNOCKED_OUT:
 			kind = Kind.KNOCKOUT
-		DIED:
+		EventKinds.ACTOR_DIED:
 			kind = Kind.KILL
 	return kind if kind != Kind.NONE and _is_hit(entry) else Kind.NONE
 
@@ -64,7 +70,7 @@ func clear() -> void:
 
 # Caused by one of the shooter's stimuli, on someone else.
 func _is_hit(entry: EventLogEntry) -> bool:
-	if shooter_names.has(entry.target):
+	if is_shooter(entry.target_entity()):
 		return false
 	var by: Variant = entry.data.get("by", 0)
 	return (by is int or by is float) and _ids.has(int(by))

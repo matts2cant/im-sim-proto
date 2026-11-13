@@ -47,7 +47,7 @@ func shout(why: String) -> void:
 		config.shout_type, config.shout_loudness, origin, config.shout_loudness, entity, Stimulus.Propagation.PATH
 	)
 	EventLog.record(
-		&"actor.shout", String(entity.name), "", {"actor": String(entity.name), "reason": why, "point": origin}
+		EventKinds.ACTOR_SHOUT, String(entity.name), "", {"actor": String(entity.name), "reason": why, "point": origin}
 	)
 	StimulusSystem.emit(stimulus)
 
@@ -55,7 +55,7 @@ func shout(why: String) -> void:
 func radio() -> void:
 	var origin := entity.global_position
 	var stimulus := Stimulus.make_radius(config.radio_type, config.radio_range, origin, config.radio_range, entity)
-	EventLog.record(&"actor.radio", String(entity.name), "", {"actor": String(entity.name), "point": origin})
+	EventLog.record(EventKinds.ACTOR_RADIO, String(entity.name), "", {"actor": String(entity.name), "point": origin})
 	StimulusSystem.emit(stimulus)
 
 

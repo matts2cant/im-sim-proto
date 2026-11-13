@@ -14,7 +14,7 @@ func apply(ctx: EffectContext) -> void:
 	if ActorState.has(ctx.entity, ActorState.UNCONSCIOUS):
 		ActorState.set_tag(ctx.entity, ActorState.UNCONSCIOUS, false)
 		var data := {"actor": String(ctx.entity.name), "by": by}
-		EventLog.record(&"actor.revived", by, String(ctx.entity.name), data)
+		EventLog.record(EventKinds.ACTOR_REVIVED, by, String(ctx.entity.name), data)
 
 
 func can_apply(ctx: EffectContext) -> bool:

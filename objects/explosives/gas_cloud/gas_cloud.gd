@@ -48,7 +48,7 @@ func _ready() -> void:
 	add_to_group(&"saveable")
 	_pulse_left = config.pulse_interval
 	_build_look()
-	EventLog.record(&"gas.released", String(name), "", {"cloud": String(name)})
+	EventLog.record(EventKinds.GAS_RELEASED, String(name), "", {"cloud": String(name)})
 
 
 ## True when `point` is within its radius (straight line; walls are the stimulus's business).
@@ -77,7 +77,7 @@ func _physics_process(delta: float) -> void:
 		_start()
 	age += delta
 	if age >= config.duration:
-		EventLog.record(&"gas.ended", String(name), "", {"cloud": String(name)})
+		EventLog.record(EventKinds.GAS_ENDED, String(name), "", {"cloud": String(name)})
 		queue_free()
 		return
 	_drift(delta)

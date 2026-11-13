@@ -83,11 +83,11 @@ func pick_up(pickup: ItemPickup) -> bool:
 	var item_name := String(pickup.item.id)
 	if left >= offered:
 		var refused := {"item": item_name, "count": offered, "reason": "no_room"}
-		EventLog.record(&"item.pickup_refused", _who(), String(pickup.entity().name), refused)
+		EventLog.record(EventKinds.ITEM_PICKUP_REFUSED, _who(), String(pickup.entity().name), refused)
 		_say(NO_ROOM)
 		return false
 	var data := {"item": item_name, "count": offered - left, "left": left}
-	EventLog.record(&"item.picked_up", _who(), String(pickup.entity().name), data)
+	EventLog.record(EventKinds.ITEM_PICKED_UP, player, String(pickup.entity().name), data)
 	if left > 0:
 		pickup.count = left
 		_say("%s (%d left behind)" % [NO_ROOM, left])
@@ -242,7 +242,7 @@ func drop_stack(stack: ItemStack, count: int = -1) -> RigidBody3D:
 	# Dropping the whole stack in hand puts it away (_on_stack_removed).
 	inventory.remove(stack, amount)
 	var data := {"item": String(stack.item.id), "count": amount}
-	EventLog.record(&"item.dropped", _who(), String(body.name), data)
+	EventLog.record(EventKinds.ITEM_DROPPED, _who(), String(body.name), data)
 	return body
 
 
@@ -292,7 +292,7 @@ func attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
 	inventory.remove(attachment, 1)
 	inventory.changed.emit()
 	var data := {"item": String(item.id), "weapon": String(weapon_stack.item.id)}
-	EventLog.record(&"item.attached", _who(), "", data)
+	EventLog.record(EventKinds.ITEM_ATTACHED, _who(), "", data)
 	_say("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
 	return true
 
@@ -339,7 +339,7 @@ func _consume(stack: ItemStack, target: Node = null) -> bool:
 		affects = affects or StimulusSystem.would_affect(stimulus)
 	if not affects:
 		var data := {"item": String(stack.item.id), "reason": "no_effect"}
-		EventLog.record(&"item.use_refused", _who(), "", data)
+		EventLog.record(EventKinds.ITEM_USE_REFUSED, _who(), "", data)
 		_say(stack.item.refused_message)
 		return false
 	for stimulus in stimuli:
@@ -392,7 +392,9 @@ func _take_key(pickup: ItemPickup) -> bool:
 	var entity_name := String(pickup.entity().name)
 	if keychain == null or not keychain.take(pickup):
 		return false
-	EventLog.record(&"item.picked_up", _who(), entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0})
+	EventLog.record(
+		EventKinds.ITEM_PICKED_UP, player, entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0}
+	)
 	_say(Keychain.ADDED % key_name)
 	return true
 
@@ -430,7 +432,7 @@ func _drop_point(forward: Vector3) -> Vector3:
 func _log_used(stack: ItemStack, action: String, extra: Dictionary = {}) -> void:
 	var data := {"item": String(stack.item.id), "action": action}
 	data.merge(extra)
-	EventLog.record(&"item.used", _who(), "", data)
+	EventLog.record(EventKinds.ITEM_USED, _who(), "", data)
 
 
 func _who() -> String:

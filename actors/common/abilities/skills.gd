@@ -57,7 +57,7 @@ func set_tier(skill: StringName, p_tier: int) -> void:
 	_tiers[skill] = clamped
 	_apply(skill)
 	var data := {"skill": String(skill), "tier": clamped, "name": table.tier_name(clamped)}
-	EventLog.record(&"skill.tier_changed", String(get_parent().name), "", data)
+	EventLog.record(EventKinds.SKILL_TIER_CHANGED, String(get_parent().name), "", data)
 	changed.emit(skill, clamped)
 
 

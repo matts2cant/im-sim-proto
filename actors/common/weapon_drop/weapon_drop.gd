@@ -96,7 +96,7 @@ func _drop(weapon_state: WeaponState, index: int) -> RigidBody3D:
 		"item": String(item.id),
 		"magazine": weapon_state.magazine,
 	}
-	EventLog.record(&"weapon.dropped", String(entity.name), String(body.name), data)
+	EventLog.record(EventKinds.WEAPON_DROPPED, String(entity.name), String(body.name), data)
 	return body
 
 
