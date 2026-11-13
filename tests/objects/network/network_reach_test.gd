@@ -93,13 +93,13 @@ func test_rules_come_first_and_the_first_match_wins() -> void:
 	var router := Router.of(_n["Rtr01"])
 	DeviceAccounts.of(_n["Rtr01"]).grant(_user, "admin")
 	router.rules = [
-		RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.DEVICE, "Console", false),
+		RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.DEVICE, "10.0.20.5", false),
 		RouterRule.make(RouterRule.Match.ANY, "", RouterRule.Match.SUBNET, "security", true),
 	]
 	# Hacked, but a rule denies "you" the console; the rest of the subnet is allowed.
 	assert_bool(_jack().reaches(get_tree(), _dev("Console"))).is_false()
 	assert_bool(_jack().reaches(get_tree(), _dev("Camera"))).is_true()
-	# A device rule matches by name or address.
+	# A device rule matches by address.
 	router.rules = [RouterRule.make(RouterRule.Match.DEVICE, "10.0.10.12", RouterRule.Match.ANY, "", false)]
 	assert_bool(_dev("OfficePc").reaches(_dev("Console"))).is_false()
 	assert_bool(_dev("OfficeSwitch").reaches(_dev("Console"))).is_true()

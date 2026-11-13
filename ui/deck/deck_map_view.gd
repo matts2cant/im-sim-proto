@@ -110,7 +110,7 @@ func map_rows() -> Array[NetworkRow]:
 		var row := NetworkRow.new()
 		row.scanning = pending.has(device)
 		row.device = device
-		row.name = NetworkSource.display_name(device)
+		row.name = EntityNames.device_name(device)
 		row.is_self = device == session.port
 		row.online = reached.has(device) or (row.is_self and device.is_up())
 		show_kind_and_light(row, kinds)

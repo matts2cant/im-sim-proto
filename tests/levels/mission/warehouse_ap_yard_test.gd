@@ -68,7 +68,7 @@ func test_ap_yard_links_the_yard_camera_and_roof_lasers_by_radio() -> void:
 	var radio := AccessPoint.of(_entity(AP))
 	assert_object(radio).is_not_null()
 	assert_str(String(DeviceNetwork.subnet_of(ap))).is_equal("security")
-	assert_str(NetworkSource.display_name(ap)).is_equal("AP-YARD")
+	assert_str(EntityNames.device_name(ap)).is_equal("AP-YARD")
 	assert_int(radio.key_strength).is_equal(DeviceAccount.Strength.WEAK)
 	assert_str(String(Powered.of(_entity(AP)).circuit)).is_equal("warehouse_yard")
 	# Cabled to the yard's switch, which no longer cables the yard camera; the roof's switch feeds only

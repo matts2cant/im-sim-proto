@@ -2,7 +2,8 @@ class_name RouterRule
 extends Resource
 ## One firewall rule of a Router (ADR 0074, 0113): traffic from `from` to `to` is allowed or denied.
 ## A router's rules are an ordered list; the first that matches wins. From: any, a subnet, a device
-## (its entity's node name or its address) or "you" (traffic a user sends: the deck). To: any, a
+## (its address, Device.address: never a node name, ADR 0140; a device without an address cannot be
+## named) or "you" (traffic a user sends: the deck). To: any, a
 ## subnet or a device (the traffic's final destination). A user's traffic is judged by the rules
 ## that name "you" only, a device's by the others (Router.passes()). The deck's Firewall tool edits
 ## them (M12b, ADR 0116).
@@ -78,6 +79,4 @@ func _to_matches(destination: Device) -> bool:
 static func _names(device: Device, value: String) -> bool:
 	if device == null or not is_instance_valid(device) or value.is_empty():
 		return false
-	if device.address == value:
-		return true
-	return is_instance_valid(device.entity) and String(device.entity.name) == value
+	return device.address == value

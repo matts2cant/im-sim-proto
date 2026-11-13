@@ -54,7 +54,9 @@ static func for_user(p_user: Node, p_device: Device, p_kind: Kind) -> NetworkSou
 	source.kind = p_kind
 	source.user = p_user
 	if p_kind == Kind.PORT and p_device != null:
-		source.address = "port:" + (p_device.address if not p_device.address.is_empty() else display_name(p_device))
+		source.address = (
+			"port:" + (p_device.address if not p_device.address.is_empty() else EntityNames.device_name(p_device))
+		)
 	return source
 
 
@@ -75,23 +77,6 @@ static func kind_label(p_kind: Kind) -> String:
 ## The kind's name in logs ("JACK", "PORT").
 static func kind_name(p_kind: Kind) -> String:
 	return Kind.keys()[p_kind]
-
-
-## The key a user is known by (accounts, traces): its node name.
-static func user_key(p_user: Node) -> String:
-	return String(p_user.name) if p_user != null and is_instance_valid(p_user) else ""
-
-
-## How screens name a device: its entity's `display_name` metadata ("RTR-01"), else its node name in
-## words ("OfficePc2" -> "Office Pc 2").
-static func display_name(p_device: Device) -> String:
-	if p_device == null or not is_instance_valid(p_device):
-		return ""
-	if not is_instance_valid(p_device.entity):
-		return String(p_device.name)
-	if p_device.entity.has_meta(&"display_name"):
-		return str(p_device.entity.get_meta(&"display_name"))
-	return String(p_device.entity.name).capitalize()
 
 
 ## A user's traffic ("you" in a router rule).

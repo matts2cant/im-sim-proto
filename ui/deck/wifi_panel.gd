@@ -67,7 +67,7 @@ static func title_text(p_wireless: WirelessTool) -> String:
 	if p_wireless == null or not is_instance_valid(p_wireless.target):
 		return "Wi-Fi"
 	var distance := _number(p_wireless.distance_to(p_wireless.target))
-	return "Aimed at %s · access point · %s m" % [NetworkSource.display_name(p_wireless.target), distance]
+	return "Aimed at %s · access point · %s m" % [EntityNames.device_name(p_wireless.target), distance]
 
 
 ## The address a crack of the aimed access point counts as (the deck's would-be Wi-Fi address).
@@ -180,7 +180,7 @@ func _fill(into: VBoxContainer, tier: String) -> void:
 		into.add_child(DeckStyle.paragraph(hint, DeckStyle.DIM_COLOR, 14, TEXT_WIDTH))
 		return
 	var reach := wireless.wireless_range()
-	into.add_child(DeckStyle.label("Wi-Fi key · %s" % NetworkSource.display_name(target), DeckStyle.TITLE_COLOR, 20))
+	into.add_child(DeckStyle.label("Wi-Fi key · %s" % EntityNames.device_name(target), DeckStyle.TITLE_COLOR, 20))
 	var skill := " (Computer skill: %s)" % tier if not tier.is_empty() else ""
 	var strength := DeviceAccount.strength_name(radio.key_strength)
 	var facts := "key strength %s · your range %d m%s" % [strength, roundi(reach), skill]
@@ -203,7 +203,7 @@ func _fill(into: VBoxContainer, tier: String) -> void:
 func _fill_known(actions: HFlowContainer, target: Device) -> void:
 	var session := wireless.session
 	var joined := session.is_wireless() and session.port == target
-	var text := "Key cracked: aim the deck at %s within range to join its subnet" % NetworkSource.display_name(target)
+	var text := "Key cracked: aim the deck at %s within range to join its subnet" % EntityNames.device_name(target)
 	if joined:
 		text = (
 			"Key cracked: joined the %s subnet over Wi-Fi (%s) while in range"

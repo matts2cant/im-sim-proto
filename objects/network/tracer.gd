@@ -15,9 +15,11 @@ extends Node
 ## Callers use the static helpers (report(), report_running(), report_subnet(), blocks()); screens
 ## show one bar per tracer watching the user (bars_for()).
 ## EventLog: `tracer.gain {tracer, by, event, amount, trace}` for one-off gains (not per frame),
-## `tracer.full {tracer, by, address, point, controllers}`. Saveable (traces, lockouts, running).
+## `tracer.full {tracer, by, address, point, controllers}` (`by`: the user's log name). Traces are
+## keyed by the user's NetworkIdentity (ADR 0140). Saveable (traces, lockouts, running).
 
-## `by_key`'s trace filled: incident sent, address blocked.
+## The trace of the user keyed `by_key` (NetworkIdentity.key_of()) filled: incident sent, address
+## blocked.
 signal traced(by_key: String, address: String)
 
 const GROUP: StringName = &"tracer"
@@ -132,7 +134,7 @@ static func highest_gain(target: Device) -> float:
 ## (what `by` can see), or blocking `address`; in tree order.
 static func bars_for(tree: SceneTree, by: Node, devices: Array[Device], address: String = "") -> Array[Tracer]:
 	var found: Array[Tracer] = []
-	var key := NetworkSource.user_key(by)
+	var key := NetworkIdentity.key_of(by)
 	for tracer in Tracer.all(tree):
 		if tracer.model.trace_of(key) > 0.0 or tracer.model.is_locked(address):
 			found.append(tracer)
@@ -173,46 +175,48 @@ func amount_for(event: StringName) -> float:
 ## Adds `amount` % (times `by`'s trace gain) for `by`; a full trace reports and blocks.
 ## `event`: logged when not empty (one-off gains).
 func add(amount: float, by: Node, source: NetworkSource, event: StringName = &"") -> void:
-	var key := NetworkSource.user_key(by)
+	var key := NetworkIdentity.ensure(by)
 	var scaled := amount * Attributes.read(by, TRACE_GAIN_ATTRIBUTE, 1.0)
 	var address := source.address if source != null else ""
 	var filled := model.add(key, scaled, address)
+	var own_name := EntityNames.log_name(entity, self)
+	var by_name := EntityNames.log_name(by)
 	if not event.is_empty():
-		var data := {"tracer": _name(), "by": key, "event": event, "amount": scaled, "trace": model.trace_of(key)}
-		EventLog.record(EventKinds.TRACER_GAIN, _name(), key, data)
+		var data := {"tracer": own_name, "by": by_name, "event": event, "amount": scaled, "trace": model.trace_of(key)}
+		EventLog.record(EventKinds.TRACER_GAIN, own_name, by_name, data)
 	if filled:
-		_full(key, source)
+		_full(key, by_name, source)
 
 
 ## `by`'s trace (%).
 func trace_of(by: Node) -> float:
-	return model.trace_of(NetworkSource.user_key(by))
+	return model.trace_of(NetworkIdentity.key_of(by))
 
 
 func is_blocked(address: String) -> bool:
 	return model.is_locked(address)
 
 
-func _full(key: String, source: NetworkSource) -> void:
+func _full(key: String, by_name: String, source: NetworkSource) -> void:
 	var address := source.address if source != null else ""
 	model.lock(address)
 	var point := source.entry_point() if source != null else entity.global_position
 	var told := device.report_incident(point) if device != null else 0
-	var data := {"tracer": _name(), "by": key, "address": address, "point": point, "controllers": told}
-	EventLog.record(EventKinds.TRACER_FULL, _name(), key, data)
+	var own_name := EntityNames.log_name(entity, self)
+	var data := {"tracer": own_name, "by": by_name, "address": address, "point": point, "controllers": told}
+	EventLog.record(EventKinds.TRACER_FULL, own_name, by_name, data)
 	traced.emit(key, address)
-
-
-func _name() -> String:
-	return String(entity.name) if entity != null and is_instance_valid(entity) else String(name)
 
 
 func save_state() -> Dictionary:
 	var data := model.to_dict()
 	data["running"] = running
+	data[NetworkIdentity.FORMAT_KEY] = NetworkIdentity.FORMAT
 	return data
 
 
 func load_state(data: Dictionary) -> void:
 	model.from_dict(data)
+	if str(data.get(NetworkIdentity.FORMAT_KEY, "")) != NetworkIdentity.FORMAT:
+		model.rekey(func(saved: String) -> String: return NetworkIdentity.migrate(self, saved))
 	running = bool(data.get("running", running))

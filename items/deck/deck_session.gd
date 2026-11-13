@@ -536,10 +536,8 @@ func _on_tool_worked(target: Node, tool: StringName) -> void:
 
 
 func _name_of(device: Device) -> String:
-	if device == null or not is_instance_valid(device):
-		return ""
-	return String(device.entity.name) if is_instance_valid(device.entity) else String(device.name)
+	return EntityNames.device_log_name(device)
 
 
 func _who() -> String:
-	return NetworkSource.user_key(entity)
+	return EntityNames.log_name(entity)

@@ -36,7 +36,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 			continue
 		var row := NetworkRow.new()
 		row.device = other
-		row.name = NetworkSource.display_name(other)
+		row.name = EntityNames.device_name(other)
 		row.is_self = id == own_id
 		row.online = row.is_self or reached.has(id)
 		row.show_words(DeviceStatus.words_of(other.entity, row.online))

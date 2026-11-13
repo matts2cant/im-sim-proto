@@ -100,7 +100,7 @@ func test_two_subnets_with_addresses_and_names_joined_by_rtr01() -> void:
 	assert_object(router).is_not_null()
 	assert_array(router.subnets()).contains_exactly_in_any_order([&"office", &"security"])
 	assert_str(Device.of(_router()).address).is_equal("10.0.10.1")
-	assert_str(NetworkSource.display_name(Device.of(_router()))).is_equal("RTR-01")
+	assert_str(EntityNames.device_name(Device.of(_router()))).is_equal("RTR-01")
 	# The office jack is a real wall jack: the deck plugs in there.
 	var jack := _device("Network/OfficeWallJack")
 	assert_int(DeviceNetwork.port_kind(jack)).is_equal(NetworkSource.Kind.JACK)

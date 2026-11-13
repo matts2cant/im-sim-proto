@@ -17,8 +17,8 @@ var lock: Lock
 func target_name() -> String:
 	var device := Device.of(get_parent())
 	if device != null:
-		return NetworkSource.display_name(device)
-	return Interactor.display_name_of(door.entity) if door != null else ""
+		return EntityNames.device_name(device)
+	return EntityNames.display_name(door.entity) if door != null else ""
 
 
 func available(user: Node) -> bool:

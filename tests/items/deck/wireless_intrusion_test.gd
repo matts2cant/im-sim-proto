@@ -93,7 +93,7 @@ func test_a_firewall_rule_stops_a_wireless_cameras_incident_across_the_router() 
 	var router := Router.of(_n["Rtr01"])
 	var camera := _dev("CamYard")
 	router.add_rule(
-		RouterRule.make(RouterRule.Match.DEVICE, "10.0.20.22", RouterRule.Match.DEVICE, "OfficeAlarm", false)
+		RouterRule.make(RouterRule.Match.DEVICE, "10.0.20.22", RouterRule.Match.DEVICE, "10.0.10.41", false)
 	)
 	assert_bool(camera.reached(Device.INCIDENT).has(Device.of(office_alarm))).is_false()
 	camera.report_incident(camera.entity.global_position)
@@ -113,7 +113,7 @@ func test_a_rule_from_you_judges_a_wifi_deck_like_a_deck_on_a_jack() -> void:
 	assert_bool(jack.reaches(get_tree(), _dev("CamYard"))).is_true()
 	var router := Router.of(_n["Rtr01"])
 	router.add_rule(RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.SUBNET, "office", false))
-	router.add_rule(RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.DEVICE, "CamYard", false))
+	router.add_rule(RouterRule.make(RouterRule.Match.YOU, "", RouterRule.Match.DEVICE, "10.0.20.22", false))
 	assert_bool(wifi.reaches(get_tree(), _dev("OfficePc"))).is_false()
 	assert_bool(jack.reaches(get_tree(), _dev("CamYard"))).is_false()
 	# Only the named targets: the rest stays in reach with the account.

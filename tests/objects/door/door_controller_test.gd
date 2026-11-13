@@ -46,7 +46,7 @@ func test_both_boxes_are_one_device_with_one_status() -> void:
 	var words := DeviceStatus.of(Device.of(front).entity, true)
 	assert_array(Array(words)).contains_exactly(["online", "locked", "closed"])
 	assert_array(Array(DeviceStatus.of(Device.of(back).entity, true))).is_equal(Array(words))
-	assert_str(NetworkSource.display_name(device)).is_equal("Vault")
+	assert_str(EntityNames.device_name(device)).is_equal("Vault")
 	assert_bool(ActorState.has(controller.entity, &"object.door_controller")).is_true()
 	# It sits at the front face's box (the cable's end).
 	assert_vector(controller.entity.global_position).is_equal_approx(front.global_position, Vector3.ONE * 0.001)

@@ -155,9 +155,9 @@ func subnets() -> Array[StringName]:
 
 # Logs an edit; one made over the network (`source`: the deck) goes to the router's own log too.
 func _edited(action: StringName, index: int, source: NetworkSource) -> void:
-	var router_name := String(entity.name) if is_instance_valid(entity) else String(name)
+	var router_name := EntityNames.log_name(entity, self)
 	var data := {"router": router_name, "action": action, "index": index, "rules": save_state()["rules"]}
-	var by := NetworkSource.user_key(source.user) if source != null else ""
+	var by := EntityNames.log_name(source.user) if source != null else ""
 	EventLog.record(EventKinds.ROUTER_RULES, by, router_name, data)
 	var device := Device.of(entity)
 	if source != null and device != null:

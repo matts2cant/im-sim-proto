@@ -240,7 +240,7 @@ func _open_computer(device: String) -> void:
 		return
 	computer.open_desktop(_player, "rvoss", false)
 	screen.show_app(Computer.SECURITY)
-	screen.security_app.select(Computer.display_name(Device.of(_wing.get_node(device))))
+	screen.security_app.select(EntityNames.device_name(Device.of(_wing.get_node(device))))
 
 
 # Gives the player a deck (fast scans), grants the shot's routers and plugs it into `deck`.

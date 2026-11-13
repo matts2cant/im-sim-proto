@@ -85,7 +85,7 @@ func test_a_router_exploit_from_the_menu_gives_admin_and_scans_behind_it() -> vo
 	assert_float(sentry.trace_of(_player) - before).is_equal_approx(scan, 0.01)
 	var used := router.intrusion.device_log.of_kind(DeviceLog.EXPLOIT)
 	assert_int(used.size()).is_equal(1)
-	var line := "exploit 10.0.10.40 %s Router exploit" % NetworkSource.user_key(_player)
+	var line := "exploit 10.0.10.40 %s Router exploit" % EntityNames.log_name(_player)
 	assert_str(DeviceLog.line(used[0])).is_equal(line)
 	# The subnet behind it is scanned, shown as the scan, then on the map.
 	assert_bool(_session.scans.has(&"security")).is_true()

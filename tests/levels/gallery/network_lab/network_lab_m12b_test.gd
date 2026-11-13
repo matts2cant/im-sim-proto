@@ -155,7 +155,7 @@ func test_the_note_logs_in_on_rtr04_and_a_deny_rule_keeps_the_sirens_silent() ->
 	assert_bool(_lab.device("Devices/BayC/Rtr04").is_admin(_lab.player)).is_true()
 	# ALARM-LAB -> SIRENS: DENY, added as the Firewall tool does (from the deck).
 	router.add_rule(
-		RouterRule.make(RouterRule.Match.DEVICE, "AlarmController", RouterRule.Match.SUBNET, "lab_sirens", false),
+		RouterRule.make(RouterRule.Match.DEVICE, "10.0.60.10", RouterRule.Match.SUBNET, "lab_sirens", false),
 		-1,
 		session.source
 	)

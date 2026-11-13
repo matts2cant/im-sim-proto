@@ -62,7 +62,7 @@ func _network(at: Vector3, prefix: String) -> Dictionary[String, Node3D]:
 func _names(devices: Array[Device]) -> Array[String]:
 	var names: Array[String] = []
 	for device in devices:
-		names.append(NetworkSource.display_name(device))
+		names.append(EntityNames.device_name(device))
 	return names
 
 

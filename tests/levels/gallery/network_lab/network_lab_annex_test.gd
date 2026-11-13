@@ -177,7 +177,7 @@ func test_two_networks_of_their_own_with_subnets_routers_tracer_and_logins() -> 
 			String(NETWORK[path][0])
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
-		assert_str(NetworkSource.display_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
+		assert_str(EntityNames.device_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
 	assert_array(Router.of(_node("Devices/BayC/Rtr03")).addresses()).is_equal(["10.0.50.1", "10.0.40.1"])
 	assert_array(Router.of(_node("Devices/BayC/Rtr04")).addresses()).is_equal(["10.0.60.1", "10.0.70.1"])
 	# Not cabled to the M12a network nor to each other.
@@ -307,7 +307,7 @@ func test_denying_the_controller_to_the_sirens_silences_them() -> void:
 		assert_bool(siren.is_sounding()).is_false()
 	# ALARM-LAB -> the Sirens subnet: DENY. The alarm still rings, the sirens stay silent.
 	router.add_rule(
-		RouterRule.make(RouterRule.Match.DEVICE, "AlarmController", RouterRule.Match.SUBNET, "lab_sirens", false)
+		RouterRule.make(RouterRule.Match.DEVICE, "10.0.60.10", RouterRule.Match.SUBNET, "lab_sirens", false)
 	)
 	panic.use(_user)
 	await _seconds(1.0)

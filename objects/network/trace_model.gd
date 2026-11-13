@@ -8,7 +8,7 @@ extends RefCounted
 const FULL: float = 100.0
 
 var config: TracerConfig
-# User key -> trace (%).
+# User key (NetworkIdentity.key_of()) -> trace (%).
 var traces: Dictionary[String, float] = {}
 # User key -> seconds since its last gain.
 var idle: Dictionary[String, float] = {}
@@ -63,6 +63,22 @@ func is_locked(address: String) -> bool:
 
 func lockout_left(address: String) -> float:
 	return lockouts.get(address, 0.0)
+
+
+## Renames every user key through `mapper` (String -> String; "" drops that user): a save's legacy
+## keys (Tracer.load_state()).
+func rekey(mapper: Callable) -> void:
+	var old_traces := traces.duplicate()
+	var old_idle := idle.duplicate()
+	traces.clear()
+	idle.clear()
+	for user: String in old_traces:
+		var key := str(mapper.call(user))
+		if key.is_empty():
+			continue
+		traces[key] = old_traces[user]
+		if old_idle.has(user):
+			idle[key] = old_idle[user]
 
 
 func to_dict() -> Dictionary:

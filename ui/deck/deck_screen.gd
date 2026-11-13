@@ -239,7 +239,7 @@ func refresh() -> void:
 func entry_label() -> String:
 	if session == null or not session.is_plugged():
 		return ""
-	var name := NetworkSource.display_name(session.port)
+	var name := EntityNames.device_name(session.port)
 	return "%s (%s)" % [name, NetworkSource.kind_label(session.source.kind)]
 
 

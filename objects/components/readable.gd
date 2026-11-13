@@ -42,7 +42,6 @@ func use(user: Node) -> bool:
 	var reader_log := PersonalLog.of(user)
 	if reader_log == null:
 		return false
-	var owner_node := get_parent()
-	reader_log.read(entry(), String(owner_node.name) if owner_node != null else "")
+	reader_log.read(entry(), EntityNames.log_name(get_parent()))
 	used.emit(user)
 	return true

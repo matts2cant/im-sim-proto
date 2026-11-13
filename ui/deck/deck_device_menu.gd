@@ -30,7 +30,7 @@ func build(row: NetworkRow, column: VBoxContainer) -> void:
 	var device := row.device
 	var text_width := WIDTH - 24.0
 	if device.wireless_link() != null:
-		var via := "wireless via %s" % NetworkSource.display_name(device.wireless_link())
+		var via := "wireless via %s" % EntityNames.device_name(device.wireless_link())
 		column.add_child(DeckStyle.mono(via, NetworkGraph.WIRELESS_COLOR, 12))
 	if row.is_self:
 		column.add_child(DeckStyle.paragraph("Your entry point.", DeckStyle.DIM_COLOR, 12, text_width))
@@ -73,7 +73,7 @@ func build(row: NetworkRow, column: VBoxContainer) -> void:
 		if not trusted.is_empty():
 			var names := PackedStringArray()
 			for each in trusted:
-				names.append(NetworkSource.display_name(each))
+				names.append(EntityNames.device_name(each))
 			note = "No accounts. Trusts %s: control it from that computer's Security app." % ", ".join(names)
 		column.add_child(DeckStyle.paragraph(note, DeckStyle.DIM_COLOR, 12, text_width))
 
@@ -139,7 +139,7 @@ func _account_row(device: Device, accounts: DeviceAccounts, account: DeviceAccou
 
 func _on_use_exploit(device: Device) -> void:
 	if not ExploitItems.use_from_deck(session, device):
-		Notices.send(session.entity, "%s: no connection." % NetworkSource.display_name(device))
+		Notices.send(session.entity, "%s: no connection." % EntityNames.device_name(device))
 	map_changed.emit()
 
 
@@ -150,7 +150,7 @@ func _on_crack(device: Device, user: String) -> void:
 
 func _on_command(command: StringName, device: Device) -> void:
 	var label := session.config.label_for(command)
-	var target := NetworkSource.display_name(device)
+	var target := EntityNames.device_name(device)
 	var sent := session.send(command, device)
 	Notices.send(session.entity, "%s: %s sent." % [target, label] if sent else "%s: no connection." % target)
 	map_changed.emit()

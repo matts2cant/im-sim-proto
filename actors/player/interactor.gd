@@ -53,19 +53,9 @@ static func counted_name(item_name: String, count: int) -> String:
 	return item_name if count <= 1 else "%s (%d)" % [item_name, count]
 
 
-## Readable name of a world entity: a network device's network name (NetworkSource.display_name(), as
-## the deck's Map and its name plate show it: "SW-OFFICE"), else its `display_name` metadata, else its
-## node name in words without a trailing number ("SmallCrate2" -> "Small crate").
+## Readable name of a world entity (EntityNames.display_name()).
 static func display_name_of(node: Node) -> String:
-	var device := Device.of(node)
-	if device != null:
-		return NetworkSource.display_name(device)
-	if node.has_meta(&"display_name"):
-		return str(node.get_meta(&"display_name"))
-	var words := String(node.name).capitalize()
-	while not words.is_empty() and (words[-1].is_valid_int() or words[-1] == " "):
-		words = words.left(-1)
-	return words.left(1) + words.substr(1).to_lower()
+	return EntityNames.display_name(node)
 
 
 ## The entity a collider stands for: a hitbox's character, otherwise the collider itself.
