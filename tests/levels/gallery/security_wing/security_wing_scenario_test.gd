@@ -118,12 +118,12 @@ func test_code_keycard_login_turret_and_vault() -> void:
 
 	# Disable the turret, then open the vault.
 	var turret := Turret.of(_node("Devices/Turret"))
-	assert_bool(computer.send(Device.DISABLE, Device.of(_node("Devices/Turret")))).is_true()
+	assert_bool(computer.send(DeviceSwitch.DISABLE, Device.of(_node("Devices/Turret")))).is_true()
 	await _driver.frames(3)
 	assert_bool(turret.disabled).is_true()
 	assert_bool(turret.is_active()).is_false()
 	var vault := _door("VaultDoor")
-	assert_bool(computer.send(Device.OPEN, Device.of(_node("Doors/VaultDoor/Hardware/Controller")))).is_true()
+	assert_bool(computer.send(Door.OPEN, Device.of(_node("Doors/VaultDoor/Hardware/Controller")))).is_true()
 	await _driver.frames(3)
 	await _wait_open(vault)
 	assert_bool(vault.is_open()).is_true()

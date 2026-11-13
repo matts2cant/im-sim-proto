@@ -16,7 +16,7 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_show = Showcase.new()
 	await _show.setup(scene_runner(Showcase.SHOWCASE))
-	await _show.command(Device.DISABLE, "Turret")
+	await _show.command(DeviceSwitch.DISABLE, "Turret")
 	EventLog.clear()
 
 
@@ -73,7 +73,7 @@ func test_a_player_in_the_dark_is_never_seen() -> void:
 
 func test_out_of_range_or_off_axis_nothing_is_seen() -> void:
 	# 20 m from the lens on its axis (beyond 15 m): the sweep holds still for the test.
-	await _show.command(Device.STOP_SWEEP, "Camera")
+	await _show.command(SecurityCamera.STOP_SWEEP, "Camera")
 	await _show.place_player(Vector3(4, 0, 12.5), PI)
 	await _show.seconds(3.0)
 	assert_object(_show.camera().last_sighting).is_null()
@@ -87,7 +87,7 @@ func test_out_of_range_or_off_axis_nothing_is_seen() -> void:
 
 func test_disabled_unpowered_or_broken_cameras_report_nothing() -> void:
 	var cam := _show.camera()
-	await _show.command(Device.DISABLE, "Camera")
+	await _show.command(DeviceSwitch.DISABLE, "Camera")
 	assert_bool(cam.is_watching()).is_false()
 	await _show.place_player(Showcase.CAMERA_SPOT, PI)
 	await _show.seconds(3.0)
@@ -95,7 +95,7 @@ func test_disabled_unpowered_or_broken_cameras_report_nothing() -> void:
 	var dark := StatusLight.COLORS[StatusLight.State.DARK]
 	assert_bool(DeviceLamp.of(_show.node("Camera")).color().is_equal_approx(dark)).is_true()
 
-	await _show.command(Device.ENABLE, "Camera")
+	await _show.command(DeviceSwitch.ENABLE, "Camera")
 	Powered.of(_show.node("Camera")).on = false
 	await _show.seconds(3.0)
 	assert_array(EventLog.find(&"camera.detected")).is_empty()
@@ -125,7 +125,7 @@ func test_pan_commands_turn_the_camera_away_from_the_player() -> void:
 	# Pan steps are relative to where the sweep had it (a degree or two); three steps to its right
 	# clamp at the 40 degree limit, so a player on its rest axis is 40 degrees off (focus +-25): unseen.
 	for i in 3:
-		await _show.command(Device.PAN_RIGHT, "Camera")
+		await _show.command(SecurityCamera.PAN_RIGHT, "Camera")
 	assert_float(_show.camera().yaw()).is_equal(-40.0)
 	assert_bool(_show.camera().model.sweeping).is_false()
 	await _show.place_player(Showcase.CAMERA_SPOT, PI)
@@ -135,7 +135,7 @@ func test_pan_commands_turn_the_camera_away_from_the_player() -> void:
 	assert_float(wrapf(rad_to_deg(pivot.rotation.y), -180.0, 180.0)).is_equal_approx(140.0, 0.5)
 	# Three steps back to its left (5 degrees off the axis): seen.
 	for i in 3:
-		await _show.command(Device.PAN_LEFT, "Camera")
+		await _show.command(SecurityCamera.PAN_LEFT, "Camera")
 	assert_float(_show.camera().yaw()).is_equal(5.0)
 	assert_float(await _show.wait_for(&"camera.detected", 4.0)).is_greater_equal(0.0)
 

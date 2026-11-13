@@ -76,7 +76,7 @@ func _process(delta: float) -> void:
 	if _shot.is_empty() or _time < float(_shot.get("wait", 1.5)):
 		if _shot.get("alarm", false) and _time > 0.5 and not _alarm_sent:
 			_alarm_sent = true
-			StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _arena.get_node("Alarm/Controller")))
+			StimulusSystem.emit(Device.command_stimulus(AlarmController.TRIGGER, _arena.get_node("Alarm/Controller")))
 		return
 	if _shot.has("carry") and not _player.carry.is_carrying():
 		_player.carry.pick_up(_arena.get_node(String(_shot["carry"])) as PhysicsBody3D)

@@ -145,8 +145,8 @@ func test_a_camera_rings_the_sirens_until_both_switches_are_cut() -> void:
 	# still reaches the yard's controller, which rings the yard's sirens only.
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
-	assert_bool(console.send(Device.RESET, _helpers.device("AlarmController"))).is_true()
-	assert_bool(console.send(Device.RESET, _helpers.device("AlarmControllerYard"))).is_true()
+	assert_bool(console.send(AlarmController.RESET, _helpers.device("AlarmController"))).is_true()
+	assert_bool(console.send(AlarmController.RESET, _helpers.device("AlarmControllerYard"))).is_true()
 	await _helpers.seconds(3.0)
 	Breakable.of(_helpers.device_entity("SecuritySwitch")).take_damage(&"damage.ballistic", 100.0)
 	EventLog.clear()
@@ -246,7 +246,7 @@ func test_every_guard_post_and_patrol_point_hears_a_siren() -> void:
 
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
-	assert_bool(console.send(Device.TRIGGER, _helpers.device("AlarmController"))).is_true()
+	assert_bool(console.send(AlarmController.TRIGGER, _helpers.device("AlarmController"))).is_true()
 	await _helpers.seconds(2.5)
 
 	var deaf: PackedStringArray = []
@@ -263,8 +263,8 @@ func test_save_and_load_keep_doors_and_devices() -> void:
 	Lockable.of(_helpers.door_entity("BackGate")).unlock(null, &"test")
 	var console := _helpers.console()
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
-	console.send(Device.DISABLE, _helpers.device("CameraYard"))
-	console.send(Device.DISARM, _helpers.device("AlarmController"))
+	console.send(DeviceSwitch.DISABLE, _helpers.device("CameraYard"))
+	console.send(AlarmController.DISARM, _helpers.device("AlarmController"))
 	await _helpers.seconds(1.0)
 	# Breaker A after the commands: it unpowers the yard's switch, which carries the yard camera.
 	(_helpers.device_entity("BreakerA").get_node("CircuitBreaker") as CircuitBreaker).use(null)

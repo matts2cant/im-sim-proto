@@ -181,7 +181,7 @@ func test_two_networks_of_their_own_with_subnets_routers_tracer_and_logins() -> 
 	assert_array(Router.of(_node("Devices/BayC/Rtr03")).addresses()).is_equal(["10.0.50.1", "10.0.40.1"])
 	assert_array(Router.of(_node("Devices/BayC/Rtr04")).addresses()).is_equal(["10.0.60.1", "10.0.70.1"])
 	# Not cabled to the M12a network nor to each other.
-	var graph := Device.graph(get_tree())
+	var graph := DeviceGraphBuilder.build(get_tree())
 	var wifi_side := graph.component(_device("Devices/CctvJack").get_instance_id())
 	var alarm_side := graph.component(_device("Devices/AlarmJack").get_instance_id())
 	for path: String in ["Devices/BayA/Rtr01", "Devices/BayB/Rtr02", "Devices/Jack"]:

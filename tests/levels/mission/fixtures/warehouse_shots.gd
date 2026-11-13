@@ -288,7 +288,7 @@ func _next() -> void:
 	for circuit: String in _shot.get("off", []):
 		Powered.set_circuit(get_tree(), StringName(circuit), false)
 	for path: String in _shot.get("disable", []):
-		StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _level.get_node(path)))
+		StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _level.get_node(path)))
 	for path: String in _shot.get("break", []):
 		Breakable.of(_level.get_node(path)).take_damage(&"ballistic", 1000.0)
 	# Hinged doors (a linking bay's glass door) swung open, locked or not.

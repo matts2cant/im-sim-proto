@@ -106,7 +106,7 @@ func test_the_base_station_sends_radio_guards_to_the_incident() -> void:
 
 
 func test_a_trigger_keeps_hearers_searching_for_45_s_then_the_sirens_stop() -> void:
-	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
+	StimulusSystem.emit(Device.command_stimulus(AlarmController.TRIGGER, _node("Controller")))
 	await Wait.frames(get_tree(), 12)
 	assert_str(_awareness("Near").state_name()).is_equal("searching")
 	assert_bool(_awareness("Near").model.is_wary()).is_true()
@@ -132,7 +132,7 @@ func test_a_trigger_keeps_hearers_searching_for_45_s_then_the_sirens_stop() -> v
 func test_an_alerted_guard_carries_on_when_it_hears_the_siren() -> void:
 	_awareness("Near").alert_at(_scene.to_global(Vector3(-14, 0, 10)))
 	await Wait.frames(get_tree(), 2)
-	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
+	StimulusSystem.emit(Device.command_stimulus(AlarmController.TRIGGER, _node("Controller")))
 	await Wait.frames(get_tree(), 12)
 	assert_array(_heard_siren("Near")).is_not_empty()
 	assert_str(_awareness("Near").state_name()).is_equal("alerted")
@@ -148,7 +148,7 @@ func test_cutting_the_switch_power_stops_the_ring_reaching_the_siren() -> void:
 	# never reaches the siren behind the switch.
 	assert_bool(_controller().is_ringing()).is_true()
 	var rings := EventLog.find(&"device.command").filter(
-		func(entry: EventLogEntry) -> bool: return entry.data["command"] == Device.RING
+		func(entry: EventLogEntry) -> bool: return entry.data["command"] == Siren.RING
 	)
 	assert_array(rings).is_empty()
 	assert_array(EventLog.find(&"siren.started")).is_empty()
@@ -160,11 +160,11 @@ func test_a_plain_tagged_entity_with_the_right_receptrons_acts_as_a_siren() -> v
 	Powered.set_circuit(_scene.get_tree(), &"yard_net", false)
 	# No Siren component: `command.ring` emits an `alarm.siren` of loudness 35 along the navmesh.
 	var ring := Devices.command_receptron(
-		Device.RING, [Fixtures.emit_radius(&"alarm.siren", 35.0, Stimulus.Propagation.PATH)]
+		Siren.RING, [Fixtures.emit_radius(&"alarm.siren", 35.0, Stimulus.Propagation.PATH)]
 	)
 	var horn := Devices.device(_scene, "PlainHorn", Vector3(-8, 2, 4), [ring])
 	Devices.link(horn, _node("Controller"))
-	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
+	StimulusSystem.emit(Device.command_stimulus(AlarmController.TRIGGER, _node("Controller")))
 	await Wait.frames(get_tree(), 12)
 
 	assert_array(EventLog.find(&"siren.started")).is_empty()

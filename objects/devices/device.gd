@@ -8,14 +8,16 @@ extends Node
 ##   while powered and unbroken; `state_changed` reports every change.
 ## - Cables (M8; addresses, subnets and firewalls are M12): `links` lists the devices this one is
 ##   cabled to (their entities or Device nodes); links are undirected, so listing a cable on one end
-##   is enough. Reach is pure logic in DeviceGraph: X reaches Y when a path of links exists whose
-##   every node (X, Y and every switch between) is up.
+##   is enough. Reach is pure logic in DeviceGraph (built from the level by DeviceGraphBuilder): X
+##   reaches Y when a path of links exists whose every node (X, Y and every switch between) is up.
 ## - Commands: send_command() delivers a CONTACT stimulus of the command type (`command.ring`, ...)
 ##   at the target's entity through StimulusSystem, only when this device reaches the target. The
 ##   target's receptrons (objects/devices/receptrons/) run DeviceActionEffect, blocked by
 ##   `state.unpowered` and `state.broken`, which calls receive_action(): the `action_received`
 ##   signal tells the entity's behaviour components (AlarmController, Siren, ...). Nothing branches
-##   on what a device is: a device accepts a command when one of its receivers wants that type.
+##   on what a device is: a device accepts a command when one of its receivers wants that type. The
+##   command constants live with the components that handle them (Door.OPEN, Siren.RING, ...;
+##   DeviceStatus: which apply now).
 ## - Incidents: report_incident() sends `device.incident` (origin = the incident location) to every
 ##   device this one reaches that accepts it (alarm controllers).
 ## - Network (M12a, ADR 0113): `address` and `subnet` (empty: the subnet of a cabled device that
@@ -38,11 +40,13 @@ extends Node
 ##   light per device); without a model or a lamp it shows none. An entity built
 ##   from a device model (ADR 0130 step 2) always gets one: it drives the model's own light, sockets
 ##   and name plates (ModelFace).
-## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
-##   maintenance port links to this device only, a computer lends its address); AUTO: a computer
-##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
-##   is the deck's tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock):
-##   holding LMB with the deck plugs it in (DeckSession) and raises its screen.
+## - The deck (ADR 0113): `deck_port` (a NetworkSource.Kind: AUTO, NONE, JACK, PORT or HOST) says
+##   how a deck plugs into it (a wall jack joins its subnet, a maintenance port links to this device
+##   only, a computer lends its address); AUTO: a computer (Computer component) is a host, a device
+##   without cables has a maintenance port, else none (DeviceNetwork.port_kind()). It is the deck's
+##   tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock); the user's
+##   deck reacts to ToolUse's `worked` signal (DeckSession plugs in and raises its screen): a device
+##   knows nothing about the deck.
 ## - EMP and jamming (M14b, ADR 0131): a device is electronic: an EMP (EmpEffect) cuts its power for
 ##   its seconds, through its Powered (Powered.take_emp()), or its own `outage` when it has none (a
 ##   door controller without power wiring). A jamming field (JammingField) drops its wireless link
@@ -56,38 +60,11 @@ extends Node
 signal state_changed(up: bool)
 signal action_received(action: StringName, stimulus: Stimulus)
 
-## How a deck plugs into this device (see the class description).
-enum DeckPort { AUTO, NONE, JACK, MAINTENANCE, HOST }
-
 const GROUP: StringName = &"device"
 const UNPOWERED: StringName = &"state.unpowered"
 const BROKEN: StringName = &"state.broken"
 ## Sensor -> alarm controller: an intruder was detected; origin = where.
 const INCIDENT: StringName = &"device.incident"
-## Remote commands (the shared contract of M8; who may send which is M12).
-const OPEN: StringName = &"command.open"
-const CLOSE: StringName = &"command.close"
-const LOCK: StringName = &"command.lock"
-const UNLOCK: StringName = &"command.unlock"
-const RING: StringName = &"command.ring"
-const SILENCE: StringName = &"command.silence"
-const TEST: StringName = &"command.test"
-const DISARM: StringName = &"command.disarm"
-const RESET: StringName = &"command.reset"
-const TRIGGER: StringName = &"command.trigger"
-const DISABLE: StringName = &"command.disable"
-const ENABLE: StringName = &"command.enable"
-## Alarm controller -> radio base station: broadcast the incident at the stimulus origin.
-const BROADCAST: StringName = &"command.broadcast"
-## Camera remote actions (ADR 0079): stop / resume its sweep, turn it one pan step left / right.
-const STOP_SWEEP: StringName = &"command.stop_sweep"
-const RESUME_SWEEP: StringName = &"command.resume_sweep"
-const PAN_LEFT: StringName = &"command.pan_left"
-const PAN_RIGHT: StringName = &"command.pan_right"
-## Turret target presets (ADR 0079): each sets the turret's hostile tags from its TurretConfig.
-const TARGET_INTRUDERS: StringName = &"command.target_intruders"
-const TARGET_GUARDS: StringName = &"command.target_guards"
-const TARGET_EVERYONE: StringName = &"command.target_everyone"
 ## send_command() without a point: the stimulus origin is the target's position.
 const NO_POINT: Vector3 = Vector3.INF
 ## ItemData.tool_kind of the deck.
@@ -108,7 +85,8 @@ const DECK_NODE: int = -1
 @export var subnet: StringName = &""
 ## Devices (entities or Device nodes) allowed to command it; empty: any device that reaches it.
 @export var trusted: Array[NodePath] = []
-@export var deck_port: DeckPort = DeckPort.AUTO
+## How a deck plugs into it (AUTO, NONE, JACK, PORT or HOST; see the class description).
+@export var deck_port: NetworkSource.Kind = NetworkSource.Kind.AUTO
 ## The access point (its entity or Device) it links to by radio instead of a cable; empty: none.
 @export var wireless: NodePath = ^""
 ## Shows its state on a StatusLight (its model's light, or its lamp while on a network).
@@ -154,12 +132,15 @@ func _ready() -> void:
 
 
 ## The Device child of `node` (an entity), or `node` itself when it is a Device; for a panel of a
-## device (a DevicePanel child: a door controller's wall box, ADR 0130), that device; null otherwise.
+## device (a DevicePanel, or a body with one: a door controller's wall box, ADR 0130), that device;
+## null otherwise.
 static func of(node: Node) -> Device:
 	if node == null:
 		return null
 	if node is Device:
 		return node as Device
+	if node is DevicePanel:
+		return (node as DevicePanel).target()
 	for child in node.get_children():
 		if child is Device:
 			return child as Device
@@ -179,77 +160,14 @@ static func all(tree: SceneTree) -> Array[Device]:
 	return found
 
 
-## The reach graph of every device in `tree` (ids: Device instance ids), with subnets and routers.
-## `source`: the user traffic comes from (a deck, ADR 0113): its start node (source.start_id())
-## speaks with its user's rights at the gates; a deck on a wall jack is a node of its own (DECK_NODE)
-## cabled to the jack. Without a source every node speaks for its own device.
-## `physical`: wireless links as the range allows them, jammed or not (DeviceNetwork.physical_network:
-## the Map); else only the live ones (not DeviceNetwork.is_jammed()).
-static func graph(tree: SceneTree, source: NetworkSource = null, physical: bool = false) -> DeviceGraph:
-	var result := DeviceGraph.new()
-	var devices := all(tree)
-	for device in devices:
-		var id := device.get_instance_id()
-		result.add_node(id, device.is_up())
-		var router := Router.of(device.entity)
-		if router != null:
-			result.set_gate(id, Device._gate(router, source, result))
-	# Device -> the access point it links to by radio (valid links only; jammed ones too: the subnet
-	# stays the access point's, only the link is not in a live graph).
-	var radio: Dictionary[Device, Device] = {}
-	for device in devices:
-		for other in device.linked():
-			result.link(device.get_instance_id(), other.get_instance_id())
-		var access_point := device.wireless_link()
-		if access_point != null:
-			radio[device] = access_point
-			if physical or not DeviceNetwork.is_jammed(device):
-				result.link(device.get_instance_id(), access_point.get_instance_id())
-	for device in devices:
-		var id := device.get_instance_id()
-		var own := device.subnet
-		if own.is_empty():
-			for next in result.neighbours(id):
-				var other := instance_from_id(next) as Device
-				if other != null and not other.subnet.is_empty() and not result.is_gate(next):
-					own = other.subnet
-					break
-		result.set_subnet(id, own)
-	# A wireless device without a subnet of its own is on its access point's.
-	for device: Device in radio:
-		if device.subnet.is_empty():
-			result.set_subnet(device.get_instance_id(), result.subnet_of(radio[device].get_instance_id()))
-	if source != null and source.start_id() == DECK_NODE and is_instance_valid(source.device):
-		result.add_node(DECK_NODE, true)
-		result.set_subnet(DECK_NODE, source.subnet)
-		result.link(DECK_NODE, source.device.get_instance_id())
-	return result
-
-
-# The gate of `router`: Router.passes() for the traffic's source (the user's at the source's start
-# node, else the sending device's) and its final destination.
-static func _gate(router: Router, source: NetworkSource, network: DeviceGraph) -> Callable:
-	var senders: Dictionary[int, NetworkSource] = {}
-	return func(from: int, to: int) -> bool:
-		var sender := source if source != null and from == source.start_id() else null
-		if sender == null:
-			sender = senders.get(from, null)
-		if sender == null:
-			sender = NetworkSource.of_device(instance_from_id(from) as Device, network.subnet_of(from))
-			senders[from] = sender
-		return router.passes(sender, instance_from_id(to) as Device)
-
-
 ## Tool interface (ToolUse): a deck plugs in when this device has a port for it.
 func accepts_tool(tool: StringName) -> bool:
-	return tool == DECK_TOOL and DeviceNetwork.port_kind(self) != DeckPort.NONE
+	return tool == DECK_TOOL and DeviceNetwork.port_kind(self) != NetworkSource.Kind.NONE
 
 
-## Working it with the deck plugs the user's deck in here and raises its screen (DeckSession).
-func tool_hold(user: Node, _delta: float) -> bool:
-	var session := DeckSession.of(user)
-	if session != null:
-		session.plug_and_raise(self)
+## Working it never finishes: the user's tool reacts to ToolUse's `worked` signal (the deck plugs
+## in here and raises its screen).
+func tool_hold(_user: Node, _delta: float) -> bool:
 	return false
 
 
@@ -315,7 +233,7 @@ func reaches(target: Node) -> bool:
 	var other := Device.of(target)
 	if other == null or not is_inside_tree():
 		return false
-	return Device.graph(get_tree()).reaches(get_instance_id(), other.get_instance_id())
+	return DeviceGraphBuilder.build(get_tree()).reaches(get_instance_id(), other.get_instance_id())
 
 
 ## Every device this one reaches (itself excluded); with `accepting`, only those that accept that
@@ -324,7 +242,7 @@ func reached(accepting: StringName = &"") -> Array[Device]:
 	var found: Array[Device] = []
 	if not is_inside_tree():
 		return found
-	for id in Device.graph(get_tree()).reachable(get_instance_id()):
+	for id in DeviceGraphBuilder.build(get_tree()).reachable(get_instance_id()):
 		var device := instance_from_id(id) as Device
 		if device != null and (accepting.is_empty() or device.accepts(accepting, entity)):
 			found.append(device)
@@ -347,8 +265,8 @@ func is_admin(by: Node) -> bool:
 	return intrusion.has_exploit(NetworkSource.user_key(by))
 
 
-## Its network address (`address`) for screens that ask any component (Computer.address(), ADR
-## 0114): the deck's network layer offers it here. (The dead devices behind a live link:
+## Its network address (`address`) for screens that ask any component (DeviceNetwork.address_of(),
+## ADR 0114): the deck's network layer offers it here. (The dead devices behind a live link:
 ## NetworkSource.connected().)
 func device_address() -> String:
 	return address

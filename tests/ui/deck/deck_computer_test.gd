@@ -158,4 +158,4 @@ func test_a_device_that_trusts_another_computer_is_not_listed() -> void:
 	assert_bool(console.controls(yard_device)).is_false()
 	assert_bool(Computer.of(_lab.node("OfficePc")).controls(yard_device)).is_true()
 	# Its commands are refused from the console too.
-	assert_bool(console.send(Device.DISABLE, yard_device)).is_false()
+	assert_bool(console.send(DeviceSwitch.DISABLE, yard_device)).is_false()

@@ -63,7 +63,7 @@ func test_a_network_device_shows_its_status_live() -> void:
 	(panel.get_node("Powered") as Powered).on = false
 	_frame.refresh(_player)
 	assert_str(_frame.status_text()).is_equal("No power")
-	assert_that(_frame.status_square.color).is_equal(TargetStatus.NO_POWER_COLOR)
+	assert_that(_frame.status_square.color).is_equal(TargetStatus.NO_POWER.color)
 
 
 func test_shown_within_reach_only() -> void:

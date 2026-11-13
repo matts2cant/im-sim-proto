@@ -36,7 +36,7 @@ func before_test() -> void:
 	add_child(_root)
 	Characters.floor_box(_root)
 	var receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(DeviceSwitch.ENABLE)
 	]
 	_entity = Devices.device(_root, "Array", Vector3(0, BASE_HEIGHT, 0), receptrons, true, 20.0)
 	for index in BEAMS.size():
@@ -71,14 +71,14 @@ func test_three_beams_are_one_device_with_one_status_and_one_command() -> void:
 		assert_float(from.y).is_equal_approx(BEAMS[index].x, 0.0001)
 		assert_float(from.distance_to(to)).is_equal_approx(BEAMS[index].y, 0.0001)
 	# One disable turns every beam off, one enable every beam on.
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _entity))
 	await Wait.frames(get_tree(), 3)
 	assert_array(EventLog.find(&"laser.toggled")).has_size(1)
 	assert_array(Array(DeviceStatus.of(_entity, true))).contains_exactly(["online", "disabled"])
 	_box("Intruder", ON_BEAMS, 0.0, 1.8)
 	await Wait.frames(get_tree(), 20)
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
-	StimulusSystem.emit(Device.command_stimulus(Device.ENABLE, _entity))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.ENABLE, _entity))
 	await Wait.frames(get_tree(), 5)
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 

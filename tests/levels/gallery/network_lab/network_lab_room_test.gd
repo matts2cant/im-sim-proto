@@ -214,7 +214,7 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	assert_array(Router.of(_node("Devices/BayB/Rtr02")).subnets()).contains_exactly_in_any_order(
 		[&"security", &"servers"]
 	)
-	assert_int(DeviceNetwork.port_kind(Device.of(_node("Devices/Jack")))).is_equal(Device.DeckPort.JACK)
+	assert_int(DeviceNetwork.port_kind(Device.of(_node("Devices/Jack")))).is_equal(NetworkSource.Kind.JACK)
 	# One tracer on the M12a network, default tuning, on RTR-01, watching Office and Security (not
 	# Servers); the annex's RTR-03 runs the other (network_lab_annex_test.gd).
 	var tracers := Tracer.all(get_tree()).filter(

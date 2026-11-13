@@ -52,8 +52,8 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	await get_tree().physics_frame
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _show.get_node("Turret")))
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _show.get_node("Camera")))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _show.get_node("Turret")))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _show.get_node("Camera")))
 	var body := _add_lock()
 	_lock = body.get_node("MechanicalLock") as MechanicalLock
 	var feet := _show.to_global(ROOM_FEET if _shot == "room" else FEET)

@@ -3,7 +3,7 @@ extends RefCounted
 ## Pure reach logic of the physical device network (ADR 0077): nodes are devices (switches are
 ## devices too), each up (powered and unbroken) or down; links are cables, undirected. A device
 ## reaches another when a path of links joins them whose every node, both ends included, is up.
-## No scene tree: Device builds one from the level (Device.graph()) for each query.
+## No scene tree: DeviceGraphBuilder.build() makes one from the level for each query.
 ## Subnets and gates (M12a, ADR 0113): each node may carry a subnet (default &"": one implicit
 ## subnet). A gate (a router) is a node whose crossing is decided by a Callable
 ## `gate(from: int, to: int) -> bool` (`from` the node the traffic starts at, `to` its final

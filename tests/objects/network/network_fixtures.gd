@@ -214,7 +214,7 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 	add_computer(n["Console"], [Computer.MAIL, Computer.FILES, Computer.SECURITY])
 	add_accounts(n["Console"], [["dmarsh", "harbor77", MEDIUM]])
 	var camera_receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(DeviceSwitch.ENABLE)
 	]
 	n["Camera"] = body_device(parent, "Camera", origin + Vector3(9, 2.5, 3), camera_receptrons)
 	_address(n["Camera"], &"", "10.0.20.21")
@@ -258,8 +258,8 @@ static func lab(parent: Node, origin: Vector3) -> Dictionary[String, Node3D]:
 ## `command.ring` (tag RUNG) and `command.test` (tag TESTED) and trusts Alarm and Console.
 static func add_siren(parent: Node, n: Dictionary[String, Node3D], origin: Vector3) -> Node3D:
 	var receptrons: Array[Receptron] = [
-		Devices.command_receptron(Device.RING, [Fixtures.add_tag(RUNG)]),
-		Devices.command_receptron(Device.TEST, [Fixtures.add_tag(TESTED)]),
+		Devices.command_receptron(Siren.RING, [Fixtures.add_tag(RUNG)]),
+		Devices.command_receptron(Siren.TEST, [Fixtures.add_tag(TESTED)]),
 	]
 	var siren := body_device(parent, "Siren", origin + Vector3(3, 2.5, -1), receptrons)
 	_address(siren, &"", "10.0.10.30")
@@ -285,7 +285,7 @@ static func add_wireless(n: Dictionary[String, Node3D], parent: Node, origin: Ve
 	radio.client_address = "10.0.20.90"
 	link(n["SecuritySwitch"], added["ApYard"])
 	var receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(DeviceSwitch.ENABLE)
 	]
 	added["CamYard"] = body_device(parent, "CamYard", origin + Vector3(14, 2.5, 7), receptrons)
 	_address(added["CamYard"], &"", "10.0.20.22")

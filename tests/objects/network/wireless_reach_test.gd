@@ -59,7 +59,7 @@ func test_a_wireless_device_links_through_its_access_point_on_its_subnet() -> vo
 	assert_bool(_dev("Console").reaches(_n["LaserRoof"])).is_true()
 	# A wireless link is not a cable: not autonomous, so no maintenance port.
 	assert_bool(DeviceNetwork.cabled(_dev("CamYard")).is_empty()).is_true()
-	assert_int(DeviceNetwork.port_kind(_dev("CamYard"))).is_equal(Device.DeckPort.NONE)
+	assert_int(DeviceNetwork.port_kind(_dev("CamYard"))).is_equal(NetworkSource.Kind.NONE)
 	# Incidents go out over the radio link too.
 	assert_int(_dev("CamYard").report_incident(_n["CamYard"].global_position)).is_equal(1)
 

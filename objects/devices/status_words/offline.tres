@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="StatusWord" format=3]
+
+[ext_resource type="Script" path="res://objects/devices/status_word.gd" id="1_word"]
+
+[resource]
+script = ExtResource("1_word")
+text = "offline"

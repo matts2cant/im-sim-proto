@@ -206,7 +206,7 @@ func test_breaker_a_switches_the_roof_off_and_the_console_disables_it() -> void:
 	assert_bool(console.log_in("dmarsh", "harbor77")).is_true()
 	for device_name: String in LASERS + [CAMERA]:
 		(
-			assert_bool(console.send(Device.DISABLE, _helpers.device(device_name)))
+			assert_bool(console.send(DeviceSwitch.DISABLE, _helpers.device(device_name)))
 			. override_failure_message(device_name)
 			. is_true()
 		)

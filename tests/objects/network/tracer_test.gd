@@ -62,7 +62,9 @@ func test_it_watches_its_subnets_while_its_host_runs_and_reaches_them() -> void:
 
 
 func test_a_host_switched_off_by_a_command_watches_nothing() -> void:
-	var host := Net.body_device(_root, "Server", ORIGIN + Vector3(3, 1, 3), [Devices.action_receptron(Device.DISABLE)])
+	var host := Net.body_device(
+		_root, "Server", ORIGIN + Vector3(3, 1, 3), [Devices.action_receptron(DeviceSwitch.DISABLE)]
+	)
 	host.add_child(DeviceSwitch.new())
 	Net.link(_n["OfficeSwitch"], host)
 	var tracer := Net.add_tracer(host, "Second tracer", [&"office"])

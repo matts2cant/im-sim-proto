@@ -26,6 +26,13 @@ extends Node
 ## target_down), `turret.retargeted {turret, preset, tags}`; shots log as `weapon.fired`. Saveable
 ## (disabled, preset, meter, the shots' cause).
 
+## The shipped target presets' commands (ADR 0079; TurretConfig.presets is the data).
+const TARGET_INTRUDERS: StringName = &"command.target_intruders"
+const TARGET_GUARDS: StringName = &"command.target_guards"
+const TARGET_EVERYONE: StringName = &"command.target_everyone"
+const TRACKING: StatusWord = preload("res://objects/devices/status_words/tracking.tres")
+const FIRING: StatusWord = preload("res://objects/devices/status_words/firing.tres")
+
 @export var config: TurretConfig
 ## The node turned toward targets (yaw about its local Y; its -Z is the turret's facing).
 @export var pivot_path: NodePath = ^"../Pivot"
@@ -119,20 +126,31 @@ func device_disabled() -> bool:
 ## Status words for security screens (DeviceStatus): enabled / disabled, its target preset
 ## ("targets intruders": the preset command's words after `target_`), and idle, tracking (winding
 ## up) or firing.
-func device_status() -> PackedStringArray:
-	var parts := PackedStringArray(["disabled" if disabled else "enabled"])
+func device_status() -> Array[StatusWord]:
+	var parts: Array[StatusWord] = [DeviceStatus.DISABLED if disabled else DeviceStatus.ENABLED]
 	var words := String(preset).get_slice(".", 1).trim_prefix("target_").replace("_", " ")
 	if not words.is_empty():
-		parts.append("targets " + words)
+		parts.append(StatusWord.make("targets " + words))
 	if not disabled:
 		match model.state:
 			TurretModel.State.WINDUP:
-				parts.append("tracking")
+				parts.append(TRACKING)
 			TurretModel.State.FIRING:
-				parts.append("firing")
+				parts.append(FIRING)
 			_:
-				parts.append("idle")
+				parts.append(DeviceStatus.IDLE)
 	return parts
+
+
+## Its commands for security screens (DeviceStatus): switched off, only Enable; else Disable and
+## every target preset of its config.
+func device_commands() -> Array[StringName]:
+	if disabled:
+		return [DeviceSwitch.ENABLE] as Array[StringName]
+	var commands: Array[StringName] = [DeviceSwitch.DISABLE]
+	if config != null:
+		commands.append_array(config.presets.keys())
+	return commands
 
 
 ## Where it sees from (its sensor's eye node), or null while idle for good (DeviceStatus).
@@ -275,7 +293,7 @@ func _set_preset(command: StringName) -> void:
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	# The last command it obeyed is the cause of its shots (ADR 0087): whoever retargeted or enabled
 	# it is behind what it kills.
-	if stimulus != null and (config.has_preset(action) or action == Device.ENABLE):
+	if stimulus != null and (config.has_preset(action) or action == DeviceSwitch.ENABLE):
 		holder.cause_id = stimulus.id
 	if config.has_preset(action):
 		if action != preset:
@@ -284,10 +302,10 @@ func _on_action(action: StringName, stimulus: Stimulus) -> void:
 			_set_preset(action)
 		return
 	match action:
-		Device.DISABLE:
+		DeviceSwitch.DISABLE:
 			disabled = true
 			_stand_down("disabled")
-		Device.ENABLE:
+		DeviceSwitch.ENABLE:
 			disabled = false
 	_update_laser()
 

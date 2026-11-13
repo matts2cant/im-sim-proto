@@ -26,7 +26,7 @@ func after_test() -> void:
 # A stand-in siren: `command.ring` adds RUNG (blocked while unpowered or broken, like the shipped
 # receptrons).
 func _bell(entity_name: String, position: Vector3, powered: bool = false, health: float = 0.0) -> Node3D:
-	var ring := Devices.command_receptron(Device.RING, [Fixtures.add_tag(RUNG)])
+	var ring := Devices.command_receptron(Siren.RING, [Fixtures.add_tag(RUNG)])
 	return Devices.device(_root, entity_name, position, [ring], powered, health)
 
 
@@ -66,13 +66,13 @@ func test_a_command_is_delivered_only_when_the_sender_reaches_the_target() -> vo
 	Devices.link(sender, hub)
 	Devices.link(bell, hub)
 
-	assert_bool(Device.of(sender).send_command(Device.RING, bell)).is_true()
+	assert_bool(Device.of(sender).send_command(Siren.RING, bell)).is_true()
 	await Wait.frames(get_tree(), 2)
 	assert_bool(Fixtures.tags_of(bell).has(RUNG)).is_true()
 
 	Fixtures.tags_of(bell).remove(RUNG)
 	Powered.of(hub).on = false
-	assert_bool(Device.of(sender).send_command(Device.RING, bell)).is_false()
+	assert_bool(Device.of(sender).send_command(Siren.RING, bell)).is_false()
 	await Wait.frames(get_tree(), 2)
 	assert_bool(Fixtures.tags_of(bell).has(RUNG)).is_false()
 	var attempts := EventLog.find(&"device.command")
@@ -102,8 +102,8 @@ func test_an_unpowered_or_broken_target_ignores_commands() -> void:
 	Powered.of(unpowered).on = false
 	Breakable.of(broken).take_damage(&"damage.ballistic", 25.0)
 	# Sent straight at them (no network in between): their receptrons block on the state tags.
-	StimulusSystem.emit(Device.command_stimulus(Device.RING, unpowered))
-	StimulusSystem.emit(Device.command_stimulus(Device.RING, broken))
+	StimulusSystem.emit(Device.command_stimulus(Siren.RING, unpowered))
+	StimulusSystem.emit(Device.command_stimulus(Siren.RING, broken))
 	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Fixtures.tags_of(unpowered).has(RUNG)).is_false()
@@ -112,7 +112,7 @@ func test_an_unpowered_or_broken_target_ignores_commands() -> void:
 	# And a device does not reach a target that is down.
 	var sender := Devices.device(_root, "Sender", Vector3(0, 0, 2))
 	Devices.link(sender, unpowered)
-	assert_bool(Device.of(sender).send_command(Device.RING, unpowered)).is_false()
+	assert_bool(Device.of(sender).send_command(Siren.RING, unpowered)).is_false()
 
 
 func test_reached_lists_only_devices_accepting_the_command() -> void:
@@ -122,10 +122,10 @@ func test_reached_lists_only_devices_accepting_the_command() -> void:
 	Devices.link(sender, bell)
 	Devices.link(sender, mute)
 
-	var accepting := Device.of(sender).reached(Device.RING)
+	var accepting := Device.of(sender).reached(Siren.RING)
 	assert_array(accepting).contains_exactly([Device.of(bell)])
 	assert_array(Device.of(sender).reached()).contains_exactly_in_any_order([Device.of(bell), Device.of(mute)])
-	assert_int(Device.of(sender).send_to_all(Device.RING)).is_equal(1)
+	assert_int(Device.of(sender).send_to_all(Siren.RING)).is_equal(1)
 
 
 func test_an_incident_reaches_every_accepting_device_with_its_location() -> void:

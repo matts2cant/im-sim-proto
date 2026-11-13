@@ -25,7 +25,7 @@ func before_test() -> void:
 	_root.position = Vector3(0, 0, 500)
 	add_child(_root)
 	var receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.PAN_LEFT)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(SecurityCamera.PAN_LEFT)
 	]
 	_watcher = Devices.device(_root, "Watcher", Vector3(0, 2.5, 0), receptrons)
 	var pivot := Node3D.new()
@@ -73,11 +73,11 @@ func test_an_entity_without_a_hostile_tag_is_ignored() -> void:
 
 
 func test_its_own_commands_turn_and_blind_it() -> void:
-	StimulusSystem.emit(Device.command_stimulus(Device.PAN_LEFT, _watcher))
+	StimulusSystem.emit(Device.command_stimulus(SecurityCamera.PAN_LEFT, _watcher))
 	await Wait.frames(get_tree(), 3)
 	assert_float(_camera.yaw()).is_equal(15.0)
 	assert_float(rad_to_deg((_watcher.get_node("Pivot") as Node3D).rotation.y)).is_equal_approx(15.0, 0.01)
-	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _watcher))
+	StimulusSystem.emit(Device.command_stimulus(DeviceSwitch.DISABLE, _watcher))
 	await Wait.frames(get_tree(), 3)
 	assert_bool(_camera.is_watching()).is_false()
 	Fixtures.entity(_root, "Decoy", Vector3(0, 0, -6), [], [&"actor.player"])

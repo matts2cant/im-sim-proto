@@ -238,10 +238,10 @@ func test_an_account_gives_the_devices_commands() -> void:
 	_session.refresh()
 	await _seconds(0.3)
 	var accounts := Net.add_accounts(_n["Camera"], [["maint", "cam", Net.WEAK]])
-	assert_array(_session.commands_for(_dev("Camera"))).is_equal([Device.ENABLE, Device.DISABLE])
-	assert_bool(_session.send(Device.DISABLE, _dev("Camera"))).is_false()
+	assert_array(_session.commands_for(_dev("Camera"))).is_equal([DeviceSwitch.ENABLE, DeviceSwitch.DISABLE])
+	assert_bool(_session.send(DeviceSwitch.DISABLE, _dev("Camera"))).is_false()
 	accounts.grant(_user, "maint")
-	assert_bool(_session.send(Device.DISABLE, _dev("Camera"))).is_true()
+	assert_bool(_session.send(DeviceSwitch.DISABLE, _dev("Camera"))).is_true()
 	await _seconds(0.05)
 	assert_bool(DeviceSwitch.of(_n["Camera"]).disabled).is_true()
 	var command := EventLog.find(&"device.command")[-1]

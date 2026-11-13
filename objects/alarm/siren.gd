@@ -17,6 +17,10 @@ extends Node
 ## EventLog: `siren.started {siren, by, fault}`, `siren.stopped {siren, reason}` (silenced, timeout,
 ## unpowered). Saveable (seconds left, fault).
 
+## Its commands (an alarm controller rings and silences it; anyone with access may test it).
+const RING: StringName = &"command.ring"
+const SILENCE: StringName = &"command.silence"
+const TEST: StringName = &"command.test"
 ## Float slack on the timers (sums of 1/60 s ticks).
 const EPSILON: float = 0.0001
 
@@ -65,8 +69,13 @@ func is_sounding() -> bool:
 
 
 ## Status words for security screens (DeviceStatus, ADR 0083): ringing / silent.
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["ringing" if is_sounding() else "silent"])
+func device_status() -> Array[StatusWord]:
+	return [DeviceStatus.RINGING if is_sounding() else DeviceStatus.SILENT] as Array[StatusWord]
+
+
+## Its commands for security screens (DeviceStatus): all of them, always.
+func device_commands() -> Array[StringName]:
+	return [RING, SILENCE, TEST] as Array[StringName]
 
 
 ## Sounds for at least `seconds` more; the first pulse goes out on the next tick. `by` is logged.
@@ -138,13 +147,13 @@ func _play() -> void:
 
 func _on_action(action: StringName, stimulus: Stimulus) -> void:
 	match action:
-		Device.RING:
+		Siren.RING:
 			fault = is_instance_valid(stimulus.source) and ActorState.has(stimulus.source, AlarmController.FAULT)
 			ring(config.ring_hold, stimulus.source_name())
-		Device.TEST:
+		Siren.TEST:
 			fault = false
 			ring(config.test_duration, stimulus.source_name())
-		Device.SILENCE:
+		Siren.SILENCE:
 			silence()
 
 

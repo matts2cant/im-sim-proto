@@ -25,7 +25,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 	var own := Device.of(entity)
 	if own == null or not own.is_up():
 		return rows
-	var graph := Device.graph(own.get_tree())
+	var graph := DeviceGraphBuilder.build(own.get_tree())
 	var own_id := own.get_instance_id()
 	var ids := PackedInt64Array([own_id])
 	ids.append_array(graph.component(own_id))
@@ -39,7 +39,7 @@ static func rows_from(entity: Node) -> Array[NetworkRow]:
 		row.name = NetworkSource.display_name(other)
 		row.is_self = id == own_id
 		row.online = row.is_self or reached.has(id)
-		row.status = DeviceStatus.of(other.entity, row.online)
+		row.show_words(DeviceStatus.words_of(other.entity, row.online))
 		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
 		DeckMapView.show_kind_and_light(row, KINDS)

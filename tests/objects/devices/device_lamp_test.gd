@@ -29,7 +29,7 @@ func before_test() -> void:
 	_n["Switch"] = Net.body_device(_root, "Switch", ORIGIN + Vector3(0, 1.5, 0), [], true)
 	ActorState.set_tag(_n["Switch"], DeviceNetwork.NETWORK_GEAR, true)
 	var receptrons: Array[Receptron] = [
-		Devices.action_receptron(Device.DISABLE), Devices.action_receptron(Device.ENABLE)
+		Devices.action_receptron(DeviceSwitch.DISABLE), Devices.action_receptron(DeviceSwitch.ENABLE)
 	]
 	_n["Box"] = Net.body_device(_root, "Box", ORIGIN + Vector3(2, 1.5, 0), receptrons, true)
 	var toggle := DeviceSwitch.new()
@@ -120,9 +120,9 @@ func test_unpowered_or_disabled_is_dark_then_the_owner_colour() -> void:
 	_assert_shows(_lamp("Box"), dark, false, "unpowered")
 	_power("Box", true)
 	_assert_shows(_lamp("Box"), OWN, false, "powered")
-	await _command(Device.DISABLE, "Box")
+	await _command(DeviceSwitch.DISABLE, "Box")
 	_assert_shows(_lamp("Box"), dark, false, "disabled")
-	await _command(Device.ENABLE, "Box")
+	await _command(DeviceSwitch.ENABLE, "Box")
 	_assert_shows(_lamp("Box"), OWN, false, "enabled")
 	_lamp("Box").show_own(OWN, false)
 	_assert_shows(_lamp("Box"), dark, false, "owner unlit")

@@ -65,7 +65,7 @@ func test_the_light_and_the_frame_read_the_same_rule() -> void:
 
 	var links := NetworkState.links_of(_dev("Leaf"))
 	assert_int(StatusLight.of(_n["Leaf"]).state).is_equal(NetworkState.state_of(_dev("Leaf"), links))
-	assert_int(TargetStatus.word_of(_n["Leaf"], links)).is_equal(TargetStatus.Word.CUT_OFF)
+	assert_object(TargetStatus.word_of(_n["Leaf"], links)).is_same(TargetStatus.CUT_OFF)
 
 
 func _dev(entity_name: String) -> Device:

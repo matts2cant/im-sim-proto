@@ -114,7 +114,7 @@ func map_rows() -> Array[NetworkRow]:
 		row.is_self = device == session.port
 		row.online = reached.has(device) or (row.is_self and device.is_up())
 		show_kind_and_light(row, kinds)
-		row.status = DeviceStatus.of(device.entity, row.online)
+		row.show_words(DeviceStatus.words_of(device.entity, row.online))
 		if row.light == StatusLight.State.JAMMED:
 			row.status = PackedStringArray([JAMMED_WORD])
 		row.disabled = row.online and DeviceStatus.is_disabled(device.entity)

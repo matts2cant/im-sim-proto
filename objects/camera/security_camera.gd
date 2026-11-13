@@ -22,6 +22,16 @@ extends Node
 ## - Unpowered or broken (its Device down): blind, lamp off, the sweep stops where it is.
 ## EventLog: `camera.detected {camera, target, point, controllers}`. Saveable.
 
+## Its remote actions (ADR 0079): stop / resume its sweep, turn it one pan step left / right.
+const STOP_SWEEP: StringName = &"command.stop_sweep"
+const RESUME_SWEEP: StringName = &"command.resume_sweep"
+const PAN_LEFT: StringName = &"command.pan_left"
+const PAN_RIGHT: StringName = &"command.pan_right"
+const SWEEPING: StatusWord = preload("res://objects/devices/status_words/sweeping.tres")
+const HOLDING: StatusWord = preload("res://objects/devices/status_words/holding.tres")
+const SUSPICIOUS: StatusWord = preload("res://objects/devices/status_words/suspicious.tres")
+const ALERT: StatusWord = preload("res://objects/devices/status_words/alert.tres")
+
 @export var config: SecurityCameraConfig
 ## The node turned by the sweep (yaw about its local Y).
 @export var pivot_path: NodePath = ^"../Pivot"
@@ -98,15 +108,24 @@ func device_disabled() -> bool:
 
 ## Status words for security screens (DeviceStatus): enabled / disabled, sweeping / holding, and
 ## suspicious or alert while its meter is up.
-func device_status() -> PackedStringArray:
+func device_status() -> Array[StatusWord]:
 	if disabled:
-		return PackedStringArray(["disabled"])
-	var parts := PackedStringArray(["enabled", "sweeping" if model.sweeping else "holding"])
+		return [DeviceStatus.DISABLED] as Array[StatusWord]
+	var parts: Array[StatusWord] = [DeviceStatus.ENABLED, SWEEPING if model.sweeping else HOLDING]
 	if meter.detected:
-		parts.append("alert")
+		parts.append(ALERT)
 	elif meter.meter > config.amber_threshold:
-		parts.append("suspicious")
+		parts.append(SUSPICIOUS)
 	return parts
+
+
+## Its commands that change something now (DeviceStatus): switched off, only Enable; else Disable,
+## Stop sweep while sweeping or Resume sweep while holding, and the pan steps.
+func device_commands() -> Array[StringName]:
+	if disabled:
+		return [DeviceSwitch.ENABLE] as Array[StringName]
+	var sweep: StringName = STOP_SWEEP if model.sweeping else RESUME_SWEEP
+	return [DeviceSwitch.DISABLE, sweep, PAN_LEFT, PAN_RIGHT] as Array[StringName]
 
 
 ## Where it sees from (its sensor's eye node), or null while blind (DeviceStatus).
@@ -141,18 +160,18 @@ func _detected(sighting: PerceptionSensor.Sighting) -> void:
 
 func _on_action(action: StringName, _stimulus: Stimulus) -> void:
 	match action:
-		Device.DISABLE:
+		DeviceSwitch.DISABLE:
 			disabled = true
 			_blinded()
-		Device.ENABLE:
+		DeviceSwitch.ENABLE:
 			disabled = false
-		Device.STOP_SWEEP:
+		SecurityCamera.STOP_SWEEP:
 			model.stop_sweep()
-		Device.RESUME_SWEEP:
+		SecurityCamera.RESUME_SWEEP:
 			model.resume_sweep()
-		Device.PAN_LEFT:
+		SecurityCamera.PAN_LEFT:
 			model.pan(1)
-		Device.PAN_RIGHT:
+		SecurityCamera.PAN_RIGHT:
 			model.pan(-1)
 	_apply_pose()
 	_update_lamp()

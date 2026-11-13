@@ -7,9 +7,8 @@ extends ComputerApp
 ## - the selected device's detail pane: its name, kind and status, the live view when it has one
 ##   (DeviceStatus.has_view(): a FEED_SIZE SubViewport whose camera follows the device's view node,
 ##   rendered only while shown; "No signal" when offline or blind), its status words and address,
-##   and one button per command it accepts that applies now (DeviceStatus.applicable(): Enable only
-##   while disabled; Stop or Resume sweep, Lock or Unlock, Open or Close by state; labels and
-##   danger style from the config's table).
+##   and one button per command it accepts that applies now (DeviceStatus.applicable(): what its
+##   components offer now, `device_commands()`; labels and danger style from the config's table).
 ## Offline devices stay listed, greyed, without actions. A computer that controls none says so and
 ## points to the deck. refresh() rebuilds what changed; the screen calls it a few times a second.
 ## Trouble (M12c, ADR 0115): under the list, the trouble notes of the online alarm controllers it
@@ -193,7 +192,7 @@ func row_status(device_name: String) -> String:
 func status_of(device_name: String) -> String:
 	for row in rows:
 		if row.name == device_name:
-			return HalcyonStyle.status_text(row.status)
+			return DeviceStatus.text(row.status)
 	return ""
 
 
@@ -343,7 +342,7 @@ func _list_row(row: Computer.DeviceRow) -> Button:
 	line.add_theme_constant_override(&"separation", 10)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(line)
-	var colour := HalcyonStyle.status_color(row.status, row.disabled)
+	var colour := HalcyonStyle.status_color(row.status, row.disabled, row.alert)
 	var icon := DeviceIcon.make(row.kind.icon, HalcyonStyle.TEXT if row.online else HalcyonStyle.OFFLINE)
 	icon.name = "Icon"
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -355,7 +354,7 @@ func _list_row(row: Computer.DeviceRow) -> Button:
 	name_label.size_flags_vertical = Control.SIZE_FILL
 	name_label.clip_text = true
 	line.add_child(name_label)
-	var status := HalcyonStyle.label(HalcyonStyle.short_status(row.status), 11, colour, true)
+	var status := HalcyonStyle.label(DeviceStatus.short_text(row.status), 11, colour, true)
 	status.name = "Status"
 	status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	status.size_flags_vertical = Control.SIZE_FILL
@@ -377,35 +376,24 @@ func _rebuild_detail() -> void:
 		detail_address.text = ""
 		feed_frame.visible = false
 		return
-	var colour := HalcyonStyle.status_color(row.status, row.disabled)
+	var colour := HalcyonStyle.status_color(row.status, row.disabled, row.alert)
 	detail_title.text = row.name
-	detail_meta.text = "%s · %s" % [row.kind.name, HalcyonStyle.short_status(row.status)]
+	detail_meta.text = "%s · %s" % [row.kind.name, DeviceStatus.short_text(row.status)]
 	detail_meta.label_settings.font_color = colour
-	detail_status.text = "Status   " + HalcyonStyle.status_text(row.status)
+	detail_status.text = "Status   " + DeviceStatus.text(row.status)
 	detail_status.label_settings.font_color = colour
-	var address := _address_of(row.device)
+	var address := DeviceNetwork.address_of(row.device)
 	detail_address.text = "Address  " + address
 	detail_address.visible = not address.is_empty()
 	feed_frame.visible = row.has_view
 	view_label.text = row.name.to_upper()
-	for command in DeviceStatus.applicable(row.commands, row.status, row.disabled):
+	for command in DeviceStatus.applicable(row.commands, row.device.entity):
 		var danger := computer.config.danger_commands.has(command)
 		var button := HalcyonStyle.button(computer.config.label_for(command), false, danger)
 		button.pressed.connect(press.bind(command, row.device))
 		_actions.add_child(button)
 	if not row.online:
 		_actions.add_child(HalcyonStyle.label("No connection.", 13, HalcyonStyle.DIM))
-
-
-static func _address_of(device: Device) -> String:
-	if not is_instance_valid(device.entity):
-		return ""
-	for child in device.entity.get_children():
-		if child.has_method(Computer.ADDRESS_METHOD):
-			var value := str(child.call(Computer.ADDRESS_METHOD))
-			if not value.is_empty():
-				return value
-	return ""
 
 
 func _build() -> void:

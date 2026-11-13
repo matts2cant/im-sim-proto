@@ -97,7 +97,7 @@ func test_alarm_shows_while_the_player_hears_a_siren() -> void:
 	_player.get_parent().add_child(siren)
 	siren.global_position = _player.global_position + Vector3(0, 2, -3)
 	# Heard through the player's own receiver (`heard_siren`), like any guard.
-	StimulusSystem.emit(Device.command_stimulus(Device.TEST, siren))
+	StimulusSystem.emit(Device.command_stimulus(Siren.TEST, siren))
 	await _driver.frames(10)
 	assert_bool(AlarmHearing.of(_player).is_hearing()).is_true()
 	assert_bool(_hud.alarm_label.visible).is_true()

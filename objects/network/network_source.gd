@@ -2,6 +2,9 @@ class_name NetworkSource
 extends RefCounted
 ## Pure-ish: where network traffic comes from (ADR 0113). Routers judge traffic by it (RouterRule:
 ## from a subnet, a device or "you"), tracers block its address and report its entry point.
+## Kind is also how a deck plugs into a device (Device.deck_port, DeviceNetwork.port_kind(): the
+## deck's traffic then has that kind; AUTO and NONE are only a device's settings). KIND_LABELS names
+## the entry points (the deck's header: "OFFICE-JACK (wall jack)").
 ## - DEVICE: a device speaking for itself (an alarm controller ringing a siren); no user.
 ## - JACK: a deck on a wall jack: its own graph node (Device.DECK_NODE) on the jack's subnet; the
 ##   jack's address (the deck's address on that subnet).
@@ -12,7 +15,17 @@ extends RefCounted
 ##   the access point's subnet, linked to the access point; the address AccessPoint.deck_address().
 ## "You" (a user) is any source with a user.
 
-enum Kind { DEVICE, JACK, PORT, HOST, BARE, WIRELESS }
+## AUTO = 0, NONE = 1, JACK = 2 are stored in scenes (wall_jack.tscn): append new kinds at the end.
+enum Kind { AUTO, NONE, JACK, PORT, HOST, DEVICE, BARE, WIRELESS }
+
+## What screens call an entry point of each kind.
+const KIND_LABELS: Dictionary[Kind, String] = {
+	Kind.JACK: "wall jack",
+	Kind.PORT: "maintenance port",
+	Kind.HOST: "computer",
+	Kind.BARE: "computer",
+	Kind.WIRELESS: "Wi-Fi",
+}
 
 var kind: Kind = Kind.DEVICE
 ## The device the traffic starts at or enters through (the sender, the jack, the port's device, the
@@ -54,6 +67,16 @@ static func wireless(p_user: Node, access_point: Device) -> NetworkSource:
 	return source
 
 
+## What screens call an entry point of `p_kind` (KIND_LABELS; "" for a kind without one).
+static func kind_label(p_kind: Kind) -> String:
+	return KIND_LABELS.get(p_kind, "")
+
+
+## The kind's name in logs ("JACK", "PORT").
+static func kind_name(p_kind: Kind) -> String:
+	return Kind.keys()[p_kind]
+
+
 ## The key a user is known by (accounts, traces): its node name.
 static func user_key(p_user: Node) -> String:
 	return String(p_user.name) if p_user != null and is_instance_valid(p_user) else ""
@@ -82,7 +105,7 @@ func has_own_node() -> bool:
 	return kind == Kind.JACK or kind == Kind.WIRELESS
 
 
-## The graph node the traffic starts at (Device.graph()): DECK_NODE on a jack or over Wi-Fi, else
+## The graph node the traffic starts at (DeviceGraphBuilder.build()): DECK_NODE on a jack or over Wi-Fi, else
 ## the device's.
 func start_id() -> int:
 	if has_own_node():
@@ -118,7 +141,7 @@ func reaches(tree: SceneTree, target: Device) -> bool:
 		return target == device and device.is_up()
 	if target == device and not has_own_node():
 		return device.is_up()
-	return Device.graph(tree, self).reaches(start_id(), target.get_instance_id())
+	return DeviceGraphBuilder.build(tree, self).reaches(start_id(), target.get_instance_id())
 
 
 func _devices(tree: SceneTree, with_down: bool) -> Array[Device]:
@@ -133,7 +156,7 @@ func _devices(tree: SceneTree, with_down: bool) -> Array[Device]:
 		if not device.is_up():
 			return found
 		found.append(device)
-	var graph := Device.graph(tree, self)
+	var graph := DeviceGraphBuilder.build(tree, self)
 	var ids := graph.connected(start_id()) if with_down else graph.reachable(start_id())
 	for id in ids:
 		var other := instance_from_id(id) as Device

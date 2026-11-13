@@ -1,7 +1,7 @@
 class_name Router
 extends Node
 ## Component (ADR 0074, 0113, 0116): makes its entity's Device a router (a firewall) between
-## subnets. The reach graph (Device.graph()) asks passes() whenever traffic enters it from one subnet
+## subnets. The reach graph (DeviceGraphBuilder.build()) asks passes() whenever traffic enters it from one subnet
 ## and leaves into another, so its rules decide everything sent over the network through it
 ## (commands, incidents, ringing). A device's own traffic: the first of its `rules` that matches
 ## (RouterRule, from a subnet, a device or any) decides, else `default_allow`. A user's (the deck:

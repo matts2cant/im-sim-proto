@@ -21,7 +21,8 @@ extends Node
 ## deck's panel; closing it emits `desktop_closed`. A remote desktop never opens the local session.
 ## Unpowered or broken (its Device down): it does nothing when used and lists nothing.
 ## The address in the title bar comes from any component of the entity offering
-## `device_address() -> String` (the network layer); without one no address is shown.
+## `device_address() -> String` (the network layer; DeviceNetwork.address_of()); without one no
+## address is shown.
 ## EventLog: `computer.opened {computer, by, remote}`, `computer.login {computer, user, ok}`,
 ## `computer.logout {computer}`; commands log as `device.command`. Saveable (`session_user`).
 
@@ -36,7 +37,8 @@ const GROUP: StringName = &"computer"
 const SCREEN: StringName = &"computer"
 const ACCOUNT_OPTION: StringName = &"account"
 const REMOTE_OPTION: StringName = &"remote"
-const ADDRESS_METHOD: StringName = &"device_address"
+const LOGGED_IN: StatusWord = preload("res://objects/devices/status_words/logged_in.tres")
+const LOGGED_OUT: StatusWord = preload("res://objects/devices/status_words/logged_out.tres")
 const MAIL: StringName = &"mail"
 const FILES: StringName = &"files"
 const SECURITY: StringName = &"security"
@@ -71,6 +73,8 @@ class DeviceRow:
 	var online: bool = false
 	## DeviceStatus words: "offline", or "online" then its components' words.
 	var status: PackedStringArray
+	## One of its words is an alert word (StatusWord.alert).
+	var alert: bool = false
 	## Online and switched off by a command (DeviceStatus.is_disabled()).
 	var disabled: bool = false
 	## The table's commands it accepts; empty while offline.
@@ -114,20 +118,13 @@ func is_logged_in() -> bool:
 
 
 ## Status words for security screens (DeviceStatus): logged in / logged out.
-func device_status() -> PackedStringArray:
-	return PackedStringArray(["logged in" if is_logged_in() else "logged out"])
+func device_status() -> Array[StatusWord]:
+	return [LOGGED_IN if is_logged_in() else LOGGED_OUT] as Array[StatusWord]
 
 
-## Its network address from a component offering `device_address()`, or "".
+## Its network address (DeviceNetwork.address_of()), or "".
 func address() -> String:
-	if not is_instance_valid(entity):
-		return ""
-	for child in entity.get_children():
-		if child.has_method(ADDRESS_METHOD):
-			var value := str(child.call(ADDRESS_METHOD))
-			if not value.is_empty():
-				return value
-	return ""
+	return DeviceNetwork.address_of(entity)
 
 
 ## The account named `user`, or null.
@@ -250,7 +247,7 @@ func devices() -> Array[DeviceRow]:
 	var rows: Array[DeviceRow] = []
 	if not is_up() or not is_inside_tree():
 		return rows
-	var graph := Device.graph(get_tree())
+	var graph := DeviceGraphBuilder.build(get_tree())
 	var own_id := device.get_instance_id()
 	var reached := graph.reachable(own_id)
 	for id in graph.component(own_id):
@@ -265,7 +262,9 @@ func devices() -> Array[DeviceRow]:
 		row.name = display_name(other)
 		row.kind = kind
 		row.online = reached.has(id)
-		row.status = DeviceStatus.of(other.entity, row.online)
+		var words := DeviceStatus.words_of(other.entity, row.online)
+		row.status = StatusWord.texts(words)
+		row.alert = StatusWord.any_alert(words)
 		row.disabled = row.online and DeviceStatus.is_disabled(other.entity)
 		row.has_view = DeviceStatus.has_view(other.entity)
 		if row.online:
