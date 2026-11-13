@@ -5,7 +5,8 @@ Writes levels/mission/population/security.tscn: a door in every doorway of the l
 locks), the keys, codes and credentials (keycards, datapads) and the security network (cameras, the
 vault turret, the security console, the alarm controller, sirens, panic buttons, the radio base
 station, breakers A and B, the network switch) plus the M11 hooks (access point, office wall jack,
-office PCs). The scene is generated: edit this script and re-run it, never the .tscn by hand.
+office PCs). STALE since M12: the scene has been edited directly since (the M12 network, the M13c door
+controllers and office bay are not in this script); re-running it would lose them.
 Coordinates come from warehouse.py (doorways, markers), so a layout change follows.
 
 Run from the project root: py -3.12 tools/level_gen/warehouse_security.py
@@ -274,7 +275,7 @@ SCENES = {
     "siren": "res://objects/alarm/siren.tscn",
     "panic": "res://objects/alarm/panic_button.tscn",
     "base_station": "res://objects/alarm/radio_base_station.tscn",
-    "switch": "res://objects/devices/network_switch.tscn",
+    "switch": "res://objects/network/switch_rack.tscn",
     "breaker": "res://objects/breaker_panel/breaker_panel.tscn",
     "datapad": "res://objects/datapad/datapad.tscn",
     "keycard": "res://items/keycard/keycard.tscn",

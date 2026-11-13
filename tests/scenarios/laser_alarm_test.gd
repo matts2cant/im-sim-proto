@@ -14,7 +14,7 @@ const BEAM: PackedScene = preload("res://objects/laser/laser_beam.tscn")
 const CONTROLLER: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN: PackedScene = preload("res://objects/alarm/siren.tscn")
 const COMPUTER: PackedScene = preload("res://objects/computer/computer.tscn")
-const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 
 var _root: Node3D
 var _laser: Node3D

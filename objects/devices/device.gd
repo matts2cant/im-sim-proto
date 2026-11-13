@@ -33,9 +33,9 @@ extends Node
 ##   is not network gear (DeviceNetwork.is_network_gear()) and stands within the access point's
 ##   `wireless_range` (wireless_link()). It is a link of the reach graph like a cable: a down access
 ##   point cuts its wireless devices off. `links` stays the cables.
-## - Status light (M12c, ADR 0122): once on a network it attaches a StatusLight to its entity (and
-##   network gear a GearPlate), unless `status_light` is off. An entity with its own lamp
-##   (DeviceLamp) shows the state there instead of on an LED (one light per device). An entity built
+## - Status light (M12c, ADR 0122): it attaches a StatusLight to its entity, unless `status_light`
+##   is off. An entity with its own lamp (DeviceLamp) shows the state there while on a network (one
+##   light per device); without a model or a lamp it shows none. An entity built
 ##   from a device model (ADR 0130 step 2) always gets one: it drives the model's own light, sockets
 ##   and name plates (ModelFace).
 ## - The deck (ADR 0113): `deck_port` says how a deck plugs into it (a wall jack joins its subnet, a
@@ -104,7 +104,7 @@ const DECK_NODE: int = -1
 @export var deck_port: DeckPort = DeckPort.AUTO
 ## The access point (its entity or Device) it links to by radio instead of a cable; empty: none.
 @export var wireless: NodePath = ^""
-## Shows its state on a StatusLight (and a GearPlate on network gear) once it is on a network (M12c).
+## Shows its state on a StatusLight (its model's light, or its lamp while on a network).
 @export var status_light: bool = true
 
 var entity: Node3D

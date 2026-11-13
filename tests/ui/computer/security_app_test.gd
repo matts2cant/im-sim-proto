@@ -10,7 +10,7 @@ extends GdUnitTestSuite
 ## says so when a computer controls nothing.
 
 const COMPUTER: PackedScene = preload("res://objects/computer/computer.tscn")
-const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const CAMERA: PackedScene = preload("res://objects/camera/security_camera.tscn")
 const TURRET: PackedScene = preload("res://objects/turret/turret.tscn")
 const DOOR: PackedScene = preload("res://objects/door/door.tscn")

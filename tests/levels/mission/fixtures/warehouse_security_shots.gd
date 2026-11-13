@@ -42,8 +42,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"manager_desk": {"feet": Vector3(10.8, 4.5, 3.6), "look": Vector3(9.2, 5.1, 0.7)},
 	"break_room_table": {"feet": Vector3(9.6, 0, 3.8), "look": Vector3(13.1, 0.7, 2.4)},
 	"locker_bench": {"feet": Vector3(15.5, 0, 9), "look": Vector3(13.65, 0.4, 10.2)},
-	"office_pcs": {"feet": Vector3(16.2, 4.5, 9.5), "look": Vector3(16.2, 5.6, 14.7)},
-	"network_switch": {"feet": Vector3(17.2, -4, 4.5), "look": Vector3(19.49, -2.5, 4.6)},
+	"office_pcs": {"feet": Vector3(16.2, 4.5, 9.5), "look": Vector3(16.2, 5.3, 14.5)},
 	# M9e: corridor-side control panels on the corridors' side walls, the barred gates.
 	"panel_office_entrance": {"feet": Vector3(10.2, 0, 6.2), "look": Vector3(8.4, 1.25, 6.6)},
 	"panel_bridge_door": {"feet": Vector3(10.2, 4.5, 6.2), "look": Vector3(8.4, 5.75, 6.6)},
@@ -52,9 +51,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"panel_catwalk_stairs_out": {"feet": Vector3(5.6, 4.5, 14.0), "look": Vector3(7.8, 5.75, 14.8)},
 	"gate_bars_road": {"feet": Vector3(-6.5, 0, -29), "look": Vector3(-5, 1.4, -18)},
 	"back_gate_bars_out": {"feet": Vector3(7.5, 0, 29), "look": Vector3(7, 1.4, 20)},
-	# M9e: the yard's switch and controller in the gate booth, and the switch seen through the west window.
-	"yard_switch": {"feet": Vector3(-11.6, 0, -21.8), "look": Vector3(-9.5, 1.5, -22.0)},
-	"yard_switch_window": {"feet": Vector3(-16, 0, -21), "look": Vector3(-9.5, 1.5, -23.4)},
+	# M9e: the yard's controller in the gate booth (its switch is in the office bay since ADR 0130).
+	"booth_controller": {"feet": Vector3(-11.6, 0, -21.8), "look": Vector3(-9.5, 1.5, -21.0)},
 	"breaker_a": {"feet": Vector3(-23.5, 0, 5.5), "look": Vector3(-26, 1.4, 4)},
 	"sirens_dock": {"feet": Vector3(0, 0, -16), "look": Vector3(0, 2.0, -10.5)},
 	# M9h: wall devices clear of doorways and signs: the ground corridor's west end (the office
@@ -117,8 +115,8 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	},
 	"office_mail_cut":
 	{
-		"feet": Vector3(14.5, 4.5, 14.0),
-		"look": Vector3(14.5, 5.95, 14.74),
+		"feet": Vector3(14.5, 4.5, 13.3),
+		"look": Vector3(14.5, 5.5, 14.5),
 		"computer": NETWORK + "OfficePc1",
 		"app": "mail",
 		"off": ["warehouse_building"],
@@ -126,43 +124,58 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	},
 	"office_pc2_mail":
 	{
-		"feet": Vector3(18, 4.5, 14.0),
-		"look": Vector3(18, 5.95, 14.74),
+		"feet": Vector3(18, 4.5, 13.3),
+		"look": Vector3(18, 5.5, 14.5),
 		"computer": NETWORK + "OfficePc2",
 		"app": "mail",
 		"select": "Re: password reset",
 	},
 	"office_pc2_files":
 	{
-		"feet": Vector3(18, 4.5, 14.0),
-		"look": Vector3(18, 5.95, 14.74),
+		"feet": Vector3(18, 4.5, 13.3),
+		"look": Vector3(18, 5.5, 14.5),
 		"computer": NETWORK + "OfficePc2",
 		"app": "files",
 		"select": "birthday_card_lena.jpg",
 	},
 	"office_pc1_dock":
 	{
-		"feet": Vector3(14.5, 4.5, 14.0),
-		"look": Vector3(14.5, 5.95, 14.74),
+		"feet": Vector3(14.5, 4.5, 13.3),
+		"look": Vector3(14.5, 5.5, 14.5),
 		"computer": NETWORK + "OfficePc1",
 	},
-	# M12a network: the office wall jack, the network closet in the basement store (RTR-01 between the
-	# office and security switches), the deck's Map from the jack before and after hacking RTR-01.
+	# M12a network: the office wall jack, the deck's Map from the jack before and after hacking RTR-01.
+	# ADR 0130 step 3: the office's locked linking bay (RTR-01, the five security switches, MAIL-01) from
+	# 1.5 m and its units at 0.5 m behind the swung glass door, the desk gear (SW-OFFICE, office PC 2),
+	# office PC 1 on its desk, the office from its doorway, the bay's key on the security room desk.
 	"office_jack": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(19.74, 4.9, 10)},
-	"network_closet": {"feet": Vector3(17.0, -4, 7.0), "look": Vector3(19.49, -2.5, 7.0)},
-	# M12c readability: the closet's gear up close (LEDs, port lights, plates, the panel); the deck's AR
-	# cable view from the office and in the closet; SW-OFFICE broken from the closet (the HUD line),
-	# then the office jack it fed blinking amber (`break` lasts for the rest of the run: put them last).
-	"closet_close": {"feet": Vector3(18.3, -4, 6.6), "look": Vector3(19.49, -2.45, 6.4)},
+	"office_bay": {"feet": Vector3(17.6, 4.5, 12.5), "look": Vector3(19.43, 5.55, 12.5)},
+	"office_bay_units":
+	{
+		"feet": Vector3(18.6, 4.5, 12.55),
+		"look": Vector3(19.2, 5.75, 12.5),
+		"swing": [NETWORK + "OfficeBay/GlassDoor"],
+		"wait": 1.6,
+	},
+	"office_bay_units_top":
+	{
+		"feet": Vector3(18.6, 4.5, 12.55),
+		"look": Vector3(19.2, 5.98, 12.5),
+		"swing": [NETWORK + "OfficeBay/GlassDoor"],
+		"wait": 1.6,
+	},
+	"office_desk_gear": {"feet": Vector3(17.7, 4.5, 13.2), "look": Vector3(18.4, 5.3, 14.5)},
+	"office_pc1": {"feet": Vector3(14.5, 4.5, 13.2), "look": Vector3(14.5, 5.4, 14.5)},
+	"office_doorway": {"feet": Vector3(16.5, 4.5, 7.4), "look": Vector3(17.5, 5.4, 13.5)},
+	"office_bay_key": {"feet": Vector3(17.9, 0, 2.9), "look": Vector3(19.3, 0.81, 2.85)},
+	# M12c readability: the deck's AR cable view from the office; SW-OFFICE broken on its desk (the HUD
+	# line), then the office jack it fed blinking amber (`break` lasts for the rest of the run: put them
+	# last).
 	"ar_office": {"feet": Vector3(18.6, 4.5, 10.3), "look": Vector3(12.0, 6.5, 6.0), "ar": true, "wait": 1.5},
-	"ar_closet": {"feet": Vector3(16.0, -4, 7.4), "look": Vector3(19.49, -1.6, 7.4), "ar": true, "wait": 1.5},
-	"closet_feedback":
-	{"feet": Vector3(17.6, -4, 7.6), "look": Vector3(19.49, -2.45, 7.6), "break": [NETWORK + "OfficeSwitch"]},
+	"ar_office_bay": {"feet": Vector3(16.5, 4.5, 11.0), "look": Vector3(19.43, 6.4, 12.5), "ar": true, "wait": 1.5},
+	"office_feedback":
+	{"feet": Vector3(17.7, 4.5, 13.2), "look": Vector3(18.5, 5.3, 14.5), "break": [NETWORK + "OfficeSwitch"]},
 	"office_amber": {"feet": Vector3(17.4, 4.5, 10.1), "look": Vector3(19.74, 4.9, 10), "wait": 1.6},
-	# The Security subnet's area switches (a subnet can span several switches).
-	"security_room_switch": {"feet": Vector3(16.0, 0, 3.4), "look": Vector3(14.0, 1.4, 3.0)},
-	"vault_switch": {"feet": Vector3(16.2, 4.5, 2.2), "look": Vector3(14.0, 5.9, 1.5)},
-	"roof_switch": {"feet": Vector3(15.6, 9.5, -8.2), "look": Vector3(16.3, 10.2, -10.0)},
 	"deck_map_office":
 	{
 		"feet": Vector3(18.9, 4.5, 10),
@@ -175,7 +188,7 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"feet": Vector3(18.9, 4.5, 10),
 		"look": Vector3(19.74, 4.9, 10),
 		"deck": NETWORK + "OfficeWallJack",
-		"hack": [NETWORK + "Rtr01"],
+		"hack": [NETWORK + "OfficeBay/Rtr01"],
 		"wait": 3.0,
 	},
 	# M12b: AP-YARD on its bracket over the north parapet, from the Untrained cracking spot on the roof

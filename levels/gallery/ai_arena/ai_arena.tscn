@@ -12,7 +12,7 @@
 [ext_resource type="Script" path="res://actors/common/behaviour/patrol_route.gd" id="9_route"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="10_controller"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="11_siren"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="12_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_desk.tscn" id="12_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="13_panic_button"]
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="14_base_station"]
 
@@ -60,6 +60,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 0.8)
 height = 1.0
 width = 1.6
 depth = 0.7
+surface = "wood"
+
+[node name="SwitchDesk" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 0, 0.6)
+height = 0.75
+width = 0.6
+depth = 0.6
 surface = "wood"
 
 [node name="Lamps" type="Node3D" parent="."]
@@ -173,7 +180,7 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -15, 0, 1.6)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.5, 0.01)
 
 [node name="Switch" parent="Alarm" instance=ExtResource("12_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 1.5, 0.01)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 0.75, 0.3)
 
 [node name="Powered" parent="Alarm/Switch"]
 circuit = &"ai_arena_network"

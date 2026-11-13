@@ -5,8 +5,9 @@ extends Node3D
 ## overview camera), waits, saves `<folder>/<name>.png` and quits after the last one. Positions are
 ## warehouse coordinates (x east, z south, origin at the compound centre). `crouch`: crouched eye
 ## height. `cam`: a free camera at `eye` instead of the player (HUD hidden). User args: `dark=1`
-## turns breakers A and B off; `lights=0` removes the M12c status lights and gear plates (cost
-## comparison); shot keys `break` (devices broken first) and `ar` (a deck that has seen every device
+## turns breakers A and B off; `lights=0` removes the status lights (cost
+## comparison); shot keys `break` (devices broken first), `swing` (hinged doors swung open) and `ar`
+## (a deck that has seen every device
 ## in hand, its AR cable view on); `perf=1` prints frames per second (vsync off) and the physics-process
 ## time; `flashlights=0|1` (and `flashlight_shadows=0`) sets every guard's flashlight; `lit=1` raises the
 ## ambient light and clears the fog (layout review only: it is not what the player sees).
@@ -284,6 +285,9 @@ func _next() -> void:
 		StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _level.get_node(path)))
 	for path: String in _shot.get("break", []):
 		Breakable.of(_level.get_node(path)).take_damage(&"ballistic", 1000.0)
+	# Hinged doors (a linking bay's glass door) swung open, locked or not.
+	for path: String in _shot.get("swing", []):
+		HingedDoor.of(_level.get_node(path)).set_open(true)
 	if _shot.has("guard"):
 		var guard := _level.get_node("Population/People/Guards/" + String(_shot["guard"])) as Node3D
 		guard.global_position = _shot["guard_at"]
@@ -346,12 +350,12 @@ func _hold_seeing_deck() -> void:
 	stack.state[DeckSession.SEEN] = seen
 
 
-# `lights=0` (cost comparison): removes every status light and gear plate once they are attached.
+# `lights=0` (cost comparison): removes every status light once they are attached.
 func _strip_status_lights() -> void:
 	for device in Device.all(get_tree()):
-		for node: Node in [StatusLight.of(device), device.entity.get_node_or_null(^"GearPlate")]:
-			if node != null:
-				node.free()
+		var light := StatusLight.of(device)
+		if light != null:
+			light.free()
 
 
 # Opens the shot's computer logged in as its first account on its app, with `select` selected.

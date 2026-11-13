@@ -84,8 +84,6 @@ func test_every_scene_drives_its_one_light_or_none() -> void:
 		assert_object(light).override_failure_message(path).is_not_null()
 		var expected: int = SCENES[path][0]
 		assert_int(light.indicators().size()).override_failure_message(path).is_equal(expected)
-		assert_object(light.led).override_failure_message(path + ": no placed LED").is_null()
-		assert_object(_entities[path].get_node_or_null("GearPlate")).override_failure_message(path).is_null()
 
 
 func test_every_scene_has_its_sockets_and_its_cable_fits() -> void:

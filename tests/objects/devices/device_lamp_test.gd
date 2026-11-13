@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
-## Integration (M13 one light, ADR 0122 amendment 2): one light per device. A device whose entity has
-## a DeviceLamp with a lamp mesh gets no status LED; the lamp shows the owner's colour while up,
-## blinks amber when cut off, goes dark when unpowered or disabled and comes back to the owner's
-## colour with the link. Minimal entities built from components (network_fixtures.body_device):
+## Integration (M13 one light, ADR 0122 amendment 2; ADR 0130 step 3): one light per device. A device
+## without a model whose entity has a DeviceLamp shows its network state on the lamp: the owner's
+## colour while up, amber blinking when cut off, dark when unpowered or disabled, the owner's colour
+## again with the link. Without a model or a lamp it shows nothing (nothing is placed any more).
+## Minimal entities built from components (network_fixtures.body_device):
 ##   Switch (gear) ── Box (DeviceLamp + a lamp mesh, DeviceSwitch), Plain (no lamp)
 ##   Lone: a DeviceLamp, no cables (no StatusLight)
 ## The shipped camera (its watch lamp) and a door with a keypad (its controller's boxes' lock lights,
@@ -94,12 +95,12 @@ func _assert_shows(lamp: DeviceLamp, color: Color, blinking: bool, label: String
 		assert_float(float(mesh.get_instance_shader_parameter(&"blink"))).is_equal(1.0 if blinking else 0.0)
 
 
-func test_a_device_with_a_lamp_gets_no_led_and_one_without_keeps_it() -> void:
+func test_a_device_with_a_lamp_shows_it_and_one_without_shows_nothing() -> void:
 	var light := StatusLight.of(_n["Box"])
 	assert_object(light).is_not_null()
-	assert_object(light.led).is_null()
 	assert_array(light.indicators()).contains_exactly(_lamp("Box").meshes())
-	assert_object(StatusLight.of(_n["Plain"]).led).is_not_null()
+	# No model, no lamp: no light is placed on it.
+	assert_object(StatusLight.of(_n["Plain"])).is_null()
 	_assert_shows(_lamp("Box"), OWN, false, "up")
 
 
@@ -132,25 +133,23 @@ func test_off_any_network_the_lamp_shows_the_owner_colour() -> void:
 	_assert_shows(_lamp("Lone"), OWN, false, "lone")
 
 
-func test_a_lamp_that_gains_or_loses_its_meshes_swaps_the_led() -> void:
+func test_a_lamp_that_gains_its_meshes_later_shows_the_state() -> void:
+	# A lamp added after the device attached (a door's hardware built later): attached again, the light
+	# drives it once it has a mesh.
 	var lamp := _add_lamp(_n["Plain"], false)
-	var light := StatusLight.of(_n["Plain"])
-	# Added after the light attached: the LED stays until the lamp has a mesh.
-	assert_object(light.led).is_not_null()
-	light.free()
-	await get_tree().process_frame
-	light = StatusLight.attach(Device.of(_n["Plain"]))
-	assert_object(light.led).is_not_null()
+	var light := StatusLight.attach(Device.of(_n["Plain"]))
+	assert_object(light).is_not_null()
+	assert_array(light.indicators()).is_empty()
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = SphereMesh.new()
 	_n["Plain"].add_child(mesh)
 	var meshes: Array[MeshInstance3D] = [mesh]
 	lamp.set_meshes(meshes)
-	assert_object(light.led).is_null()
+	assert_array(light.indicators()).contains_exactly(meshes)
 	assert_int(lamp.network).is_equal(StatusLight.State.UP)
 	var none: Array[MeshInstance3D] = []
 	lamp.set_meshes(none)
-	assert_object(light.led).is_not_null()
+	assert_array(light.indicators()).is_empty()
 
 
 func test_a_camera_that_sees_the_player_is_red_until_cut_off() -> void:
@@ -161,7 +160,9 @@ func test_a_camera_that_sees_the_player_is_red_until_cut_off() -> void:
 	await get_tree().process_frame
 	var lamp := DeviceLamp.of(camera)
 	var behaviour := SecurityCamera.of(camera)
-	assert_object(StatusLight.of(camera).led).override_failure_message("no LED beside the lamp").is_null()
+	assert_array(StatusLight.of(camera).indicators()).override_failure_message("the lamp only").contains_exactly(
+		lamp.meshes()
+	)
 	_assert_shows(lamp, behaviour.config.idle_color, false, "idle")
 	behaviour.model.stop_sweep()
 	Fixtures.entity(_root, "Decoy", ORIGIN + Vector3(0, 0, 16), [], [&"actor.player"])
@@ -190,7 +191,7 @@ func test_a_door_with_a_keypad_shows_its_lock_lights_and_no_extra_led() -> void:
 	var lamp := DeviceLamp.of(controller)
 	# A keypad box on each face of the wall: two lock lights, one per side.
 	assert_int(lamp.meshes().size()).is_equal(2)
-	assert_object(StatusLight.of(controller).led).is_null()
+	assert_array(StatusLight.of(controller).indicators()).contains_exactly_in_any_order(lamp.meshes())
 	DoorHelpers.lock(door)
 	_assert_shows(lamp, Door.LOCKED_COLOUR, false, "locked")
 	Lockable.of(door).unlock(null, &"test")

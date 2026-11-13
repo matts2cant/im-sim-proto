@@ -10,6 +10,8 @@ const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const LEVEL: PackedScene = preload("res://levels/mission/warehouse.tscn")
 const SECURITY := "Population/Security"
 const PEOPLE := "Population/People"
+## The locked linking bay in the second office (under SECURITY): the network's rack units.
+const OFFICE_BAY := "Network/OfficeBay"
 
 var level: Node3D
 var map: RID
@@ -81,8 +83,13 @@ func door(door_name: String) -> Door:
 	return Door.of(door_entity(door_name))
 
 
+## A device by name: a wall device under Devices, else a rack unit in the office's linking bay
+## (ADR 0130: the switches and RTR-01).
 func device_entity(device_name: String) -> Node3D:
-	return level.get_node("%s/Devices/%s" % [SECURITY, device_name]) as Node3D
+	var wall := level.get_node_or_null("%s/Devices/%s" % [SECURITY, device_name]) as Node3D
+	if wall != null:
+		return wall
+	return level.get_node("%s/%s/%s" % [SECURITY, OFFICE_BAY, device_name]) as Node3D
 
 
 func device(device_name: String) -> Device:

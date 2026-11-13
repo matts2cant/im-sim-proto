@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://levels/kit/level_navigation.gd" id="2_nav"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="3_controller"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="4_siren"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="5_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_rack.tscn" id="5_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="6_station"]
 [ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="7_button"]
 

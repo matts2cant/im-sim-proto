@@ -17,11 +17,11 @@ const OFFICE: Array[String] = [
 	"Network/OfficeSwitch", "Network/OfficeWallJack", "Network/OfficePc1", "Network/OfficePc2"
 ]
 const SECURITY_DEVICES: Array[String] = [
-	"Devices/SecuritySwitch",
-	"Devices/YardSwitch",
-	"Devices/SecurityRoomSwitch",
-	"Devices/VaultSwitch",
-	"Devices/RoofSwitch",
+	"Network/OfficeBay/SecuritySwitch",
+	"Network/OfficeBay/YardSwitch",
+	"Network/OfficeBay/SecurityRoomSwitch",
+	"Network/OfficeBay/VaultSwitch",
+	"Network/OfficeBay/RoofSwitch",
 	"Devices/SecurityConsole",
 	"Devices/CameraGate",
 	"Devices/CameraYard",
@@ -79,7 +79,7 @@ func _device(path: String) -> Device:
 
 
 func _router() -> Node3D:
-	return _entity("Network/Rtr01")
+	return _entity("Network/OfficeBay/Rtr01")
 
 
 func test_two_subnets_with_addresses_and_names_joined_by_rtr01() -> void:
@@ -176,7 +176,7 @@ func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() ->
 	]
 	# The vault's switch unpowered: the vault and upper corridor devices go offline, the rest of the
 	# subnet (the security room, the hall, the yard and the roof) stays reachable.
-	var powered := Powered.of(_entity("Devices/VaultSwitch"))
+	var powered := Powered.of(_entity("Network/OfficeBay/VaultSwitch"))
 	powered.on = false
 	await _frames(2)
 	_assert_reached(console, vault, false)
@@ -185,7 +185,7 @@ func test_an_area_switch_cuts_only_its_own_devices_from_the_security_subnet() ->
 	await _frames(2)
 	_assert_reached(console, vault, true)
 	# The roof's switch broken: the roof's devices go offline, the yard's switch above it does not.
-	var roof_switch := _device("Devices/RoofSwitch")
+	var roof_switch := _device("Network/OfficeBay/RoofSwitch")
 	roof_switch.load_state({"broken": true})
 	await _frames(2)
 	_assert_reached(console, roof, false)
@@ -213,7 +213,7 @@ func test_the_deck_on_the_office_jack_sees_the_office_and_hacking_rtr01_reveals_
 	assert_str(session.source.address).is_equal("10.0.10.40")
 	await _frames(15)
 	var seen := _map(session)
-	assert_array(seen).contains_exactly_in_any_order(OFFICE + ["Network/Rtr01"])
+	assert_array(seen).contains_exactly_in_any_order(OFFICE + ["Network/OfficeBay/Rtr01"])
 	# Hacking the router (an account on it: the Icebreaker at Trained, or a login) opens Security.
 	DeviceAccounts.of(_router()).grant(user, "admin")
 	session.refresh()
