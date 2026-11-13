@@ -59,7 +59,7 @@ func _device(path: String) -> Device:
 
 
 func _tracer() -> Tracer:
-	return _entity("Network/Rtr01").get_node("Tracer") as Tracer
+	return _entity("Network/OfficeBay/Rtr01").get_node("Tracer") as Tracer
 
 
 func _frames(count: int) -> void:
@@ -77,10 +77,10 @@ func test_ap_yard_links_the_yard_camera_and_roof_lasers_by_radio() -> void:
 	assert_str(String(Powered.of(_entity(AP)).circuit)).is_equal("warehouse_yard")
 	# Cabled to the yard's switch, which no longer cables the yard camera; the roof's switch feeds only
 	# the roof camera now.
-	var yard_links := _linked(_device("Devices/YardSwitch"))
+	var yard_links := _linked(_device("Network/OfficeBay/YardSwitch"))
 	assert_array(yard_links).contains([AP])
 	assert_array(yard_links).not_contains(["Devices/CameraYard"])
-	assert_array(_linked(_device("Devices/RoofSwitch"))).contains_exactly(["Devices/CameraRoof"])
+	assert_array(_linked(_device("Network/OfficeBay/RoofSwitch"))).contains_exactly(["Devices/CameraRoof"])
 	for path: String in RADIO:
 		var device := _device(path)
 		assert_object(device.wireless_link()).override_failure_message(path).is_same(ap)
@@ -179,10 +179,10 @@ func test_a_deck_joined_over_ap_yard_reaches_security_without_passing_rtr01() ->
 		"Devices/CameraYard",
 		"Devices/LaserRoofWest",
 		"Devices/SecurityConsole",
-		"Network/Rtr01",
+		"Network/OfficeBay/Rtr01",
 	]:
 		assert_array(seen).override_failure_message(path + " not on the map").contains([path])
-		if path != "Network/Rtr01":
+		if path != "Network/OfficeBay/Rtr01":
 			assert_bool(session.source.reaches(get_tree(), _device(path))).override_failure_message(path).is_true()
 	# RTR-01 is not passed: the office stays hidden and out of reach.
 	for path: String in ["Network/OfficeSwitch", "Network/OfficePc1", "Network/OfficePc2", "Network/OfficeWallJack"]:

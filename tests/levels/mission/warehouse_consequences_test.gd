@@ -25,7 +25,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	Powered.set_circuit(get_tree(), BUILDING, true)
-	for path: String in ["Network/Rtr01", "Devices/VaultSwitch", "Devices/RoofSwitch"]:
+	for path: String in ["Network/OfficeBay/Rtr01", "Network/OfficeBay/VaultSwitch", "Network/OfficeBay/RoofSwitch"]:
 		Powered.of(_entity(path)).on = true
 	Lockable.of(_entity("Doors/BridgeDoor")).lock()
 	for path: String in CONTROLLERS:
@@ -53,7 +53,7 @@ func _faults() -> Array[EventLogEntry]:
 
 
 func test_the_vault_switch_dropping_is_a_network_fault_at_the_switch() -> void:
-	Powered.of(_entity("Devices/VaultSwitch")).on = false
+	Powered.of(_entity("Network/OfficeBay/VaultSwitch")).on = false
 	await _checks(3)
 	var faults := _faults()
 	# Both controllers supervise the vault's devices: each raises one fault, at SW-VAULT.
@@ -62,11 +62,13 @@ func test_the_vault_switch_dropping_is_a_network_fault_at_the_switch() -> void:
 		assert_str(str(entry.data["at"])).is_equal("SW-VAULT")
 	var controller := AlarmController.of(_entity(CONTROLLERS[0]))
 	assert_bool(controller.is_fault()).is_true()
-	assert_vector(controller.point).is_equal_approx(_entity("Devices/VaultSwitch").global_position, Vector3.ONE * 0.01)
+	assert_vector(controller.point).is_equal_approx(
+		_entity("Network/OfficeBay/VaultSwitch").global_position, Vector3.ONE * 0.01
+	)
 
 
 func test_the_roof_switch_and_its_camera_are_trouble_notes_only() -> void:
-	Powered.of(_entity("Devices/RoofSwitch")).on = false
+	Powered.of(_entity("Network/OfficeBay/RoofSwitch")).on = false
 	await _checks(3)
 	assert_array(_faults()).is_empty()
 	for path: String in CONTROLLERS:

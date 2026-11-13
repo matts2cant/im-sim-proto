@@ -51,7 +51,7 @@ func _device(path: String) -> Device:
 
 
 func _tracer() -> Tracer:
-	return _entity("Network/Rtr01").get_node("Tracer") as Tracer
+	return _entity("Network/OfficeBay/Rtr01").get_node("Tracer") as Tracer
 
 
 func _frames(count: int) -> void:
@@ -63,9 +63,7 @@ func test_every_networked_device_is_of_a_kind_with_an_icon() -> void:
 	var kinds := DeviceKinds.shipped()
 	var missing: PackedStringArray = []
 	for device in _security_devices():
-		# The mail host has no kind since ADR 0130 retired the server kind; it goes with mail hosting.
-		if ActorState.has(device.entity, &"object.server"):
-			continue
+		# MAIL-01 is a rack server since ADR 0130 step 3: a computer, of the computer kind.
 		var kind := kinds.kind_for(device.entity)
 		if kind == null or kind.icon.is_empty():
 			missing.append(_path(device))
@@ -74,7 +72,7 @@ func test_every_networked_device_is_of_a_kind_with_an_icon() -> void:
 		assert_str(String(ExploitItems.kind_of(_device(path)))).override_failure_message(path).is_equal("camera")
 	for path: String in ["Devices/AlarmController", "Devices/AlarmControllerYard"]:
 		assert_str(String(ExploitItems.kind_of(_device(path)))).override_failure_message(path).is_equal("alarm")
-	assert_str(String(ExploitItems.kind_of(_device("Network/Rtr01")))).is_equal("router")
+	assert_str(String(ExploitItems.kind_of(_device("Network/OfficeBay/Rtr01")))).is_equal("router")
 
 
 func test_the_exploit_items_lie_at_their_places() -> void:
@@ -132,27 +130,27 @@ func test_the_alarm_item_over_ap_yard_opens_the_yard_controller_without_trace() 
 
 
 func test_rtr01_keeps_the_office_off_security_except_the_console() -> void:
-	var router := Router.of(_entity("Network/Rtr01"))
+	var router := Router.of(_entity("Network/OfficeBay/Rtr01"))
 	assert_int(router.rules.size()).is_equal(4)
 	assert_bool(router.default_allow).is_true()
 	var pc := _device("Network/OfficePc1")
 	# Office devices reach the console and MAIL-01 (M12c) only; the security devices reach the office.
 	assert_bool(pc.reaches(_entity("Devices/SecurityConsole"))).is_true()
-	assert_bool(pc.reaches(_entity("Network/MailServer"))).is_true()
+	assert_bool(pc.reaches(_entity("Network/OfficeBay/MailServer"))).is_true()
 	for path: String in ["Doors/VaultDoor/Hardware/Controller", "Devices/CameraHall", "Devices/AlarmController"]:
 		assert_bool(pc.reaches(_entity(path))).override_failure_message(path).is_false()
 	assert_bool(_device("Devices/SecurityConsole").reaches(_entity("Network/OfficePc1"))).is_true()
 	# RTR-01 itself sends freely: its tracer's incidents reach the alarm controllers.
 	for path: String in ["Devices/AlarmController", "Devices/AlarmControllerYard"]:
-		assert_bool(_device("Network/Rtr01").reaches(_entity(path))).override_failure_message(path).is_true()
+		assert_bool(_device("Network/OfficeBay/Rtr01").reaches(_entity(path))).override_failure_message(path).is_true()
 	# A deck on the office jack with access to RTR-01 passes (no rule names "you").
 	var user := Net.user(_level, AT_JACK)
 	var jack := NetworkSource.for_user(user, _device("Network/OfficeWallJack"), NetworkSource.Kind.JACK)
 	assert_bool(jack.reaches(get_tree(), _device("Devices/CameraHall"))).is_false()
-	DeviceAccounts.of(_entity("Network/Rtr01")).grant(user, "admin")
+	DeviceAccounts.of(_entity("Network/OfficeBay/Rtr01")).grant(user, "admin")
 	assert_bool(jack.reaches(get_tree(), _device("Devices/CameraHall"))).is_true()
-	DeviceAccounts.of(_entity("Network/Rtr01")).set_password(
-		"admin", DeviceAccounts.of(_entity("Network/Rtr01")).account("admin").password
+	DeviceAccounts.of(_entity("Network/OfficeBay/Rtr01")).set_password(
+		"admin", DeviceAccounts.of(_entity("Network/OfficeBay/Rtr01")).account("admin").password
 	)
 	# Every siren and both alarm controllers are on Security: no rule at RTR-01 stands between them.
 	for node in _level.find_children("Siren*", "", true, false):
