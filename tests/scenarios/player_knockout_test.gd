@@ -105,8 +105,8 @@ func _state(player: Player, hud: Hud) -> Dictionary:
 		"tags": tags,
 		"stun": player.body.stun,
 		"health": health,
-		"dead": player.body.dead,
-		"unconscious": player.body.unconscious,
+		"dead": player.body.is_dead(),
+		"unconscious": player.body.is_unconscious(),
 		"overlay_visible": hud.death_overlay.visible,
 		"hits": EventLog.find(&"actor.stunned").size(),
 	}

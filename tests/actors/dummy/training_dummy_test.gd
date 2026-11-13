@@ -33,8 +33,7 @@ func test_pistol_headshot_deals_50_and_shows_it() -> void:
 	assert_float(hits[0].data["amount"]).is_equal(50.0)
 	assert_str(hits[0].data["type"]).is_equal("damage.ballistic")
 	assert_str(hits[0].target).is_equal("TrainingDummy")
-	var texts := _dummy.damage_numbers().map(func(label: Label3D) -> String: return label.text)
-	assert_array(texts).contains(["head 50"])
+	assert_array(Array((_dummy.get_node("DamageNumbers") as DamageNumbers).texts())).contains(["head 50"])
 	# Dummy head 40: a headshot kills it and it tips over.
 	assert_bool(_dummy.body.is_dead()).is_true()
 	assert_array(EventLog.find(&"actor.died")).has_size(1)
@@ -52,8 +51,7 @@ func test_pistol_torso_shot_deals_25() -> void:
 	assert_float(hits[0].data["amount"]).is_equal(25.0)
 	assert_float(_dummy.body.health(&"torso")).is_equal(55.0)
 	assert_float(_dummy.body.health(&"head")).is_equal(40.0)
-	var texts := _dummy.damage_numbers().map(func(label: Label3D) -> String: return label.text)
-	assert_array(texts).contains(["torso 25"])
+	assert_array(Array((_dummy.get_node("DamageNumbers") as DamageNumbers).texts())).contains(["torso 25"])
 	assert_bool(_dummy.body.is_dead()).is_false()
 
 
@@ -96,7 +94,7 @@ func test_baton_from_behind_on_unaware_dummy_knocks_out_in_one_hit() -> void:
 	assert_array(blunt).has_size(1)
 	assert_str(blunt[0].data["part"]).is_equal("torso")
 	await _driver.frames(40)
-	assert_bool(_dummy.is_down).is_true()
+	assert_bool((_dummy.get_node("DownedPose") as DownedPose).is_down).is_true()
 	assert_float(_dummy.hitboxes.rotation.x).is_equal_approx(PI / 2.0, 0.01)
 	# The model plays its down clip (ADR 0103).
 	var animator := _dummy.get_node("Animator") as CharacterAnimator
@@ -139,7 +137,7 @@ func test_reset_restores_health_consciousness_and_pose() -> void:
 	await _weapons.equip(2)
 	await _weapons.aim_at(Vector3(0, 0, -1.7), Weapons.part_position(_dummy, &"torso"))
 	await _weapons.fire(40)
-	assert_bool(_dummy.is_down).is_true()
+	assert_bool((_dummy.get_node("DownedPose") as DownedPose).is_down).is_true()
 
 	# `use` on the lying dummy resets it (the baton is still out; use is not a weapon action).
 	await _weapons.aim_at(Vector3(0, 0, -1.7), Weapons.part_position(_dummy, &"torso"))
@@ -149,7 +147,7 @@ func test_reset_restores_health_consciousness_and_pose() -> void:
 	assert_bool(_dummy.body.is_unconscious()).is_false()
 	assert_float(_dummy.body.stun).is_equal(0.0)
 	assert_float(_dummy.body.health(&"torso")).is_equal(80.0)
-	assert_bool(_dummy.is_down).is_false()
+	assert_bool((_dummy.get_node("DownedPose") as DownedPose).is_down).is_false()
 	assert_float(_dummy.hitboxes.rotation.x).is_equal_approx(0.0, 0.001)
 	# The model stands up again (ADR 0103).
 	var animator := _dummy.get_node("Animator") as CharacterAnimator

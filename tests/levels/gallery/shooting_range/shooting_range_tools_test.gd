@@ -137,10 +137,14 @@ func test_reset_button_stands_downed_dummies_up() -> void:
 	dead.body.take_damage(&"damage.ballistic", 500.0, &"head")
 	out.body.take_damage(&"damage.stun", 500.0)
 	await Wait.frames(get_tree(), 2)
-	assert_bool(dead.is_down and out.is_down).is_true()
+	assert_bool(_is_down(dead) and _is_down(out)).is_true()
 
 	Usable.of(_room.get_node("FiringLine/ResetDummies")).use(null)
 	await Wait.frames(get_tree(), 2)
 
-	assert_bool(dead.is_down or out.is_down).is_false()
+	assert_bool(_is_down(dead) or _is_down(out)).is_false()
 	assert_bool(dead.body.is_dead() or out.body.is_unconscious()).is_false()
+
+
+func _is_down(dummy: Node) -> bool:
+	return (dummy.get_node("DownedPose") as DownedPose).is_down

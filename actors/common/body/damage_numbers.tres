@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DamageNumbersConfig" format=3]
+
+[ext_resource type="Script" path="res://actors/common/body/damage_numbers_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+lifetime = 1.2
+rise = 0.5
+font_size = 40
+outline_size = 10
+pixel_size = 0.004
+outline_color = Color(0, 0, 0, 0.9)
+damage_color = Color(1, 1, 1, 1)
+stun_color = Color(0.45, 0.7, 1, 1)
+knockout_color = Color(1, 0.85, 0.2, 1)
+side_offset = 0.35
+lift = 0.1
+step_height = 0.14
+steps = 3
+fallback_height = 1.2

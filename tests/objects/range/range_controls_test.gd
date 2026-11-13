@@ -47,7 +47,11 @@ func test_reset_button_stands_dead_and_knocked_out_dummies_up() -> void:
 
 	for dummy: TrainingDummy in [dead, out, standing]:
 		assert_bool(dummy.body.is_dead() or dummy.body.is_unconscious()).override_failure_message(dummy.name).is_false()
-		assert_bool(dummy.is_down).override_failure_message(dummy.name).is_false()
+		(
+			assert_bool((dummy.get_node("DownedPose") as DownedPose).is_down)
+			. override_failure_message(dummy.name)
+			. is_false()
+		)
 	# Not a dummy (no `actor.dummy` tag): left as it is.
 	assert_bool(other_body.is_dead()).is_true()
 	var logged := EventLog.find(&"range.bodies_reset")
