@@ -254,7 +254,7 @@ func has_access(by: Node) -> bool:
 	var accounts := DeviceAccounts.of(entity)
 	if accounts != null and accounts.has_access(by):
 		return true
-	return intrusion.has_exploit(NetworkSource.user_key(by))
+	return intrusion.has_exploit(NetworkIdentity.key_of(by))
 
 
 ## True when `by` has admin access here: an admin account or an exploit item's grant.
@@ -262,7 +262,7 @@ func is_admin(by: Node) -> bool:
 	var accounts := DeviceAccounts.of(entity)
 	if accounts != null and accounts.is_admin(by):
 		return true
-	return intrusion.has_exploit(NetworkSource.user_key(by))
+	return intrusion.has_exploit(NetworkIdentity.key_of(by))
 
 
 ## Its network address (`address`) for screens that ask any component (DeviceNetwork.address_of(),
@@ -306,8 +306,8 @@ static func command_stimulus(
 func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by: Node = null) -> bool:
 	var other := Device.of(target)
 	var sent := other != null and reaches(other) and (command == INCIDENT or DeviceNetwork.trusts(other, self))
-	var target_name := String(other.entity.name) if other != null and is_instance_valid(other.entity) else ""
-	var data := {"command": command, "from": _entity_name(), "to": target_name, "sent": sent}
+	var target_name := EntityNames.log_name(other.entity) if other != null else ""
+	var data := {"command": command, "from": EntityNames.log_name(entity, self), "to": target_name, "sent": sent}
 	if at != NO_POINT:
 		data["point"] = at
 	if sent:
@@ -315,10 +315,10 @@ func send_command(command: StringName, target: Node, at: Vector3 = NO_POINT, by:
 		StimulusSystem.emit(stimulus)
 		data["stimulus"] = stimulus.id
 		if command != INCIDENT:
-			other.intrusion.device_log.record(DeviceLog.REMOTE, address, NetworkSource.user_key(by), String(command))
+			other.intrusion.device_log.record(DeviceLog.REMOTE, address, EntityNames.log_name(by), String(command))
 	if is_instance_valid(by):
 		data["by"] = by
-	EventLog.record(EventKinds.DEVICE_COMMAND, _entity_name(), target_name, data)
+	EventLog.record(EventKinds.DEVICE_COMMAND, EntityNames.log_name(entity, self), target_name, data)
 	return sent
 
 
@@ -366,7 +366,9 @@ func _apply() -> void:
 	var up := is_up()
 	if up != _was_up:
 		_was_up = up
-		var data := {"device": _entity_name(), "up": up, "unpowered": not is_powered(), "broken": broken}
+		var data := {
+			"device": EntityNames.log_name(entity, self), "up": up, "unpowered": not is_powered(), "broken": broken
+		}
 		EventLog.record(EventKinds.DEVICE_STATE, entity, "", data)
 		state_changed.emit(up)
 
@@ -386,10 +388,6 @@ func _attach_status_light() -> void:
 	StatusLight.attach(self)
 
 
-func _entity_name() -> String:
-	return String(entity.name) if is_instance_valid(entity) else String(name)
-
-
 func save_state() -> Dictionary:
 	var data := intrusion.to_dict()
 	data["broken"] = broken
@@ -402,4 +400,6 @@ func load_state(data: Dictionary) -> void:
 	outage = maxf(float(data.get("outage", 0.0)), 0.0)
 	set_physics_process(outage > 0.0)
 	intrusion.from_dict(data)
+	if data.has("exploit_admins") and str(data.get(NetworkIdentity.FORMAT_KEY, "")) != NetworkIdentity.FORMAT:
+		intrusion.rekey(func(saved: String) -> String: return NetworkIdentity.migrate(self, saved))
 	_apply()

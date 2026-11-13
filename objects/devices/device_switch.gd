@@ -52,7 +52,7 @@ func set_disabled(off: bool) -> void:
 	if disabled == off:
 		return
 	disabled = off
-	var device_name := String(entity.name) if entity != null else String(name)
+	var device_name := EntityNames.log_name(entity, self)
 	EventLog.record(EventKinds.DEVICE_TOGGLED, device_name, "", {"device": device_name, "enabled": not off})
 
 

@@ -72,7 +72,7 @@ func start(target: Device, user: String) -> bool:
 	if is_running():
 		_stop(&"stop")
 	var base := session.config.base_time(found.strength)
-	var host := NetworkSource.display_name(target)
+	var host := EntityNames.device_name(target)
 	job = Icebreaker.make(_key(target, found.user), found.user, host, found.password, found.strength, base)
 	device = target
 	var saved := _cracks().get(job.key, {}) as Dictionary
@@ -152,9 +152,9 @@ func _cracked(accounts: DeviceAccounts) -> void:
 		var codes := {code: LoginCredentials.format(job.user, job.password)}
 		var labels := {code: "%s (%s)" % [job.host, job.user]}
 		reader_log.add(LogEntry.make(entry_id, title, text, "Deck", codes, labels), job.host)
-	var device_name := _name()
+	var device_name := EntityNames.device_log_name(device)
 	EventLog.record(
-		EventKinds.DECK_CRACKED, NetworkSource.user_key(entity), device_name, {"device": device_name, "user": job.user}
+		EventKinds.DECK_CRACKED, EntityNames.log_name(entity), device_name, {"device": device_name, "user": job.user}
 	)
 	Notices.send(entity, DeckSession.access_notice(device, "Cracked %s: added to the Journal" % job.user))
 	session.refresh()
@@ -173,8 +173,10 @@ func _save() -> void:
 
 
 func _log(action: StringName) -> void:
-	var data := {"device": _name(), "user": job.user, "action": action, "progress": job.progress}
-	EventLog.record(EventKinds.DECK_ICEBREAKER, NetworkSource.user_key(entity), _name(), data)
+	var data := {
+		"device": EntityNames.device_log_name(device), "user": job.user, "action": action, "progress": job.progress
+	}
+	EventLog.record(EventKinds.DECK_ICEBREAKER, EntityNames.log_name(entity), EntityNames.device_log_name(device), data)
 
 
 func _on_plugged_changed(plugged: bool) -> void:
@@ -201,9 +203,3 @@ func _account(target: Device, user: String) -> DeviceAccount:
 
 static func _key(target: Device, user: String) -> String:
 	return "%s|%s" % [DeckSession.path_of(target), user.to_lower()]
-
-
-func _name() -> String:
-	if not is_instance_valid(device):
-		return ""
-	return String(device.entity.name) if is_instance_valid(device.entity) else String(device.name)

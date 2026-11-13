@@ -165,8 +165,13 @@ func open_desktop(viewer: Node, user: String, remote: bool) -> void:
 func log_in(typed_user: String, typed_password: String, by: Node = null) -> bool:
 	var list := DeviceAccounts.of(entity)
 	var ok := is_up() and list != null and list.try_login(typed_user, typed_password, by)
-	var who := String(by.name) if by != null else ""
-	EventLog.record(EventKinds.COMPUTER_LOGIN, who, _name(), {"computer": _name(), "user": typed_user, "ok": ok})
+	var who := EntityNames.log_name(by)
+	EventLog.record(
+		EventKinds.COMPUTER_LOGIN,
+		who,
+		EntityNames.log_name(entity, self),
+		{"computer": EntityNames.log_name(entity, self), "user": typed_user, "ok": ok}
+	)
 	if not ok:
 		var sound := get_node_or_null(sound_path) as AudioStreamPlayer3D
 		if sound != null and sound.is_inside_tree():
@@ -182,7 +187,12 @@ func log_out() -> void:
 	if session_user.is_empty():
 		return
 	session_user = ""
-	EventLog.record(EventKinds.COMPUTER_LOGOUT, "", _name(), {"computer": _name()})
+	EventLog.record(
+		EventKinds.COMPUTER_LOGOUT,
+		"",
+		EntityNames.log_name(entity, self),
+		{"computer": EntityNames.log_name(entity, self)}
+	)
 	session_changed.emit(false)
 
 
@@ -230,7 +240,7 @@ func read(document: ComputerDocument, reader: Node, source: String) -> bool:
 	var reader_log := PersonalLog.of(reader)
 	if reader_log == null or document == null:
 		return false
-	return reader_log.add(document.entry(source), _name())
+	return reader_log.add(document.entry(source), EntityNames.log_name(entity, self))
 
 
 ## True when this computer controls `other` (lists it in its Security app and sends it commands):
@@ -259,7 +269,7 @@ func devices() -> Array[DeviceRow]:
 			continue
 		var row := DeviceRow.new()
 		row.device = other
-		row.name = display_name(other)
+		row.name = EntityNames.device_name(other)
 		row.kind = kind
 		row.online = reached.has(id)
 		var words := DeviceStatus.words_of(other.entity, row.online)
@@ -281,12 +291,6 @@ func send(command: StringName, target: Device, by: Node = null) -> bool:
 	return device.send_command(command, target, Device.NO_POINT, by)
 
 
-## How screens name a device: its `display_name` (the deck's Map uses the same), else its entity's node
-## name in words ("CameraNorth" -> "Camera North"; NetworkSource.display_name()).
-static func display_name(other: Device) -> String:
-	return NetworkSource.display_name(other)
-
-
 # The table's commands `other` accepts, in table order.
 func _offered(other: Device) -> Array[StringName]:
 	var accepted: Array[StringName] = []
@@ -297,12 +301,13 @@ func _offered(other: Device) -> Array[StringName]:
 
 
 func _log_opened(viewer: Node, remote: bool) -> void:
-	var by := String(viewer.name) if viewer != null else ""
-	EventLog.record(EventKinds.COMPUTER_OPENED, by, _name(), {"computer": _name(), "by": by, "remote": remote})
-
-
-func _name() -> String:
-	return String(entity.name) if entity != null else String(name)
+	var by := EntityNames.log_name(viewer)
+	EventLog.record(
+		EventKinds.COMPUTER_OPENED,
+		by,
+		EntityNames.log_name(entity, self),
+		{"computer": EntityNames.log_name(entity, self), "by": by, "remote": remote}
+	)
 
 
 func save_state() -> Dictionary:

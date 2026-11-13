@@ -26,8 +26,8 @@ func use(user: Node) -> bool:
 	var told := 0
 	if device != null and DeviceSwitch.is_enabled(entity):
 		told = device.report_incident(entity.global_position)
-	var by := String(user.name) if user != null else ""
-	var button := String(entity.name) if entity != null else ""
+	var by := EntityNames.log_name(user)
+	var button := EntityNames.log_name(entity)
 	EventLog.record(EventKinds.DEVICE_PANIC, by, button, {"button": button, "by": by, "controllers": told})
 	used.emit(user)
 	return true

@@ -62,7 +62,7 @@ func test_every_device_fits_its_model_and_no_wall_gear_remains() -> void:
 			problems.append("%s: a rack unit outside a bay" % _path(entity))
 		var tags := ActorState.tags_of(entity)
 		var gear := tags.has(&"object.router") or tags.has(&"object.network_switch")
-		var computer := Computer.of(entity) != null and NetworkSource.display_name(device) != CONSOLE
+		var computer := Computer.of(entity) != null and EntityNames.device_name(device) != CONSOLE
 		if (gear or computer) and MountChecks.mount(entity) == MountChecks.Mount.WALL:
 			problems.append("%s: on a wall" % _path(entity))
 	assert_int(devices).is_greater(40)
@@ -76,11 +76,11 @@ func test_the_locked_bay_stands_in_the_second_office_with_the_network_gear() -> 
 	assert_float(at.y).is_equal_approx(OFFICE_FLOOR, 0.01)
 	var names: Array[String] = []
 	for unit in bay.units():
-		names.append(NetworkSource.display_name(Device.of(unit)))
+		names.append(EntityNames.device_name(Device.of(unit)))
 	assert_array(names).contains_exactly_in_any_order(BAY_GEAR)
 	# MAIL-01 is a rack server: a computer.
 	for unit in bay.units():
-		if NetworkSource.display_name(Device.of(unit)) == "MAIL-01":
+		if EntityNames.device_name(Device.of(unit)) == "MAIL-01":
 			assert_object(Computer.of(unit)).is_not_null()
 	# Nothing solid in the 1 m in front of its glass door (the door's width, 0.15 to 1.85 m up).
 	var front := Transform3D(bay.global_basis, bay.global_transform * Vector3(0, 1.0, 0.36 + CLEAR * 0.5))

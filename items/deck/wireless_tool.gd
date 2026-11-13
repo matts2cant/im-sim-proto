@@ -107,7 +107,7 @@ func aim(access_point: Device, deck_stack: ItemStack = null) -> bool:
 	if not in_range(access_point):
 		var text := (
 			"%s: out of the deck's Wi-Fi range (%d m; yours %d m)"
-			% [NetworkSource.display_name(access_point), roundi(distance_to(access_point)), roundi(wireless_range())]
+			% [EntityNames.device_name(access_point), roundi(distance_to(access_point)), roundi(wireless_range())]
 		)
 		Notices.send(entity, text)
 		return false
@@ -153,7 +153,7 @@ func start() -> bool:
 		return false
 	if is_running():
 		return true
-	var host := NetworkSource.display_name(target)
+	var host := EntityNames.device_name(target)
 	job = Icebreaker.make(DeckSession.path_of(target), "Wi-Fi key", host, radio.key, radio.key_strength, 0.0)
 	job.base_time = session.config.base_time(radio.key_strength)
 	var saved := _saved().get(job.key, {}) as Dictionary
@@ -239,8 +239,8 @@ func _cracked(radio: AccessPoint) -> void:
 	job.running = false
 	_saved().erase(job.key)
 	radio.grant_key(entity)
-	var device_name := _name()
-	EventLog.record(EventKinds.DECK_WIFI_CRACKED, NetworkSource.user_key(entity), device_name, {"device": device_name})
+	var device_name := EntityNames.device_log_name(target)
+	EventLog.record(EventKinds.DECK_WIFI_CRACKED, EntityNames.log_name(entity), device_name, {"device": device_name})
 	var joined := session.plug(target, stack)
 	var text := "Wi-Fi key cracked"
 	if joined:
@@ -274,21 +274,19 @@ func _save() -> void:
 
 func _log(action: StringName) -> void:
 	var data := {
-		"device": _name(),
+		"device": EntityNames.device_log_name(target),
 		"action": action,
 		"progress": job.progress if job != null else 0.0,
 		"reason": _paused,
 	}
-	EventLog.record(EventKinds.DECK_WIFI, NetworkSource.user_key(entity), _name(), data)
+	EventLog.record(EventKinds.DECK_WIFI, EntityNames.log_name(entity), EntityNames.device_log_name(target), data)
 
 
 func _has_deck() -> bool:
 	if stack == null:
 		return false
-	for child in entity.get_children():
-		if child is PlayerInventory:
-			return (child as PlayerInventory).inventory.stacks.has(stack)
-	return true
+	var carried := Inventory.of(entity)
+	return carried == null or carried.has(stack)
 
 
 func _saved() -> Dictionary:
@@ -315,9 +313,3 @@ static func _belongs_to(node: Node, owner_entity: Node) -> bool:
 			return true
 		current = current.get_parent()
 	return false
-
-
-func _name() -> String:
-	if not is_instance_valid(target):
-		return ""
-	return String(target.entity.name) if is_instance_valid(target.entity) else String(target.name)

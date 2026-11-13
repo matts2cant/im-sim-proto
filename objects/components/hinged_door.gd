@@ -106,8 +106,13 @@ func set_open(value: bool, by: Node = null) -> void:
 		return
 	open = value
 	set_physics_process(true)
-	var data := {"by": String(by.name) if is_instance_valid(by) else ""}
-	EventLog.record(EventKinds.HINGED_DOOR_OPENED if open else EventKinds.HINGED_DOOR_CLOSED, _name(), "", data)
+	var data := {"by": EntityNames.log_name(by)}
+	EventLog.record(
+		EventKinds.HINGED_DOOR_OPENED if open else EventKinds.HINGED_DOOR_CLOSED,
+		EntityNames.log_name(entity, self),
+		"",
+		data
+	)
 	state_changed.emit(open)
 
 
@@ -127,10 +132,6 @@ func _apply() -> void:
 
 func _on_unlocked_by_user(user: Node) -> void:
 	set_open(true, user)
-
-
-func _name() -> String:
-	return String(entity.name) if entity != null else String(name)
 
 
 func save_state() -> Dictionary:

@@ -111,7 +111,7 @@ func test_two_subnets_behind_rtr05_with_addresses_names_kinds_and_trust() -> voi
 			String(NETWORK[path][0])
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
-		assert_str(NetworkSource.display_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
+		assert_str(EntityNames.device_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
 		# Every device is of a kind the Map draws an icon for (ADR 0121).
 		var kind := DeviceKinds.shipped().kind_for(device.entity)
 		assert_object(kind).override_failure_message(path).is_not_null()

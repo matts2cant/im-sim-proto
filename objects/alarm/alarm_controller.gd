@@ -132,14 +132,14 @@ func raise(at: Vector3, by: String = "", incident: bool = false, fault: bool = f
 	if device == null or not device.is_up():
 		return
 	if not armed:
-		EventLog.record(EventKinds.ALARM_IGNORED, by, _name(), {"by": by, "point": at})
+		EventLog.record(EventKinds.ALARM_IGNORED, by, EntityNames.log_name(entity, self), {"by": by, "point": at})
 		return
 	var again := timer.is_on()
 	timer.raise(config.duration)
 	point = at
 	ActorState.set_tag(entity, FAULT, fault)
 	var data := {"by": by, "point": at, "duration": config.duration, "again": again, "fault": fault}
-	EventLog.record(EventKinds.ALARM_RAISED, by, _name(), data)
+	EventLog.record(EventKinds.ALARM_RAISED, by, EntityNames.log_name(entity, self), data)
 	_ring_sirens()
 	if incident:
 		device.send_to_all(RadioBaseStation.BROADCAST, at)
@@ -160,7 +160,7 @@ func set_armed(value: bool) -> void:
 	if value == armed:
 		return
 	armed = value
-	EventLog.record(EventKinds.ALARM_ARMED, "", _name(), {"armed": armed})
+	EventLog.record(EventKinds.ALARM_ARMED, "", EntityNames.log_name(entity, self), {"armed": armed})
 	if not armed:
 		stop("disarmed")
 
@@ -192,7 +192,7 @@ func _ended(reason: String) -> void:
 	ActorState.set_tag(entity, FAULT, false)
 	if device != null:
 		device.send_to_all(Siren.SILENCE)
-	EventLog.record(EventKinds.ALARM_ENDED, "", _name(), {"reason": reason})
+	EventLog.record(EventKinds.ALARM_ENDED, "", EntityNames.log_name(entity, self), {"reason": reason})
 	changed.emit(false)
 
 
@@ -212,12 +212,14 @@ func _supervise(delta: float) -> void:
 		var other := instance_from_id(id) as Device
 		if other == null or not is_instance_valid(other.entity) or not graph.reaches(id, own):
 			continue
-		present[id] = NetworkSource.display_name(other)
+		present[id] = EntityNames.device_name(other)
 		_positions[id] = other.entity.global_position
 	for id in supervision.update(present, clock):
 		var dropped := instance_from_id(id) as Device
-		var shown := NetworkSource.display_name(dropped) if is_instance_valid(dropped) else ""
-		EventLog.record(EventKinds.ALARM_TROUBLE, shown, _name(), {"device": shown, "time": clock})
+		var shown := EntityNames.device_name(dropped) if is_instance_valid(dropped) else ""
+		EventLog.record(
+			EventKinds.ALARM_TROUBLE, shown, EntityNames.log_name(entity, self), {"device": shown, "time": clock}
+		)
 	var burst := supervision.fault_due(clock)
 	if not burst.is_empty():
 		_raise_fault(graph, own, burst)
@@ -231,9 +233,9 @@ func _raise_fault(graph: DeviceGraph, own: int, burst: PackedInt64Array) -> void
 	var where := ""
 	if cut_device != null and is_instance_valid(cut_device.entity):
 		at = cut_device.entity.global_position
-		where = NetworkSource.display_name(cut_device)
+		where = EntityNames.device_name(cut_device)
 	var data := {"at": where, "drops": burst.size(), "point": at}
-	EventLog.record(EventKinds.ALARM_NETWORK_FAULT, FAULT_BY, _name(), data)
+	EventLog.record(EventKinds.ALARM_NETWORK_FAULT, FAULT_BY, EntityNames.log_name(entity, self), data)
 	raise(at, FAULT_BY, true, true)
 
 
@@ -259,10 +261,6 @@ func _on_action(action: StringName, stimulus: Stimulus) -> void:
 func _on_device_state_changed(up: bool) -> void:
 	if not up:
 		stop("broken" if device.broken else "unpowered")
-
-
-func _name() -> String:
-	return String(entity.name) if entity != null else String(name)
 
 
 func save_state() -> Dictionary:

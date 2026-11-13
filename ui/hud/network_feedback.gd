@@ -76,8 +76,8 @@ func _flush() -> void:
 			best_count = offline.size()
 			var names: Array[String] = []
 			for other in offline:
-				names.append(NetworkSource.display_name(other))
-			best = NetworkDrops.line(NetworkSource.display_name(device), names)
+				names.append(EntityNames.device_name(other))
+			best = NetworkDrops.line(EntityNames.device_name(device), names)
 	_pending.clear()
 	if best.is_empty():
 		return

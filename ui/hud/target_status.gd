@@ -141,12 +141,12 @@ static func lock_line(entity: Node, user: Node) -> String:
 
 
 ## The name shown for a thing E does not act on: a network device's network name, else its usable's
-## target name, else its display name (Interactor.display_name_of()).
+## target name, else its display name (EntityNames.display_name()).
 static func name_of(entity: Node) -> String:
 	var usable := Usable.of(entity)
 	if usable != null and Device.of(entity) == null and not usable.target_name().is_empty():
 		return usable.target_name()
-	return Interactor.display_name_of(entity)
+	return EntityNames.display_name(entity)
 
 
 static func _is_broken(entity: Node, device: Device) -> bool:

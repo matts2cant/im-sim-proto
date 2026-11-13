@@ -10,7 +10,7 @@ extends RefCounted
 ##   (DeviceNetwork.cabled(), both ways) take the sockets in cable order; a cable to a router takes a
 ##   ringed uplink socket first (socket_order()). More cables than sockets is a level data error
 ##   (excess(), cable_error()).
-## - Its name plates show its display name (NetworkSource.display_name()).
+## - Its name plates show its display name (EntityNames.device_name()).
 ## A device scene without a model (the M12 router, switch and mail server, until step 3) keeps the
 ## placed LED and port lights of StatusLight.
 
@@ -123,7 +123,7 @@ static func label_rows(p_rows: Array[PortRow], ports: Array[Device]) -> Array[Me
 		names[row] = blank
 	for p in ports.size():
 		if order[p] >= 0:
-			names[owners[order[p]]][indexes[order[p]]] = NetworkSource.display_name(ports[p])
+			names[owners[order[p]]][indexes[order[p]]] = EntityNames.device_name(ports[p])
 	for row in p_rows:
 		row.labels = names[row]
 	var lights: Array[MeshInstance3D] = []
@@ -140,7 +140,7 @@ static func label_rows(p_rows: Array[PortRow], ports: Array[Device]) -> Array[Me
 static func name_plates(device: Device) -> void:
 	if device == null or not is_instance_valid(device.entity):
 		return
-	var shown := NetworkSource.display_name(device)
+	var shown := EntityNames.device_name(device)
 	for node in _parts(device.entity, "NamePlate"):
 		(node as NamePlate).text = shown
 

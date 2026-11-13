@@ -86,7 +86,12 @@ func ring(seconds: float, by: String = "") -> void:
 	ring_left = maxf(ring_left, seconds)
 	if not was_sounding:
 		_pulse_left = 0.0
-		EventLog.record(EventKinds.SIREN_STARTED, by, _name(), {"siren": _name(), "by": by, "fault": fault})
+		EventLog.record(
+			EventKinds.SIREN_STARTED,
+			by,
+			EntityNames.log_name(entity, self),
+			{"siren": EntityNames.log_name(entity, self), "by": by, "fault": fault}
+		)
 		_update_beacon()
 
 
@@ -119,7 +124,12 @@ func _physics_process(delta: float) -> void:
 
 func _stopped(reason: String) -> void:
 	_beep_left = 0.0
-	EventLog.record(EventKinds.SIREN_STOPPED, "", _name(), {"siren": _name(), "reason": reason})
+	EventLog.record(
+		EventKinds.SIREN_STOPPED,
+		"",
+		EntityNames.log_name(entity, self),
+		{"siren": EntityNames.log_name(entity, self), "reason": reason}
+	)
 	_update_beacon()
 
 
@@ -166,10 +176,6 @@ func _update_beacon() -> void:
 	var beacon := get_node_or_null(beacon_path) as Node3D
 	if beacon != null:
 		beacon.visible = is_sounding()
-
-
-func _name() -> String:
-	return String(entity.name) if entity != null else String(name)
 
 
 func save_state() -> Dictionary:

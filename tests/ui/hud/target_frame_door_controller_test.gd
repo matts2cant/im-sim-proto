@@ -48,7 +48,7 @@ func after_test() -> void:
 func test_the_frame_shows_the_controllers_status_and_the_doors_lock() -> void:
 	var box := _door.hardware.controls(true)[0]
 	assert_object(_hud.target_frame.target).is_same(box)
-	assert_str(_hud.target_frame.name_text()).is_equal(NetworkSource.display_name(Device.of(box)))
+	assert_str(_hud.target_frame.name_text()).is_equal(EntityNames.device_name(Device.of(box)))
 	assert_str(_hud.target_frame.status_text()).is_equal("Online")
 	assert_str(_hud.target_frame.lock_text()).is_equal("Locked · keycard")
 	# Its switch down: the controller is cut off.

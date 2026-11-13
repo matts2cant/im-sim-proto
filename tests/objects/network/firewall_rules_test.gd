@@ -14,6 +14,10 @@ const YOU := RouterRule.Match.YOU
 const ANY := RouterRule.Match.ANY
 const SUBNET := RouterRule.Match.SUBNET
 const DEVICE := RouterRule.Match.DEVICE
+## Device rules name addresses (ADR 0140): the lab's alarm, the siren stand-in, the console.
+const ALARM := "10.0.20.40"
+const SIREN := "10.0.10.30"
+const CONSOLE := "10.0.20.5"
 
 var _root: Node3D
 var _n: Dictionary[String, Node3D]
@@ -62,7 +66,7 @@ func test_the_first_matching_rule_wins() -> void:
 	var alarm := _dev("Alarm")
 	assert_bool(alarm.reaches(siren)).is_true()
 	_router.rules = [
-		RouterRule.make(DEVICE, "Alarm", DEVICE, "10.0.10.30", true),
+		RouterRule.make(DEVICE, ALARM, DEVICE, SIREN, true),
 		RouterRule.make(SUBNET, "security", SUBNET, "office", false),
 	]
 	# The alarm's own rule comes first; the console falls to the subnet rule.
@@ -80,13 +84,13 @@ func test_the_first_matching_rule_wins() -> void:
 func test_a_deny_rule_stops_the_alarm_ringing_a_siren_across_the_router() -> void:
 	var controller := _controller()
 	await _ticks(1)
-	_router.add_rule(RouterRule.make(DEVICE, "Alarm", DEVICE, "Siren", false))
+	_router.add_rule(RouterRule.make(DEVICE, ALARM, DEVICE, SIREN, false))
 	controller.raise(Vector3.ZERO, "test")
 	await _ticks(3)
 	assert_bool(ActorState.has(_n["Siren"], Net.RUNG)).is_false()
 	controller.stop("test")
 	# An allow rule above it re-opens the route.
-	_router.add_rule(RouterRule.make(SUBNET, "security", DEVICE, "10.0.10.30", true), 0)
+	_router.add_rule(RouterRule.make(SUBNET, "security", DEVICE, SIREN, true), 0)
 	controller.raise(Vector3.ZERO, "test")
 	await _ticks(3)
 	assert_bool(ActorState.has(_n["Siren"], Net.RUNG)).is_true()
@@ -95,7 +99,7 @@ func test_a_deny_rule_stops_the_alarm_ringing_a_siren_across_the_router() -> voi
 func test_a_deny_rule_stops_a_consoles_command_and_an_allow_reopens_it() -> void:
 	var console := _dev("Console")
 	var siren := _dev("Siren")
-	_router.add_rule(RouterRule.make(DEVICE, "10.0.20.5", ANY, "", false))
+	_router.add_rule(RouterRule.make(DEVICE, CONSOLE, ANY, "", false))
 	assert_bool(console.send_command(Siren.TEST, siren)).is_false()
 	await _ticks(3)
 	assert_bool(ActorState.has(_n["Siren"], Net.TESTED)).is_false()
@@ -121,14 +125,14 @@ func test_only_rules_naming_you_judge_a_users_traffic() -> void:
 	assert_bool(_jack().reaches(get_tree(), console)).is_true()
 	assert_bool(_dev("OfficePc").reaches(console)).is_false()
 	# ... unless a rule names "you".
-	_router.add_rule(RouterRule.make(YOU, "", DEVICE, "Console", false), 0)
+	_router.add_rule(RouterRule.make(YOU, "", DEVICE, CONSOLE, false), 0)
 	assert_bool(_jack().reaches(get_tree(), console)).is_false()
 	assert_bool(_jack().reaches(get_tree(), _dev("Camera"))).is_true()
 
 
 func test_edits_are_saved_loaded_and_logged_on_the_router() -> void:
 	var source := _jack()
-	_router.add_rule(RouterRule.make(DEVICE, "Alarm", DEVICE, "Siren", false), -1, source)
+	_router.add_rule(RouterRule.make(DEVICE, ALARM, DEVICE, SIREN, false), -1, source)
 	_router.add_rule(RouterRule.make(YOU, "", SUBNET, "security", true), -1, source)
 	_router.move_rule(1, -1, source)
 	_router.toggle_rule(1, source)
@@ -140,7 +144,7 @@ func test_edits_are_saved_loaded_and_logged_on_the_router() -> void:
 	assert_int(_router.rules.size()).is_equal(2)
 	assert_int(_router.rules[0].from_kind).is_equal(YOU)
 	assert_bool(_router.rules[0].allow).is_true()
-	assert_str(_router.rules[1].from).is_equal("Alarm")
+	assert_str(_router.rules[1].from).is_equal(ALARM)
 	assert_bool(_router.rules[1].allow).is_true()
 	var edits := _dev("Rtr01").intrusion.device_log.of_kind(DeviceLog.REMOTE)
 	assert_int(edits.size()).is_equal(6)

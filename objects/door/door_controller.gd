@@ -60,11 +60,11 @@ func bind(p_door: Door) -> void:
 	door = p_door
 	if entity == null:
 		entity = get_node_or_null(entity_path) as Node3D
-	if entity != null and not entity.has_meta(&"display_name") and is_instance_valid(door.entity):
+	if entity != null and not entity.has_meta(EntityNames.META) and is_instance_valid(door.entity):
 		var door_name: String = String(door.entity.name).capitalize()
-		if door.entity.has_meta(&"display_name"):
-			door_name = str(door.entity.get_meta(&"display_name"))
-		entity.set_meta(&"display_name", door_name)
+		if door.entity.has_meta(EntityNames.META):
+			door_name = str(door.entity.get_meta(EntityNames.META))
+		entity.set_meta(EntityNames.META, door_name)
 	_sync_power()
 
 

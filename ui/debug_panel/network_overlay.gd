@@ -82,7 +82,7 @@ func refresh() -> void:
 			label = _make_label()
 			_labels[id] = label
 		label.global_position = device.entity.global_position + LABEL_OFFSET
-		label.text = "%s\n%s" % [Computer.display_name(device), status_text(device)]
+		label.text = "%s\n%s" % [EntityNames.device_name(device), status_text(device)]
 		var last := device.intrusion.device_log.last()
 		if not last.is_empty():
 			label.text += "\nlog %d: %s" % [device.intrusion.device_log.size(), DeviceLog.line(last)]

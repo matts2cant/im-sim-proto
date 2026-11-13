@@ -69,8 +69,8 @@ static func line(dropped_name: String, names: Array[String]) -> String:
 static func line_for(dropped: Device) -> String:
 	var names: Array[String] = []
 	for device in offline_after(dropped):
-		names.append(NetworkSource.display_name(device))
-	return line(NetworkSource.display_name(dropped), names)
+		names.append(EntityNames.device_name(device))
+	return line(EntityNames.device_name(dropped), names)
 
 
 # The index of the piece that stays the network: the one largest piece of two or more; -1 if none.

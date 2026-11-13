@@ -178,9 +178,11 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -15, 0, 1.6)
 
 [node name="Controller" parent="Alarm" instance=ExtResource("10_controller")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.5, 0.01)
+metadata/display_name = "Controller"
 
 [node name="Switch" parent="Alarm" instance=ExtResource("12_switch")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 0.75, 0.3)
+metadata/display_name = "Switch"
 
 [node name="Powered" parent="Alarm/Switch"]
 circuit = &"ai_arena_network"
@@ -190,18 +192,22 @@ links = Array[NodePath]([NodePath("../../Controller"), NodePath("../../SirenEast
 
 [node name="PanicButton" parent="Alarm" instance=ExtResource("13_panic_button")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.3, 0.01)
+metadata/display_name = "Panic Button"
 
 [node name="Device" parent="Alarm/PanicButton"]
 links = Array[NodePath]([NodePath("../../Controller")])
 
 [node name="SirenEast" parent="Alarm" instance=ExtResource("11_siren")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.99, 3.2, 7.5)
+metadata/display_name = "Siren East"
 
 [node name="SirenWest" parent="Alarm" instance=ExtResource("11_siren")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.99, 3.2, 13.5)
+metadata/display_name = "Siren West"
 
 [node name="BaseStation" parent="Alarm" instance=ExtResource("14_base_station")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.7, 1.2, 0.01)
+metadata/display_name = "Base Station"
 
 [node name="Device" parent="Alarm/BaseStation"]
 links = Array[NodePath]([NodePath("../../Controller")])

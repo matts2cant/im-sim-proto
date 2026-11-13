@@ -13,9 +13,10 @@ extends Node
 ## EventLog: `network.login {device, user, by, ok, address, reason}` (reason: wrong, unknown,
 ## offline, blocked; "" on success), `network.password {device, user}`. Every attempt that reaches
 ## the device (right or wrong) is also written to its Device's `device_log` with the source address.
-## Saveable (who has access).
+## Users are keyed by their NetworkIdentity (ADR 0140), never by node name; logs name them by node
+## name (EntityNames.log_name()). Saveable (who has access).
 
-## `by`'s access changed (granted or revoked).
+## The access of the user keyed `by_key` (NetworkIdentity.key_of()) changed (granted or revoked).
 signal access_changed(by_key: String)
 
 @export var accounts: Array[DeviceAccount] = []
@@ -26,7 +27,7 @@ signal access_changed(by_key: String)
 
 var entity: Node
 
-# User key (NetworkSource.user_key()) -> the account names it has.
+# User key (NetworkIdentity.key_of()) -> the account names it has.
 var _access: Dictionary[String, PackedStringArray] = {}
 
 
@@ -84,15 +85,17 @@ func login_from(user: String, password: String, by: Node, source: NetworkSource)
 	elif found.password != password:
 		reason = "wrong"
 	var ok := reason.is_empty()
+	var own_name := EntityNames.log_name(entity, self)
+	var by_name := EntityNames.log_name(by)
 	var data := {
-		"device": _name(),
+		"device": own_name,
 		"user": user,
-		"by": NetworkSource.user_key(by),
+		"by": by_name,
 		"ok": ok,
 		"address": source.address if source != null else "",
 		"reason": reason
 	}
-	EventLog.record(EventKinds.NETWORK_LOGIN, NetworkSource.user_key(by), _name(), data)
+	EventLog.record(EventKinds.NETWORK_LOGIN, by_name, own_name, data)
 	if own != null and (ok or reason == "wrong" or reason == "unknown"):
 		var kind := DeviceLog.LOGIN if ok else DeviceLog.FAILED_LOGIN
 		own.intrusion.device_log.record(kind, source.address if source != null else "", user)
@@ -105,9 +108,11 @@ func login_from(user: String, password: String, by: Node, source: NetworkSource)
 
 ## Gives `by` the account `user` (a login, a crack).
 func grant(by: Node, user: String) -> void:
-	var key := NetworkSource.user_key(by)
 	var found := account(user)
-	if key.is_empty() or found == null:
+	if found == null:
+		return
+	var key := NetworkIdentity.ensure(by)
+	if key.is_empty():
 		return
 	var names: PackedStringArray = _access.get(key, PackedStringArray())
 	if names.has(found.user):
@@ -119,7 +124,7 @@ func grant(by: Node, user: String) -> void:
 
 ## True when `by` has any account here (`user`: that one).
 func has_access(by: Node, user: String = "") -> bool:
-	var names: PackedStringArray = _access.get(NetworkSource.user_key(by), PackedStringArray())
+	var names: PackedStringArray = _access.get(NetworkIdentity.key_of(by), PackedStringArray())
 	if user.is_empty():
 		return not names.is_empty()
 	var found := account(user)
@@ -128,7 +133,7 @@ func has_access(by: Node, user: String = "") -> bool:
 
 ## The account names `by` has here, in grant order.
 func access_of(by: Node) -> PackedStringArray:
-	return (_access.get(NetworkSource.user_key(by), PackedStringArray()) as PackedStringArray).duplicate()
+	return (_access.get(NetworkIdentity.key_of(by), PackedStringArray()) as PackedStringArray).duplicate()
 
 
 ## True when `by` has an admin account here.
@@ -153,7 +158,8 @@ func set_password(user: String, password: String) -> void:
 			names.remove_at(at)
 			_access[key] = names
 			access_changed.emit(key)
-	EventLog.record(EventKinds.NETWORK_PASSWORD, "", _name(), {"device": _name(), "user": found.user})
+	var own_name := EntityNames.log_name(entity, self)
+	EventLog.record(EventKinds.NETWORK_PASSWORD, "", own_name, {"device": own_name, "user": found.user})
 
 
 ## The Journal code id of this device's logins: `credentials_id`, else its Computer's, else the
@@ -164,7 +170,7 @@ func code_id() -> StringName:
 	var computer := Computer.of(entity)
 	if computer != null and not computer.credentials_id.is_empty():
 		return computer.credentials_id
-	return StringName(_name().to_snake_case())
+	return StringName(EntityNames.log_name(entity, self).to_snake_case())
 
 
 ## The login `viewer`'s PersonalLog knows for `user` here (the latest learned), or null; its
@@ -206,10 +212,6 @@ func device() -> Device:
 	return Device.of(entity)
 
 
-func _name() -> String:
-	return String(entity.name) if entity != null and is_instance_valid(entity) else String(name)
-
-
 func save_state() -> Dictionary:
 	var access := {}
 	for key: String in _access:
@@ -218,15 +220,17 @@ func save_state() -> Dictionary:
 	for each in accounts:
 		if each != null:
 			passwords[each.user] = each.password
-	return {"access": access, "passwords": passwords}
+	return {"access": access, "passwords": passwords, NetworkIdentity.FORMAT_KEY: NetworkIdentity.FORMAT}
 
 
 func load_state(data: Dictionary) -> void:
 	if data.has("access"):
 		_access.clear()
 		var access := data["access"] as Dictionary
-		for key: Variant in access:
-			_access[str(key)] = PackedStringArray(access[key] as Array)
+		for saved: Variant in access:
+			var key := NetworkIdentity.loaded_key(self, str(saved), data)
+			if not key.is_empty():
+				_access[key] = PackedStringArray(access[saved] as Array)
 	var passwords := data.get("passwords", {}) as Dictionary
 	for each in accounts:
 		if each != null and passwords.has(each.user):

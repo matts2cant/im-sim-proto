@@ -95,13 +95,13 @@ func refresh() -> void:
 	_fill(_column)
 
 
-## The choices a rule's From (`from_side`) or To can name: each {label, kind, value, alt}: any,
+## The choices a rule's From (`from_side`) or To can name: each {label, kind, value}: any,
 ## "you" (From only), every subnet a router on the map joins or a map device is on, every device on
-## the map (by address, else node name; `alt` the other one) but the deck's entry point.
+## the map with an address (rules name devices by address, ADR 0140) but the deck's entry point.
 func endpoints(from_side: bool) -> Array[Dictionary]:
-	var found: Array[Dictionary] = [{"label": ANY, "kind": RouterRule.Match.ANY, "value": "", "alt": ""}]
+	var found: Array[Dictionary] = [{"label": ANY, "kind": RouterRule.Match.ANY, "value": ""}]
 	if from_side:
-		found.append({"label": YOU, "kind": RouterRule.Match.YOU, "value": "", "alt": ""})
+		found.append({"label": YOU, "kind": RouterRule.Match.YOU, "value": ""})
 	var info := Router.subnet_info(session.get_tree())
 	var subnets: Array[StringName] = []
 	var devices := session.map_devices()
@@ -116,16 +116,12 @@ func endpoints(from_side: bool) -> Array[Dictionary]:
 			if not each.is_empty() and not subnets.has(each):
 				subnets.append(each)
 	for each: StringName in subnets:
-		found.append(
-			{"label": subnet_label(each, info), "kind": RouterRule.Match.SUBNET, "value": String(each), "alt": ""}
-		)
+		found.append({"label": subnet_label(each, info), "kind": RouterRule.Match.SUBNET, "value": String(each)})
 	for device in devices:
-		if not is_instance_valid(device) or not is_instance_valid(device.entity) or device == session.port:
+		if not is_instance_valid(device) or device.address.is_empty() or device == session.port:
 			continue
-		var entity_name := String(device.entity.name)
-		var value := device.address if not device.address.is_empty() else entity_name
-		var label := NetworkSource.display_name(device)
-		found.append({"label": label, "kind": RouterRule.Match.DEVICE, "value": value, "alt": entity_name})
+		var label := EntityNames.device_name(device)
+		found.append({"label": label, "kind": RouterRule.Match.DEVICE, "value": device.address})
 	return found
 
 
@@ -234,12 +230,12 @@ func _fill(column: VBoxContainer) -> void:
 	var current := router()
 	var title := "Firewall"
 	if is_instance_valid(router_device):
-		title += " · %s" % NetworkSource.display_name(router_device)
+		title += " · %s" % EntityNames.device_name(router_device)
 	column.add_child(DeckStyle.label(title, DeckStyle.TITLE_COLOR, 20))
 	if current == null:
 		var text := NO_ROUTER
 		if is_instance_valid(router_device) and Router.of(router_device.entity) != null:
-			var shown := NetworkSource.display_name(router_device)
+			var shown := EntityNames.device_name(router_device)
 			if not session.is_online(router_device):
 				text = NO_CONNECTION % shown
 			elif not router_device.is_admin(session.entity):
@@ -325,9 +321,7 @@ func _choice(choices: Array[Dictionary], rule: RouterRule, index: int, from_side
 	var at := _choice_index(list, rule, from_side)
 	if at < 0:
 		var kind := rule.from_kind if from_side else rule.to_kind
-		list.append(
-			{"label": _raw(rule, from_side), "kind": kind, "value": rule.from if from_side else rule.to, "alt": ""}
-		)
+		list.append({"label": _raw(rule, from_side), "kind": kind, "value": rule.from if from_side else rule.to})
 		at = list.size() - 1
 	for each: Dictionary in list:
 		option.add_item(str(each["label"]))
@@ -362,7 +356,7 @@ static func _choice_index(choices: Array[Dictionary], rule: RouterRule, from_sid
 			continue
 		if kind == RouterRule.Match.ANY or kind == RouterRule.Match.YOU:
 			return i
-		if str(choice["value"]) == value or (not str(choice["alt"]).is_empty() and str(choice["alt"]) == value):
+		if str(choice["value"]) == value:
 			return i
 	return -1
 

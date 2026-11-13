@@ -225,7 +225,7 @@ func press(command: StringName, target: Device) -> void:
 	if computer == null:
 		return
 	var label := computer.config.label_for(command)
-	var target_name := Computer.display_name(target)
+	var target_name := EntityNames.device_name(target)
 	if computer.send(command, target, viewer):
 		result_label.text = "%s: %s sent." % [target_name, label]
 	else:

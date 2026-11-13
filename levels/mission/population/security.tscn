@@ -195,6 +195,7 @@ script = ExtResource("22_electronic_lock")
 
 [node name="BoothDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -9.4, 0, -22)
+metadata/display_name = "Booth door"
 
 [node name="Door" parent="Doors/BoothDoor"]
 wall_thickness = 0.2
@@ -202,6 +203,7 @@ start_open = true
 
 [node name="BackGate" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 25)
+metadata/display_name = "Back gate"
 
 [node name="Lockable" parent="Doors/BackGate"]
 locked = true
@@ -217,6 +219,7 @@ free_side = 2
 
 [node name="SideDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -20.25, 0, -6)
+metadata/display_name = "Side door"
 
 [node name="Lockable" parent="Doors/SideDoor"]
 locked = true
@@ -231,6 +234,7 @@ free_side = 1
 
 [node name="RollerDoor1" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -10.25)
+metadata/display_name = "Roller door"
 
 [node name="Door" parent="Doors/RollerDoor1"]
 wall_thickness = 0.5
@@ -238,6 +242,7 @@ settings = ExtResource("26_roller_door_settings")
 
 [node name="RollerDoor2" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -10.25)
+metadata/display_name = "Roller door"
 
 [node name="Door" parent="Doors/RollerDoor2"]
 wall_thickness = 0.5
@@ -245,6 +250,7 @@ settings = ExtResource("26_roller_door_settings")
 
 [node name="AnnexDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -26.25, 0, 10.8)
+metadata/display_name = "Annex door"
 
 [node name="Lockable" parent="Doors/AnnexDoor"]
 locked = true
@@ -258,6 +264,7 @@ data = SubResource("Pins_3")
 
 [node name="AnnexRoofDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -20.25, 4.75, 2.1)
+metadata/display_name = "Annex roof door"
 
 [node name="Lockable" parent="Doors/AnnexRoofDoor"]
 locked = true
@@ -272,6 +279,7 @@ free_side = 2
 
 [node name="FireEscapeDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 20.1, 4.5, 6)
+metadata/display_name = "Fire escape door"
 
 [node name="Lockable" parent="Doors/FireEscapeDoor"]
 locked = true
@@ -287,6 +295,7 @@ free_side = 2
 
 [node name="OfficeEntrance" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.125, 0, 6)
+metadata/display_name = "Office entrance"
 
 [node name="Door" parent="Doors/OfficeEntrance"]
 wall_thickness = 0.25
@@ -294,12 +303,14 @@ front_side_wall = 0.75
 
 [node name="BreakRoomHall" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 0.125)
+metadata/display_name = "Break room hall"
 
 [node name="Door" parent="Doors/BreakRoomHall"]
 wall_thickness = 0.25
 
 [node name="BreakRoomCorridor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 5.125)
+metadata/display_name = "Break room corridor"
 
 [node name="Door" parent="Doors/BreakRoomCorridor"]
 wall_thickness = 0.25
@@ -338,12 +349,14 @@ free_side = 2
 
 [node name="StairsGround" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.65, 0, 6.875)
+metadata/display_name = "Stairs ground"
 
 [node name="Door" parent="Doors/StairsGround"]
 wall_thickness = 0.25
 
 [node name="LockerRoom" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0, 6.875)
+metadata/display_name = "Locker room"
 
 [node name="Door" parent="Doors/LockerRoom"]
 wall_thickness = 0.25
@@ -378,6 +391,7 @@ free_side = 1
 
 [node name="ManagerDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.5, 5.125)
+metadata/display_name = "Manager door"
 
 [node name="Lockable" parent="Doors/ManagerDoor"]
 locked = true
@@ -438,12 +452,14 @@ font_size = 48
 
 [node name="StairsUpper" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.65, 4.5, 6.875)
+metadata/display_name = "Stairs upper"
 
 [node name="Door" parent="Doors/StairsUpper"]
 wall_thickness = 0.25
 
 [node name="CatwalkStairsDoor" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8.125, 4.5, 14.1)
+metadata/display_name = "Catwalk stairs door"
 
 [node name="Door" parent="Doors/CatwalkStairsDoor"]
 wall_thickness = 0.25
@@ -452,6 +468,7 @@ back_side_wall = 0.9
 
 [node name="OfficeTwo" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 4.5, 6.875)
+metadata/display_name = "Office two"
 
 [node name="Lockable" parent="Doors/OfficeTwo"]
 locked = true
@@ -466,18 +483,21 @@ free_side = 1
 
 [node name="BoilerStore" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, -4, -0.25)
+metadata/display_name = "Boiler store"
 
 [node name="Door" parent="Doors/BoilerStore"]
 wall_thickness = 0.5
 
 [node name="BoilerTunnel" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 19.75, -4, -5)
+metadata/display_name = "Boiler tunnel"
 
 [node name="Door" parent="Doors/BoilerTunnel"]
 wall_thickness = 0.5
 
 [node name="TunnelGate" parent="Doors" instance=ExtResource("1_door")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 36.85, -2.4, -5)
+metadata/display_name = "Tunnel gate"
 
 [node name="Lockable" parent="Doors/TunnelGate"]
 locked = true

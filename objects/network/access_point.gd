@@ -14,7 +14,7 @@ extends Node
 ## `client_address` on the access point's subnet (deck_address()).
 ## EventLog: `network.wifi_key {device, by}` when a user learns the key. Saveable (who knows it).
 
-## `by_key` learned the key.
+## The user keyed `by_key` (NetworkIdentity.key_of(), ADR 0140) learned the key.
 signal key_learned(by_key: String)
 
 const DEFAULT_CONFIG: AccessPointConfig = preload("res://objects/network/access_point.tres")
@@ -31,7 +31,7 @@ const DEFAULT_CONFIG: AccessPointConfig = preload("res://objects/network/access_
 var entity: Node3D
 var device: Device
 
-# User keys (NetworkSource.user_key()) that know the key.
+# User keys (NetworkIdentity.key_of()) that know the key.
 var _known: PackedStringArray = PackedStringArray()
 
 
@@ -81,18 +81,19 @@ func deck_address() -> String:
 
 ## True when `by` knows the key (cracked it).
 func knows_key(by: Node) -> bool:
-	var who := NetworkSource.user_key(by)
+	var who := NetworkIdentity.key_of(by)
 	return not who.is_empty() and _known.has(who)
 
 
 ## `by` now knows the key.
 func grant_key(by: Node) -> void:
-	var who := NetworkSource.user_key(by)
+	var who := NetworkIdentity.ensure(by)
 	if who.is_empty() or _known.has(who):
 		return
 	_known.append(who)
-	var device_name := String(entity.name) if is_instance_valid(entity) else String(name)
-	EventLog.record(EventKinds.NETWORK_WIFI_KEY, who, device_name, {"device": device_name, "by": who})
+	var device_name := EntityNames.log_name(entity, self)
+	var by_name := EntityNames.log_name(by)
+	EventLog.record(EventKinds.NETWORK_WIFI_KEY, by_name, device_name, {"device": device_name, "by": by_name})
 	key_learned.emit(who)
 
 
@@ -120,9 +121,14 @@ func tool_release(_user: Node) -> void:
 
 
 func save_state() -> Dictionary:
-	return {"known": Array(_known)}
+	return {"known": Array(_known), NetworkIdentity.FORMAT_KEY: NetworkIdentity.FORMAT}
 
 
 func load_state(data: Dictionary) -> void:
-	if data.has("known"):
-		_known = PackedStringArray(data["known"] as Array)
+	if not data.has("known"):
+		return
+	_known = PackedStringArray()
+	for saved: Variant in data["known"] as Array:
+		var key := NetworkIdentity.loaded_key(self, str(saved), data)
+		if not key.is_empty() and not _known.has(key):
+			_known.append(key)

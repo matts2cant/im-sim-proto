@@ -41,5 +41,5 @@ static func add_to(
 		flow.free()
 	if usable:
 		column.add_child(DeckStyle.paragraph(EXPLOIT_NOTE, DeckStyle.DIM_COLOR, 12, DeckDeviceMenu.WIDTH - 24.0))
-	if device.intrusion.has_exploit(NetworkSource.user_key(user)):
+	if device.intrusion.has_exploit(NetworkIdentity.key_of(user)):
 		column.add_child(DeckStyle.mono("access: admin (exploit)", DeckStyle.ACCESS_COLOR, 12))
