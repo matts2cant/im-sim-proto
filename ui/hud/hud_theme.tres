@@ -13,6 +13,11 @@ border_width_bottom = 1
 border_color = Color(1, 1, 1, 0.7)
 
 [resource]
+HudHoldRing/base_type = &"Control"
+HudHoldRing/colors/fill = Color(1, 1, 1, 0.9)
+HudHoldRing/colors/track = Color(0.5, 0.5, 0.5, 0.35)
+HudHoldRing/constants/radius = 30
+HudHoldRing/constants/width = 5
 HudTargetLines/base_type = &"VBoxContainer"
 HudTargetLines/constants/separation = 0
 HudTargetName/base_type = &"Label"

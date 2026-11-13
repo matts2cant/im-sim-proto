@@ -1,7 +1,8 @@
 class_name Hud
 extends CanvasLayer
 ## In-game HUD of the player it is a child of: reticle (exact aim cone; through a scope the scope
-## overlay replaces it, ADR 0085) and its hit markers (ADR 0126), the name of the item in
+## overlay replaces it, ADR 0085), its hit markers (ADR 0126) and the hold ring while E is held on a
+## body to carry (ADR 0142), the name of the item in
 ## hand and ammo (magazine / rounds in the inventory), body silhouette, a red flash on every hit,
 ## the interaction frame (no "E: ..." prompt since ADR 0130: the frame names the target and shows its
 ## status), short messages (inventory feedback, why E did nothing, "Added to log", the
@@ -38,6 +39,8 @@ var _item_name_left: float = 0.0
 @onready var reticle: Reticle = $Reticle
 ## Hit markers on the crosshair from the player's own hits (ADR 0126).
 @onready var hit_marker: HitMarker = $HitMarker
+## A ring around the crosshair filling while E is held on a body to carry (ADR 0142).
+@onready var hold_ring: HoldRing = $HoldRing
 @onready var scope_overlay: ScopeOverlay = $ScopeOverlay
 ## Corner brackets and a name tag on what the Interactor targets (ADR 0129).
 @onready var target_frame: TargetFrame = $TargetFrame
@@ -246,6 +249,13 @@ func refresh_reticle() -> void:
 	hit_marker.offset = offset
 	reticle.show_target(target != null and not scoped, _target_color(target))
 	reticle.visible = ActorState.can_act(player) and not scoped
+	refresh_hold_ring()
+
+
+## The hold ring: the Interactor's hold progress (0 while no hold is in progress: hidden).
+func refresh_hold_ring() -> void:
+	hold_ring.offset = hit_marker.offset
+	hold_ring.progress = player.interactor.hold_progress() if ActorState.can_act(player) else 0.0
 
 
 ## What the held ranged weapon's aim (the eye turned by the aim offset) is on within its range, when
