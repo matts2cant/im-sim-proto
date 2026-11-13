@@ -13,5 +13,7 @@ Only the files the game uses are copied here (GLB format, with `Textures/colorma
 | `blaster-n.glb` | Submachine gun (`items/weapons/smg/smg_model.tscn`) |
 | `silencer-small.glb` | The silencer fitted on a weapon's muzzle (`items/attachments/silencer/silencer.tres`) |
 | `crate-small.glb` | The silencer's world pickup (`items/attachments/silencer/silencer_pickup.tscn`) |
+| `grenade-b.glb` | Frag grenade, the round one (`items/grenades/models/frag_model.tscn`) |
+| `grenade-a.glb` | Gas, EMP and jamming grenades, the canister: its yellow caps recoloured green, blue and cyan by a material override (`items/grenades/models/grenade_tint.gdshader`; `gas_model.tscn`, `emp_model.tscn`, `jamming_model.tscn`) |
 
-The models are scaled in the model scenes, never edited. See [ADR 0085](../../../design/decisions/0085-weapons-and-attachments.md).
+The models are scaled in the model scenes, never edited; recolouring is a material override. See [ADR 0085](../../../design/decisions/0085-weapons-and-attachments.md).

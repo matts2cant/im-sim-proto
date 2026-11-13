@@ -738,3 +738,19 @@ Plug the deck into the network lab's jack and hack RTR-01.
 - [ ] Desks: both office PCs stand on their desks (no shelf), the sticky note, the camera exploit, the deck and SW-OFFICE stay readable and pickable around them; E on each PC opens it; SW-OFFICE's port labels name the jack and both PCs.
 - [ ] Deck on the office jack: the Map shows SW-OFFICE, both PCs, the jack and RTR-01 as before; hacking RTR-01 shows Security with MAIL-01 under SW-SECURITY.
 - [ ] Gate booth: no switch on its east wall any more; the yard's alarm controller is still there and works.
+
+## M14a grenades, mines and Demolition ([ADR 0131](../decisions/0131-grenades-mines-and-effects.md), [explosives.md](../game/explosives.md))
+
+Give yourself grenades from the debug panel (Give item: frag, gas, EMP, jamming grenade). Until the effects (M14b) are merged every type blows up like a placeholder frag.
+
+- [ ] Each grenade in hand: the round frag, the canisters with green, blue and cyan caps; held low right, not in the way; the weapon corner says "x3" and counts down per throw; the last one thrown leaves empty hands.
+- [ ] Close to a wall, a door, a crate, the floor (crouch and look down) or a ceiling: the ghost shows where it would stick, its base on the surface. Does the 1.2 m reach feel right? Is the ghost visible enough (60 % opaque)?
+- [ ] Stuck on a sliding door, a hinged leaf or a crate you then carry or push: the mine rides along. Break the crate: the mine drops.
+- [ ] Throws: level, 12 m Untrained; looking up lobs higher and shorter. Is the fixed 20 degree arc readable without a preview? Off a wall and off a guard it bounces back; never sticks to a person. The bounces clink (impact noise: guards hear them).
+- [ ] Mines: arm 2 s after sticking (a short beep), then blink red about once a second. Walk at a mine: it goes off about 2.5 m away (from your body); crouch-walk: about 1 m. Behind a crate or around a corner it does not see you. Does 2.5 m feel fair?
+- [ ] The frame on an armed mine reads "Frag grenade · Armed" in blinking red.
+- [ ] Disarm: Demolition Trained (Stats tab), crouch 1 to 2 m from a mine, E: it is back in the inventory. Untrained, or standing, or too close: a beep and it goes off half a second later. Is the 1 to 2 m window findable on a floor mine (your crosshair must be on it within 2 m of your eyes)?
+- [ ] Demolition Advanced: armed mines within 8 m glow red, also in the dark (switch the lights off) and in smoke; walls still hide them.
+- [ ] Demolition Master: after a throw, "Fuse 2.1 s" counts down under the crosshair until it goes off.
+- [ ] Shoot a stuck or thrown grenade: it goes off; a blast sets off grenades and mines nearby (chains).
+- [ ] Quicksave with a grenade in flight and a mine arming; quickload: the grenade carries on and goes off on time, the mine arms on time.
