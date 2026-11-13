@@ -1,10 +1,12 @@
 extends GdUnitTestSuite
 ## Start of the level (M8 playtest bug: "guards from the AI room come straight for me"): the real hub
-## with the real player standing idle at its spawn for 60 s. The AI arena's own opening (patrol A
+## with the real player standing idle at its spawn for SECONDS. The AI arena's own opening (patrol A
 ## finds the downed guard and the arena searches around it, ADR 0071) stays in the arena: no guard
 ## anywhere in the hub becomes Alerted, none walks into the hub's interior and the player is never
 ## hurt. Before the fix the arena's baton post found the body first while glancing and shouted from
 ## beside the hub doorway, so the searchers searched in the doorway and saw the player at spawn.
+## The opening lasts most of the window (the searches end after about 45 s): every guard must be
+## unaware again at the end, so an opening that outgrows the window fails instead of passing unseen.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const HUB := "res://levels/hub/hub.tscn"
@@ -51,6 +53,12 @@ func test_guards_keep_out_of_the_hub_while_the_player_idles_at_spawn() -> void:
 	assert_array(_alerted).is_empty()
 	assert_array(inside).is_empty()
 	assert_array(_damaged).is_empty()
+	var aware: Array[String] = []
+	for guard in guards:
+		var state := GradedAwareness.of_node(guard).state_name()
+		if state != "unaware":
+			aware.append("%s %s" % [guard.name, state])
+	assert_array(aware).override_failure_message("still in the opening: %s" % [aware]).is_empty()
 	# The player really stood at the spawn the whole time.
 	(
 		assert_float(
