@@ -26,3 +26,7 @@ Guards (M7) need a navigation mesh. Levels are built from parametric kit parts t
 - Level load includes the bake (about 0.3 s for the hub and movement course at 5 cm cells); revisit cell size if the warehouse mission gets slow.
 - Code that changes geometry at runtime (breakable walls, doors) calls `LevelNavigation.bake()` again or uses navigation obstacles.
 - Roofs of rooms and tops of ducts are on the navmesh as unreachable islands; harmless for path queries between reachable points.
+
+## Amendment (2026-11-13, ADR 0132)
+
+The hub bake grew to about 1 s (Recast) with the gallery rooms. `LevelNavigation` keeps its last 4 bakes per exact source geometry and bake settings for the running process, so a level loaded again with the same geometry (level reset, quickload, the hub after a mission) reuses its navmesh; different geometry bakes anew. See [ADR 0132](0132-test-suite-speed-pass.md).

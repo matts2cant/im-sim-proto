@@ -27,6 +27,31 @@ shutdown; every shard is packed up to the size of the biggest suite. Run-to-run 
 the two biggest suites: `movement_course_test` (14 tests, each loading the hub, 35 s) and `hub_start_guards_test` (one
 test simulating 60 s of the hub, 34 s).
 
+## Second pass (2026-11-13, branch `perf-tests`)
+
+The suite had grown to 2259 tests in 414 suites; full runs took 140-290 s. Machine: 24 logical cores, about 5 % CPU
+load before the runs, the user's Godot editor open and idle (no other Godot process). Design: [ADR 0132](../decisions/0132-test-suite-speed-pass.md).
+
+| | Wall | Shards (slowest / average) | Sum of suite times | Slowest suites |
+|---|---|---|---|---|
+| Before (a404e4b, first run in a fresh worktree) | 147.2 s (import 36.9 s) | 109.3 s / 53.8 s (x2.03) | 544 s | movement_course 38.7, hub_start_guards 32.4, physics_fire_hub 21.1, quicksave_hub 20.4, warehouse_patrol_timing 18.0, saveable_contract 15.4 |
+| After | 69.7 s (import 12.2 s) | 56.9 s / 49.3 s (x1.15) | 478 s | hub_start_guards 26.4, warehouse_patrol_timing 13.3, warehouse_duct_b_entry 11.8, quicksave_hub 10.8, saveable_contract 10.2 |
+
+| Cause | Change | Measured impact |
+|---|---|---|
+| Contiguous slices with at most ceil(unmeasured / shards) unmeasured suites each: M14's 18 new suites forced breaks, four shards held 2 suites (under 2 s), four held 90-101 s | Longest first (LPT), unmeasured suites dealt out first; serial order within a shard | Dry run on the same times: 48.1-48.5 s per shard; shards 109 s -> 57 s |
+| Every hub load voxelised the navmesh again (Recast 1.0 s; source geometry 0.13 s) | `LevelNavigation` keeps its last 4 bakes per exact source geometry | `level_navigation_test` 7.3 s -> 4.3 s; every hub load after the first in a process ~1 s cheaper; the game's level resets and returns to the hub too |
+| `movement_course_test` loaded the hub for 9 walkthroughs of the course | Walkthroughs on the course alone with a player, in two suites | 38.8 s -> 3.9 + 3.4 s (+ the hub walk-in) |
+| The barricade burn simulated 31 s of the whole hub | On the room alone with a player and a LevelNavigation | 16 s -> 2 s |
+| `warehouse_patrol_timing_test`: a third of each tick in components that cannot change a walk there | Animator, body discovery and light exposure of the patrols paused | 13.7 s -> 8.3 s, same laps and gaps |
+| `hub_start_guards_test`: 3600 hub ticks, the 17 character animators a fifth of each | Animators paused (visual only); the guards must be unaware at the end | 20.4 s -> 15.5 s on a quiet machine, 26 s under the full run's load |
+
+Measured and left: `Device.graph()` (0.4 ms in the hub, about 0.1 builds per tick), `StimulusSystem._receivers_of()`
+(0.9 ms per contact or ray delivery in the hub, a few per second), `AwarenessBehaviour._on_navmesh()` (two closest-point
+queries per tick, about 50 us per guard in the warehouse). `hub_start_guards_test` stays the longest suite: the arena's
+opening lasts about 45 s of game time and a hub tick costs ~5.4 ms (7 guards 2.5 ms); going under 15 s under load needs
+a cheaper hub tick or a smaller scenario.
+
 ## Actions and measured impact
 
 | Action | Commit | Measured impact |

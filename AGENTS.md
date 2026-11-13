@@ -64,7 +64,7 @@ No hardcoded rules about specific things. Behaviour comes from systems that inte
 - Game feel is manual: update [design/tech/playtest-checklist.md](design/tech/playtest-checklist.md).
 - Details: [design/tech/testing.md](design/tech/testing.md).
 
-Fast-test checklist (the full suite runs in ~40 s; keep it there: [testing.md "Writing fast tests"](design/tech/testing.md#writing-fast-tests)):
+Fast-test checklist (the full suite runs in ~60 s; keep it there: [testing.md "Writing fast tests"](design/tech/testing.md#writing-fast-tests)):
 
 - The runner simulates time (`--fixed-fps 144`): wait for physics frames, game time or a condition with a frame cap, never for a number of process frames standing in for time. A condition set by a worker thread (an asynchronous navigation iteration) gets a real-time cap instead (`GuardHelpers.async_iteration()`).
 - Use small fixture scenes; load the hub only for hub tests, keep hub suites short (each load ~1 s, each simulated hub second ~0.3-0.6 s) and split big suites by concern.
@@ -133,7 +133,7 @@ A task is done only when all of these hold:
 - HUD/UI labels refresh in `_process`, which lags physics frames under a time factor: call the component's refresh (`Hud.refresh_overlay()`, `refresh_weapon()`, ...) before asserting, never rely on a bare `process_frame` await.
 - Fixtures with navigation: place them far from the origin and from other suites' fixtures (existing ones use offsets like (±200, 0, 200/400)); a late-freed navmesh at the origin answers other suites' path queries.
 - Guard test helpers: `tests/actors/guard/guard_helpers.gd` (guards in fixtures with sync navigation), `tests/actors/guard/combat_helpers.gd` (armed guard + hostile/ally stand-ins). Fixtures with guards need lamps: the player is only seen within 2 m at ambient light.
-- Reusable test helpers: `tests/actors/player/player_driver.gd` drives the player in integration tests; reuse it instead of writing a new one. `tests/actors/common/character_fixtures.gd` builds minimal CharacterBody3D characters (walker controller, Tags, receiver, BodyParts and any of MovementNoise/FallImpact/Knockback/ImpactSensor) and floors. `tests/core/stimulus/stimulus_fixtures.gd` builds stimulus entities (Tags + Attributes + StimulusReceiver) in code.
+- Reusable test helpers: `tests/helpers/wait.gd` (`Wait.frames(tree, n)`) waits physics frames; never copy a `_frames()` into a suite. `tests/actors/player/player_driver.gd` drives the player in integration tests (`press()` taps an action); reuse it instead of writing a new one. A test about one gallery room loads the room with a player, not the hub ([testing.md](design/tech/testing.md) "Writing fast tests"). `tests/actors/common/character_fixtures.gd` builds minimal CharacterBody3D characters (walker controller, Tags, receiver, BodyParts and any of MovementNoise/FallImpact/Knockback/ImpactSensor) and floors. `tests/core/stimulus/stimulus_fixtures.gd` builds stimulus entities (Tags + Attributes + StimulusReceiver) in code.
 - `await get_tree().physics_frame` resumes *before* that frame's `_physics_process` calls: a stimulus emitted from a test is delivered after the second await.
 - Navigation maps iterate asynchronously by default: in tests call `NavigationServer3D.map_set_use_async_iterations(map, false)` (and the region's equivalent) or a freed region from the previous test can still answer path queries. Bake a `duplicate()` of a fixture's NavigationMesh: sub-resources are shared between instances. Switching a region to synchronous iterations after it already got its navmesh (LevelNavigation bakes in `_ready`) can lose the pending update for good: bake again after switching (`tests/actors/guard/guard_helpers.gd`). A map without polygons answers `map_get_closest_point()` with the origin: check `map_get_closest_point_owner()` is valid first.
 - Rigid-body contacts (Jolt): with `contact_monitor` on, `PhysicsServer3D.body_get_direct_state(rid)` in `_physics_process` gives the last step's contacts and post-step velocity; keep the previous tick's velocity to measure an impact (see `ImpactNoise`).
@@ -169,7 +169,7 @@ A task is done only when all of these hold:
 py -3.12 -m venv .venv
 .venv/Scripts/pip install -r tools/requirements-dev.txt
 tools/install_hooks.sh                  # git core.hooksPath -> tools/hooks
-tools/run_tests.sh [res://tests/core]   # GdUnit4 headless in parallel shards (~40 s for all); optional subset
+tools/run_tests.sh [res://tests/core]   # GdUnit4 headless in parallel shards (~60 s for all); optional subset
 tools/run_tests.sh -j 1 res://tests/ui  # one Godot process, output streamed; -j N sets the shard count
 TEST_FIXED_FPS=0 tools/run_tests.sh ... # real-time frames instead of simulated time; TEST_IMPORT=1 forces the import
 tools/lint.sh                           # gdformat --check + gdlint, addons excluded

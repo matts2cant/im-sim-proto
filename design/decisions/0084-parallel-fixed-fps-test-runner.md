@@ -28,3 +28,7 @@ Tests that switch a navigation map to synchronous iterations do it through `Guar
 - Up to 12 Godot processes run at once; other agents' runs on the same machine slow each other more than before.
 - `reports/suite_times.tsv` is machine-local and rewritten after every run; it is not committed. Without it the first run balances on fallback weights and is a few seconds slower.
 - Guidelines for writing fast, parallel-safe tests: [testing.md](../tech/testing.md) "Writing fast tests".
+
+## Amendment (2026-11-13, ADR 0132)
+
+Shards are no longer contiguous slices: unmeasured suites are dealt out first, then measured suites go longest first to the least loaded shard; each shard runs its suites in serial order. The contiguous slices with at most ceil(unmeasured / shards) unmeasured suites per shard left four shards nearly empty and four at 90 to 101 s after M14 added 18 suites. See [ADR 0132](0132-test-suite-speed-pass.md).
