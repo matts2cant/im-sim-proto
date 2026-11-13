@@ -27,8 +27,8 @@ const TEXTS: Dictionary[Word, String] = {
 	Word.UNCONSCIOUS: "Unconscious",
 	Word.DEAD: "Dead",
 }
-## "No power": the dark light's colour is unreadable on the tag's dark box; a dark grey instead.
-const NO_POWER_COLOR := Color("6b7275")
+## "No power": the dark light's colour is unreadable on the tag's dark box; a grey instead.
+const NO_POWER_COLOR := Color("8a9296")
 ## The stun colour family (blue-white) and a dim red (the approved mockup's).
 const UNCONSCIOUS_COLOR := Color("9fd8ff")
 const DEAD_COLOR := Color("b0423b")

@@ -23,7 +23,9 @@ const CREDITS := "Money arrives in M19."
 const MENU_HINT := "Right-click an item for the same actions."
 const NOT_ON_BELT := "Not on the belt"
 const LEFT_WIDTH := 476.0
-const KEYCHAIN_WIDTH := 280.0
+## The keychain column (its padding included): what is left beside the grid and the details at the
+## base 1152 px width.
+const KEYCHAIN_WIDTH := 220.0
 ## Seconds a message ("You are not hurt") stays.
 const STATUS_TIME := 2.5
 

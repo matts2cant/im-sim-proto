@@ -76,6 +76,7 @@ func _row(key_name: String, found: String) -> PanelContainer:
 	row.add_child(text)
 	var title := TabStyle.label(key_name, 13, TabStyle.FG)
 	title.name = "Name"
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.add_child(title)
 	if not found.is_empty():
 		var where := TabStyle.label(found, 11, TabStyle.CAPTION)
