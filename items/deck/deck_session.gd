@@ -189,9 +189,10 @@ func unplug(reason: StringName = &"unplugged") -> void:
 	Screens.close(entity, SCREEN)
 
 
-## The deck stack in the user's hand, or null.
+## The deck stack in the user's hand, or null. A hand is the player's inventory layer
+## (PlayerInventory); another character plugs a deck it carries by passing its stack to plug().
 func held_deck() -> ItemStack:
-	var hands := _inventory()
+	var hands := PlayerInventory.of(entity)
 	if hands == null:
 		return null
 	var held := hands.in_hand()
@@ -201,8 +202,8 @@ func held_deck() -> ItemStack:
 func _physics_process(delta: float) -> void:
 	if link.port == null:
 		return
-	var hands := _inventory()
-	var carried := hands == null or hands.inventory.stacks.has(stack)
+	var inventory := Inventory.of(entity)
+	var carried := inventory == null or inventory.has(stack)
 	var reason := link.check(entity, config, carried)
 	if not reason.is_empty():
 		unplug(reason)
@@ -371,10 +372,6 @@ func _remote_user(device: Device, accounts: DeviceAccounts) -> String:
 func _on_desktop_closed() -> void:
 	remote = null
 	remote_changed.emit(null)
-
-
-func _inventory() -> PlayerInventory:
-	return PlayerInventory.of(entity)
 
 
 # Its user works a tool target (ToolUse): the deck on a device (or a panel of one) plugs in there

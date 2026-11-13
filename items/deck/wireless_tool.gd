@@ -285,10 +285,8 @@ func _log(action: StringName) -> void:
 func _has_deck() -> bool:
 	if stack == null:
 		return false
-	for child in entity.get_children():
-		if child is PlayerInventory:
-			return (child as PlayerInventory).inventory.stacks.has(stack)
-	return true
+	var carried := Inventory.of(entity)
+	return carried == null or carried.has(stack)
 
 
 func _saved() -> Dictionary:
