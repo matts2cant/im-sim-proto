@@ -1,7 +1,8 @@
 class_name DeckMapView
 extends Control
 ## The deck's Map tool (ADR 0112, 0113, 0121): a NetworkGraph of DeckSession.map_devices() (amber:
-## access, grey: out of reach), each box with its kind's icon (DeviceKinds), plus the devices whose
+## access, grey: out of reach), each box with its kind's colour strip and icon (DeviceKinds) and its
+## status light's square (ADR 0130: show_kind_and_light()), plus the devices whose
 ## subnet is being scanned (DeckSession.scanning: laid out unseen, the graph draws the scan), the
 ## network the deck is plugged into only; unplugged (from the Wi-Fi key screen) it draws nothing and
 ## says UNPLUGGED_NOTE. A device's menu: DeckDeviceMenu. Drag pans, the wheel zooms, F fits. It
@@ -105,12 +106,11 @@ func map_rows() -> Array[NetworkRow]:
 			continue
 		var row := NetworkRow.new()
 		row.scanning = pending.has(device)
-		var kind := kinds.kind_for(device.entity)
-		row.icon = kind.icon if kind != null else PackedStringArray()
 		row.device = device
 		row.name = NetworkSource.display_name(device)
 		row.is_self = session.is_entry(device)
 		row.online = reached.has(device) or (row.is_self and device.is_up())
+		show_kind_and_light(row, kinds)
 		row.status = DeviceStatus.of(device.entity, row.online)
 		row.disabled = row.online and DeviceStatus.is_disabled(device.entity)
 		row.has_view = DeviceStatus.has_view(device.entity)
@@ -130,6 +130,16 @@ func scan_state() -> Dictionary[StringName, Vector2]:
 		var left := session.scans[subnet]
 		found[subnet] = Vector2(clampf(1.0 - left / total, 0.0, 1.0), left)
 	return found
+
+
+## Fills `row`'s look in the device language (ADR 0130) from its device's kind (`kinds`, found by
+## tags: icon and colour; none without a kind) and its status light (NetworkRow.light_of(), with
+## `row.online` as reached).
+static func show_kind_and_light(row: NetworkRow, kinds: DeviceKinds) -> void:
+	var kind := kinds.kind_for(row.device.entity) if is_instance_valid(row.device) else null
+	row.icon = kind.icon if kind != null else PackedStringArray()
+	row.kind_color = kind.color if kind != null else Color.TRANSPARENT
+	row.light = NetworkRow.light_of(row.device, row.online)
 
 
 ## Fills `row`'s network place from `device`: its address, its subnet and, for a router, the
@@ -177,18 +187,22 @@ func signature_of(rows: Array[NetworkRow]) -> String:
 		if accounts != null:
 			for each in accounts.accounts:
 				progress += ice.saved_progress(row.device, each.user)
-		parts.append(
-			(
-				"%s|%s|%s|%s|%s|%d|%s"
-				% [
-					row.name,
-					row.online,
-					row.access,
-					row.disabled,
-					" ".join(row.status),
-					roundi(progress * 20.0),
-					session.is_blocked(row.device)
-				]
+		(
+			parts
+			. append(
+				(
+					"%s|%s|%s|%s|%s|%d|%s|%d"
+					% [
+						row.name,
+						row.online,
+						row.access,
+						row.disabled,
+						" ".join(row.status),
+						roundi(progress * 20.0),
+						session.is_blocked(row.device),
+						row.light,
+					]
+				)
 			)
 		)
 		(
