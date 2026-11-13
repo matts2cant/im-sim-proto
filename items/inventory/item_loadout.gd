@@ -5,8 +5,8 @@ extends Node
 ## its Keychain through Inventory.add()), then `weapon_ammo` rounds of the ammo of each weapon of its
 ## WeaponHolder's fixed loadout (`holder_path`; a guard's pistol: pistol rounds). Guards carry their
 ## ammo by default; a level adds keycards, keys and other items per guard or per container.
-## Filled once, deferred after the entity is ready (so its Inventory and WeaponHolder exist); what
-## does not fit is left out with a warning. Saveable (`filled`): a loaded level never fills again,
+## Filled once, when it is ready (or, when its Inventory is not ready yet, deferred after the
+## entity is); what does not fit is left out with a warning. Saveable (`filled`): a loaded level never fills again,
 ## the Inventory and Keychain restore their own contents.
 
 ## The items given, in order.
@@ -38,7 +38,10 @@ func _ready() -> void:
 	entity = Entities.of_component(self, entity_path)
 	if catalog == null:
 		catalog = ItemCatalog.default()
-	fill.call_deferred()
+	# At once when the Inventory is ready (an earlier sibling, as in the guard: before its WeaponDrop
+	# can take the weapons away), else once the entity is ready.
+	if not fill():
+		fill.call_deferred()
 
 
 ## Fills the entity's Inventory from the data, once. False when it was already filled or the entity
