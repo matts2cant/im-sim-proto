@@ -63,6 +63,12 @@ The deck's screen is a host (`deck_screen.gd`: raise/lower, input, a registry of
 
 - Signals: local events (parent/child, UI).
 - Stimuli: world events that other entities may perceive or react to.
+- Lasting conditions an area puts on what is inside it are tags the area adds and removes, never a query of the area's registry: a jamming field adds `state.jammed` to every entity with Tags it covers; radios, the network and the deck read the tag ([ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)).
+
+## Surfaces and tuning configs
+
+- What a collider is made of is `Surface.of(collider, normal)` (`objects/materials/surface.gd`): static geometry's `wall_surface` / `surface` metadata, else the entity's `material.*` tag. Footsteps (`SurfaceTable`) and bullet impacts (`ShotFxConfig`) read it; nothing else reads the metadata or the material tags for a surface (ADR 0138).
+- Gameplay tuning shared by every instance of a component sits in a `*Config` `.tres` the scenes reference (`config`), with the component's `DEFAULT_CONFIG` as the fallback for instances built in code; a level that needs another value gives that instance its own config (the warehouse's AP-YARD). Per-instance placement and identity (a light offset, a breaker's circuit, a Wi-Fi key) stay node exports (ADR 0138).
 
 ## Determinism and tick model
 

@@ -116,6 +116,8 @@ Generic components and receptrons any character composes (the player has all of 
 | `restore` CONTACT on the body (intensity unused) | a training dummy's `use` / `reset()`, the range's "Reset dummies" button (to bodies that cannot act) | `restore` (`include_self`; `RestoreEffect`) | `BodyParts.reset()`: full health, `state.dead` / `state.unconscious` removed (without BodyParts: the two tags removed); `actor.reset` |
 | `energy` CONTACT on the user, intensity = energy | biocell use (25) | `energy` (`actors/common/abilities/receptrons/energy.tres`, `ChangeAttributeEffect` on `energy`, max `energy_max`) | restores energy; refused when full ([abilities.md](abilities.md)) |
 
+Jamming is a tag, not a stimulus ([ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)): a jamming field adds `state.jammed` to every entity with Tags inside it and removes it as they leave or the field ends. The `heard_radio` and `heard_dispatch` receptrons (`AwarenessEffect.radio`) drop a radio message, logging `radio.jammed {type, id}`, when the receiving entity or the stimulus source carries it.
+
 Inventory kinds (M5, [inventory.md](inventory.md)): `item.picked_up {item, count, left}`, `item.pickup_refused {item, count, reason}`, `item.dropped {item, count}`, `item.used {item, action}`, `item.use_refused {item, reason}` (was `{object, reason}` for the M4 world medkit), `debug.gave_item {item, count}`.
 
 Ability kinds (M6, [abilities.md](abilities.md)): `skill.tier_changed {skill, tier, name}`, `augmentation.activated {id, energy}`, `augmentation.deactivated {id, reason}` (toggled, depleted, uninstalled), `augmentation.refused {id, reason}` (no_energy, not_installed), `augmentation.installed {id, installed}`.

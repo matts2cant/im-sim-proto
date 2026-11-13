@@ -70,7 +70,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 
 - Footstep loudness = base loudness x surface multiplier.
 - The stance comes from the character's tags: `stance.crouch` (crouch wins), `stance.sprint`, else walk; the player sets them from its crouch state and movement mode, any other controller does the same ([ADR 0056](../decisions/0056-generic-character-components.md)).
-- The surface comes from node metadata `surface` (StringName) on the collider the character stands on; default `concrete` ([ADR 0033](../decisions/0033-floor-surface-metadata.md)). For CSG the collider is the CSG root node with `use_collision`, so the metadata goes there.
+- The surface is `Surface.of()` the collider the character stands on (a downward probe on the world and objects layers): its node metadata `surface` (StringName; [ADR 0033](../decisions/0033-floor-surface-metadata.md)), else the `material.*` tag of the entity it belongs to (a metal crate is `metal`, [ADR 0138](../decisions/0138-surfaces-jamming-tag-and-tuning-configs.md)); default `concrete`. For CSG the collider is the CSG root node with `use_collision`, so the metadata goes there.
 
 | Surface | Multiplier |
 |---|---|
@@ -107,7 +107,7 @@ Loudness unit = audible distance in metres ([ADR 0032](../decisions/0032-noise-l
 | `actors/common/pusher/push_rules.gd` | Pure: push impulse and weight share for physics props |
 | `actors/common/pusher/body_pusher.gd`, `push_config.gd` | Component (any CharacterBody3D; the controller calls `after_move()` after `move_and_slide()`): props underfoot (weight) and walked into (push); the player's tuning in `actors/player/player_push.tres` (was `PlayerPusher` and `PlayerConfig` fields until M7) |
 | `actors/common/movement/footstep_tracker.gd`, `landing_tracker.gd`, `movement_noise_rules.gd` | Pure: footstep distance, touchdown impact speed, loudness math |
-| `actors/common/movement/surface_table.gd`, `.tres` | Surface multipliers and sounds, metadata lookup |
+| `actors/common/movement/surface_table.gd`, `.tres` | Surface multipliers and sounds; the surface from `Surface.of()` (`objects/materials/surface.gd`) |
 | `actors/common/movement/movement_noise.gd`, `movement_noise_config.gd` | Component (any CharacterBody3D): footsteps and landings, logs, `noise`, cue; the player's tuning in `actors/player/player_movement_noise.tres` |
 | `actors/common/movement/fall_impact.gd` | Component (any CharacterBody3D): `damage.fall` on touchdown |
 | `actors/common/knockback/` | Component, effect and receptron: shoves from `force.*` |
