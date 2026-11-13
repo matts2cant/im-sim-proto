@@ -330,7 +330,7 @@ Floor plan (lab-local, plan view, top = local -Z = hub west; not to scale):
 
 ```text
  z -21   +--------+
-         | closet |  B biocells x2 on a 0.8 m shelf
+         | closet |  B biocells x2 and bay B's key on a 0.8 m shelf
  z -18.5 +--[D]---+---------------------------------+
  z -18   |    K   C           (camera above D)       |   K breaker (cuts SW-CLOSET), C security console on its desk
          |[A]                                   [B] |   A bay A (open): RTR-01 (tracer), SW-SECURITY, SW-CLOSET
