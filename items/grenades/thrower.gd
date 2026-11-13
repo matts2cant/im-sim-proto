@@ -1,7 +1,7 @@
 class_name Thrower
 extends Node
 ## Component of any character with a WeaponHolder (ADR 0131): what the holder's THROWN weapons
-## (grenades) become when its trigger fires them (WeaponHolder._throw() calls release()). The
+## (grenades) become when its trigger fires them (the ThrowRelease delivery calls release()). The
 ## weapon's entity (WeaponData.thrown_scene) is spawned beside the user:
 ## - when the eye looks at a surface within `config.stick_reach` m (walls, floors, ceilings, doors,
 ##   props: anything solid but a character, which blocks the look but takes nothing), it is stuck

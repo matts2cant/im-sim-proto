@@ -9,9 +9,14 @@ extends Resource
 ## hands it to the user's Thrower (sticks it or throws it; `thrown_scene` is the entity spawned), the
 ## view swings it like a melee weapon, and the stack's count is what is left.
 
+## How the trigger reaches the world: a ray shot (RangedFire), a sphere swept along the view
+## (MeleeSweep) or a release to the user's Thrower (ThrowRelease); delivery().
 enum Kind { RANGED, MELEE, THROWN }
 ## How a character holds it (CharacterAnimator's hold and shot poses, ADR 0103).
 enum Grip { ONE_HAND, TWO_HAND }
+
+# One stateless WeaponDelivery per Kind, shared by every weapon (delivery()).
+static var _deliveries: Dictionary[int, WeaponDelivery] = {}
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -117,7 +122,10 @@ enum Grip { ONE_HAND, TWO_HAND }
 @export var fire_volume_db: float = 0.0
 @export var dry_fire_sound: AudioStream
 @export var hit_sound: AudioStream
+## Volume of `hit_sound`, played where the shot or swing struck.
+@export var hit_volume_db: float = -6.0
 @export var reload_sound: AudioStream
+@export var reload_volume_db: float = -8.0
 
 @export_group("View model")
 ## Model held in front of the camera, pointing along -Z (a WeaponModel scene: muzzle marker,
@@ -157,6 +165,25 @@ func class_attribute(stat: String) -> StringName:
 	if attribute_class.is_empty():
 		return &""
 	return StringName("%s_%s" % [attribute_class, stat])
+
+
+## `base` through `user`'s attribute `<attribute_class>_<stat>` (Attributes.read: its skills and
+## augmentations); `base` itself without a class.
+func class_value(user: Node, stat: String, base: float) -> float:
+	if attribute_class.is_empty():
+		return base
+	return Attributes.read(user, class_attribute(stat), base)
+
+
+## How a fired trigger of this weapon reaches the world (WeaponDelivery for its `kind`).
+func delivery() -> WeaponDelivery:
+	if _deliveries.is_empty():
+		_deliveries = {
+			Kind.RANGED: RangedFire.new(),
+			Kind.MELEE: MeleeSweep.new(),
+			Kind.THROWN: ThrowRelease.new(),
+		}
+	return _deliveries[kind]
 
 
 func is_melee() -> bool:

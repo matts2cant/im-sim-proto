@@ -76,10 +76,9 @@ func test_never_fires_through_an_ally_and_steps_aside() -> void:
 	await _c.frames(2)
 	var eye := _c.holder.eye.global_position
 	var space := _c.guard.get_world_3d().direct_space_state
-	var own: Array[RID] = [_c.guard.get_rid()]
-	own.append_array(Hitboxes.rids_of(_c.guard))
-	for point in CombatBehaviour.aim_points(target):
-		assert_bool(CombatBehaviour.line_of_fire_clear(space, eye, point, target, own)).is_false()
+	var own := OwnBody.rids(_c.guard)
+	for point in AimSolver.aim_points(target):
+		assert_bool(AimSolver.line_of_fire_clear(space, eye, point, target, own)).is_false()
 
 	var engaged := await _c.wait_for(&"actor.engaged", 4.0)
 	assert_object(engaged).is_not_null()

@@ -120,6 +120,22 @@ func test_a_target_going_down_ends_the_engagement_for_good() -> void:
 	assert_object(_show.turret().target).is_null()
 
 
+func test_the_laser_stops_on_a_character_s_body() -> void:
+	# Audit S21: the beam's visual ray meets character bodies (PhysicsLayers.CHARACTER_LAYERS), not
+	# only the hitboxes inside them: on a guard it ends at the capsule (radius 0.35 m), short of the
+	# torso hitbox's front (0.13 m from the axis).
+	await _show.command(Device.TARGET_GUARDS, "Turret")
+	var guard := _guard(Showcase.TURRET_SPOT)
+	assert_float(await _show.wait_for(&"turret.engaged", 3.0)).is_greater_equal(0.0)
+	await _show.seconds(0.3)
+	var laser := _show.node("Turret").get_node("Model/Head/Aim/Laser") as Node3D
+	assert_bool(laser.visible).is_true()
+	var from := (laser.get_parent() as Node3D).global_position
+	var to_axis := Vector2(guard.global_position.x - from.x, guard.global_position.z - from.z).length()
+	var line := from.distance_to(_show.turret().aim_point)
+	assert_float(laser.scale.z).is_between(line * (1.0 - 0.5 / to_axis), line * (1.0 - 0.24 / to_axis))
+
+
 func test_never_fires_when_someone_else_is_in_the_line() -> void:
 	# A guard stand-in (not a target) 2 m in front of the turret, the player behind it on the line.
 	_guard(Vector3(10.3, 0, -3))
