@@ -39,6 +39,11 @@ func test_guards_keep_out_of_the_hub_while_the_player_idles_at_spawn() -> void:
 	var guards := _guards(driver.runner.scene())
 	var spawn := (driver.runner.find_child("PlayerSpawn") as Node3D).global_position
 	assert_int(guards.size()).is_greater_equal(5)
+	# The characters' animators are visual only (CharacterAnimator: nothing in play reads the model)
+	# and cost a fifth of each hub tick: paused.
+	for animator in driver.runner.scene().find_children("*", "Node", true, false):
+		if animator is CharacterAnimator:
+			animator.process_mode = Node.PROCESS_MODE_DISABLED
 	# The whole log, not the 2000-entry ring buffer.
 	EventLog.entry_added.connect(_on_entry)
 
