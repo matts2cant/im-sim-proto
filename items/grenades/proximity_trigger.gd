@@ -179,8 +179,9 @@ func _query(reach: float) -> Array[Dictionary]:
 	return hits
 
 
-# Nothing on `sight_mask` between its centre (a little out along its +Y, off the surface) and the
-# centre of the character's shape `shape_index`.
+# Nothing on `sight_mask` between its centre (a little along its +Y: off a floor or ceiling, up
+# beside a wall, which its centre already clears) and the centre of the character's shape
+# `shape_index`.
 func _sees(character: CollisionObject3D, shape_index: int) -> bool:
 	var to := character.global_position
 	var owner_id := character.shape_find_owner(shape_index)

@@ -83,7 +83,7 @@ func _armed_mine(at: Vector3) -> RigidBody3D:
 
 
 func _pose(at: Vector3) -> Transform3D:
-	return ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, 0.04)
+	return ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, 0.04, 0.04)
 
 
 # A walker at `at` (from ORIGIN), crouched or not, with Demolition at `tier`.

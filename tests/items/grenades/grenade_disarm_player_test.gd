@@ -32,7 +32,7 @@ func test_trained_crouched_player_disarms_a_mine_into_the_inventory() -> void:
 	room.add_child(mine)
 	var at := Vector3(0, 0, 4.5)
 	var floor_node := room.get_node("Floor") as Node3D
-	Sticky.of(mine).stick(floor_node, ThrowRules.stick_transform(at, Vector3.UP, Vector3.FORWARD, 0.053))
+	Sticky.of(mine).stick(floor_node, Sticky.of(mine).pose_on(at, Vector3.UP, Vector3.FORWARD))
 	await Grenades.seconds(get_tree(), 2.1)
 	assert_bool(ProximityTrigger.of(mine).is_armed).is_true()
 	_player.skills.set_tier(&"demolition", 1)

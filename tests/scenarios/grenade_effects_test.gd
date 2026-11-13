@@ -113,9 +113,7 @@ func test_a_shot_sets_off_a_stuck_grenade() -> void:
 	_root.add_child(grenade, true)
 	var sticky := Sticky.of(grenade)
 	var point := ORIGIN + at + Vector3(0, 1.5, 0)
-	sticky.stick(
-		wall.get_node("Shape") as Node3D, ThrowRules.stick_transform(point, Vector3.BACK, Vector3.FORWARD, 0.053)
-	)
+	sticky.stick(wall.get_node("Shape") as Node3D, sticky.pose_on(point, Vector3.BACK, Vector3.FORWARD))
 	var shooter := Node3D.new()
 	shooter.name = "Shooter"
 	_root.add_child(shooter)
@@ -136,7 +134,7 @@ func test_a_shot_sets_off_a_stuck_grenade() -> void:
 func _armed_mine(scene: String, at: Vector3) -> RigidBody3D:
 	var mine := (load(scene) as PackedScene).instantiate() as RigidBody3D
 	_root.add_child(mine, true)
-	var pose := ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, Sticky.of(mine).surface_offset)
+	var pose := Sticky.of(mine).pose_on(ORIGIN + at, Vector3.UP, Vector3.FORWARD)
 	Sticky.of(mine).stick(_floor.get_node("Shape") as Node3D, pose)
 	await Grenades.seconds(get_tree(), 2.1)
 	assert_bool(ProximityTrigger.of(mine).is_armed).is_true()
