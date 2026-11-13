@@ -29,9 +29,9 @@ extends RefCounted
 
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
-const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const JACK: PackedScene = preload("res://objects/network/wall_jack.tscn")
-const ROUTER: PackedScene = preload("res://objects/network/router.tscn")
+const ROUTER: PackedScene = preload("res://objects/network/router_rack.tscn")
 const OFFICE: Subnet = preload("res://objects/network/subnets/office.tres")
 const SECURITY: Subnet = preload("res://objects/network/subnets/security.tres")
 const SERVERS: Subnet = preload("res://objects/network/subnets/servers.tres")

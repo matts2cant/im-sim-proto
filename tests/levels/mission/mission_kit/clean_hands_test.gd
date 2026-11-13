@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 const CRATE: PackedScene = preload("res://objects/small_crate/small_crate.tscn")
 const BARREL: PackedScene = preload("res://objects/explosive_barrel/explosive_barrel.tscn")
 const CAMERA: PackedScene = preload("res://objects/camera/security_camera.tscn")
-const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const ORIGIN := Vector3(260, 0, -380)
 
 var _root: Node3D

@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const CONTROLLER_SCENE: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN_SCENE: PackedScene = preload("res://objects/alarm/siren.tscn")
-const SWITCH_SCENE: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH_SCENE: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const STATION_SCENE: PackedScene = preload("res://objects/alarm/radio_base_station.tscn")
 const BUTTON_SCENE: PackedScene = preload("res://objects/alarm/panic_button.tscn")
 const RING_TIME := 4.0

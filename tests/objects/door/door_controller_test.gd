@@ -93,7 +93,7 @@ func test_the_lock_light_shows_the_network_state() -> void:
 	for box in door.hardware.controls(true) + door.hardware.controls(false):
 		leds.append(_led_of(box))
 	assert_array(lamp.meshes()).contains_exactly_in_any_order(leds)
-	assert_object(StatusLight.of(door.hardware.controller.entity).led).is_null()
+	assert_array(StatusLight.of(door.hardware.controller.entity).indicators()).contains_exactly_in_any_order(leds)
 	# On its network: the lock's colour (red: closed and locked).
 	assert_bool(lamp.blinking()).is_false()
 	assert_bool(lamp.color().is_equal_approx(Door.LOCKED_COLOUR)).is_true()

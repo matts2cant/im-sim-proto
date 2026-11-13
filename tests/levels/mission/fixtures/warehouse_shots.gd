@@ -5,7 +5,7 @@ extends Node3D
 ## overview camera), waits, saves `<folder>/<name>.png` and quits after the last one. Positions are
 ## warehouse coordinates (x east, z south, origin at the compound centre). `crouch`: crouched eye
 ## height. `cam`: a free camera at `eye` instead of the player (HUD hidden). User args: `dark=1`
-## turns breakers A and B off; `lights=0` removes the M12c status lights and gear plates (cost
+## turns breakers A and B off; `lights=0` removes the status lights (cost
 ## comparison); shot keys `break` (devices broken first), `swing` (hinged doors swung open) and `ar`
 ## (a deck that has seen every device
 ## in hand, its AR cable view on); `perf=1` prints frames per second (vsync off) and the physics-process
@@ -350,12 +350,12 @@ func _hold_seeing_deck() -> void:
 	stack.state[DeckSession.SEEN] = seen
 
 
-# `lights=0` (cost comparison): removes every status light and gear plate once they are attached.
+# `lights=0` (cost comparison): removes every status light once they are attached.
 func _strip_status_lights() -> void:
 	for device in Device.all(get_tree()):
-		for node: Node in [StatusLight.of(device), device.entity.get_node_or_null(^"GearPlate")]:
-			if node != null:
-				node.free()
+		var light := StatusLight.of(device)
+		if light != null:
+			light.free()
 
 
 # Opens the shot's computer logged in as its first account on its app, with `select` selected.

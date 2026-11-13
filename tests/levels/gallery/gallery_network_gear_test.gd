@@ -12,12 +12,6 @@ const ROOMS: Array[String] = [
 	"res://levels/gallery/network_lab/network_lab.tscn",
 	"res://levels/gallery/security_wing/security_wing.tscn",
 ]
-## The wall-mounted gear step 3 retires in these rooms (the scenes stay for the warehouse for now).
-const RETIRED: Array[String] = [
-	"res://objects/network/router.tscn",
-	"res://objects/devices/network_switch.tscn",
-	"res://objects/network/mail_server.tscn",
-]
 const ORIGINS: Array[Vector3] = [Vector3(-700, 0, -700), Vector3(700, 0, -700)]
 
 var _rooms: Array[Node3D] = []
@@ -68,7 +62,6 @@ func test_no_wall_router_switch_or_mail_server_remains() -> void:
 		for device in _devices(room):
 			var entity := device.entity as Node3D
 			var where := _label(room, entity)
-			assert_bool(entity.scene_file_path in RETIRED).override_failure_message(where).is_false()
 			# Routers and switches (access points stay on walls and ceilings).
 			var tags := ActorState.tags_of(entity)
 			if not (tags.has(&"object.router") or tags.has(&"object.network_switch")):

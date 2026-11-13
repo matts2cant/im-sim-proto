@@ -80,7 +80,6 @@ func test_a_model_without_a_light_shows_none() -> void:
 	var light := StatusLight.of(_n["Plain"])
 	assert_object(light).is_not_null()
 	assert_array(light.indicators()).is_empty()
-	assert_object(light.led).override_failure_message("no LED placed on a model").is_null()
 
 
 func test_ports_name_the_far_ends_and_light_while_both_are_up() -> void:

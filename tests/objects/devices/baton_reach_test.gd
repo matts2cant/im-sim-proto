@@ -11,7 +11,7 @@ const DoorHelpers := preload("res://tests/objects/door/door_helpers.gd")
 const FIXTURE := "res://tests/objects/devices/fixtures/baton_wall.tscn"
 const WALL_LAMP := "res://objects/light_fixture/wall_lamp.tscn"
 const CEILING_LAMP := "res://objects/light_fixture/ceiling_lamp.tscn"
-const SWITCH := "res://objects/devices/network_switch.tscn"
+const SWITCH := "res://objects/network/switch_desk.tscn"
 const CAMERA := "res://objects/camera/security_camera.tscn"
 const COMPUTER := "res://objects/computer/computer.tscn"
 const WALL_Z := -2.0
@@ -90,7 +90,7 @@ func test_swing_never_hits_the_players_own_body() -> void:
 func test_switch_broken_by_the_baton_takes_its_network_offline() -> void:
 	await _load()
 	var computer_entity := _spawn(COMPUTER, Vector3(-4, 1.45, WALL_Z))
-	var switch := _spawn(SWITCH, Vector3(0, 1.5, WALL_Z))
+	var switch := _spawn(SWITCH, Vector3(0, 1.0, WALL_Z + 0.08))
 	var camera := _spawn(CAMERA, Vector3(4, 2.6, WALL_Z))
 	DeviceFixtures.link(computer_entity, switch)
 	DeviceFixtures.link(switch, camera)

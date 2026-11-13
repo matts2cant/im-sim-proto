@@ -1,13 +1,13 @@
 extends GdUnitTestSuite
 ## Scenario across M8a and M8b (ADR 0077, ADR 0078, ADR 0130): a console device cabled through a
-## network switch (`objects/devices/network_switch.tscn`) to a locked door's controller
+## rack switch (`objects/network/switch_rack.tscn`) to a locked door's controller
 ## (`objects/door/door_controller.tscn` under the door's hardware) sends `command.unlock` and
 ## `command.open` with Device.send_command(). They work while the controller is reached; they do not
 ## when the switch is unpowered, the controller is unpowered, or nothing is cabled; a broken door
 ## stays open whatever its controller is told.
 
 const DeviceFixtures := preload("res://tests/objects/devices/device_fixtures.gd")
-const SWITCH: PackedScene = preload("res://objects/devices/network_switch.tscn")
+const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const DOOR: PackedScene = preload("res://objects/door/door.tscn")
 const BREAKABLE_DOOR: PackedScene = preload("res://objects/door/breakable_door.tscn")
 const CONTROLLER: PackedScene = preload("res://objects/door/door_controller.tscn")

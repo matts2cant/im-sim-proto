@@ -24,7 +24,7 @@ const ROWS: Array = [
 	["alarm_controller", "res://objects/alarm/alarm_controller.tscn", Vector3(0, 1.5, WALL_Z), 0.0, -1.0, 1, 3],
 	["panic_button", "res://objects/alarm/panic_button.tscn", Vector3(0, 1.3, WALL_Z), 0.0, -1.0, 1, 3],
 	["radio_base_station", "res://objects/alarm/radio_base_station.tscn", Vector3(0, 1.2, WALL_Z), 0.0, -1.0, 1, 3],
-	["network_switch", "res://objects/devices/network_switch.tscn", Vector3(0, 1.5, WALL_Z), 0.0, -1.0, 1, 3],
+	["switch_desk", "res://objects/network/switch_desk.tscn", Vector3(0, 1.0, WALL_Z + 0.08), 0.0, -1.0, 1, 3],
 	["computer", "res://objects/computer/computer.tscn", Vector3(0, 1.45, WALL_Z), 0.0, -1.0, 1, 3],
 	["turret", "res://objects/turret/turret.tscn", Vector3(0, 0, 1.0), 0.0, -0.1, 5, 8],
 	["wall_lamp", "res://objects/light_fixture/wall_lamp.tscn", Vector3(0, 2.4, WALL_Z), 0.0, -1.2, 1, 3],

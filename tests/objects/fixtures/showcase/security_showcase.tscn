@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://objects/door/door_controller.tscn" id="m13c_door_controller"]
 [ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="1_computer"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="2_switch"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_rack.tscn" id="2_switch"]
 [ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="3_controller"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="4_siren"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="5_camera"]

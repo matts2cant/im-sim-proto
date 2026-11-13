@@ -21,6 +21,10 @@ func before_test() -> void:
 		_n[entity_name] = Net.body_device(_root, entity_name, ORIGIN + Vector3(i * 2, 1, 0), [], true, 10.0)
 		i += 1
 	ActorState.set_tag(_n["Gear"], DeviceNetwork.NETWORK_GEAR, true)
+	# A lamp to show it on: without a model or a lamp a device gets no light (ADR 0130 step 3).
+	var lamp := DeviceLamp.new()
+	lamp.name = "DeviceLamp"
+	_n["Leaf"].add_child(lamp)
 	Net.link(_n["Leaf"], _n["Gear"])
 	Net.link(_n["A"], _n["B"])
 

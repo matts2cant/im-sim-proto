@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## The warehouse's network gear after ADR 0130 step 3 (design/levels/mission-warehouse.md "Office
-## bay (M13c)"): every device's cables fit its model's sockets and every device has a model; no
-## retired wall router, switch or mail server remains; rack units stand only in a linking bay. The
+## bay (M13c)"): every device's cables fit its model's sockets and every device has a model; every
+## router and switch stands in a linking bay or on a desk (none on a wall); every computer stands on
+## a desk or in a bay but the security console (a standing console on its wall shelf). The
 ## one bay stands in the second office with 1 m of clear floor in front of it and holds RTR-01, the
 ## five security switches and MAIL-01 (a rack server: a computer); its glass door is locked, opens
 ## when picked or with its key, which lies on the security room desk. Walking at the bay and the
@@ -12,13 +13,10 @@ extends GdUnitTestSuite
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const NOISE: MovementNoiseConfig = preload("res://actors/player/player_movement_noise.tres")
+const MountChecks := preload("res://tests/levels/device_mount_checks.gd")
 const SECURITY := "Population/Security/"
-## The retired wall gear (ADR 0130); the scenes stay until the overhaul's last step deletes them.
-const RETIRED: Array[String] = [
-	"res://objects/network/router.tscn",
-	"res://objects/devices/network_switch.tscn",
-	"res://objects/network/mail_server.tscn",
-]
+## The one computer on a wall shelf: a standing console between duct C's mouth and the window.
+const CONSOLE := "SEC-CONSOLE"
 ## The second office on the upper floor (x, z) and its floor; the security room (ground floor).
 const OFFICE := Rect2(13.25, 7.0, 6.5, 7.75)
 const OFFICE_FLOOR := 4.5
@@ -58,12 +56,15 @@ func test_every_device_fits_its_model_and_no_wall_gear_remains() -> void:
 			problems.append(error)
 		if not ModelFace.has_model(device.entity):
 			problems.append("%s: no model" % _path(device.entity))
-		# A rack unit stands in a linking bay; other network gear is a desk box.
-		if LinkingBay.rack_units_of(device.entity) > 0 and not device.entity.get_parent() is LinkingBay:
-			problems.append("%s: a rack unit outside a bay" % _path(device.entity))
-	for node in _level.find_children("*", "", true, false):
-		if RETIRED.has(node.scene_file_path):
-			problems.append("%s: retired %s" % [_path(node), node.scene_file_path])
+		# A rack unit stands in a linking bay; routers and switches are never on a wall.
+		var entity := device.entity as Node3D
+		if LinkingBay.rack_units_of(entity) > 0 and MountChecks.bay_of(entity) == null:
+			problems.append("%s: a rack unit outside a bay" % _path(entity))
+		var tags := ActorState.tags_of(entity)
+		var gear := tags.has(&"object.router") or tags.has(&"object.network_switch")
+		var computer := Computer.of(entity) != null and NetworkSource.display_name(device) != CONSOLE
+		if (gear or computer) and MountChecks.mount(entity) == MountChecks.Mount.WALL:
+			problems.append("%s: on a wall" % _path(entity))
 	assert_int(devices).is_greater(40)
 	assert_array(Array(problems)).is_empty()
 
