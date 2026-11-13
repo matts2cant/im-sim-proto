@@ -738,3 +738,12 @@ Plug the deck into the network lab's jack and hack RTR-01.
 - [ ] Desks: both office PCs stand on their desks (no shelf), the sticky note, the camera exploit, the deck and SW-OFFICE stay readable and pickable around them; E on each PC opens it; SW-OFFICE's port labels name the jack and both PCs.
 - [ ] Deck on the office jack: the Map shows SW-OFFICE, both PCs, the jack and RTR-01 as before; hacking RTR-01 shows Security with MAIL-01 under SW-SECURITY.
 - [ ] Gate booth: no switch on its east wall any more; the yard's alarm controller is still there and works.
+
+## M14b grenade effects ([ADR 0131](../decisions/0131-grenades-mines-and-effects.md#as-built-m14b-the-four-effects), [explosives.md](../game/explosives.md#the-effects-as-built-m14b))
+
+Until M14a's grenades and the range are in, use the debug panel's Spawn tab (Gas, EMP, Jam at the crosshair).
+
+- [ ] Frag: does the blast read as a grenade (smaller and sharper than a barrel)? Guards at 2-3 m die, at 4-5 m stagger on badly hurt, at 6 m barely notice: does the edge feel right, or should the falloff hold up to 6 m?
+- [ ] Gas: the cloud reads as gas from outside (soft green puffs, no hard sphere edges) and from inside (green tint, the room still readable enough to walk out). About 3 s inside knocks you out ("Knocked out" overlay); stepping out after 1-2 s keeps you awake. Behind a door frame or a wall you are safe. Does it drift too much or too little (0.1 m/s), and is 12 s too long in a corridor?
+- [ ] EMP: lights within 6 m go out at once and come back after 20 s by themselves; a camera's lamp goes dark and it stops tracking; a turret stops; a fail-safe door (security wing D4) unlocks and a vault stays locked; the frame on a device says "No power". Your energy bar halves. A deck plugged in nearby is unplugged. Is 20 s long enough to slip past a camera?
+- [ ] Jamming: wireless cameras near the field (network lab Wi-Fi corner, warehouse AP-YARD) blink amber and the frame says "Jammed"; the Map still draws them with "jammed"; a camera that sees you then raises no alarm. A deck on a jack keeps working inside the field; a deck on the Wi-Fi drops. Guards inside get no radio dispatch. With no sound and only a tiny blinking beacon, can you tell where the field is and when it ends?

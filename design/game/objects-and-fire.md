@@ -34,7 +34,8 @@ All carry Carryable except the static ones; only objects up to the carry limit (
 ### Components (`objects/components/`)
 
 - **Flammable** (`FlammableConfig` in `<object>_fire.tres`): heat model, ignition, burning, burn-out ([ADR 0046](../decisions/0046-heat-accumulation-fire-model.md)).
-- **Explosive** (`ExplosiveConfig`): explodes at health 0 or heat >= threshold.
+- **Explosive** (`ExplosiveConfig`): explodes at health 0 or heat >= threshold. A grenade's config comes from its payload (`ExplosivePayload`, M14b: taken in `_ready` when the Explosive has none, or set with `use_config()`, the heat kept); `exploded` is emitted before the entity is freed, `trigger` names the stimulus that set it off. A blast stimulus of radius 0 is not sent (a frag has no fire, a jammer no noise); `fireball` off keeps only the flash and the sound ([explosives.md](explosives.md), [ADR 0131](../decisions/0131-grenades-mines-and-effects.md#as-built-m14b-the-four-effects)).
+- **Powered** outages (M14b): an EMP cuts a Powered's power for its seconds whatever its circuit says (`take_emp()`, `is_on()` = the circuit's `on` and no outage); it comes back by itself, unless the circuit was switched off meanwhile. Saved (`outage`).
 - **Breakable** (`MaterialProfile`, `break_settings.tres`): damage by type, breaking.
 - **ImpactNoise** (`MaterialProfile`, `impact_settings.tres`): collision noise and blunt damage.
 - **Carryable**: marks a body the player can carry; `carrier` while held. `enabled_tags` (offered only with one of these tags: a guard while `state.unconscious` or `state.dead`), `carry_mass` (the mass the carry rules use; a character's), `carry_speed_factor` ([ADR 0071](../decisions/0071-bodies-discovery-waking-carrying.md)).
