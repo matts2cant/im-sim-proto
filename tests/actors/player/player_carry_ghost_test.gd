@@ -79,6 +79,8 @@ func test_no_room_against_a_wall_refuses_the_release() -> void:
 	EventLog.clear()
 
 	await _driver.hold(&"use", 2)
+	# E says why (ADR 0130).
+	assert_str((_player.get_node("Hud") as Hud).message_label.text).is_equal("No room to put down")
 	await _driver.hold(&"drop_throw", 2)
 	await _driver.hold(&"fire", 2)
 

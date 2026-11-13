@@ -8,6 +8,7 @@ extends TabPage
 ## Drop and a belt-slot picker. Right-click on an item opens the same menu as before (use, drop,
 ## split stack, assign to belt slot). Everything runs while the world runs: a medkit is used at once.
 ## Live: the details refresh while the tab is visible when anything they show changes.
+## Far right (ADR 0130): the player's keychain (KeychainList), the keys held apart from the grid.
 
 const MENU_USE := 0
 const MENU_DROP := 1
@@ -22,6 +23,9 @@ const CREDITS := "Money arrives in M19."
 const MENU_HINT := "Right-click an item for the same actions."
 const NOT_ON_BELT := "Not on the belt"
 const LEFT_WIDTH := 476.0
+## The keychain column (its padding included): what is left beside the grid and the details at the
+## base 1152 px width.
+const KEYCHAIN_WIDTH := 220.0
 ## Seconds a message ("You are not hurt") stays.
 const STATUS_TIME := 2.5
 
@@ -35,6 +39,8 @@ var detail_box: VBoxContainer
 var use_button: Button = null
 var drop_button: Button = null
 var belt_picker: OptionButton = null
+## The keychain column's list.
+var keychain_list: KeychainList
 
 var _menu_stack: ItemStack = null
 var _belt_menu: PopupMenu
@@ -60,6 +66,7 @@ func bind(p_player: Node) -> void:
 	view.drop_requested.connect(drop)
 	view.stack_selected.connect(select)
 	inventory.message.connect(_on_message)
+	keychain_list.bind(Keychain.of(player))
 	refresh()
 
 
@@ -338,6 +345,13 @@ func _build() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(right)
 	detail_box = TabStyle.column_box(right)
+	row.add_child(TabStyle.divider())
+	var keys := TabStyle.column(KEYCHAIN_WIDTH)
+	keys.name = "Keys"
+	row.add_child(keys)
+	keychain_list = KeychainList.new()
+	keychain_list.name = "Keychain"
+	TabStyle.column_box(keys).add_child(keychain_list)
 	menu = PopupMenu.new()
 	menu.name = "Menu"
 	add_child(menu)

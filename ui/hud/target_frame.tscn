@@ -15,9 +15,53 @@ mouse_filter = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_frame")
 
-[node name="Tag" type="Label" parent="."]
+[node name="Tag" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 18.0
 mouse_filter = 2
 theme_type_variation = &"HudTargetTag"
+
+[node name="Lines" type="VBoxContainer" parent="Tag"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetLines"
+
+[node name="Name" type="Label" parent="Tag/Lines"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetName"
+
+[node name="Status" type="HBoxContainer" parent="Tag/Lines"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetStatusRow"
+
+[node name="Square" type="ColorRect" parent="Tag/Lines/Status"]
+custom_minimum_size = Vector2(7, 7)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Word" type="Label" parent="Tag/Lines/Status"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetStatus"
+
+[node name="Lock" type="HBoxContainer" parent="Tag/Lines"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetStatusRow"
+
+[node name="Square" type="ColorRect" parent="Tag/Lines/Lock"]
+custom_minimum_size = Vector2(7, 7)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Word" type="Label" parent="Tag/Lines/Lock"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudTargetStatus"

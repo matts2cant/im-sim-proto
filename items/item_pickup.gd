@@ -10,6 +10,8 @@ extends Node
 @export var count: int = 1
 ## Instance state on top of item.default_state, e.g. {"key_id": "office"}.
 @export var state: Dictionary = {}
+## Where it was found, for lists that remember it (the keychain, ADR 0130): "Found in the office desk".
+@export var found_text: String = ""
 
 
 static func of(node: Node) -> ItemPickup:

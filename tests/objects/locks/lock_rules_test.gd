@@ -61,3 +61,22 @@ func test_keypad_entry_takes_digits_up_to_the_limit() -> void:
 	entry.clear()
 	assert_str(entry.digits).is_equal("")
 	assert_bool(entry.add("12")).is_false()
+
+
+func test_lock_line_and_message_name_what_opens_it() -> void:
+	var none: Array[String] = []
+	assert_str(LockRules.locked_line(none)).is_equal("Locked")
+	assert_str(LockRules.needs_message(none)).is_equal("Locked")
+	var card: Array[String] = ["keycard"]
+	assert_str(LockRules.locked_line(card)).is_equal("Locked · keycard")
+	assert_str(LockRules.needs_message(card)).is_equal("Locked: needs a keycard")
+	var keypad: Array[String] = ["keypad"]
+	assert_str(LockRules.locked_line(keypad)).is_equal("Locked · code")
+	assert_str(LockRules.needs_message(keypad)).is_equal("Locked: needs a code")
+	var key: Array[String] = ["key or lockpick"]
+	assert_str(LockRules.locked_line(key)).is_equal("Locked · key or lockpick")
+	assert_str(LockRules.needs_message(key)).is_equal("Locked: needs a key or a lockpick")
+	# Several locks combine, repeats and empty reasons dropped.
+	var both: Array[String] = ["keypad", "", "keycard", "keypad", "lockpick"]
+	assert_str(LockRules.locked_line(both)).is_equal("Locked · code or keycard or lockpick")
+	assert_str(LockRules.needs_message(both)).is_equal("Locked: needs a code or a keycard or a lockpick")

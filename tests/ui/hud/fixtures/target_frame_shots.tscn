@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="4_computer"]
 [ext_resource type="PackedScene" path="res://objects/door/door.tscn" id="5_door"]
 [ext_resource type="PackedScene" path="res://actors/guard/guard.tscn" id="6_guard"]
+[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="7_switch"]
+[ext_resource type="PackedScene" path="res://objects/light_fixture/wall_lamp.tscn" id="8_lamp"]
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 1
@@ -52,6 +54,25 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
 
 [node name="Guard" parent="." instance=ExtResource("6_guard")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1, 0, -6)
+
+[node name="DeviceWall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.25, -3.1)
+use_collision = true
+size = Vector3(2.4, 2.5, 0.2)
+
+[node name="SwitchA" parent="." instance=ExtResource("7_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.6, 1.5, -3)
+
+[node name="SwitchB" parent="." instance=ExtResource("7_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 1.5, -3)
+
+[node name="LampWall" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.25, -3.1)
+use_collision = true
+size = Vector3(2.4, 2.5, 0.2)
+
+[node name="WallLamp" parent="." instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.8, -3)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 input_enabled = false

@@ -1,6 +1,6 @@
 # 129. The interaction frame: corner brackets and a name tag on what E acts on (M13)
 
-Status: Accepted
+Status: Accepted (amended by ADR 0130, M13c: status line, devices and characters framed, no prompt line)
 
 Date: 2026-11-12
 
@@ -29,3 +29,10 @@ The user asked for Deus Ex's (2000) highlight: when the crosshair is on somethin
 - Anything with an ItemPickup, an available Usable or a Carryable that the player can offer is framed, with its name, without code: a new usable prop only needs visible meshes.
 - A thing whose look is only text or sprites is not framed (none exists). A thing with no visible geometry gets no frame, but its prompt still shows.
 - `Interactor.target_name` is available to any other HUD element that needs the target's name.
+
+## Amendment (M13c, [ADR 0130](0130-device-overhaul.md) step 1b): status line, more things framed, no prompt
+
+- **What is framed** also includes, within reach only (`interact_reach`, 2 m: the Interactor's ray, a hitbox standing for its character), the thing under the crosshair (`Interactor.looked_at`) when it has a `Device`, a `Powered` or `BodyParts` (a character), interactable or not (`TargetStatus.shows()`, `TargetStatus.qualifies()`). Still never while carrying, unable to act or scoped. Its name is its usable's `target_name()`, else `Interactor.display_name_of()`.
+- **The tag** is now a `PanelContainer` (`HudTargetTag`, box 72 % opaque as in the approved mockup, was 55 %) holding a name (`HudTargetName`), a **status line** (a 7 px square and a word, `HudTargetStatus`, in the state's colour) and a **lock line** (amber square and "Locked · key or lockpick"). Status (`TargetStatus.word_of()`, by components): a Device on a network (cables either way, a wireless link or clients, or an access point named) says Online (green), Cut off (amber, the square blinks like the LED: lit while fract(t x 1.25) >= 0.5, else 15 %), Disabled (red: a component's `device_disabled()`), Broken (red), No power (grey); a Powered thing off any network says Powered / No power / Broken; a character nothing while awake, Unconscious (blue-white) or Dead (dim red). The network colours are `StatusLight.COLORS`; "No power" is a grey (#8a9296) because the dark light's colour does not read on the tag. The lock line is `LockRules.locked_line()` of the entity's locked `Lockable` (each lock's `locked_reason()`, "keypad" shown as "code"). Both lines are recomputed every refresh, so they follow the state while shown; the device's links are read once when the target changes.
+- **No prompt line**: the HUD's `Prompt` label is gone; `Interactor.prompt` stays as data. When E does nothing, `Interactor.message` says why and the HUD shows it as a message: `Usable.refusal()` ("Locked: needs a keycard", from the entity's Lockable by default), `Usable.unavailable_reason()` ("Broken", "No power" from the entity's state by default), "Too heavy", "No room to put down".
+- Alternatives: dimmed brackets up to 8 m beyond reach (the first mockup) were dropped by the user; the frame stays at interaction distance.
