@@ -76,7 +76,7 @@ func impact(speed: float, other: Node) -> float:
 	last_loudness = loudness
 	var other_name := String(other.name) if is_instance_valid(other) else ""
 	var data := {"object": String(body.name), "other": other_name, "speed": speed, "loudness": loudness}
-	EventLog.record(&"object.impact", String(body.name), other_name, data)
+	EventLog.record(EventKinds.OBJECT_IMPACT, String(body.name), other_name, data)
 	StimulusSystem.emit(Stimulus.make_noise(loudness, body.global_position, body))
 	_play(loudness)
 	var damage := ImpactRules.damage(speed, body.mass, settings)

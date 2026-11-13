@@ -77,7 +77,7 @@ func spawn(scene: PackedScene) -> Node3D:
 	player.get_parent().add_child(node, true)
 	node.global_transform = Transform3D(player.global_basis, position)
 	var data := {"object": String(node.name), "scene": scene.resource_path}
-	EventLog.record(&"debug.spawned", "DebugPanel", String(node.name), data)
+	EventLog.record(EventKinds.DEBUG_SPAWNED, "DebugPanel", String(node.name), data)
 	_report("Spawned %s" % node.name)
 	return node
 
@@ -100,7 +100,7 @@ func give(item: ItemData, count: int) -> int:
 		return -1
 	var left := player.inventory.give(item, count)
 	var data := {"item": String(item.id), "count": count - left}
-	EventLog.record(&"debug.gave_item", "DebugPanel", String(player.name), data)
+	EventLog.record(EventKinds.DEBUG_GAVE_ITEM, "DebugPanel", String(player.name), data)
 	if left >= count:
 		_report("No room for %s" % item.display_name)
 	elif left > 0:
@@ -113,7 +113,7 @@ func give(item: ItemData, count: int) -> int:
 ## Button handler: reloads the level through LevelReset (drops queued stimuli, logs
 ## `debug.reset_level`) and closes the panel; reports and does nothing without a current scene.
 func reset_level() -> Error:
-	var error := LevelReset.reload_level(get_tree(), &"debug.reset_level")
+	var error := LevelReset.reload_level(get_tree(), EventKinds.DEBUG_RESET_LEVEL)
 	if error == ERR_UNAVAILABLE:
 		_report("No level to reset")
 	else:
@@ -128,7 +128,7 @@ func spawn_effect(scene: PackedScene) -> Node3D:
 	if point == Vector3.INF:
 		return null
 	var node := ExplosivePayload.spawn_in_level(scene, _player(), point)
-	EventLog.record(&"debug.spawned", "DebugPanel", String(node.name), {"object": String(node.name)})
+	EventLog.record(EventKinds.DEBUG_SPAWNED, "DebugPanel", String(node.name), {"object": String(node.name)})
 	_report("Spawned %s" % node.name)
 	return node
 

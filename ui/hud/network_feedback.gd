@@ -5,23 +5,23 @@ extends Node
 ## broken or unpowered), the HUD's message line says so for SHOW_TIME s ("SW-VAULT down: 5 devices
 ## offline (CAM-OFFICE, DOOR-VAULT, +3)"). Only for drops within RANGE m of the player or caused by
 ## the player: the player broke it (MissionTally's attribution: a shot, a blast the player set off)
-## or switched a breaker off in the same tick. Drops within SETTLE_FRAMES of the HUD starting (the
-## level's own starting state) are ignored. Several drops in one tick: the line with the most devices.
-## Reads EventLog entries (`device.state`, `power.switched`, and what MissionTally observes).
+## or switched a breaker off in the same tick (a `power.switched` whose source entity is a player,
+## by tag). Drops within SETTLE_FRAMES of the HUD starting (the level's own starting state) are
+## ignored. Several drops in one tick: the line with the most devices.
+## Reads EventLog entries as they are recorded (`device.state`, `power.switched`, and what
+## MissionTally observes), with their entities (ADR 0136: never by name).
 
 const RANGE: float = 30.0
 const SHOW_TIME: float = 4.0
 const SETTLE_FRAMES: int = 10
-const STATE_KIND: StringName = &"device.state"
-const SWITCHED_KIND: StringName = &"power.switched"
 
 var hud: Hud
 ## The last line shown ("" before any).
 var last_line: String = ""
 
 var _tally: MissionTally
-## Names of the devices that went down this tick -> the tick.
-var _pending: Dictionary[String, int] = {}
+## Instance ids of the devices that went down this tick -> the tick.
+var _pending: Dictionary[int, int] = {}
 var _player_switch_tick: int = -1
 var _started_frame: int = 0
 
@@ -29,6 +29,7 @@ var _started_frame: int = 0
 func _ready() -> void:
 	hud = get_parent() as Hud
 	_started_frame = Engine.get_physics_frames()
+	_tally = MissionTally.new()
 	EventLog.entry_added.connect(_on_entry)
 
 
@@ -37,25 +38,24 @@ func _player() -> Node3D:
 
 
 func _on_entry(entry: EventLogEntry) -> void:
-	var player := _player()
-	if player == null:
+	if _player() == null:
 		return
-	if _tally == null:
-		var names: Array[String] = [String(player.name)]
-		_tally = MissionTally.new(names)
 	_tally.observe(entry)
 	match entry.kind:
-		SWITCHED_KIND:
-			if entry.source == String(player.name) and not bool(entry.data.get("on", true)):
+		EventKinds.POWER_SWITCHED:
+			if _tally.is_player(entry.source_entity()) and not bool(entry.data.get("on", true)):
 				_player_switch_tick = entry.tick
-		STATE_KIND:
+		EventKinds.DEVICE_STATE:
 			if bool(entry.data.get("up", true)):
 				return
 			if Engine.get_physics_frames() - _started_frame < SETTLE_FRAMES:
 				return
+			var device := Device.of(entry.source_entity())
+			if device == null:
+				return
 			if _pending.is_empty():
 				_flush.call_deferred()
-			_pending[entry.source] = entry.tick
+			_pending[device.get_instance_id()] = entry.tick
 
 
 # After the tick's entries (a breaker logs its switch after the drops it caused).
@@ -63,11 +63,11 @@ func _flush() -> void:
 	var player := _player()
 	var best := ""
 	var best_count := 0
-	for device_name: String in _pending:
-		var device := _device_named(device_name)
-		if device == null or player == null:
+	for device_id: int in _pending:
+		var device := instance_from_id(device_id) as Device
+		if player == null or device == null or device.is_up() or not is_instance_valid(device.entity):
 			continue
-		var caused := _tally.broken.has(device_name) or _player_switch_tick == _pending[device_name]
+		var caused := _tally.has_broken(device.entity) or _player_switch_tick == _pending[device_id]
 		var near := player.global_position.distance_to(device.entity.global_position) <= RANGE
 		if not caused and not near:
 			continue
@@ -83,11 +83,3 @@ func _flush() -> void:
 		return
 	last_line = best
 	hud.show_message(best, SHOW_TIME)
-
-
-# The down device whose entity is named `device_name` (EventLog names), or null.
-func _device_named(device_name: String) -> Device:
-	for device in Device.all(get_tree()):
-		if not device.is_up() and is_instance_valid(device.entity) and String(device.entity.name) == device_name:
-			return device
-	return null

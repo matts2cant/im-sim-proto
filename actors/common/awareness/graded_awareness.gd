@@ -67,7 +67,7 @@ func notice_noise(at: Vector3, perceived: float, source: Node) -> void:
 		return
 	var source_name := String(source.name) if source != null else ""
 	EventLog.record(
-		&"actor.heard",
+		EventKinds.ACTOR_HEARD,
 		source_name,
 		String(entity.name),
 		{"actor": String(entity.name), "perceived": perceived, "point": at}
@@ -95,7 +95,7 @@ func notice_call(at: Vector3, source: Node, why: String) -> void:
 	if not _can_perceive() or source == null or _sensor == null or not _sensor.is_ally(source):
 		return
 	var data := {"actor": String(entity.name), "from": String(source.name), "kind": why, "point": at}
-	EventLog.record(&"actor.heard_call", String(source.name), String(entity.name), data)
+	EventLog.record(EventKinds.ACTOR_HEARD_CALL, String(source.name), String(entity.name), data)
 	model.search_at(at, why)
 
 
@@ -131,5 +131,5 @@ func _on_model_changed(from: AwarenessModel.State, to: AwarenessModel.State, rea
 		"meter": model.meter,
 		"point": model.point,
 	}
-	EventLog.record(&"actor.awareness", String(entity.name), "", data)
+	EventLog.record(EventKinds.ACTOR_AWARENESS, entity, "", data)
 	state_changed.emit(from, to, reason)

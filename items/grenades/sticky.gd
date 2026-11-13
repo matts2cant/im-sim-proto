@@ -56,7 +56,7 @@ func stick(on: Node3D, pose: Transform3D) -> void:
 	body.global_transform = pose
 	_follow(on)
 	var on_name := String(on.name) if on != null else ""
-	EventLog.record(&"object.stuck", String(body.name), on_name, {"object": String(body.name), "on": on_name})
+	EventLog.record(EventKinds.OBJECT_STUCK, String(body.name), on_name, {"object": String(body.name), "on": on_name})
 	stuck.emit()
 
 

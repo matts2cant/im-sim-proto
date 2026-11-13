@@ -146,7 +146,7 @@ func _engage(new_target: Node3D) -> void:
 	if not holder.is_armed():
 		holder.equip(0)
 	EventLog.record(
-		&"actor.engaged",
+		EventKinds.ACTOR_ENGAGED,
 		String(body.name),
 		String(target.name),
 		{"actor": String(body.name), "target": String(target.name)}
@@ -160,7 +160,7 @@ func _disengage(reason: String) -> void:
 	target = null
 	body.release_control(self)
 	holder.eye.basis = Basis.IDENTITY
-	EventLog.record(&"actor.disengaged", String(body.name), "", {"actor": String(body.name), "reason": reason})
+	EventLog.record(EventKinds.ACTOR_DISENGAGED, String(body.name), "", {"actor": String(body.name), "reason": reason})
 
 
 # Not fighting: put the weapon away once calm, top up a part-used magazine.

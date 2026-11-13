@@ -23,8 +23,7 @@ func before_test() -> void:
 	_show.turret().holder.seed_rng(7)
 	# The player out of the turret's way, beside the console.
 	await _show.place_player(Vector3(12, 0, 1), PI / 2.0)
-	var names: Array[String] = [String(_show.player.name)]
-	_tally = MissionTally.new(names)
+	_tally = MissionTally.new()
 	EventLog.entry_added.connect(_tally.observe)
 	EventLog.clear()
 

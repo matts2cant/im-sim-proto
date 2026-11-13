@@ -471,7 +471,7 @@ func _step_mantle(delta: float) -> void:
 	velocity = Vector3.ZERO
 	_ground_y = global_position.y
 	noise.reset()
-	EventLog.record(&"player.mantled", name, "", {"height": height})
+	EventLog.record(EventKinds.PLAYER_MANTLED, name, "", {"height": height})
 	mantled.emit(height)
 
 

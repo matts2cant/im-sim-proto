@@ -77,7 +77,7 @@ func footstep(stance: MovementNoiseRules.Stance) -> float:
 	if loudness <= 0.0:
 		return 0.0
 	var data := {"mode": MovementNoiseRules.stance_name(stance), "surface": surface, "loudness": loudness}
-	_make_noise(&"actor.footstep", loudness, data)
+	_make_noise(EventKinds.ACTOR_FOOTSTEP, loudness, data)
 	return loudness
 
 
@@ -89,7 +89,9 @@ func landed(impact_speed: float) -> float:
 	if loudness <= 0.0:
 		return 0.0
 	last_landing_loudness = loudness
-	_make_noise(&"actor.landed", loudness, {"impact_speed": impact_speed, "surface": surface, "loudness": loudness})
+	_make_noise(
+		EventKinds.ACTOR_LANDED, loudness, {"impact_speed": impact_speed, "surface": surface, "loudness": loudness}
+	)
 	return loudness
 
 

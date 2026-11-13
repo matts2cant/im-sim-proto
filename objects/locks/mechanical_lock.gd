@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 	var target := lockable()
 	if target != null:
 		target.lock(null, &"practice")
-	_log(&"lock.relocked", null, {"layout": _relock.layout})
+	_log(EventKinds.LOCK_RELOCKED, null, {"layout": _relock.layout})
 	relocked.emit(_relock.layout)
 
 
@@ -126,23 +126,23 @@ func tool_hold(user: Node, _delta: float) -> bool:
 
 ## The minigame started (`user` picks it).
 func pick_started(user: Node) -> void:
-	_log(&"lock.pick_started", user, {})
+	_log(EventKinds.LOCK_PICK_STARTED, user, {})
 
 
 ## The minigame ended without opening it (`reason`: left, damage, out_of_reach, unlocked, no_picks).
 func pick_cancelled(user: Node, reason: StringName) -> void:
-	_log(&"lock.pick_cancelled", user, {"reason": String(reason)})
+	_log(EventKinds.LOCK_PICK_CANCELLED, user, {"reason": String(reason)})
 
 
 ## A pick broke on it.
 func pick_broke(user: Node) -> void:
-	_log(&"lock.pick_broke", user, {})
+	_log(EventKinds.LOCK_PICK_BROKE, user, {})
 
 
 ## The minigame opened it: unlocks it for `user` (who wants it open). A practice lock starts its
 ## re-lock countdown. False when it was not locked.
 func complete_pick(user: Node) -> bool:
-	_log(&"lock.picked", user, {})
+	_log(EventKinds.LOCK_PICKED, user, {})
 	if _relock != null:
 		_relock.opened()
 	return unlock_for(user, &"pick")

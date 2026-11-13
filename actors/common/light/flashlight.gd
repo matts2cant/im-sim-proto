@@ -115,7 +115,7 @@ func _switch(on: bool) -> void:
 	lit = on
 	_show(on)
 	var actor := String(carrier.name) if carrier != null else ""
-	EventLog.record(&"light.flashlight", actor, "", {"actor": actor, "lit": on})
+	EventLog.record(EventKinds.LIGHT_FLASHLIGHT, actor, "", {"actor": actor, "lit": on})
 
 
 # Where the model is: lit in the hand, pointing along this node's -Z; off on the stowed mount; a

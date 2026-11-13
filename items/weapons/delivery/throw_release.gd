@@ -17,4 +17,4 @@ func deliver(holder: WeaponHolder, data: WeaponData) -> void:
 	if noise > 0.0:
 		emit(holder, Stimulus.make_noise(noise, holder.eye.global_position, holder.user))
 	holder.audio.play_fire(weapon_state)
-	log_event(holder, &"weapon.thrown", {"weapon": data.id, "outcome": outcome})
+	log_event(holder, EventKinds.WEAPON_THROWN, {"weapon": data.id, "outcome": outcome})

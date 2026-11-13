@@ -61,7 +61,7 @@ func submit(entered: String, user: Node) -> bool:
 	var target := String(entity.name) if entity != null else ""
 	var who := String(user.name) if is_instance_valid(user) else ""
 	var logged := {"entity": target, "code_id": String(code_id()), "correct": correct}
-	EventLog.record(&"lock.code_entered", who, target, logged)
+	EventLog.record(EventKinds.LOCK_CODE_ENTERED, who, target, logged)
 	if correct:
 		make_noise(data.accept_noise, ACCEPT_TONE_HZ)
 		unlock_for(user, &"keypad")

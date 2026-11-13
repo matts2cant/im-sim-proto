@@ -132,7 +132,7 @@ func _on_state_changed(from: AwarenessModel.State, to: AwarenessModel.State, rea
 		"from": AwarenessModel.STATE_NAMES[from],
 		"to": AwarenessModel.STATE_NAMES[to],
 	}
-	EventLog.record(&"actor.bark", String(entity.name), "", data)
+	EventLog.record(EventKinds.ACTOR_BARK, String(entity.name), "", data)
 	say(line, to)
 	refresh()
 
