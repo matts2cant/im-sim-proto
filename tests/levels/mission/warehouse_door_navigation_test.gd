@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## from the reinforcements' arrival through the doors their keys open (the security operator's
 ## post needs `access.warehouse_security`), and every guard the people population placed reaches its
 ## post and its patrol points with its own access tags; the large doors (front gate, roller doors) open and
-## close and keep guards out while locked, and let them through once unlocked or open.
+## close and keep guards out while locked, and let them through once unlocked or open. The second
+## office's linking bay (ADR 0130) cuts no way across the room.
 
 const Helpers := preload("res://tests/levels/mission/warehouse_security_helpers.gd")
 const REACH := 0.35
@@ -44,6 +45,14 @@ func test_guards_reach_their_posts_through_the_doors_their_keys_open() -> void:
 	# The security operator's post is behind the keycard door: without the access, no path.
 	var operator := (_helpers.level.get_node("LayoutMarkers/Guards/G5SecurityOperator") as Node3D).global_position
 	assert_bool(_reaches(start, operator, AccessLayers.WALK)).is_false()
+	# ADR 0130: the linking bay in the second office leaves the room open: from inside its doorway the
+	# navmesh reaches the floor in front of the bay (its glass door at x 19.11) and of both desks.
+	for spot: Vector3 in [Vector3(18.5, 4.5, 12.5), Vector3(14.5, 4.5, 13.4), Vector3(18.0, 4.5, 13.4)]:
+		(
+			assert_bool(_reaches(Vector3(16.5, 4.5, 7.6), spot, AccessLayers.WALK))
+			. override_failure_message("%s" % spot)
+			. is_true()
+		)
 
 
 func test_every_placed_guard_reaches_its_post_and_route_with_its_own_keys() -> void:
