@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
+const MountChecks := preload("res://tests/levels/device_mount_checks.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/network_lab/network_lab.tscn")
 const ORIGIN := Vector3(-300, 0, -500)
@@ -26,24 +27,24 @@ const NETWORK: Dictionary[String, Array] = {
 	"Devices/OfficeSwitch": [&"office", "10.0.10.2"],
 	"Devices/OfficePc1": [&"office", "10.0.10.11"],
 	"Devices/OfficePc2": [&"office", "10.0.10.12"],
-	"Devices/Rtr01": [&"office", "10.0.10.1"],
-	"Devices/SecuritySwitch": [&"security", "10.0.20.2"],
-	"Devices/ClosetSwitch": [&"security", "10.0.20.3"],
+	"Devices/BayA/Rtr01": [&"office", "10.0.10.1"],
+	"Devices/BayA/SecuritySwitch": [&"security", "10.0.20.2"],
+	"Devices/BayA/ClosetSwitch": [&"security", "10.0.20.3"],
 	"Devices/Console": [&"security", "10.0.20.5"],
 	"Devices/ClosetCamera": [&"security", "10.0.20.21"],
 	"Doors/ClosetDoor/Hardware/Controller": [&"security", "10.0.20.51"],
-	"Devices/Rtr02": [&"security", "10.0.20.1"],
-	"Devices/ServerSwitch": [&"servers", "10.0.30.2"],
-	"Devices/FileServer": [&"servers", "10.0.30.8"],
+	"Devices/BayB/Rtr02": [&"security", "10.0.20.1"],
+	"Devices/BayB/ServerSwitch": [&"servers", "10.0.30.2"],
+	"Devices/BayB/FileServer": [&"servers", "10.0.30.8"],
 }
 ## Entity path -> [user, strength, admin].
 const ACCOUNTS: Dictionary[String, Array] = {
 	"Devices/OfficePc1": ["achen", WEAK, false],
 	"Devices/OfficePc2": ["jnovak", WEAK, false],
 	"Devices/Console": ["ops", MEDIUM, false],
-	"Devices/Rtr01": ["admin", WEAK, true],
-	"Devices/Rtr02": ["admin", MEDIUM, true],
-	"Devices/FileServer": ["archive", WEAK, false],
+	"Devices/BayA/Rtr01": ["admin", WEAK, true],
+	"Devices/BayB/Rtr02": ["admin", MEDIUM, true],
+	"Devices/BayB/FileServer": ["archive", WEAK, false],
 }
 
 var _room: Node3D
@@ -118,9 +119,15 @@ func test_no_coplanar_faces_with_different_materials() -> void:
 
 func test_wall_devices_sit_on_the_walls_clear_of_doorways_and_signs() -> void:
 	assert_array(WallDeviceChecks.problems(_room)).is_empty()
-	# Every network device but the door hangs on a hall wall: its back within 2 cm of a wall face.
+	# ADR 0130 step 3: the routers and switches stand in bays A and B, the office switch and the
+	# computers on desks; every other network device but the door hangs on a hall wall, its back
+	# within 2 cm of a wall face.
+	var mounts: Dictionary[String, int] = {}
 	for path: String in NETWORK:
 		if path.begins_with("Doors/"):
+			continue
+		mounts[path] = MountChecks.mount(_node(path))
+		if mounts[path] != MountChecks.Mount.WALL:
 			continue
 		var box := _room.global_transform.affine_inverse() * WallDeviceChecks.visual_box(_node(path))
 		var gaps: Array[float] = [
@@ -135,6 +142,25 @@ func test_wall_devices_sit_on_the_walls_clear_of_doorways_and_signs() -> void:
 		)
 		assert_float(box.position.y).override_failure_message(path).is_greater(0.2)
 		assert_float(box.end.y).override_failure_message(path).is_less(HALL_HEIGHT - 0.5)
+	var bay := MountChecks.Mount.BAY
+	var desk := MountChecks.Mount.DESK
+	var expected: Dictionary[String, int] = {
+		"Devices/Jack": MountChecks.Mount.WALL,
+		"Devices/OfficeSwitch": desk,
+		"Devices/OfficePc1": desk,
+		"Devices/OfficePc2": desk,
+		"Devices/Console": desk,
+		"Devices/ClosetCamera": MountChecks.Mount.WALL,
+		"Devices/BayA/Rtr01": bay,
+		"Devices/BayA/SecuritySwitch": bay,
+		"Devices/BayA/ClosetSwitch": bay,
+		"Devices/BayB/Rtr02": bay,
+		"Devices/BayB/ServerSwitch": bay,
+		"Devices/BayB/FileServer": bay,
+	}
+	assert_dict(mounts).is_equal(expected)
+	for path: String in ["Devices/MailPc", "Devices/EdgeRouter"]:
+		assert_int(MountChecks.mount(_node(path))).override_failure_message(path).is_equal(desk)
 
 
 func test_signs_fit_their_walls_and_do_not_overlap() -> void:
@@ -182,17 +208,21 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
 		assert_bool(_node(path).has_meta(&"display_name")).override_failure_message(path).is_true()
-	assert_array(Router.of(_node("Devices/Rtr01")).subnets()).contains_exactly_in_any_order([&"office", &"security"])
-	assert_array(Router.of(_node("Devices/Rtr02")).subnets()).contains_exactly_in_any_order([&"security", &"servers"])
+	assert_array(Router.of(_node("Devices/BayA/Rtr01")).subnets()).contains_exactly_in_any_order(
+		[&"office", &"security"]
+	)
+	assert_array(Router.of(_node("Devices/BayB/Rtr02")).subnets()).contains_exactly_in_any_order(
+		[&"security", &"servers"]
+	)
 	assert_int(DeviceNetwork.port_kind(Device.of(_node("Devices/Jack")))).is_equal(Device.DeckPort.JACK)
 	# One tracer on the M12a network, default tuning, on RTR-01, watching Office and Security (not
 	# Servers); the annex's RTR-03 runs the other (network_lab_annex_test.gd).
 	var tracers := Tracer.all(get_tree()).filter(
-		func(t: Tracer) -> bool: return _room.is_ancestor_of(t) and t.entity != _node("Devices/Rtr03")
+		func(t: Tracer) -> bool: return _room.is_ancestor_of(t) and t.entity != _node("Devices/BayC/Rtr03")
 	)
 	assert_int(tracers.size()).is_equal(1)
 	var tracer := tracers[0] as Tracer
-	assert_object(tracer.entity).is_same(_node("Devices/Rtr01"))
+	assert_object(tracer.entity).is_same(_node("Devices/BayA/Rtr01"))
 	assert_array(tracer.watched).contains_exactly_in_any_order([&"office", &"security"])
 	assert_object(tracer.config).is_same(Tracer.DEFAULT_CONFIG)
 	# The camera and the door trust the console only.
@@ -208,15 +238,15 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 	# A subnet can span several switches: the closet's room switch carries the camera and the door and
 	# hangs on the main security switch (on no circuit); the breaker beside it cuts its circuit and
 	# the closet door is fail-secure on it.
-	assert_array(Device.of(_node("Devices/ClosetSwitch")).linked()).contains_exactly_in_any_order(
+	assert_array(Device.of(_node("Devices/BayA/ClosetSwitch")).linked()).contains_exactly_in_any_order(
 		[Device.of(_node("Devices/ClosetCamera")), Device.of(_node("Doors/ClosetDoor/Hardware/Controller"))]
 	)
-	assert_array(Device.of(_node("Devices/SecuritySwitch")).linked()).contains(
-		[Device.of(_node("Devices/ClosetSwitch"))]
+	assert_array(Device.of(_node("Devices/BayA/SecuritySwitch")).linked()).contains(
+		[Device.of(_node("Devices/BayA/ClosetSwitch"))]
 	)
-	assert_str(String(Powered.of(_node("Devices/SecuritySwitch")).circuit)).is_empty()
+	assert_str(String(Powered.of(_node("Devices/BayA/SecuritySwitch")).circuit)).is_empty()
 	var circuit := (_node("Devices/Breaker").get_node("CircuitBreaker") as CircuitBreaker).circuit
-	assert_str(String(Powered.of(_node("Devices/ClosetSwitch")).circuit)).is_equal(String(circuit))
+	assert_str(String(Powered.of(_node("Devices/BayA/ClosetSwitch")).circuit)).is_equal(String(circuit))
 	assert_str(String(Powered.of(_node("Doors/ClosetDoor/Hardware/Controller")).circuit)).is_equal(String(circuit))
 	assert_bool(ActorState.has(_node("Doors/ClosetDoor"), ElectronicLock.FAIL_SECURE)).is_true()
 
@@ -226,8 +256,8 @@ func test_three_subnets_behind_two_routers_with_trust_and_accounts() -> void:
 # their data's colours with their names and ranges, RTR-01 and RTR-02 between them with both
 # addresses. Fitted in the deck's 1152 x 648 Map panel at about 0.51.
 func test_the_deck_map_shows_three_subnet_boxes_with_the_routers_between() -> void:
-	assert_array(Router.of(_node("Devices/Rtr01")).addresses()).is_equal(["10.0.10.1", "10.0.20.254"])
-	assert_array(Router.of(_node("Devices/Rtr02")).addresses()).is_equal(["10.0.20.1", "10.0.30.1"])
+	assert_array(Router.of(_node("Devices/BayA/Rtr01")).addresses()).is_equal(["10.0.10.1", "10.0.20.254"])
+	assert_array(Router.of(_node("Devices/BayB/Rtr02")).addresses()).is_equal(["10.0.20.1", "10.0.30.1"])
 	var rows := MapChecks.rows_from(_node("Devices/Jack"))
 	var result := MapChecks.check(self, rows, MapChecks.cables(rows))
 	var layout := result["layout"] as NetworkLayout
@@ -279,8 +309,8 @@ func test_every_clue_is_fair() -> void:
 	var pc2_mail := Computer.of(_node("Devices/OfficePc2")).data.mail[0]
 	assert_str(pc2_mail.codes[&"network_lab_console"]).is_equal("ops:" + _password("Devices/Console"))
 	var rtr02_file := Computer.of(_node("Devices/Console")).data.files[0]
-	assert_str(rtr02_file.codes[&"network_lab_rtr02"]).is_equal("admin:" + _password("Devices/Rtr02"))
-	assert_str(String(DeviceAccounts.of(_node("Devices/Rtr02")).credentials_id)).is_equal("network_lab_rtr02")
+	assert_str(rtr02_file.codes[&"network_lab_rtr02"]).is_equal("admin:" + _password("Devices/BayB/Rtr02"))
+	assert_str(String(DeviceAccounts.of(_node("Devices/BayB/Rtr02")).credentials_id)).is_equal("network_lab_rtr02")
 	# RTR-01 and the file server are cracked: their passwords are written nowhere.
 	var texts: Array[String] = []
 	for node in _room.find_children("*", "Readable", true, false):
@@ -289,7 +319,7 @@ func test_every_clue_is_fair() -> void:
 		var data := (node as Computer).data
 		for document in data.mail + data.files:
 			texts.append(document.text + str(document.codes))
-	for path: String in ["Devices/Rtr01", "Devices/FileServer"]:
+	for path: String in ["Devices/BayA/Rtr01", "Devices/BayB/FileServer"]:
 		for text in texts:
 			assert_str(text).override_failure_message(path + "'s password is written").not_contains(_password(path))
 

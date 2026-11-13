@@ -306,13 +306,12 @@ func test_signs() -> void:
 
 
 func test_booth_wall_devices_are_named_by_small_signs_above_them() -> void:
-	# The alarm controller and the radio base station share the booth's east wall (ADR 0083).
+	# The radio base station on the booth's east wall (ADR 0083; the alarm controller moved to the
+	# hall's bay in ADR 0130 step 3).
 	await get_tree().process_frame
 	var booth := _interior(_shell("Booth"))
 	var spans: Array[Vector2] = []
-	for pair: Array in [
-		["BoothController", "Controller", "alarm controller"], ["BoothBaseStation", "BaseStation", "radio base station"]
-	]:
+	for pair: Array in [["BoothBaseStation", "BaseStation", "radio base station"]]:
 		var sign := _room.get_node("Labels/" + String(pair[0])) as Sign
 		var device := _room.get_node("Devices/" + String(pair[1])) as Node3D
 		assert_str(sign.text.replace("\n", " ").to_lower()).is_equal(String(pair[2]))
@@ -331,11 +330,11 @@ func test_booth_wall_devices_are_named_by_small_signs_above_them() -> void:
 		assert_float(sign.position.y + text_box.end.y).is_less(_shell("Booth").size.y)
 		# Text width runs along the wall (the sign's x axis is world z).
 		spans.append(Vector2(sign.position.z + text_box.position.x, sign.position.z + text_box.end.x))
-	# Inside the booth wall and apart from each other.
+	# Inside the booth wall.
 	for span in spans:
 		assert_float(span.x).is_greater(booth.position.y)
 		assert_float(span.y).is_less(booth.end.y)
-	assert_float(spans[1].x - spans[0].y).is_greater(0.1)
+	assert_object(_room.get_node_or_null("Labels/BoothController")).is_null()
 
 
 func test_wall_devices_keep_clear_of_doorways_door_sweeps_and_signs() -> void:

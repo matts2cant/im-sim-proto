@@ -18,6 +18,7 @@ extends GdUnitTestSuite
 
 const KitGeometry := preload("res://tests/levels/kit/kit_geometry.gd")
 const WallDeviceChecks := preload("res://tests/levels/wall_device_checks.gd")
+const MountChecks := preload("res://tests/levels/device_mount_checks.gd")
 const MapChecks := preload("res://tests/ui/deck/network_map_checks.gd")
 const ROOM_SCENE: PackedScene = preload("res://levels/gallery/network_lab/network_lab.tscn")
 const ORIGIN := Vector3(-300, 0, -700)
@@ -34,22 +35,22 @@ const UNTRAINED := 8.0
 const TRAINED := 12.0
 ## Entity path -> [subnet, address, display name].
 const NETWORK: Dictionary[String, Array] = {
-	"Devices/WifiSwitch": [&"lab_wifi", "10.0.40.2", "SW-WIFI"],
+	"Devices/BayC/WifiSwitch": [&"lab_wifi", "10.0.40.2", "SW-WIFI"],
 	"Devices/ApLab": [&"lab_wifi", "10.0.40.5", "AP-LAB"],
 	"Devices/WifiCamera": [&"lab_wifi", "10.0.40.21", "CAM-WIFI"],
 	"Devices/WifiLaser": [&"lab_wifi", "10.0.40.41", "LASER-WIFI"],
-	"Devices/Rtr03": [&"lab_cctv", "10.0.50.1", "RTR-03"],
-	"Devices/CctvSwitch": [&"lab_cctv", "10.0.50.2", "SW-CCTV"],
+	"Devices/BayC/Rtr03": [&"lab_cctv", "10.0.50.1", "RTR-03"],
+	"Devices/BayC/CctvSwitch": [&"lab_cctv", "10.0.50.2", "SW-CCTV"],
 	"Devices/CctvJack": [&"lab_cctv", "10.0.50.40", "CCTV-JACK"],
 	"Devices/CamEx1": [&"lab_cctv", "10.0.50.21", "CAM-EX1"],
 	"Devices/CamEx2": [&"lab_cctv", "10.0.50.22", "CAM-EX2"],
 	"Devices/CamEx3": [&"lab_cctv", "10.0.50.23", "CAM-EX3"],
 	"Devices/AlarmJack": [&"lab_alarm", "10.0.60.40", "ALARM-JACK"],
-	"Devices/AlarmSwitch": [&"lab_alarm", "10.0.60.2", "SW-ALARM"],
+	"Devices/BayC/AlarmSwitch": [&"lab_alarm", "10.0.60.2", "SW-ALARM"],
 	"Devices/AlarmController": [&"lab_alarm", "10.0.60.10", "ALARM-LAB"],
 	"Devices/PanicButton": [&"lab_alarm", "10.0.60.12", "PANIC-LAB"],
-	"Devices/Rtr04": [&"lab_alarm", "10.0.60.1", "RTR-04"],
-	"Devices/SirenSwitch": [&"lab_sirens", "10.0.70.2", "SW-SIRENS"],
+	"Devices/BayC/Rtr04": [&"lab_alarm", "10.0.60.1", "RTR-04"],
+	"Devices/BayC/SirenSwitch": [&"lab_sirens", "10.0.70.2", "SW-SIRENS"],
 	"Devices/SirenA": [&"lab_sirens", "10.0.70.31", "SIREN-A"],
 	"Devices/SirenB": [&"lab_sirens", "10.0.70.32", "SIREN-B"],
 }
@@ -143,11 +144,18 @@ func test_the_annex_shares_the_hall_wall_and_its_doorway_is_clear() -> void:
 	assert_dict(KitGeometry.ray(world, ORIGIN + Vector3(13, 1, -17), ORIGIN + Vector3(13, 1, -20))).is_not_empty()
 
 
-func test_annex_devices_hang_flush_on_its_walls() -> void:
+func test_annex_devices_hang_flush_on_its_walls_and_its_gear_stands_in_bay_c() -> void:
 	assert_array(WallDeviceChecks.problems(_room)).is_empty()
 	var paths: Array[String] = ["Devices/ApBreaker"]
 	paths.append_array(NETWORK.keys())
 	for path: String in paths:
+		# ADR 0130 step 3: the annex's routers and switches stand in bay C on the far wall.
+		if MountChecks.bay_of(_node(path)) != null:
+			assert_object(MountChecks.bay_of(_node(path))).is_same(_node("Devices/BayC"))
+			var gear := ActorState.tags_of(_node(path)).has(&"object.network_gear")
+			assert_bool(gear).override_failure_message(path).is_true()
+			continue
+		assert_int(MountChecks.mount(_node(path))).override_failure_message(path).is_equal(MountChecks.Mount.WALL)
 		var box := _room.global_transform.affine_inverse() * WallDeviceChecks.visual_box(_node(path))
 		var gaps: Array[float] = [
 			box.position.x - ANNEX.position.x,
@@ -170,33 +178,34 @@ func test_two_networks_of_their_own_with_subnets_routers_tracer_and_logins() -> 
 		)
 		assert_str(device.address).override_failure_message(path).is_equal(NETWORK[path][1])
 		assert_str(NetworkSource.display_name(device)).override_failure_message(path).is_equal(NETWORK[path][2])
-	assert_array(Router.of(_node("Devices/Rtr03")).addresses()).is_equal(["10.0.50.1", "10.0.40.1"])
-	assert_array(Router.of(_node("Devices/Rtr04")).addresses()).is_equal(["10.0.60.1", "10.0.70.1"])
+	assert_array(Router.of(_node("Devices/BayC/Rtr03")).addresses()).is_equal(["10.0.50.1", "10.0.40.1"])
+	assert_array(Router.of(_node("Devices/BayC/Rtr04")).addresses()).is_equal(["10.0.60.1", "10.0.70.1"])
 	# Not cabled to the M12a network nor to each other.
 	var graph := Device.graph(get_tree())
 	var wifi_side := graph.component(_device("Devices/CctvJack").get_instance_id())
 	var alarm_side := graph.component(_device("Devices/AlarmJack").get_instance_id())
-	for path: String in ["Devices/Rtr01", "Devices/Rtr02", "Devices/Jack"]:
+	for path: String in ["Devices/BayA/Rtr01", "Devices/BayB/Rtr02", "Devices/Jack"]:
 		assert_bool(wifi_side.has(_device(path).get_instance_id())).override_failure_message(path).is_false()
 		assert_bool(alarm_side.has(_device(path).get_instance_id())).override_failure_message(path).is_false()
-	assert_bool(wifi_side.has(_device("Devices/Rtr04").get_instance_id())).is_false()
+	assert_bool(wifi_side.has(_device("Devices/BayC/Rtr04").get_instance_id())).is_false()
 	assert_bool(wifi_side.has(_device("Devices/ApLab").get_instance_id())).is_true()
 	# The Watchdog tracer on RTR-03 watches CCTV only (not the Wi-Fi side, not the firewall station).
-	var tracer := _node("Devices/Rtr03").get_node("Tracer") as Tracer
+	var tracer := _node("Devices/BayC/Rtr03").get_node("Tracer") as Tracer
 	assert_array(tracer.watched).contains_exactly([&"lab_cctv"])
 	for path: String in ["Devices/CamEx1", "Devices/CamEx2", "Devices/CamEx3"]:
 		assert_bool(tracer.watches(_device(path))).override_failure_message(path).is_true()
 	for path: String in ["Devices/WifiCamera", "Devices/ApLab", "Devices/SirenA"]:
 		assert_bool(tracer.watches(_device(path))).override_failure_message(path).is_false()
 	# RTR-04's Weak admin login on the note at the station; RTR-03's Medium one written nowhere.
-	var rtr04 := DeviceAccounts.of(_node("Devices/Rtr04"))
+	var rtr04 := DeviceAccounts.of(_node("Devices/BayC/Rtr04"))
 	var note := _node("Items/Rtr04Note").get_node("Readable") as Readable
 	var known := LoginCredentials.parse(note.codes[rtr04.code_id()])
 	assert_str(known.password).is_equal(rtr04.accounts[0].password)
 	assert_int(rtr04.accounts[0].strength).is_equal(DeviceAccount.Strength.WEAK)
 	assert_bool(rtr04.accounts[0].admin).is_true()
-	assert_float(_node("Items/Rtr04Note").position.distance_to(_node("Devices/Rtr04").position)).is_less(7.0)
-	var rtr03 := DeviceAccounts.of(_node("Devices/Rtr03")).accounts[0]
+	# The note lies at the firewall station, by the jack the deck plugs into (RTR-04 is in bay C).
+	assert_float(_node("Items/Rtr04Note").position.distance_to(_node("Devices/AlarmJack").position)).is_less(3.0)
+	var rtr03 := DeviceAccounts.of(_node("Devices/BayC/Rtr03")).accounts[0]
 	assert_int(rtr03.strength).is_equal(DeviceAccount.Strength.MEDIUM)
 	for node in _room.find_children("*", "Readable", true, false):
 		assert_str((node as Readable).text + str((node as Readable).codes)).not_contains(rtr03.password)
@@ -214,7 +223,7 @@ func test_the_access_point_covers_its_wireless_devices_and_its_breaker_cuts_them
 	for path: String in ["Devices/WifiCamera", "Devices/WifiLaser"]:
 		var distance := _node(path).global_position.distance_to(_ap().global_position)
 		assert_float(distance).override_failure_message(path).is_less(radio.wireless_range - 5.0)
-	var switch := _device("Devices/WifiSwitch")
+	var switch := _device("Devices/BayC/WifiSwitch")
 	assert_bool(switch.reaches(_node("Devices/WifiCamera"))).is_true()
 	assert_bool(switch.reaches(_node("Devices/WifiLaser"))).is_true()
 	# Breakable like any prop, and on its own breaker: off, both wireless devices drop off.
@@ -276,7 +285,7 @@ func test_the_exploit_items_lie_on_the_table_and_open_devices_there() -> void:
 	# Each kind opens devices of the station: the CCTV cameras and RTR-03.
 	for path: String in ["Devices/CamEx1", "Devices/CamEx2", "Devices/CamEx3"]:
 		assert_str(String(kinds.kind_for(_node(path)).exploit)).override_failure_message(path).is_equal("camera")
-	assert_str(String(kinds.kind_for(_node("Devices/Rtr03")).exploit)).is_equal("router")
+	assert_str(String(kinds.kind_for(_node("Devices/BayC/Rtr03")).exploit)).is_equal("router")
 	# The old datapad is gone.
 	assert_object(_room.get_node_or_null(^"Items/ExploitNotes")).is_null()
 
@@ -286,7 +295,7 @@ func test_denying_the_controller_to_the_sirens_silences_them() -> void:
 	var controller := (
 		_node("Devices/AlarmController").find_children("*", "AlarmController", false, false)[0] as AlarmController
 	)
-	var router := Router.of(_node("Devices/Rtr04"))
+	var router := Router.of(_node("Devices/BayC/Rtr04"))
 	# Without a rule the panic button rings both sirens through RTR-04.
 	panic.use(_user)
 	await _seconds(0.5)

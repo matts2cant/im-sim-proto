@@ -17,14 +17,15 @@
 [ext_resource type="Script" path="res://objects/locks/electronic_lock.gd" id="14_electronic"]
 [ext_resource type="Script" path="res://objects/components/powered.gd" id="15_powered"]
 [ext_resource type="PackedScene" path="res://objects/breaker_panel/breaker_panel.tscn" id="16_breaker"]
-[ext_resource type="PackedScene" path="res://objects/devices/network_switch.tscn" id="17_switch"]
-[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller.tscn" id="18_controller"]
+[ext_resource type="PackedScene" path="res://objects/network/switch_rack.tscn" id="17_switch"]
+[ext_resource type="PackedScene" path="res://objects/alarm/alarm_controller_rack.tscn" id="18_controller"]
+[ext_resource type="PackedScene" path="res://objects/devices/models/linking_bay.tscn" id="18_bay"]
 [ext_resource type="PackedScene" path="res://objects/alarm/siren.tscn" id="19_siren"]
 [ext_resource type="PackedScene" path="res://objects/alarm/panic_button.tscn" id="20_panic_button"]
 [ext_resource type="PackedScene" path="res://objects/alarm/radio_base_station.tscn" id="21_base_station"]
 [ext_resource type="PackedScene" path="res://objects/camera/security_camera.tscn" id="22_camera"]
 [ext_resource type="PackedScene" path="res://objects/turret/turret.tscn" id="23_turret"]
-[ext_resource type="PackedScene" path="res://objects/computer/computer.tscn" id="24_computer"]
+[ext_resource type="PackedScene" path="res://objects/computer/computer_desk.tscn" id="24_computer"]
 [ext_resource type="Script" path="res://objects/network/device_account.gd" id="40_account"]
 [ext_resource type="Resource" path="res://levels/gallery/security_wing/booth_computer.tres" id="41_booth_data"]
 [ext_resource type="PackedScene" path="res://objects/datapad/datapad.tscn" id="25_datapad"]
@@ -39,12 +40,11 @@
 [ext_resource type="PackedScene" path="res://objects/cardboard_box/cardboard_box.tscn" id="34_cardboard_box"]
 [ext_resource type="PackedScene" path="res://objects/laser/laser_beam.tscn" id="35_laser_beam"]
 [ext_resource type="PackedScene" path="res://objects/locks/practice_lock/practice_lock.tscn" id="36_practice_lock"]
-[ext_resource type="PackedScene" path="res://objects/network/router.tscn" id="42_router"]
+[ext_resource type="PackedScene" path="res://objects/network/router_rack.tscn" id="42_router"]
 [ext_resource type="PackedScene" path="res://objects/network/wall_jack.tscn" id="43_jack"]
 [ext_resource type="Script" path="res://objects/network/subnet.gd" id="44_subnet"]
 [ext_resource type="Resource" path="res://levels/gallery/security_wing/subnets/wing_ops.tres" id="45_ops"]
 [ext_resource type="Resource" path="res://levels/gallery/security_wing/subnets/wing_security.tres" id="46_security"]
-[ext_resource type="PackedScene" path="res://levels/kit/network_panel.tscn" id="90_network_panel"]
 
 [sub_resource type="Resource" id="Opening_hall_hub"]
 script = ExtResource("2_opening")
@@ -299,6 +299,13 @@ width = 1.2
 depth = 0.5
 surface = "wood"
 
+[node name="BoothDesk" parent="Shell" instance=ExtResource("4_ledge")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 0, 8.29)
+height = 0.75
+width = 1.4
+depth = 0.7
+surface = "wood"
+
 [node name="VaultTable" parent="Shell" instance=ExtResource("4_ledge")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.5, 0, 21.29)
 height = 1.0
@@ -516,79 +523,92 @@ metadata/display_name = "WING-JACK"
 address = "10.0.15.40"
 subnet = &"wing_ops"
 
-[node name="OpsSwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 1.6, 0.01)
+[node name="Bay" parent="Devices" instance=ExtResource("18_bay")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 0, 0.305)
+bay_name = "BAY-WING"
+cable_height = 2.1
+
+[node name="OpsSwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.573, 0.24)
 metadata/display_name = "SW-OPS"
 
-[node name="Device" parent="Devices/OpsSwitch"]
-links = Array[NodePath]([NodePath("../../Jack"), NodePath("../../BoothComputer")])
+[node name="Device" parent="Devices/Bay/OpsSwitch"]
+links = Array[NodePath]([NodePath("../../../Jack"), NodePath("../../../BoothComputer")])
 address = "10.0.15.2"
 subnet = &"wing_ops"
 
-[node name="Rtr05" parent="Devices" instance=ExtResource("42_router")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.6, 0.01)
+[node name="Rtr05" parent="Devices/Bay" instance=ExtResource("42_router")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4395, 0.24)
 metadata/display_name = "RTR-05"
 
-[node name="Device" parent="Devices/Rtr05"]
+[node name="Device" parent="Devices/Bay/Rtr05"]
 links = Array[NodePath]([NodePath("../../OpsSwitch"), NodePath("../../SecuritySwitch")])
 address = "10.0.15.1"
 subnet = &"wing_ops"
 
-[node name="Router" parent="Devices/Rtr05"]
+[node name="Router" parent="Devices/Bay/Rtr05"]
 subnet_data = Array[ExtResource("44_subnet")]([ExtResource("45_ops"), ExtResource("46_security")])
 side_addresses = Dictionary[StringName, String]({&"wing_security": "10.0.25.254"})
 
-[node name="DeviceAccounts" parent="Devices/Rtr05"]
+[node name="DeviceAccounts" parent="Devices/Bay/Rtr05"]
 accounts = Array[ExtResource("40_account")]([SubResource("Account_rtr05")])
 credentials_id = &"security_wing_rtr05"
 
-[node name="SecuritySwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 1.6, 0.01)
+[node name="SecuritySwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3505, 0.24)
 metadata/display_name = "SW-SECURITY"
 
-[node name="Powered" parent="Devices/SecuritySwitch"]
+[node name="Powered" parent="Devices/Bay/SecuritySwitch"]
 circuit = &"security_wing_b"
 
-[node name="Device" parent="Devices/SecuritySwitch"]
-links = Array[NodePath]([NodePath("../../BoothSwitch"), NodePath("../../LaserSwitch"), NodePath("../../CorridorSwitch"), NodePath("../../VaultSwitch"), NodePath("../../PanicButton"), NodePath("../../SirenHall"), NodePath("../../../Doors/D4Electronic/Hardware/Controller")])
+[node name="Device" parent="Devices/Bay/SecuritySwitch"]
+links = Array[NodePath]([NodePath("../../BoothSwitch"), NodePath("../../LaserSwitch"), NodePath("../../CorridorSwitch"), NodePath("../../VaultSwitch"), NodePath("../../../PanicButton"), NodePath("../../../SirenHall"), NodePath("../../../../Doors/D4Electronic/Hardware/Controller")])
 address = "10.0.25.2"
 subnet = &"wing_security"
 
-[node name="BoothSwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.49, 1.6, 8.55)
+[node name="BoothSwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.306, 0.24)
 metadata/display_name = "SW-BOOTH"
 
-[node name="Device" parent="Devices/BoothSwitch"]
-links = Array[NodePath]([NodePath("../../Controller"), NodePath("../../BaseStation")])
+[node name="Device" parent="Devices/Bay/BoothSwitch"]
+links = Array[NodePath]([NodePath("../../Controller"), NodePath("../../../BaseStation")])
 address = "10.0.25.3"
 subnet = &"wing_security"
 
-[node name="LaserSwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -6.75, 1.6, 17.49)
+[node name="LaserSwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2615, 0.24)
 metadata/display_name = "SW-LASERS"
 
-[node name="Device" parent="Devices/LaserSwitch"]
-links = Array[NodePath]([NodePath("../../LaserLow"), NodePath("../../LaserHigh"), NodePath("../../LaserPair")])
+[node name="Device" parent="Devices/Bay/LaserSwitch"]
+links = Array[NodePath]([NodePath("../../../LaserLow"), NodePath("../../../LaserHigh"), NodePath("../../../LaserPair")])
 address = "10.0.25.4"
 subnet = &"wing_security"
 
-[node name="CorridorSwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.49, 1.6, 9)
+[node name="CorridorSwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.217, 0.24)
 metadata/display_name = "SW-CORRIDOR"
 
-[node name="Device" parent="Devices/CorridorSwitch"]
-links = Array[NodePath]([NodePath("../../Camera"), NodePath("../../SirenCorridor")])
+[node name="Device" parent="Devices/Bay/CorridorSwitch"]
+links = Array[NodePath]([NodePath("../../../Camera"), NodePath("../../../SirenCorridor")])
 address = "10.0.25.5"
 subnet = &"wing_security"
 
-[node name="VaultSwitch" parent="Devices" instance=ExtResource("17_switch")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.6, 18.51)
+[node name="VaultSwitch" parent="Devices/Bay" instance=ExtResource("17_switch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1725, 0.24)
 metadata/display_name = "SW-VAULT"
 
-[node name="Device" parent="Devices/VaultSwitch"]
-links = Array[NodePath]([NodePath("../../Turret"), NodePath("../../../Doors/VaultDoor/Hardware/Controller")])
+[node name="Device" parent="Devices/Bay/VaultSwitch"]
+links = Array[NodePath]([NodePath("../../../Turret"), NodePath("../../../../Doors/VaultDoor/Hardware/Controller")])
 address = "10.0.25.6"
 subnet = &"wing_security"
+
+[node name="Controller" parent="Devices/Bay" instance=ExtResource("18_controller")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.039, 0.24)
+metadata/display_name = "ALARM-WING"
+
+[node name="Device" parent="Devices/Bay/Controller"]
+address = "10.0.25.10"
+trusted = Array[NodePath]([NodePath("../../../BoothComputer")])
 
 [node name="PanicButton" parent="Devices" instance=ExtResource("20_panic_button")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1.3, 0.01)
@@ -604,7 +624,7 @@ metadata/display_name = "SIREN-HALL"
 
 [node name="Device" parent="Devices/SirenHall"]
 address = "10.0.25.31"
-trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Controller")])
+trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Bay/Controller")])
 
 [node name="SirenCorridor" parent="Devices" instance=ExtResource("19_siren")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.49, 3, 12.6)
@@ -612,15 +632,7 @@ metadata/display_name = "SIREN-CORRIDOR"
 
 [node name="Device" parent="Devices/SirenCorridor"]
 address = "10.0.25.32"
-trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Controller")])
-
-[node name="Controller" parent="Devices" instance=ExtResource("18_controller")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.99, 1.5, 7.3)
-metadata/display_name = "ALARM-WING"
-
-[node name="Device" parent="Devices/Controller"]
-address = "10.0.25.10"
-trusted = Array[NodePath]([NodePath("../../BoothComputer")])
+trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Bay/Controller")])
 
 [node name="BaseStation" parent="Devices" instance=ExtResource("21_base_station")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.99, 1.3, 8.35)
@@ -628,7 +640,7 @@ metadata/display_name = "RADIO-WING"
 
 [node name="Device" parent="Devices/BaseStation"]
 address = "10.0.25.11"
-trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Controller")])
+trusted = Array[NodePath]([NodePath("../../BoothComputer"), NodePath("../../Bay/Controller")])
 
 [node name="BreakerB" parent="Devices" instance=ExtResource("16_breaker")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.5, 1.3, 7.75)
@@ -638,7 +650,7 @@ circuit = &"security_wing_b"
 label = "network power"
 
 [node name="BoothComputer" parent="Devices" instance=ExtResource("24_computer")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 1.45, 8.99)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.25, 0.75, 8.755)
 metadata/display_name = "BOOTH-PC"
 
 [node name="Device" parent="Devices/BoothComputer"]
@@ -887,12 +899,14 @@ D4's power"
 size = 0
 
 [node name="Network" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 2.5, 0.05)
-pixel_size = 0.003
-text = "Network wall: SW-OPS · RTR-05 · SW-SECURITY
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.65, 2.25, 0.05)
+pixel_size = 0.0025
+text = "Bay: the wing's switches, RTR-05
+and the alarm controller.
 SW-SECURITY is on breaker B (booth):
 every security switch hangs on it.
-Shoot it or cut B. Panic button: rings both sirens"
+Shoot it or cut B.
+Panic button: rings both sirens"
 size = 0
 
 [node name="Jack" parent="Labels" instance=ExtResource("3_sign")]
@@ -910,13 +924,6 @@ pixel_size = 0.003
 text = "Security computer
 login: datapad behind D2
 disable turret, open vault"
-size = 0
-
-[node name="BoothController" parent="Labels" instance=ExtResource("3_sign")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.98, 2.3, 7.3)
-pixel_size = 0.003
-text = "Alarm
-controller"
 size = 0
 
 [node name="BoothBaseStation" parent="Labels" instance=ExtResource("3_sign")]
@@ -1034,8 +1041,3 @@ pixel_size = 0.002
 text = "High-security
 6 pins"
 size = 0
-
-[node name="NetworkPanel" parent="." instance=ExtResource("90_network_panel")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.55, 0)
-size = Vector2(2.5, 0.8)
-subnet = ExtResource("46_security")

@@ -24,6 +24,9 @@ const TOP_Y: float = 1.7955
 const RAIL_Z: float = 0.24
 ## A unit's front is this much shorter than its slots, so stacked units never share a face.
 const UNIT_GAP: float = 0.0008
+## A blank panel's thickness, and the seam line printed between two blanks (height, depth).
+const BLANK_DEPTH: float = 0.002
+const BLANK_SEAM := Vector2(0.0006, 0.0003)
 ## A 19-inch panel's width with its ears.
 const PANEL_WIDTH: float = 0.483
 const SIDE: float = 0.02
@@ -146,16 +149,40 @@ func _cabinet() -> void:
 	_mesh("Rails", ModelStyle.boxes_mesh(rails, ModelStyle.RAIL), Vector3.ZERO)
 
 
-# A 1U blank panel in every free slot (the seams between them show the units' pitch).
+# A 1U blank panel in every free slot (`blanks`). Drawn as one plate per run of free slots with a
+# dark seam line printed between neighbours (BLANK_SEAM proud): separate plates left a gap whose lit
+# top faces read as bright lines up close.
 func _blanks() -> void:
 	blanks.clear()
 	var taken := occupied()
+	var plates: Array[AABB] = []
+	var seams: Array[AABB] = []
+	var front := RAIL_Z + BLANK_DEPTH
 	for slot in SLOTS:
 		if taken[slot]:
 			continue
 		var bottom := slot_y(slot, 1) + UNIT_GAP * 0.5
-		blanks.append(AABB(Vector3(-PANEL_WIDTH * 0.5, bottom, RAIL_Z), Vector3(PANEL_WIDTH, UNIT - UNIT_GAP, 0.002)))
-	_mesh("Blanks", ModelStyle.boxes_mesh(blanks, ModelStyle.BLANK), Vector3.ZERO)
+		blanks.append(
+			AABB(Vector3(-PANEL_WIDTH * 0.5, bottom, RAIL_Z), Vector3(PANEL_WIDTH, UNIT - UNIT_GAP, BLANK_DEPTH))
+		)
+		if slot > 0 and not taken[slot - 1]:
+			# The slot above is a blank too: grow its plate down over this slot and print a seam.
+			var plate := plates[plates.size() - 1]
+			plates[plates.size() - 1] = AABB(
+				Vector3(plate.position.x, bottom, RAIL_Z), Vector3(PANEL_WIDTH, plate.end.y - bottom, BLANK_DEPTH)
+			)
+			var seam_y := slot_y(slot, 0) - BLANK_SEAM.x * 0.5
+			seams.append(
+				AABB(
+					Vector3(-PANEL_WIDTH * 0.5 + 0.004, seam_y, front + 0.0005),
+					Vector3(PANEL_WIDTH - 0.008, BLANK_SEAM.x, BLANK_SEAM.y)
+				)
+			)
+		else:
+			plates.append(blanks[blanks.size() - 1])
+	_mesh("Blanks", ModelStyle.boxes_mesh(plates, ModelStyle.BLANK), Vector3.ZERO)
+	if not seams.is_empty():
+		_mesh("BlankSeams", ModelStyle.boxes_mesh(seams, ModelStyle.SOCKET), Vector3.ZERO)
 
 
 func _cables() -> void:

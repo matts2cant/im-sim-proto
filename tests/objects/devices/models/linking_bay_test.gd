@@ -50,6 +50,27 @@ func test_free_slots_get_blank_panels() -> void:
 		assert_bool(blank.intersects(unit_box)).is_false()
 
 
+func test_blanks_are_drawn_as_one_plate_per_run_with_dark_seams() -> void:
+	# Separate 1U plates left 0.8 mm gaps whose lit top faces read as bright lines up close (step 3).
+	var bay := _bay(false)
+	var switch := SWITCH.instantiate() as DeviceModel
+	switch.position.y = LinkingBay.slot_y(10, 1)
+	bay.add_child(switch)
+
+	bay.rebuild()
+
+	# Two runs of free slots (0-9 and 11-37): two plates, a seam between every two blanks in a run.
+	var plates := (bay.get_node("Blanks") as MeshInstance3D).get_aabb()
+	assert_float(plates.size.z).is_equal_approx(LinkingBay.BLANK_DEPTH, 1e-5)
+	var seams := bay.get_node("BlankSeams") as MeshInstance3D
+	var faces := seams.mesh.get_faces().size() / 3
+	assert_int(faces).is_equal((LinkingBay.SLOTS - 1 - 2) * 12)
+	var blanks_faces := (bay.get_node("Blanks") as MeshInstance3D).mesh.get_faces().size() / 3
+	assert_int(blanks_faces).is_equal(2 * 12)
+	# The seams sit in front of the plates, never on their face.
+	assert_float(seams.get_aabb().position.z).is_greater(LinkingBay.RAIL_Z + LinkingBay.BLANK_DEPTH + 0.0002)
+
+
 func test_the_glass_variant_has_a_closed_door_with_a_lock() -> void:
 	var open := _bay(false)
 	var glass := _bay(true)
