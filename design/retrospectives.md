@@ -4,6 +4,30 @@ After every milestone the chief engineer reviews what the sub-agents did and wha
 
 Format per milestone: **What went well**, **What went wrong**, **Changes made**, **Open questions for the user**.
 
+## Quality pass — test speed, code quality, systemic design (2026-11-13)
+
+The user paused features for three passes. One agent profiled the test suite; two read-only agents audited code quality and the systemic design rules ([audit-2026-11-13.md](tech/audit-2026-11-13.md): 25 systemic and 40 quality findings, each now marked done or skipped with a reason). Fixes ran in four waves of agents owning separate files (UI plumbing, weapons, body state; events, device status, surfaces and tuning; generic inventory, network identity; lookups and cleanup), plus the user's upright stuck grenades. ADRs 0132 to 0141.
+
+Final state on master (ede8149): 2393 tests, 0 failures, 1 skipped, lint clean, the full suite in about 70 s (it was 147 s), the last agent's run on exactly master's code.
+
+- **Went well:**
+  - **Measure before fixing**: the suite's slowdown was shard imbalance and navmesh bakes, not the machine nor M13c's models; longest-first scheduling, a bake cache and room fixtures halved the time with no assertion weakened.
+  - **Audits as a shared file**: writing both audits into one committed file with finding ids let every fix brief say "fix Q12, Q13..." and let agents mark status as they merged; the waves never had to re-explain a finding.
+  - **Named contracts between parallel agents** again held (the `Inventory` API between the inventory and network agents; the payload contract in M14): the second agent switched over after the first merged, with a cross-feature test.
+  - **Pixel-identical before/after screenshots** proved the UI and device refactors changed nothing on screen.
+- **Went wrong:**
+  - **Merge conflicts on emit lines**: the events agent touched one line in many files owned by others; one branch conflicted in three code files and had to merge master itself. Briefs that sweep a pattern across the codebase should run alone or last.
+  - **One crashed shard** from a stale call left after a removal (an agent fixed it and replayed the shard but had not rerun the full suite): the final run before merging must be complete.
+  - **A flaky light test** surfaced under parallel load (fixtures near the world origin); fixed by moving the fixture, cause not reproduced on demand.
+  - **The baseline in `suite time` is per worktree**: agents' comparisons were meaningless; only the main checkout's line counts.
+- **Changes:**
+  - CLAUDE.md: a brief that changes a pattern across many files (constants on every emit line, a lookup everywhere) runs alone, or last in its wave.
+  - `design/tech/testing.md` rules 13 to 16 (room fixtures, pause what cannot change the outcome, shared waits, probe settings); `conventions.md` gains UI plumbing and entities/components sections.
+- **Open for the user:**
+  - `hub_start_guards_test` still needs 60 s of hub game time (15-26 s wall); it no longer slows the suite (its own shard). Shorten the scenario?
+  - Audit S6 (sides as kind tags) is folded into M15 Factions.
+  - Remaining low items skipped on purpose: Q15 and Q40 (measured cheap), most of Q36 (test-only public methods).
+
 ## M14 — Explosives (2026-11-13)
 
 Designed in a three-round review while M13c was being built (ADR 0131, [explosives.md](game/explosives.md)); the user then asked to go straight from M13c to M14 without a playtest in between. Three agents: M14a (grenade items, LMB throw or stick with a ghost, fuse, proximity mines, disarming, the Demolition skill) and M14b (the four payloads, the gas cloud, EMP outages, the jamming field and the "Jammed" status) in parallel on a named contract (`Explosive.explode()` as the one detonation entry, payload scenes by path); then M14c (the shooting range's grenade lane, mine corridor and EMP/jamming room; grenades as warehouse loot).
