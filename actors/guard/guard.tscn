@@ -217,7 +217,7 @@ script = ExtResource("m14d_keychain")
 [node name="Lootable" type="Node" parent="."]
 script = ExtResource("m14d_lootable")
 
-[node name="Loadout" type="Node" parent="."]
+[node name="ItemLoadout" type="Node" parent="."]
 script = ExtResource("m14d_loadout")
 weapon_ammo = 10
 holder_path = NodePath("../Aim/WeaponHolder")

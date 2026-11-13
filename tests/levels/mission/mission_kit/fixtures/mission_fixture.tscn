@@ -72,6 +72,9 @@ text = "Shipment 7: not what the papers say."
 [node name="Keycard" parent="." instance=ExtResource("5_keycard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.03, 6)
 
+[node name="ItemPickup" parent="Keycard"]
+state = {"key_id": "test_card", "key_name": "Test keycard"}
+
 [node name="Shipment" parent="." instance=ExtResource("6_crate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.3, 0)
 

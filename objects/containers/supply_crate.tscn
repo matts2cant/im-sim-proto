@@ -63,7 +63,7 @@ config = SubResource("Config_grid")
 [node name="Keychain" type="Node" parent="."]
 script = ExtResource("6_keychain")
 
-[node name="Loadout" type="Node" parent="."]
+[node name="ItemLoadout" type="Node" parent="."]
 script = ExtResource("7_loadout")
 
 [node name="Lootable" type="Node" parent="."]

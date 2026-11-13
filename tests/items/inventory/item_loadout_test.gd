@@ -95,7 +95,7 @@ func _entity(entity_name: String, items: Array[StartingItem], ammo: int, armed: 
 		holder.aim_config = AIM
 		entity.add_child(holder)
 	var loadout := ItemLoadout.new()
-	loadout.name = "Loadout"
+	loadout.name = "ItemLoadout"
 	loadout.items = items
 	loadout.weapon_ammo = ammo
 	loadout.holder_path = ^"../WeaponHolder" if armed else ^""

@@ -104,7 +104,7 @@ config = SubResource("Config_grid")
 [node name="Keychain" type="Node" parent="."]
 script = ExtResource("5_keychain")
 
-[node name="Loadout" type="Node" parent="."]
+[node name="ItemLoadout" type="Node" parent="."]
 script = ExtResource("6_loadout")
 
 [node name="Lockable" type="Node" parent="."]

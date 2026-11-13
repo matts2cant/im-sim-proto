@@ -78,7 +78,8 @@ func count(item: ItemData) -> int:
 
 ## Adds `amount` of `item` (new stacks start from item.make_state(`state`)). Returns how many did not
 ## fit (0: everything went in). A keychain item (a key, a keycard) goes onto the holder's Keychain
-## instead, as an entry of the item's `keychain_kind` (0: taken; `amount` when there is no keychain).
+## instead, as an entry of the item's `keychain_kind` (0: taken; `amount` when there is no keychain
+## or it refuses the entry: no `key_id`, or already held).
 func add(item: ItemData, amount: int = 1, state: Dictionary = {}) -> int:
 	if item.keychain:
 		var keychain := Keychain.of(entity)
@@ -86,8 +87,7 @@ func add(item: ItemData, amount: int = 1, state: Dictionary = {}) -> int:
 			return amount
 		var full := item.make_state(state)
 		var key_id := StringName(str(full.get(ItemStack.KEY_ID, "")))
-		keychain.add(key_id, Keychain.key_name_of(item, full), "", item.keychain_kind)
-		return 0
+		return 0 if keychain.add(key_id, Keychain.key_name_of(item, full), "", item.keychain_kind) else amount
 	return grid.add(item, amount, state)
 
 

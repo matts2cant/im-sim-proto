@@ -123,8 +123,8 @@ func test_give_item_adds_one_or_a_full_stack() -> void:
 	assert_int(inventory.count_of(&"lockpick")).is_equal(1)
 	assert_int(inventory.count_of(&"pistol_ammo")).is_equal(100)
 	assert_array(EventLog.find(&"debug.gave_item")).has_size(2)
-	# A 6 x 5 grid holds 30 keycards and no more.
-	assert_int(tab.give(ItemCatalog.default().find(&"keycard"), 40)).is_equal(12)
+	# A 6 x 5 grid holds 30 silencers (1 x 1, never stacked) and no more.
+	assert_int(tab.give(ItemCatalog.default().find(&"silencer"), 40)).is_equal(12)
 
 
 func test_time_tab_sets_and_resets_time_scale() -> void:

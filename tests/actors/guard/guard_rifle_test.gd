@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Integration (ADR 0087): the rifle guard (actors/guard/guard_rifle.tscn, the assault rifle through
 ## the same CombatBehaviour) fires bursts: 3 to 5 shots at the rifle's cycle (0.1 s = 6 ticks), then
 ## the shot interval (0.6-0.9 s) before the next burst. The stand-in target 8 m in front is healed
-## every tick so it lives through several bursts. Dropped on a knockout as an assault rifle pickup.
+## every tick so it lives through several bursts. Knocked out, its rifle goes into its inventory.
 
 const Combat := preload("res://tests/actors/guard/combat_helpers.gd")
 const CONFIG: CombatConfig = preload("res://actors/guard/guard_combat.tres")
@@ -81,13 +81,15 @@ func test_the_rifle_guard_fires_bursts() -> void:
 		assert_float(float(entry.data["intensity"]) * float(entry.data["scale"])).is_equal(14.0)
 
 
-func test_a_knocked_out_rifle_guard_drops_the_rifle() -> void:
+func test_a_knocked_out_rifle_guard_keeps_the_rifle_in_its_inventory() -> void:
 	(_c.guard.get_node("BodyParts") as BodyParts).take_damage(&"damage.stun", 200.0)
 	await _c.frames(3)
 
 	var found: Array[String] = []
 	for child in _c.scene.get_children():
-		var pickup := ItemPickup.of(child)
-		if pickup != null:
-			found.append("%s:%d" % [pickup.item.id, int(pickup.stack_state().get("magazine", -1))])
-	assert_array(found).is_equal(["assault_rifle:30"])
+		if ItemPickup.of(child) != null:
+			found.append(String(child.name))
+	assert_array(found).is_empty()
+	var rifles := Inventory.of(_c.guard).grid.stacks_of(&"assault_rifle")
+	assert_int(rifles.size()).is_equal(1)
+	assert_int(int(rifles[0].state.get("magazine", -1))).is_equal(30)
