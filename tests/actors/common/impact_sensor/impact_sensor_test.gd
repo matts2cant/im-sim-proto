@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## mask) into `damage.blunt` with ImpactNoise's numbers, and stays off on bodies props collide with
 ## (no double count): a minimal walker on each layer, the player and the training dummy.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -41,7 +42,7 @@ func test_layer_rule_decides_whether_the_sensor_runs() -> void:
 func test_approach_speed_is_towards_the_capsule_axis() -> void:
 	Characters.floor_box(_root)
 	var walker := Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR])
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	var capsule := walker.get_node("Collision") as CollisionShape3D
 
 	var side := ImpactSensor.approach_speed(Vector3(-1, 1.0, 0), Vector3(10, -2, 0), capsule)
@@ -56,11 +57,11 @@ func test_approach_speed_is_towards_the_capsule_axis() -> void:
 func test_crate_thrown_through_a_pass_through_body_damages_it() -> void:
 	Characters.floor_box(_root)
 	var walker := Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR], PhysicsLayers.PLAYER)
-	await Fixtures.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	assert_bool((walker.get_node("ImpactSensor") as ImpactSensor).active).is_true()
 
 	_throw_crate(_root, Vector3(-2.5, 1.2, 0), Vector3(THROW_SPEED, 0, 0))
-	await Fixtures.frames(get_tree(), 40)
+	await Wait.frames(get_tree(), 40)
 
 	var hits := _blunt_to("Walker")
 	assert_array(hits).has_size(1)
@@ -77,11 +78,11 @@ func test_props_that_collide_are_left_to_impact_noise() -> void:
 	Characters.floor_box(_root)
 	# A body on the world layer: props scan it (characters on the player and actors layers they do not).
 	var walker := Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR], PhysicsLayers.WORLD)
-	await Fixtures.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	assert_bool((walker.get_node("ImpactSensor") as ImpactSensor).active).is_false()
 
 	_throw_crate(_root, Vector3(-2.5, 1.2, 0), Vector3(THROW_SPEED, 0, 0))
-	await Fixtures.frames(get_tree(), 40)
+	await Wait.frames(get_tree(), 40)
 
 	# One hit, from the crate's ImpactNoise contact; the sensor adds none. (Its amount is not checked:
 	# a kinematic body that scans props recovers out of the crate in move_and_slide, and ImpactNoise
@@ -95,10 +96,10 @@ func test_props_that_collide_are_left_to_impact_noise() -> void:
 func test_slow_prop_does_no_damage() -> void:
 	Characters.floor_box(_root)
 	Characters.character(_root, "Walker", Vector3.ZERO, [Characters.IMPACT_SENSOR], PhysicsLayers.PLAYER)
-	await Fixtures.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 	_throw_crate(_root, Vector3(-1.2, 1.2, 0), Vector3(SETTINGS.min_speed * 0.6, 0, 0))
-	await Fixtures.frames(get_tree(), 40)
+	await Wait.frames(get_tree(), 40)
 
 	assert_array(_blunt_to("Walker")).is_empty()
 

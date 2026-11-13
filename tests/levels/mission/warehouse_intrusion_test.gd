@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## RTR-01 still passes (only rules from "you" judge it). The sirens and both alarm controllers are
 ## on the Security subnet, so no RTR-01 rule silences them. The level is loaded once.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/levels/mission/warehouse_helpers.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const SECURITY := "Population/Security/"
@@ -52,11 +53,6 @@ func _device(path: String) -> Device:
 
 func _tracer() -> Tracer:
 	return _entity("Network/OfficeBay/Rtr01").get_node("Tracer") as Tracer
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 func test_every_networked_device_is_of_a_kind_with_an_icon() -> void:
@@ -114,7 +110,7 @@ func test_the_alarm_item_over_ap_yard_opens_the_yard_controller_without_trace() 
 	session.config.scan_time = 0.1
 	AccessPoint.of(_entity("Devices/ApYard")).grant_key(user)
 	assert_bool(session.plug(_device("Devices/ApYard"), deck)).is_true()
-	await _frames(10)
+	await Wait.frames(get_tree(), 10)
 	var controller := _device("Devices/AlarmControllerYard")
 	assert_bool(session.is_online(controller)).is_true()
 	var before := _tracer().trace_of(user)

@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## at the origin facing -Z, no navmesh (it walks straight). Lit spot (-2.5, 0, -5): 5.6 m, 26.6°
 ## in focus; dark spot (2.5, 0, -5): the same distance and angle, in the wall's shadow.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const GUARD := "res://actors/guard/guard.tscn"
 const PERCEPTION: PerceptionConfig = preload("res://actors/guard/guard_perception.tres")
 const LIT_SPOT := Vector3(-2.5, 0, -5)
@@ -42,7 +43,7 @@ func test_target_in_the_light_is_seen_as_predicted() -> void:
 	# Cloaked until its light level has settled, so the meter starts from 0 when the timer does.
 	var target := _target(LIT_SPOT)
 	ActorState.set_tag(target, ActorState.CLOAKED, true)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	var level := LightExposure.of(target).level
 	assert_float(level).is_greater(0.5)
 	var angle := VisionRules.angle_off(Vector3.FORWARD, Vector3(0, 1.6, 0), LIT_SPOT)
@@ -53,7 +54,7 @@ func test_target_in_the_light_is_seen_as_predicted() -> void:
 	ActorState.set_tag(target, ActorState.CLOAKED, false)
 	var alerted_after := -1.0
 	for tick in 180:
-		await _frames(1)
+		await Wait.frames(get_tree(), 1)
 		if _awareness.state() == AwarenessModel.State.ALERTED:
 			alerted_after = (tick + 1) / 60.0
 			break
@@ -64,27 +65,22 @@ func test_target_in_the_light_is_seen_as_predicted() -> void:
 
 func test_target_in_the_walls_shadow_is_never_seen() -> void:
 	var target := _target(DARK_SPOT)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	var level := LightExposure.of(target).level
 	assert_float(level).is_less(0.1)
 	# The guard has a clear view of it: only the light keeps it hidden.
 	var sensor := PerceptionSensor.of(_guard)
 	assert_bool(sensor.has_line_of_sight(sensor.eye_position(), target)).is_true()
 
-	await _frames(300)
+	await Wait.frames(get_tree(), 300)
 
 	assert_int(_awareness.state()).is_equal(AwarenessModel.State.UNAWARE)
 	assert_float(_awareness.model.meter).is_equal(0.0)
 
 
 func test_the_guard_itself_has_a_light_level() -> void:
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_object(LightExposure.of(_guard)).is_not_null()
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 # A static 1.8 m capsule tagged `actor.player` with a real LightExposure.

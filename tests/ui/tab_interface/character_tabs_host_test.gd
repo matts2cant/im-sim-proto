@@ -30,13 +30,13 @@ func after_test() -> void:
 
 func test_pages_are_reached_by_click_and_keys_and_bound_to_the_player() -> void:
 	await _load()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 
 	_tabs.tab_button(HEALTH).pressed.emit()
 	assert_bool(_tabs.current_page() is HealthTab).is_true()
-	await _press(&"belt_3")
+	await _driver.press(&"belt_3")
 	assert_bool(_tabs.current_page() is AugmentationsTab).is_true()
-	await _press(&"belt_4")
+	await _driver.press(&"belt_4")
 	assert_bool(_tabs.current_page() is SkillsTab).is_true()
 	_tabs.tab_button(AUGMENTATIONS).pressed.emit()
 	assert_int(_tabs.current).is_equal(AUGMENTATIONS)
@@ -51,8 +51,8 @@ func test_pages_are_reached_by_click_and_keys_and_bound_to_the_player() -> void:
 func test_energy_drains_live_on_the_augmentations_page() -> void:
 	await _load()
 	_player.energy.set_current(80.0)
-	await _press(&"tab_interface")
-	await _press(&"belt_3")
+	await _driver.press(&"tab_interface")
+	await _driver.press(&"belt_3")
 	var page := _tabs.current_page() as AugmentationsTab
 	assert_bool(page.set_slot_on(1, true)).is_true()
 	await _driver.frames(2)
@@ -68,8 +68,8 @@ func test_energy_drains_live_on_the_augmentations_page() -> void:
 
 func test_a_hit_lowers_a_part_on_the_health_page() -> void:
 	await _load()
-	await _press(&"tab_interface")
-	await _press(&"belt_2")
+	await _driver.press(&"tab_interface")
+	await _driver.press(&"belt_2")
 	var page := _tabs.current_page() as HealthTab
 	var shown_before := page._values[&"torso"].text
 
@@ -87,8 +87,8 @@ func test_a_medkit_on_one_part_heals_it_while_the_world_runs() -> void:
 	_player.body.take_damage(&"damage.blunt", 30.0, &"arm_l")
 	_player.body.take_damage(&"damage.blunt", 30.0, &"leg_r")
 	var ball := _falling_ball()
-	await _press(&"tab_interface")
-	await _press(&"belt_2")
+	await _driver.press(&"tab_interface")
+	await _driver.press(&"belt_2")
 	var page := _tabs.current_page() as HealthTab
 	var arm_before := _player.body.health(&"arm_l")
 	var leg_before := _player.body.health(&"leg_r")
@@ -114,11 +114,6 @@ func _falling_ball() -> RigidBody3D:
 	_driver.runner.scene().add_child(ball)
 	ball.global_position = Vector3(3, 6, 0)
 	return ball
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

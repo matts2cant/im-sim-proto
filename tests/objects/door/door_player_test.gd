@@ -44,7 +44,7 @@ func after_test() -> void:
 func test_e_opens_and_closes_the_door() -> void:
 	assert_str(_player.interactor.prompt).is_equal("E: open")
 
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.frames(45)
 	assert_bool(_door.is_open()).is_true()
 	assert_float(_door.openness).is_equal(1.0)
@@ -53,7 +53,7 @@ func test_e_opens_and_closes_the_door() -> void:
 	await _aim_world(_door.hardware.handle_point(true))
 	assert_object(_player.interactor.target).is_same(_entity)
 	assert_str(_player.interactor.prompt).is_equal("E: close")
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.frames(45)
 	assert_bool(_door.is_open()).is_false()
 
@@ -67,7 +67,7 @@ func test_keypad_opens_with_its_code_typed_on_the_screen() -> void:
 	await _aim_world(Helpers.box_point(_door))
 	assert_str(_player.interactor.prompt).is_equal("E: enter code")
 
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_screen.is_open()).is_true()
 	# The world keeps running (ADR 0110): the player's input is off instead.
 	assert_bool(get_tree().paused).is_false()
@@ -94,7 +94,7 @@ func test_keypad_buttons_can_be_clicked() -> void:
 	Helpers.lock(_entity)
 	await _driver.frames(2)
 	await _aim_world(Helpers.box_point(_door))
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	for key: String in ["2", "8", "1", "7", "OK"]:
 		(_screen.grid.get_node("Key%s" % key) as Button).pressed.emit()
@@ -109,15 +109,15 @@ func test_esc_leaves_the_keypad_while_typing_and_e_does_not() -> void:
 	Helpers.lock(_entity)
 	await _driver.frames(2)
 	await _aim_world(Helpers.box_point(_door))
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _type([KEY_2, KEY_8])
 	assert_str(_screen.display_label.text).is_equal("28")
 	# E never leaves a screen (ADR 0083): only Esc does.
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_screen.is_open()).is_true()
 	assert_str(_screen.display_label.text).is_equal("28")
 
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 
 	assert_bool(_screen.is_open()).is_false()
 	assert_bool(get_tree().paused).is_false()
@@ -139,14 +139,14 @@ func test_keypad_shows_the_reminder_of_a_code_read_earlier() -> void:
 	assert_bool(_screen.is_open()).is_false()
 	await _aim_world(Helpers.box_point(_door))
 
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	assert_bool(_screen.is_open()).is_true()
 	assert_bool(_screen.reminder_label.visible).is_true()
 	assert_str(_screen.reminder_label.text).is_equal("Note: 2817, from 'Storage access'")
 	# The player still types it.
 	assert_bool(_door.is_locked()).is_true()
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 
 
 func test_keycard_reader_opens_only_with_the_matching_card() -> void:
@@ -156,7 +156,7 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	await _driver.frames(2)
 	await _aim_world(Helpers.box_point(_door))
 	assert_str(_player.interactor.prompt).is_equal("Locked: keycard")
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_door.is_locked()).is_true()
 	# A lockpick does nothing to a card reader.
 	await _hold_pick(1.5)
@@ -165,7 +165,7 @@ func test_keycard_reader_opens_only_with_the_matching_card() -> void:
 	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
 	await _driver.frames(2)
 	assert_str(_player.interactor.prompt).is_equal("E: open (keycard)")
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	# The card opens it without unlocking it (ADR 0098): it is locked again once closed.
 	assert_bool(_door.is_locked()).is_true()
@@ -179,7 +179,7 @@ func test_lmb_with_a_lockpick_on_the_leaf_starts_the_lockpicking_minigame() -> v
 	await _driver.frames(2)
 	assert_str(_player.interactor.prompt).is_equal("Locked: lockpick")
 	# E and LMB with empty hands do nothing.
-	await _press(&"use")
+	await _driver.press(&"use")
 	await _driver.hold(&"fire", 30)
 	var picking := LockpickScreen.of(_player)
 	assert_bool(picking.is_open()).is_false()
@@ -226,11 +226,6 @@ func _aim(target: Vector3) -> void:
 func _aim_world(target: Vector3) -> void:
 	_player.load_state(Objects.aiming_state(_player, Helpers.ORIGIN + FEET, target))
 	await _driver.frames(3)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _type(keys: Array[Key]) -> void:

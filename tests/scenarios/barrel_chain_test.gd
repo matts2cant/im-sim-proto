@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## Expected: crates ignite on the next tick (fire burst 20 / 3 m: 8.0 at 1.8 m >= 6), barrel B
 ## chain-explodes on the next tick, the listener hears the 60 m noise along the path round the wall.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
@@ -29,7 +30,7 @@ func before_test() -> void:
 	GuardHelpers.isolate_region(_map(), region)
 	region.navigation_mesh = region.navigation_mesh.duplicate() as NavigationMesh
 	region.bake_navigation_mesh(false)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func after_test() -> void:
@@ -38,12 +39,12 @@ func after_test() -> void:
 
 func test_explosion_ignites_crates_chains_barrel_and_is_heard_round_the_corner() -> void:
 	var listener := Fixtures.entity(_scene, "Listener", LISTENER, [Fixtures.receptron(&"noise")])
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	EventLog.clear()
 	var spark := Stimulus.make_contact(&"fire", 100.0, _scene.get_node("BarrelA"))
 
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 6)
+	await Wait.frames(get_tree(), 6)
 
 	var a: EventLogEntry = Objects.logged(&"object.exploded", "object", "BarrelA")[0]
 	assert_int(a.data["by"]).is_equal(spark.id)

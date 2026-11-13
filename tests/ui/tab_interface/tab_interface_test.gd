@@ -30,7 +30,7 @@ func after_test() -> void:
 func test_tab_opens_on_the_last_tab_used_and_closes() -> void:
 	await _load()
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_tabs.is_open()).is_true()
 	assert_int(_tabs.current).is_equal(INVENTORY)
 	assert_int(_tabs.page_count()).is_equal(TITLES.size())
@@ -38,12 +38,12 @@ func test_tab_opens_on_the_last_tab_used_and_closes() -> void:
 		assert_str(_tabs.tab_button(i).text).is_equal(TITLES[i])
 		assert_bool(_tabs.page(i).visible).is_equal(i == INVENTORY)
 
-	await _press(&"belt_3")
+	await _driver.press(&"belt_3")
 	assert_int(_tabs.current).is_equal(2)
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_tabs.is_open()).is_false()
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_tabs.is_open()).is_true()
 	assert_int(_tabs.current).is_equal(2)
 	assert_bool(_tabs.current_page().visible).is_true()
@@ -52,36 +52,36 @@ func test_tab_opens_on_the_last_tab_used_and_closes() -> void:
 func test_i_and_l_open_switch_and_close_their_tab() -> void:
 	await _load()
 
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_bool(_tabs.is_open()).is_true()
 	assert_int(_tabs.current).is_equal(INVENTORY)
-	await _press(&"personal_log")
+	await _driver.press(&"personal_log")
 	assert_bool(_tabs.is_open()).is_true()
 	assert_int(_tabs.current).is_equal(JOURNAL)
-	await _press(&"personal_log")
+	await _driver.press(&"personal_log")
 	assert_bool(_tabs.is_open()).is_false()
 
-	await _press(&"personal_log")
+	await _driver.press(&"personal_log")
 	assert_int(_tabs.current).is_equal(JOURNAL)
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_int(_tabs.current).is_equal(INVENTORY)
-	await _press(&"inventory")
+	await _driver.press(&"inventory")
 	assert_bool(_tabs.is_open()).is_false()
 
 
 func test_number_keys_and_q_e_select_tabs() -> void:
 	await _load()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 
-	await _press(&"belt_5")
+	await _driver.press(&"belt_5")
 	assert_int(_tabs.current).is_equal(4)
-	await _press(&"tab_next")
+	await _driver.press(&"tab_next")
 	assert_int(_tabs.current).is_equal(0)
-	await _press(&"tab_prev")
+	await _driver.press(&"tab_prev")
 	assert_int(_tabs.current).is_equal(4)
-	await _press(&"tab_prev")
+	await _driver.press(&"tab_prev")
 	assert_int(_tabs.current).is_equal(3)
-	await _press(&"belt_2")
+	await _driver.press(&"belt_2")
 	assert_int(_tabs.current).is_equal(1)
 	# A click on a tab title does the same.
 	_tabs.tab_button(3).pressed.emit()
@@ -93,12 +93,12 @@ func test_number_keys_and_q_e_select_tabs() -> void:
 func test_esc_and_the_close_button_close() -> void:
 	await _load()
 
-	await _press(&"tab_interface")
-	await _press(&"ui_cancel")
+	await _driver.press(&"tab_interface")
+	await _driver.press(&"ui_cancel")
 	assert_bool(_tabs.is_open()).is_false()
 	assert_bool((_player.get_node("GameMenu") as GameMenu).is_open()).is_false()
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	_tabs.close_button().pressed.emit()
 	assert_bool(_tabs.is_open()).is_false()
 
@@ -108,7 +108,7 @@ func test_input_off_and_mouse_free_while_open_both_restored() -> void:
 	var mouse_before := Input.mouse_mode
 	var hud := _player.get_node("Hud") as CanvasLayer
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_player.input_enabled).is_false()
 	assert_int(Input.mouse_mode).is_equal(Input.MOUSE_MODE_VISIBLE)
 	assert_bool(hud.visible).is_false()
@@ -116,7 +116,7 @@ func test_input_off_and_mouse_free_while_open_both_restored() -> void:
 	await _driver.hold(&"move_forward", 10)
 	assert_float(_player.global_position.distance_to(start)).is_less(0.001)
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_player.input_enabled).is_true()
 	assert_int(Input.mouse_mode).is_equal(mouse_before)
 	assert_bool(hud.visible).is_true()
@@ -133,18 +133,13 @@ func test_the_world_keeps_running_while_open() -> void:
 	_driver.runner.scene().add_child(ball)
 	ball.global_position = Vector3(3, 6, 0)
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	var start := ball.global_position.y
 	await _driver.frames(20)
 
 	assert_bool(_tabs.is_open()).is_true()
 	assert_bool(get_tree().paused).is_false()
 	assert_float(ball.global_position.y).is_less(start - 0.3)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

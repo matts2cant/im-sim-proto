@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: noise PATH propagation along a navmesh baked at test time. Two rooms split by a
 ## wall at x = 0 (z -5..3) with a doorway at z 3..5; the source stands in the left room.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const TWO_ROOMS := "res://tests/core/stimulus/fixtures/two_rooms.tscn"
@@ -25,7 +26,7 @@ func before_test() -> void:
 	_map_was_async = NavigationServer3D.map_get_use_async_iterations(_map())
 	var region: NavigationRegion3D = _rooms.get_node("NavigationRegion")
 	await GuardHelpers.use_sync_iterations(_map(), region)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 
 func after_test() -> void:
@@ -56,7 +57,7 @@ func test_noise_shorter_than_path_is_not_heard_behind_wall() -> void:
 
 	# 10 m reaches 6 m straight, but not the ~14 m path round the wall.
 	StimulusSystem.emit(Stimulus.make_noise(10.0, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_received_by(listener)).is_empty()
 
@@ -100,7 +101,7 @@ func test_disabled_attenuator_adds_nothing() -> void:
 
 func test_without_navmesh_falls_back_to_straight_line() -> void:
 	# The region is never baked, so the map has no navigation polygons.
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var listener := _listener(BEHIND_WALL)
 
 	var received := await _noise_received(listener, 10.0)
@@ -110,14 +111,14 @@ func test_without_navmesh_falls_back_to_straight_line() -> void:
 
 
 func test_fallback_still_applies_attenuators_on_the_straight_line() -> void:
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var door: SoundAttenuator = _rooms.get_node("DoorAttenuator")
 	door.enabled = true
 	var listener := _listener(Vector3(3, 0.5, 4))
 	var source := Vector3(-3, 0.5, 4)
 
 	StimulusSystem.emit(Stimulus.make_noise(20.0, source))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := _received_by(listener)
 	assert_int(received.size()).is_equal(1)
@@ -130,7 +131,7 @@ func test_processed_signal_carries_the_path_polyline() -> void:
 	StimulusSystem.stimulus_processed.connect(_on_processed)
 
 	StimulusSystem.emit(Stimulus.make_noise(20.0, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(_paths.size()).is_equal(1)
 	assert_int(_paths[0].size()).is_greater(3)
@@ -148,7 +149,7 @@ func _listener(position: Vector3) -> Node3D:
 
 func _noise_received(listener: Node3D, loudness: float) -> EventLogEntry:
 	StimulusSystem.emit(Stimulus.make_noise(loudness, SOURCE))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var received := _received_by(listener)
 	assert_int(received.size()).is_equal(1)
 	return received[0] if not received.is_empty() else EventLogEntry.new(0, &"", "", "", {"distance": -1.0})
@@ -166,7 +167,7 @@ func _bake() -> void:
 	# The fixture's NavigationMesh is shared by every instance: bake a copy so it stays empty.
 	region.navigation_mesh = region.navigation_mesh.duplicate() as NavigationMesh
 	region.bake_navigation_mesh(false)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_int(NavigationServer3D.map_get_path(_map(), SOURCE, BEHIND_WALL, true).size()).is_greater(2)
 
 

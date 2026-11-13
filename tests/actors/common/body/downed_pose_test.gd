@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## The body lies along +X from its feet at (-0.9, 0, 0) (yaw 90 degrees: it falls onto world +X),
 ## across the walker's path along -Z at x = 0; the lying capsule is 0.71 m high, above any step.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const BODY_FEET := Vector3(-0.9, 0, 0)
 const STANDING_MASK := PhysicsLayers.WORLD | PhysicsLayers.PLAYER | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS
@@ -37,29 +38,29 @@ func test_downed_layer_and_mask_drop_the_character_layers() -> void:
 
 func test_a_dead_character_leaves_the_character_layers_and_stays_on_the_floor() -> void:
 	var body := _body("Fallen", BODY_FEET, ActorState.DEAD)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(body.collision_layer).is_equal(PhysicsLayers.DOWNED)
 	assert_int(body.collision_mask).is_equal(PhysicsLayers.WORLD | PhysicsLayers.OBJECTS)
-	await _frames(60)
+	await Wait.frames(get_tree(), 60)
 	assert_float(body.global_position.y).is_equal_approx(0.0, 0.05)
 	assert_bool((body.get_node("DownedPose") as DownedPose).is_down).is_true()
 
 
 func test_standing_up_restores_the_character_layers() -> void:
 	var body := _body("Sleeper", BODY_FEET, ActorState.UNCONSCIOUS)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(body.collision_layer).is_equal(PhysicsLayers.DOWNED)
 	ActorState.set_tag(body, ActorState.UNCONSCIOUS, false)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(body.collision_layer).is_equal(PhysicsLayers.ACTORS)
 	assert_int(body.collision_mask).is_equal(STANDING_MASK)
 
 
 func test_a_walker_crosses_a_dead_character() -> void:
 	_body("Fallen", BODY_FEET, ActorState.DEAD)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var walker := _walker()
-	await _frames(120)
+	await Wait.frames(get_tree(), 120)
 	# 2 m/s for 2 s from z = 2: about z = -2, well past the body (z = 0, 0.35 m deep each side).
 	assert_float(walker.global_position.z).is_less(-1.5)
 	assert_float(walker.global_position.y).is_equal_approx(0.0, 0.05)
@@ -67,9 +68,9 @@ func test_a_walker_crosses_a_dead_character() -> void:
 
 func test_a_walker_crosses_an_unconscious_character() -> void:
 	_body("Sleeper", BODY_FEET, ActorState.UNCONSCIOUS)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var walker := _walker()
-	await _frames(120)
+	await Wait.frames(get_tree(), 120)
 	assert_float(walker.global_position.z).is_less(-1.5)
 
 
@@ -77,20 +78,20 @@ func test_a_character_that_stood_up_blocks_the_walker_again() -> void:
 	# Feet on the walker's line: standing, its capsule is in the way (stopped near z = 0.7, the two
 	# 0.35 m radii centre to centre).
 	var body := _body("Sleeper", Vector3.ZERO, ActorState.UNCONSCIOUS)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	ActorState.set_tag(body, ActorState.UNCONSCIOUS, false)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var walker := _walker()
-	await _frames(120)
+	await Wait.frames(get_tree(), 120)
 	assert_float(walker.global_position.z).is_greater(0.5)
 
 
 func test_a_blast_still_reaches_a_downed_character() -> void:
 	var body := _body("Fallen", BODY_FEET, ActorState.DEAD, [Characters.KNOCKBACK_COMPONENT])
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 	StimulusSystem.emit(Stimulus.make_radius(&"force.blast", 120.0, Vector3(-3, 0.45, 0), 4.0))
-	await _frames(60)
+	await Wait.frames(get_tree(), 60)
 	var pushes := EventLog.find(&"actor.knocked_back")
 	assert_array(pushes).has_size(1)
 	assert_str(pushes[0].target).is_equal("Fallen")
@@ -118,8 +119,3 @@ func _walker() -> CharacterBody3D:
 	walker.collision_mask = STANDING_MASK
 	walker.set("drive", Vector3(0, 0, -WALK_SPEED))
 	return walker
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

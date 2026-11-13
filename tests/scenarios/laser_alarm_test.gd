@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## computer's Security app lists the array as one device with its status words and its commands, one
 ## Disable darkens every beam, and it shows offline once the switch loses power.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const LASER: PackedScene = preload("res://objects/laser/laser_array.tscn")
@@ -55,7 +56,7 @@ func before_test() -> void:
 	_root.add_child(computer)
 	for device: Node3D in [_laser, controller, siren, computer]:
 		Devices.link(_switch, device)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 
@@ -100,7 +101,7 @@ func test_the_computer_lists_its_status_and_commands_and_disables_it() -> void:
 	assert_array(Array(_row().status)).contains_exactly(["online", "enabled", "tripped"])
 	assert_bool(_computer.log_in("tester", "pass")).is_true()
 	assert_bool(_computer.send(Device.DISABLE, Device.of(_laser))).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_array(Array(_row().status)).contains_exactly(["online", "disabled"])
 	for beam in LaserArray.of(_laser).beams:
 		assert_bool(beam.ray_visible()).override_failure_message(String(beam.name)).is_false()
@@ -109,7 +110,7 @@ func test_the_computer_lists_its_status_and_commands_and_disables_it() -> void:
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
 	# The switch unpowered: the laser is offline (never "broken"), and still dark.
 	Powered.of(_switch).on = false
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(_row().online).is_false()
 	assert_array(Array(_row().status)).contains_exactly(["offline"])
 
@@ -120,10 +121,10 @@ func _cross(direction: int = 1) -> void:
 	var walker := Characters.character(_root, "Walker", Vector3(0, 0, 2.0 * direction), [])
 	Characters.tags_of(walker).add(&"actor.player")
 	walker.set(&"drive", Vector3(0, 0, -4.0 * direction))
-	await _frames(60)
+	await Wait.frames(get_tree(), 60)
 	walker.set(&"drive", Vector3.ZERO)
 	walker.queue_free()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 
 func _row() -> Computer.DeviceRow:
@@ -139,8 +140,3 @@ func _place(scene: PackedScene, node_name: String, where: Transform3D) -> Node3D
 	node.transform = where
 	_root.add_child(node)
 	return node
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

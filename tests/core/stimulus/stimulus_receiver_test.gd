@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: StimulusReceiver wiring, self-exclusion, tag gating and registration.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _world: Node3D
@@ -48,7 +49,7 @@ func test_own_stimulus_is_ignored_by_default() -> void:
 	var entity := Fixtures.entity(_world, "Speaker", Vector3.ZERO, [Fixtures.receptron(&"noise")])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"noise", 5.0, Vector3.ZERO, 5.0, entity))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(EventLog.find(&"stimulus.received")).is_empty()
 
@@ -57,7 +58,7 @@ func test_own_stimulus_from_a_child_node_is_ignored_too() -> void:
 	var entity := Fixtures.entity(_world, "Speaker", Vector3.ZERO, [Fixtures.receptron(&"noise")])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"noise", 5.0, Vector3.ZERO, 5.0, entity.get_node("Tags")))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(EventLog.find(&"stimulus.received")).is_empty()
 
@@ -68,7 +69,7 @@ func test_include_self_receptron_fires_for_own_stimulus_and_others_do_not() -> v
 	var entity := Fixtures.entity(_world, "Speaker", Vector3.ZERO, [Fixtures.receptron(&"noise", [], "other"), own])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"noise", 5.0, Vector3.ZERO, 5.0, entity))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var fired := EventLog.find(&"receptron.fired")
 	assert_array(fired).has_size(1)
@@ -82,7 +83,7 @@ func test_tags_gate_receptrons_but_reception_is_logged() -> void:
 	var wood := Fixtures.entity(_world, "WoodCrate", Vector3(-1, 0, 0), [receptron], [&"material.wood"])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"fire", 1.0, Vector3.ZERO, 3.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(EventLog.find(&"stimulus.received")).has_size(2)
 	var fired := EventLog.find(&"receptron.fired")
@@ -101,7 +102,7 @@ func test_intensity_window_uses_perceived_intensity() -> void:
 
 	# Perceived: 5 - 1 = 4 for Close, 5 - 4 = 1 for Far.
 	StimulusSystem.emit(Stimulus.make_radius(&"noise", 5.0, Vector3.ZERO, 5.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var fired := EventLog.find(&"receptron.fired")
 	assert_array(fired).has_size(1)

@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## (body and hitboxes off every layer, its controller paused); Q drops it on the floor, still
 ## downed; it is saved held or dropped.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
@@ -79,17 +80,17 @@ func test_a_dropped_body_stays_down_in_place_after_save_and_load() -> void:
 	var room := await _room()
 	var player := room.get_node("Player") as Player
 	var guard := _spawn_guard(room, [&"actor.guard", &"state.unconscious"])
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	player.carry.pick_up(guard)
-	await Objects.frames(get_tree(), 20)
+	await Wait.frames(get_tree(), 20)
 	assert_bool(player.carry.drop()).is_true()
-	await Objects.frames(get_tree(), 90)
+	await Wait.frames(get_tree(), 90)
 	var dropped_at := guard.global_position
 	assert_float(dropped_at.y).is_equal_approx(0.0, 0.05)
 
 	var fresh := await _reload(room)
 	var copy := fresh.get_node("Downed") as NavWalker
-	await Objects.frames(get_tree(), 30)
+	await Wait.frames(get_tree(), 30)
 	assert_float(copy.global_position.distance_to(dropped_at)).is_less(0.05)
 	assert_bool(ActorState.has(copy, ActorState.UNCONSCIOUS)).is_true()
 	assert_bool((copy.get_node("DownedPose") as DownedPose).is_down).is_true()
@@ -99,15 +100,15 @@ func test_a_body_saved_while_carried_loads_downed_and_lands_on_the_floor() -> vo
 	var room := await _room()
 	var player := room.get_node("Player") as Player
 	var guard := _spawn_guard(room, [&"actor.guard", &"state.unconscious"])
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	player.carry.pick_up(guard)
-	await Objects.frames(get_tree(), 20)
+	await Wait.frames(get_tree(), 20)
 	var held_at := guard.global_position
 	assert_float(held_at.y).is_greater(0.2)
 
 	var fresh := await _reload(room)
 	var copy := fresh.get_node("Downed") as NavWalker
-	await Objects.frames(get_tree(), 90)
+	await Wait.frames(get_tree(), 90)
 	# The carry's ghosting is not saved: the downed body is on its usual layer.
 	assert_int(copy.collision_layer).is_equal(PhysicsLayers.DOWNED)
 	assert_float(copy.global_position.y).is_equal_approx(0.0, 0.05)
@@ -141,7 +142,7 @@ func _room() -> Node3D:
 	var packed: PackedScene = load(ROOM)
 	var room := packed.instantiate() as Node3D
 	add_child(room)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	return room
 
 
@@ -161,6 +162,6 @@ func _reload(room: Node3D) -> Node3D:
 	var fresh := packed.instantiate() as Node3D
 	add_child(fresh)
 	auto_free(fresh)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	LevelSnapshot.apply(fresh, snapshot)
 	return fresh

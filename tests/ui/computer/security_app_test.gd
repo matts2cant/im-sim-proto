@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## laser array disabled), shows the live view of a device that has one, greys what goes offline, and
 ## says so when a computer controls nothing.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const COMPUTER: PackedScene = preload("res://objects/computer/computer.tscn")
 const SWITCH: PackedScene = preload("res://objects/network/switch_rack.tscn")
 const CAMERA: PackedScene = preload("res://objects/camera/security_camera.tscn")
@@ -62,7 +63,7 @@ func before_test() -> void:
 	add_child(_app)
 	_app.size = Vector2(980, 540)
 	_app.shown = true
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	_app.bind(_console, null)
 	EventLog.clear()
 
@@ -158,7 +159,7 @@ func test_the_live_view_follows_a_device_that_sees() -> void:
 
 func test_a_cut_switch_greys_its_devices_without_actions() -> void:
 	Powered.of(_root.get_node("Switch")).on = false
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	_app.refresh()
 	assert_int(_app.device_names().size()).is_equal(9)
 	for device_name in _app.device_names():
@@ -191,7 +192,7 @@ func _press(label: String) -> void:
 	if button == null:
 		return
 	button.pressed.emit()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	_app.refresh()
 
 
@@ -209,8 +210,3 @@ func _place(scene: PackedScene, node_name: String, at: Vector3) -> Node3D:
 	_root.add_child(node)
 	_nodes[node_name] = node
 	return controller if controller != null else node
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## and the annex (B, network_fixtures.gd annex(), with AP-ANNEX and CAM-ANNEX). The user's report:
 ## plugged into A, then into B, the Map still drew A.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const ORIGIN := Vector3(460, 0, -300)
 ## The user's eye 1 m in front of the lab's jack (0, 0.5, 0) and of the annex's (-4, 0.5, 0).
@@ -38,18 +39,13 @@ func before_test() -> void:
 	_session.config = _session.config.duplicate() as DeckConfig
 	_session.config.scan_time = 0.1
 	_stack = Net.deck_stack()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 
 func after_test() -> void:
 	if is_instance_valid(_session):
 		_session.unplug()
 	StimulusSystem.clear()
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 func _map() -> Array[String]:
@@ -63,7 +59,7 @@ func _map() -> Array[String]:
 func _plug(entity: Node3D, eye: Vector3) -> void:
 	_user.global_position = ORIGIN + eye
 	assert_bool(_session.plug(Device.of(entity), _stack)).is_true()
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 
 
 func test_after_network_a_the_map_on_network_b_draws_only_b_and_a_again_without_a_scan() -> void:
@@ -79,7 +75,7 @@ func test_after_network_a_the_map_on_network_b_draws_only_b_and_a_again_without_
 	_user.global_position = ORIGIN + AT_A
 	assert_bool(_session.plug(Device.of(_a["Jack"]), _stack)).is_true()
 	assert_array(_map()).contains_exactly_in_any_order(LAB)
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	assert_int(EventLog.find(&"deck.scan").size()).is_equal(scans)
 	assert_array(_map()).contains_exactly_in_any_order(LAB)
 	# Everything seen stays on the deck.
@@ -108,7 +104,7 @@ func test_wireless_devices_are_drawn_only_on_their_own_access_points_network() -
 	DeviceAccounts.of(_a["Rtr01"]).grant(_user, "admin")
 	await _plug(_a["Jack"], AT_A)
 	_session.refresh()
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	assert_array(_map()).contains(["ApYard", "CamYard", "LaserRoof"])
 	assert_bool(_map().has("CamAnnex")).is_false()
 	# On B's jack: CAM-ANNEX on B's access point is drawn, CAM-YARD is not.
@@ -133,7 +129,7 @@ func test_a_subnet_behind_an_unhacked_router_stays_hidden_until_hacked() -> void
 	assert_bool(_map().has("Console")).is_false()
 	DeviceAccounts.of(_a["Rtr01"]).grant(_user, "admin")
 	_session.refresh()
-	await _frames(15)
+	await Wait.frames(get_tree(), 15)
 	assert_array(_map()).contains(["SecuritySwitch", "Console", "Camera", "Alarm", "Rtr02", "ApYard"])
 	assert_bool(_map().has("FileServer")).is_false()
 	assert_bool(_map().has("PcB")).is_false()

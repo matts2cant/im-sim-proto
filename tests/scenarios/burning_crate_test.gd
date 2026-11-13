@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## fire emitted (t) -> crate received -> receptron fired -> noise emitted (t + 1) -> listener received.
 ## Each receiver logs its reception and then its receptron firings before the next receiver.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const FIXTURE := "res://tests/scenarios/fixtures/burning_crate.tscn"
 
 var _scene: Node3D
@@ -18,7 +19,7 @@ func before_test() -> void:
 
 func test_fire_ignites_wooden_crate_and_listener_hears_it() -> void:
 	_ignite()
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 
 	var chain := _chain()
 	(
@@ -54,7 +55,7 @@ func test_fire_ignites_wooden_crate_and_listener_hears_it() -> void:
 
 func test_crate_burns_metal_crate_does_not() -> void:
 	_ignite()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(_tags("Crate").has(&"state.burning")).is_true()
 	assert_bool(_tags("MetalCrate").has(&"state.burning")).is_false()
@@ -62,11 +63,11 @@ func test_crate_burns_metal_crate_does_not() -> void:
 
 func test_burning_crate_does_not_reignite() -> void:
 	_ignite()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 	_ignite()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_array(EventLog.find(&"receptron.fired")).is_empty()
 	assert_array(EventLog.find(&"stimulus.emitted")).has_size(1)
@@ -97,8 +98,3 @@ func _type_of(entry: EventLogEntry) -> String:
 
 func _tags(entity: String) -> TagContainer:
 	return (_scene.get_node(entity + "/Tags") as Tags).container
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

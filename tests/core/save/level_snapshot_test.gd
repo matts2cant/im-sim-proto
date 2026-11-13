@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: LevelSnapshot on the physics & fire gallery room: what is captured as removed and
 ## spawned, and restoring a snapshot onto a fresh instance of the room.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://levels/gallery/physics_fire/physics_fire_room.tscn"
 const CRATE := "BarricadeRoom/SideRoomCrate"
@@ -19,7 +20,7 @@ func after_test() -> void:
 func _room() -> Node3D:
 	var room: Node3D = auto_free((load(ROOM) as PackedScene).instantiate())
 	get_tree().root.add_child(room)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	return room
 
 
@@ -59,7 +60,7 @@ func test_apply_restores_removed_spawned_and_states_on_a_fresh_room() -> void:
 	Breakable.of(room.get_node(CRATE)).break_apart(&"destroyed")
 	var box := Objects.spawn(room, Objects.CARDBOARD_BOX, Vector3(0, 0.25, -8), "SpawnedBox")
 	Flammable.of(room.get_node("FireSpread/FireCrate1")).ignite(null)
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var snapshot := LevelSnapshot.capture(room)
 	var box_transform := box.global_transform
 	room.free()
@@ -104,7 +105,7 @@ func test_a_spawned_node_with_a_removed_node_name_is_saved_as_spawned() -> void:
 	room.get_node("FireSpread/FireCrate1").free()
 	Objects.spawn(room.get_node("FireSpread"), Objects.CARDBOARD_BOX, Vector3(0, 0.25, -8), "FireCrate1")
 	# ImpactNoise adds its player deferred: let it, or freeing the room orphans it.
-	await Objects.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	var snapshot := LevelSnapshot.capture(room)
 	room.free()

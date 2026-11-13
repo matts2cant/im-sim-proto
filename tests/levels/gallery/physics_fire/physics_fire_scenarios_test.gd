@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Scenarios in the real physics and fire room scene (stations A and C, the side room crate),
 ## asserted on the EventLog. Time factor only speeds up the run: physics keeps its 1/60 s step.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://levels/gallery/physics_fire/physics_fire_room.tscn"
 const TICK := 1.0 / 60.0
@@ -64,7 +65,7 @@ func test_damaged_barrel_chains_into_the_second_and_lights_the_stack() -> void:
 	var spark := Stimulus.make_contact(&"damage.blunt", 60.0, _runner.find_child("Barrel1"))
 
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 6 * 60)
+	await Wait.frames(get_tree(), 6 * 60)
 
 	var first := Objects.logged(&"object.exploded", "object", "Barrel1")
 	assert_array(first).has_size(1)
@@ -108,7 +109,7 @@ func test_side_room_crate_breaks_into_two_bottles() -> void:
 	var centre := crate.global_position
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 100.0, crate))
-	await Objects.frames(get_tree(), 90)
+	await Wait.frames(get_tree(), 90)
 
 	var broken := Objects.logged(&"object.broken", "object", "SideRoomCrate")
 	assert_array(broken).has_size(1)
@@ -127,5 +128,5 @@ func test_side_room_crate_breaks_into_two_bottles() -> void:
 func _load() -> void:
 	_runner = scene_runner(ROOM)
 	_runner.set_time_factor(8)
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	EventLog.clear()

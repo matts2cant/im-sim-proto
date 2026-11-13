@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## clear of the guards' thresholds (dark < 0.1, fully visible >= 0.5). Closing it again restores
 ## the lit lane. A broken lamp and the open breaker survive a save and load of the hub.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const HUB := "res://levels/hub/hub.tscn"
@@ -105,14 +106,14 @@ func test_broken_lamp_and_open_breaker_survive_save_and_load() -> void:
 	var hub: Node3D = HUB_SCENE.instantiate()
 	hub.get_node("Player").free()
 	add_child(hub)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	var room := hub.get_node("PerceptionLab") as Node3D
 	var lamp := room.get_node("Lamps/LitLamp1") as Node3D
 	var from := room.to_global(Vector3(7.5, 1.6, -3))
 	var at := lamp.global_position + Vector3(0, -0.25, 0)
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 25.0, from, at - from, 20.0))
 	(Usable.of(room.get_node("Breaker")) as CircuitBreaker).set_closed(false)
-	await Objects.frames(get_tree(), 4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(is_instance_valid(lamp)).is_false()
 
 	var snapshot := LevelSnapshot.capture(hub)
@@ -122,7 +123,7 @@ func test_broken_lamp_and_open_breaker_survive_save_and_load() -> void:
 	fresh.get_node("Player").free()
 	add_child(fresh)
 	auto_free(fresh)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	LevelSnapshot.apply(fresh, snapshot)
 
 	assert_array(snapshot["removed"] as Array).contains(["PerceptionLab/Lamps/LitLamp1"])

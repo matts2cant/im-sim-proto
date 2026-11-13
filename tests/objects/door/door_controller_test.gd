@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## cut off); the controller's power loss or breakage follows the door's power rule (fail-secure stays
 ## locked, fail-safe unlocks); a door without a box has no Device. No navigation: far from the origin.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const DOOR: PackedScene = preload("res://objects/door/door.tscn")
@@ -29,7 +30,7 @@ func after_test() -> void:
 
 func test_both_boxes_are_one_device_with_one_status() -> void:
 	var door := _door("Vault", Vector3.ZERO, [&"door.fail_secure"], true)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var controller := door.hardware.controller
 	var device := Device.of(controller.entity)
 	var front := door.hardware.controls(true)[0]
@@ -53,7 +54,7 @@ func test_both_boxes_are_one_device_with_one_status() -> void:
 
 func test_commands_reach_the_door_unless_the_controller_is_down() -> void:
 	var door := _door("Door", Vector3.ZERO, [&"door.fail_secure"], false)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var entity := door.hardware.controller.entity
 	# Blocked while the controller is unpowered or broken (its own tags).
 	for tag: StringName in [Device.UNPOWERED, Device.BROKEN]:
@@ -70,7 +71,7 @@ func test_commands_reach_the_door_unless_the_controller_is_down() -> void:
 	await _command(entity, Device.OPEN)
 	assert_bool(door.is_open()).is_true()
 	assert_bool(door.is_locked()).is_true()
-	await _frames(45)
+	await Wait.frames(get_tree(), 45)
 	await _command(entity, Device.CLOSE)
 	await _command(entity, Device.UNLOCK)
 	assert_bool(door.is_open()).is_false()
@@ -86,7 +87,7 @@ func test_commands_reach_the_door_unless_the_controller_is_down() -> void:
 func test_the_lock_light_shows_the_network_state() -> void:
 	var switch := _switch(Vector3(3, 1.5, 0))
 	var door := _door("Door", Vector3.ZERO, [&"door.fail_secure"], true, switch)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	var lamp := DeviceLamp.of(door.hardware.controller.entity)
 	# The model's LED on every box is the lamp: one light per device, no extra LED.
 	var leds: Array[MeshInstance3D] = []
@@ -99,13 +100,13 @@ func test_the_lock_light_shows_the_network_state() -> void:
 	assert_bool(lamp.color().is_equal_approx(Door.LOCKED_COLOUR)).is_true()
 	# Its switch down: cut off, blinking amber on both boxes.
 	Powered.of(switch).on = false
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(lamp.blinking()).is_true()
 	assert_bool(lamp.color().is_equal_approx(StatusLight.COLORS[StatusLight.State.CUT_OFF])).is_true()
 	# Back up, unlocked: green.
 	Powered.of(switch).on = true
 	Lockable.of(door.entity).unlock()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(lamp.blinking()).is_false()
 	assert_bool(lamp.color().is_equal_approx(Door.UNLOCKED_COLOUR)).is_true()
 
@@ -114,13 +115,13 @@ func test_power_loss_or_breakage_follows_the_doors_power_rule() -> void:
 	var secure := _door("Secure", Vector3.ZERO, [&"door.fail_secure"], true)
 	var safe := _door("Safe", Vector3(4, 0, 0), [&"door.fail_safe"], true)
 	var broken := _door("Broken", Vector3(8, 0, 0), [&"door.fail_safe"], true)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	for door: Door in [secure, safe, broken]:
 		assert_bool(ActorState.has(door.entity, Device.UNPOWERED)).override_failure_message(door.entity.name).is_false()
 	Powered.of(secure.hardware.controller.entity).on = false
 	Powered.of(safe.hardware.controller.entity).on = false
 	Breakable.of(broken.hardware.controller.entity).take_damage(&"damage.ballistic", 100.0)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	# Fail-secure stays locked, fail-safe unlocks; the controller's breakage counts as power loss.
 	assert_bool(secure.is_locked()).is_true()
 	assert_bool(safe.is_locked()).is_false()
@@ -131,7 +132,7 @@ func test_power_loss_or_breakage_follows_the_doors_power_rule() -> void:
 		assert_bool(lamp.color().is_equal_approx(StatusLight.COLORS[StatusLight.State.DARK])).is_true()
 	# Power back: the door has power again (fail-safe stays unlocked until someone locks it).
 	Powered.of(safe.hardware.controller.entity).on = true
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(ActorState.has(safe.entity, Device.UNPOWERED)).is_false()
 	assert_bool(safe.is_locked()).is_false()
 
@@ -150,7 +151,7 @@ func test_a_door_without_a_box_is_mechanical_and_a_box_makes_a_controller() -> v
 	keypad.position = Vector3(8, 0, 0)
 	Helpers.add_keypad(keypad, &"test_keypad", "1234")
 	_root.add_child(keypad)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	# No wall box: no controller, no Device (a pin lock sits on the leaf).
 	for entity: Node in [plain, pinned]:
 		assert_array(_devices_under(entity)).override_failure_message(entity.name).is_empty()
@@ -162,7 +163,7 @@ func test_a_door_without_a_box_is_mechanical_and_a_box_makes_a_controller() -> v
 	assert_bool(Device.of(built.entity).accepts_tool(Device.DECK_TOOL)).is_true()
 	# A controller added to a door without a lock gets a plain control box on each face.
 	Helpers.add_controller(plain)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var hardware := Door.of(plain).hardware
 	assert_int(hardware.controls(true).size()).is_equal(1)
 	assert_int(hardware.controls(false).size()).is_equal(1)
@@ -241,7 +242,7 @@ func _switch(at: Vector3) -> Node3D:
 
 func _command(entity: Node3D, type: StringName) -> void:
 	StimulusSystem.emit(Stimulus.make_contact(type, 1.0, entity, _root))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 
 static func _devices_under(entity: Node) -> Array[Device]:
@@ -257,8 +258,3 @@ static func _led_of(box: Node) -> MeshInstance3D:
 		if node is StatusLed:
 			return (node as StatusLed).led
 	return null
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

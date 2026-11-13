@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## with characters, and anything that damages the entity to 0 sets it off too (the one detonation
 ## entry, Explosive.explode()).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 
 var _root: Node3D
@@ -23,7 +24,7 @@ func after_test() -> void:
 func test_fuse_explodes_after_its_time_and_not_before() -> void:
 	var grenade := Grenades.grenade(_root, Vector3(600, 5, 0), true)
 	var explosive := Explosive.of(grenade)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	Fuse.of(grenade).light()
 	await Grenades.seconds(get_tree(), 2.3)
@@ -37,7 +38,7 @@ func test_fuse_explodes_after_its_time_and_not_before() -> void:
 
 func test_a_lit_body_collides_with_characters() -> void:
 	var grenade := Grenades.grenade(_root, Vector3(602, 5, 0), true)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	assert_int(grenade.collision_mask & PhysicsLayers.CHARACTER_LAYERS).is_equal(0)
 
 	Fuse.of(grenade).light()
@@ -47,7 +48,7 @@ func test_a_lit_body_collides_with_characters() -> void:
 
 func test_lighting_again_keeps_the_shorter_time() -> void:
 	var grenade := Grenades.grenade(_root, Vector3(604, 5, 0), true)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	var fuse := Fuse.of(grenade)
 
 	fuse.light()
@@ -59,7 +60,7 @@ func test_lighting_again_keeps_the_shorter_time() -> void:
 
 func test_damage_to_zero_sets_it_off_without_a_fuse() -> void:
 	var grenade := Grenades.grenade(_root, Vector3(606, 5, 0), true)
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 
 	Breakable.of(grenade).take_damage(&"damage.ballistic", 10.0)
 

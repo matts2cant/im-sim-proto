@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## ringing time is shortened to RING_TIME for speed (a duplicated config); the 45 s default is
 ## checked in the scenario test.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const CONTROLLER_SCENE: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
 const SIREN_SCENE: PackedScene = preload("res://objects/alarm/siren.tscn")
@@ -38,7 +39,7 @@ func before_test() -> void:
 	var config := _behaviour().config.duplicate() as AlarmControllerConfig
 	config.duration = RING_TIME
 	_behaviour().config = config
-	await _frames(1)
+	await Wait.frames(get_tree(), 1)
 
 
 func after_test() -> void:
@@ -84,7 +85,7 @@ func test_the_panic_button_rings_the_siren_through_the_switch_and_dispatches_the
 	assert_str(usable.verb).is_equal("press")
 	assert_str(usable.target_name()).is_equal("panic button")
 	usable.use(null)
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 
 	assert_bool(_behaviour().is_ringing()).is_true()
 	assert_vector(_behaviour().point).is_equal_approx(_button.global_position, Vector3.ONE * 0.001)
@@ -140,17 +141,17 @@ func test_cutting_the_switch_stops_the_ring_reaching_the_siren() -> void:
 
 func test_reset_disarm_and_enable() -> void:
 	_command(Device.TRIGGER, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	_command(Device.RESET, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("reset")
 
 	_command(Device.DISARM, _controller)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	Usable.of(_button).use(null)
 	_command(Device.TRIGGER, _controller)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_bool(_behaviour().armed).is_false()
 	# Disarmed shows as disabled on security screens (ADR 0099 amendment).
 	assert_bool(DeviceStatus.is_disabled(_controller)).is_true()
@@ -159,30 +160,30 @@ func test_reset_disarm_and_enable() -> void:
 	assert_array(EventLog.find(&"radio.dispatch")).is_empty()
 
 	_command(Device.ENABLE, _controller)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(DeviceStatus.is_disabled(_controller)).is_false()
 	_command(Device.TRIGGER, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_true()
 
 
 func test_losing_power_or_breaking_stops_the_controller() -> void:
 	_command(Device.TRIGGER, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	Powered.of(_controller).on = false
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_str(String(EventLog.find(&"alarm.ended")[0].data["reason"])).is_equal("unpowered")
 	# Unpowered, it ignores commands (its receptrons block on `state.unpowered`).
 	_command(Device.TRIGGER, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 
 	Powered.of(_controller).on = true
 	_command(Device.TRIGGER, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_true()
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.ballistic", 100.0, _controller))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(_behaviour().is_ringing()).is_false()
 	assert_bool(ActorState.has(_controller, Device.BROKEN)).is_true()
 	assert_str(String(EventLog.find(&"alarm.ended")[1].data["reason"])).is_equal("broken")
@@ -196,13 +197,13 @@ func test_siren_test_silence_and_power() -> void:
 	assert_bool(_horn().is_sounding()).is_false()
 
 	_command(Device.TEST, _siren)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	_command(Device.SILENCE, _siren)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_horn().is_sounding()).is_false()
 
 	_command(Device.TEST, _siren)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	Powered.of(_siren).on = false
 	assert_bool(_horn().is_sounding()).is_false()
 	var pulses := _pulses()
@@ -217,7 +218,7 @@ func test_controller_and_siren_survive_save_and_load() -> void:
 	var saved := _behaviour().save_state()
 	var horn_saved := _horn().save_state()
 	_command(Device.RESET, _controller)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_behaviour().is_ringing()).is_false()
 
 	_behaviour().load_state(saved)
@@ -234,9 +235,5 @@ func test_controller_and_siren_survive_save_and_load() -> void:
 	assert_bool((_siren.get_node("Model/Beacon") as Node3D).visible).is_false()
 
 
-func _frames(count: int) -> void:
-	await Fixtures.frames(get_tree(), count)
-
-
 func _seconds(value: float) -> void:
-	await _frames(roundi(value * 60.0))
+	await Wait.frames(get_tree(), roundi(value * 60.0))

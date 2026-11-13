@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## Fixture: wooden crates A, B, D in a row 0.62 m apart (centres), a metal crate touching A, and a
 ## wooden crate 1 m behind A on the far side of a wall (world layer).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const FIXTURE := "res://tests/scenarios/fixtures/fire_spread.tscn"
 const TICK := 1.0 / 60.0
@@ -26,7 +27,7 @@ func test_burning_crate_ignites_neighbour_not_metal_nor_behind_wall() -> void:
 	# 0.62 m: 2.0 x (1 - 0.62 / 1.5) = 1.17 per pulse, -0.25 cooling: 7th pulse, 3.0 s after A.
 	assert_float((b.tick - a.tick) * TICK).is_between(2.5, 3.5)
 
-	await Objects.frames(get_tree(), 480 - (b.tick - a.tick))
+	await Wait.frames(get_tree(), 480 - (b.tick - a.tick))
 	assert_object(_ignited("MetalCrate")).is_null()
 	assert_object(_ignited("CrateBehindWall")).is_null()
 	assert_bool(_tags("MetalCrate").has(&"state.burning")).is_false()
@@ -71,11 +72,11 @@ func test_fire_chain_is_traceable_through_cause_id() -> void:
 func _ignite_crate_a() -> Stimulus:
 	_runner = scene_runner(FIXTURE)
 	_runner.set_time_factor(6)
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	EventLog.clear()
 	var spark := Stimulus.make_contact(&"fire", 100.0, _runner.find_child("CrateA"))
 	StimulusSystem.emit(spark)
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	return spark
 
 

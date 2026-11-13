@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: debug panel Spawn tab (catalogue spawning, ignite / damage the looked-at object,
 ## grenade effects at the crosshair), Time tab and the Heat overlay.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
@@ -69,12 +70,12 @@ func test_reset_level_reloads_the_physics_fire_room() -> void:
 	var room: Node3D = (load(PHYSICS_FIRE_ROOM) as PackedScene).instantiate()
 	tree.root.add_child(room)
 	tree.current_scene = room
-	await Objects.frames(tree, 5)
+	await Wait.frames(tree, 5)
 	# Use the room up: a crate burns, one is broken, one is spawned.
 	Flammable.of(room.get_node("FireSpread/FireCrate1")).ignite(null)
 	Breakable.of(room.get_node("Throwables/TableCrate1")).break_apart(&"destroyed")
 	Objects.spawn(room, Objects.CARDBOARD_BOX, Vector3(0, 0.25, -8), "SpawnedBox")
-	await Objects.frames(tree, 2)
+	await Wait.frames(tree, 2)
 	var tab := _tab("Spawn") as SpawnTab
 
 	var error := tab.reset_level()

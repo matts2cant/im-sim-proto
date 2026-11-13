@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: LINE_OF_SIGHT propagation (blocked by the world layer only) and cause_id.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _root: Node3D
@@ -20,7 +21,7 @@ func test_world_layer_blocks_line_of_sight() -> void:
 	await _settle()
 
 	_emit_fire(Vector3(0, 1, 0), 6.0)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_received_by(hidden)).is_empty()
 	var seen := _received_by(visible)
@@ -37,7 +38,7 @@ func test_objects_layer_does_not_block() -> void:
 	await _settle()
 
 	_emit_fire(Vector3(0, 1, 0), 6.0)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_received_by(behind)).has_size(1)
 
@@ -53,7 +54,7 @@ func test_source_and_receiver_bodies_do_not_block_themselves() -> void:
 	StimulusSystem.emit(
 		Stimulus.make_radius(&"fire", 3.0, Vector3(0, 1, 0), 3.0, brazier, Stimulus.Propagation.LINE_OF_SIGHT)
 	)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_received_by(barricade)).has_size(1)
 
@@ -64,7 +65,7 @@ func test_straight_propagation_ignores_walls() -> void:
 	await _settle()
 
 	StimulusSystem.emit(Stimulus.make_radius(&"fire", 6.0, Vector3(0, 1, 0), 6.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(_received_by(hidden)).has_size(1)
 
@@ -77,7 +78,7 @@ func test_cause_id_defaults_to_parent_and_is_logged() -> void:
 	var explicit := Stimulus.make_radius(&"noise", 1.0, Vector3.ZERO, 1.0)
 	explicit.cause_id = 77
 	StimulusSystem.emit(explicit, parent)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(parent.cause_id).is_equal(0)
 	assert_int(child.cause_id).is_equal(parent.id)
@@ -121,4 +122,4 @@ func _received_by(entity: Node) -> Array[EventLogEntry]:
 
 
 func _settle() -> void:
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)

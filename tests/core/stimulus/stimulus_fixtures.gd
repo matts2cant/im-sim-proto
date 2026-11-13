@@ -101,9 +101,3 @@ static func tags_of(node: Node) -> TagContainer:
 ## EventLog entries of `kind` whose data id is `id`.
 static func entries(kind: StringName, id: int = -1) -> Array[EventLogEntry]:
 	return EventLog.find(kind).filter(func(entry: EventLogEntry) -> bool: return id < 0 or entry.data["id"] == id)
-
-
-## Waits `count` physics frames on `tree`.
-static func frames(tree: SceneTree, count: int) -> void:
-	for i in count:
-		await tree.physics_frame

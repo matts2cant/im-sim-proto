@@ -15,6 +15,7 @@ extends GdUnitTestSuite
 ##   (16.5,0.1,12.5); radio station (6,1,20); radios at F2's centre (inside) and (4,0,25) (17.7 m
 ##   from F2, 23.8 m from F1); annex 30 m north (CAM-ANNEX (-6.5,2.5,-21), 22 m from F1).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Grenades := preload("res://tests/objects/explosives/explosive_fixtures.gd")
@@ -54,7 +55,7 @@ func before_test() -> void:
 	var lamp := DeviceLamp.new()
 	lamp.name = "DeviceLamp"
 	_n["CamYard"].add_child(lamp)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	StatusLight.attach(_dev("CamYard"))
 
 
@@ -70,13 +71,13 @@ func test_a_jammed_wireless_device_reads_jammed_everywhere_and_cables_keep_worki
 	session.config = session.config.duplicate() as DeckConfig
 	session.config.scan_time = 0.1
 	assert_bool(session.plug(_dev("Jack"), Net.deck_stack())).is_true()
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	session.refresh()
 	assert_int(_dev("CamYard").report_incident(_n["CamYard"].global_position)).is_equal(1)
 
 	_field(F1)
 	_field(F2)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	session.refresh()
 	# CAM-YARD and LASER-ROOF: jammed. NetworkState, the light, the frame.
 	for entity_name: String in ["CamYard", "LaserRoof"]:
@@ -109,7 +110,7 @@ func test_a_jammed_wireless_device_reads_jammed_everywhere_and_cables_keep_worki
 	# Both fields end (skipped to their last moment): everything is back.
 	for field in get_tree().get_nodes_in_group(JammingField.GROUP):
 		(field as JammingField).age = 19.9
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_array(get_tree().get_nodes_in_group(JammingField.GROUP)).is_empty()
 	assert_int(_state("CamYard")).is_equal(StatusLight.State.UP)
 	assert_int(light.state).is_equal(StatusLight.State.UP)
@@ -124,13 +125,13 @@ func test_the_deck_wifi_drops_inside_a_field() -> void:
 	assert_bool(session.plug(_dev("ApYard"), Net.deck_stack())).is_true()
 	assert_bool(session.is_wireless()).is_true()
 	var field := _field(F2)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(session.is_plugged()).is_false()
 	assert_str(String(session.unplug_reason)).is_equal("jammed")
 	# No joining again while it lasts; once it ends, the Wi-Fi works again.
 	assert_bool(session.plug(_dev("ApYard"), Net.deck_stack())).is_false()
 	field.end()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(session.plug(_dev("ApYard"), Net.deck_stack())).is_true()
 
 
@@ -141,9 +142,9 @@ func test_a_radio_inside_gets_no_dispatch() -> void:
 	var inside := _radio("Inside", F2 - Vector3(0, 0.1, 0))
 	var outside := _radio("Outside", Vector3(4, 0, 25))
 	_field(F2)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	(station.get_node("RadioBaseStationBehaviour") as RadioBaseStation).dispatch(ORIGIN + Vector3(6, 0, 22))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_array(outside.searched).has_size(1)
 	assert_array(inside.searched).is_empty()
 	assert_array(EventLog.find(&"radio.jammed")).has_size(1)
@@ -192,7 +193,3 @@ func _map_rows(session: DeckSession) -> Dictionary:
 	for row in view.map_rows():
 		rows[String(row.device.entity.name)] = row
 	return rows
-
-
-func _frames(count: int) -> void:
-	await Fixtures.frames(get_tree(), count)

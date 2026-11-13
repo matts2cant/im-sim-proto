@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: CONTACT and RAY delivery through the real StimulusSystem, against physics bodies.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 var _world: Node3D
@@ -18,7 +19,7 @@ func test_contact_reaches_only_the_target() -> void:
 	Fixtures.entity(_world, "Bystander", Vector3.ZERO, [Fixtures.receptron(&"damage.blunt")])
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 25.0, target))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := EventLog.find(&"stimulus.received")
 	assert_array(received).has_size(1)
@@ -33,7 +34,7 @@ func test_contact_on_a_child_node_reaches_the_entity() -> void:
 	target.add_child(hitbox)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 10.0, hitbox))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_str(EventLog.find(&"stimulus.received")[0].target).is_equal("Guard")
 
@@ -41,10 +42,10 @@ func test_contact_on_a_child_node_reaches_the_entity() -> void:
 func test_ray_reaches_only_the_first_collider() -> void:
 	_body("Near", Vector3(0, 0, -3))
 	_body("Far", Vector3(0, 0, -6))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 20.0, Vector3.ZERO, Vector3.FORWARD, 10.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := EventLog.find(&"stimulus.received")
 	assert_array(received).has_size(1)
@@ -55,10 +56,10 @@ func test_ray_reaches_only_the_first_collider() -> void:
 
 func test_ray_that_hits_nothing_delivers_nothing() -> void:
 	_body("Beside", Vector3(3, 0, -3))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 20.0, Vector3.ZERO, Vector3.FORWARD, 10.0))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_array(EventLog.find(&"stimulus.emitted")).has_size(1)
 	assert_array(EventLog.find(&"stimulus.received")).is_empty()
@@ -67,10 +68,10 @@ func test_ray_that_hits_nothing_delivers_nothing() -> void:
 func test_ray_ignores_its_source_body() -> void:
 	var shooter := _body("Shooter", Vector3.ZERO)
 	_body("Target", Vector3(0, 0, -4))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_ray(&"damage.ballistic", 20.0, Vector3.ZERO, Vector3.FORWARD, 10.0, shooter))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var received := EventLog.find(&"stimulus.received")
 	assert_array(received).has_size(1)

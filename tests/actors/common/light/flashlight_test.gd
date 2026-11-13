@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## without any other light: when it is lit (tags, on_while_patrolling, awareness states), that
 ## LightExposure sees its beam (cone, range, walls) like any lamp, and it saves.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const ORIGIN := Vector3(300, 0, -300)
 const FLASHLIGHT: PackedScene = preload("res://actors/common/light/flashlight.tscn")
 const GUARD: PackedScene = preload("res://actors/guard/guard.tscn")
@@ -37,21 +38,21 @@ func _carrier(patrolling: bool) -> Flashlight:
 
 func test_on_while_patrolling_is_lit_until_the_carrier_is_downed() -> void:
 	var light := _carrier(true)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(light.lit).is_true()
 	assert_bool(light.beam.is_visible_in_tree()).is_true()
 	assert_float(light.beam.spot_range).is_equal(12.0)
 	assert_float(light.beam.spot_angle).is_equal(20.0)
 
 	ActorState.set_tag(light.carrier, ActorState.UNCONSCIOUS, true)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(light.lit).is_false()
 	assert_bool(light.beam.is_visible_in_tree()).is_false()
 	assert_bool(light.halo.is_visible_in_tree()).is_false()
 
 	ActorState.set_tag(light.carrier, ActorState.UNCONSCIOUS, false)
 	ActorState.set_tag(light.carrier, ActorState.DEAD, true)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(light.lit).is_false()
 	var switches := EventLog.find(&"light.flashlight").map(func(e: EventLogEntry) -> bool: return e.data["lit"])
 	assert_array(switches).is_equal([true, false])
@@ -59,7 +60,7 @@ func test_on_while_patrolling_is_lit_until_the_carrier_is_downed() -> void:
 
 func test_without_awareness_or_the_flag_it_stays_off() -> void:
 	var light := _carrier(false)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(light.lit).is_false()
 
 
@@ -69,23 +70,23 @@ func test_a_guard_lights_it_when_searching_or_alerted() -> void:
 	(guard.get_node("Behaviour") as AwarenessBehaviour).route = null
 	var light := Flashlight.of(guard)
 	var awareness := GradedAwareness.of_node(guard)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_object(light).is_not_null()
 	assert_object(light.carrier).is_same(guard)
 	assert_bool(light.lit).is_false()
 
 	awareness.search_at(guard.global_position + Vector3(0, 0, -3), "test")
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_str(awareness.state_name()).is_equal("searching")
 	assert_bool(light.lit).is_true()
 
 	awareness.alert_at(guard.global_position + Vector3(0, 0, -3))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_str(awareness.state_name()).is_equal("alerted")
 	assert_bool(light.lit).is_true()
 
 	ActorState.set_tag(guard, ActorState.UNCONSCIOUS, true)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(light.lit).is_false()
 
 
@@ -94,14 +95,14 @@ func test_light_exposure_sees_the_beam_in_its_cone_and_range_only() -> void:
 	var ahead := _target(Vector3(0, 0, -6))
 	var aside := _target(Vector3(6, 0, -6))
 	var far := _target(Vector3(0, 0, -13.5))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	# 6 m ahead on the axis: well lit; 45 degrees off the axis or past the 12 m range: dark.
 	assert_float(LightExposure.of(ahead).level).is_greater(0.3)
 	assert_float(LightExposure.of(aside).level).is_less(0.05)
 	assert_float(LightExposure.of(far).level).is_less(0.05)
 
 	light.on_while_patrolling = false
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_float(LightExposure.of(ahead).level).is_less(0.05)
 
 
@@ -117,22 +118,22 @@ func test_a_wall_shadows_the_beam() -> void:
 	wall.add_child(shape)
 	wall.position = Vector3(0, 1.5, -3)
 	_root.add_child(wall)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_float(LightExposure.of(behind).level).is_less(0.05)
 
 
 func test_save_and_load() -> void:
 	var light := _carrier(true)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var data := light.save_state()
 	assert_dict(data).is_equal({"on_while_patrolling": true, "lit": true})
 
 	var other := _carrier(false)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	other.load_state(data)
 	assert_bool(other.on_while_patrolling).is_true()
 	assert_bool(other.beam.visible).is_true()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(other.lit).is_true()
 
 
@@ -154,8 +155,3 @@ func _target(feet: Vector3) -> StaticBody3D:
 	body.position = feet
 	_root.add_child(body)
 	return body
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

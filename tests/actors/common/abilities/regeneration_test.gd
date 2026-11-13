@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## Regeneration's `heal` pulses (2 every 0.5 s) heal a hurt leg through the shared `heal` receptron and
 ## stop when nothing is hurt while the drain goes on; Run Silent silences MovementNoise footsteps.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Abilities := preload("res://tests/actors/common/abilities/ability_fixtures.gd")
@@ -22,7 +23,7 @@ func before_test() -> void:
 	var components: Array[StringName] = [Characters.MOVEMENT_NOISE]
 	_body = Characters.character(_world, "Walker", Vector3(0, 0, 0), components, PhysicsLayers.ACTORS, extra)
 	Abilities.equip(_body)
-	await Fixtures.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_regeneration_heals_a_hurt_leg_over_time_and_costs_energy() -> void:
@@ -32,7 +33,7 @@ func test_regeneration_heals_a_hurt_leg_over_time_and_costs_energy() -> void:
 	Augmentations.of(_body).activate(&"regeneration")
 
 	# 70 frames (1.17 s): two pulses of 2.
-	await Fixtures.frames(get_tree(), 70)
+	await Wait.frames(get_tree(), 70)
 
 	assert_float(parts.health(&"leg_l")).is_equal_approx(hurt + 4.0, 0.01)
 	assert_array(EventLog.find(&"actor.healed")).has_size(2)
@@ -44,7 +45,7 @@ func test_regeneration_stops_emitting_when_nothing_is_hurt_but_keeps_draining() 
 	parts.take_damage(&"damage.ballistic", 3.0, &"leg_l")
 	Augmentations.of(_body).activate(&"regeneration")
 
-	await Fixtures.frames(get_tree(), 130)
+	await Wait.frames(get_tree(), 130)
 
 	assert_float(parts.health(&"leg_l")).is_equal(parts.model.max_health(&"leg_l"))
 	var heals := EventLog.find(&"stimulus.emitted").filter(
@@ -64,7 +65,7 @@ func test_run_silent_removes_footstep_noise() -> void:
 
 	assert_float(noise.footstep(MovementNoiseRules.Stance.SPRINT)).is_equal(0.0)
 	assert_float(noise.landed(9.0)).is_equal(0.0)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_array(EventLog.find(&"actor.footstep")).is_empty()
 	assert_array(EventLog.find(&"stimulus.emitted")).is_empty()
 

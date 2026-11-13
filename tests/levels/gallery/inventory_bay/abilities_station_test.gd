@@ -39,7 +39,7 @@ func test_speed_ledge_is_refused_without_speed_and_mantled_with_it() -> void:
 	assert_float(_local_feet().y).is_less(0.1)
 
 	await _face(LEDGE_FOOT, LEDGE_TOP)
-	await _press(&"aug_3")
+	await _driver.press(&"aug_3")
 	await _driver.hold(&"jump", 40)
 	await _driver.frames(30)
 
@@ -54,7 +54,7 @@ func test_dais_biocells_are_ten_in_one_pickup() -> void:
 	assert_float(_room.to_local(biocells.global_position).y).is_between(0.3, 0.4)
 	await _face(Vector3(-2.15, 0.3, -17.6), _room.to_local(biocells.global_position))
 
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(10)
 
@@ -64,12 +64,12 @@ func test_heavy_crate_needs_combat_strength() -> void:
 	var crate := _room.get_node("AbilitiesDais/LargeCrate") as RigidBody3D
 	await _face(Vector3(5.2, 0, -16.9), _room.to_local(crate.global_position))
 
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_player.carry.is_carrying()).is_false()
 	assert_array(EventLog.find(&"player.pickup_refused")).has_size(1)
 
-	await _press(&"aug_5")
-	await _press(&"use")
+	await _driver.press(&"aug_5")
+	await _driver.press(&"use")
 	assert_object(_player.carry.held).is_same(crate)
 
 
@@ -83,7 +83,7 @@ func test_run_silent_strip_footsteps_are_metal_and_silenced_by_run_silent() -> v
 		assert_str(String(step.data["surface"])).is_equal("metal")
 
 	await _face(STRIP_START, STRIP_END)
-	await _press(&"aug_2")
+	await _driver.press(&"aug_2")
 	EventLog.clear()
 	await _sprint(60)
 
@@ -109,11 +109,6 @@ func _sprint(frames: int) -> void:
 	_driver.runner.simulate_action_release(&"move_forward")
 	_driver.runner.simulate_action_release(&"sprint")
 	await _driver.frames(5)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load_hub() -> void:

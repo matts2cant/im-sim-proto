@@ -8,6 +8,7 @@ extends GdUnitTestSuite
 ## the deck to the security subnet over Wi-Fi (its map and reach from there) and leaving the range
 ## drops it and stops its tools; the progress is kept on the deck (saved) and resumed.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const ORIGIN := Vector3(420, 0, -380)
 ## AP-YARD's position in the lab (network_fixtures.gd add_wireless()).
@@ -40,7 +41,7 @@ func before_test() -> void:
 	_wireless = WirelessTool.of(_user)
 	_ice = IcebreakerTool.of(_user)
 	_stack = Net.deck_stack()
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 
 
 func after_test() -> void:
@@ -53,13 +54,8 @@ func _ap() -> Device:
 	return Device.of(_n["ApYard"])
 
 
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
-
-
 func _seconds(seconds: float) -> void:
-	await _frames(roundi(seconds * 60.0))
+	await Wait.frames(get_tree(), roundi(seconds * 60.0))
 
 
 func _tracer() -> Tracer:
@@ -131,7 +127,7 @@ func test_a_cracked_key_joins_the_subnet_and_leaving_the_range_drops_it() -> voi
 	assert_bool(_ice.is_running()).is_true()
 	# Out of the Trained range (12 m): the Wi-Fi drops and its tools stop.
 	_user.global_position = ORIGIN + AP + Vector3(0, 0, -14)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(_session.is_plugged()).is_false()
 	assert_str(String(_session.unplug_reason)).is_equal("out_of_range")
 	assert_bool(_ice.is_running()).is_false()
@@ -149,7 +145,7 @@ func test_a_wall_in_the_line_of_sight_pauses_the_crack_until_it_is_gone() -> voi
 	var before := _wireless.job.progress
 	assert_float(before).is_greater(0.02)
 	var wall := _wall()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(_wireless.has_sight(_ap())).is_false()
 	var paused := _wireless.job.progress
 	await _seconds(1.0)
@@ -174,7 +170,7 @@ func test_out_of_range_pauses_the_crack_and_back_in_range_it_goes_on() -> void:
 	await _seconds(0.5)
 	# Untrained: 8 m; 10 m north of the access point.
 	_user.global_position = ORIGIN + AP + Vector3(0, 0, -10)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	var paused := _wireless.job.progress
 	await _seconds(0.5)
 	assert_str(String(_wireless.pause_reason())).is_equal(String(WirelessTool.OUT_OF_RANGE))

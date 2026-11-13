@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## Integration: bodies resting on a prop fall when it stops supporting them, even after they fell
 ## asleep (SupportWake, ADR 0055). Small crates are 0.6 m cubes on a flat floor at y = 0.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const CrateWatch := preload("res://tests/objects/crate_watch.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
@@ -22,7 +23,7 @@ func before_test() -> void:
 	add_child(_floor)
 	_watch = CrateWatch.new()
 	# CSG collision is built a few frames after load.
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_column_falls_when_the_bottom_crate_burns_out() -> void:

@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## and `command.reset` to every alarm controller in the level (group `alarm_controller`), with no
 ## network reach needed, and show the state.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const TOGGLES_SCENE: PackedScene = preload("res://ui/debug_panel/tabs/awareness_toggles.tscn")
 const CONTROLLER_SCENE: PackedScene = preload("res://objects/alarm/alarm_controller.tscn")
@@ -38,17 +39,17 @@ func test_raise_and_clear_reach_every_controller() -> void:
 		entity.position = Vector3(index * 3, 1, 0)
 		_root.add_child(entity)
 		controllers.append(entity.get_node("AlarmControllerBehaviour") as AlarmController)
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	assert_str(AwarenessToggles.state_text_for(controllers)).is_equal("off")
 
 	assert_int(_toggles.raise_level_alarm()).is_equal(2)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	for controller in controllers:
 		assert_bool(controller.is_ringing()).is_true()
 	assert_str(AwarenessToggles.state_text_for(controllers)).is_equal("ALARM 45s")
 
 	assert_int(_toggles.clear_level_alarm()).is_equal(2)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	for controller in controllers:
 		assert_bool(controller.is_ringing()).is_false()
 	assert_array(EventLog.find(&"alarm.ended")).has_size(2)

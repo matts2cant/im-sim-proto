@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## for good: passable, silent, `state.broken` (remote commands blocked), and it stays broken through
 ## save and load.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Helpers := preload("res://tests/objects/door/door_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const BREAKABLE_DOOR: PackedScene = preload("res://objects/door/breakable_door.tscn")
@@ -23,7 +24,7 @@ func before_test() -> void:
 	_root.add_child(_entity)
 	_door = Door.of(_entity)
 	Helpers.lock(_entity)
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 
 func test_pistol_rounds_and_baton_hits_do_not_break_it() -> void:
@@ -42,7 +43,7 @@ func test_an_explosion_breaks_it_open_for_good() -> void:
 	# A blast 1 m from the door's centre: 100 x (1 - 1/4) = 75 explosive damage.
 	var blast := Stimulus.make_radius(&"damage.explosive", 100.0, Vector3(0, 1.1, 1.0), 4.0, _root)
 	StimulusSystem.emit(blast)
-	await Helpers.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(_door.broken).is_true()
 	assert_bool(is_instance_valid(_entity) and _entity.is_inside_tree()).is_true()
@@ -56,7 +57,7 @@ func test_an_explosion_breaks_it_open_for_good() -> void:
 
 	# Remote commands no longer reach it; E offers nothing.
 	StimulusSystem.emit(Stimulus.make_contact(&"command.close", 1.0, _entity, _root))
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_array(EventLog.find(&"door.command")).is_empty()
 	assert_bool(_door.available(null)).is_false()
 
@@ -65,7 +66,7 @@ func test_a_far_explosion_does_not_break_it() -> void:
 	# 3 m from the centre: 100 x (1 - 3/4) = 25 < 50.
 	var blast := Stimulus.make_radius(&"damage.explosive", 100.0, Vector3(0, 1.1, 3.0), 4.0, _root)
 	StimulusSystem.emit(blast)
-	await Helpers.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_bool(_door.broken).is_false()
 	assert_float(Attributes.of(_entity).value(&"health")).is_between(24.0, 26.0)
@@ -83,4 +84,4 @@ func test_stays_broken_after_load() -> void:
 
 func _hit(type: StringName, amount: float) -> void:
 	StimulusSystem.emit(Stimulus.make_contact(type, amount, _entity, _root))
-	await Helpers.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)

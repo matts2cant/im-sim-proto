@@ -10,6 +10,7 @@ extends GdUnitTestSuite
 ## 0, -8) behind the wall, about 40 m of path, 8 m straight from the base station. Siren: loudness
 ## 35, heeded at a margin >= 1 (34 m of path). Base station: 40 m straight, radios only.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Guards := preload("res://tests/actors/guard/guard_helpers.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
@@ -34,7 +35,7 @@ func before_test() -> void:
 	await Guards.use_sync_iterations(map, region)
 	Guards.isolate_region(map, region)
 	region.bake()
-	await _frames(6)
+	await Wait.frames(get_tree(), 6)
 	EventLog.clear()
 
 
@@ -61,7 +62,7 @@ func test_panic_button_to_siren_to_a_guard_who_hears_it_searching_where_it_stand
 	# The base station off, so only the siren matters here.
 	Powered.of(_node("BaseStation")).on = false
 	Usable.of(_node("PanicButton")).use(null)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	var chain: Array[EventLogEntry] = [
 		EventLog.find(&"device.panic")[0],
@@ -91,7 +92,7 @@ func test_panic_button_to_siren_to_a_guard_who_hears_it_searching_where_it_stand
 func test_the_base_station_sends_radio_guards_to_the_incident() -> void:
 	var button := _node("PanicButton").global_position
 	Usable.of(_node("PanicButton")).use(null)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	assert_array(EventLog.find(&"radio.dispatch")).has_size(1)
 	# Near hears the siren too; the dispatch still sends it to the button. RadioBehind hears no
@@ -106,7 +107,7 @@ func test_the_base_station_sends_radio_guards_to_the_incident() -> void:
 
 func test_a_trigger_keeps_hearers_searching_for_45_s_then_the_sirens_stop() -> void:
 	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_str(_awareness("Near").state_name()).is_equal("searching")
 	assert_bool(_awareness("Near").model.is_wary()).is_true()
 	assert_array(EventLog.find(&"radio.dispatch")).is_empty()
@@ -130,9 +131,9 @@ func test_a_trigger_keeps_hearers_searching_for_45_s_then_the_sirens_stop() -> v
 
 func test_an_alerted_guard_carries_on_when_it_hears_the_siren() -> void:
 	_awareness("Near").alert_at(_scene.to_global(Vector3(-14, 0, 10)))
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 	assert_array(_heard_siren("Near")).is_not_empty()
 	assert_str(_awareness("Near").state_name()).is_equal("alerted")
 	assert_bool(_awareness("Near").model.is_wary()).is_true()
@@ -141,7 +142,7 @@ func test_an_alerted_guard_carries_on_when_it_hears_the_siren() -> void:
 func test_cutting_the_switch_power_stops_the_ring_reaching_the_siren() -> void:
 	assert_int(Powered.set_circuit(_scene.get_tree(), &"yard_net", false)).is_equal(1)
 	Usable.of(_node("PanicButton")).use(null)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	# The controller still rings (the button is cabled to it) and radios the incident, but the ring
 	# never reaches the siren behind the switch.
@@ -164,7 +165,7 @@ func test_a_plain_tagged_entity_with_the_right_receptrons_acts_as_a_siren() -> v
 	var horn := Devices.device(_scene, "PlainHorn", Vector3(-8, 2, 4), [ring])
 	Devices.link(horn, _node("Controller"))
 	StimulusSystem.emit(Device.command_stimulus(Device.TRIGGER, _node("Controller")))
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 	assert_array(EventLog.find(&"siren.started")).is_empty()
 	var heard := _heard_siren("Near")
@@ -220,10 +221,5 @@ func _path_length(map: RID, from: Vector3, to: Vector3) -> float:
 	return StimulusPropagation.polyline_length(points)
 
 
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
-
-
 func _seconds(value: float) -> void:
-	await _frames(roundi(value * 60.0))
+	await Wait.frames(get_tree(), roundi(value * 60.0))

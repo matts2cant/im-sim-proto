@@ -5,6 +5,7 @@ extends RefCounted
 ## (0, 0, -12) (4 x 3 x 4 m), ReinforcementSpawn (12, 0, 12), a Mission with
 ## `fixtures/mission_fixture.tres` and LevelNavigation) opened as the current scene, and shortcuts.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const FIXTURE := "res://tests/levels/mission/mission_kit/fixtures/mission_fixture.tscn"
 const HUB := "res://levels/hub/hub.tscn"
@@ -37,12 +38,7 @@ static func place(level: Node, local: Vector3, yaw: float = 0.0) -> void:
 ## Closes the briefing with Esc (as the player would).
 static func close_briefing(level: Node) -> void:
 	Saves.press(KEY_ESCAPE)
-	await frames(level.get_tree(), 2)
-
-
-static func frames(tree: SceneTree, count: int) -> void:
-	for i in count:
-		await tree.physics_frame
+	await Wait.frames(level.get_tree(), 2)
 
 
 ## Reads the manifest datapad in place and closes the reading overlay.

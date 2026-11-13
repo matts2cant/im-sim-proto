@@ -9,6 +9,7 @@ extends GdUnitTestSuite
 ## straight). Tuning targets of the brief: walking Suspicious 1.5-2.5 s and Alerted 4-7 s;
 ## crouch-walking 2-4 s and 7-11 s; standing still never Suspicious in 10 s.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const CHARACTERS := preload("res://tests/actors/common/character_fixtures.gd")
 const GUARD := "res://actors/guard/guard.tscn"
 const ORIGIN := Vector3(-300, 0, 300)
@@ -41,7 +42,7 @@ func before_test() -> void:
 	ActorState.set_tag(_target, &"actor.player", true)
 	# Hidden until it has landed and its light level has settled: the meter starts at 0 with the clock.
 	ActorState.set_tag(_target, ActorState.CLOAKED, true)
-	await _frames(12)
+	await Wait.frames(get_tree(), 12)
 
 
 func after_test() -> void:
@@ -100,8 +101,3 @@ func _pace(speed: float, seconds: float) -> Vector2:
 			alerted = now
 			break
 	return Vector2(suspicious, alerted)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: stacks of small crates on a flat floor stand still on their own (ADR 0054).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const CrateWatch := preload("res://tests/objects/crate_watch.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
@@ -14,7 +15,7 @@ func before_test() -> void:
 	_floor = auto_free(load(FLOOR).instantiate())
 	add_child(_floor)
 	# CSG collision is built a few frames after load.
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_column_and_pyramid_rest_still_for_five_seconds() -> void:

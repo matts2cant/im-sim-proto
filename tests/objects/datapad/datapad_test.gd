@@ -42,7 +42,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 	var pad := await _spawn_pad(&"test.storage", "Storage access", "Code 2817.", {&"storage_door": "2817"})
 	assert_str(_player.interactor.prompt).is_equal("E: read Storage access")
 
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	assert_bool(_overlay.is_open()).is_true()
 	assert_bool(get_tree().paused).is_false()
@@ -60,7 +60,7 @@ func test_e_reads_in_place_and_logs_the_entry() -> void:
 	assert_array(_player.inventory.inventory.stacks).is_empty()
 	assert_array(EventLog.find(&"item.picked_up")).is_empty()
 
-	await _press(&"use")
+	await _driver.press(&"use")
 	assert_bool(_overlay.is_open()).is_false()
 	assert_bool(_player.input_enabled).is_true()
 	# The HUD says it was added.
@@ -75,26 +75,26 @@ func test_reading_twice_keeps_one_entry() -> void:
 	await _load()
 	await _spawn_pad(&"test.memo", "Memo", "Hello")
 
-	await _press(&"use")
-	await _press(&"ui_cancel")
-	await _press(&"use")
+	await _driver.press(&"use")
+	await _driver.press(&"ui_cancel")
+	await _driver.press(&"use")
 
 	assert_bool(_overlay.is_open()).is_true()
 	assert_str(_overlay.text_label.text).is_equal("Hello")
 	assert_int(_log.entries().size()).is_equal(1)
 	assert_array(EventLog.find(&"log.entry_added")).has_size(1)
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 
 
 func test_two_datapads_make_two_entries_newest_first() -> void:
 	await _load()
 	await _spawn_pad(&"test.first", "First", "One")
-	await _press(&"use")
-	await _press(&"ui_cancel")
+	await _driver.press(&"use")
+	await _driver.press(&"ui_cancel")
 	_player.get_parent().get_node("Datapad").free()
 	await _spawn_pad(&"test.second", "Second", "Two")
-	await _press(&"use")
-	await _press(&"ui_cancel")
+	await _driver.press(&"use")
+	await _driver.press(&"ui_cancel")
 
 	assert_int(_log.entries().size()).is_equal(2)
 	assert_str(_log.entries()[0].title).is_equal("Second")
@@ -106,7 +106,7 @@ func test_dead_player_cannot_read() -> void:
 	_player.body.take_damage(&"damage.ballistic", 30.0, &"head")
 	_player.reload_on_reset = false
 
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	assert_bool(_overlay.is_open()).is_false()
 	assert_array(_log.entries()).is_empty()
@@ -115,8 +115,8 @@ func test_dead_player_cannot_read() -> void:
 func test_player_log_survives_save_and_load() -> void:
 	await _load()
 	await _spawn_pad(&"test.storage", "Storage access", "Code 2817.", {&"storage_door": "2817"})
-	await _press(&"use")
-	await _press(&"ui_cancel")
+	await _driver.press(&"use")
+	await _driver.press(&"ui_cancel")
 	assert_bool(_log.is_in_group(&"saveable")).is_true()
 	var saved := _log.save_state()
 
@@ -155,11 +155,6 @@ func test_the_overlay_closes_when_the_player_is_knocked_out() -> void:
 
 	assert_bool(_overlay.is_open()).is_false()
 	assert_bool(_player.input_enabled).is_true()
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

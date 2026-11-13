@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## DownedPose lays a character down). A body is an ally (`actor.guard`) with `state.unconscious` or
 ## `state.dead`; the same cones, light and line of sight as for targets, measured to its middle.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const CONFIG: PerceptionConfig = preload("res://actors/guard/guard_perception.tres")
 
@@ -31,7 +32,7 @@ func test_sees_downed_allies_only() -> void:
 	var dead := _lying(Vector3(2, 0, -6), [&"actor.guard", &"state.dead"])
 	_lying(Vector3(-2, 0, -6), [&"actor.guard"])
 	_lying(Vector3(-1, 0, -5), [&"actor.player", &"state.unconscious"])
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var seen := _sensor.look_for_bodies()
 	var targets := seen.map(func(sighting: PerceptionSensor.Sighting) -> Node3D: return sighting.target)
@@ -49,12 +50,12 @@ func test_a_dark_body_is_seen_only_within_2_m() -> void:
 	var body := _lying(Vector3(0, 0, -4), [&"actor.guard", &"state.unconscious"])
 	var exposure := LightExposure.new()
 	body.add_child(exposure)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	exposure.set_physics_process(false)
 	exposure.level = 0.04
 	assert_array(_sensor.look_for_bodies()).is_empty()
 	body.position = Vector3(0, 0, -1.5)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_array(_sensor.look_for_bodies()).has_size(1)
 
 
@@ -64,7 +65,7 @@ func test_a_body_behind_a_low_wall_is_hidden_and_sight_aims_at_its_height() -> v
 	for point in PerceptionSensor.target_points(body):
 		assert_float(point.y).is_between(0.0, 0.7)
 	_wall(Vector3(0, 0.6, -4), Vector3(3, 1.2, 0.2))
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	assert_array(_sensor.look_for_bodies()).is_empty()
 
 

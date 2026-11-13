@@ -46,11 +46,6 @@ static func emitted(id: int) -> EventLogEntry:
 	return null
 
 
-static func frames(tree: SceneTree, count: int) -> void:
-	for i in count:
-		await tree.physics_frame
-
-
 ## Component builders for entities composed in code (StimulusFixtures.entity / rigid_entity): the
 ## generality tests put shipping components on entities that are not the shipping props.
 

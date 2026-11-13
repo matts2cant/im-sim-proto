@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## maintenance port reaches its device only; power cuts and breaking cut reach as before; a trust
 ## list limits who may command a device.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Net := preload("res://tests/objects/network/network_fixtures.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const ORIGIN := Vector3(300, 0, -300)
@@ -152,7 +153,7 @@ func test_a_trust_list_limits_who_commands_a_device() -> void:
 	assert_bool(DeviceNetwork.trusts(_dev("Alarm"), _dev("OfficePc"))).is_true()
 	assert_bool(_dev("OfficePc").send_command(Device.DISABLE, _n["Camera"])).is_false()
 	assert_bool(_dev("Console").send_command(Device.DISABLE, _n["Camera"])).is_true()
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_bool(DeviceSwitch.of(_n["Camera"]).disabled).is_true()
 	assert_str(" ".join(DeviceStatus.of(_n["Camera"], true))).is_equal("online disabled")
 	# Incidents are reports, not commands: a trust list does not stop them.
@@ -174,8 +175,3 @@ func test_a_level_without_network_data_keeps_one_open_network() -> void:
 	# A deck on such a network's cabled device: no port (only jacks, computers and autonomous
 	# devices take one).
 	assert_int(DeviceNetwork.port_kind(Device.of(hub))).is_equal(Device.DeckPort.NONE)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

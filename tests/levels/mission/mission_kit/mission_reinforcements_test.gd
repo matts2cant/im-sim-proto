@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## by hand (25 s: nobody yet; 5.5 s more: they arrive) instead of simulating half a minute. The
 ## player drops its `actor.player` tag so nobody fights it.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Missions := preload("res://tests/levels/mission/mission_kit/mission_helpers.gd")
 const Saves := preload("res://tests/core/save/save_test_helpers.gd")
 const INCIDENT := Vector3(-6, 0, -4)
@@ -40,15 +41,15 @@ func test_two_guards_arrive_once_30_s_after_the_first_alarm() -> void:
 	var arrivals := mission.get_node("Reinforcements")
 
 	controller.raise(Missions.at(INCIDENT), "test", true)
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	assert_float(mission.alarm_time).is_greater_equal(0.0)
 	assert_vector(mission.incident_point).is_equal(Missions.at(INCIDENT))
 	mission.time += 25.0
-	await Missions.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	assert_int(arrivals.get_child_count()).is_equal(0)
 
 	mission.time += 5.5
-	await Missions.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_int(arrivals.get_child_count()).is_equal(2)
 	var spawn := Missions.at(Vector3(12, 0, 12))
@@ -59,14 +60,14 @@ func test_two_guards_arrive_once_30_s_after_the_first_alarm() -> void:
 		assert_vector(awareness.model.point).is_equal_approx(Missions.at(INCIDENT), Vector3(0.5, 0.5, 0.5))
 	# They head for the incident.
 	var before := (arrivals.get_child(0) as Node3D).global_position.distance_to(Missions.at(INCIDENT))
-	await Missions.frames(get_tree(), 120)
+	await Wait.frames(get_tree(), 120)
 	var after := (arrivals.get_child(0) as Node3D).global_position.distance_to(Missions.at(INCIDENT))
 	assert_float(before - after).is_greater(1.0)
 	# Once per mission.
 	controller.stop("reset")
 	controller.raise(Missions.at(Vector3(4, 0, -4)), "test", true)
 	mission.time += 40.0
-	await Missions.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 	assert_int(arrivals.get_child_count()).is_equal(2)
 	assert_int(EventLog.find(&"mission.reinforcements").size()).is_equal(1)
 	assert_bool(mission.save_state()["reinforcements_sent"]).is_true()

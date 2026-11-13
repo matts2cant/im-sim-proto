@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 ## Fixture (local to the region at ORIGIN): ground (top 0), a 4 x 4 m slab (top 3.3, underside 3.0)
 ## over the middle, a 30 degree ramp from the ground at x 7.7 up to the slab's east edge (x 2).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const GuardHelpers := preload("res://tests/actors/guard/guard_helpers.gd")
 const WALKER_CONFIG: NavWalkerConfig = preload("res://actors/guard/guard_walker.tres")
@@ -42,11 +43,11 @@ func after_test() -> void:
 func test_walks_the_path_up_to_a_target_right_above_it() -> void:
 	await _bake()
 	var walker := _walker(true)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var target := ORIGIN + Vector3(0, SLAB_TOP, 0)
 
 	walker.move_to(target, SPEED)
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	assert_bool(walker.is_arrived()).override_failure_message("arrived right under the target").is_false()
 	for i in 600:
 		if walker.is_arrived():
@@ -62,11 +63,11 @@ func test_walks_the_path_up_to_a_target_right_above_it() -> void:
 
 func test_without_a_navmesh_arrives_right_under_the_target() -> void:
 	var walker := _walker(false)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	var start := walker.global_position
 
 	walker.move_to(ORIGIN + Vector3(0, SLAB_TOP, 0), SPEED)
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_bool(walker.is_arrived()).is_true()
 	assert_float(walker.global_position.distance_to(start)).is_less(0.05)
@@ -114,7 +115,7 @@ func _bake() -> void:
 	await GuardHelpers.use_sync_iterations(_map(), _region)
 	GuardHelpers.isolate_region(_map(), _region)
 	_region.bake_navigation_mesh(false)
-	await Fixtures.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var path := NavigationServer3D.map_get_path(_map(), ORIGIN, ORIGIN + Vector3(0, SLAB_TOP, 0), true)
 	assert_float(path[path.size() - 1].y if not path.is_empty() else 0.0).is_greater(SLAB_TOP - 0.3)
 

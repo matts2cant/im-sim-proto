@@ -33,6 +33,12 @@ func hold(action: StringName, count: int) -> void:
 	runner.simulate_action_release(action)
 
 
+## A tap: holds `action` for 2 physics frames, then waits 1 (the action's handler has run).
+func press(action: StringName) -> void:
+	await hold(action, 2)
+	await frames(1)
+
+
 func frames(count: int) -> void:
 	for i in count:
 		await player.get_tree().physics_frame

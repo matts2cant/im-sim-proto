@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## speed) on itself; the `fall_damage` receptron turns it into leg damage, the generic `body_damage`
 ## receptron ignores it (own stimulus), and a receptron change alters the outcome.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
@@ -21,7 +22,7 @@ func test_ten_metre_fall_hurts_both_legs_by_the_formula() -> void:
 	# 10 m at 1 g lands at about 14 m/s: (14 - 10) x 8 = 32 per leg.
 	var walker := _faller(10.0)
 
-	await Fixtures.frames(get_tree(), 120)
+	await Wait.frames(get_tree(), 120)
 
 	var falls := _falls()
 	assert_array(falls).has_size(1)
@@ -40,7 +41,7 @@ func test_ten_metre_fall_hurts_both_legs_by_the_formula() -> void:
 func test_short_fall_reports_but_does_not_hurt() -> void:
 	_faller(3.0)
 
-	await Fixtures.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	assert_array(_falls()).has_size(1)
 	assert_array(EventLog.find(&"actor.damaged")).is_empty()
@@ -58,7 +59,7 @@ func test_a_receptron_change_alters_fall_damage() -> void:
 	var receptrons: Array[Receptron] = [Characters.BODY_DAMAGE, hardened]
 	receiver.receptrons = receptrons
 
-	await Fixtures.frames(get_tree(), 120)
+	await Wait.frames(get_tree(), 120)
 
 	assert_array(_falls()).has_size(1)
 	assert_array(EventLog.find(&"actor.damaged")).is_empty()
@@ -68,7 +69,7 @@ func test_only_the_fall_receptron_reacts_to_a_fall() -> void:
 	# body_damage also matches `damage.fall` by type, but skips the entity's own stimulus.
 	_faller(10.0)
 
-	await Fixtures.frames(get_tree(), 120)
+	await Wait.frames(get_tree(), 120)
 
 	var fired := EventLog.find(&"receptron.fired").filter(
 		func(entry: EventLogEntry) -> bool: return entry.target == "Walker"

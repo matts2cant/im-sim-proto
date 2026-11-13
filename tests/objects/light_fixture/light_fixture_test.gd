@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## to ambient light. Powered off hides the light and bulb; the lamp's own body never shadows its
 ## light.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const CONFIG: LightExposureConfig = preload("res://actors/common/light/light_exposure.tres")
@@ -39,7 +40,7 @@ func _shoot(from: Vector3, at: Vector3) -> void:
 		&"damage.ballistic", PISTOL_DAMAGE, from, at - from, 50.0, null, PhysicsLayers.WEAPON_MASK
 	)
 	StimulusSystem.emit(ray)
-	await Objects.frames(get_tree(), 4)
+	await Wait.frames(get_tree(), 4)
 
 
 func test_lamps_are_composed_from_shared_components() -> void:
@@ -58,7 +59,7 @@ func test_lamps_are_composed_from_shared_components() -> void:
 func test_a_shot_breaks_the_ceiling_lamp_and_its_light_goes_out() -> void:
 	var lamp := Objects.spawn(_root, CEILING_LAMP, Vector3(0, 4, 0), "Lamp")
 	var exposure := _watcher(Vector3(0.5, 0, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var lit := exposure.update_now()
 
 	await _shoot(Vector3(3, 1.5, 0), Vector3(0, 3.8, 0))
@@ -84,7 +85,7 @@ func test_a_shot_breaks_the_wall_lamp() -> void:
 	_root.add_child(wall)
 	var lamp := Objects.spawn(_root, WALL_LAMP, Vector3(0, 2.4, 0), "WallLamp")
 	var exposure := _watcher(Vector3(0, 0, 1.2))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var lit := exposure.update_now()
 
 	await _shoot(Vector3(0, 1.6, 4), Vector3(0, 2.4, 0.15))
@@ -97,7 +98,7 @@ func test_a_shot_breaks_the_wall_lamp() -> void:
 func test_powered_off_hides_light_and_bulb() -> void:
 	var lamp := Objects.spawn(_root, CEILING_LAMP, Vector3(0, 4, 0), "Lamp")
 	var exposure := _watcher(Vector3(0.5, 0, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var powered := Powered.of(lamp)
 
 	powered.on = false
@@ -115,6 +116,6 @@ func test_the_lamp_body_does_not_shadow_its_own_light() -> void:
 	# Straight below: every shadow ray passes through the lamp's collision box near the light.
 	Objects.spawn(_root, CEILING_LAMP, Vector3(0, 4, 0), "Lamp")
 	var exposure := _watcher(Vector3.ZERO)
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_float(exposure.update_now()).is_greater(0.6)

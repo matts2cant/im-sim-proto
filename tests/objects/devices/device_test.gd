@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## through cables and switches, commands delivered only when reached and blocked on an unpowered or
 ## broken target, incidents carrying their location to every device that accepts them.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const RUNG: StringName = &"test.rung"
@@ -66,13 +67,13 @@ func test_a_command_is_delivered_only_when_the_sender_reaches_the_target() -> vo
 	Devices.link(bell, hub)
 
 	assert_bool(Device.of(sender).send_command(Device.RING, bell)).is_true()
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(Fixtures.tags_of(bell).has(RUNG)).is_true()
 
 	Fixtures.tags_of(bell).remove(RUNG)
 	Powered.of(hub).on = false
 	assert_bool(Device.of(sender).send_command(Device.RING, bell)).is_false()
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(Fixtures.tags_of(bell).has(RUNG)).is_false()
 	var attempts := EventLog.find(&"device.command")
 	assert_array(attempts.map(func(entry: EventLogEntry) -> bool: return entry.data["sent"])).is_equal([true, false])
@@ -103,7 +104,7 @@ func test_an_unpowered_or_broken_target_ignores_commands() -> void:
 	# Sent straight at them (no network in between): their receptrons block on the state tags.
 	StimulusSystem.emit(Device.command_stimulus(Device.RING, unpowered))
 	StimulusSystem.emit(Device.command_stimulus(Device.RING, broken))
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_bool(Fixtures.tags_of(unpowered).has(RUNG)).is_false()
 	assert_bool(Fixtures.tags_of(broken).has(RUNG)).is_false()
@@ -145,7 +146,7 @@ func test_an_incident_reaches_every_accepting_device_with_its_location() -> void
 
 	var at := Vector3(1, 2, 3)
 	assert_int(Device.of(sensor).report_incident(at)).is_equal(2)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_int(heard.size()).is_equal(2)
 	for origin in heard:

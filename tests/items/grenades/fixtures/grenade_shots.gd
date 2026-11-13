@@ -9,6 +9,7 @@ extends Node3D
 ## on the floor 5 m away highlighted). It always quits: after saving, on an unknown shot, and after
 ## WATCHDOG real seconds (saving what is shown).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const SIZE := Vector2i(1152, 648)
 const WATCHDOG := 25.0
 const ITEMS: Dictionary[String, String] = {
@@ -51,7 +52,7 @@ func _ready() -> void:
 		return
 	_player = get_node("Player") as Player
 	_player.input_enabled = false
-	await _frames(5)
+	await Wait.frames(get_tree(), 5)
 	await _setup()
 	_save()
 
@@ -60,33 +61,33 @@ func _setup() -> void:
 	if _shot.begins_with("hand_"):
 		_give(_shot.trim_prefix("hand_"), 3)
 		_place(Vector3.ZERO, PI * 0.5, -0.05, false)
-		await _frames(40)
+		await Wait.frames(get_tree(), 40)
 		return
 	match _shot:
 		"hud_count":
 			_give("frag", 3)
 			_place(Vector3.ZERO, PI * 0.5, 0.05, false)
-			await _frames(30)
+			await Wait.frames(get_tree(), 30)
 			_player.weapons.trigger()
-			await _frames(70)
+			await Wait.frames(get_tree(), 70)
 		"ghost_wall":
 			_give("frag", 3)
 			_place(Vector3.ZERO, 0.35, -0.15, false)
-			await _frames(40)
+			await Wait.frames(get_tree(), 40)
 		"ghost_floor":
 			_give("frag", 3)
 			_place(Vector3(0, 0, 2), PI * 0.5, deg_to_rad(-62.0), true)
-			await _frames(40)
+			await Wait.frames(get_tree(), 40)
 		"thrown_midair":
 			_give("frag", 3)
 			_place(Vector3.ZERO, PI * 0.5, 0.1, false)
-			await _frames(30)
+			await Wait.frames(get_tree(), 30)
 			_player.weapons.trigger()
-			await _frames(8)
+			await Wait.frames(get_tree(), 8)
 		"mine_blink":
 			var mine := _mine(get_node("WallNear") as Node3D, Vector3(0.0, 1.45, -1.0), Vector3.BACK)
 			_place(Vector3(0.3, 0, 0.6), 0.0, 0.0, true)
-			await _frames(140)
+			await Wait.frames(get_tree(), 140)
 			_look_at(mine.global_position)
 			await _until_lit(mine)
 		"highlight_dark":
@@ -97,7 +98,7 @@ func _setup() -> void:
 			var dark_mine := _mine(get_node("Floor") as Node3D, Vector3(-5, 0, 0.3), Vector3.UP)
 			_player.skills.set_tier(&"demolition", 2)
 			_place(Vector3.ZERO, PI * 0.5, -0.25, false)
-			await _frames(140)
+			await Wait.frames(get_tree(), 140)
 			(_player.get_node("MineSense") as MineSense).refresh()
 			await _until_lit(dark_mine)
 
@@ -141,11 +142,6 @@ func _until_lit(mine: Node) -> void:
 		if trigger.is_light_on():
 			await get_tree().process_frame
 			return
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame
 
 
 func _save() -> void:

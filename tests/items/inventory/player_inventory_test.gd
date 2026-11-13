@@ -35,13 +35,13 @@ func test_pistol_pickup_auto_belts_and_key_1_equips_it() -> void:
 	await _driver.frames(1)
 
 	assert_object(_player.inventory.belt.stack_in(0).item).is_same(Items.PISTOL)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.inventory.belt.selected).is_equal(0)
 	assert_str(_hud.weapon_label.text).is_equal("Pistol")
 	assert_str(_hud.ammo_label.text).is_equal("10 / 0")
 
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	assert_bool(_player.weapons.is_armed()).is_false()
 	assert_int(_player.inventory.belt.selected).is_equal(-1)
 
@@ -53,11 +53,11 @@ func test_reload_consumes_ammo_stacks_and_hud_shows_the_total() -> void:
 	_player.inventory.give(Items.MEDKIT, 1)
 	_player.inventory.give(Items.AMMO, 98)
 	# Ammo stacks: 100 and 3.
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	await _driver.frames(1)
 	assert_str(_hud.ammo_label.text).is_equal("2 / 103")
 
-	await _press(&"reload")
+	await _driver.press(&"reload")
 	await _driver.frames(100)
 
 	var pistol := _player.inventory.inventory.stacks_of(&"pistol")[0]
@@ -71,11 +71,11 @@ func test_reload_consumes_ammo_stacks_and_hud_shows_the_total() -> void:
 func test_shots_are_kept_on_the_stack_magazine() -> void:
 	await _load()
 	Items.arm(_player)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	_player.load_state(Objects.aiming_state(_player, Vector3.ZERO, WALL_POINT))
 	await _driver.frames(3)
 
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	await _driver.frames(3)
 
 	assert_int(_player.inventory.inventory.stacks_of(&"pistol")[0].state["magazine"]).is_equal(9)
@@ -87,13 +87,13 @@ func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 	_player.inventory.give(Items.MEDKIT, 2)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 	_player.body.take_damage(&"damage.blunt", 4.0, &"head")
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	# Selecting only puts it in hand (ADR 0059).
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(2)
 	EventLog.clear()
 
-	await _press(&"fire")
+	await _driver.press(&"fire")
 
 	var healed := EventLog.find(&"actor.healed")
 	assert_array(healed).has_size(1)
@@ -109,7 +109,7 @@ func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 	# empties the hands.
 	assert_int(_player.inventory.belt.stack_in(0).count).is_equal(1)
 	assert_int(_player.inventory.belt.selected).is_equal(0)
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	assert_object(_player.inventory.belt.stack_in(0)).is_null()
 	assert_object(_player.inventory.in_hand()).is_null()
 	assert_int(_player.inventory.belt.selected).is_equal(-1)
@@ -118,9 +118,9 @@ func test_medkit_in_hand_heals_on_lmb_and_decrements() -> void:
 func test_medkit_is_refused_when_unhurt() -> void:
 	await _load()
 	_player.inventory.give(Items.MEDKIT, 1)
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 
-	await _press(&"fire")
+	await _driver.press(&"fire")
 
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
 	assert_object(_player.inventory.held.item).is_same(Items.MEDKIT)
@@ -169,7 +169,7 @@ func test_e_picks_a_medkit_up_instead_of_using_it() -> void:
 	await _driver.frames(3)
 	_player.body.take_damage(&"damage.blunt", 40.0, &"torso")
 
-	await _press(&"use")
+	await _driver.press(&"use")
 
 	assert_int(_player.inventory.inventory.count_of(&"medkit")).is_equal(1)
 	assert_array(EventLog.find(&"actor.healed")).is_empty()
@@ -180,14 +180,14 @@ func test_tool_goes_in_hand_and_a_weapon_replaces_it() -> void:
 	_player.inventory.give(Items.LOCKPICK, 2)
 	_player.inventory.give(Items.PISTOL, 1)
 
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 	assert_str(_hud.weapon_label.text).is_equal("Lockpick")
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	assert_array(EventLog.find(&"weapon.fired")).is_empty()
 	assert_object(_player.inventory.held.item).is_same(Items.LOCKPICK)
 
-	await _press(&"belt_2")
+	await _driver.press(&"belt_2")
 	assert_object(_player.inventory.held).is_null()
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.inventory.belt.selected).is_equal(1)
@@ -197,16 +197,16 @@ func test_biocell_is_refused_at_full_energy_restores_25_and_empty_slots_do_nothi
 	await _load()
 	_player.inventory.give(Items.BIOCELL, 3)
 
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	assert_str(_hud.message_label.text).is_equal("")
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	assert_str(_hud.message_label.text).is_equal("Energy full")
 	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(3)
 	_player.energy.set_current(40.0)
-	await _press(&"fire")
+	await _driver.press(&"fire")
 	assert_float(_player.energy.current()).is_equal_approx(65.0, 0.001)
 	assert_int(_player.inventory.inventory.count_of(&"biocell")).is_equal(2)
-	await _press(&"belt_5")
+	await _driver.press(&"belt_5")
 	# Put in hand ("equip"), then used once ("consume"); the refusal and the empty slot are not uses.
 	assert_array(EventLog.find(&"item.used")).has_size(2)
 	assert_array(EventLog.find(&"item.use_refused")).has_size(1)
@@ -216,7 +216,7 @@ func test_biocell_is_refused_at_full_energy_restores_25_and_empty_slots_do_nothi
 func test_death_puts_the_weapon_away() -> void:
 	await _load()
 	Items.arm(_player)
-	await _press(&"belt_2")
+	await _driver.press(&"belt_2")
 	assert_str(_player.weapons.weapon().id).is_equal("baton")
 
 	_player.body.take_damage(&"damage.ballistic", 30.0, &"head")
@@ -231,7 +231,7 @@ func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	Items.arm(_player)
 	_player.inventory.give(Items.KEYCARD, 1, {"key_id": "vault"})
 	_player.inventory.belt.assign(7, _player.inventory.inventory.stacks_of(&"keycard")[0])
-	await _press(&"belt_1")
+	await _driver.press(&"belt_1")
 	_player.weapons.state().magazine = 6
 	var saved := _player.save_state()
 
@@ -247,11 +247,6 @@ func test_save_and_load_restore_the_inventory_belt_and_hand() -> void:
 	assert_str(_player.weapons.weapon().id).is_equal("pistol")
 	assert_int(_player.weapons.state().magazine).is_equal(6)
 	assert_int(_player.inventory.belt.selected).is_equal(0)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

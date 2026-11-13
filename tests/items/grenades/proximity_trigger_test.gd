@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## 3.0 m, for a crouched one at 0.7 m and not at 1.5 m; never for a rolling prop or a noise; not
 ## through a wall. Mines sit 20 m apart so one blast never reaches another test point.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const StimulusFixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
@@ -109,7 +110,7 @@ func test_a_wall_hides_a_character_from_it() -> void:
 # A test grenade stuck on the floor at `at` (from ORIGIN), arming.
 func _mine(at: Vector3) -> RigidBody3D:
 	var grenade := Grenades.grenade(_root, ORIGIN + at + Vector3(0, 2, 0))
-	await Grenades.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	var shape := _floor.get_node("Shape") as Node3D
 	Sticky.of(grenade).stick(shape, ThrowRules.stick_transform(ORIGIN + at, Vector3.UP, Vector3.FORWARD, 0.04))
 	return grenade

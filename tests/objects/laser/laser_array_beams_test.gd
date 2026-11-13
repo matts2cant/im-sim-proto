@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 ## (bottom and top given, 0.6 m square) and a 1.8 m walker. The shipped scene with three beams
 ## (objects/laser/laser_array.tscn plus two laser_beam.tscn) checks the shared emitter's body.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Devices := preload("res://tests/objects/devices/device_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
@@ -71,36 +72,36 @@ func test_three_beams_are_one_device_with_one_status_and_one_command() -> void:
 		assert_float(from.distance_to(to)).is_equal_approx(BEAMS[index].y, 0.0001)
 	# One disable turns every beam off, one enable every beam on.
 	StimulusSystem.emit(Device.command_stimulus(Device.DISABLE, _entity))
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_array(EventLog.find(&"laser.toggled")).has_size(1)
 	assert_array(Array(DeviceStatus.of(_entity, true))).contains_exactly(["online", "disabled"])
 	_box("Intruder", ON_BEAMS, 0.0, 1.8)
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
 	StimulusSystem.emit(Device.command_stimulus(Device.ENABLE, _entity))
-	await _frames(5)
+	await Wait.frames(get_tree(), 5)
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 
 
 func test_any_beam_trips_it_and_reports_at_that_beam() -> void:
 	# Only the top beam (1.5 m): a box from 1.2 to 1.8 m.
 	var top := _box("Top", OFF_BEAMS, 1.2, 1.8)
-	await _frames(5)
+	await Wait.frames(get_tree(), 5)
 	top.position = ON_BEAMS + Vector3(0, 1.2, 0)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	var tripped := EventLog.find(&"laser.tripped")
 	assert_array(tripped).has_size(1)
 	assert_str(String(tripped[0].data["beam"])).is_equal("Beam3")
 	var point := _root.to_local(tripped[0].data["point"] as Vector3)
 	assert_float(point.distance_to(Vector3(0, 1.5, 2))).is_less(0.01)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(_incidents.size()).is_equal(1)
 	# Clear for 1.5 s (re-arm 1 s), then only the bottom beam (0.3 m): a box from 0 to 0.6 m.
 	top.position = OFF_BEAMS + Vector3(0, 1.2, 0)
-	await _frames(90)
+	await Wait.frames(get_tree(), 90)
 	assert_bool(_laser.model.tripped).is_false()
 	_box("Bottom", ON_BEAMS, 0.0, 0.6)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	tripped = EventLog.find(&"laser.tripped")
 	assert_array(tripped).has_size(2)
 	assert_str(String(tripped[1].data["beam"])).is_equal("Beam1")
@@ -110,28 +111,28 @@ func test_a_walker_crossing_all_three_beams_is_one_incident() -> void:
 	var walker := Characters.character(_root, "Walker", Vector3(-1.5, 0, 2), [])
 	Characters.tags_of(walker).add(&"actor.player")
 	walker.set(&"drive", Vector3(4, 0, 0))
-	await _frames(60)
+	await Wait.frames(get_tree(), 60)
 	assert_float(walker.position.x).is_greater(1.0)
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(_incidents.size()).is_equal(1)
 
 
 func test_it_re_arms_only_once_every_beam_is_clear() -> void:
 	var low := _box("Low", ON_BEAMS, 0.0, 0.6)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 	# Moved up into the middle beam only: still the same incident, for as long as it stays.
 	low.position = ON_BEAMS + Vector3(0, 0.6, 0)
-	await _frames(90)
+	await Wait.frames(get_tree(), 90)
 	assert_bool(_laser.model.tripped).is_true()
 	assert_array(EventLog.find(&"laser.tripped")).has_size(1)
 	# Out of every beam for 1.5 s: re-armed; back into the middle one: a second incident.
 	low.position = OFF_BEAMS
-	await _frames(90)
+	await Wait.frames(get_tree(), 90)
 	assert_bool(_laser.model.tripped).is_false()
 	low.position = ON_BEAMS + Vector3(0, 0.6, 0)
-	await _frames(4)
+	await Wait.frames(get_tree(), 4)
 	var tripped := EventLog.find(&"laser.tripped")
 	assert_array(tripped).has_size(2)
 	assert_str(String(tripped[1].data["beam"])).is_equal("Beam2")
@@ -139,11 +140,11 @@ func test_it_re_arms_only_once_every_beam_is_clear() -> void:
 
 func test_broken_every_beam_stops_and_status_is_offline() -> void:
 	Breakable.of(_entity).take_damage(&"damage.ballistic", 25.0)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(ActorState.has(_entity, Device.BROKEN)).is_true()
 	assert_bool(_laser.is_watching()).is_false()
 	_box("Intruder", ON_BEAMS, 0.0, 1.8)
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
 
 
@@ -161,7 +162,7 @@ func test_the_shipped_array_with_three_beams_shares_one_emitter_body() -> void:
 		array.add_child(beam)
 	_root.add_child(array)
 	var laser := LaserArray.of(array)
-	await _frames(3)
+	await Wait.frames(get_tree(), 3)
 	assert_int(laser.beams.size()).is_equal(3)
 	# One emitter: the three heads, the mast between them and the three receivers are shapes of the
 	# array's one body (a weapon ray at any of them hits the array).
@@ -183,13 +184,13 @@ func test_the_shipped_array_with_three_beams_shares_one_emitter_body() -> void:
 		assert_bool(beam.ray_visible()).is_true()
 		assert_bool((beam.get_node("Head/Lens") as Node3D).visible).is_true()
 	Breakable.of(array).take_damage(&"damage.ballistic", 25.0)
-	await _frames(2)
+	await Wait.frames(get_tree(), 2)
 	assert_bool(laser.is_watching()).is_false()
 	for beam in laser.beams:
 		assert_bool(beam.ray_visible()).override_failure_message(String(beam.name)).is_false()
 		assert_bool((beam.get_node("Head/Lens") as Node3D).visible).is_false()
 	_box("Intruder", Vector3(0, 0, -3), 0.0, 1.8)
-	await _frames(20)
+	await Wait.frames(get_tree(), 20)
 	assert_array(EventLog.find(&"laser.tripped")).is_empty()
 
 
@@ -227,8 +228,3 @@ func _box(box_name: String, feet: Vector3, bottom: float, top: float) -> StaticB
 func _on_incident(action: StringName, stimulus: Stimulus) -> void:
 	if action == Device.INCIDENT:
 		_incidents.append(stimulus.origin)
-
-
-func _frames(count: int) -> void:
-	for i in count:
-		await get_tree().physics_frame

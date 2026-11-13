@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## `force.blast` (RADIUS) shoves it away from the origin, `force.impact` (RAY) along the ray; the
 ## shove is carried, damped and capped. Stimuli are emitted by the test (no emitter needed).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
@@ -85,7 +86,7 @@ func test_ray_impact_pushes_along_the_ray() -> void:
 
 	var ray := Stimulus.make_ray(&"force.impact", impulse, Vector3(0, 1.0, 3), Vector3(0, 0, -1), 10.0)
 	StimulusSystem.emit(ray)
-	await Fixtures.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	assert_float(walker.global_position.z).is_less(-0.3)
 	assert_float(absf(walker.global_position.x)).is_less(0.01)
@@ -107,10 +108,10 @@ func test_wall_stops_the_shove() -> void:
 	_root.add_child(wall)
 	# Wall face 0.5 m from the capsule's surface (gap, surface to surface).
 	wall.global_position = Vector3(Characters.RADIUS + 0.5 + 0.1, 1.5, 0)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	StimulusSystem.emit(Stimulus.make_radius(&"force.blast", BARREL_IMPULSE, Vector3(-2, 0.45, 0), 4.0))
-	await Fixtures.frames(get_tree(), 120)
+	await Wait.frames(get_tree(), 120)
 
 	assert_float(walker.global_position.x).is_less_equal(0.5 + 0.01)
 	assert_float(walker.global_position.x).is_greater(0.4)
@@ -120,7 +121,7 @@ func test_entity_without_knockback_is_not_moved() -> void:
 	var walker := await _standing_walker(Vector3.ZERO, [])
 
 	StimulusSystem.emit(Stimulus.make_radius(&"force.blast", BARREL_IMPULSE, Vector3(-1, 0.45, 0), 4.0))
-	await Fixtures.frames(get_tree(), 30)
+	await Wait.frames(get_tree(), 30)
 
 	assert_float(walker.global_position.distance_to(Vector3.ZERO)).is_less(0.01)
 	assert_array(EventLog.find(&"actor.knocked_back")).is_empty()
@@ -130,7 +131,7 @@ func _standing_walker(
 	feet: Vector3, components: Array[StringName] = [Characters.KNOCKBACK_COMPONENT]
 ) -> CharacterBody3D:
 	var walker := Characters.character(_root, "Walker", feet + Vector3.UP * 0.02, components)
-	await Fixtures.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 	EventLog.clear()
 	return walker
 

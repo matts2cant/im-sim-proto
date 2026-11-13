@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Integration: Breakable damage by type, breaking (noise, debris, contents, freed) and Explosive.
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const FLOOR := "res://tests/objects/fixtures/object_floor.tscn"
 
@@ -12,17 +13,17 @@ func before_test() -> void:
 	StimulusSystem.clear()
 	_floor = auto_free(load(FLOOR).instantiate())
 	add_child(_floor)
-	await Objects.frames(get_tree(), 5)
+	await Wait.frames(get_tree(), 5)
 
 
 func test_break_spawns_contents_and_debris_and_frees_the_object() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
 	Breakable.of(crate).contents = [load(Objects.GLASS_BOTTLE) as PackedScene]
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 40.0, crate))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	var broken := Objects.logged(&"object.broken", "object", "SmallCrate")
 	assert_array(broken).has_size(1)
@@ -42,11 +43,11 @@ func test_several_contents_spawn_apart_and_survive() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
 	var bottle := load(Objects.GLASS_BOTTLE) as PackedScene
 	Breakable.of(crate).contents = [bottle, bottle]
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	EventLog.clear()
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 40.0, crate))
-	await Objects.frames(get_tree(), 60)
+	await Wait.frames(get_tree(), 60)
 
 	var bottles := _floor.get_children().filter(func(node: Node) -> bool: return node.name.begins_with("GlassBottle"))
 	assert_int(bottles.size()).is_equal(2)
@@ -60,10 +61,10 @@ func test_several_contents_spawn_apart_and_survive() -> void:
 
 func test_damage_below_health_only_wears_it_down() -> void:
 	var crate := Objects.spawn(_floor, Objects.SMALL_CRATE, Vector3(0, 0.3, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 10.0, crate))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(Breakable.of(crate).health()).is_equal_approx(20.0, 0.0001)
 	assert_array(EventLog.find(&"object.broken")).is_empty()
@@ -71,11 +72,11 @@ func test_damage_below_health_only_wears_it_down() -> void:
 
 func test_metal_ignores_fire_and_halves_blunt_damage() -> void:
 	var crate := Objects.spawn(_floor, Objects.METAL_CRATE, Vector3(0, 0.4, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.fire", 50.0, crate))
 	StimulusSystem.emit(Stimulus.make_contact(&"damage.blunt", 50.0, crate))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	assert_float(Breakable.of(crate).health()).is_equal_approx(175.0, 0.0001)
 	assert_array(Objects.logged(&"object.damaged", "type", &"damage.fire")).is_empty()
@@ -86,18 +87,18 @@ func test_debris_despawns_after_its_lifetime() -> void:
 	piece.setup(0.2, Color.BROWN, 0.1, 0.3)
 	_floor.add_child(piece)
 
-	await Objects.frames(get_tree(), 10)
+	await Wait.frames(get_tree(), 10)
 
 	assert_bool(is_instance_valid(piece)).is_false()
 
 
 func test_barrel_explodes_at_zero_health_instead_of_breaking() -> void:
 	var barrel := Objects.spawn(_floor, Objects.EXPLOSIVE_BARREL, Vector3(0, 0.45, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 	var hit := Stimulus.make_contact(&"damage.blunt", 60.0, barrel)
 
 	StimulusSystem.emit(hit)
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	assert_array(Objects.logged(&"object.exploded", "by", hit.id)).has_size(1)
 	assert_array(EventLog.find(&"object.broken")).is_empty()
@@ -118,13 +119,13 @@ func test_barrel_explodes_at_zero_health_instead_of_breaking() -> void:
 
 func test_barrel_explodes_when_heat_reaches_threshold() -> void:
 	var barrel := Objects.spawn(_floor, Objects.EXPLOSIVE_BARREL, Vector3(0, 0.45, 0))
-	await Objects.frames(get_tree(), 3)
+	await Wait.frames(get_tree(), 3)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 3.0, barrel))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_array(EventLog.find(&"object.exploded")).is_empty()
 	assert_float(Explosive.of(barrel).heat()).is_between(2.9, 3.0)
 
 	StimulusSystem.emit(Stimulus.make_contact(&"fire", 1.5, barrel))
-	await Objects.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 	assert_array(EventLog.find(&"object.exploded")).has_size(1)

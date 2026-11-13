@@ -30,14 +30,14 @@ func test_does_not_open_while_dead_or_knocked_out() -> void:
 	_player.body.take_damage(&"damage.stun", 1000.0)
 	await _driver.frames(1)
 
-	await _press(&"tab_interface")
-	await _press(&"inventory")
+	await _driver.press(&"tab_interface")
+	await _driver.press(&"inventory")
 	assert_bool(_tabs.is_open()).is_false()
 
 
 func test_closes_on_death_and_the_player_can_leave() -> void:
 	await _load()
-	await _press(&"personal_log")
+	await _driver.press(&"personal_log")
 	assert_bool(_tabs.is_open()).is_true()
 
 	_player.body.take_damage(&"damage.ballistic", 1000.0, &"head")
@@ -47,13 +47,13 @@ func test_closes_on_death_and_the_player_can_leave() -> void:
 	assert_bool(_player.input_enabled).is_true()
 	assert_bool((_player.get_node("Hud") as CanvasLayer).visible).is_true()
 	# The losing screen's game menu (Load) opens on Esc.
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 	assert_bool((_player.get_node("GameMenu") as GameMenu).is_open()).is_true()
 
 
 func test_closes_on_knockout() -> void:
 	await _load()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 
 	_player.body.take_damage(&"damage.stun", 1000.0)
 	await _driver.frames(2)
@@ -69,20 +69,20 @@ func test_not_over_the_reading_overlay() -> void:
 	PersonalLog.of(_player).read(LogEntry.make(&"note", "Note", "Text.", "Datapad"))
 	assert_bool(overlay.is_open()).is_true()
 
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_tabs.is_open()).is_false()
 
-	await _press(&"ui_cancel")
+	await _driver.press(&"ui_cancel")
 	assert_bool(overlay.is_open()).is_false()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 	assert_bool(_tabs.is_open()).is_true()
 
 
 func test_swallows_the_debug_panel_key_while_open() -> void:
 	await _load()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 
-	await _press(&"debug_panel_toggle")
+	await _driver.press(&"debug_panel_toggle")
 
 	assert_bool(DebugPanel.is_open()).is_false()
 	assert_bool(_tabs.is_open()).is_true()
@@ -90,7 +90,7 @@ func test_swallows_the_debug_panel_key_while_open() -> void:
 
 func test_a_hit_flashes_the_edges_and_keeps_it_open() -> void:
 	await _load()
-	await _press(&"tab_interface")
+	await _driver.press(&"tab_interface")
 
 	_player.body.take_damage(&"damage.blunt", 5.0, &"torso")
 	await _driver.frames(1)
@@ -99,11 +99,6 @@ func test_a_hit_flashes_the_edges_and_keeps_it_open() -> void:
 	assert_float(_tabs.flash_strength()).is_greater(0.5)
 	await _driver.frames(40)
 	assert_float(_tabs.flash_strength()).is_equal(0.0)
-
-
-func _press(action: StringName) -> void:
-	await _driver.hold(action, 2)
-	await _driver.frames(1)
 
 
 func _load() -> void:

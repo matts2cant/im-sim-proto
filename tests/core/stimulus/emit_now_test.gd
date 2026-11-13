@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## act such as using an item, also while the game is paused) and queues like emit() when an effect
 ## calls it during processing (no recursion; ADR 0057).
 
+const Wait := preload("res://tests/helpers/wait.gd")
 const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 
 
@@ -49,14 +50,14 @@ func test_during_processing_it_queues_for_the_next_tick() -> void:
 	var first := Stimulus.make_contact(&"first", 1.0, target)
 
 	StimulusSystem.emit(first)
-	await Fixtures.frames(get_tree(), 2)
+	await Wait.frames(get_tree(), 2)
 
 	var second := EventLog.find(&"stimulus.emitted").filter(
 		func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"second"
 	)
 	assert_array(second).is_empty()
 	assert_int(StimulusSystem.pending_count()).is_equal(1)
-	await Fixtures.frames(get_tree(), 1)
+	await Wait.frames(get_tree(), 1)
 	second = EventLog.find(&"stimulus.emitted").filter(
 		func(entry: EventLogEntry) -> bool: return entry.data["type"] == &"second"
 	)
