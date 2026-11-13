@@ -54,7 +54,7 @@ func test_a_device_goes_by_its_network_name() -> void:
 	add_child(entity)
 
 	# Without a display name: the Map's and the plate's ("Switch A"), not "Switch a".
-	assert_str(Interactor.display_name_of(entity)).is_equal(NetworkSource.display_name(device))
+	assert_str(Interactor.display_name_of(entity)).is_equal(EntityNames.device_name(device))
 	entity.set_meta(&"display_name", "SW-OFFICE")
 	assert_str(Interactor.display_name_of(entity)).is_equal("SW-OFFICE")
 	# A usable's own label gives way to the network name in the frame.
