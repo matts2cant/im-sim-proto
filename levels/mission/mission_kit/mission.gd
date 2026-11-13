@@ -103,7 +103,7 @@ func _ready() -> void:
 	if data != null:
 		objectives = data.objectives
 	tracker = ObjectiveTracker.new(objectives)
-	tally = MissionTally.new(data.player_tag if data != null else MissionTally.PLAYER_TAG)
+	tally = MissionTally.new(data.player_tag if data != null else ActorState.PLAYER)
 	_context = MissionContext.new(self)
 	summary.restart_requested.connect(restart)
 	summary.hub_requested.connect(return_to_hub)
@@ -292,11 +292,11 @@ func _spawn_player(level: Node) -> Node3D:
 
 # Starting kit, energy and augmentations from the data, on the player's components.
 func _equip() -> void:
-	var inventory := _inventory_of(player)
+	var inventory := Inventory.of(player)
 	if inventory != null:
 		for entry in data.starting_items:
 			if entry != null and entry.item != null:
-				inventory.give(entry.item, entry.count, entry.state)
+				inventory.add(entry.item, entry.count, entry.state)
 	var energy := Energy.of(player)
 	if energy != null:
 		energy.set_current(energy.maximum() * data.energy_fraction)
@@ -376,10 +376,3 @@ func _zone_holds_player() -> bool:
 		if extraction != null and owner.is_ancestor_of(extraction) and extraction.holds_required():
 			return true
 	return false
-
-
-static func _inventory_of(entity: Node) -> PlayerInventory:
-	for child in entity.get_children():
-		if child is PlayerInventory:
-			return child as PlayerInventory
-	return null

@@ -48,7 +48,7 @@ func clear_level_alarm() -> int:
 
 
 func _command_all(command: StringName) -> int:
-	var player := get_tree().get_first_node_in_group(&"player")
+	var player: Node = DebugPanel.player()
 	var controllers := AlarmController.all(get_tree())
 	for controller in controllers:
 		StimulusSystem.emit(Device.command_stimulus(command, controller.entity, player))

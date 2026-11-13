@@ -1,11 +1,12 @@
 extends GdUnitTestSuite
-## Integration: picking up, carrying, putting down, dropping and throwing objects (PlayerCarry,
+## Integration: picking up, carrying, putting down, dropping and throwing objects (Carrier,
 ## ADR 0053). Ghosting, upright turn and safe release: player_carry_ghost_test.gd.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
+const CARRY: CarryConfig = preload("res://actors/common/carry/carry.tres")
 
 var _driver: PlayerDriver
 var _player: Player
@@ -126,7 +127,7 @@ func test_heavy_load_slows_walking() -> void:
 	var speed := _player.horizontal_speed()
 	_driver.runner.simulate_action_release(&"move_back")
 
-	assert_float(speed).is_equal_approx(CONFIG.walk_speed * CONFIG.heavy_carry_speed_factor, 0.01)
+	assert_float(speed).is_equal_approx(CONFIG.walk_speed * CARRY.heavy_carry_speed_factor, 0.01)
 
 
 func test_no_mantle_while_carrying() -> void:
@@ -218,4 +219,4 @@ func _place_aiming(feet: Vector3, target: Vector3) -> void:
 
 
 func _hold_point(half_extent: float) -> Vector3:
-	return CarryRules.hold_point(_player.eye_transform(), half_extent, CONFIG)
+	return CarryRules.hold_point(_player.eye_transform(), half_extent, CARRY)

@@ -1,14 +1,14 @@
 extends GdUnitTestSuite
-## Unit: Inventory grid placement (scan order, footprints), stack merging and overflow, refusal when
+## Unit: InventoryGrid placement (scan order, footprints), stack merging and overflow, refusal when
 ## full, move validity, remove, split, take, and the to_dict / from_dict round trip.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
 
-var _inventory: Inventory
+var _inventory: InventoryGrid
 
 
 func before_test() -> void:
-	_inventory = Inventory.new(Vector2i(6, 5))
+	_inventory = InventoryGrid.new(Vector2i(6, 5))
 
 
 func test_new_stacks_scan_rows_top_to_bottom_left_to_right() -> void:
@@ -83,7 +83,7 @@ func test_stackables_merge_into_existing_stacks_first() -> void:
 func test_overflow_returns_what_did_not_fit() -> void:
 	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
 	var block := Items.make_item(&"block", Vector2i(6, 5))
-	var small := Inventory.new(Vector2i(2, 1))
+	var small := InventoryGrid.new(Vector2i(2, 1))
 
 	assert_int(small.add(ammo, 250)).is_equal(50)
 	assert_int(small.count_of(&"ammo")).is_equal(200)
@@ -103,7 +103,7 @@ func test_full_inventory_refuses_and_stays_unchanged() -> void:
 	assert_int(changes[0]).is_equal(0)
 	# A full stack of a stackable item takes nothing more either.
 	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 5)
-	var one := Inventory.new(Vector2i(1, 1))
+	var one := InventoryGrid.new(Vector2i(1, 1))
 	one.add(ammo, 5)
 	assert_int(one.add(ammo, 2)).is_equal(2)
 
@@ -166,7 +166,7 @@ func test_remove_and_split() -> void:
 
 func test_split_needs_a_free_cell() -> void:
 	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	var one := Inventory.new(Vector2i(1, 1))
+	var one := InventoryGrid.new(Vector2i(1, 1))
 	one.add(ammo, 40)
 
 	assert_object(one.split(one.stacks[0], 10)).is_null()
@@ -197,7 +197,7 @@ func test_to_dict_round_trip() -> void:
 	_inventory.add(ammo, 130)
 	_inventory.move(_inventory.stacks[0], Vector2i(3, 2))
 
-	var copy := Inventory.new(Vector2i(6, 5))
+	var copy := InventoryGrid.new(Vector2i(6, 5))
 	copy.from_dict(_inventory.to_dict(), catalog)
 
 	assert_int(copy.stacks.size()).is_equal(3)

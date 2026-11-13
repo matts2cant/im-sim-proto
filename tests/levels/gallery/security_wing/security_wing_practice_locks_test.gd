@@ -163,7 +163,7 @@ func test_the_player_picks_each_practice_lock_from_in_front_of_it() -> void:
 	player.inventory.give(Items.LOCKPICK, 1)
 	player.inventory.hold(player.inventory.inventory.stacks_of(&"lockpick")[0])
 	var screen := LockpickScreen.of(player)
-	var reach := player.config.interact_reach
+	var reach := player.interactor.config.reach
 	for spec: Array in LOCKS:
 		var where := String(spec[0])
 		var body := wing.get_node("PracticeLocks/" + where) as StaticBody3D

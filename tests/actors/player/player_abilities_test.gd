@@ -184,7 +184,7 @@ func test_switching_combat_strength_off_drops_a_heavy_crate_with_a_message() -> 
 	await _driver.press(&"aug_5")
 
 	assert_bool(_player.carry.is_carrying()).is_false()
-	assert_str(_hud.message_label.text).is_equal(PlayerCarry.TOO_HEAVY)
+	assert_str(_hud.message_label.text).is_equal(Carrier.TOO_HEAVY)
 	var dropped := EventLog.find(&"player.dropped")
 	assert_array(dropped).has_size(1)
 	assert_str(String(dropped[0].data["how"])).is_equal("too_heavy")

@@ -3,7 +3,7 @@ extends Usable
 ## Component (ADR 0131): E on its entity while its ProximityTrigger is armed. A user who is crouched
 ## (`stance.crouch`), whose body is between `min_distance` and `max_distance` m from the mine (the gap
 ## to its collision shape, as the trigger measures) and whose `mine_disarm` attribute is at least 1
-## (the Demolition skill from Trained) picks it back up: `item` goes into its PlayerInventory and the
+## (the Demolition skill from Trained) picks it back up: `item` goes into its Inventory and the
 ## entity is removed (no room: nothing happens, "No room in inventory"). Anyone else makes it beep and
 ## go off `fail_delay` s later (its Fuse, lit for that time). EventLog `mine.disarmed {object, by}`,
 ## `mine.disarm_failed {object, by, reason}`.
@@ -54,10 +54,10 @@ func use(user: Node) -> bool:
 	if not reason.is_empty():
 		_fail(entity, user, reason)
 		return true
-	var inventory := PlayerInventory.of(user)
-	if inventory == null or inventory.give(item, 1) > 0:
+	var inventory := Inventory.of(user)
+	if inventory == null or inventory.add(item, 1) > 0:
 		if inventory != null:
-			Notices.send(user, PlayerInventory.NO_ROOM)
+			Notices.send(user, Inventory.NO_ROOM)
 		return false
 	var data := {"object": String(entity.name), "by": String(user.name), "item": String(item.id)}
 	EventLog.record(EventKinds.MINE_DISARMED, String(user.name), String(entity.name), data)

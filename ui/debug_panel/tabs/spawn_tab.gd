@@ -172,7 +172,7 @@ func _poke(type: StringName, intensity: float) -> Node:
 
 
 func _player() -> Player:
-	return get_tree().get_first_node_in_group(Player.GROUP) as Player
+	return DebugPanel.player() as Player
 
 
 func _report(text: String) -> void:

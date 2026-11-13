@@ -1,15 +1,13 @@
 class_name LightLevelReadout
 extends Label
 ## Debug panel Overlays tab: the player's numeric light level (LightExposure, ADR 0065) and how many
-## lights reach it. Self-contained: finds the player through its group.
-
-const PLAYER_GROUP: StringName = &"player"
+## lights reach it. Finds the player through the panel (DebugPanel.player()).
 
 
 func _process(_delta: float) -> void:
 	if not is_visible_in_tree():
 		return
-	text = readout(get_tree().get_first_node_in_group(PLAYER_GROUP))
+	text = readout(DebugPanel.player())
 
 
 ## The text shown for `player` (any node; a LightExposure child is read).

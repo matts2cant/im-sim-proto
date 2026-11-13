@@ -88,8 +88,8 @@ static func tag_text(stack: ItemStack) -> String:
 static func count_text(stack: ItemStack) -> String:
 	if stack.item.stackable():
 		return str(stack.count)
-	if stack.state.has("magazine"):
-		return "%d rds" % int(stack.state["magazine"])
+	if stack.state.has(ItemStack.MAGAZINE):
+		return "%d rds" % int(stack.state[ItemStack.MAGAZINE])
 	return ""
 
 

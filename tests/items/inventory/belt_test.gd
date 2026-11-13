@@ -7,12 +7,12 @@ const Items := preload("res://tests/items/item_test_helpers.gd")
 const PISTOL_DATA: WeaponData = preload("res://items/weapons/pistol/pistol.tres")
 const FRAME := 1.0 / 60.0
 
-var _inventory: Inventory
+var _inventory: InventoryGrid
 var _belt: Belt
 
 
 func before_test() -> void:
-	_inventory = Inventory.new(Vector2i(6, 5))
+	_inventory = InventoryGrid.new(Vector2i(6, 5))
 	_belt = Belt.new(_inventory)
 
 
@@ -121,7 +121,7 @@ func test_to_dict_round_trip() -> void:
 	_belt.assign(9, _inventory.stacks[1])
 	_belt.select(0)
 
-	var inventory := Inventory.new(Vector2i(6, 5))
+	var inventory := InventoryGrid.new(Vector2i(6, 5))
 	inventory.from_dict(_inventory.to_dict(), catalog)
 	var belt := Belt.new(inventory)
 	belt.from_dict(_belt.to_dict())
