@@ -136,7 +136,7 @@ func test_rtr01_keeps_the_office_off_security_except_the_console() -> void:
 	# Office devices reach the console and MAIL-01 (M12c) only; the security devices reach the office.
 	assert_bool(pc.reaches(_entity("Devices/SecurityConsole"))).is_true()
 	assert_bool(pc.reaches(_entity("Network/MailServer"))).is_true()
-	for path: String in ["Doors/VaultDoor", "Devices/CameraHall", "Devices/AlarmController"]:
+	for path: String in ["Doors/VaultDoor/Hardware/Controller", "Devices/CameraHall", "Devices/AlarmController"]:
 		assert_bool(pc.reaches(_entity(path))).override_failure_message(path).is_false()
 	assert_bool(_device("Devices/SecurityConsole").reaches(_entity("Network/OfficePc1"))).is_true()
 	# RTR-01 itself sends freely: its tracer's incidents reach the alarm controllers.

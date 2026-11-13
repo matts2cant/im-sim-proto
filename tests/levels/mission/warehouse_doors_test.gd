@@ -321,7 +321,10 @@ func _key_options(level: Node, door: Door) -> Array[Array]:
 			# Lockpicks: placed by the population (the layout's marker in the basement store).
 			options.append([_area((level.get_node("LayoutMarkers/Items/Lockpicks") as Node3D).global_position)])
 		elif lock is ElectronicLock:
-			var powered := Powered.of(door.entity)
+			# The lock's power and network are its door controller's (ADR 0130).
+			var controller := door.hardware.controller
+			var holder: Node = controller.entity if controller != null else door.entity
+			var powered := Powered.of(holder)
 			if (lock as ElectronicLock).is_fail_safe() and powered != null:
 				for node in _all():
 					var breaker := node as CircuitBreaker
@@ -329,7 +332,7 @@ func _key_options(level: Node, door: Door) -> Array[Array]:
 						options.append([_area(breaker.entity.global_position)])
 			for node in _all():
 				var computer := node as Computer
-				if computer != null and computer.device != null and computer.device.reaches(door.entity):
+				if computer != null and computer.device != null and computer.device.reaches(holder):
 					for pad in _readables_with(computer.credentials_id):
 						options.append([_area(computer.entity.global_position), _area(pad.global_position)])
 	return options

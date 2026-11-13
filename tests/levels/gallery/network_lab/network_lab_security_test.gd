@@ -75,7 +75,7 @@ func test_the_console_disables_the_camera_and_opens_the_closet_that_trust_it() -
 	# The office PCs reach them but are not trusted.
 	var pc1 := _lab.computer("Devices/OfficePc1")
 	assert_array(pc1.devices()).is_empty()
-	assert_bool(pc1.send(Device.CLOSE, _lab.device("Doors/ClosetDoor"))).is_false()
+	assert_bool(pc1.send(Device.CLOSE, _lab.device("Doors/ClosetDoor/Hardware/Controller"))).is_false()
 
 
 func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays_shut() -> void:
@@ -89,7 +89,7 @@ func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays
 	# The closet's camera and door go offline; the rest of the Security subnet stays reachable.
 	for row in console.devices():
 		assert_bool(row.online).override_failure_message(row.name + " still online").is_false()
-	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_false()
+	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor/Hardware/Controller"))).is_false()
 	await _lab.driver.frames(3)
 	assert_bool(Door.of(_lab.node("Doors/ClosetDoor")).is_locked()).is_true()
 	assert_bool(console.device.reaches(_lab.node("Devices/Rtr02"))).is_true()
@@ -108,7 +108,7 @@ func test_the_breaker_cuts_only_the_closet_switch_and_the_fail_secure_door_stays
 	await _lab.driver.frames(2)
 	session.refresh()
 	assert_bool(session.is_online(_lab.device("Devices/ClosetCamera"))).is_true()
-	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor"))).is_true()
+	assert_bool(console.send(Device.OPEN, _lab.device("Doors/ClosetDoor/Hardware/Controller"))).is_true()
 
 
 func test_cracking_rtr01_then_logging_in_on_rtr02_reveals_the_file_server() -> void:

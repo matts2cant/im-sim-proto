@@ -5,7 +5,8 @@ extends RefCounted
 ## circuit `showcase_net`), Controller (-2.5, 1.5), Siren (-1, 2.6), Camera (4, 2.6) facing +Z
 ## (lens about 0.47 m out, 2.47 m up). Turret at (8, 0, -3) facing +X (eye 1.21 m up, 0.27 m in
 ## front of its pivot). A door (door.tscn) at (-10.5, 0, -3) in a partition wall across x -12..-8.4
-## (it slides +X). The switch carries console, camera, turret, controller, siren and door. Lamps on
+## (it slides +X) with a door controller (`Door/Hardware/Controller`, ADR 0130: a plain control box
+## on each face). The switch carries console, camera, turret, controller, siren and door controller. Lamps on
 ## circuit `showcase_lights` light the camera spot (4, 0, -1.5) (6 m in front of the lens, 0 degrees)
 ## and the turret spot (14.3, 0, -3) (6 m in front of its eye). The datapad on the desk carries the
 ## console's login (`showcase_console`: "jmercer:falcon7"; its account in its DeviceAccounts).

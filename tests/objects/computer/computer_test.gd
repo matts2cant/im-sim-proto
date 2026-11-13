@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0114, from the terminal's ADR 0080 / 0083): the computer in the security showcase
 ## (tests/objects/fixtures/showcase/security_helpers.gd has the layout). The console is cabled through
-## the switch to the camera, the turret, the alarm controller, the siren and the door; the datapad on
+## the switch to the camera, the turret, the alarm controller, the siren and the door's controller
+## (ADR 0130: listed as the door, kind Door controller; the door itself is no device); the datapad on
 ## the desk carries its login; its DeviceAccounts hold the account. Camera and turret start disabled
 ## so the player is never shot. Computer.devices() lists the security devices it controls with
 ## their kind, status words (DeviceStatus, from their components) and commands; the screen is in
@@ -12,6 +13,8 @@ const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
 ## 1 m in front of the console.
 const AT_CONSOLE := Vector3(-6, 0, -7)
 const LISTED: Array[String] = ["Camera", "Turret", "Controller", "Siren", "Door"]
+## The door's controller (it takes the door's name).
+const DOOR_CONTROLLER := "Door/Hardware/Controller"
 
 var _show: Showcase
 var _screen: ComputerScreen
@@ -91,6 +94,10 @@ func test_devices_are_the_controlled_security_devices_with_kinds_views_and_comma
 	assert_str(_row("Camera").kind.name).is_equal("Camera")
 	assert_str(_row("Controller").kind.group).is_equal("Alarm")
 	assert_str(_row("Door").kind.group).is_equal("Doors")
+	# The door's row is its controller (ADR 0130), never the door.
+	assert_str(_row("Door").kind.name).is_equal("Door controller")
+	assert_object(_row("Door").device).is_same(_show.device(DOOR_CONTROLLER))
+	assert_object(Device.of(_show.node("Door"))).is_null()
 	# A view is a property: whatever offers one (the camera's and the turret's eyes).
 	var with_view: Array[String] = []
 	for row in rows:
@@ -118,8 +125,8 @@ func test_statuses_come_from_the_devices_components() -> void:
 	computer.send(Device.ENABLE, _show.device("Camera"))
 	computer.send(Device.TEST, _show.device("Siren"))
 	computer.send(Device.TARGET_GUARDS, _show.device("Turret"))
-	computer.send(Device.LOCK, _show.device("Door"))
-	computer.send(Device.OPEN, _show.device("Door"))
+	computer.send(Device.LOCK, _show.device(DOOR_CONTROLLER))
+	computer.send(Device.OPEN, _show.device(DOOR_CONTROLLER))
 	computer.send(Device.DISARM, _show.device("Controller"))
 	await _show.frames(3)
 	assert_array(_status("Camera")).contains_exactly(["online", "enabled", "sweeping"])
@@ -144,7 +151,7 @@ func test_a_cut_switch_or_a_broken_device_is_offline_never_broken() -> void:
 	for row in rows:
 		assert_array(Array(row.status)).override_failure_message(row.name).contains_exactly(["offline"])
 		assert_array(row.commands).override_failure_message(row.name).is_empty()
-	assert_bool(_show.computer().send(Device.OPEN, _show.device("Door"))).is_false()
+	assert_bool(_show.computer().send(Device.OPEN, _show.device(DOOR_CONTROLLER))).is_false()
 	Powered.of(_show.node("Switch")).on = true
 	await _show.frames(2)
 	assert_bool(_row("Door").online).is_true()
@@ -152,14 +159,14 @@ func test_a_cut_switch_or_a_broken_device_is_offline_never_broken() -> void:
 
 func test_a_cabled_door_opens_from_the_computer_with_no_door_code() -> void:
 	var door := Usable.of(_show.node("Door")) as Door
-	assert_bool(_show.computer().send(Device.OPEN, _show.device("Door"), _show.player)).is_true()
+	assert_bool(_show.computer().send(Device.OPEN, _show.device(DOOR_CONTROLLER), _show.player)).is_true()
 	await _show.seconds(1.0)
 	assert_bool(door.is_open()).is_true()
 	assert_bool(EventLog.find(&"door.command")[0].data["done"]).is_true()
 	assert_str(EventLog.find(&"device.command")[0].data["by"]).is_equal("Player")
 	# Locked from the computer, then closed: still openable remotely (an authorised open).
-	_show.computer().send(Device.LOCK, _show.device("Door"))
-	_show.computer().send(Device.CLOSE, _show.device("Door"))
+	_show.computer().send(Device.LOCK, _show.device(DOOR_CONTROLLER))
+	_show.computer().send(Device.CLOSE, _show.device(DOOR_CONTROLLER))
 	await _show.seconds(1.0)
 	assert_bool(door.is_open()).is_false()
 	assert_bool(door.is_locked()).is_true()
