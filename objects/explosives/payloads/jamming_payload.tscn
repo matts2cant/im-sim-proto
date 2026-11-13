@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/explosives/payloads/explosive_payload.gd" id="1_payload"]
+[ext_resource type="Resource" path="res://objects/explosives/payloads/jamming_explosive.tres" id="2_config"]
+[ext_resource type="PackedScene" path="res://objects/explosives/jamming_field/jamming_field.tscn" id="3_field"]
+
+[node name="JammingPayload" type="Node3D"]
+script = ExtResource("1_payload")
+config = ExtResource("2_config")
+lasting = ExtResource("3_field")

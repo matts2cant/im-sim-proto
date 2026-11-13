@@ -64,6 +64,8 @@ func react_to(stimulus: Stimulus, part: StringName, amount: float) -> bool:
 		return false
 	if not config.damage_types.any(func(type: StringName) -> bool: return TagContainer.matches(stimulus.type, type)):
 		return false
+	if config.ignored_types.any(func(type: StringName) -> bool: return TagContainer.matches(stimulus.type, type)):
+		return false
 	var direction := _hit_direction(stimulus)
 	_punch(direction)
 	if config.spread_time > 0.0 and config.spread_add_deg > 0.0:

@@ -17,6 +17,19 @@ Four grenades give the player loud, quiet, technical and non-lethal answers, and
 
 The numbers are first guesses, measured by tests and tuned on the range. The jamming numbers come from [ADR 0112](../decisions/0112-hacking-reconciled-with-the-built-game.md#amendment-switches-routers-and-access-points-2026-11-11).
 
+### The effects as built (M14b)
+
+Each grenade's effect is a payload scene under the grenade entity (`objects/explosives/payloads/`), beside its `Explosive`: it gives the Explosive its blast and releases its effect when the Explosive goes off, whatever set it off; a gas cloud or a jamming field is spawned in the level and lasts on its own ([ADR 0131 "As built"](../decisions/0131-grenades-mines-and-effects.md#as-built-m14b-the-four-effects)). Measured by `tests/objects/explosives/`:
+
+| Grenade | Tuning | Measured |
+|---|---|---|
+| Frag | `damage.explosive` 550 over 6.5 m (linear falloff, line of sight), push 90 N s over 6 m, no fire, noise 70 m | 2 m and 3 m: dead (player and guard); 4.5 m: alive, more than half the torso gone (player 100 -> 37, guard 80 -> 20); about 5 m to 6.5 m: light wounds (-13 at 6 m); 7 m: nothing. Barrels and grenades within about 6 m go off |
+| Gas | cloud 2.5 m radius, 12 s; `damage.stun.gas` 10 every 0.5 s, the same anywhere inside with line of sight to the centre (1 m above the release); drifts 0.1 m/s, stops 1 m short of walls; hiss 10 m | Unconscious after 3.03 s (player, guard); nobody behind a wall or outside the radius; no flinch from the gas |
+| EMP | `emp` 6 m (walls do not stop it), 20 s; anything with a `Powered` or a `Device` is electronic (no tag); half the `energy`; pop 12 m | Off at 10 s, back by 25 s; a crate untouched; camera, turret, laser and lights off; fail-safe door unlocks, fail-secure stays locked; energy 80 -> 40; the deck unplugged |
+| Jamming | field 10 m, 20 s, silent, a blinking cyan beacon; a link with either end inside drops | Wireless devices "Jammed" on the light, frame and Map; cabled ones and a deck on a jack stay online; the deck's Wi-Fi drops; a radio inside gets no dispatch; everything back when it ends |
+
+The debug panel's Spawn tab puts a gas cloud, an EMP or a jamming field at the crosshair.
+
 - **Inventory**: each type is a 1x1 item stacking to 5, put on the belt and equipped like a weapon (a THROWN weapon: the view swings it like the baton); the HUD's weapon corner shows how many are left ("x3"); each throw or stick takes one and the next stays in hand.
 - **Models**: the round Kenney `grenade-b` is the frag; the canister `grenade-a` is gas, EMP and jamming, its yellow caps recoloured by a material override (the only Kenney grenade with a yellow part is `grenade-a`: the design first had the two swapped).
 - **Chains**: a grenade is a small `Explosive` and `Breakable` like a barrel: shooting a thrown or stuck grenade, or catching it in a blast, sets it off (gas and EMP release their effect, a jammer starts jamming), so grenades and mines chain.

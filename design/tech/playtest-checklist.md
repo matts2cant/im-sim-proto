@@ -739,14 +739,23 @@ Plug the deck into the network lab's jack and hack RTR-01.
 - [ ] Deck on the office jack: the Map shows SW-OFFICE, both PCs, the jack and RTR-01 as before; hacking RTR-01 shows Security with MAIL-01 under SW-SECURITY.
 - [ ] Gate booth: no switch on its east wall any more; the yard's alarm controller is still there and works.
 
+## M14b grenade effects ([ADR 0131](../decisions/0131-grenades-mines-and-effects.md#as-built-m14b-the-four-effects), [explosives.md](../game/explosives.md#the-effects-as-built-m14b))
+
+Until M14a's grenades and the range are in, use the debug panel's Spawn tab (Gas, EMP, Jam at the crosshair).
+
+- [ ] Frag: does the blast read as a grenade (smaller and sharper than a barrel)? Guards at 2-3 m die, at 4-5 m stagger on badly hurt, at 6 m barely notice: does the edge feel right, or should the falloff hold up to 6 m?
+- [ ] Gas: the cloud reads as gas from outside (soft green puffs, no hard sphere edges) and from inside (green tint, the room still readable enough to walk out). About 3 s inside knocks you out ("Knocked out" overlay); stepping out after 1-2 s keeps you awake. Behind a door frame or a wall you are safe. Does it drift too much or too little (0.1 m/s), and is 12 s too long in a corridor?
+- [ ] EMP: lights within 6 m go out at once and come back after 20 s by themselves; a camera's lamp goes dark and it stops tracking; a turret stops; a fail-safe door (security wing D4) unlocks and a vault stays locked; the frame on a device says "No power". Your energy bar halves. A deck plugged in nearby is unplugged. Is 20 s long enough to slip past a camera?
+- [ ] Jamming: wireless cameras near the field (network lab Wi-Fi corner, warehouse AP-YARD) blink amber and the frame says "Jammed"; the Map still draws them with "jammed"; a camera that sees you then raises no alarm. A deck on a jack keeps working inside the field; a deck on the Wi-Fi drops. Guards inside get no radio dispatch. With no sound and only a tiny blinking beacon, can you tell where the field is and when it ends?
+
 ## M14a grenades, mines and Demolition ([ADR 0131](../decisions/0131-grenades-mines-and-effects.md), [explosives.md](../game/explosives.md))
 
-Give yourself grenades from the debug panel (Give item: frag, gas, EMP, jamming grenade). Until the effects (M14b) are merged every type blows up like a placeholder frag.
+Give yourself grenades from the debug panel (Give item: frag, gas, EMP, jamming grenade). Stuck or thrown, each releases its own effect (M14b, above).
 
 - [ ] Each grenade in hand: the round frag, the canisters with green, blue and cyan caps; held low right, not in the way; the weapon corner says "x3" and counts down per throw; the last one thrown leaves empty hands.
 - [ ] Close to a wall, a door, a crate, the floor (crouch and look down) or a ceiling: the ghost shows where it would stick, its base on the surface. Does the 1.2 m reach feel right? Is the ghost visible enough (60 % opaque)?
 - [ ] Stuck on a sliding door, a hinged leaf or a crate you then carry or push: the mine rides along. Break the crate: the mine drops.
-- [ ] Throws: level, 12 m Untrained; looking up lobs higher and shorter. Is the fixed 20 degree arc readable without a preview? Off a wall and off a guard it bounces back; never sticks to a person. The bounces clink (impact noise: guards hear them).
+- [ ] Throws: level, 12 m Untrained (to the first touch-down; it then rolls up to about 4 m: too far?); looking up lobs higher and shorter. Is the fixed 20 degree arc readable without a preview? Off a wall and off a guard it bounces back; never sticks to a person. The bounces clink (impact noise: guards hear them).
 - [ ] Mines: arm 2 s after sticking (a short beep), then blink red about once a second. Walk at a mine: it goes off about 2.5 m away (from your body); crouch-walk: about 1 m. Behind a crate or around a corner it does not see you. Does 2.5 m feel fair?
 - [ ] The frame on an armed mine reads "Frag grenade · Armed" in blinking red.
 - [ ] Disarm: Demolition Trained (Stats tab), crouch 1 to 2 m from a mine, E: it is back in the inventory. Untrained, or standing, or too close: a beep and it goes off half a second later. Is the 1 to 2 m window findable on a floor mine (your crosshair must be on it within 2 m of your eyes)?

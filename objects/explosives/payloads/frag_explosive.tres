@@ -1,20 +1,21 @@
 [gd_resource type="Resource" script_class="ExplosiveConfig" format=3]
 
 [ext_resource type="Script" path="res://objects/components/explosive_config.gd" id="1_script"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx_starter_pack_v1/Hollywood/Mega Bomb.wav" id="2_bang"]
+[ext_resource type="AudioStream" path="res://assets/audio/kenney_sci-fi-sounds/Audio/explosionCrunch_000.ogg" id="2_bang"]
 
 [resource]
 script = ExtResource("1_script")
-heat_threshold = 3.0
+heat_threshold = 4.0
 cool_rate = 0.5
-damage_intensity = 100.0
-damage_radius = 6.0
+damage_intensity = 550.0
+damage_radius = 6.5
 fire_intensity = 0.0
 fire_radius = 0.0
-noise_loudness = 60.0
-impulse = 60.0
-impulse_radius = 5.0
+noise_loudness = 70.0
+impulse = 90.0
+impulse_radius = 6.0
+fireball = true
 sound = ExtResource("2_bang")
-sound_volume_db = 0.0
+sound_volume_db = 2.0
 light_range = 10.0
-light_energy = 5.0
+light_energy = 4.0

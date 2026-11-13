@@ -9,7 +9,6 @@
 [ext_resource type="Resource" path="res://objects/components/receptrons/take_damage.tres" id="7_take_damage"]
 [ext_resource type="Resource" path="res://objects/materials/metal.tres" id="8_metal"]
 [ext_resource type="Script" path="res://objects/components/explosive.gd" id="9_explosive"]
-[ext_resource type="Resource" path="res://items/grenades/grenade_placeholder_explosive.tres" id="10_explosive_config"]
 [ext_resource type="Script" path="res://objects/components/breakable.gd" id="11_breakable"]
 [ext_resource type="Resource" path="res://objects/components/break_settings.tres" id="12_break_settings"]
 [ext_resource type="Script" path="res://objects/components/impact_noise.gd" id="13_impact_noise"]
@@ -50,7 +49,6 @@ receptrons = Array[ExtResource("5_receptron")]([ExtResource("6_heat_from_fire"),
 
 [node name="Explosive" type="Node3D" parent="."]
 script = ExtResource("9_explosive")
-config = ExtResource("10_explosive_config")
 
 [node name="Breakable" type="Node3D" parent="."]
 script = ExtResource("11_breakable")

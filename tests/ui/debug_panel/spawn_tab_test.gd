@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
-## Integration: debug panel Spawn tab (catalogue spawning, ignite / damage the looked-at object),
-## Time tab and the Heat overlay.
+## Integration: debug panel Spawn tab (catalogue spawning, ignite / damage the looked-at object,
+## grenade effects at the crosshair), Time tab and the Heat overlay.
 
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
@@ -160,6 +160,30 @@ func test_heat_overlay_labels_flammables() -> void:
 
 	checkbox.button_pressed = false
 	assert_int(overlay.label_count()).is_equal(0)
+
+
+func test_grenade_effects_at_the_crosshair() -> void:
+	await _load()
+	# Looking at the floor 3 m ahead.
+	var target := Vector3(0, 0, -3)
+	_driver.player.load_state(Objects.aiming_state(_driver.player, Vector3.ZERO, target))
+	await _driver.frames(2)
+	var tab := _tab("Spawn") as SpawnTab
+	var actions := tab.get_node("Actions")
+
+	(actions.get_node("Gas") as Button).pressed.emit()
+	(actions.get_node("Jam") as Button).pressed.emit()
+	(actions.get_node("Emp") as Button).pressed.emit()
+	var cloud := get_tree().get_first_node_in_group(GasCloud.GROUP) as GasCloud
+	var field := get_tree().get_first_node_in_group(JammingField.GROUP) as JammingField
+	assert_object(cloud).is_not_null()
+	assert_object(field).is_not_null()
+	assert_vector(field.global_position).is_equal_approx(target + Vector3(0, 0.1, 0), Vector3.ONE * 0.05)
+	await _driver.frames(2)
+	assert_array(Objects.logged(&"stimulus.emitted", "type", &"emp")).has_size(1)
+	cloud.free()
+	field.end()
+	field.free()
 
 
 func _load() -> void:

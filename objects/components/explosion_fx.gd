@@ -19,8 +19,13 @@ func setup(config: ExplosiveConfig) -> void:
 	_energy = config.light_energy
 	_light.omni_range = config.light_range
 	_light.light_energy = _energy
-	_fireball.restart()
-	_smoke.restart()
+	_light.visible = _energy > 0.0
+	if config.fireball:
+		_fireball.restart()
+		_smoke.restart()
+	else:
+		_fireball.emitting = false
+		_smoke.emitting = false
 	if config.sound != null:
 		_bang.stream = config.sound
 		_bang.volume_db = config.sound_volume_db

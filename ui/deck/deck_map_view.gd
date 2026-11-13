@@ -7,8 +7,11 @@ extends Control
 ## network the deck is plugged into only; unplugged (from the Wi-Fi key screen) it draws nothing and
 ## says UNPLUGGED_NOTE. A device's menu: DeckDeviceMenu. Drag pans, the wheel zooms, F fits. It
 ## rebuilds its nodes only when what they show changes (signature()), so a still cursor keeps its
-## hover.
+## hover. A device whose wireless link is jammed (M14b) stays on the Map (the physical network),
+## its square blinking amber and its words JAMMED_WORD.
 
+## A jammed device's status words on the Map.
+const JAMMED_WORD: String = "jammed"
 const HINT: String = "Click a device. Amber: you have access. Drag to pan, wheel to zoom, F to fit. Esc: lower the deck"
 ## What the Map says while the deck is not plugged in (it draws nothing).
 const UNPLUGGED_NOTE: String = "Plug the deck into a device to see its network."
@@ -108,10 +111,12 @@ func map_rows() -> Array[NetworkRow]:
 		row.scanning = pending.has(device)
 		row.device = device
 		row.name = NetworkSource.display_name(device)
-		row.is_self = session.is_entry(device)
+		row.is_self = device == session.port
 		row.online = reached.has(device) or (row.is_self and device.is_up())
 		show_kind_and_light(row, kinds)
 		row.status = DeviceStatus.of(device.entity, row.online)
+		if row.light == StatusLight.State.JAMMED:
+			row.status = PackedStringArray([JAMMED_WORD])
 		row.disabled = row.online and DeviceStatus.is_disabled(device.entity)
 		row.has_view = DeviceStatus.has_view(device.entity)
 		row.access = session.has_access(device)

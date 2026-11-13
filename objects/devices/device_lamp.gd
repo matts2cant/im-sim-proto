@@ -7,7 +7,7 @@ extends Node
 ## show_own(); the StatusLight sets the network state with show_network(); the lamp shows, by
 ## priority:
 ##   1. dark: unpowered, or switched off by a command or broken (StatusLight DARK or DISABLED);
-##   2. blinking amber: cut off from its network (CUT_OFF; the only blinking state);
+##   2. blinking amber: cut off from its network (CUT_OFF) or jammed (JAMMED; the blinking states);
 ##   3. otherwise the owner's colour (dark while the owner says it is unlit).
 ## Without a StatusLight (a device on no network) it shows the owner's colour alone.
 ## Lamp meshes come from `lamps` (paths to meshes, or to a device model's StatusLed: its LED, ADR 0130
@@ -115,14 +115,14 @@ func color() -> Color:
 	match network:
 		StatusLight.State.DARK, StatusLight.State.DISABLED:
 			return StatusLight.COLORS[StatusLight.State.DARK]
-		StatusLight.State.CUT_OFF:
-			return StatusLight.COLORS[StatusLight.State.CUT_OFF]
+		StatusLight.State.CUT_OFF, StatusLight.State.JAMMED:
+			return StatusLight.COLORS[network as StatusLight.State]
 	return own_color if own_lit else StatusLight.COLORS[StatusLight.State.DARK]
 
 
-## True while the lamps blink (cut off from the network).
+## True while the lamps blink (cut off from the network, or jammed).
 func blinking() -> bool:
-	return network == StatusLight.State.CUT_OFF
+	return network != NO_NETWORK and StatusLight.blinks(network as StatusLight.State)
 
 
 func _paint() -> void:

@@ -11,13 +11,14 @@ extends Node3D
 ## routers' first account first, `menu` opens that device's menu (its display name); `wifi` grants
 ## the access point's key first (the deck joins its Wi-Fi), `aim` aims the deck at it instead and
 ## starts the crack (the Wi-Fi key screen); `ar` closes the Map and turns the deck's AR cable view on;
-## `bays` opens those linking bays' glass doors (paths under Devices/). States last for the rest of
-## the run: put such shots last.
+## `bays` opens those linking bays' glass doors (paths under Devices/); `jam` starts a jamming field
+## there (M14b). States last for the rest of the run: put such shots last.
 
 const SHOT_SIZE := Vector2i(1152, 648)
 const WAIT := 1.2
 const WATCHDOG := 60.0
 const DECK: ItemData = preload("res://items/deck/deck.tres")
+const JAMMING_FIELD: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
 
 const SHOTS: Dictionary[String, Dictionary] = {
 	"hub_doorway": {"space": "hub", "feet": Vector3(-9, 0, -2), "look": Vector3(-16, 1.6, -2)},
@@ -131,7 +132,18 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	"deck_wifi_paused":
 	{"feet": Vector3(16.0, 0, -27.9), "look": Vector3(21.6, 2.6, -25.5), "deck": "ApLab", "aim": true, "wait": 2.0},
 	"deck_map_wifi":
+	# M14b: a jamming field over the Wi-Fi corner: the wireless camera's frame, and the Map from the
 	{"feet": Vector3(15.6, 0, -25.5), "look": Vector3(21.6, 2.6, -25.5), "deck": "ApLab", "wifi": true},
+	# CCTV jack through RTR-03 (the field starts once the deck has seen the Wi-Fi subnet).
+	"jam_frame": {"feet": Vector3(20, 0, -19.7), "look": Vector3(20, 2.6, -18.51), "jam": Vector3(20, 0.1, -21)},
+	"jam_map":
+	{
+		"feet": Vector3(11.6, 0, -31.6),
+		"look": Vector3(11.6, 0.5, -32.5),
+		"deck": "CctvJack",
+		"hack": ["BayC/Rtr03"],
+		"jam": Vector3(20, 0.1, -21),
+	},
 	"switch_off_console":
 	{
 		"feet": Vector3(2.6, 0, -16.9),
@@ -207,6 +219,12 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	var wait := float(_shot.get("wait", 3.0 if _shot.has("deck") else WAIT))
+	# A jamming field (M14b) at `jam`: at once, or a second before a deck shot (the Map has seen it all).
+	var jam_at := wait - 1.0 if _shot.has("deck") else 0.0
+	if _shot.has("jam") and _time > jam_at and not _shot.has("jammed"):
+		_shot["jammed"] = true
+		ExplosivePayload.spawn_in_level(JAMMING_FIELD, _lab, _lab.to_global(_shot["jam"] as Vector3))
+		DeckSession.of(_player).refresh()
 	# The Map keeps its view while devices appear: fit it (and open a menu) a moment before the shot.
 	if _shot.has("deck") and not _shot.has("aim") and _time > wait - 0.5 and not _shot.has("fitted"):
 		_shot["fitted"] = true

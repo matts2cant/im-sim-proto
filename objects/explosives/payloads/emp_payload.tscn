@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://objects/explosives/payloads/explosive_payload.gd" id="1_payload"]
+[ext_resource type="Resource" path="res://objects/explosives/payloads/emp_explosive.tres" id="2_config"]
+[ext_resource type="Script" path="res://objects/explosives/emp/emp_pulse.gd" id="3_pulse"]
+[ext_resource type="Resource" path="res://objects/explosives/emp/emp.tres" id="4_emp"]
+
+[node name="EmpPayload" type="Node3D"]
+script = ExtResource("1_payload")
+config = ExtResource("2_config")
+
+[node name="EmpPulse" type="Node" parent="."]
+script = ExtResource("3_pulse")
+config = ExtResource("4_emp")

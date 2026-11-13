@@ -24,9 +24,11 @@ static func grenade(parent: Node, position: Vector3, frozen: bool = false) -> Ri
 	return body
 
 
-## A walker at `feet` facing `yaw` (0: -Z) whose eye (1.65 m) holds the test grenade weapon drawn,
+## A walker at `feet` facing `yaw` (0: -Z) whose eye (1.65 m) holds `weapon` drawn (the test grenade's),
 ## with a Thrower (the shipped ThrowConfig) and Skills.
-static func thrower(parent: Node, feet: Vector3, yaw: float = 0.0, pitch: float = 0.0) -> CharacterBody3D:
+static func thrower(
+	parent: Node, feet: Vector3, yaw: float = 0.0, pitch: float = 0.0, weapon: WeaponData = WEAPON
+) -> CharacterBody3D:
 	var body := Characters.character(parent, "User", feet, [])
 	body.rotation.y = yaw
 	var skills := Skills.new()
@@ -41,7 +43,7 @@ static func thrower(parent: Node, feet: Vector3, yaw: float = 0.0, pitch: float 
 	var holder := WeaponHolder.new()
 	holder.name = "WeaponHolder"
 	holder.aim_config = AimConfig.new()
-	holder.weapons = [WEAPON] as Array[WeaponData]
+	holder.weapons = [weapon] as Array[WeaponData]
 	eye.add_child(holder)
 	holder.setup(body, eye)
 	var thrower_node := Thrower.new()

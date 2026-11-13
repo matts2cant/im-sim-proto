@@ -25,7 +25,8 @@ const STEP_CLIMBER := &"StepClimber"
 const ALL: Array[StringName] = [MOVEMENT_NOISE, FALL_IMPACT, KNOCKBACK_COMPONENT, IMPACT_SENSOR]
 
 
-## A walker at `feet` on `layer` (default: actors) with the given components, added under `parent`.
+## A walker at `feet` on `layer` (default: actors) with the given components, added under `parent`;
+## `profile`: its BodyProfile (default: the training dummy's).
 static func character(
 	parent: Node,
 	character_name: String,
@@ -33,6 +34,7 @@ static func character(
 	components: Array[StringName] = ALL,
 	layer: int = PhysicsLayers.ACTORS,
 	extra_receptrons: Array[Receptron] = [],
+	profile: BodyProfile = null,
 ) -> CharacterBody3D:
 	var body := WALKER.new() as CharacterBody3D
 	body.name = character_name
@@ -62,7 +64,7 @@ static func character(
 	body.add_child(receiver)
 	var parts := BodyParts.new()
 	parts.name = "BodyParts"
-	parts.profile = BODY_PROFILE
+	parts.profile = profile if profile != null else BODY_PROFILE
 	body.add_child(parts)
 	if components.has(MOVEMENT_NOISE):
 		var noise := MovementNoise.new()

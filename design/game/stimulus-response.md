@@ -48,7 +48,7 @@ Devices and alarms (M8, [ADR 0077](../decisions/0077-devices-cables-and-remote-c
 
 ### Falloff ([ADR 0038](../decisions/0038-linear-falloff-noise-metres.md))
 
-- RADIUS: `perceived = intensity x (1 - distance / radius)`, delivered only while `distance <= radius`.
+- RADIUS: `perceived = intensity x (1 - distance / radius)`, delivered only while `distance <= radius`. A `uniform` RADIUS stimulus has no falloff: `perceived = intensity` anywhere inside (a gas cloud's `damage.stun.gas` dose, an EMP's `emp`; M14b, [ADR 0131](../decisions/0131-grenades-mines-and-effects.md#as-built-m14b-the-four-effects)).
 - Noise is emitted with `intensity = radius = loudness`, so `perceived = loudness - distance`: the metres of margin left. A guard with `min_intensity 2` hears a noise only from 2 m inside its audible range.
 - CONTACT and RAY: `perceived = intensity`.
 

@@ -4,18 +4,20 @@ extends RefCounted
 ## - which things the frame shows besides what E acts on: anything with a Device, a Powered or
 ##   BodyParts (a character) under the crosshair within reach (qualifies(), shows());
 ## - the word and its colour: a Device on a network (cables either way, a wireless link or clients,
-##   or an access point named) says Online / Cut off (blinks) / Disabled (switched off by a command,
+##   or an access point named) says Online / Cut off (blinks) / Jammed (blinks: a jamming field cuts
+##   its wireless link, DeviceNetwork.is_jammed(), M14b) / Disabled (switched off by a command,
 ##   DeviceStatus.is_disabled()) / Broken / No power in the status light's colours; a powered thing
 ##   off any network says Powered / No power / Broken; a character says nothing while awake,
 ##   Unconscious or Dead; anything else nothing (a Device off any network without power wiring says
-##   only Broken). Before those, any component of the thing in STATUS_GROUP may say its own word
-##   (component_word(): a mine's ProximityTrigger says Armed, blinking red; ADR 0131).
+##   only Broken, or No power while an EMP's outage lasts). Before those, any component of the
+##   thing in STATUS_GROUP may say its own word (component_word(): a mine's ProximityTrigger says
+##   Armed, blinking red; ADR 0131).
 ## The network rule is the one the status lights show, read from NetworkState (links_of(),
 ## is_networked(), on_network()) so the HUD does not depend on a light being attached; the colours
 ## are StatusLight.COLORS.
 ## The pure rules (qualifies, *_word, text, color, blink) take plain values; the readers take nodes.
 
-enum Word { NONE, ONLINE, CUT_OFF, DISABLED, BROKEN, NO_POWER, POWERED, UNCONSCIOUS, DEAD, ARMED }
+enum Word { NONE, ONLINE, CUT_OFF, DISABLED, BROKEN, NO_POWER, POWERED, UNCONSCIOUS, DEAD, JAMMED, ARMED }
 
 ## Components that put their own word on the frame join this group and answer
 ## `frame_word() -> Word` (NONE: nothing to say).
@@ -24,6 +26,7 @@ const TEXTS: Dictionary[Word, String] = {
 	Word.NONE: "",
 	Word.ONLINE: "Online",
 	Word.CUT_OFF: "Cut off",
+	Word.JAMMED: "Jammed",
 	Word.DISABLED: "Disabled",
 	Word.BROKEN: "Broken",
 	Word.NO_POWER: "No power",
@@ -53,15 +56,17 @@ static func qualifies(interactable: bool, has_device: bool, has_powered: bool, i
 	return interactable or has_device or has_powered or is_character
 
 
-## A network device's word: no power first, then broken, then switched off, then whether it still
-## has its network.
-static func network_word(powered: bool, broken: bool, disabled: bool, has_network: bool) -> Word:
+## A network device's word: no power first, then broken, then switched off, then jammed, then
+## whether it still has its network.
+static func network_word(powered: bool, broken: bool, disabled: bool, has_network: bool, jammed: bool = false) -> Word:
 	if not powered:
 		return Word.NO_POWER
 	if broken:
 		return Word.BROKEN
 	if disabled:
 		return Word.DISABLED
+	if jammed:
+		return Word.JAMMED
 	return Word.ONLINE if has_network else Word.CUT_OFF
 
 
@@ -90,6 +95,8 @@ static func color(word: Word) -> Color:
 			return StatusLight.COLORS[StatusLight.State.UP]
 		Word.CUT_OFF:
 			return StatusLight.COLORS[StatusLight.State.CUT_OFF]
+		Word.JAMMED:
+			return StatusLight.COLORS[StatusLight.State.JAMMED]
 		Word.DISABLED, Word.BROKEN:
 			return StatusLight.COLORS[StatusLight.State.DISABLED]
 		Word.UNCONSCIOUS:
@@ -102,7 +109,7 @@ static func color(word: Word) -> Color:
 
 
 static func blinks(word: Word) -> bool:
-	return word == Word.CUT_OFF or word == Word.ARMED
+	return word == Word.CUT_OFF or word == Word.JAMMED or word == Word.ARMED
 
 
 ## The square's opacity at `seconds` while blinking: 1 in the lit half of each period, else BLINK_DIM.
@@ -136,9 +143,13 @@ static func word_of(entity: Node, links: Array[Device]) -> Word:
 	var broken := _is_broken(entity, device)
 	if device != null and NetworkState.is_networked(device, links):
 		var disabled := DeviceStatus.is_disabled(entity)
-		return network_word(device.is_powered(), broken, disabled, NetworkState.on_network(device, links))
+		var has_network := NetworkState.on_network(device, links)
+		return network_word(device.is_powered(), broken, disabled, has_network, DeviceNetwork.is_jammed(device))
 	if powered != null:
-		return powered_word(powered.on and not ActorState.has(entity, Device.UNPOWERED), broken)
+		return powered_word(powered.is_on() and not ActorState.has(entity, Device.UNPOWERED), broken)
+	if device != null and not device.is_powered():
+		# No power wiring but knocked out (an EMP): no power while it lasts.
+		return powered_word(false, broken)
 	return Word.BROKEN if broken else Word.NONE
 
 

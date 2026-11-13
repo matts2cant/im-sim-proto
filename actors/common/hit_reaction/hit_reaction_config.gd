@@ -5,10 +5,14 @@ extends Resource
 ## `actors/guard/guard_hit_reaction.tres`. A zero time turns that part of the reaction off.
 
 const HITS: Array[StringName] = [&"damage.ballistic", &"damage.blunt", &"damage.stun", &"damage.explosive"]
+## Breathed in, not a blow: a gas cloud's stun (GasCloud, ADR 0131).
+const NOT_HITS: Array[StringName] = [&"damage.stun.gas"]
 
 ## Damage types that cause a reaction (hierarchical: `damage.ballistic` matches its subtypes); a
 ## burn or a fall does not.
 @export var damage_types: Array[StringName] = HITS
+## Subtypes of `damage_types` that cause none (hierarchical).
+@export var ignored_types: Array[StringName] = NOT_HITS
 ## Perceived damage below this causes no reaction.
 @export var min_damage: float = 1.0
 

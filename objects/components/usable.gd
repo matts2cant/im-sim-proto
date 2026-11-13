@@ -63,7 +63,7 @@ static func state_reason(entity: Node) -> String:
 	if ActorState.has(entity, Device.BROKEN) or (breakable != null and breakable.is_broken):
 		return BROKEN_REASON
 	var powered := Powered.of(entity)
-	if ActorState.has(entity, Device.UNPOWERED) or (powered != null and not powered.on):
+	if ActorState.has(entity, Device.UNPOWERED) or (powered != null and not powered.is_on()):
 		return NO_POWER_REASON
 	return ""
 
