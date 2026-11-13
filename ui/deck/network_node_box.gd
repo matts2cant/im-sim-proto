@@ -180,7 +180,7 @@ func _light(state: StatusLight.State) -> Panel:
 	panel.anchor_right = 1.0
 	panel.offset_left = -PAD - LIGHT_SIZE
 	panel.offset_right = -PAD
-	if state == StatusLight.State.CUT_OFF:
+	if StatusLight.blinks(state):
 		light_blinking = true
 		var timer := Timer.new()
 		timer.name = "Blink"

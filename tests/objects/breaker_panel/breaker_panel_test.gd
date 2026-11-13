@@ -122,7 +122,8 @@ func test_breaker_and_lamp_states_save_and_load() -> void:
 	assert_str(fresh_breaker.verb).is_equal("switch on")
 	assert_bool(_light_visible(fresh_lamp)).is_false()
 	assert_dict(breaker_state).is_equal({"closed": false})
-	assert_dict(lamp_state).is_equal({"on": false})
+	# `outage`: seconds of an EMP's outage left (ADR 0131), none here.
+	assert_dict(lamp_state).is_equal({"on": false, "outage": 0.0})
 
 
 func test_powered_works_on_any_entity_and_defaults_to_its_lights() -> void:

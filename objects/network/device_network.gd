@@ -38,6 +38,17 @@ static func is_network_gear(device: Device) -> bool:
 	return Router.of(device.entity) != null or AccessPoint.of(device.entity) != null
 
 
+## True when `device`'s radio link holds by range (Device.wireless_link()) but a jamming field covers
+## either end (JammingField.jams_link(), M14b): the link carries nothing while it lasts.
+static func is_jammed(device: Device) -> bool:
+	if device == null or not is_instance_valid(device) or not is_instance_valid(device.entity):
+		return false
+	var access_point := device.wireless_link()
+	if access_point == null or not is_instance_valid(access_point.entity):
+		return false
+	return JammingField.jams_link(device.entity.global_position, access_point.entity.global_position)
+
+
 ## The devices linked to the access point `access_point` by radio (Device.wireless_link()).
 static func wireless_devices(access_point: Device) -> Array[Device]:
 	var found: Array[Device] = []
@@ -51,15 +62,15 @@ static func wireless_devices(access_point: Device) -> Array[Device]:
 
 ## The physical network `device` is on: `device` first, then every device that cables and holding
 ## wireless links (Device.wireless_link()) join it to, both ways, breadth-first; up or down (power
-## and breakage ignored) and through routers whatever their rules (DeviceGraph.component() of
-## Device.graph()). Empty when `device` is gone or out of the tree. The deck's Map draws only this
-## network around its entry point (ADR 0113 amendment).
+## and breakage ignored), jammed or not, and through routers whatever their rules
+## (DeviceGraph.component() of the physical Device.graph()). Empty when `device` is gone or out of
+## the tree. The deck's Map draws only this network around its entry point (ADR 0113 amendment).
 static func physical_network(device: Device) -> Array[Device]:
 	var found: Array[Device] = []
 	if device == null or not is_instance_valid(device) or not device.is_inside_tree():
 		return found
 	found.append(device)
-	for id in Device.graph(device.get_tree()).component(device.get_instance_id()):
+	for id in Device.graph(device.get_tree(), null, true).component(device.get_instance_id()):
 		var other := instance_from_id(id) as Device
 		if other != null and not found.has(other):
 			found.append(other)

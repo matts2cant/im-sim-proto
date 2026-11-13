@@ -3,7 +3,9 @@ extends Node
 ## Component: the entity's bioelectric energy, which powers augmentations (Augmentations drains it).
 ## The numbers live in the sibling Attributes: the base of `energy` is the charge, the value of
 ## `energy_max` the capacity (a modifier can raise it), so the charge is saved with the attributes.
-## A biocell restores it through an `energy` stimulus and ChangeAttributeEffect (ADR 0061).
+## A biocell restores it through an `energy` stimulus and ChangeAttributeEffect (ADR 0061). An EMP
+## drains half of it (ADR 0131): its _ready makes the entity listen to EMPs (EmpEffect.listen(): the
+## `disrupted_by_emp` receptron halves `energy`).
 
 signal changed
 
@@ -20,6 +22,7 @@ static func of(entity: Node) -> Energy:
 
 
 func _ready() -> void:
+	EmpEffect.listen(get_parent())
 	_attributes = Attributes.of(get_parent())
 	if _attributes == null:
 		push_warning("Energy %s: no sibling Attributes" % get_path())

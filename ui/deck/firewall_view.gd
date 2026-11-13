@@ -120,7 +120,7 @@ func endpoints(from_side: bool) -> Array[Dictionary]:
 			{"label": subnet_label(each, info), "kind": RouterRule.Match.SUBNET, "value": String(each), "alt": ""}
 		)
 	for device in devices:
-		if not is_instance_valid(device) or not is_instance_valid(device.entity) or session.is_entry(device):
+		if not is_instance_valid(device) or not is_instance_valid(device.entity) or device == session.port:
 			continue
 		var entity_name := String(device.entity.name)
 		var value := device.address if not device.address.is_empty() else entity_name

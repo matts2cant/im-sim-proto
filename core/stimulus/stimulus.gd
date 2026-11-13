@@ -30,6 +30,9 @@ var target: Node = null
 ## RADIUS only: STRAIGHT measures the straight line, PATH the navmesh path (noise), LINE_OF_SIGHT the
 ## straight line but only to receivers that no world geometry (layer 1) hides from the origin (fire).
 var propagation: Propagation = Propagation.STRAIGHT
+## RADIUS only: the same intensity anywhere inside the radius (a gas cloud's dose, an EMP), no
+## linear falloff.
+var uniform: bool = false
 ## Chain depth: 0 for stimuli emitted outside stimulus processing, parent depth + 1 for effect emits.
 var depth: int = 0
 ## Unique per StimulusSystem, assigned on emit; 0 until emitted.
@@ -117,10 +120,13 @@ static func propagation_name(value: Propagation) -> String:
 
 
 ## Intensity perceived at `distance` from the origin, or -1 when out of reach.
-## RADIUS: linear falloff to 0 at the radius (ADR 0038). CONTACT and RAY: full intensity.
+## RADIUS: linear falloff to 0 at the radius (ADR 0038), or the full intensity inside it when
+## `uniform`. CONTACT and RAY: full intensity.
 func perceived_at(distance: float) -> float:
 	if shape != Shape.RADIUS:
 		return intensity
+	if uniform:
+		return intensity if distance <= radius else -1.0
 	return StimulusPropagation.falloff(intensity, radius, distance)
 
 

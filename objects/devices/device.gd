@@ -43,8 +43,15 @@ extends Node
 ##   (Computer component) is a host, a device without cables has a maintenance port, else none. It
 ##   is the deck's tool target (accepts_tool() / tool_hold(), worked through ToolUse like a lock):
 ##   holding LMB with the deck plugs it in (DeckSession) and raises its screen.
+## - EMP and jamming (M14b, ADR 0131): a device is electronic: an EMP (EmpEffect) cuts its power for
+##   its seconds, through its Powered (Powered.take_emp()), or its own `outage` when it has none (a
+##   door controller without power wiring). A jamming field (JammingField) drops its wireless link
+##   while either end stands inside one: wireless_link() is the radio link the range allows (the
+##   physical link: subnets, the Map); DeviceNetwork.is_jammed() says when the jamming alone cuts
+##   it, and the reach graph then leaves it out.
 ## EventLog: `device.command {command, from, to, sent, point}` for every attempt,
-## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`, `intrusion`).
+## `device.state {device, up, unpowered, broken}` on changes. Saveable (`broken`, `intrusion`,
+## `outage`).
 
 signal state_changed(up: bool)
 signal action_received(action: StringName, stimulus: Stimulus)
@@ -113,6 +120,8 @@ var breakable: Breakable
 var broken: bool = false
 ## Exploit access and its log (saved).
 var intrusion: DeviceIntrusion = DeviceIntrusion.new()
+## Seconds of outage left (an EMP) when it has no Powered of its own; 0: none.
+var outage: float = 0.0
 
 var _was_up: bool = true
 
@@ -120,10 +129,13 @@ var _was_up: bool = true
 func _ready() -> void:
 	add_to_group(GROUP)
 	add_to_group(&"saveable")
+	add_to_group(EmpEffect.GROUP)
+	set_physics_process(false)
 	entity = get_node_or_null(entity_path) as Node3D
 	if entity == null:
 		push_warning("Device %s: entity_path %s is not a Node3D" % [get_path(), entity_path])
 		return
+	EmpEffect.listen(entity)
 	if ActorState.tags_of(entity) == null:
 		push_warning("Device %s: the entity has no Tags; receptrons cannot block on its state" % get_path())
 	powered = Powered.of(entity)
@@ -171,7 +183,9 @@ static func all(tree: SceneTree) -> Array[Device]:
 ## `source`: the user traffic comes from (a deck, ADR 0113): its start node (source.start_id())
 ## speaks with its user's rights at the gates; a deck on a wall jack is a node of its own (DECK_NODE)
 ## cabled to the jack. Without a source every node speaks for its own device.
-static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
+## `physical`: wireless links as the range allows them, jammed or not (DeviceNetwork.physical_network:
+## the Map); else only the live ones (not DeviceNetwork.is_jammed()).
+static func graph(tree: SceneTree, source: NetworkSource = null, physical: bool = false) -> DeviceGraph:
 	var result := DeviceGraph.new()
 	var devices := all(tree)
 	for device in devices:
@@ -180,7 +194,8 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 		var router := Router.of(device.entity)
 		if router != null:
 			result.set_gate(id, Device._gate(router, source, result))
-	# Device -> the access point it links to by radio (valid links only).
+	# Device -> the access point it links to by radio (valid links only; jammed ones too: the subnet
+	# stays the access point's, only the link is not in a live graph).
 	var radio: Dictionary[Device, Device] = {}
 	for device in devices:
 		for other in device.linked():
@@ -188,7 +203,8 @@ static func graph(tree: SceneTree, source: NetworkSource = null) -> DeviceGraph:
 		var access_point := device.wireless_link()
 		if access_point != null:
 			radio[device] = access_point
-			result.link(device.get_instance_id(), access_point.get_instance_id())
+			if physical or not DeviceNetwork.is_jammed(device):
+				result.link(device.get_instance_id(), access_point.get_instance_id())
 	for device in devices:
 		var id := device.get_instance_id()
 		var own := device.subnet
@@ -245,11 +261,29 @@ func tool_release(_user: Node) -> void:
 func is_up() -> bool:
 	if not is_instance_valid(entity) or entity.is_queued_for_deletion() or not is_inside_tree():
 		return false
-	return not broken and (powered == null or powered.on)
+	return not broken and is_powered()
 
 
+## Its Powered is on (Powered.is_on()); without one, no outage runs.
 func is_powered() -> bool:
-	return powered == null or powered.on
+	return powered.is_on() if powered != null else outage <= 0.0
+
+
+## An EMP (EmpEffect): its Powered loses power for `seconds` (Powered.take_emp()); without one, its
+## own outage (the longer of this and one already running).
+func take_emp(seconds: float, _cause: Stimulus = null) -> void:
+	if powered != null or seconds <= outage:
+		return
+	outage = seconds
+	set_physics_process(true)
+	_apply()
+
+
+func _physics_process(delta: float) -> void:
+	outage = maxf(outage - delta, 0.0)
+	if outage <= 0.0:
+		set_physics_process(false)
+		_apply()
 
 
 ## The devices `links` names (missing or freed ones skipped).
@@ -441,10 +475,13 @@ func _entity_name() -> String:
 func save_state() -> Dictionary:
 	var data := intrusion.to_dict()
 	data["broken"] = broken
+	data["outage"] = outage
 	return data
 
 
 func load_state(data: Dictionary) -> void:
 	broken = bool(data.get("broken", broken))
+	outage = maxf(float(data.get("outage", 0.0)), 0.0)
+	set_physics_process(outage > 0.0)
 	intrusion.from_dict(data)
 	_apply()

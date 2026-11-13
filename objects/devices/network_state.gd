@@ -8,7 +8,10 @@ extends RefCounted
 ## - It still has its network when one of the network gear it is linked to is up; linked to no gear,
 ##   when one of its links is up; linked to nothing, unless it names an access point.
 ## - Its state: DARK unpowered (or gone), DISABLED broken or switched off by a command
-##   (DeviceStatus.is_disabled()), else UP with its network, CUT_OFF without.
+##   (DeviceStatus.is_disabled()), JAMMED while a jamming field cuts its wireless link
+##   (DeviceNetwork.is_jammed(), M14b), else UP with its network, CUT_OFF without.
+## Links are the physical ones (Device.wireless_link(): in range, jammed or not), so lights that read
+## them once stay right while a field comes and goes.
 
 
 ## The devices `device` is linked to: cables both ways, the access point it links to by radio, and
@@ -59,4 +62,6 @@ static func state_of(device: Device, links: Array[Device]) -> StatusLight.State:
 		return StatusLight.State.DARK
 	if device.broken or DeviceStatus.is_disabled(device.entity):
 		return StatusLight.State.DISABLED
+	if DeviceNetwork.is_jammed(device):
+		return StatusLight.State.JAMMED
 	return StatusLight.State.UP if on_network(device, links) else StatusLight.State.CUT_OFF
