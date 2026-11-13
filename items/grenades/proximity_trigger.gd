@@ -10,7 +10,7 @@ extends Node3D
 ## (`Explosive.explode()`). Cheap: one sphere query (a second, smaller one only when a crouched
 ## character is near), then one ray per candidate.
 ## The interaction frame shows "Armed" (frame_word(), TargetStatus.STATUS_GROUP). A highlight seen
-## through darkness and smoke (set_highlighted(): MineSense, the Demolition skill) marks it.
+## through darkness and smoke, not walls (set_highlighted(): MineSense, the Demolition skill) marks it.
 ## EventLog `mine.armed`, `mine.triggered {object, by}`. Saveable (arming, time left, armed).
 
 signal armed
@@ -231,8 +231,8 @@ func _build_visuals() -> void:
 	_glow = OmniLight3D.new()
 	_glow.name = "BlinkGlow"
 	_glow.light_color = Color(1.0, 0.15, 0.1)
-	_glow.light_energy = 0.8
-	_glow.omni_range = 0.5
+	_glow.light_energy = 0.6
+	_glow.omni_range = 0.35
 	_glow.shadow_enabled = false
 	_glow.position = light_offset
 	add_child(_glow)
@@ -245,7 +245,8 @@ func _build_visuals() -> void:
 	overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	overlay.albedo_color = Color(1.0, 0.2, 0.15, 0.4)
-	overlay.no_depth_test = true
+	# Unlit (seen in the dark), unfogged and drawn after every other transparent thing (over smoke);
+	# solid geometry still hides it (no seeing mines through walls).
 	overlay.disable_fog = true
 	overlay.render_priority = Material.RENDER_PRIORITY_MAX
 	shell.material = overlay

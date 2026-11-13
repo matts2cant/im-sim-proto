@@ -17,4 +17,4 @@ extends Resource
 ## Seconds the thrown entity ignores its thrower's body (it starts inside the reach of its arm).
 @export var ignore_thrower_time: float = 0.3
 ## Opacity of the ghost (0 hidden, 1 solid).
-@export_range(0.0, 1.0) var ghost_alpha: float = 0.45
+@export_range(0.0, 1.0) var ghost_alpha: float = 0.6

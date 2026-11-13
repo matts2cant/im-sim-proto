@@ -9,4 +9,4 @@ base_distance = 12.0
 lift_deg = 20.0
 spawn_forward = 0.35
 ignore_thrower_time = 0.3
-ghost_alpha = 0.45
+ghost_alpha = 0.6
