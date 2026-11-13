@@ -175,11 +175,9 @@ func aimed_at(reach: float) -> Node:
 
 func _look_collider(reach: float = -1.0) -> Node:
 	var eye := player.eye_transform()
-	var exclude: Array[RID] = [player.get_rid()]
-	exclude.append_array(Hitboxes.rids_of(player))
 	var length := reach if reach > 0.0 else player.config.interact_reach
 	var query := PhysicsRayQueryParameters3D.create(
-		eye.origin, eye.origin - eye.basis.z * length, PhysicsLayers.INTERACT_MASK, exclude
+		eye.origin, eye.origin - eye.basis.z * length, PhysicsLayers.INTERACT_MASK, OwnBody.rids(player)
 	)
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
 	return hit["collider"] as Node if not hit.is_empty() else null

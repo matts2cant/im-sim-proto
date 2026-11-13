@@ -4,13 +4,12 @@ extends Node3D
 ## a guard's Aim node): the weapons it holds, the equipped one and its AimModel. Shots and sweeps
 ## start at the eye along its -Z; whoever drives the holder points the eye (mouse look, or a combat
 ## component aiming at a target) and calls physics_step() and trigger(). Nothing here reads input.
-## Ranged weapons emit a `damage.*` RAY per damage entry along a direction sampled inside the aim
-## cone (PhysicsLayers.WEAPON_MASK, the user's own body and hitboxes excluded), a `force.impact` RAY
-## along the same line (WeaponData.impact_impulse in N s: whatever it hits and has a `force`
-## receptron is pushed at the hit point; ADR 0057), a muzzle `noise` and an impact `noise`.
-## Melee weapons sweep a sphere along the view and send `damage.*` CONTACT to what they hit (a hitbox
-## carries its part). Thrown weapons (grenades, ADR 0131) go to the user's Thrower component, which
-## sticks or throws the weapon's entity; without one the trigger does nothing.
+## The holder coordinates: who may fire, the cycle and ammo (WeaponState), aim, recoil, scope, the
+## view and the loadout. What a fired trigger does is the weapon's delivery (WeaponData.delivery(),
+## a WeaponDelivery per kind): RangedFire (damage and `force.impact` RAYs along the aim cone, muzzle
+## and impact noise), MeleeSweep (a sphere swept along the view, `damage.*` CONTACT) or ThrowRelease
+## (the user's Thrower; without one the trigger does nothing). Sounds are its WeaponAudio child
+## (`audio`); `aimed_hit` is what a shot through the centre of the cone would meet (the crosshair).
 ## The user's attributes of the weapon's class (WeaponData.attribute_class, ADR 0061) scale it: damage
 ## (through Stimulus.scale_attribute), cycle, reload, cone floors, bloom and the pellet cone, settle
 ## time, sway (on top of `aim_sway_mult`); crouching (`stance.crouch`) settles faster
@@ -41,7 +40,7 @@ extends Node3D
 ## Feel (ADR 0128): with `view_motion` the view model kicks, sways, bobs with the user's ground speed,
 ## dips over a reload and rises on a draw (WeaponView, WeaponData.motion); `eye_shake` (a camera
 ## shake the eye's owner adds) is taken back out of the shots; a shot plays its layered ShotSound
-## through `shot_audio` with the echo of the shooter's place (Acoustics).
+## through `shot_audio` (WeaponAudio.shots) with the echo of the shooter's place (Acoustics).
 ## Shot feedback (ADR 0126): its ShotFeedback child leaves impacts by material and tracers
 ## (`tracer_every`, else the weapon's) through the viewport's ShotFx, for any shooter.
 
@@ -115,10 +114,20 @@ var recoil := RecoilState.new()
 ## follows (the player's camera shake, ADR 0128): shots and the reticle take it back out
 ## (aim_offset()), so a shake never moves where bullets go.
 var eye_shake := Vector2.ZERO
-## Layered shot sounds with their echo tail (WeaponData.shot_sound, ADR 0128).
+## The weapons' sounds (shots, swings, throws, dry fire, reload, hits).
+var audio: WeaponAudio
+## Layered shot sounds with their echo tail (WeaponData.shot_sound, ADR 0128): `audio`'s.
 var shot_audio: ShotAudio
 ## Impacts, puffs and tracers of the shots and swings (ADR 0126).
 var feedback: ShotFeedback
+## What the drawn weapon's aim is on now (the HUD's crosshair target): the first thing a shot through
+## the centre of the cone (aim_transform()'s -Z) meets within the weapon's range, as an
+## intersect_ray() result; {} unarmed, for a weapon that does not shoot rays, or on nothing.
+## Computed on each read (one ray).
+var aimed_hit: Dictionary:
+	get:
+		var data := weapon()
+		return data.delivery().aimed_hit(self, data) if data != null else {}
 
 var _equipped: WeaponState = null
 # The recoil of the last shot: its return runs on even after a switch or holster.
@@ -129,7 +138,6 @@ var _floor: float = 0.0
 var _has_floor: bool = false
 var _sway: Vector2 = Vector2.ZERO
 var _view: WeaponView
-var _audio: AudioStreamPlayer3D
 # The user's position at the last physics step (ground speed for the view's bob).
 var _last_user_position := Vector3.ZERO
 var _has_user_position: bool = false
@@ -149,13 +157,9 @@ func _ready() -> void:
 	_view.motion_enabled = view_motion
 	add_child(_view)
 	flash = _view.flash
-	_audio = AudioStreamPlayer3D.new()
-	_audio.bus = GameSettings.EFFECTS_BUS
-	_audio.name = "Audio"
-	_audio.max_polyphony = 3
-	add_child(_audio)
-	shot_audio = ShotAudio.new(_recoil_seed(rng_seed))
-	add_child(shot_audio)
+	audio = WeaponAudio.new(_recoil_seed(rng_seed))
+	add_child(audio)
+	shot_audio = audio.shots
 	feedback = ShotFeedback.new()
 	feedback.name = "ShotFeedback"
 	add_child(feedback)
@@ -247,12 +251,12 @@ func physics_step(delta: float, stance: AimModel.Stance, floor_add: float = 0.0)
 		aim.add_look(_look_pixels, spread_mult)
 		_look_pixels = 0.0
 	var stance_floor := aim.floor_for(
-		stance, _attribute(ATTRIBUTE_SPREAD, 0.0), spread_mult, _class_value("still_mult", 1.0)
+		stance, Attributes.read(user, ATTRIBUTE_SPREAD, 0.0), spread_mult, _class_value("still_mult", 1.0)
 	)
 	_floor = minf(stance_floor + floor_add, aim.config.max_spread_deg)
 	_has_floor = true
 	aim.step(delta, _floor, _settle_time())
-	_sway = aim.sway(_attribute(ATTRIBUTE_SWAY, 1.0) * _class_value("sway_mult", 1.0))
+	_sway = aim.sway(Attributes.read(user, ATTRIBUTE_SWAY, 1.0) * _class_value("sway_mult", 1.0))
 	recoil.step(delta, _last_recoil, _class_value("recoil_recover_mult", 1.0))
 	# Automatic fire before the cooldowns tick: one shot every cycle_time while held.
 	_auto_fire()
@@ -339,25 +343,21 @@ func trigger(held: bool = false) -> int:
 			{"weapon": data.id, "reason": "arms_disabled" if ActorState.can_act(user) else "incapacitated"}
 		)
 		return -1
-	# A thrown weapon needs someone to throw it (the user's Thrower, ADR 0131).
-	if data.is_thrown() and Thrower.of(user) == null:
+	# A delivery that cannot happen now does not cycle the weapon (a throw without a Thrower).
+	var delivery := data.delivery()
+	if not delivery.can_deliver(self, data):
 		return -1
 	aim.config = _aim_config()
 	var result := _equipped.try_fire(_class_value("cycle_mult", 1.0), held)
 	match result:
 		WeaponState.Result.FIRED:
 			_view.kick()
-			match data.kind:
-				WeaponData.Kind.MELEE:
-					_swing(data)
-				WeaponData.Kind.THROWN:
-					_throw(data)
-				_:
-					_shoot(data)
+			delivery.deliver(self, data)
+			_add_recoil(data)
 			fired.emit(data)
 			changed.emit()
 		WeaponState.Result.DRY:
-			_play(data.dry_fire_sound, 0.0)
+			audio.play_dry(data)
 			_log(&"weapon.dry_fire", {"weapon": data.id})
 	return result
 
@@ -367,7 +367,7 @@ func reload() -> bool:
 	var weapon_state := state()
 	if weapon_state == null or not weapon_state.start_reload(_class_value("reload_mult", 1.0)):
 		return false
-	_play(weapon_state.data.reload_sound, -8.0)
+	audio.play_reload(weapon_state.data)
 	_log(&"weapon.reload_started", {"weapon": weapon_state.data.id, "time": weapon_state.reload_left})
 	if scope.step(0.0, false):
 		_on_scope_changed("reload")
@@ -445,70 +445,8 @@ func _keep_loadout(ids: Array) -> void:
 	current = states.find(_equipped) if _equipped != null else -1
 
 
-func _shoot(data: WeaponData) -> void:
-	var from := aim_transform()
-	var centre := aim.sample_direction(from.basis)
-	var spread := aim.spread
-	# The pellet cone narrows with the shooter's skill like the aim cone (`<class>_spread_mult`).
-	var pellet_spread := data.pellet_spread_deg * _class_value("spread_mult", 1.0)
-	var directions := PelletPattern.spread(centre, from.basis.y, data.pellets, pellet_spread, aim.rng)
-	var exclude := _own_rids()
-	var space := get_world_3d().direct_space_state
-	var rays: Dictionary[StringName, float] = data.damage.duplicate()
-	if data.impact_impulse > 0.0:
-		rays[&"force.impact"] = data.impact_impulse
-	var hits: Array[Dictionary] = []
-	var ends: Array[Vector3] = []
-	# Each projectile: one ray per damage entry and the push, along its own direction.
-	for direction in directions:
-		var query := PhysicsRayQueryParameters3D.create(
-			from.origin, from.origin + direction * data.max_range, PhysicsLayers.WEAPON_MASK, exclude
-		)
-		var hit := space.intersect_ray(query)
-		var falloff := 1.0
-		ends.append(query.to if hit.is_empty() else hit["position"] as Vector3)
-		if not hit.is_empty():
-			hits.append(hit)
-			falloff = data.damage_scale_at(from.origin.distance_to(hit["position"] as Vector3))
-		for type: StringName in rays:
-			var intensity := rays[type] * falloff if data.damage.has(type) else rays[type]
-			var ray := Stimulus.make_ray(
-				type, intensity, from.origin, direction, data.max_range, user, PhysicsLayers.WEAPON_MASK
-			)
-			ray.exclude = exclude
-			if data.damage.has(type):
-				ray.scale_attribute = data.class_attribute("damage_mult")
-			_emit(ray)
-	_emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), _muzzle(), user))
-	last_hit = {}
-	var hit_name := ""
-	if not hits.is_empty():
-		# One impact noise and sound per shot, where the first projectile struck.
-		var point: Vector3 = hits[0]["position"]
-		var collider := hits[0]["collider"] as Node
-		hit_name = String(collider.name)
-		last_hit = {"collider": collider, "position": point}
-		_emit(Stimulus.make_noise(_equipped.stat(&"impact_noise"), point, user))
-		_play_at(data.hit_sound, point)
-	feedback.shot(data, _muzzle(), ends, hits, tracer_every)
-	aim.add_shot(_class_value("spread_mult", 1.0))
-	_add_recoil(data)
-	_play_shot(data)
-	flash.fire(data, _equipped.stat(&"muzzle_flash_size"))
-	var logged := {
-		"weapon": data.id,
-		"magazine": _equipped.magazine,
-		"spread": spread,
-		"hit": hit_name,
-		"projectiles": directions.size(),
-		"hits": hits.size(),
-		"noise": _equipped.stat(&"fire_noise"),
-	}
-	_log(&"weapon.fired", logged)
-
-
-# The shot's recoil climbs the aim for the next shots (scaled by the user's skill attributes); a
-# scoped shot blacks the scope out for a moment.
+# A fired weapon with a RecoilConfig (the guns) climbs the aim for the next shots (scaled by the
+# user's skill attributes); a scoped shot blacks the scope out for a moment.
 func _add_recoil(data: WeaponData) -> void:
 	if not recoil_enabled or data.recoil == null:
 		return
@@ -516,24 +454,6 @@ func _add_recoil(data: WeaponData) -> void:
 	recoil.add_shot(data.recoil, _class_value("recoil_size_mult", 1.0), _class_value("recoil_noise_mult", 1.0))
 	if scope.scoped and data.recoil.scope_blackout_time > 0.0:
 		recoil.black_out(data.recoil.scope_blackout_time)
-
-
-# The shot's sound: the layered one (suppressed while an attachment makes the weapon `suppressed`)
-# through ShotAudio, every layer moved by the attachments' volume change; else the single sound.
-func _play_shot(data: WeaponData) -> void:
-	var suppressed := _equipped.stat(&"suppressed") > 0.0
-	var layered := data.suppressed_shot_sound if suppressed else data.shot_sound
-	if layered == null:
-		_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
-		return
-	shot_audio.play(layered, _equipped.stat(&"fire_volume_db") - data.fire_volume_db)
-
-
-# The shot sound: the suppressed one while an attachment makes the weapon `suppressed`.
-func _fire_sound(data: WeaponData) -> AudioStream:
-	if _equipped.stat(&"suppressed") > 0.0 and data.suppressed_fire_sound != null:
-		return data.suppressed_fire_sound
-	return data.fire_sound
 
 
 # One automatic shot when the trigger is held and the cycle allows it (never a dry click: an empty
@@ -572,76 +492,6 @@ func _on_scope_changed(reason: String) -> void:
 	changed.emit()
 
 
-func _swing(data: WeaponData) -> void:
-	var from := eye.global_transform
-	var forward := -from.basis.z.normalized()
-	var sphere := SphereShape3D.new()
-	sphere.radius = data.sweep_radius
-	var params := PhysicsShapeQueryParameters3D.new()
-	params.shape = sphere
-	params.collision_mask = PhysicsLayers.WEAPON_MASK
-	params.exclude = _own_rids()
-	params.transform = Transform3D(Basis.IDENTITY, from.origin)
-	# The sphere's front reaches max_range from the eye.
-	params.motion = forward * maxf(data.max_range - data.sweep_radius, 0.0)
-	var space := get_world_3d().direct_space_state
-	var fractions := space.cast_motion(params)
-	_emit(Stimulus.make_noise(_equipped.stat(&"fire_noise"), from.origin, user))
-	_play(_fire_sound(data), _equipped.stat(&"fire_volume_db"))
-	last_hit = {}
-	var hit_name := ""
-	if fractions.size() == 2 and fractions[1] < 1.0:
-		params.transform.origin += params.motion * fractions[1]
-		params.motion = Vector3.ZERO
-		var info := space.get_rest_info(params)
-		var collider: Node = null
-		if not info.is_empty():
-			collider = instance_from_id(int(info["collider_id"])) as Node
-		if collider != null:
-			var point: Vector3 = info["point"]
-			hit_name = String(collider.name)
-			last_hit = {"collider": collider, "position": point}
-			for type: StringName in data.damage:
-				var hit_stimulus := Stimulus.make_contact(type, data.damage[type], collider, user)
-				hit_stimulus.scale_attribute = data.class_attribute("damage_mult")
-				_emit(hit_stimulus)
-			_emit(Stimulus.make_noise(data.impact_noise, point, user))
-			_play_at(data.hit_sound, point)
-			feedback.swing_hit(data, collider, point, info.get("normal", Vector3.ZERO) as Vector3)
-	_log(&"weapon.swung", {"weapon": data.id, "hit": hit_name})
-
-
-# A thrown weapon (a grenade): the user's Thrower sticks it on the surface in front of the eye or
-# throws it (ADR 0131); a whoosh and its small noise. Whoever owns the stack takes one off on `fired`.
-func _throw(data: WeaponData) -> void:
-	var outcome := Thrower.of(user).release(data)
-	if data.fire_noise > 0.0:
-		_emit(Stimulus.make_noise(data.fire_noise, eye.global_position, user))
-	_play(data.fire_sound, data.fire_volume_db)
-	_log(&"weapon.thrown", {"weapon": data.id, "outcome": outcome})
-
-
-# Emits `stimulus` with the holder's cause (cause_id) when one is set.
-func _emit(stimulus: Stimulus) -> void:
-	if cause_id != 0:
-		stimulus.cause_id = cause_id
-	StimulusSystem.emit(stimulus)
-
-
-func _own_rids() -> Array[RID]:
-	var rids: Array[RID] = []
-	if is_instance_valid(user):
-		rids.append(user.get_rid())
-		rids.append_array(Hitboxes.rids_of(user))
-	return rids
-
-
-func _muzzle() -> Vector3:
-	if _view.visible:
-		return _view.muzzle_position()
-	return eye.global_position
-
-
 # An attachment was fitted to the equipped weapon: show it.
 func _on_attached(_attachment: AttachmentData) -> void:
 	_view.show_weapon(_equipped)
@@ -650,19 +500,10 @@ func _on_attached(_attachment: AttachmentData) -> void:
 
 
 # `base` through the user's attribute `<class>_<stat>` of the equipped weapon (base itself unarmed or
-# without a class).
+# without a class; WeaponData.class_value()).
 func _class_value(stat: String, base: float) -> float:
 	var data := weapon()
-	if data == null or data.attribute_class.is_empty():
-		return base
-	return Attributes.read(user, data.class_attribute(stat), base)
-
-
-func _attribute(attribute: StringName, fallback: float) -> float:
-	var attributes := user.get_node_or_null(^"Attributes") as Attributes if is_instance_valid(user) else null
-	if attributes == null or not attributes.attribute_set.has(attribute):
-		return fallback
-	return attributes.value(attribute)
+	return data.class_value(user, stat, base) if data != null else base
 
 
 ## The first-person view: grip pivot, model or box, flash (tests, screenshots: preview_swing()).
@@ -670,28 +511,5 @@ func view_pivot() -> WeaponView:
 	return _view
 
 
-func _play(stream: AudioStream, volume_db: float) -> void:
-	if stream == null:
-		return
-	_audio.stream = stream
-	_audio.volume_db = volume_db
-	_audio.play()
-
-
-func _play_at(stream: AudioStream, point: Vector3) -> void:
-	if stream == null:
-		return
-	var player := AudioStreamPlayer3D.new()
-	player.bus = GameSettings.EFFECTS_BUS
-	player.name = "HitSound"
-	player.stream = stream
-	player.volume_db = -6.0
-	player.finished.connect(player.queue_free)
-	get_viewport().add_child(player)
-	player.global_position = point
-	player.play()
-
-
 func _log(kind: StringName, data: Dictionary) -> void:
-	var source := String(user.name) if is_instance_valid(user) else ""
-	EventLog.record(kind, source, "", data)
+	WeaponDelivery.log_event(self, kind, data)
