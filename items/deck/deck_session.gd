@@ -101,11 +101,14 @@ func take_emp(_seconds: float, _cause: Stimulus = null) -> void:
 	unplug(&"emp")
 
 
-## True when a jamming field covers `user`'s eye or `access_point` (a deck's Wi-Fi link to it).
+## True when `user` or `access_point`'s entity is jammed (`state.jammed`, ADR 0138: a deck's Wi-Fi
+## link to it carries nothing).
 static func jammed(user: Node, access_point: Device) -> bool:
 	if access_point == null or not is_instance_valid(access_point) or not is_instance_valid(access_point.entity):
 		return false
-	return JammingField.jams_link(eye_of(user), access_point.entity.global_position)
+	if user != null and is_instance_valid(user) and ActorState.is_jammed(user):
+		return true
+	return ActorState.is_jammed(access_point.entity)
 
 
 ## The DeckSession child of `node`, or null.

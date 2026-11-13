@@ -21,6 +21,10 @@ const MANTLING: StringName = &"stance.mantle"
 ## Added by the Cloak augmentation (any source may add it): guards' sight ignores the entity (M7;
 ## cameras and turrets still see it).
 const CLOAKED: StringName = &"state.cloaked"
+## On any entity (a character, a device, a radio) while a jamming field covers it (JammingField adds
+## and removes it, ADR 0138): its wireless links carry nothing (DeviceNetwork.is_jammed(), the deck's
+## Wi-Fi, radio messages to or from it).
+const JAMMED: StringName = &"state.jammed"
 
 
 static func tags_of(entity: Node) -> Tags:
@@ -43,6 +47,11 @@ static func set_tag(entity: Node, tag: StringName, on: bool) -> void:
 		tags.add(tag)
 	else:
 		tags.remove(tag)
+
+
+## True while a jamming field covers `entity` (JAMMED); false for a freed or missing entity.
+static func is_jammed(entity: Node) -> bool:
+	return entity != null and is_instance_valid(entity) and has(entity, JAMMED)
 
 
 static func is_dead(entity: Node) -> bool:
