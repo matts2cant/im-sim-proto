@@ -15,8 +15,9 @@ extends Node3D
 ##   but cut off (none of the network gear it is linked to is up: its switch, router or access point;
 ##   a device linked to no gear: none of its links is up; an access point named but out of range);
 ##   red = broken but powered, or switched off by a command (DeviceStatus.is_disabled()); dark =
-##   unpowered (or gone with its entity). The rule lives in NetworkState (the frame and the Map read it
-##   too).
+##   unpowered (or gone with its entity); amber blinking too while its wireless link is jammed
+##   (JAMMED, M14b: the frame and the Map say "Jammed"). The rule lives in NetworkState (the frame and
+##   the Map read it too). A jamming field starting or ending refreshes every light (refresh_all()).
 ## - One light per device (ADR 0122 amendment 2): a model LED lent to the entity's DeviceLamp (a
 ##   camera's watch lamp, a door controller's lock lights) shows the lamp's colours; the state goes to
 ##   the lamp instead (DeviceLamp.show_network(): dark, amber blinking when cut off, else the owner's
@@ -27,7 +28,7 @@ extends Node3D
 ##   per frame; the blink is the shader's (status_light.gdshader, per-instance colour and blink).
 ## Links are read once when attached (cables are level data).
 
-enum State { UP, CUT_OFF, DISABLED, DARK }
+enum State { UP, CUT_OFF, DISABLED, DARK, JAMMED }
 
 const NODE_NAME: StringName = &"StatusLight"
 const COLORS: Dictionary[State, Color] = {
@@ -35,6 +36,7 @@ const COLORS: Dictionary[State, Color] = {
 	State.CUT_OFF: Color(1.0, 0.62, 0.05),
 	State.DISABLED: Color(1.0, 0.12, 0.08),
 	State.DARK: Color(0.06, 0.07, 0.06),
+	State.JAMMED: Color(1.0, 0.62, 0.05),
 }
 const PORT_ON: Color = Color(0.15, 1.0, 0.3)
 
@@ -88,6 +90,19 @@ static func of(node: Node) -> StatusLight:
 	return holder.get_node_or_null(NodePath(String(NODE_NAME))) as StatusLight
 
 
+## True for the states that blink (cut off, jammed).
+static func blinks(value: State) -> bool:
+	return value == State.CUT_OFF or value == State.JAMMED
+
+
+## Refreshes the light of every device in `tree` (a change no device signals: a jamming field).
+static func refresh_all(tree: SceneTree) -> void:
+	for device in Device.all(tree):
+		var light := StatusLight.of(device)
+		if light != null:
+			light.refresh()
+
+
 func _ready() -> void:
 	if device == null:
 		device = Device.of(get_parent())
@@ -127,7 +142,7 @@ func refresh() -> void:
 	state = NetworkState.state_of(device, links)
 	for mesh in model_leds:
 		if is_instance_valid(mesh):
-			_paint(mesh, COLORS[state], state == State.CUT_OFF)
+			_paint(mesh, COLORS[state], blinks(state))
 	if is_instance_valid(lamp):
 		lamp.show_network(state)
 	var lit := port_states()

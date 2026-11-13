@@ -7,6 +7,10 @@ extends Node3D
 ## triggering stimulus, so neighbouring barrels chain-explode on the next ticks through the normal
 ## queue; whatever has a `force` receptron (every PhysicsObject) is pushed on the same tick as the
 ## damage and fire arrive (ADR 0057). Place it at the centre.
+## A blast stimulus whose radius is 0 is not sent (a frag has no fire, a jammer no noise).
+## Grenades (ADR 0131): the entity's ExplosivePayload may provide the config (taken in _ready when
+## `config` is empty, or set later through use_config()) and releases its effect on `exploded`,
+## which is emitted before the entity is freed (`trigger` is the stimulus that set it off).
 
 signal exploded
 
@@ -19,6 +23,8 @@ const EXPLOSION_FX: PackedScene = preload("res://objects/components/explosion_fx
 var heat_model: HeatModel
 var entity: Node3D
 var has_exploded: bool = false
+## The stimulus that set it off (null: none, or not yet).
+var trigger: Stimulus
 
 
 func _ready() -> void:
@@ -26,10 +32,27 @@ func _ready() -> void:
 	add_to_group(HeatEffect.GROUP)
 	add_to_group(&"saveable")
 	entity = get_node(entity_path) as Node3D
-	heat_model = HeatModel.new(config.heat_threshold, config.cool_rate)
+	if config == null:
+		var payload := ExplosivePayload.of(entity)
+		config = payload.config if payload != null else null
+	if config != null:
+		heat_model = HeatModel.new(config.heat_threshold, config.cool_rate)
+	else:
+		# No blast yet: never explodes from heat until use_config().
+		heat_model = HeatModel.new(INF, 0.0)
 	var breakable := Breakable.of(entity)
 	if breakable != null:
 		breakable.depleted.connect(explode)
+
+
+## Uses `value` as its blast from now on (a payload added after it was ready); the heat is kept.
+func use_config(value: ExplosiveConfig) -> void:
+	if value == null:
+		return
+	config = value
+	var heat_now := heat_model.heat if heat_model != null else 0.0
+	heat_model = HeatModel.new(value.heat_threshold, value.cool_rate)
+	heat_model.heat = heat_now
 
 
 static func of(node: Node) -> Explosive:
@@ -54,9 +77,10 @@ func add_heat(amount: float, stimulus: Stimulus) -> void:
 
 ## Blows up now. `cause` (may be null) is the parent of the blast stimuli.
 func explode(cause: Stimulus = null) -> void:
-	if has_exploded or entity.is_queued_for_deletion():
+	if has_exploded or config == null or entity.is_queued_for_deletion():
 		return
 	has_exploded = true
+	trigger = cause
 	var origin := global_position
 	var line_of_sight := Stimulus.Propagation.LINE_OF_SIGHT
 	# The push first, as before the blast became stimuli: what the damage breaks open (a crate's
@@ -70,7 +94,8 @@ func explode(cause: Stimulus = null) -> void:
 		Stimulus.make_noise(config.noise_loudness, origin, entity),
 	]
 	for stimulus in blast:
-		StimulusSystem.emit(stimulus, cause)
+		if stimulus.radius > 0.0:
+			StimulusSystem.emit(stimulus, cause)
 	var data := {"object": String(entity.name), "by": cause.id if cause != null else 0}
 	EventLog.record(&"object.exploded", String(entity.name), "", data)
 	_spawn_fx(origin)
@@ -79,7 +104,7 @@ func explode(cause: Stimulus = null) -> void:
 
 
 func debug_text() -> String:
-	return "heat %.1f / %.1f (explodes)" % [heat_model.heat, config.heat_threshold]
+	return "heat %.1f / %.1f (explodes)" % [heat_model.heat, heat_model.threshold]
 
 
 func save_state() -> Dictionary:

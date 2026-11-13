@@ -1,6 +1,7 @@
 class_name ExplosiveConfig
 extends Resource
-## Tuning for an Explosive (explosive barrel). Values live in the object's `*_explosive.tres`.
+## Tuning for an Explosive (explosive barrel, a grenade's payload). Values live in the object's
+## `*_explosive.tres`. A radius of 0 sends no stimulus of that kind.
 
 @export_group("Trigger")
 ## Heat at which it explodes (fire adds its perceived intensity, like Flammable heat).
@@ -23,6 +24,8 @@ extends Resource
 @export var impulse_radius: float
 
 @export_group("Effects")
+## The fireball and smoke burst; off: only the flash (light_energy) and the sound (gas, EMP).
+@export var fireball: bool = true
 @export var sound: AudioStream
 @export var sound_volume_db: float
 @export var light_range: float

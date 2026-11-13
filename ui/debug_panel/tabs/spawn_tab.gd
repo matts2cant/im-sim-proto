@@ -2,9 +2,13 @@ class_name SpawnTab
 extends VBoxContainer
 ## Debug panel tab: spawns catalogue objects in front of the player, pokes the object under the
 ## crosshair (ignite with a strong CONTACT `fire`, hit with `damage.blunt`), resets the level, and
-## gives items from the item catalogue to the player's inventory (one, or a full stack).
+## gives items from the item catalogue to the player's inventory (one, or a full stack). Grenade
+## effects at the crosshair (M14b): a gas cloud, an EMP pulse, a jamming field.
 
 const CATALOG: ObjectCatalog = preload("res://objects/object_catalog.tres")
+const GAS_CLOUD: PackedScene = preload("res://objects/explosives/gas_cloud/gas_cloud.tscn")
+const JAMMING_FIELD: PackedScene = preload("res://objects/explosives/jamming_field/jamming_field.tscn")
+const EMP: EmpConfig = preload("res://objects/explosives/emp/emp.tres")
 const ITEMS: ItemCatalog = preload("res://items/item_catalog.tres")
 ## Horizontal distance in front of the player where objects appear.
 const SPAWN_DISTANCE: float = 2.0
@@ -32,6 +36,16 @@ func _ready() -> void:
 	_ignite.pressed.connect(ignite_looked_at)
 	_damage.pressed.connect(damage_looked_at)
 	_reset.pressed.connect(reset_level)
+	var effects: Dictionary[String, Callable] = {
+		"Gas": spawn_effect.bind(GAS_CLOUD), "Emp": emp_looked_at, "Jam": spawn_effect.bind(JAMMING_FIELD)
+	}
+	for label: String in effects:
+		var button := Button.new()
+		button.name = label
+		button.text = label.to_upper() if label == "Emp" else label
+		button.tooltip_text = "At the crosshair"
+		button.pressed.connect(effects[label])
+		_ignite.get_parent().add_child(button)
 	for item in ITEMS.items:
 		var label := Label.new()
 		label.text = item.display_name
@@ -105,6 +119,41 @@ func reset_level() -> Error:
 	else:
 		DebugPanel.set_open(false)
 	return error
+
+
+## Spawns a grenade effect `scene` (a gas cloud, a jamming field) in the level where the crosshair
+## hits (within 20 m); null when it hits nothing.
+func spawn_effect(scene: PackedScene) -> Node3D:
+	var point := _looked_at_point()
+	if point == Vector3.INF:
+		return null
+	var node := ExplosivePayload.spawn_in_level(scene, _player(), point)
+	EventLog.record(&"debug.spawned", "DebugPanel", String(node.name), {"object": String(node.name)})
+	_report("Spawned %s" % node.name)
+	return node
+
+
+## Sends an EMP pulse (emp.tres: 6 m, 20 s) where the crosshair hits; false when it hits nothing.
+func emp_looked_at() -> bool:
+	var point := _looked_at_point()
+	if point == Vector3.INF:
+		return false
+	StimulusSystem.emit(EmpPulse.make(EMP, point))
+	_report("EMP at %.0f, %.0f, %.0f" % [point.x, point.y, point.z])
+	return true
+
+
+# Where the crosshair hits (a little off the surface), or INF.
+func _looked_at_point() -> Vector3:
+	var player := _player()
+	if player == null:
+		_report("No player")
+		return Vector3.INF
+	var hit := player.look_hit(LOOK_LENGTH)
+	if hit.is_empty():
+		_report("Nothing under the crosshair")
+		return Vector3.INF
+	return (hit["position"] as Vector3) + (hit["normal"] as Vector3) * 0.1
 
 
 func _poke(type: StringName, intensity: float) -> Node:

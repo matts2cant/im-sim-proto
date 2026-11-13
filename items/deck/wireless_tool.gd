@@ -6,7 +6,8 @@ extends Node
 ## the access point's subnet at once when the user knows its key; out of range it only says so.
 ## start() runs the Icebreaker on the key (Icebreaker: the strength's base time x the user's crack
 ## time; only keys up to the user's strongest strength) while the access point stays in range, in
-## sight (has_sight(): a ray from the eye to it, blocked by world geometry only), up, and the address
+## sight (has_sight(): a ray from the eye to it, blocked by world geometry only), up and not jammed
+## (no signal while a jamming field covers the user or it, M14b), and the address
 ## the deck would get is not blocked by a tracer; otherwise the crack pauses (pause_reason()) and
 ## goes on by itself once all of that holds again. Each running tick adds trace to the tracers
 ## watching the access point (its subnet's), as for an account. The progress is kept on the deck's
@@ -196,7 +197,7 @@ func pause_reason() -> StringName:
 func reason_for(access_point: Device) -> StringName:
 	if access_point == null or not is_instance_valid(access_point):
 		return NO_SIGNAL
-	if not access_point.is_up():
+	if not access_point.is_up() or DeckSession.jammed(entity, access_point):
 		return NO_SIGNAL
 	if not in_range(access_point):
 		return OUT_OF_RANGE

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="JammingFieldConfig" format=3]
+
+[ext_resource type="Script" path="res://objects/explosives/jamming_field/jamming_field_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+radius = 10.0
+duration = 20.0
+blink_period = 0.8

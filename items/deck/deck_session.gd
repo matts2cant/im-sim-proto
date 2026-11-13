@@ -15,7 +15,9 @@ extends Node
 ##   WIRELESS, the access point's client address), and it stays joined, screen lowered or not, while
 ##   the user's eye stays within the deck's Wi-Fi range of the access point (wireless_range():
 ##   DeckConfig.wireless_range plus the Computer skill's `deck_wireless_range`, straight line); out of
-##   range it drops (`out_of_range`) like a pulled plug.
+##   range it drops (`out_of_range`) like a pulled plug, and while a jamming field covers the user or
+##   the access point (`jammed`, M14b; it cannot join then either).
+## - EMP (M14b): an EMP reaching its user unplugs the deck (`emp`), cable or Wi-Fi (take_emp()).
 ## - Map (discovery, ADR 0112, 0121): every device the deck's traffic reaches (through the routers
 ##   it has hacked: Router), plus the dead ones right behind them: on the subnet the deck is plugged
 ##   into or joined (the entry point's) at once, on a subnet behind a router once that subnet has
@@ -59,7 +61,7 @@ const DEFAULT_CONFIG: DeckConfig = preload("res://items/deck/deck_config.tres")
 @export var entity_path: NodePath = ^".."
 
 var entity: Node3D
-## The device the deck is plugged into (null: unplugged).
+## The device the deck is plugged into (null: unplugged): its entry point (a jack: the jack itself).
 var port: Device
 ## Its traffic's source while plugged in.
 var source: NetworkSource
@@ -84,9 +86,23 @@ var _refresh_left: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group(EmpEffect.GROUP)
 	if config == null:
 		config = DEFAULT_CONFIG
 	entity = get_node_or_null(entity_path) as Node3D
+	EmpEffect.listen(entity)
+
+
+## An EMP reaching its user (EmpEffect): the deck is unplugged (`emp`).
+func take_emp(_seconds: float, _cause: Stimulus = null) -> void:
+	unplug(&"emp")
+
+
+## True when a jamming field covers `user`'s eye or `access_point` (a deck's Wi-Fi link to it).
+static func jammed(user: Node, access_point: Device) -> bool:
+	if access_point == null or not is_instance_valid(access_point) or not is_instance_valid(access_point.entity):
+		return false
+	return JammingField.jams_link(eye_of(user), access_point.entity.global_position)
 
 
 ## The DeckSession child of `node`, or null.
@@ -172,7 +188,8 @@ func plug(device: Device, deck_stack: ItemStack = null) -> bool:
 	return true
 
 
-## Unplugs the deck (`reason`: walked_away, out_of_range (Wi-Fi), cannot_act, no_deck, gone, replugged): its tools stop,
+## Unplugs the deck (`reason`: walked_away, out_of_range or jammed (Wi-Fi), emp, cannot_act, no_deck,
+## gone, replugged): its tools stop,
 ## the screen closes. Lowering the screen never unplugs.
 func unplug(reason: StringName = &"unplugged") -> void:
 	if port == null:
@@ -229,12 +246,19 @@ func _unplug_check() -> StringName:
 	if hands != null and not hands.inventory.stacks.has(stack):
 		return &"no_deck"
 	if is_wireless():
-		return &"" if in_range(entity, port, config) else &"out_of_range"
+		return _wifi_check()
 	var flat := entity.global_position - port.entity.global_position
 	flat.y = 0.0
 	if flat.length() > config.tether_distance:
 		return &"walked_away"
 	return &""
+
+
+# Why the deck's Wi-Fi must drop now (jammed, out_of_range), or &"".
+func _wifi_check() -> StringName:
+	if DeckSession.jammed(entity, port):
+		return &"jammed"
+	return &"" if in_range(entity, port, config) else &"out_of_range"
 
 
 ## Discovers again (reach, scans, the map) and tells the screens.
@@ -314,11 +338,6 @@ static func has_scanned(deck_stack: ItemStack, subnet: StringName) -> bool:
 	if deck_stack == null:
 		return false
 	return (deck_stack.state.get(SCANNED, []) as Array).has(String(subnet))
-
-
-## True when `device` is where the deck is plugged in (a jack: the jack itself).
-func is_entry(device: Device) -> bool:
-	return device != null and device == port
 
 
 ## Logs in on `device` as `user` with the password the user's Journal knows. True on success (no
@@ -430,7 +449,7 @@ static func path_of(device: Device) -> String:
 
 func _join_wireless(access_point: Device, deck_stack: ItemStack) -> bool:
 	var radio := AccessPoint.of(access_point)
-	if not radio.knows_key(entity) or not in_range(entity, access_point, config):
+	if not radio.knows_key(entity) or not in_range(entity, access_point, config) or jammed(entity, access_point):
 		return false
 	if is_wireless() and port == access_point:
 		return true
