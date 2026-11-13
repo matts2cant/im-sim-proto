@@ -10,7 +10,7 @@ signal entered(body: Node3D)
 
 const GROUP: StringName = &"extraction_zone"
 
-@export var required_tag: StringName = &"actor.player"
+@export var required_tag: StringName = ActorState.PLAYER
 ## The box, metres (x, y, z), standing on the node's origin.
 @export var size: Vector3 = Vector3(4.0, 3.0, 4.0)
 

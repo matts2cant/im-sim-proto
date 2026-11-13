@@ -1,12 +1,14 @@
 extends GdUnitTestSuite
 ## Integration (ADR 0131): MineDisarm's rules on a minimal armed mine (the test grenade stuck on a
 ## floor) used by minimal characters (walkers with Skills): standing, untrained, too far are each
-## refused, and a refusal beeps and sets the mine off 0.5 s later (not at 0.3 s, gone at 0.7 s). The
-## successful pick-up (into a PlayerInventory) is in grenade_disarm_player_test.gd.
+## refused, and a refusal beeps and sets the mine off 0.5 s later (not at 0.3 s, gone at 0.7 s). A
+## trained, crouched walker with an Inventory (ADR 0139) disarms it into its inventory; one without an
+## Inventory is refused and the mine stays. The player's pick-up: grenade_disarm_player_test.gd.
 
 const Wait := preload("res://tests/helpers/wait.gd")
 const Grenades := preload("res://tests/items/grenades/grenade_helpers.gd")
 const Characters := preload("res://tests/actors/common/character_fixtures.gd")
+const INVENTORY_CONFIG: InventoryConfig = preload("res://items/inventory/inventory_config.tres")
 const ORIGIN := Vector3(880, 0, 0)
 
 var _root: Node3D
@@ -59,6 +61,27 @@ func test_standing_or_too_far_is_refused_even_when_trained() -> void:
 	assert_bool(Fuse.of(mine).is_lit).is_true()
 	assert_float(Fuse.of(mine).left).is_equal_approx(0.5, 0.0001)
 	assert_str(str(Grenades.logged(&"mine.disarm_failed")[0].data["reason"])).is_equal("standing")
+
+
+func test_a_trained_minimal_character_disarms_it_into_its_inventory() -> void:
+	var mine := await _armed_mine(Vector3(0, 0, -20))
+	var disarm := Usable.of(mine) as MineDisarm
+	var empty_handed := _user("EmptyHanded", Vector3(1.5, 0, -20), true, 1)
+	var sapper := _user("Sapper", Vector3(0, 0, -18.5), true, 1)
+	var inventory := Inventory.new()
+	inventory.name = "Inventory"
+	inventory.config = INVENTORY_CONFIG
+	sapper.add_child(inventory)
+	await Wait.frames(get_tree(), 1)
+
+	assert_bool(disarm.use(empty_handed)).is_false()
+	assert_bool(is_instance_valid(mine)).is_true()
+	assert_bool(disarm.use(sapper)).is_true()
+
+	assert_int(inventory.count(Grenades.ITEM)).is_equal(1)
+	assert_array(Grenades.logged(&"mine.disarmed")).has_size(1)
+	await Wait.frames(get_tree(), 1)
+	assert_bool(is_instance_valid(mine)).is_false()
 
 
 func test_only_an_armed_mine_offers_disarming() -> void:

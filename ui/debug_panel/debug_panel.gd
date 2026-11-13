@@ -5,6 +5,9 @@ const EVENT_LOG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/event_log_
 const OVERLAYS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/overlays_tab.tscn")
 const SPAWN_TAB: PackedScene = preload("res://ui/debug_panel/tabs/spawn_tab.tscn")
 const TIME_TAB: PackedScene = preload("res://ui/debug_panel/tabs/time_tab.tscn")
+## The debug tools' index of the player character (the Player joins it): only the panel's tabs look
+## it up (player()). Game systems find the player by its tag, ActorState.PLAYER (ADR 0139).
+const PLAYER_GROUP: StringName = &"player"
 
 ## World-space stimulus drawing; lives outside the tabs so it shows while the panel is closed.
 var stimulus_overlay: StimulusOverlay
@@ -47,6 +50,11 @@ func register_tab(title: String, content: Control) -> void:
 
 func is_open() -> bool:
 	return visible
+
+
+## The player character the debug tools act on (group PLAYER_GROUP), or null.
+func player() -> Node3D:
+	return get_tree().get_first_node_in_group(PLAYER_GROUP) as Node3D
 
 
 ## Open, it holds every player's focus (OverlayFocus: their input off, the mouse free); closed, the

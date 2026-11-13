@@ -4,6 +4,13 @@ extends RefCounted
 ## `magazine`, a keycard's `key_id`) and its top-left cell. The belt references stacks, not copies
 ## (ADR 0050).
 
+## `state` keys (string keys: the state is saved as JSON-safe data). A weapon's loaded rounds:
+const MAGAZINE := "magazine"
+## A keycard's or key's id (what a KeycardLock or MechanicalLock checks):
+const KEY_ID := "key_id"
+## A key's name on the keychain (else the item's name). Fitted attachments: Attachments.STATE_KEY.
+const KEY_NAME := "key_name"
+
 var item: ItemData
 var count: int = 1
 var state: Dictionary = {}

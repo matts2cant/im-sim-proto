@@ -82,7 +82,7 @@ func test_taking_the_fill_the_grid_table_runs_out_of_room() -> void:
 
 	assert_int(refused).is_greater(0)
 	assert_array(EventLog.find(&"item.pickup_refused")).has_size(refused)
-	assert_str(first_refusal_message).is_equal(PlayerInventory.NO_ROOM)
+	assert_str(first_refusal_message).is_equal(Inventory.NO_ROOM)
 	# Something is still on the table.
 	var left := _room.get_node("FillGrid").get_children().filter(func(n: Node) -> bool: return ItemPickup.of(n) != null)
 	assert_array(left).is_not_empty()

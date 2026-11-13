@@ -26,7 +26,7 @@ Toggled with the ` key (QuoteLeft). Tabs:
 - The Stats tab is where skill and augmentation values are edited ([abilities.md](abilities.md)).
 - The Event Log tab reads the `EventLog` autoload ([stimulus-response.md](stimulus-response.md)).
 - Overlays draw in the 3D world and stay visible while the panel is closed. The stimulus overlay (`ui/debug_panel/stimulus_overlay.gd`, `DebugPanel.stimulus_overlay`) only listens to `StimulusSystem.stimulus_processed`; core code holds no drawing logic.
-- The Spawn and Time tabs, the Heat overlay (`ui/debug_panel/heat_overlay.gd`, `DebugPanel.heat_overlay`) and the Network overlay (`ui/debug_panel/network_overlay.gd`, `DebugPanel.network_overlay`) are built in, like Overlays and Event Log. The Spawn tab finds the player through the `player` group.
+- The Spawn and Time tabs, the Heat overlay (`ui/debug_panel/heat_overlay.gd`, `DebugPanel.heat_overlay`) and the Network overlay (`ui/debug_panel/network_overlay.gd`, `DebugPanel.network_overlay`) are built in, like Overlays and Event Log. The debug tools (Spawn tab, alarm buttons, light readout) find the player with `DebugPanel.player()`: the `player` group (`DebugPanel.PLAYER_GROUP`), a debug index only; game systems find the player by its tag, `ActorState.PLAYER` (`actor.player`).
 - Systems register their own tabs with `DebugPanel.register_tab()`; the Player tab is registered by the player and removed with it ([movement.md](movement.md)).
 
 ## Interactions

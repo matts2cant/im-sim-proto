@@ -70,7 +70,7 @@ func bind(player: Node) -> void:
 	entity = player
 	_body = BodyParts.of(entity)
 	_tags = ActorState.tags_of(entity)
-	_inventory = _find_inventory(entity)
+	_inventory = PlayerInventory.of(entity)
 	if _inventory != null and not _inventory.message.is_connected(show_message):
 		_inventory.message.connect(show_message)
 	if not _built:
@@ -222,9 +222,9 @@ func _refresh_treatment() -> void:
 
 
 func _healing_stacks() -> Array[ItemStack]:
-	if _inventory == null or _inventory.inventory == null:
+	if _inventory == null or _inventory.grid == null:
 		return []
-	return HealthTabRules.healing_stacks(_inventory.inventory.stacks, heal_stimulus)
+	return HealthTabRules.healing_stacks(_inventory.stacks(), heal_stimulus)
 
 
 func _total_health() -> float:
@@ -236,15 +236,6 @@ func _total_health() -> float:
 
 func _report_healed(amount: float) -> void:
 	show_message("Healed %s" % CharacterTabStyle.number(amount))
-
-
-func _find_inventory(node: Node) -> PlayerInventory:
-	if node == null:
-		return null
-	for child in node.get_children():
-		if child is PlayerInventory:
-			return child as PlayerInventory
-	return null
 
 
 func _build() -> void:

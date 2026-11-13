@@ -6,13 +6,13 @@ extends RefCounted
 
 signal changed
 
-var inventory: Inventory
+var inventory: InventoryGrid
 ## Slot index 0 is key 1, index 9 is key 0. Null = empty.
 var slots: Array[ItemStack] = []
 var selected: int = -1
 
 
-func _init(p_inventory: Inventory, slot_count: int = 10) -> void:
+func _init(p_inventory: InventoryGrid, slot_count: int = 10) -> void:
 	inventory = p_inventory
 	slots.resize(slot_count)
 	inventory.stack_removed.connect(_on_stack_removed)

@@ -2,7 +2,7 @@ class_name Carryable
 extends Node
 ## Component of a physics body (a RigidBody3D prop, or a character's body: ADR 0071): the player can
 ## pick it up if its carry mass is within the carry limit (CarryRules). `carrier` is set by the
-## carrying actor (PlayerCarry) while it is held; being picked up wakes the bodies resting on it
+## carrying actor (Carrier) while it is held; being picked up wakes the bodies resting on it
 ## (SupportWake).
 ## - `enabled_tags`: offered only while the entity has one of these tags (a character only while
 ##   `state.unconscious` or `state.dead`); empty: always.

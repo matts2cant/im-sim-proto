@@ -7,7 +7,7 @@ extends Area3D
 ## EventLog: `level.exit {scene, by}`, `level.exit_refused {scene, reason}`.
 
 @export_file("*.tscn") var scene_path: String = ""
-@export var required_tag: StringName = &"actor.player"
+@export var required_tag: StringName = ActorState.PLAYER
 ## The box, metres (x, y, z), standing on the node's origin.
 @export var size: Vector3 = Vector3(1.0, 3.0, 2.0)
 

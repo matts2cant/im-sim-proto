@@ -13,7 +13,7 @@ extends Resource
 ## Shown at the extraction while a main objective without its own hint is missing.
 @export var extraction_hint: String = "Finish the main objective first"
 ## Tag of the entities that are the mission's player (spawned at PlayerSpawn when none is placed).
-@export var player_tag: StringName = &"actor.player"
+@export var player_tag: StringName = ActorState.PLAYER
 
 @export_group("Start")
 ## Given to the player at the start (nothing from elsewhere comes along).

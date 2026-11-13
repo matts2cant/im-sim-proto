@@ -10,7 +10,7 @@ const Wait := preload("res://tests/helpers/wait.gd")
 const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
-const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
+const CARRY: CarryConfig = preload("res://actors/common/carry/carry.tres")
 const GUARD_SCENE: PackedScene = preload("res://actors/guard/guard.tscn")
 const BODY_FEET := Vector3(-1.2, 0, -1.0)
 
@@ -33,9 +33,9 @@ func test_a_conscious_guard_is_not_offered() -> void:
 	await _load()
 	var guard := _guard([&"actor.guard"])
 	await _driver.frames(5)
-	assert_bool(PlayerCarry.can_offer(guard)).is_false()
+	assert_bool(Carrier.can_offer(guard)).is_false()
 	ActorState.set_tag(guard, ActorState.UNCONSCIOUS, true)
-	assert_bool(PlayerCarry.can_offer(guard)).is_true()
+	assert_bool(Carrier.can_offer(guard)).is_true()
 	assert_float(Carryable.mass_of(guard)).is_less(_player.carry.mass_limit())
 
 
@@ -60,7 +60,7 @@ func test_pick_up_carry_and_drop_a_downed_guard() -> void:
 	await _driver.frames(20)
 	# The middle of the body sits at the hold point (half-extent 0.9 m: 1.8 m long lying down).
 	var middle := PerceptionSensor.center_of(guard)
-	assert_float(middle.distance_to(CarryRules.hold_point(_player.eye_transform(), 0.9, CONFIG))).is_less(0.01)
+	assert_float(middle.distance_to(CarryRules.hold_point(_player.eye_transform(), 0.9, CARRY))).is_less(0.01)
 
 	await _driver.hold(&"drop_throw", 2)
 	assert_bool(_player.carry.is_carrying()).is_false()

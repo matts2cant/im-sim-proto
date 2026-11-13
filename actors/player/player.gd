@@ -1,8 +1,10 @@
 class_name Player
 extends CharacterBody3D
-## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects,
-## use things (Interactor; reading a datapad logs it in the PersonalLog), inventory and belt
-## (PlayerInventory), weapons (WeaponHolder) and body-part damage (BodyParts, Hitboxes).
+## First-person player: walk, sprint, crouch, jump, mantle, mouse look, carry and throw objects
+## (Carrier), use things (Interactor; reading a datapad logs it in the PersonalLog), inventory and belt
+## (PlayerInventory over the Inventory), weapons (WeaponHolder) and body-part damage (BodyParts,
+## Hitboxes). Carrying, interaction and the inventory are generic components (ADR 0139: any character
+## with Eyes can have them); this script maps the input to them and drives them each tick.
 ## A thin adapter over the pure rules (PlayerMotion, MantleRules, CarryRules); tuning comes from
 ## `config`. Origin is at the feet. Collision layer 2 (ADR 0045).
 ## Physics props do not collide with this body in the solver; the BodyPusher component pushes them
@@ -32,7 +34,6 @@ signal reset_requested
 
 const DEBUG_TAB: PackedScene = preload("res://ui/debug_panel/tabs/player_tab.tscn")
 const STATS_TAB: PackedScene = preload("res://ui/debug_panel/tabs/stats_tab.tscn")
-const GROUP: StringName = &"player"
 ## Belt keys, slot 0 first (key 1 ... key 0).
 const BELT_ACTIONS: Array[StringName] = [
 	&"belt_1", &"belt_2", &"belt_3", &"belt_4", &"belt_5", &"belt_6", &"belt_7", &"belt_8", &"belt_9", &"belt_0"
@@ -111,7 +112,7 @@ var _tool_latched: bool = false
 @onready var fall_impact: FallImpact = $FallImpact
 @onready var step: StepClimber = $Step
 @onready var pusher: BodyPusher = $Pusher
-@onready var carry: PlayerCarry = $Carry
+@onready var carry: Carrier = $Carry
 @onready var body: BodyParts = $BodyParts
 @onready var hitboxes: Hitboxes = $Hitboxes
 @onready var weapons: WeaponHolder = $Head/Camera/WeaponHolder
@@ -129,15 +130,12 @@ var _tool_latched: bool = false
 
 func _ready() -> void:
 	add_to_group(&"saveable")
-	add_to_group(GROUP)
-	carry.player = self
-	carry.config = config
+	add_to_group(DebugPanel.PLAYER_GROUP)
 	weapons.setup(self, _camera)
 	weapons.fired.connect(_on_weapon_fired)
 	_apply_view_settings()
 	GameSettings.notifier().changed.connect(_on_setting_changed)
-	inventory.setup(self)
-	interactor.player = self
+	inventory.setup(weapons)
 	body.died.connect(_on_died)
 	step.stepped.connect(_on_stepped)
 	_collision.shape = _collision.shape.duplicate()

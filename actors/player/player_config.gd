@@ -1,7 +1,8 @@
 class_name PlayerConfig
 extends Resource
-## Tuning for the first-person player controller. Movement noise, knockback and body tuning live in
-## their own components' .tres (player_movement_noise.tres, player_knockback.tres, player_body.tres).
+## Tuning for the first-person player controller. Movement noise, knockback, body, carry and
+## interaction tuning live in their own components' .tres (player_movement_noise.tres,
+## player_knockback.tres, player_body.tres, the Carrier's carry.tres, the Interactor's interactor.tres).
 ## The values live in player_config.tres; the script only declares them.
 ## Distances in metres, speeds in m/s, loudness in audible metres (ADR 0032).
 
@@ -52,31 +53,3 @@ extends Resource
 ## Airborne this long (s) before the aim counts as jumping/falling (a teleport or a step off a
 ## kerb does not bloom the cone).
 @export var aim_air_grace: float
-
-@export_group("Interact")
-## Reach of the Interactor ray from the eyes (E: pick up, use, carry; ADR 0051).
-@export var interact_reach: float
-
-@export_group("Carry")
-## Reach of the pick-up look ray from the eyes. The mass limit is the `carry_mass_limit` attribute.
-@export var carry_reach: float
-## Hold point (ADR 0053): the centre sits (base + largest half-extent) along the view from the eyes
-## and (drop + half-extent) lower on the screen. A release aims at least capsule radius +
-## half-extent + clearance out from the player's axis.
-@export var hold_base_distance: float
-@export var hold_drop: float
-@export var hold_clearance: float
-## Seconds the object takes to move to the hold point and turn upright after pick-up.
-@export var hold_turn_time: float
-## See-through amount of the held object's meshes (0 opaque, 1 invisible).
-@export var held_transparency: float
-## Release: the shape is cast from the chest (this far below the eyes, on the player's axis) to the
-## hold point and placed this many metres short of the first contact.
-@export var release_start_drop: float
-@export var release_margin: float
-## Throw: impulse along the view (N s); speed = min(max speed, impulse / mass).
-@export var throw_impulse: float
-@export var throw_max_speed: float
-## Carrying at least this mass (kg) multiplies the move speed by `heavy_carry_speed_factor`.
-@export var heavy_carry_mass: float
-@export var heavy_carry_speed_factor: float

@@ -6,6 +6,9 @@ extends RefCounted
 ## `state.unconscious`, handcuffs `state.arms_disabled`). Movement controllers write the stance tags
 ## that MovementNoise reads (ADR 0056). An entity without Tags has none of them.
 
+## The player character's kind tag: the one definition (game systems find and attribute to the
+## player by it, never by name, group or class; ADR 0136, ADR 0139).
+const PLAYER: StringName = &"actor.player"
 const DEAD: StringName = &"state.dead"
 const UNCONSCIOUS: StringName = &"state.unconscious"
 ## Both arms disabled (or bound): cannot use weapons.

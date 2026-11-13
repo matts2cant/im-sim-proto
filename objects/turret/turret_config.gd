@@ -8,7 +8,7 @@ extends Resource
 ## Target presets: the command type that selects it -> the hostile tags it sets. Each preset needs a
 ## receptron for its command type on the turret (`objects/devices/receptrons/command_target_*.tres`).
 @export var presets: Dictionary[StringName, Array] = {
-	&"command.target_intruders": [&"actor.player"],
+	&"command.target_intruders": [ActorState.PLAYER],
 	&"command.target_guards": [&"actor.guard"],
 }
 ## The preset a turret starts with.

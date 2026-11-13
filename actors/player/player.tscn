@@ -3,7 +3,9 @@
 [ext_resource type="Script" path="res://actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://actors/player/player_config.tres" id="2_config"]
 [ext_resource type="Script" path="res://actors/common/movement/movement_noise.gd" id="3_noise"]
-[ext_resource type="Script" path="res://actors/player/player_carry.gd" id="4_carry"]
+[ext_resource type="Script" path="res://actors/common/carry/carrier.gd" id="4_carry"]
+[ext_resource type="Resource" path="res://actors/common/carry/carry.tres" id="4_carry_config"]
+[ext_resource type="Script" path="res://actors/common/eyes/eyes.gd" id="4_eyes"]
 [ext_resource type="Script" path="res://core/attributes/tags.gd" id="5_tags"]
 [ext_resource type="Script" path="res://core/attributes/attributes.gd" id="6_attributes"]
 [ext_resource type="Script" path="res://core/stimulus/stimulus_receiver.gd" id="7_receiver"]
@@ -18,7 +20,8 @@
 [ext_resource type="Script" path="res://items/inventory/player_inventory.gd" id="19_inventory"]
 [ext_resource type="Resource" path="res://items/inventory/inventory_config.tres" id="20_inventory_config"]
 [ext_resource type="Resource" path="res://items/item_catalog.tres" id="21_catalog"]
-[ext_resource type="Script" path="res://actors/player/interactor.gd" id="22_interactor"]
+[ext_resource type="Script" path="res://actors/common/interaction/interactor.gd" id="22_interactor"]
+[ext_resource type="Resource" path="res://actors/common/interaction/interactor.tres" id="22_interactor_config"]
 [ext_resource type="PackedScene" path="res://ui/tab_interface/tab_interface.tscn" id="23_tab_interface"]
 [ext_resource type="PackedScene" path="res://ui/log/reading_overlay.tscn" id="24_reading_overlay"]
 [ext_resource type="Script" path="res://actors/common/personal_log/personal_log.gd" id="33_personal_log"]
@@ -115,8 +118,13 @@ config = ExtResource("25_movement_noise")
 max_polyphony = 2
 bus = &"Effects"
 
+[node name="Eyes" type="Node" parent="."]
+script = ExtResource("4_eyes")
+view_path = NodePath("../Head/Camera")
+
 [node name="Carry" type="Node" parent="."]
 script = ExtResource("4_carry")
+config = ExtResource("4_carry_config")
 
 [node name="Tags" type="Node" parent="."]
 script = ExtResource("5_tags")
@@ -145,9 +153,11 @@ profile = ExtResource("11_player_body")
 script = ExtResource("19_inventory")
 config = ExtResource("20_inventory_config")
 catalog = ExtResource("21_catalog")
+saved_by_entity = true
 
 [node name="Interactor" type="Node" parent="."]
 script = ExtResource("22_interactor")
+config = ExtResource("22_interactor_config")
 
 [node name="Notices" type="Node" parent="."]
 script = ExtResource("91_notices")

@@ -25,20 +25,13 @@ func access_id() -> StringName:
 	return data.access_id if data != null else &""
 
 
-## The `key_id`s of the keycards `user` carries (its inventory's item stacks with a `key_id`).
+## The `key_id`s of the keycards `user` carries (any character's Inventory).
 static func carried_key_ids(user: Node) -> Array[String]:
-	var ids: Array[String] = []
-	if user == null:
-		return ids
-	for child in user.get_children():
-		var carried := child as PlayerInventory
-		if carried == null or carried.inventory == null:
-			continue
-		for stack in carried.inventory.stacks:
-			var key := str(stack.state.get("key_id", ""))
-			if not key.is_empty():
-				ids.append(key)
-	return ids
+	var inventory := Inventory.of(user)
+	if inventory == null:
+		var none: Array[String] = []
+		return none
+	return inventory.key_ids()
 
 
 ## True when `actor` holds this reader's access: a keycard with its id, or an `access.<id>` tag.

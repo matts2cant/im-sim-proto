@@ -1,189 +1,245 @@
 class_name Inventory
-extends RefCounted
-## Pure Deus Ex style grid inventory (ADR 0050): stacks of items on a `size` grid of cells, each
-## covering its item's footprint (no rotation, no overlap). add() fills existing stacks of the same
-## item first, then places new stacks at the first free position scanning rows top to bottom, each
-## row left to right. Stackable items carry no instance state; items with state (weapons, keycards)
-## have max_stack 1.
+extends Node
+## Component of any character (ADR 0139): the items it carries. An InventoryGrid of item stacks
+## (ADR 0050) with the queries world systems ask (`Inventory.of(user)`: a keycard reader's key ids,
+## a mine giving its grenade back, exploits, the deck), picking up ItemPickups (a key goes onto the
+## holder's Keychain instead), the WeaponState of each weapon stack (its `magazine` state mirrors the
+## loaded rounds; spare rounds are the ammo stacks, InventoryAmmo) and fitting attachments to weapon
+## stacks (ADR 0085). Nothing here knows about a belt, a hand or input: the player's PlayerInventory
+## extends it with those. Saveable (group `saveable`) unless `saved_by_entity` (the Player saves its
+## own with its belt and hand).
+## EventLog: `item.picked_up`, `item.pickup_refused`, `item.attached`.
 
-## Any change (add, move, remove, split, load).
+## Any change of the stacks (add, move, remove, split, load).
 signal changed
-## A new stack was placed by add() or split() (the belt auto-assigns from this).
+## A new stack was placed (add, split).
 signal stack_added(stack: ItemStack)
-## A stack was emptied or removed; references to it (belt, hand) must go.
+## A stack was emptied or removed; references to it must go.
 signal stack_removed(stack: ItemStack)
+## Short feedback for the holder's own pages ("No room in inventory"); the same text goes to the
+## holder's Notices (the HUD).
+signal message(text: String)
 
-## No free position (first_free()).
-const NO_CELL := Vector2i(-1, -1)
+const NO_ROOM := "No room in inventory"
 
-var size: Vector2i
-## In placement order.
-var stacks: Array[ItemStack] = []
+## Grid size (and, for the player's layer, belt slots and drop tuning).
+@export var config: InventoryConfig
+## Item ids of saves and fitted attachments; the default catalogue when unset.
+@export var catalog: ItemCatalog
+@export var entity_path: NodePath = ^".."
+## The entity saves this inventory inside its own state (the Player): not in group `saveable`.
+@export var saved_by_entity: bool = false
 
+## The stacks, made in _ready from `config.grid_size`.
+var grid: InventoryGrid
+## The carrier (`entity_path`).
+var entity: Node
 
-func _init(p_size: Vector2i = Vector2i(6, 5)) -> void:
-	size = p_size
-
-
-## Adds `count` of `item` (new stacks start from item.make_state(`state`)). Returns how many did
-## not fit (0 when everything went in).
-func add(item: ItemData, count: int, state: Dictionary = {}) -> int:
-	var left := count
-	if item.stackable():
-		for stack in stacks:
-			if left <= 0:
-				break
-			if stack.item.id == item.id and stack.room() > 0:
-				var moved := mini(stack.room(), left)
-				stack.count += moved
-				left -= moved
-	var added: Array[ItemStack] = []
-	while left > 0:
-		var cell := first_free(item.footprint)
-		if cell == NO_CELL:
-			break
-		var amount := mini(left, maxi(item.max_stack, 1))
-		var stack := ItemStack.new(item, amount, item.make_state(state), cell)
-		stacks.append(stack)
-		added.append(stack)
-		left -= amount
-	if left != count:
-		changed.emit()
-	for stack in added:
-		stack_added.emit(stack)
-	return left
+var _weapon_states: Dictionary[ItemStack, WeaponState] = {}
 
 
-## First top-left cell where `footprint` fits, rows top to bottom, left to right; NO_CELL if none.
-func first_free(footprint: Vector2i) -> Vector2i:
-	for y in size.y - footprint.y + 1:
-		for x in size.x - footprint.x + 1:
-			if can_place(footprint, Vector2i(x, y)):
-				return Vector2i(x, y)
-	return NO_CELL
-
-
-## True when `footprint` at `cell` is inside the grid and overlaps no stack except `ignore`.
-func can_place(footprint: Vector2i, cell: Vector2i, ignore: ItemStack = null) -> bool:
-	var area := Rect2i(cell, footprint)
-	if cell.x < 0 or cell.y < 0 or area.end.x > size.x or area.end.y > size.y:
-		return false
-	for stack in stacks:
-		if stack != ignore and stack.rect().intersects(area):
-			return false
-	return true
-
-
-## Moves `stack` so its top-left is `cell`; false (and unchanged) when it does not fit there. The
-## stack's own old footprint does not block it.
-func move(stack: ItemStack, cell: Vector2i) -> bool:
-	if not stacks.has(stack) or not can_place(stack.item.footprint, cell, stack):
-		return false
-	if stack.cell != cell:
-		stack.cell = cell
-		changed.emit()
-	return true
-
-
-## Removes `count` from `stack` (all of it when < 0). An emptied stack leaves the grid
-## (`stack_removed`). Returns how many were removed.
-func remove(stack: ItemStack, count: int = -1) -> int:
-	if not stacks.has(stack):
-		return 0
-	var amount := stack.count if count < 0 else mini(count, stack.count)
-	stack.count -= amount
-	if stack.count <= 0:
-		stacks.erase(stack)
-		stack_removed.emit(stack)
-	changed.emit()
-	return amount
-
-
-## Splits `count` off `stack` into a new stack at the first free position. Null (and unchanged)
-## when count is not between 1 and stack.count - 1 or there is no room.
-func split(stack: ItemStack, count: int) -> ItemStack:
-	if not stacks.has(stack) or count <= 0 or count >= stack.count:
+## The Inventory component of `node` (the player's PlayerInventory is one), or null.
+static func of(node: Node) -> Inventory:
+	if node == null or not is_instance_valid(node):
 		return null
-	var cell := first_free(stack.item.footprint)
-	if cell == NO_CELL:
-		return null
-	stack.count -= count
-	var part := ItemStack.new(stack.item, count, stack.state.duplicate(true), cell)
-	stacks.append(part)
-	changed.emit()
-	stack_added.emit(part)
-	return part
-
-
-## The stack covering `cell`, or null.
-func stack_at(cell: Vector2i) -> ItemStack:
-	for stack in stacks:
-		if stack.rect().has_point(cell):
-			return stack
+	for child in node.get_children():
+		if child is Inventory:
+			return child as Inventory
 	return null
 
 
-## Total count of item `id` over all stacks.
-func count_of(id: StringName) -> int:
-	var total := 0
-	for stack in stacks:
-		if stack.item.id == id:
-			total += stack.count
-	return total
+func _ready() -> void:
+	entity = get_node_or_null(entity_path)
+	if catalog == null:
+		catalog = ItemCatalog.default()
+	grid = InventoryGrid.new(config.grid_size if config != null else Vector2i(6, 5))
+	_grid_made()
+	grid.changed.connect(changed.emit)
+	grid.stack_added.connect(_on_stack_added)
+	grid.stack_removed.connect(_on_stack_removed)
+	if not saved_by_entity:
+		add_to_group(&"saveable")
 
 
-## Stacks of item `id` in placement order.
-func stacks_of(id: StringName) -> Array[ItemStack]:
-	return stacks.filter(func(stack: ItemStack) -> bool: return stack.item.id == id)
+## The stacks carried, in placement order (the grid's own array: do not change it).
+func stacks() -> Array[ItemStack]:
+	return grid.stacks
 
 
-## Takes up to `count` of item `id`, emptying the smallest stacks first (they free their cells
-## sooner). Returns how many were taken.
-func take(id: StringName, count: int) -> int:
-	var sources := stacks_of(id)
-	sources.sort_custom(func(a: ItemStack, b: ItemStack) -> bool: return a.count < b.count)
-	var taken := 0
-	for stack in sources:
-		if taken >= count:
-			break
-		taken += remove(stack, count - taken)
-	return taken
+## True when `stack` is one of the stacks carried.
+func has(stack: ItemStack) -> bool:
+	return stack != null and grid.stacks.has(stack)
 
 
-func to_dict() -> Dictionary:
-	var saved: Array[Dictionary] = []
-	for stack in stacks:
-		(
-			saved
-			. append(
-				{
-					"id": String(stack.item.id),
-					"count": stack.count,
-					"state": stack.state.duplicate(true),
-					"cell": [stack.cell.x, stack.cell.y],
-				}
-			)
-		)
-	return {"size": [size.x, size.y], "stacks": saved}
+## How many of `item` it carries over all stacks.
+func count(item: ItemData) -> int:
+	return grid.count_of(item.id) if item != null else 0
 
 
-## Replaces the contents (no stack_added / stack_removed signals); unknown item ids are skipped
-## with a warning.
-func from_dict(data: Dictionary, catalog: ItemCatalog) -> void:
-	stacks.clear()
-	for entry: Dictionary in data.get("stacks", []):
-		var item := catalog.find(StringName(str(entry.get("id", ""))))
-		if item == null:
-			push_warning("Inventory: unknown item id '%s' skipped" % entry.get("id", ""))
-			continue
-		var cell: Array = entry.get("cell", [0, 0])
-		var state: Dictionary = entry.get("state", {})
-		stacks.append(
-			ItemStack.new(item, int(entry.get("count", 1)), state.duplicate(true), Vector2i(int(cell[0]), int(cell[1])))
-		)
-	changed.emit()
+## Adds `amount` of `item` (new stacks start from item.make_state(`state`)). Returns how many did not
+## fit (0: everything went in). A keychain item (a key) goes onto the holder's Keychain instead (0:
+## taken; `amount` when there is no keychain).
+func add(item: ItemData, amount: int = 1, state: Dictionary = {}) -> int:
+	if item.keychain:
+		var keychain := Keychain.of(entity)
+		if keychain == null:
+			return amount
+		var full := item.make_state(state)
+		keychain.add(StringName(str(full.get(ItemStack.KEY_ID, ""))), Keychain.key_name_of(item, full))
+		return 0
+	return grid.add(item, amount, state)
 
 
-## Index of `stack` in `stacks` (saves reference stacks by index), -1 when absent.
-func index_of(stack: ItemStack) -> int:
-	return stacks.find(stack) if stack != null else -1
+## Same as add() (debug Give item, mission starting kits, tests).
+func give(item: ItemData, amount: int, state: Dictionary = {}) -> int:
+	return add(item, amount, state)
+
+
+## Takes up to `amount` of `item`, emptying the smallest stacks first. Returns how many were taken.
+func take(item: ItemData, amount: int) -> int:
+	return grid.take(item.id, amount) if item != null else 0
+
+
+## Removes `amount` from `stack` (all of it when < 0). Returns how many were removed.
+func remove(stack: ItemStack, amount: int = -1) -> int:
+	return grid.remove(stack, amount)
+
+
+## The `key_id`s of the stacks carried that have one (keycards).
+func key_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for stack in grid.stacks:
+		var key := str(stack.state.get(ItemStack.KEY_ID, ""))
+		if not key.is_empty():
+			ids.append(key)
+	return ids
+
+
+## Puts what fits of `pickup` in; the rest stays in the world. False (and a "No room in inventory"
+## message) when nothing fits. A key goes onto the holder's Keychain ("Key added to the keychain:
+## <name>"), never into the grid.
+func pick_up(pickup: ItemPickup) -> bool:
+	if pickup.item.keychain:
+		return _take_key(pickup)
+	var offered := pickup.count
+	var left := add(pickup.item, offered, pickup.state)
+	var item_name := String(pickup.item.id)
+	if left >= offered:
+		var refused := {"item": item_name, "count": offered, "reason": "no_room"}
+		EventLog.record(EventKinds.ITEM_PICKUP_REFUSED, _who(), String(pickup.entity().name), refused)
+		_say(NO_ROOM)
+		return false
+	var data := {"item": item_name, "count": offered - left, "left": left}
+	EventLog.record(EventKinds.ITEM_PICKED_UP, entity, String(pickup.entity().name), data)
+	if left > 0:
+		pickup.count = left
+		_say("%s (%d left behind)" % [NO_ROOM, left])
+	else:
+		pickup.consume()
+	return true
+
+
+## The WeaponState of a weapon stack (made on first use from its `magazine` state, with the
+## attachments its state records fitted).
+func weapon_state(stack: ItemStack) -> WeaponState:
+	if not _weapon_states.has(stack):
+		var data := stack.item.weapon
+		var ammo: AmmoPool = InventoryAmmo.new(grid, data.ammo_item) if data.uses_ammo() else AmmoPool.new()
+		var state := WeaponState.new(data, ammo)
+		state.magazine = int(stack.state.get(ItemStack.MAGAZINE, data.magazine_size))
+		for attachment in Attachments.fitted(stack.state, catalog):
+			state.attach(attachment)
+		_weapon_states[stack] = state
+	return _weapon_states[stack]
+
+
+## True when the attachment item of `attachment` can be fitted to the weapon stack `weapon_stack`
+## (its slot accepted and free; ADR 0085).
+func can_attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
+	if attachment == null or weapon_stack == null or attachment == weapon_stack:
+		return false
+	if not has(attachment) or not has(weapon_stack):
+		return false
+	return Attachments.can_attach(weapon_stack.item, weapon_stack.state, attachment.item)
+
+
+## The weapon stacks `attachment` can be fitted to (the Inventory tab highlights them).
+func attach_targets(attachment: ItemStack) -> Array[ItemStack]:
+	var result: Array[ItemStack] = []
+	for stack in grid.stacks:
+		if can_attach(attachment, stack):
+			result.append(stack)
+	return result
+
+
+## Fits one of `attachment` to `weapon_stack` for good: the weapon's state records it (kept when
+## dropped, saved), its WeaponState applies its modifiers and one attachment is used up. False (and
+## nothing changes) when it does not fit.
+func attach(attachment: ItemStack, weapon_stack: ItemStack) -> bool:
+	if not can_attach(attachment, weapon_stack):
+		return false
+	var item := attachment.item
+	Attachments.attach(weapon_stack.state, item)
+	if _weapon_states.has(weapon_stack):
+		_weapon_states[weapon_stack].attach(item.attachment)
+	grid.remove(attachment, 1)
+	grid.changed.emit()
+	var data := {"item": String(item.id), "weapon": String(weapon_stack.item.id)}
+	EventLog.record(EventKinds.ITEM_ATTACHED, _who(), "", data)
+	_say("%s fitted: %s" % [item.display_name, weapon_stack.display_name()])
+	return true
+
+
+func save_state() -> Dictionary:
+	_sync_magazines()
+	return {"inventory": grid.to_dict()}
+
+
+func load_state(data: Dictionary) -> void:
+	_weapon_states.clear()
+	grid.from_dict(data.get("inventory", {}), catalog)
+
+
+# Called once the grid exists, before this component listens to it (an extension's own listeners on
+# the grid, such as the player's Belt, run first).
+func _grid_made() -> void:
+	pass
+
+
+# Each weapon stack's `magazine` state takes its WeaponState's loaded rounds (saving, dropping).
+func _sync_magazines() -> void:
+	for stack: ItemStack in _weapon_states:
+		stack.state[ItemStack.MAGAZINE] = _weapon_states[stack].magazine
+
+
+func _on_stack_added(stack: ItemStack) -> void:
+	stack_added.emit(stack)
+
+
+func _on_stack_removed(stack: ItemStack) -> void:
+	_weapon_states.erase(stack)
+	stack_removed.emit(stack)
+
+
+# A key pickup onto the holder's Keychain (EventLog `item.picked_up` like any pickup).
+func _take_key(pickup: ItemPickup) -> bool:
+	var keychain := Keychain.of(entity)
+	var key_name := Keychain.key_name_of(pickup.item, pickup.stack_state())
+	var entity_name := String(pickup.entity().name)
+	if keychain == null or not keychain.take(pickup):
+		return false
+	EventLog.record(
+		EventKinds.ITEM_PICKED_UP, entity, entity_name, {"item": String(pickup.item.id), "count": 1, "left": 0}
+	)
+	_say(Keychain.ADDED % key_name)
+	return true
+
+
+func _who() -> String:
+	return String(entity.name) if is_instance_valid(entity) else ""
+
+
+# Feedback: the holder's pages (`message`) and its Notices (the HUD).
+func _say(text: String) -> void:
+	message.emit(text)
+	Notices.send(entity, text)

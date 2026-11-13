@@ -1,208 +1,137 @@
 extends GdUnitTestSuite
-## Unit: Inventory grid placement (scan order, footprints), stack merging and overflow, refusal when
-## full, move validity, remove, split, take, and the to_dict / from_dict round trip.
+## Integration (ADR 0139): the Inventory component on minimal non-player entities (stimulus fixtures
+## with an Inventory child): found with Inventory.of(), its queries (stacks, count, key ids), add /
+## take / remove, a key going onto the holder's Keychain, its own save (saveable unless the entity
+## saves it), and a keycard reader opening for a carried keycard. The player's layer over it (belt,
+## hand) is in player_inventory_test.gd.
 
 const Items := preload("res://tests/items/item_test_helpers.gd")
+const Fixtures := preload("res://tests/core/stimulus/stimulus_fixtures.gd")
+const CONFIG: InventoryConfig = preload("res://items/inventory/inventory_config.tres")
+const KEY: ItemData = preload("res://items/key/key.tres")
+const ORIGIN := Vector3(-640, 0, 220)
 
-var _inventory: Inventory
+var _root: Node3D
 
 
 func before_test() -> void:
-	_inventory = Inventory.new(Vector2i(6, 5))
+	EventLog.clear()
+	_root = auto_free(Node3D.new()) as Node3D
+	add_child(_root)
 
 
-func test_new_stacks_scan_rows_top_to_bottom_left_to_right() -> void:
-	var square := Items.make_item(&"square", Vector2i(1, 1))
+func test_any_entity_finds_its_inventory_and_counts_what_it_carries() -> void:
+	var holder := _holder("Guard")
+	var bare := Fixtures.entity(_root, "Bare", ORIGIN + Vector3(2, 0, 0), [])
+	var inventory := Inventory.of(holder)
 
-	for i in 8:
-		assert_int(_inventory.add(square, 1)).is_equal(0)
+	assert_object(inventory).is_not_null()
+	assert_object(Inventory.of(bare)).is_null()
+	assert_object(Inventory.of(null)).is_null()
+	assert_object(inventory.entity).is_same(holder)
+	assert_int(inventory.add(Items.AMMO, 25)).is_equal(0)
+	assert_int(inventory.add(Items.PISTOL, 1)).is_equal(0)
 
-	var cells := _inventory.stacks.map(func(stack: ItemStack) -> Vector2i: return stack.cell)
-	(
-		assert_array(cells)
-		. contains_exactly(
-			[
-				Vector2i(0, 0),
-				Vector2i(1, 0),
-				Vector2i(2, 0),
-				Vector2i(3, 0),
-				Vector2i(4, 0),
-				Vector2i(5, 0),
-				Vector2i(0, 1),
-				Vector2i(1, 1),
-			]
-		)
-	)
+	assert_int(inventory.count(Items.AMMO)).is_equal(25)
+	assert_int(inventory.count(Items.PISTOL)).is_equal(1)
+	assert_int(inventory.count(Items.MEDKIT)).is_equal(0)
+	assert_int(inventory.stacks().size()).is_equal(2)
+	assert_bool(inventory.has(inventory.stacks()[0])).is_true()
+	assert_bool(inventory.has(ItemStack.new(Items.AMMO, 1))).is_false()
 
 
-func test_footprints_skip_occupied_cells() -> void:
-	var pistol := Items.make_item(&"pistol", Vector2i(2, 1))
-	var baton := Items.make_item(&"baton", Vector2i(1, 3))
-	var square := Items.make_item(&"square", Vector2i(1, 1))
-
-	_inventory.add(square, 1)
-	_inventory.add(pistol, 1)
-	_inventory.add(baton, 1)
-	_inventory.add(pistol, 1)
-
-	assert_vector(_inventory.stacks[1].cell).is_equal(Vector2i(1, 0))
-	# The baton's 1 x 3 column first fits at (3, 0).
-	assert_vector(_inventory.stacks[2].cell).is_equal(Vector2i(3, 0))
-	assert_vector(_inventory.stacks[3].cell).is_equal(Vector2i(4, 0))
-	assert_object(_inventory.stack_at(Vector2i(3, 2))).is_same(_inventory.stacks[2])
-	assert_object(_inventory.stack_at(Vector2i(2, 0))).is_same(_inventory.stacks[1])
-	assert_object(_inventory.stack_at(Vector2i(0, 1))).is_null()
-
-
-func test_tall_item_needs_rows_below() -> void:
-	var baton := Items.make_item(&"baton", Vector2i(1, 3))
-	var row := Items.make_item(&"row", Vector2i(6, 1))
-	_inventory.add(row, 1)
-	_inventory.add(row, 1)
-	_inventory.add(row, 1)
-
-	# Rows 3 and 4 are free: two rows, not three.
-	assert_int(_inventory.add(baton, 1)).is_equal(1)
-	assert_vector(_inventory.first_free(Vector2i(6, 2))).is_equal(Vector2i(0, 3))
-
-
-func test_stackables_merge_into_existing_stacks_first() -> void:
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	_inventory.add(ammo, 60)
-	_inventory.add(Items.make_item(&"square", Vector2i(1, 1)), 1)
-
-	assert_int(_inventory.add(ammo, 70)).is_equal(0)
-
-	assert_int(_inventory.stacks.size()).is_equal(3)
-	assert_int(_inventory.stacks[0].count).is_equal(100)
-	assert_int(_inventory.stacks[2].count).is_equal(30)
-	assert_vector(_inventory.stacks[2].cell).is_equal(Vector2i(2, 0))
-	assert_int(_inventory.count_of(&"ammo")).is_equal(130)
-
-
-func test_overflow_returns_what_did_not_fit() -> void:
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	var block := Items.make_item(&"block", Vector2i(6, 5))
-	var small := Inventory.new(Vector2i(2, 1))
-
-	assert_int(small.add(ammo, 250)).is_equal(50)
-	assert_int(small.count_of(&"ammo")).is_equal(200)
-	assert_int(_inventory.add(block, 1)).is_equal(0)
-	assert_int(_inventory.add(block, 1)).is_equal(1)
-
-
-func test_full_inventory_refuses_and_stays_unchanged() -> void:
-	var square := Items.make_item(&"square", Vector2i(1, 1))
-	var changes: Array[int] = [0]
-	for i in 30:
-		_inventory.add(square, 1)
-	_inventory.changed.connect(func() -> void: changes[0] += 1)
-
-	assert_int(_inventory.add(square, 1)).is_equal(1)
-	assert_int(_inventory.stacks.size()).is_equal(30)
-	assert_int(changes[0]).is_equal(0)
-	# A full stack of a stackable item takes nothing more either.
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 5)
-	var one := Inventory.new(Vector2i(1, 1))
-	one.add(ammo, 5)
-	assert_int(one.add(ammo, 2)).is_equal(2)
-
-
-func test_items_with_state_never_merge_and_copy_their_state() -> void:
-	var pistol := Items.make_item(&"pistol", Vector2i(2, 1), 1, {"magazine": 10})
-
-	_inventory.add(pistol, 2, {"magazine": 3})
-
-	assert_int(_inventory.stacks.size()).is_equal(2)
-	assert_int(_inventory.stacks[0].state["magazine"]).is_equal(3)
-	_inventory.stacks[0].state["magazine"] = 7
-	assert_int(_inventory.stacks[1].state["magazine"]).is_equal(3)
-	assert_dict(pistol.default_state).is_equal({"magazine": 10})
-
-
-func test_move_checks_bounds_overlap_and_ignores_its_own_footprint() -> void:
-	var pistol := Items.make_item(&"pistol", Vector2i(2, 1))
-	var square := Items.make_item(&"square", Vector2i(1, 1))
-	_inventory.add(pistol, 1)
-	_inventory.add(square, 1)
-	var gun := _inventory.stacks[0]
-	var box := _inventory.stacks[1]
-
-	assert_bool(_inventory.move(gun, Vector2i(5, 0))).is_false()
-	assert_bool(_inventory.move(gun, Vector2i(-1, 0))).is_false()
-	assert_bool(_inventory.move(gun, Vector2i(0, 5))).is_false()
-	assert_bool(_inventory.move(gun, Vector2i(1, 0))).is_false()
-	assert_vector(gun.cell).is_equal(Vector2i(0, 0))
-	# One cell down overlaps nothing; then back up overlapping only its own old cells.
-	assert_bool(_inventory.move(gun, Vector2i(0, 1))).is_true()
-	assert_bool(_inventory.move(box, Vector2i(1, 0))).is_true()
-	assert_bool(_inventory.move(gun, Vector2i(1, 1))).is_true()
-	assert_vector(gun.cell).is_equal(Vector2i(1, 1))
-	assert_bool(_inventory.move(gun, Vector2i(4, 4))).is_true()
-	assert_bool(_inventory.move(ItemStack.new(square), Vector2i(0, 0))).is_false()
-
-
-func test_remove_and_split() -> void:
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	_inventory.add(ammo, 40)
-	var stack := _inventory.stacks[0]
+func test_take_and_remove_change_the_count_and_report_what_moved() -> void:
+	var inventory := Inventory.of(_holder("Guard"))
+	inventory.add(Items.AMMO, 30)
 	var removed: Array[ItemStack] = []
-	_inventory.stack_removed.connect(func(gone: ItemStack) -> void: removed.append(gone))
+	inventory.stack_removed.connect(func(stack: ItemStack) -> void: removed.append(stack))
 
-	var part := _inventory.split(stack, 15)
-
-	assert_int(stack.count).is_equal(25)
-	assert_int(part.count).is_equal(15)
-	assert_vector(part.cell).is_equal(Vector2i(1, 0))
-	assert_object(_inventory.split(stack, 25)).is_null()
-	assert_object(_inventory.split(stack, 0)).is_null()
-	assert_int(_inventory.remove(part, 5)).is_equal(5)
-	assert_int(part.count).is_equal(10)
-	assert_array(removed).is_empty()
-	assert_int(_inventory.remove(part)).is_equal(10)
-	assert_array(removed).contains_exactly([part])
-	assert_bool(_inventory.stacks.has(part)).is_false()
+	assert_int(inventory.take(Items.AMMO, 12)).is_equal(12)
+	assert_int(inventory.count(Items.AMMO)).is_equal(18)
+	assert_int(inventory.take(Items.AMMO, 40)).is_equal(18)
+	assert_int(inventory.count(Items.AMMO)).is_equal(0)
+	assert_array(removed).has_size(1)
+	inventory.add(Items.MEDKIT, 2)
+	assert_int(inventory.remove(inventory.stacks()[0], 1)).is_equal(1)
+	assert_int(inventory.count(Items.MEDKIT)).is_equal(1)
 
 
-func test_split_needs_a_free_cell() -> void:
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	var one := Inventory.new(Vector2i(1, 1))
-	one.add(ammo, 40)
+func test_keycards_give_their_key_ids_and_keys_go_on_the_keychain() -> void:
+	var holder := _holder("Guard", true)
+	var inventory := Inventory.of(holder)
+	inventory.add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "vault"})
+	inventory.add(Items.MEDKIT, 1)
 
-	assert_object(one.split(one.stacks[0], 10)).is_null()
-	assert_int(one.stacks[0].count).is_equal(40)
+	assert_int(inventory.add(KEY, 1, {ItemStack.KEY_ID: "gate", ItemStack.KEY_NAME: "Gate padlock"})).is_equal(0)
 
-
-func test_take_empties_the_smallest_stacks_first() -> void:
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	_inventory.add(ammo, 100)
-	_inventory.add(ammo, 30)
-	_inventory.split(_inventory.stacks[0], 95)
-	# Stacks: 5, 30, 95.
-
-	assert_int(_inventory.take(&"ammo", 10)).is_equal(10)
-
-	var counts := _inventory.stacks.map(func(stack: ItemStack) -> int: return stack.count)
-	assert_array(counts).contains_exactly([25, 95])
-	assert_int(_inventory.take(&"ammo", 500)).is_equal(120)
-	assert_array(_inventory.stacks).is_empty()
+	assert_array(inventory.key_ids()).contains_exactly(["vault"])
+	assert_bool(Keychain.of(holder).has_key(&"gate")).is_true()
+	assert_int(inventory.count(KEY)).is_equal(0)
+	# Without a keychain a key does not fit anywhere.
+	var other := Inventory.of(_holder("Other"))
+	assert_int(other.add(KEY, 1, {ItemStack.KEY_ID: "gate"})).is_equal(1)
 
 
-func test_to_dict_round_trip() -> void:
-	var catalog := ItemCatalog.new()
-	var pistol := Items.make_item(&"pistol", Vector2i(2, 1), 1, {"magazine": 10})
-	var ammo := Items.make_item(&"ammo", Vector2i(1, 1), 100)
-	catalog.items.assign([pistol, ammo])
-	_inventory.add(pistol, 1, {"magazine": 4})
-	_inventory.add(ammo, 130)
-	_inventory.move(_inventory.stacks[0], Vector2i(3, 2))
+func test_a_keycard_carried_by_a_minimal_character_opens_its_reader() -> void:
+	var box := _reader_box(&"vault")
+	var reader := box.get_node("Reader") as KeycardLock
+	var guard := _holder("Guard")
+	var stranger := _holder("Stranger")
+	Inventory.of(stranger).add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "office"})
 
-	var copy := Inventory.new(Vector2i(6, 5))
-	copy.from_dict(_inventory.to_dict(), catalog)
+	assert_bool(reader.use_locked(guard)).is_false()
+	Inventory.of(guard).add(Items.KEYCARD, 1, {ItemStack.KEY_ID: "vault"})
 
-	assert_int(copy.stacks.size()).is_equal(3)
-	assert_object(copy.stacks[0].item).is_same(pistol)
-	assert_vector(copy.stacks[0].cell).is_equal(Vector2i(3, 2))
-	assert_int(copy.stacks[0].state["magazine"]).is_equal(4)
-	assert_int(copy.count_of(&"ammo")).is_equal(130)
-	assert_dict(copy.to_dict()).is_equal(_inventory.to_dict())
+	assert_bool(reader.use_locked(stranger)).is_false()
+	assert_bool(reader.grants_passage(guard)).is_true()
+	assert_bool(reader.use_locked(guard)).is_true()
+	assert_str(String(EventLog.find(&"lock.granted")[0].data["how"])).is_equal("keycard")
+
+
+func test_saves_its_stacks_unless_the_entity_saves_it() -> void:
+	var inventory := Inventory.of(_holder("Guard"))
+	inventory.add(Items.PISTOL, 1, {ItemStack.MAGAZINE: 4})
+	inventory.add(Items.AMMO, 7)
+	inventory.weapon_state(inventory.stacks()[0]).magazine = 3
+	var saved := inventory.save_state()
+	var copy := Inventory.of(_holder("Copy"))
+
+	copy.load_state(saved)
+
+	assert_bool(inventory.is_in_group(&"saveable")).is_true()
+	assert_int(copy.count(Items.AMMO)).is_equal(7)
+	assert_int(copy.weapon_state(copy.stacks()[0]).magazine).is_equal(3)
+	var owned := Inventory.new()
+	owned.config = CONFIG
+	owned.saved_by_entity = true
+	Fixtures.entity(_root, "Owner", ORIGIN, []).add_child(owned)
+	assert_bool(owned.is_in_group(&"saveable")).is_false()
+
+
+# A minimal entity (Tags, Attributes, StimulusReceiver) with an Inventory and optionally a Keychain.
+func _holder(holder_name: String, keychain: bool = false) -> Node3D:
+	var entity := Node3D.new()
+	var inventory := Inventory.new()
+	inventory.name = "Inventory"
+	inventory.config = CONFIG
+	entity.add_child(inventory)
+	if keychain:
+		var keys := Keychain.new()
+		keys.name = "Keychain"
+		entity.add_child(keys)
+	return Fixtures.compose(entity, _root, holder_name, ORIGIN, [])
+
+
+# A locked minimal entity with a keycard reader for `access_id`.
+func _reader_box(access_id: StringName) -> Node3D:
+	var box := Node3D.new()
+	var lockable := Lockable.new()
+	lockable.name = "Lockable"
+	lockable.locked = true
+	box.add_child(lockable)
+	var reader := KeycardLock.new()
+	reader.name = "Reader"
+	reader.data = KeycardLockData.new()
+	reader.data.access_id = access_id
+	box.add_child(reader)
+	return Fixtures.compose(box, _root, "Box", ORIGIN + Vector3(0, 0, -2), [])

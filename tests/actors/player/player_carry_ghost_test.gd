@@ -7,6 +7,7 @@ const PlayerDriver := preload("res://tests/actors/player/player_driver.gd")
 const Objects := preload("res://tests/objects/object_test_helpers.gd")
 const ROOM := "res://tests/objects/fixtures/carry_room.tscn"
 const CONFIG: PlayerConfig = preload("res://actors/player/player_config.tres")
+const CARRY: CarryConfig = preload("res://actors/common/carry/carry.tres")
 const WALL_FACE_Z := -5.8
 const ALL_MASK := PhysicsLayers.WORLD | PhysicsLayers.PLAYER | PhysicsLayers.ACTORS | PhysicsLayers.OBJECTS
 
@@ -133,7 +134,7 @@ func test_release_never_overlaps_and_starts_from_the_free_spot() -> void:
 	assert_vector(crate.global_position).is_equal_approx(spot["transform"].origin, Vector3.ONE * 0.0001)
 	assert_float(crate.global_position.z).is_greater(_hold_point(0.3).z)
 	assert_bool(_overlaps(crate)).is_false()
-	assert_float(crate.linear_velocity.length()).is_equal_approx(CarryRules.throw_speed(crate.mass, CONFIG), 0.0001)
+	assert_float(crate.linear_velocity.length()).is_equal_approx(CarryRules.throw_speed(crate.mass, CARRY), 0.0001)
 
 
 func test_put_down_onto_a_crate_stacks_it() -> void:
@@ -169,8 +170,8 @@ func test_transparency_and_collision_layers_are_restored_exactly() -> void:
 	_player.carry.pick_up(crate)
 	await _driver.frames(5)
 
-	assert_float(mesh.transparency).is_equal_approx(CONFIG.held_transparency, 0.0001)
-	assert_float(csg.transparency).is_equal_approx(CONFIG.held_transparency, 0.0001)
+	assert_float(mesh.transparency).is_equal_approx(CARRY.held_transparency, 0.0001)
+	assert_float(csg.transparency).is_equal_approx(CARRY.held_transparency, 0.0001)
 	assert_int(crate.collision_layer).is_equal(0)
 	assert_int(crate.collision_mask).is_equal(0)
 
@@ -192,7 +193,7 @@ func test_burning_crate_fire_stays_opaque_and_still_hurts() -> void:
 	await _driver.frames(70)
 
 	for node in crate.find_children("*", "GeometryInstance3D", true, false):
-		var fade := 0.0 if PlayerCarry._in_fire_fx(node, crate) else CONFIG.held_transparency
+		var fade := 0.0 if Carrier._in_fire_fx(node, crate) else CARRY.held_transparency
 		assert_float((node as GeometryInstance3D).transparency).is_equal_approx(fade, 0.0001)
 	assert_float(_player.body.health(&"torso")).is_less(100.0)
 
@@ -208,7 +209,7 @@ func _spawn(path: String, position: Vector3) -> RigidBody3D:
 
 
 func _hold_point(half_extent: float) -> Vector3:
-	return CarryRules.hold_point(_player.eye_transform(), half_extent, CONFIG)
+	return CarryRules.hold_point(_player.eye_transform(), half_extent, CARRY)
 
 
 # True when the body's shape at its current transform overlaps the world, player, actors or objects.
