@@ -20,6 +20,8 @@ const ENERGY := Color("4dbfff")
 const OK := Color("4fd36a")
 const WARN := Color("e8c547")
 const BAD := Color("e5534b")
+## A keycard's icon on the keychain (KeyIcon).
+const CARD := Color("73d9ff")
 ## The world behind the panel, dimmed but visible.
 const WORLD_DIM := Color(4.0 / 255.0, 6.0 / 255.0, 8.0 / 255.0, 0.55)
 ## The Tab interface's type variations.
