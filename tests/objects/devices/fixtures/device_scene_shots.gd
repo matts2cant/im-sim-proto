@@ -17,8 +17,12 @@ const SHOTS: Dictionary[String, Array] = {
 	"bay_closed_0m6": [Vector3(0.1, EYE, -1.85), Vector3(0.0, 1.45, -2.45), false],
 	"siren_on": [Vector3(1.6, EYE, -1.3), Vector3(1.6, 2.35, -2.95), false],
 	"wall_devices": [Vector3(1.6, EYE, -1.6), Vector3(1.6, 1.0, -2.95), false],
+	"siren_on_0m7": [Vector3(1.6, 2.2, -2.3), Vector3(1.6, 2.4, -3.0), false],
+	"jack_0m6": [Vector3(2.0, 0.9, -2.5), Vector3(2.0, 0.4, -3.0), false],
+	"panic_0m6": [Vector3(1.2, 1.5, -2.45), Vector3(1.2, 1.3, -3.0), false],
 	"bay_open_1m5": [Vector3(0.3, EYE, -1.0), Vector3(0, 1.1, -2.6), true],
 	"bay_units_0m5": [Vector3(0.05, 1.6, -1.95), Vector3(0.0, 1.45, -2.45), true],
+	"switch_ports_0m4": [Vector3(0.0, 1.45, -2.25), Vector3(-0.02, 1.415, -2.66), true],
 }
 
 var _camera: Camera3D
